@@ -46,7 +46,6 @@
     <string name="nc_transaction_broadcast_successful">Transaction has been broadcast</string>
     <string name="nc_transaction_cancelled">Transaction cancelled</string>
     <string name="nc_transaction_removed">Transaction removed</string>
-    <string name="nc_transaction_imported">Transaction imported</string>
     <string name="nc_transaction_imported_failed">Import failed :</string>
     <string name="nc_export_transaction_file">Export transaction via file</string>
     <string name="nc_input_fee_invalid_error">Rate cannot be lower than the minimum fee rate</string>

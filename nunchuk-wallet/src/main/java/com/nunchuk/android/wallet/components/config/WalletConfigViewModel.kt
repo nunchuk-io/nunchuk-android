@@ -37,7 +37,9 @@ import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
+import com.nunchuk.android.usecase.membership.ImportTxCoinControlUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
@@ -65,6 +67,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
+    private val importTxCoinControlUseCase: ImportTxCoinControlUseCase,
+    private val exportTxCoinControlUseCase: ExportTxCoinControlUseCase,
     getContactsUseCase: GetContactsUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
@@ -302,6 +306,31 @@ internal class WalletConfigViewModel @Inject constructor(
         } else {
             setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
         }
+    }
+
+    fun importTxCoinControl(filePath: String) = viewModelScope.launch {
+        setEvent(WalletConfigEvent.Loading(true))
+        val result = importTxCoinControlUseCase(ImportTxCoinControlUseCase.Param(walletId = walletId, data = filePath))
+        setEvent(WalletConfigEvent.Loading(false))
+        if (result.isSuccess) {
+            setEvent(WalletConfigEvent.ImportTxCoinControlSuccess)
+        } else {
+            setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    fun exportTxCoinControl() = viewModelScope.launch {
+            when (val event = createShareFileUseCase.execute("${walletId}.json")) {
+                is Result.Success -> {
+                    val result = exportTxCoinControlUseCase(ExportTxCoinControlUseCase.Param(walletId = walletId, filePath = event.data))
+                    if (result.isSuccess) {
+                        setEvent(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
+                    } else {
+                        setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+                    }
+                }
+                is Result.Error -> showError(event.exception)
+            }
     }
 
     private fun isPrimaryKey(id: String) =

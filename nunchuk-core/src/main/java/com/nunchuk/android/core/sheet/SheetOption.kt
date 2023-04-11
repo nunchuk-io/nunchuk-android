@@ -109,4 +109,7 @@ object SheetOptionType {
     const val TYPE_VIEW_COLLECTION_SETTING = 54
     const val TYPE_REMOVE_COIN_FROM_COLLECTION = 55
     const val TYPE_MOVE_COIN_TO_COLLECTION = 56
+
+    const val TYPE_IMPORT_TX_COIN_CONTROL = 57
+    const val TYPE_EXPORT_TX_COIN_CONTROL = 58
 }
