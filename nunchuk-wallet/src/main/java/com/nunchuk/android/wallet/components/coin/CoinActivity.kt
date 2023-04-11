@@ -36,6 +36,7 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
             when (intent.serializable<CoinScreen>(KEY_SCREEN)!!) {
                 CoinScreen.SELECTION_VIEW -> R.id.coinListFragment
                 CoinScreen.DETAIL -> R.id.coinDetailFragment
+                CoinScreen.SEARCH -> R.id.coinSearchFragment
             }
         )
         navHostFragment.navController.setGraph(graph, intent.extras)
@@ -64,10 +65,12 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
         ) = Intent(context, CoinActivity::class.java).apply {
             putExtra(KEY_WALLET_ID, walletId)
             putExtra(KEY_TX_ID, txId)
-            putExtra(KEY_SCREEN, CoinScreen.SELECTION_VIEW)
             putExtra(KEY_AMOUNT, amount.toAmount())
             if (inputs.isNotEmpty()) {
                 putExtra(KEY_INPUT, inputs.toTypedArray())
+                putExtra(KEY_SCREEN, CoinScreen.SEARCH)
+            } else {
+                putExtra(KEY_SCREEN, CoinScreen.SELECTION_VIEW)
             }
         }
 

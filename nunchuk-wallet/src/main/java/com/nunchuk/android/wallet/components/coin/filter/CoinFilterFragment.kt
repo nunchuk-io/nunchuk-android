@@ -524,9 +524,9 @@ private fun SwitchAmount(isBtc: Boolean, onSwitchBtcAndCurrency: (Boolean) -> Un
         )
         Text(
             modifier = Modifier.padding(horizontal = 8.dp),
-            text = if (isBtc) stringResource(id = R.string.nc_transaction_switch_to_btc) else stringResource(
+            text = if (isBtc) stringResource(
                 R.string.nc_transaction_switch_to_currency_data, LOCAL_CURRENCY
-            ),
+            ) else stringResource(id = R.string.nc_transaction_switch_to_btc),
             textDecoration = TextDecoration.Underline,
             style = NunchukTheme.typography.titleSmall
         )

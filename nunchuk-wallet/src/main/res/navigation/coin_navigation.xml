@@ -28,17 +28,6 @@
             android:name="list_type"
             android:defaultValue="ALL"
             app:argType="com.nunchuk.android.wallet.components.coin.list.CoinListType" />
-        <argument
-            android:name="inputs"
-            android:defaultValue="@null"
-            app:argType="com.nunchuk.android.model.UnspentOutput[]"
-            app:nullable="true" />
-
-        <argument
-            android:name="amount"
-            android:defaultValue="@null"
-            app:argType="com.nunchuk.android.model.Amount"
-            app:nullable="true" />
 
         <action
             android:id="@+id/action_coinListFragment_self"
@@ -58,7 +47,7 @@
 
         <action
             android:id="@+id/action_coinListFragment_to_coin_search_navigation"
-            app:destination="@id/coin_search_navigation"
+            app:destination="@id/coinSearchFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -293,8 +282,6 @@
             app:argType="integer" />
     </dialog>
 
-    <include app:graph="@navigation/coin_search_navigation" />
-
     <action
         android:id="@+id/action_global_coinTagListFragment"
         app:destination="@id/coinTagListFragment"
@@ -330,4 +317,73 @@
         app:launchSingleTop="true"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
         app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+
+    <fragment
+        android:id="@+id/coinSearchFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.search.CoinSearchFragment"
+        android:label="CoinSearchFragmentFragment">
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="inputs"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.UnspentOutput[]"
+            app:nullable="true" />
+        <argument
+            android:name="amount"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.Amount"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_coinSearchFragmentFragment_to_coinFilterFragment"
+            app:destination="@id/coinFilterFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinFilterFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment"
+        android:label="CoinFilterFragment" >
+        <action
+            android:id="@+id/action_coinFilterFragment_to_filterByTagFragment"
+            app:destination="@id/filterByTagFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+        <action
+            android:id="@+id/action_coinFilterFragment_to_filterByCollectionFragment"
+            app:destination="@id/filterByCollectionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+
+        <argument
+            android:name="filter"
+            app:argType="com.nunchuk.android.wallet.components.coin.filter.CoinFilterUiState" />
+    </fragment>
+    <fragment
+        android:id="@+id/filterByTagFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragment"
+        android:label="FilterByTagFragment" >
+
+        <argument
+            android:name="tagIds"
+            app:argType="integer[]" />
+    </fragment>
+    <fragment
+        android:id="@+id/filterByCollectionFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.collection.FilterByCollectionFragment"
+        android:label="FilterByCollectionFragment" >
+
+        <argument
+            android:name="collectionIds"
+            app:argType="integer[]" />
+    </fragment>
 </navigation>

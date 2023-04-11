@@ -1,22 +1,24 @@
 package com.nunchuk.android.wallet.components.coin.search
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -33,15 +35,19 @@ import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.fromSATtoBTC
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
+import com.nunchuk.android.wallet.components.coin.component.SelectCoinCreateTransactionBottomBar
+import com.nunchuk.android.wallet.components.coin.component.ViewSelectedCoinList
 import com.nunchuk.android.wallet.components.coin.detail.component.CollectionHorizontalList
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment
@@ -68,6 +74,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinSearchFragmentScreen(
+                    args = args,
                     viewModel = viewModel,
                     coinListViewModel = coinListViewModel,
                     onFilterClicked = {
@@ -115,7 +122,16 @@ class CoinSearchFragment : BaseCoinListFragment() {
                                 emptyArray()
                             )
                         )
-                    }
+                    },
+                    onUseCoinClicked = {
+                        requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                            putParcelableArrayListExtra(
+                                GlobalResultKey.EXTRA_COINS,
+                                ArrayList(coinListViewModel.getSelectedCoins())
+                            )
+                        })
+                        requireActivity().finish()
+                    },
                 )
             }
         }
@@ -123,6 +139,9 @@ class CoinSearchFragment : BaseCoinListFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        args.inputs?.let { inputs ->
+            coinListViewModel.setSelectedCoin(inputs)
+        }
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
@@ -152,6 +171,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
 
 @Composable
 private fun CoinSearchFragmentScreen(
+    args: CoinSearchFragmentArgs,
     viewModel: CoinSearchViewModel = viewModel(),
     coinListViewModel: CoinListViewModel = viewModel(),
     onFilterClicked: () -> Unit = {},
@@ -160,6 +180,7 @@ private fun CoinSearchFragmentScreen(
     onViewAllTags: () -> Unit,
     onViewAllCollections: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
+    onUseCoinClicked: () -> Unit = {},
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val coinListUiState by coinListViewModel.state.collectAsStateWithLifecycle()
@@ -167,7 +188,7 @@ private fun CoinSearchFragmentScreen(
         tags = coinListUiState.tags,
         collections = coinListUiState.collections,
         coins = uiState.coins,
-        mode = uiState.mode,
+        mode = if (!args.inputs.isNullOrEmpty()) CoinListMode.TRANSACTION_SELECT else uiState.mode,
         queryState = viewModel.queryState,
         selectedCoins = uiState.selectedCoins,
         handleSearch = viewModel::handleSearch,
@@ -180,12 +201,15 @@ private fun CoinSearchFragmentScreen(
         onSendBtc = onSendBtc,
         onViewAllTags = onViewAllTags,
         onViewAllCollections = onViewAllCollections,
-        onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption
+        onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
+        onUseCoinClicked = onUseCoinClicked,
+        amount = args.amount ?: Amount()
     )
 }
 
 @Composable
 private fun CoinSearchFragmentContent(
+    amount: Amount = Amount(),
     onFilterClicked: () -> Unit = {},
     enableSelectMode: () -> Unit = {},
     queryState: MutableState<String> = mutableStateOf(""),
@@ -197,15 +221,18 @@ private fun CoinSearchFragmentContent(
     selectedCoins: Set<UnspentOutput> = emptySet(),
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> },
-    onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
+    onSelectOrUnselectAll: (isSelect: Boolean, coins: List<UnspentOutput>) -> Unit = { _, _ -> },
     onSelectDone: () -> Unit = {},
     onSendBtc: () -> Unit = {},
     onViewAllTags: () -> Unit = {},
     onViewAllCollections: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
+    onUseCoinClicked: () -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     var query by remember { queryState }
+    var selectedTransactionCoinVisible by remember { mutableStateOf(false) }
+    var previewSelectedCoins by remember { mutableStateOf(emptyList<UnspentOutput>()) }
 
     LaunchedEffect(query) {
         delay(300L)
@@ -218,8 +245,9 @@ private fun CoinSearchFragmentContent(
                 .statusBarsPadding()
                 .navigationBarsPadding(),
             topBar = {
-                if (mode == CoinListMode.NONE) {
+                if (mode == CoinListMode.NONE || mode == CoinListMode.TRANSACTION_SELECT) {
                     SearchCoinTopAppBar(
+                        modifier = Modifier.padding(top = 8.dp),
                         onBackPressOwner = onBackPressOwner,
                         query = query,
                         isEmpty = coins.isEmpty(),
@@ -232,31 +260,51 @@ private fun CoinSearchFragmentContent(
                 } else if (mode == CoinListMode.SELECT) {
                     CoinListTopBarSelectMode(
                         isSelectAll = coins.size == selectedCoins.size,
-                        onSelectOrUnselectAll = onSelectOrUnselectAll,
+                        onSelectOrUnselectAll = { isSelect ->
+                            onSelectOrUnselectAll(
+                                isSelect,
+                                coins
+                            )
+                        },
                         onSelectDone = onSelectDone
                     )
                 }
             },
         ) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
-                if (query.isBlank()) {
+                if (query.isBlank() && mode != CoinListMode.TRANSACTION_SELECT) {
                     TagHorizontalList(tags = tags.values.toList(), onViewAll = onViewAllTags)
                     CollectionHorizontalList(
                         collections = collections.values.toList(),
                         onViewAll = onViewAllCollections
                     )
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        items(coins) { coin ->
-                            PreviewCoinCard(
-                                output = coin,
+                    Box(modifier = Modifier.weight(1f)) {
+                        LazyColumn {
+                            items(coins) { coin ->
+                                PreviewCoinCard(
+                                    output = coin,
+                                    onSelectCoin = onSelectCoin,
+                                    isSelected = selectedCoins.contains(coin),
+                                    mode = if (mode == CoinListMode.SELECT || mode == CoinListMode.TRANSACTION_SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
+                                    onViewCoinDetail = onViewCoinDetail,
+                                    tags = tags,
+                                )
+                            }
+                        }
+                        androidx.compose.animation.AnimatedVisibility(
+                            modifier = Modifier.align(
+                                Alignment.BottomCenter
+                            ), visible = selectedTransactionCoinVisible,
+                            enter = slideInVertically() + fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
+                            exit = slideOutVertically() + fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+                        ) {
+                            ViewSelectedCoinList(
+                                allTags = tags,
+                                selectedCoin = selectedCoins,
+                                coins = previewSelectedCoins,
                                 onSelectCoin = onSelectCoin,
-                                isSelected = selectedCoins.contains(coin),
-                                mode = if (mode == CoinListMode.SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
-                                onViewCoinDetail = onViewCoinDetail,
-                                tags = tags,
+                                onSelectOrUnselectAll = onSelectOrUnselectAll
                             )
                         }
                     }
@@ -265,6 +313,17 @@ private fun CoinSearchFragmentContent(
                             selectedCoin = selectedCoins,
                             onSendBtc = onSendBtc,
                             onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
+                        )
+                    } else if ((mode == CoinListMode.TRANSACTION_SELECT && selectedCoins.isNotEmpty()) || selectedTransactionCoinVisible) {
+                        SelectCoinCreateTransactionBottomBar(
+                            isExpand = selectedTransactionCoinVisible,
+                            selectedCoin = selectedCoins,
+                            onUseCoinClicked = onUseCoinClicked,
+                            amount = amount,
+                            onViewSelectedTransactionCoin = {
+                                selectedTransactionCoinVisible = !selectedTransactionCoinVisible
+                                previewSelectedCoins = selectedCoins.toList()
+                            }
                         )
                     }
                 }

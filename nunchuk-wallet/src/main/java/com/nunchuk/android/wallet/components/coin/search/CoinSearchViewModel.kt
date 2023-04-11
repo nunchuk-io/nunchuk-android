@@ -27,6 +27,7 @@ class CoinSearchViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    private val args: CoinSearchFragmentArgs = CoinSearchFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<CoinSearchFragmentEvent>()
     val event = _event.asSharedFlow()
 
@@ -77,7 +78,8 @@ class CoinSearchViewModel @Inject constructor(
     suspend fun handleSearch(query: String) = withContext(ioDispatcher) {
         mutex.withLock {
             if (query.isEmpty()) {
-                _state.update { it.copy(coins = emptyList()) }
+                val coins = if (args.inputs != null) allCoins else emptyList()
+                _state.update { it.copy(coins = coins) }
             } else {
                 val filter = filter.value
                 val endTimeInSeconds =
@@ -96,7 +98,7 @@ class CoinSearchViewModel @Inject constructor(
 
                 val maxValue = filter.max.toDoubleOrNull() ?: Long.MAX_VALUE.toDouble()
                 val maxSat =
-                    if (filter.isMinBtc) maxValue.getBtcSat() else maxValue.fromCurrencyToBTC()
+                    if (filter.isMaxBtc) maxValue.getBtcSat() else maxValue.fromCurrencyToBTC()
                         .toAmount().value
 
                 val queryTagIds =
@@ -147,10 +149,10 @@ class CoinSearchViewModel @Inject constructor(
         }
     }
 
-    fun onSelectOrUnselectAll(isSelect: Boolean) {
+    fun onSelectOrUnselectAll(isSelect: Boolean, coins: List<UnspentOutput>) {
         _state.update {
             it.copy(
-                selectedCoins = if (isSelect) state.value.coins.toSet() else emptySet()
+                selectedCoins = if (isSelect) coins.toSet() else emptySet()
             )
         }
     }
