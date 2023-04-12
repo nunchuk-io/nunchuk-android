@@ -66,9 +66,7 @@ import com.nunchuk.android.utils.retrieveInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -174,9 +172,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
             updateState { copy(transaction = it) }
         }
         loadMasterSigner()
-        listenSignKey()
+        listenTransactionChanged()
         getAllTags()
-        getAllCoins()
     }
 
     fun getAllTags() {
@@ -199,7 +196,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun listenSignKey() {
+    private fun listenTransactionChanged() {
         if (isAssistedWallet()) {
             viewModelScope.launch {
                 state.asFlow().collect {
@@ -218,6 +215,16 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     }
                 }
             }
+        }
+        viewModelScope.launch {
+            state.asFlow().filter { it.transaction.txId.isNotEmpty() }
+                .map { it.transaction.status }
+                .distinctUntilChanged()
+                .collect {
+                    if (it.hadBroadcast()) {
+                        getAllCoins()
+                    }
+                }
         }
     }
 
@@ -457,6 +464,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleDeleteTransactionEvent(isCancel: Boolean = true, onlyLocal: Boolean = false) {
         viewModelScope.launch {
+            setEvent(LoadingEvent)
             val result = deleteTransactionUseCase(
                 DeleteTransactionUseCase.Param(
                     walletId = walletId,
@@ -690,7 +698,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun allTags() = getState().tags
     fun coins() = getState().coins
 
-    fun isMyCoin(output: TxOutput) = runBlocking { isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, output.first)) }.getOrDefault(false)
+    fun isMyCoin(output: TxOutput) =
+        runBlocking { isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, output.first)) }.getOrDefault(
+            false
+        )
 
     private fun isSignByServerKey(transaction: Transaction): Boolean {
         val fingerPrint =
@@ -698,9 +709,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return transaction.signers[fingerPrint] == true
     }
 
-    fun toggleShowInputCoin() = updateState { copy(isShowInputCoin = getState().isShowInputCoin.not()) }
+    fun toggleShowInputCoin() =
+        updateState { copy(isShowInputCoin = getState().isShowInputCoin.not()) }
 
-    fun convertInputs(inputs: List<TxInput>) = inputs.mapNotNull { txInput -> allCoins.find { it.txid == txInput.first && it.vout == txInput.second } }
+    fun convertInputs(inputs: List<TxInput>) =
+        inputs.mapNotNull { txInput -> allCoins.find { it.txid == txInput.first && it.vout == txInput.second } }
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1

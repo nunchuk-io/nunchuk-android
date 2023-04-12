@@ -61,6 +61,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         if (it.resultCode == Activity.RESULT_OK && data != null) {
             val selectedCoins = data.parcelableArrayList<UnspentOutput>(GlobalResultKey.EXTRA_COINS).orEmpty()
             if (selectedCoins.isNotEmpty()) {
+                NCToastMessage(this).show(getString(R.string.nc_coin_selection_updated))
                 viewModel.updateNewInputs(selectedCoins)
             }
         }

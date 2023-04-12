@@ -51,6 +51,12 @@ class CoinSearchViewModel @Inject constructor(
         }
     }
 
+    fun setSelectedCoin(coins: Array<UnspentOutput>) {
+        _state.update {
+            it.copy(selectedCoins = coins.toSet())
+        }
+    }
+
     suspend fun update(
         coins: List<UnspentOutput>,
         tags: Map<Int, CoinTag>,

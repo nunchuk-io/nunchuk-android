@@ -127,7 +127,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
                         requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
                             putParcelableArrayListExtra(
                                 GlobalResultKey.EXTRA_COINS,
-                                ArrayList(coinListViewModel.getSelectedCoins())
+                                ArrayList(viewModel.getSelectedCoins())
                             )
                         })
                         requireActivity().finish()
@@ -140,7 +140,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         args.inputs?.let { inputs ->
-            coinListViewModel.setSelectedCoin(inputs)
+            viewModel.setSelectedCoin(inputs)
         }
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)

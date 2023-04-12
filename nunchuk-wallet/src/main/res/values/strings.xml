@@ -33,7 +33,7 @@
     <string name="nc_wallet_add_a_wallet">Add a wallet</string>
     <string name="nc_wallet_backup_wallet">Backup wallet</string>
     <string name="nc_wallet_import_psbt">Import PSBT</string>
-    <string name="nc_wallet_save_wallet_configuration">Save wallet configuration</string>
+    <string name="nc_wallet_save_wallet_configuration">Export wallet configuration</string>
     <string name="nc_wallet_upload_device_registration">Upload device registration</string>
     <string name="nc_wallet_upload_success">Upload wallet success</string>
     <string name="nc_wallet_delete_wallet">Delete wallet</string>

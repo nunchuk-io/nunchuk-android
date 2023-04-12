@@ -631,4 +631,5 @@
     <string name="nc_show_less">Show less</string>
     <string name="nc_more">More</string>
     <string name="nc_transaction_imported">Transaction imported</string>
+    <string name="nc_coin_selection_updated">Coin selection updated</string>
 </resources>
