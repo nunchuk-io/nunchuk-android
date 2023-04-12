@@ -128,9 +128,7 @@ fun PreviewCoinCard(
                     )
                 }
 
-                if (mode != MODE_VIEW_ONLY) {
-                    CoinStatusBadge(output)
-                }
+                CoinStatusBadge(output)
             }
 
             if (output.tags.isNotEmpty() || output.memo.isNotEmpty()) {

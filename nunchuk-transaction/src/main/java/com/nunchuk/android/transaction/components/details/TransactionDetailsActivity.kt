@@ -317,7 +317,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
         }
         handleServerTransaction(state.transaction, state.serverTransaction)
-        handleManageCoin(state.coins)
+        handleManageCoin(state.transaction.status, state.coins)
         hideLoading()
         handleShowInputCoin(state)
     }
@@ -333,8 +333,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
     }
 
-    private fun handleManageCoin(coins: List<UnspentOutput>) {
-        binding.tvManageCoin.isVisible = coins.isNotEmpty()
+    private fun handleManageCoin(status: TransactionStatus, coins: List<UnspentOutput>) {
+        binding.tvManageCoin.isVisible = coins.isNotEmpty() && status.hadBroadcast()
     }
 
     private fun handleServerTransaction(

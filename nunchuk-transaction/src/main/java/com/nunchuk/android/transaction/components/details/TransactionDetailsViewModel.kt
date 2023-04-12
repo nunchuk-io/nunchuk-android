@@ -66,7 +66,9 @@ import com.nunchuk.android.utils.retrieveInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -174,6 +176,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         loadMasterSigner()
         listenTransactionChanged()
         getAllTags()
+        getAllCoins()
     }
 
     fun getAllTags() {
@@ -215,16 +218,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     }
                 }
             }
-        }
-        viewModelScope.launch {
-            state.asFlow().filter { it.transaction.txId.isNotEmpty() }
-                .map { it.transaction.status }
-                .distinctUntilChanged()
-                .collect {
-                    if (it.hadBroadcast()) {
-                        getAllCoins()
-                    }
-                }
         }
     }
 
