@@ -86,7 +86,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.btnSendAll.setOnClickListener {
             if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked }) || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())) {
                 NCInfoDialog(this)
-                    .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
+                    .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
             } else {
                 openAddReceiptScreen(args.availableAmount, true)
             }

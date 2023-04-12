@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.UnspentOutput
@@ -44,6 +45,11 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
             when (it) {
                 is CoinListEvent.Loading -> showOrHideLoading(it.isLoading)
                 else -> Unit
+            }
+        }
+        flowObserver(pushEventManager.event) {
+            if (it is PushEvent.TransactionCreatedEvent) {
+                finish()
             }
         }
     }
