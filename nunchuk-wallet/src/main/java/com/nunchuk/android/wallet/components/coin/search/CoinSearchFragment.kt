@@ -42,6 +42,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.wallet.CoinNavigationDirections
+import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
@@ -54,6 +55,7 @@ import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragmentArgs
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -124,13 +126,19 @@ class CoinSearchFragment : BaseCoinListFragment() {
                         )
                     },
                     onUseCoinClicked = {
-                        requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
-                            putParcelableArrayListExtra(
-                                GlobalResultKey.EXTRA_COINS,
-                                ArrayList(viewModel.getSelectedCoins())
-                            )
-                        })
-                        requireActivity().finish()
+                        val selectedCoins = viewModel.getSelectedCoins()
+                        if (selectedCoins.any { it.isLocked }) {
+                            NCInfoDialog(requireActivity())
+                                .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
+                        } else {
+                            requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                                putParcelableArrayListExtra(
+                                    GlobalResultKey.EXTRA_COINS,
+                                    ArrayList(viewModel.getSelectedCoins())
+                                )
+                            })
+                            requireActivity().finish()
+                        }
                     },
                 )
             }

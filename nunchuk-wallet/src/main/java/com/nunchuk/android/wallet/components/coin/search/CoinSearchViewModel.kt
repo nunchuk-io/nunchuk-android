@@ -27,7 +27,8 @@ class CoinSearchViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val args: CoinSearchFragmentArgs = CoinSearchFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: CoinSearchFragmentArgs =
+        CoinSearchFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<CoinSearchFragmentEvent>()
     val event = _event.asSharedFlow()
 
@@ -83,9 +84,8 @@ class CoinSearchViewModel @Inject constructor(
 
     suspend fun handleSearch(query: String) = withContext(ioDispatcher) {
         mutex.withLock {
-            if (query.isEmpty()) {
-                val coins = if (args.inputs != null) allCoins else emptyList()
-                _state.update { it.copy(coins = coins) }
+            if (query.isEmpty() && args.inputs.orEmpty().isEmpty()) {
+                _state.update { it.copy(coins = emptyList()) }
             } else {
                 val filter = filter.value
                 val endTimeInSeconds =
@@ -109,27 +109,30 @@ class CoinSearchViewModel @Inject constructor(
 
                 val queryTagIds =
                     allTags.asSequence()
-                        .filter { filter.selectTags.isEmpty() || filter.selectTags.contains(it.key) }
+                        .filter { filter.selectTags.contains(it.key) }
                         .filter { it.value.name.lowercase().contains(lowCaseQuery) }
                         .map { it.key }.toSet()
 
                 val queryCollectionIds =
                     allCollections.asSequence()
                         .filter {
-                            filter.selectCollections.isEmpty() || filter.selectCollections.contains(
-                                it.key
-                            )
+                            filter.selectCollections.contains(it.key)
                         }
                         .filter { it.value.name.lowercase().contains(lowCaseQuery) }
                         .map { it.key }.toSet()
                 val coins = allCoins
                     .asSequence()
                     .filter {
-                        it.tags.any { tag ->
-                            queryTagIds.contains(tag)
-                        } || it.collection.any { collection ->
-                            queryCollectionIds.contains(collection)
-                        }
+                        filter.selectTags.isEmpty() ||
+                                it.tags.any { tag ->
+                                    queryTagIds.contains(tag)
+                                }
+                    }
+                    .filter {
+                        filter.selectCollections.isEmpty() ||
+                                it.collection.any { collection ->
+                                    queryCollectionIds.contains(collection)
+                                }
                     }
                     .filter { it.amount.value in minSat..maxSat }
                     .filter { it.isLocked == filter.showLockedCoin || it.isLocked.not() == filter.showUnlockedCoin }
