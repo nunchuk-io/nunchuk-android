@@ -97,6 +97,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
 
         if (args.inputs.isNotEmpty()) {
+            binding.balanceLabel.text = getString(R.string.nc_total_amount_selected)
             binding.amountBTC.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
             binding.amountUSD.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
         }
