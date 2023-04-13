@@ -91,7 +91,7 @@ class CoinSearchViewModel @Inject constructor(
                 val endTimeInSeconds =
                     if (filter.endTime > 0L) filter.endTime / 1000L else Long.MAX_VALUE
                 val startTimeInSeconds = filter.startTime / 1000L
-                val lowCaseQuery = query.lowercase()
+                val lowCaseQuery = query.lowercase().trim()
 
                 val comparator = if (filter.isDescending)
                     compareByDescending<UnspentOutput> { it.amount.value }.thenBy { it.time }
@@ -109,30 +109,33 @@ class CoinSearchViewModel @Inject constructor(
 
                 val queryTagIds =
                     allTags.asSequence()
-                        .filter { filter.selectTags.contains(it.key) }
                         .filter { it.value.name.lowercase().contains(lowCaseQuery) }
                         .map { it.key }.toSet()
 
                 val queryCollectionIds =
                     allCollections.asSequence()
-                        .filter {
-                            filter.selectCollections.contains(it.key)
-                        }
                         .filter { it.value.name.lowercase().contains(lowCaseQuery) }
                         .map { it.key }.toSet()
+
                 val coins = allCoins
                     .asSequence()
                     .filter {
-                        filter.selectTags.isEmpty() ||
-                                it.tags.any { tag ->
-                                    queryTagIds.contains(tag)
-                                }
+                        lowCaseQuery.isEmpty()
+                                || it.tags.any { id -> queryTagIds.contains(id) }
+                                || it.collection.any { id -> queryCollectionIds.contains(id) }
                     }
                     .filter {
-                        filter.selectCollections.isEmpty() ||
-                                it.collection.any { collection ->
-                                    queryCollectionIds.contains(collection)
-                                }
+                        filter.selectTags.isEmpty() || it.tags.any { tag ->
+                            filter.selectTags.contains(
+                                tag
+                            )
+                        }
+                    }
+                    .filter {
+                        filter.selectCollections.isEmpty()
+                                || it.collection.any { tag ->
+                            filter.selectCollections.contains(tag)
+                        }
                     }
                     .filter { it.amount.value in minSat..maxSat }
                     .filter { it.isLocked == filter.showLockedCoin || it.isLocked.not() == filter.showUnlockedCoin }
