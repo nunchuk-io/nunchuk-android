@@ -39,6 +39,7 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.launch
 import java.io.File
 
 fun Activity.showToast(message: String) = NCToastMessage(this).show(message)
@@ -147,9 +148,13 @@ fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File):
     null
 }
 
-fun <T> AppCompatActivity.flowObserver(flow: Flow<T>, collector: FlowCollector<T>) {
-    lifecycleScope.launchWhenStarted {
-        flow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect(collector)
+fun <T> AppCompatActivity.flowObserver(
+    flow: Flow<T>,
+    state: Lifecycle.State = Lifecycle.State.STARTED,
+    collector: FlowCollector<T>
+) {
+    lifecycleScope.launch {
+        flow.flowWithLifecycle(lifecycle, state).collect(collector)
     }
 }
 

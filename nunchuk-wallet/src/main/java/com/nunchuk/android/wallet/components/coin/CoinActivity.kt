@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.push.PushEvent
@@ -47,7 +48,7 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
                 else -> Unit
             }
         }
-        flowObserver(pushEventManager.event) {
+        flowObserver(pushEventManager.event, Lifecycle.State.CREATED) {
             if (it is PushEvent.TransactionCreatedEvent) {
                 finish()
             }
