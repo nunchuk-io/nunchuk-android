@@ -32,7 +32,7 @@ class FilterByTagViewModel @Inject constructor(
             .sortedBy { it.coinTag.name }
         val selectedIds = if (args.tagIds.isEmpty()) tags.map { it.id }.toSet()
         else args.tagIds.toSet()
-        _state.update { it.copy(allTags = tagAdditions, selectedTags = selectedIds) }
+        _state.update { it.copy(allTags = tagAdditions, previousTags = selectedIds, selectedTags = _state.value.selectedTags.ifEmpty { selectedIds }) }
     }
 
     fun onCheckedChange(id: Int, isChecked: Boolean) {
@@ -63,5 +63,6 @@ class FilterByTagViewModel @Inject constructor(
 
 data class FilterByTagUiState(
     val allTags: List<CoinTagAddition> = emptyList(),
+    val previousTags: Set<Int> = emptySet(),
     val selectedTags: Set<Int> = emptySet()
 )

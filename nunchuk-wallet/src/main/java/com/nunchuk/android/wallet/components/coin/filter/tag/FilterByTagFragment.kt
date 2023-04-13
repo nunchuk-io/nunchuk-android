@@ -52,7 +52,7 @@ class FilterByTagFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                FilterByTagScreen(viewModel) {
+                FilterByTagScreen(viewModel = viewModel) {
                     setFragmentResult(REQUEST_KEY, FilterByTagFragmentArgs(viewModel.getSelectTags().toIntArray()).toBundle())
                     findNavController().popBackStack()
                 }
@@ -82,7 +82,8 @@ private fun FilterByTagScreen(
 
     FilterByTagContent(
         tags = state.allTags,
-        selectedCoinTags = state.selectedTags,
+        previousSelectedTagIds = state.previousTags,
+        selectedTagIds = state.selectedTags,
         onCheckedChange = viewModel::onCheckedChange,
         onSelectOrUnselectAll = viewModel::toggleSelected,
         onSelectDone = onSelectDone
@@ -92,13 +93,14 @@ private fun FilterByTagScreen(
 @Composable
 private fun FilterByTagContent(
     tags: List<CoinTagAddition> = emptyList(),
-    selectedCoinTags: Set<Int> = emptySet(),
+    previousSelectedTagIds: Set<Int> = emptySet(),
+    selectedTagIds: Set<Int> = emptySet(),
     onCheckedChange: ((Int, Boolean) -> Unit) = { _, _ -> },
     onSelectDone: () -> Unit = {},
     onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
 ) {
     val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-    val isSelectAll = selectedCoinTags.size == tags.size
+    val isSelectAll = selectedTagIds.size == tags.size
     NunchukTheme {
         Scaffold {
             Column(
@@ -129,7 +131,7 @@ private fun FilterByTagContent(
                     Text(
                         modifier = Modifier.align(Alignment.Center),
                         textAlign = TextAlign.Center,
-                        text = stringResource(R.string.nc_select_coins),
+                        text = stringResource(R.string.nc_tags),
                         style = NunchukTheme.typography.titleLarge
                     )
                     Text(
@@ -152,7 +154,7 @@ private fun FilterByTagContent(
                             name = tag.coinTag.name,
                             color = tag.coinTag.color,
                             numCoins = tag.numCoins,
-                            checked = selectedCoinTags.contains(tag.coinTag.id),
+                            checked = selectedTagIds.contains(tag.coinTag.id),
                             onTagClick = { },
                             tagFlow = TagFlow.ADD,
                             onCheckedChange = {
@@ -166,7 +168,7 @@ private fun FilterByTagContent(
                         .padding(16.dp)
                         .fillMaxWidth(),
                     onClick = onSelectDone,
-                    enabled = selectedCoinTags.isNotEmpty()
+                    enabled = previousSelectedTagIds != selectedTagIds && selectedTagIds.isNotEmpty()
                 ) {
                     Text(text = stringResource(R.string.nc_apply))
                 }

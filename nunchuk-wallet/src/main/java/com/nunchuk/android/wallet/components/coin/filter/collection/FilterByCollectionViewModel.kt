@@ -32,36 +32,37 @@ class FilterByCollectionViewModel @Inject constructor(
             .sortedBy { it.collection.name }
         val selectedIds = if (args.collectionIds.isEmpty()) collections.map { it.id }.toSet()
         else args.collectionIds.toSet()
-        _state.update { it.copy(allCollections = tagAdditions, selectedTags = selectedIds) }
+        _state.update { it.copy(allCollections = tagAdditions, previousCollectionIds = selectedIds, selectedIds = _state.value.selectedIds.ifEmpty { selectedIds }) }
     }
 
     fun onCheckedChange(id: Int, isChecked: Boolean) {
-        val newSet = _state.value.selectedTags.toMutableSet()
+        val newSet = _state.value.selectedIds.toMutableSet()
         if (isChecked) {
             newSet.add(id)
         } else {
             newSet.remove(id)
         }
-        _state.update { it.copy(selectedTags = newSet) }
+        _state.update { it.copy(selectedIds = newSet) }
     }
 
     fun toggleSelected(isSelectAll: Boolean) {
         if (isSelectAll) {
-            _state.update { it.copy(selectedTags = emptySet()) }
+            _state.update { it.copy(selectedIds = emptySet()) }
         } else {
             _state.update {
-                it.copy(selectedTags = state.value.allCollections.map { tag -> tag.collection.id }.toSet())
+                it.copy(selectedIds = state.value.allCollections.map { tag -> tag.collection.id }.toSet())
             }
         }
     }
 
     fun getSelectCollections(): List<Int> {
-        return if (state.value.allCollections.size == state.value.selectedTags.size) emptyList()
-        else state.value.selectedTags.toList()
+        return if (state.value.allCollections.size == state.value.selectedIds.size) emptyList()
+        else state.value.selectedIds.toList()
     }
 }
 
 data class FilterByTagUiState(
     val allCollections: List<CoinCollectionAddition> = emptyList(),
-    val selectedTags: Set<Int> = emptySet()
+    val previousCollectionIds: Set<Int> = emptySet(),
+    val selectedIds: Set<Int> = emptySet()
 )

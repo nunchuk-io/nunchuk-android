@@ -84,7 +84,8 @@ private fun FilterByCollectionScreen(
 
     FilterByCollectionContent(
         collections = state.allCollections,
-        selectedCoinTags = state.selectedTags,
+        previousSelectedCollectionIds = state.previousCollectionIds,
+        selectedCollectionIds = state.selectedIds,
         onCheckedChange = viewModel::onCheckedChange,
         onSelectOrUnselectAll = viewModel::toggleSelected,
         onSelectDone = onSelectDone
@@ -94,13 +95,14 @@ private fun FilterByCollectionScreen(
 @Composable
 private fun FilterByCollectionContent(
     collections: List<CoinCollectionAddition> = emptyList(),
-    selectedCoinTags: Set<Int> = emptySet(),
+    previousSelectedCollectionIds: Set<Int> = emptySet(),
+    selectedCollectionIds: Set<Int> = emptySet(),
     onCheckedChange: ((Int, Boolean) -> Unit) = { _, _ -> },
     onSelectDone: () -> Unit = {},
     onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
 ) {
     val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-    val isSelectAll = selectedCoinTags.size == collections.size
+    val isSelectAll = selectedCollectionIds.size == collections.size
     NunchukTheme {
         Scaffold {
             Column(
@@ -131,7 +133,7 @@ private fun FilterByCollectionContent(
                     Text(
                         modifier = Modifier.align(Alignment.Center),
                         textAlign = TextAlign.Center,
-                        text = stringResource(R.string.nc_select_coins),
+                        text = stringResource(R.string.nc_collections),
                         style = NunchukTheme.typography.titleLarge
                     )
                     Text(
@@ -153,7 +155,7 @@ private fun FilterByCollectionContent(
                         CollectionItem(id = collectionAddition.collection.id,
                             name = collectionAddition.collection.name,
                             numCoins = collectionAddition.numCoins,
-                            checked = selectedCoinTags.contains(collectionAddition.collection.id),
+                            checked = selectedCollectionIds.contains(collectionAddition.collection.id),
                             onCheckedChange = { isSelect ->
                                 onCheckedChange(collectionAddition.collection.id, isSelect)
                             })
@@ -165,7 +167,7 @@ private fun FilterByCollectionContent(
                         .padding(16.dp)
                         .fillMaxWidth(),
                     onClick = onSelectDone,
-                    enabled = selectedCoinTags.isNotEmpty()
+                    enabled = selectedCollectionIds != previousSelectedCollectionIds && selectedCollectionIds.isNotEmpty()
                 ) {
                     Text(text = stringResource(R.string.nc_apply))
                 }
