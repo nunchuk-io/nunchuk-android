@@ -239,7 +239,7 @@ fun RecoveryQuestionScreenContent(
                 } else {
                     ""
                 }
-                NcTopAppBar(title)
+                NcTopAppBar(elevation = 0.dp, title = title)
 
                 LazyColumn(
                     modifier = Modifier.weight(1.0f),

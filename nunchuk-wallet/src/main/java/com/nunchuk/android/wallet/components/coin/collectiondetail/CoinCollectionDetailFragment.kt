@@ -268,7 +268,7 @@ private fun CoinCollectionDetailContent(
                         backgroundColor = colorResource(id = R.color.nc_beeswax_tint),
                         textStyle = NunchukTheme.typography.titleLarge,
                         isBack = true,
-                        isDisableElevation = true,
+                        elevation = 0.dp,
                         actions = {
                             if (coins.isEmpty().not()) {
                                 Text(

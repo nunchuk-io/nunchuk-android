@@ -208,7 +208,7 @@ fun CoinTagListScreenContent(
                     stringResource(id = R.string.nc_coin_tags),
                     textStyle = NunchukTheme.typography.titleLarge,
                     isBack = false,
-                    isDisableElevation = true,
+                    elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                     }

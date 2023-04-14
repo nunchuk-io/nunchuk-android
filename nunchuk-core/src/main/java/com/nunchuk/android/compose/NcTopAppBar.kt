@@ -30,7 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import com.nunchuk.android.core.R
 
 @Composable
@@ -39,13 +39,13 @@ fun NcTopAppBar(
     textStyle: TextStyle = NunchukTheme.typography.titleSmall,
     actions: @Composable RowScope.() -> Unit = {},
     isBack: Boolean = true,
-    isDisableElevation: Boolean = false,
+    elevation: Dp = AppBarDefaults.TopAppBarElevation,
     backgroundColor: Color = MaterialTheme.colors.background
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     TopAppBar(
         backgroundColor = backgroundColor,
-        elevation = if (isDisableElevation) 0.dp else AppBarDefaults.TopAppBarElevation,
+        elevation = elevation,
         navigationIcon = {
             IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                 Icon(

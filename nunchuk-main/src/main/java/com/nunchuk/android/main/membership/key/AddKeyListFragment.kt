@@ -376,7 +376,8 @@ fun AddKeyListContent(
                     .navigationBarsPadding()
             ) {
                 NcTopAppBar(
-                    stringResource(R.string.nc_estimate_remain_time, remainingTime),
+                    elevation = 0.dp,
+                    title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
                     actions = {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
