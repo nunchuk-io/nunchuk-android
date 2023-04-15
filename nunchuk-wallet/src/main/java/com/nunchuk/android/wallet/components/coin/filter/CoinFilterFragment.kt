@@ -64,6 +64,7 @@ class CoinFilterFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinFilterScreen(
+                    args.isSearchTransaction,
                     args.filter,
                     viewModel,
                     onOpenSelectTagScreen = {
@@ -143,6 +144,7 @@ class CoinFilterFragment : Fragment() {
 
 @Composable
 private fun CoinFilterScreen(
+    isSearchTransaction: Boolean,
     initValue: CoinFilterUiState,
     viewModel: CoinFilterViewModel = viewModel(),
     onOpenSelectTagScreen: () -> Unit,
@@ -151,6 +153,7 @@ private fun CoinFilterScreen(
     onSelectDate: (isStart: Boolean) -> Unit = {},
 ) {
     CoinFilterContent(
+        isSearchTransaction = isSearchTransaction,
         initValue = initValue,
         selectTags = viewModel.selectTags.value,
         selectCollections = viewModel.selectCollections.value,
@@ -171,6 +174,7 @@ private fun CoinFilterScreen(
 
 @Composable
 private fun CoinFilterContent(
+    isSearchTransaction: Boolean = false,
     initValue: CoinFilterUiState = CoinFilterUiState(),
     selectTags: Set<Int> = emptySet(),
     selectCollections: Set<Int> = emptySet(),
@@ -248,78 +252,80 @@ private fun CoinFilterContent(
                     )
                 ) {
                     LazyColumn(modifier = Modifier.weight(1.0f)) {
-                        item {
-                            FilterRow(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                title = stringResource(id = R.string.nc_tags),
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(top = 12.dp)
-                                        .clickable(onClick = onOpenSelectTagScreen)
-                                        .border(
-                                            width = 1.dp,
-                                            shape = RoundedCornerShape(8.dp),
-                                            color = NcColor.border,
-                                        )
-                                        .padding(12.dp)
+                        if (isSearchTransaction.not()) {
+                            item {
+                                FilterRow(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    title = stringResource(id = R.string.nc_tags),
                                 ) {
-                                    Text(
+                                    Box(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .align(Alignment.CenterStart),
-                                        text = if (selectTags.isEmpty()) stringResource(R.string.nc_all_tags)
-                                        else stringResource(
-                                            R.string.nc_tags_selected, selectTags.size
-                                        ),
-                                        style = NunchukTheme.typography.body
-                                    )
-                                    Icon(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .align(Alignment.CenterEnd),
-                                        painter = painterResource(id = R.drawable.ic_arrow_expand),
-                                        contentDescription = "Arrow Expand"
-                                    )
+                                            .padding(top = 12.dp)
+                                            .clickable(onClick = onOpenSelectTagScreen)
+                                            .border(
+                                                width = 1.dp,
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = NcColor.border,
+                                            )
+                                            .padding(12.dp)
+                                    ) {
+                                        Text(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .align(Alignment.CenterStart),
+                                            text = if (selectTags.isEmpty()) stringResource(R.string.nc_all_tags)
+                                            else stringResource(
+                                                R.string.nc_tags_selected, selectTags.size
+                                            ),
+                                            style = NunchukTheme.typography.body
+                                        )
+                                        Icon(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .align(Alignment.CenterEnd),
+                                            painter = painterResource(id = R.drawable.ic_arrow_expand),
+                                            contentDescription = "Arrow Expand"
+                                        )
+                                    }
                                 }
                             }
-                        }
-                        item {
-                            FilterRow(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                title = stringResource(id = R.string.nc_collections),
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(top = 12.dp)
-                                        .clickable(onClick = onOpenSelectCollectionScreen)
-                                        .border(
-                                            width = 1.dp,
-                                            shape = RoundedCornerShape(8.dp),
-                                            color = NcColor.border,
-                                        )
-                                        .padding(12.dp)
+                            item {
+                                FilterRow(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    title = stringResource(id = R.string.nc_collections),
                                 ) {
-                                    Text(
+                                    Box(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .align(Alignment.CenterStart),
-                                        text = if (selectCollections.isEmpty()) stringResource(
-                                            R.string.nc_all_collections
+                                            .padding(top = 12.dp)
+                                            .clickable(onClick = onOpenSelectCollectionScreen)
+                                            .border(
+                                                width = 1.dp,
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = NcColor.border,
+                                            )
+                                            .padding(12.dp)
+                                    ) {
+                                        Text(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .align(Alignment.CenterStart),
+                                            text = if (selectCollections.isEmpty()) stringResource(
+                                                R.string.nc_all_collections
+                                            )
+                                            else stringResource(
+                                                R.string.nc_collections_selected,
+                                                selectCollections.size
+                                            ),
+                                            style = NunchukTheme.typography.body
                                         )
-                                        else stringResource(
-                                            R.string.nc_collections_selected,
-                                            selectCollections.size
-                                        ),
-                                        style = NunchukTheme.typography.body
-                                    )
-                                    Icon(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .align(Alignment.CenterEnd),
-                                        painter = painterResource(id = R.drawable.ic_arrow_expand),
-                                        contentDescription = "Arrow Expand"
-                                    )
+                                        Icon(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .align(Alignment.CenterEnd),
+                                            painter = painterResource(id = R.drawable.ic_arrow_expand),
+                                            contentDescription = "Arrow Expand"
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -413,39 +419,41 @@ private fun CoinFilterContent(
                                 )
                             }
                         }
-                        item {
-                            FilterRow(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                title = stringResource(R.string.nc_include_locked_coins),
-                            ) {
-                                Box(modifier = Modifier.padding(top = 16.dp)) {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .align(alignment = Alignment.CenterStart),
-                                        text = stringResource(R.string.nc_show_locked_coins),
-                                        style = NunchukTheme.typography.body
-                                    )
-                                    Checkbox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
-                                        checked = showLockedCoin,
-                                        onCheckedChange = {
-                                            showLockedCoin = it
-                                        })
-                                }
+                        if (isSearchTransaction.not()) {
+                            item {
+                                FilterRow(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    title = stringResource(R.string.nc_include_locked_coins),
+                                ) {
+                                    Box(modifier = Modifier.padding(top = 16.dp)) {
+                                        Text(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .align(alignment = Alignment.CenterStart),
+                                            text = stringResource(R.string.nc_show_locked_coins),
+                                            style = NunchukTheme.typography.body
+                                        )
+                                        Checkbox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                            checked = showLockedCoin,
+                                            onCheckedChange = {
+                                                showLockedCoin = it
+                                            })
+                                    }
 
-                                Box(modifier = Modifier.padding(top = 16.dp)) {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .align(alignment = Alignment.CenterStart),
-                                        text = stringResource(R.string.nc_show_unlocked_coins),
-                                        style = NunchukTheme.typography.body
-                                    )
-                                    Checkbox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
-                                        checked = showUnlockedCoin,
-                                        onCheckedChange = {
-                                            showUnlockedCoin = it
-                                        })
+                                    Box(modifier = Modifier.padding(top = 16.dp)) {
+                                        Text(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .align(alignment = Alignment.CenterStart),
+                                            text = stringResource(R.string.nc_show_unlocked_coins),
+                                            style = NunchukTheme.typography.body
+                                        )
+                                        Checkbox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                            checked = showUnlockedCoin,
+                                            onCheckedChange = {
+                                                showUnlockedCoin = it
+                                            })
+                                    }
                                 }
                             }
                         }

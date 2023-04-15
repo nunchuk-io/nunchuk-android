@@ -66,4 +66,5 @@
     <string name="nc_copied">Copied</string>
     <string name="nc_search_coins">Search coins</string>
     <string name="nc_sort">Sort</string>
+    <string name="nc_search_transactions">Search transactions</string>
 </resources>

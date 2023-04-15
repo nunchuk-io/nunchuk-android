@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/search_transaction_navigation"
+    app:startDestination="@+id/searchTransactionFragment">
+
+    <fragment
+        android:id="@+id/searchTransactionFragment"
+        android:name="com.nunchuk.android.wallet.components.search.SearchTransactionFragment"
+        android:label="SearchTransactionFragment">
+
+        <action
+            android:id="@+id/action_searchTransactionFragment_to_coinFilterFragment"
+            app:destination="@id/coinFilterFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="walletId"
+            app:argType="string" />
+        <argument
+            android:name="roomId"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinFilterFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment"
+        android:label="CoinFilterFragment">
+        <argument
+            android:name="filter"
+            app:argType="com.nunchuk.android.wallet.components.coin.filter.CoinFilterUiState" />
+        <argument
+            android:name="is_search_transaction"
+            android:defaultValue="false"
+            app:argType="boolean" />
+    </fragment>
+
+</navigation>
