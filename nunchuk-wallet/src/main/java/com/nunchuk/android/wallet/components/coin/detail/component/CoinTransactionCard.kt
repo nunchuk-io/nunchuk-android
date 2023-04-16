@@ -33,6 +33,7 @@ import com.nunchuk.android.wallet.R
 fun CoinTransactionCard(
     transaction: Transaction,
     onNoteClick: (note: String) -> Unit = {},
+    onViewTransactionDetail: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -46,6 +47,7 @@ fun CoinTransactionCard(
             .border(
                 width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp)
             )
+            .clickable(enabled = true, onClick = onViewTransactionDetail)
             .padding(16.dp)
     ) {
         Text(
