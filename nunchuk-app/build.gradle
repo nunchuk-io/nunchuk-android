@@ -13,8 +13,9 @@ android {
     buildToolsVersion androidConfig.buildToolsVersion
 
     buildFeatures {
-        viewBinding true
-        compose true
+        viewBinding = true
+        compose = true
+        buildConfig = true
     }
 
     defaultConfig {
