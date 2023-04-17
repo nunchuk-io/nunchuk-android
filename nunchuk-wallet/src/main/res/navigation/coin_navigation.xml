@@ -258,9 +258,6 @@
             android:name="coin_tag"
             app:argType="com.nunchuk.android.model.CoinTag" />
 
-        <argument
-            android:name="tags"
-            app:argType="com.nunchuk.android.model.CoinTag[]" />
     </dialog>
 
     <dialog

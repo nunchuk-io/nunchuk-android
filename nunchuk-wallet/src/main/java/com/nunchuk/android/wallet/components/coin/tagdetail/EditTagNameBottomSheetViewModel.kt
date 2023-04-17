@@ -26,9 +26,11 @@ class EditTagNameBottomSheetViewModel @Inject constructor(
     private val _event = MutableSharedFlow<EditTagNameBottomSheetEvent>()
     val event = _event.asSharedFlow()
 
+    private var allTags = arrayListOf<CoinTag>()
+
     fun onSaveClick(tagName: String) = viewModelScope.launch {
         val existedTag =
-            args.tags.firstOrNull { it.name == tagName }
+            allTags.firstOrNull { it.name == tagName }
         if (existedTag != null) {
             _event.emit(EditTagNameBottomSheetEvent.ExistingTagNameError)
             return@launch
@@ -44,6 +46,11 @@ class EditTagNameBottomSheetViewModel @Inject constructor(
         } else {
             _event.emit(EditTagNameBottomSheetEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
         }
+    }
+
+    fun setTags(tags: List<CoinTag>) {
+        allTags.clear()
+        allTags.addAll(tags)
     }
 }
 

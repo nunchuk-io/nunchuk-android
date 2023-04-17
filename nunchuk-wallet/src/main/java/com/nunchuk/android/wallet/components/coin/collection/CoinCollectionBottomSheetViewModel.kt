@@ -7,6 +7,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.usecase.coin.CreateCoinCollectionUseCase
 import com.nunchuk.android.usecase.coin.UpdateCoinCollectionUseCase
+import com.nunchuk.android.wallet.components.coin.tag.CoinTagListEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -26,6 +27,7 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     private lateinit var coinCollection: CoinCollection
+    private var allCollections = arrayListOf<CoinCollection>()
 
     init {
         if (args.flow == CollectionFlow.ADD) {
@@ -36,6 +38,12 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
     }
 
     fun createCoinCollection(name: String) = viewModelScope.launch {
+        val existedCollection =
+            allCollections.firstOrNull { it.name == name }
+        if (existedCollection != null) {
+            _event.emit(CoinCollectionBottomSheetEvent.ExistedCollectionError)
+            return@launch
+        }
         coinCollection = coinCollection.copy(name = name)
         val result = when (args.flow) {
             CollectionFlow.ADD -> {
@@ -76,11 +84,17 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
         coinCollection = coinCollection.copy(isAutoLock = checked)
     }
 
+    fun setCollections(collections: List<CoinCollection>) {
+        allCollections.clear()
+        allCollections.addAll(collections)
+    }
+
     fun getCoinCollection() = coinCollection
 }
 
 sealed class CoinCollectionBottomSheetEvent {
     data class Error(val message: String) : CoinCollectionBottomSheetEvent()
     object CreateOrUpdateCollectionSuccess : CoinCollectionBottomSheetEvent()
+    object ExistedCollectionError : CoinCollectionBottomSheetEvent()
 }
 

@@ -80,8 +80,7 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                         findNavController().navigate(
                             CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToEditTagNameBottomSheetFragment(
                                 walletId = args.walletId,
-                                coinTag = it,
-                                tags = viewModel.getTags().toTypedArray()
+                                coinTag = it
                             )
                         )
                     }, onEditTagColorClick = {

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -15,6 +16,7 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.databinding.BottomSheetCoinCollectionBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,6 +25,7 @@ class CoinCollectionBottomSheetFragment : BaseBottomSheet<BottomSheetCoinCollect
 
     private val viewModel: CoinCollectionBottomSheetViewModel by viewModels()
     private val args: CoinCollectionBottomSheetFragmentArgs by navArgs()
+    private val coinListViewModel: CoinListViewModel by activityViewModels()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -35,6 +38,10 @@ class CoinCollectionBottomSheetFragment : BaseBottomSheet<BottomSheetCoinCollect
         super.onViewCreated(view, savedInstanceState)
         dialog?.setCanceledOnTouchOutside(false)
         setupViews()
+
+        flowObserver(coinListViewModel.state) { coinListState ->
+            viewModel.setCollections(coinListState.collections.values.toList())
+        }
     }
 
     private fun setupViews() {
@@ -70,6 +77,8 @@ class CoinCollectionBottomSheetFragment : BaseBottomSheet<BottomSheetCoinCollect
                     )
                     dismissAllowingStateLoss()
                 }
+
+                CoinCollectionBottomSheetEvent.ExistedCollectionError -> showError(message = getString(R.string.nc_collection_name_already_exists))
             }
         }
     }

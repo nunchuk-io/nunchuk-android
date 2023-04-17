@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -15,6 +16,7 @@ import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragmentArgs
 import com.nunchuk.android.wallet.databinding.BottomSheetEditTagNameBinding
@@ -25,6 +27,7 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
 
     private val viewModel: EditTagNameBottomSheetViewModel by viewModels()
     private val args: EditTagNameBottomSheetFragmentArgs by navArgs()
+    private val coinListViewModel: CoinListViewModel by activityViewModels()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -55,6 +58,10 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
 
                 is EditTagNameBottomSheetEvent.Error -> showError(message = event.message)
             }
+        }
+
+        flowObserver(coinListViewModel.state) { coinListState ->
+            viewModel.setTags(coinListState.tags.values.toList())
         }
     }
 
