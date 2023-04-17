@@ -53,6 +53,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.passwordOption.isVisible = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
         binding.passphraseOption.isVisible =
             signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY
+        binding.passphraseOption.enableSwitchButton(state.isEnablePassphrase)
         binding.pinOptionCreateButton.isVisible =
             state.walletPin.isBlank() && state.walletSecuritySetting.protectWalletPin
         binding.pinOptionChangeButton.isVisible =
@@ -143,7 +144,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
     private fun checkWalletSecurity() {
         if (viewModel.getWalletSecuritySetting().protectWalletPassword) {
             enterPasswordDialog(true)
-        } else if (viewModel.getWalletSecuritySetting().protectWalletPassword) {
+        } else if (viewModel.getWalletSecuritySetting().protectWalletPassphrase) {
             enterPassphraseDialog(true)
         } else if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin()
                 .isNotBlank()

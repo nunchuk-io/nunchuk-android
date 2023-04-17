@@ -4,7 +4,8 @@ import com.nunchuk.android.model.setting.WalletSecuritySetting
 
 data class WalletSecuritySettingState(
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
-    val walletPin: String = ""
+    val walletPin: String = "",
+    val isEnablePassphrase: Boolean = false
 )
 
 sealed class WalletSecuritySettingEvent {
