@@ -311,7 +311,7 @@ private fun CoinListContent(
                             onShowMoreOptions = onShowMoreOptions,
                             isShowMore = type == CoinListType.ALL,
                             title = if (type == CoinListType.ALL)
-                                stringResource(R.string.nc_coins)
+                                "${stringResource(R.string.nc_coins)} (${coins.size})"
                             else stringResource(R.string.nc_locked_coin)
                         )
                     }

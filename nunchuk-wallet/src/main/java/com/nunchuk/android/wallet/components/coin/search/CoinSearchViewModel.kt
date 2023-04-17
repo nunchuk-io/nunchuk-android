@@ -15,7 +15,11 @@ import com.nunchuk.android.wallet.components.coin.filter.CoinFilterUiState
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -43,7 +47,8 @@ class CoinSearchViewModel @Inject constructor(
 
     private val mutex = Mutex()
 
-    val filter = savedStateHandle.getStateFlow(KEY_FILTER, CoinFilterUiState())
+    private val defaultFilter = CoinFilterUiState(showLockedCoin = isCustomizeCoinFlow.not())
+    val filter = savedStateHandle.getStateFlow(KEY_FILTER, defaultFilter)
 
     fun updateFilter(filter: CoinFilterUiState) {
         savedStateHandle[KEY_FILTER] = filter
@@ -84,7 +89,7 @@ class CoinSearchViewModel @Inject constructor(
 
     suspend fun handleSearch(query: String) = withContext(ioDispatcher) {
         mutex.withLock {
-            if (query.isEmpty() && args.inputs.orEmpty().isEmpty()) {
+            if (query.isEmpty() && !isCustomizeCoinFlow) {
                 _state.update { it.copy(coins = emptyList()) }
             } else {
                 val filter = filter.value
@@ -123,6 +128,7 @@ class CoinSearchViewModel @Inject constructor(
                         lowCaseQuery.isEmpty()
                                 || it.tags.any { id -> queryTagIds.contains(id) }
                                 || it.collection.any { id -> queryCollectionIds.contains(id) }
+                                || it.memo.contains(lowCaseQuery)
                     }
                     .filter {
                         filter.selectTags.isEmpty() || it.tags.any { tag ->
@@ -178,6 +184,12 @@ class CoinSearchViewModel @Inject constructor(
     }
 
     fun getSelectedCoins() = _state.value.selectedCoins.toList()
+
+    private val isCustomizeCoinFlow: Boolean
+        get() = !args.inputs.isNullOrEmpty()
+
+    val isFiltering: Boolean
+        get() = defaultFilter != filter.value
 
     companion object {
         private const val KEY_FILTER = "filter"

@@ -7,24 +7,40 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.animation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -58,7 +74,6 @@ import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -150,12 +165,6 @@ class CoinSearchFragment : BaseCoinListFragment() {
         args.inputs?.let { inputs ->
             viewModel.setSelectedCoin(inputs)
         }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                .collect { event ->
-
-                }
-        }
 
         setFragmentResultListener(CoinFilterFragment.REQUEST_KEY) { _, bundle ->
             val filter = CoinFilterFragmentArgs.fromBundle(bundle)
@@ -211,13 +220,15 @@ private fun CoinSearchFragmentScreen(
         onViewAllCollections = onViewAllCollections,
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
         onUseCoinClicked = onUseCoinClicked,
-        amount = args.amount ?: Amount()
+        amount = args.amount ?: Amount(),
+        isFiltering = viewModel.isFiltering
     )
 }
 
 @Composable
 private fun CoinSearchFragmentContent(
     amount: Amount = Amount(),
+    isFiltering: Boolean = false,
     onFilterClicked: () -> Unit = {},
     enableSelectMode: () -> Unit = {},
     queryState: MutableState<String> = mutableStateOf(""),
@@ -288,16 +299,35 @@ private fun CoinSearchFragmentContent(
                     )
                 } else {
                     Box(modifier = Modifier.weight(1f)) {
-                        LazyColumn {
-                            items(coins) { coin ->
-                                PreviewCoinCard(
-                                    output = coin,
-                                    onSelectCoin = onSelectCoin,
-                                    isSelected = selectedCoins.contains(coin),
-                                    mode = if (mode == CoinListMode.SELECT || mode == CoinListMode.TRANSACTION_SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
-                                    onViewCoinDetail = onViewCoinDetail,
-                                    tags = tags,
-                                )
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            if (coins.isNotEmpty()) {
+                                if (mode != CoinListMode.SELECT && isFiltering) {
+                                    Text(
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 8.dp
+                                        ),
+                                        text = stringResource(
+                                            R.string.nc_results_found,
+                                            coins.size
+                                        ),
+                                        style = NunchukTheme.typography.body
+                                    )
+                                }
+                                LazyColumn {
+                                    items(coins) { coin ->
+                                        PreviewCoinCard(
+                                            output = coin,
+                                            onSelectCoin = onSelectCoin,
+                                            isSelected = selectedCoins.contains(coin),
+                                            mode = if (mode == CoinListMode.SELECT || mode == CoinListMode.TRANSACTION_SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
+                                            onViewCoinDetail = onViewCoinDetail,
+                                            tags = tags,
+                                        )
+                                    }
+                                }
+                            } else if (isFiltering) {
+                                EmptySearchState()
                             }
                         }
                         androidx.compose.animation.AnimatedVisibility(
