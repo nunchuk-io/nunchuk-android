@@ -1,6 +1,10 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
+android {
+    namespace 'com.nunchuk.android.widget'
+}
+
 dependencies {
 
     api project(':nunchuk-utils')

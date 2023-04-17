@@ -1,6 +1,10 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
+android {
+    namespace 'com.nunchuk.android.arch'
+}
+
 dependencies {
     implementation project(':nunchuk-utils')
     implementation lifecycleDeps.values()

@@ -118,6 +118,10 @@ android {
         jvmTarget = '11'
     }
 
+    kotlin {
+        jvmToolchain(11)
+    }
+
     composeOptions {
         kotlinCompilerExtensionVersion '1.4.4'
     }
@@ -133,6 +137,7 @@ android {
         exclude 'META-INF/ASL2.0'
         exclude 'META-INF/versions/9/module-info.class'
     }
+    namespace 'com.nunchuk.android'
 }
 
 dependencies {
