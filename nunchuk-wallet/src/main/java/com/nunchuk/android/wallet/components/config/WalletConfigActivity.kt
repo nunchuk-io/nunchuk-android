@@ -32,7 +32,6 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.model.KeyPolicy
@@ -101,8 +100,26 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
             SheetOptionType.TYPE_EXPORT_BSMS -> handleExportBSMS()
-            SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL -> openSelectFileChooser()
-            SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL -> viewModel.exportTxCoinControl()
+            SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL -> showImportFormatOption()
+            SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL -> showExportFormatOption()
+            SheetOptionType.TYPE_EXPORT_NUNCHUK -> {
+                NCWarningDialog(this).showDialog(
+                    title = getString(R.string.nc_confirmation),
+                    message = getString(R.string.nc_select_export_format_desc),
+                    onYesClick = { viewModel.exportCoinControlNunchuk() }
+                )
+            }
+
+            SheetOptionType.TYPE_EXPORT_BIP329 -> viewModel.exportCoinControlBIP329()
+            SheetOptionType.TYPE_IMPORT_NUNCHUK -> {
+                NCWarningDialog(this).showDialog(
+                    title = getString(R.string.nc_confirmation),
+                    message = getString(R.string.nc_select_import_format_desc),
+                    onYesClick = { openSelectFileChooser(requestCode = IMPORT_NUNCHUK_REQ) }
+                )
+            }
+
+            SheetOptionType.TYPE_IMPORT_BIP329 -> openSelectFileChooser(requestCode = IMPORT_BIP329_REQ)
         }
     }
 
@@ -166,6 +183,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 })
                 finish()
             }
+
             is WalletConfigEvent.CalculateRequiredSignaturesSuccess -> {
                 navigator.openWalletAuthentication(
                     walletId = event.walletId,
@@ -176,10 +194,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     activityContext = this
                 )
             }
+
             WalletConfigEvent.DeleteAssistedWalletSuccess -> walletDeleted()
             is WalletConfigEvent.UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
             is WalletConfigEvent.ExportTxCoinControlSuccess -> shareConfigurationFile(event.filePath)
-            WalletConfigEvent.ImportTxCoinControlSuccess -> NCToastMessage(this).showMessage(message = getString(R.string.nc_transaction_imported))
+            WalletConfigEvent.ImportTxCoinControlSuccess -> NCToastMessage(this).showMessage(
+                message = getString(
+                    R.string.nc_import_completed
+                )
+            )
         }
     }
 
@@ -270,12 +293,12 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOption(
                 SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL,
                 R.drawable.ic_import,
-                R.string.nc_import_transaction_note_and_coin_tag
+                R.string.nc_import_labels
             ),
             SheetOption(
                 SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL,
                 R.drawable.ic_export,
-                R.string.nc_export_transaction_note_and_coin_tag
+                R.string.nc_export_labels
             ),
         )
         if (viewModel.isAssistedWallet()) {
@@ -322,6 +345,38 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
+    private fun showImportFormatOption() {
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_select_import_format),
+            options = listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_IMPORT_NUNCHUK,
+                    stringId = R.string.nc_nunchuk
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_IMPORT_BIP329,
+                    stringId = R.string.nc_bip329
+                ),
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showExportFormatOption() {
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_select_export_format),
+            options = listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_NUNCHUK,
+                    stringId = R.string.nc_nunchuk
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_BIP329,
+                    stringId = R.string.nc_bip329
+                ),
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
     private fun onEditClicked() {
         val bottomSheet = WalletUpdateBottomSheet.show(
             fragmentManager = supportFragmentManager,
@@ -357,14 +412,22 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
-        if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            intent?.data?.let {
-                getFileFromUri(contentResolver, it, cacheDir)
-            }?.absolutePath?.let(viewModel::importTxCoinControl)
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == IMPORT_NUNCHUK_REQ) {
+                intent?.data?.let {
+                    getFileFromUri(contentResolver, it, cacheDir)
+                }?.absolutePath?.let(viewModel::importCoinControlNunchuk)
+            } else if (requestCode == IMPORT_BIP329_REQ) {
+                intent?.data?.let {
+                    getFileFromUri(contentResolver, it, cacheDir)
+                }?.absolutePath?.let(viewModel::importCoinControlBIP329)
+            }
         }
     }
 
     companion object {
+        private const val IMPORT_NUNCHUK_REQ = 2
+        private const val IMPORT_BIP329_REQ = 3
         private const val CONFIRMATION_TEXT = "DELETE"
         const val EXTRA_WALLET_ACTION = "action"
 

@@ -53,6 +53,8 @@ class CoinTagListViewModel @Inject constructor(
                 tags = allTags.map { tag -> CoinTagAddition(tag, numberOfCoinByTagId[tag.id] ?: 0) }
             )
         }
+        hexColorUsedList.clear()
+        allTags.forEach { hexColorUsedList.add(it.color) }
     }
 
     fun addCoinTag() = viewModelScope.launch {

@@ -37,14 +37,15 @@ import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
+import com.nunchuk.android.usecase.membership.ImportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ImportTxCoinControlUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -69,6 +70,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val exportWalletUseCase: ExportWalletUseCase,
     private val importTxCoinControlUseCase: ImportTxCoinControlUseCase,
     private val exportTxCoinControlUseCase: ExportTxCoinControlUseCase,
+    private val importCoinControlBIP329UseCase: ImportCoinControlBIP329UseCase,
+    private val exportCoinControlBIP329UseCase: ExportCoinControlBIP329UseCase,
     getContactsUseCase: GetContactsUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
@@ -308,9 +311,9 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
-    fun importTxCoinControl(filePath: String) = viewModelScope.launch {
+    fun importCoinControlNunchuk(filePath: String) = viewModelScope.launch {
         setEvent(WalletConfigEvent.Loading(true))
-        val result = importTxCoinControlUseCase(ImportTxCoinControlUseCase.Param(walletId = walletId, data = filePath))
+        val result = importTxCoinControlUseCase(ImportTxCoinControlUseCase.Param(walletId = walletId, data = filePath, force = true))
         setEvent(WalletConfigEvent.Loading(false))
         if (result.isSuccess) {
             setEvent(WalletConfigEvent.ImportTxCoinControlSuccess)
@@ -319,7 +322,7 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
-    fun exportTxCoinControl() = viewModelScope.launch {
+    fun exportCoinControlNunchuk() = viewModelScope.launch {
             when (val event = createShareFileUseCase.execute("${walletId}.json")) {
                 is Result.Success -> {
                     val result = exportTxCoinControlUseCase(ExportTxCoinControlUseCase.Param(walletId = walletId, filePath = event.data))
@@ -332,6 +335,32 @@ internal class WalletConfigViewModel @Inject constructor(
                 is Result.Error -> showError(event.exception)
             }
     }
+
+    fun importCoinControlBIP329(filePath: String) = viewModelScope.launch {
+        setEvent(WalletConfigEvent.Loading(true))
+        val result = importCoinControlBIP329UseCase(ImportCoinControlBIP329UseCase.Param(walletId = walletId, data = filePath))
+        setEvent(WalletConfigEvent.Loading(false))
+        if (result.isSuccess) {
+            setEvent(WalletConfigEvent.ImportTxCoinControlSuccess)
+        } else {
+            setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    fun exportCoinControlBIP329() = viewModelScope.launch {
+        when (val event = createShareFileUseCase.execute("${walletId}.json")) {
+            is Result.Success -> {
+                val result = exportCoinControlBIP329UseCase(ExportCoinControlBIP329UseCase.Param(walletId = walletId, filePath = event.data))
+                if (result.isSuccess) {
+                    setEvent(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
+                } else {
+                    setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+                }
+            }
+            is Result.Error -> showError(event.exception)
+        }
+    }
+
 
     private fun isPrimaryKey(id: String) =
         accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id

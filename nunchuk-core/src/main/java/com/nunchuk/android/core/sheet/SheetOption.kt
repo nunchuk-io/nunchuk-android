@@ -112,4 +112,8 @@ object SheetOptionType {
 
     const val TYPE_IMPORT_TX_COIN_CONTROL = 57
     const val TYPE_EXPORT_TX_COIN_CONTROL = 58
+    const val TYPE_IMPORT_NUNCHUK = 59
+    const val TYPE_IMPORT_BIP329 = 60
+    const val TYPE_EXPORT_NUNCHUK = 61
+    const val TYPE_EXPORT_BIP329 = 62
 }
