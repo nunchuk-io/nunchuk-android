@@ -129,6 +129,8 @@ class CoinSearchViewModel @Inject constructor(
                                 || it.tags.any { id -> queryTagIds.contains(id) }
                                 || it.collection.any { id -> queryCollectionIds.contains(id) }
                                 || it.memo.contains(lowCaseQuery)
+                                || it.txid.contains(lowCaseQuery)
+                                || it.address.contains(lowCaseQuery)
                     }
                     .filter {
                         filter.selectTags.isEmpty() || it.tags.any { tag ->
