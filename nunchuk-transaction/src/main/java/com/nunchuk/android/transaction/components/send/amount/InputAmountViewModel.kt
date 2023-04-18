@@ -23,7 +23,12 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.fromCurrencyToBTC
+import com.nunchuk.android.core.util.fromSATtoBTC
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.toNumericValue
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
@@ -39,6 +44,7 @@ internal class InputAmountViewModel @Inject constructor(
 ) : NunchukViewModel<InputAmountState, InputAmountEvent>() {
 
     private var availableAmount: Double = 0.0
+    private var availableAmountWithoutUnlocked: Double = 0.0
     private var hasLockedCoin: Boolean = false
 
     override val initialState = InputAmountState()
@@ -56,6 +62,8 @@ internal class InputAmountViewModel @Inject constructor(
             setEvent(InputAmountEvent.Loading(true))
             getAllCoinUseCase(walletId).onSuccess {
                 hasLockedCoin = it.any { coin -> coin.isLocked }
+                availableAmountWithoutUnlocked =
+                    it.sumOf { coin -> if (coin.isLocked) 0.0 else coin.amount.pureBTC() }
             }
             setEvent(InputAmountEvent.Loading(false))
         }
@@ -107,13 +115,19 @@ internal class InputAmountViewModel @Inject constructor(
                 updateState {
                     copy(
                         amountBTC = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromSATtoBTC() else inputValue,
-                        amountUSD = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromSATtoBTC().fromBTCToCurrency() else inputValue.fromBTCToCurrency()
+                        amountUSD = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromSATtoBTC()
+                            .fromBTCToCurrency() else inputValue.fromBTCToCurrency()
                     )
                 }
             }
         } else {
             if (inputValue != currentState.amountUSD) {
-                updateState { copy(amountBTC = inputValue.fromCurrencyToBTC(), amountUSD = inputValue) }
+                updateState {
+                    copy(
+                        amountBTC = inputValue.fromCurrencyToBTC(),
+                        amountUSD = inputValue
+                    )
+                }
             }
         }
     }
@@ -124,6 +138,8 @@ internal class InputAmountViewModel @Inject constructor(
         val amount = getState().amountBTC
         if (amount <= 0 || amount > availableAmount) {
             setEvent(InputAmountEvent.InsufficientFundsEvent)
+        } else if (amount > availableAmountWithoutUnlocked) {
+            setEvent(InputAmountEvent.InsufficientFundsLockedCoinEvent)
         } else {
             setEvent(InputAmountEvent.AcceptAmountEvent(amount))
         }

@@ -28,6 +28,7 @@ sealed class InputAmountEvent {
     data class ParseBtcUriSuccess(val btcUri: BtcUri) : InputAmountEvent()
     data class ShowError(val message: String) : InputAmountEvent()
     object InsufficientFundsEvent : InputAmountEvent()
+    object InsufficientFundsLockedCoinEvent : InputAmountEvent()
 }
 
 data class InputAmountState(
