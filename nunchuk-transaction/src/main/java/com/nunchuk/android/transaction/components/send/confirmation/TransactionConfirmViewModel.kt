@@ -29,10 +29,21 @@ import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
+import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxSuccessEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionError
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
@@ -233,7 +244,7 @@ class TransactionConfirmViewModel @Inject constructor(
                         AssignTagEvent(
                             walletId = walletId,
                             txId =  transaction.txId,
-                            output = UnspentOutput(txid = transaction.txId, transaction.changeIndex),
+                            output = UnspentOutput(txid = transaction.txId, vout = transaction.changeIndex),
                             tags = tags
                         )
                     )
