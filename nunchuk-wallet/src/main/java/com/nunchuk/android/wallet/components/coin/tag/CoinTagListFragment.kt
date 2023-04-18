@@ -325,7 +325,7 @@ fun InputTagItem(
                 .weight(1f)
                 .padding(start = 12.dp),
             keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
+                capitalization = KeyboardCapitalization.None,
                 keyboardType = KeyboardType.Text
             ),
             title = "",
