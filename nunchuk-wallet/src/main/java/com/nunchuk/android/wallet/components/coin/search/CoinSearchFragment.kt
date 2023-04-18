@@ -352,7 +352,7 @@ private fun CoinSearchFragmentContent(
                             onSendBtc = onSendBtc,
                             onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
                         )
-                    } else if ((mode == CoinListMode.TRANSACTION_SELECT && selectedCoins.isNotEmpty()) || selectedTransactionCoinVisible) {
+                    } else if (mode == CoinListMode.TRANSACTION_SELECT) {
                         SelectCoinCreateTransactionBottomBar(
                             isExpand = selectedTransactionCoinVisible,
                             selectedCoin = selectedCoins,

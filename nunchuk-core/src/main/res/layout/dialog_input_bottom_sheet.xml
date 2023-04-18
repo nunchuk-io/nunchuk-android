@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:background="@drawable/nc_bottom_sheet_background"
     android:padding="@dimen/nc_padding_16"
     android:paddingBottom="300dp"
@@ -34,6 +34,7 @@
         android:paddingVertical="@dimen/nc_padding_8"
         android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_16"
+        app:edit_gravity="top"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/desc" />
 

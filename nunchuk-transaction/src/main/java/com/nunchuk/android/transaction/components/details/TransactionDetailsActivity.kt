@@ -41,14 +41,51 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.bindTransactionStatus
+import com.nunchuk.android.core.util.canBroadCast
+import com.nunchuk.android.core.util.copyToClipboard
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getFormatDate
+import com.nunchuk.android.core.util.getPendingSignatures
+import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.hasChangeIndex
+import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.setUnderline
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
-import com.nunchuk.android.share.model.TransactionOption.*
+import com.nunchuk.android.share.model.TransactionOption.CANCEL
+import com.nunchuk.android.share.model.TransactionOption.COPY_TRANSACTION_ID
+import com.nunchuk.android.share.model.TransactionOption.EXPORT_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.IMPORT_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
+import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.DeleteTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ExportToFileSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ExportTransactionToMk4Success
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ImportTransactionFromMk4Success
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ImportTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.LoadingEvent
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.NfcLoadingEvent
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.NoInternetConnection
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.PromptInputPassphrase
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.PromptTransactionOptions
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.SignTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.TransactionDetailsError
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.TransactionError
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.UpdateTransactionMemoFailed
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.UpdateTransactionMemoSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ViewBlockchainExplorer
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
@@ -70,7 +107,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.Date
 
 
 @AndroidEntryPoint
@@ -456,7 +493,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             binding.sendToAddress.text = getString(R.string.nc_transaction_receive_address)
         } else {
             if (transaction.status.isConfirmed()) {
-                binding.sendingToLabel.text = getString(R.string.nc_transaction_sent_to)
+                binding.sendingToLabel.text = getString(R.string.nc_transaction_send_to)
             } else {
                 binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
             }

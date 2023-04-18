@@ -186,7 +186,7 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                 when (event) {
                     is CoinDetailEvent.LockOrUnlockSuccess -> {
                         if (event.isLocked) {
-                            showSuccess(getString(R.string.nc_coin_locked))
+                            showSuccess(getString(R.string.nc_one_coin_locked))
                         }
                         coinViewModel.refresh()
                     }

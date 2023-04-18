@@ -52,6 +52,7 @@ import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.transaction.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SelectTimeZoneFragment : Fragment() {
@@ -71,7 +72,7 @@ class SelectTimeZoneFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when(event) {

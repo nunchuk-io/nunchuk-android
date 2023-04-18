@@ -26,7 +26,13 @@ import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.nunchuk.android.core.base.BaseViewHolder
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.bindTransactionStatus
+import com.nunchuk.android.core.util.canBroadCast
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getFormatDate
+import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
@@ -37,7 +43,7 @@ import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
 import com.nunchuk.android.widget.util.inflate
-import java.util.*
+import java.util.Date
 
 internal class TransactionAdapter(
     private val listener: (Transaction) -> Unit
@@ -77,7 +83,7 @@ internal class TransactionAdapter(
                 binding.receiverName.text = Utils.maskValue(data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
             } else {
                 if (data.transaction.status.isConfirmed()) {
-                    binding.sendTo.text = context.getString(R.string.nc_transaction_sent_to)
+                    binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
                 } else {
                     binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
                 }

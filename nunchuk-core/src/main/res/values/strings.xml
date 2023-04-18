@@ -16,7 +16,6 @@
     <string name="nc_signer_type_primary_key">Primary Key</string>
 
     <string name="nc_transaction_send_to">Send to</string>
-    <string name="nc_transaction_sent_to">Sent to</string>
     <string name="nc_transaction_receive_at">Received at</string>
     <string name="nc_transaction_pending_confirmation">Pending confirmations</string>
     <string name="nc_transaction_ready_to_broadcast">Ready to broadcast</string>
@@ -537,6 +536,7 @@
     <string name="nc_lock_coin">Lock coins</string>
     <string name="nc_unlock_coin">Unlock coins</string>
     <string name="nc_coin_locked">Coins locked</string>
+    <string name="nc_one_coin_locked">Coin locked</string>
     <string name="nc_coin_unlocked">Coins unlocked</string>
     <string name="nc_view_tag">View tags</string>
     <string name="nc_view_collection">View collections</string>

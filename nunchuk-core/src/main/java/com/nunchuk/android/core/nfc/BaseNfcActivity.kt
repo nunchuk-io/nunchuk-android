@@ -38,6 +38,7 @@ import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NUMBER_TYPE
+import kotlinx.coroutines.launch
 
 abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(), NfcActionListener {
     protected val nfcViewModel: NfcViewModel by viewModels()
@@ -101,7 +102,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
     }
 
     private fun observer() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 nfcViewModel.event.collect {
                     when (it) {
