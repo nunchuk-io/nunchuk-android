@@ -4,10 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.usecase.coin.CreateCoinCollectionUseCase
 import com.nunchuk.android.usecase.coin.UpdateCoinCollectionUseCase
-import com.nunchuk.android.wallet.components.coin.tag.CoinTagListEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -19,6 +19,7 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val createCoinCollectionUseCase: CreateCoinCollectionUseCase,
     private val updateCoinCollectionUseCase: UpdateCoinCollectionUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
 
     val args = CoinCollectionBottomSheetFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -50,7 +51,8 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
                 createCoinCollectionUseCase(
                     CreateCoinCollectionUseCase.Param(
                         walletId = args.walletId,
-                        coinCollection = coinCollection
+                        coinCollection = coinCollection,
+                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
                     )
                 )
             }

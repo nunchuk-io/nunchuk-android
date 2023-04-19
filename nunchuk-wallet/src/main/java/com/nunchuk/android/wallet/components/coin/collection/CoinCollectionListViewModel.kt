@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinCollectionAddition
 import com.nunchuk.android.usecase.coin.AddToCoinCollectionUseCase
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class CoinCollectionListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val addToCoinCollectionUseCase: AddToCoinCollectionUseCase,
-    private val removeCoinFromCollectionUseCase: RemoveCoinFromCollectionUseCase
+    private val removeCoinFromCollectionUseCase: RemoveCoinFromCollectionUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) :
     ViewModel() {
 
@@ -115,7 +117,8 @@ class CoinCollectionListViewModel @Inject constructor(
                 AddToCoinCollectionUseCase.Param(
                     walletId = args.walletId,
                     collectionIds = selectedCollections.toList(),
-                    coins = args.coins.toList()
+                    coins = args.coins.toList(),
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
                 )
             )
         }

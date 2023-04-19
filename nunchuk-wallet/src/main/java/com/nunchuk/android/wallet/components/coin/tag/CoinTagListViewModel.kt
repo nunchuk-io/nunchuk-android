@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
@@ -24,7 +25,8 @@ class CoinTagListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val createCoinTagUseCase: CreateCoinTagUseCase,
     private val addToCoinTagUseCase: AddToCoinTagUseCase,
-    private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase
+    private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
     val args = CoinTagListFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -67,7 +69,8 @@ class CoinTagListViewModel @Inject constructor(
                 AddToCoinTagUseCase.Param(
                     walletId = args.walletId,
                     tagIds = selectedTags.toList(),
-                    coins = args.coins.toList()
+                    coins = args.coins.toList(),
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
                 )
             )
         }
@@ -162,7 +165,8 @@ class CoinTagListViewModel @Inject constructor(
             CreateCoinTagUseCase.Param(
                 walletId = args.walletId,
                 name = "#${coinTagInputHolder.name}",
-                color = coinTagInputHolder.color
+                color = coinTagInputHolder.color,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
             )
         )
         if (result.isSuccess) {
