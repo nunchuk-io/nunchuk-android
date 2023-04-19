@@ -4,13 +4,18 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.usecase.coin.DeleteCoinTagUseCase
 import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
 import com.nunchuk.android.usecase.coin.UpdateCoinTagUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,6 +25,7 @@ class CoinTagDetailViewModel @Inject constructor(
     private val deleteCoinTagUseCase: DeleteCoinTagUseCase,
     private val updateCoinTagUseCase: UpdateCoinTagUseCase,
     private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<CoinTagDetailEvent>()
@@ -67,7 +73,8 @@ class CoinTagDetailViewModel @Inject constructor(
         val result = updateCoinTagUseCase(
             UpdateCoinTagUseCase.Param(
                 walletId = args.walletId,
-                coinTag = coinTag
+                coinTag = coinTag,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
             )
         )
         if (result.isSuccess) {

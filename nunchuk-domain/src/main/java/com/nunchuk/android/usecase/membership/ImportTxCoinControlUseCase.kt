@@ -4,9 +4,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import java.io.BufferedReader
 import java.io.File
-import java.io.FileReader
 import java.io.IOException
 import javax.inject.Inject
 

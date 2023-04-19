@@ -4,11 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.usecase.coin.UpdateCoinTagUseCase
-import com.nunchuk.android.wallet.components.coin.collection.CoinCollectionBottomSheetFragmentArgs
-import com.nunchuk.android.wallet.components.coin.tag.CoinTagListEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -19,6 +17,7 @@ import javax.inject.Inject
 class EditTagNameBottomSheetViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val updateCoinTagUseCase: UpdateCoinTagUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
 
     val args = EditTagNameBottomSheetFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -36,7 +35,13 @@ class EditTagNameBottomSheetViewModel @Inject constructor(
             return@launch
         }
         val coinTag = args.coinTag.copy(name = tagName)
-        val result = updateCoinTagUseCase(UpdateCoinTagUseCase.Param(args.walletId, coinTag))
+        val result = updateCoinTagUseCase(
+            UpdateCoinTagUseCase.Param(
+                args.walletId,
+                coinTag,
+                assistedWalletManager.isActiveAssistedWallet(args.walletId)
+            )
+        )
         if (result.isSuccess) {
             if (result.getOrDefault(false)) {
                 _event.emit(EditTagNameBottomSheetEvent.UpdateTagNameSuccess(tagName = tagName))

@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.data.api
 
 import com.nunchuk.android.core.data.model.*
+import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.network.Data
 import com.nunchuk.android.model.KeyResponse
@@ -269,4 +270,15 @@ internal interface UserWalletsApi {
         @Path("xfp") xfp: String,
         @Body payload: UpdateKeyPayload
     ): Data<Unit>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/coin-control")
+    suspend fun uploadCoinControlData(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: CoinDataContent
+    ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/coin-control")
+    suspend fun getCoinControlData(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<CoinDataContent>
 }

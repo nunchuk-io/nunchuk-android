@@ -221,7 +221,7 @@ private fun CoinSearchFragmentScreen(
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
         onUseCoinClicked = onUseCoinClicked,
         amount = args.amount ?: Amount(),
-        isFiltering = viewModel.isFiltering
+        isFiltering = viewModel.isFilteringOrSearch
     )
 }
 

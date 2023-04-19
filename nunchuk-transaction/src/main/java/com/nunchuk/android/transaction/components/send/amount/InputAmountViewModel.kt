@@ -46,12 +46,14 @@ internal class InputAmountViewModel @Inject constructor(
     private var availableAmount: Double = 0.0
     private var availableAmountWithoutUnlocked: Double = 0.0
     private var hasLockedCoin: Boolean = false
+    private var isFromSelectedCoin: Boolean = false
 
     override val initialState = InputAmountState()
 
     fun init(availableAmount: Double, walletId: String, isFromSelectedCoin: Boolean) {
         updateState { initialState }
         this.availableAmount = availableAmount
+        this.isFromSelectedCoin = isFromSelectedCoin
         if (!isFromSelectedCoin) {
             checkLockedCoin(walletId)
         }
@@ -138,7 +140,7 @@ internal class InputAmountViewModel @Inject constructor(
         val amount = getState().amountBTC
         if (amount <= 0 || amount > availableAmount) {
             setEvent(InputAmountEvent.InsufficientFundsEvent)
-        } else if (amount > availableAmountWithoutUnlocked) {
+        } else if (amount > availableAmountWithoutUnlocked && !isFromSelectedCoin) {
             setEvent(InputAmountEvent.InsufficientFundsLockedCoinEvent)
         } else {
             setEvent(InputAmountEvent.AcceptAmountEvent(amount))

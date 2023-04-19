@@ -3,13 +3,22 @@ package com.nunchuk.android.wallet.components.coin.list
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.push.PushEvent
-import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.usecase.coin.*
+import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
+import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
+import com.nunchuk.android.usecase.coin.LockCoinUseCase
+import com.nunchuk.android.usecase.coin.RemoveCoinFromCollectionUseCase
+import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
+import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,6 +32,7 @@ class CoinListViewModel @Inject constructor(
     private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase,
     private val removeCoinFromCollectionUseCase: RemoveCoinFromCollectionUseCase,
     private val getAllCollectionsUseCase: GetAllCollectionsUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
     private val walletId = savedStateHandle.get<String>("wallet_id").orEmpty()
     private val _state = MutableStateFlow(CoinListUiState())
@@ -77,7 +87,14 @@ class CoinListViewModel @Inject constructor(
     fun onLockCoin(walletId: String, selectedCoins: List<UnspentOutput>) {
         viewModelScope.launch {
             selectedCoins.asSequence().filter { it.isLocked.not() }.forEach {
-                lockCoinUseCase(LockCoinUseCase.Params(walletId, it.txid, it.vout))
+                lockCoinUseCase(
+                    LockCoinUseCase.Params(
+                        walletId,
+                        it.txid,
+                        it.vout,
+                        assistedWalletManager.isActiveAssistedWallet(walletId)
+                    )
+                )
             }
             getAllCoins()
             _event.emit(CoinListEvent.CoinLocked)
@@ -87,7 +104,14 @@ class CoinListViewModel @Inject constructor(
     fun onUnlockCoin(walletId: String, selectedCoins: List<UnspentOutput>) {
         viewModelScope.launch {
             selectedCoins.asSequence().filter { it.isLocked }.forEach {
-                unLockCoinUseCase(UnLockCoinUseCase.Params(walletId, it.txid, it.vout))
+                unLockCoinUseCase(
+                    UnLockCoinUseCase.Params(
+                        walletId,
+                        it.txid,
+                        it.vout,
+                        assistedWalletManager.isActiveAssistedWallet(walletId)
+                    )
+                )
             }
             getAllCoins()
             _event.emit(CoinListEvent.CoinUnlocked)

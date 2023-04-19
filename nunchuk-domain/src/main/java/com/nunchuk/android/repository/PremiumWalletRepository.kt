@@ -19,7 +19,20 @@
 
 package com.nunchuk.android.repository
 
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.BackupKey
+import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritanceAdditional
+import com.nunchuk.android.model.InheritanceCheck
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.QuestionsAndAnswer
+import com.nunchuk.android.model.SecurityQuestion
+import com.nunchuk.android.model.SeverWallet
+import com.nunchuk.android.model.TransactionAdditional
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
@@ -219,4 +232,8 @@ interface PremiumWalletRepository {
     suspend fun getAssistedWalletConfig() : AssistedWalletConfig
 
     fun assistedKeys() : Flow<Set<String>>
+
+    suspend fun getCoinControlData(walletId: String): String
+
+    suspend fun uploadCoinControlData(walletId: String, data: String)
 }
