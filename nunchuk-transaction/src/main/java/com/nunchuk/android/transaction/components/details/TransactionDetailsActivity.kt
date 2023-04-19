@@ -297,6 +297,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             handleCopyContent(binding.changeAddressLabel.text.toString())
             true
         }
+        binding.noteContent.setOnLongClickListener {
+            if (viewModel.getTransaction().memo.isNotEmpty()) {
+                handleCopyContent(viewModel.getTransaction().memo)
+            }
+            true
+        }
         binding.tvEditNote.setOnDebounceClickListener(coroutineScope = lifecycleScope) {
             InputBottomSheet.show(
                 fragmentManager = supportFragmentManager,
