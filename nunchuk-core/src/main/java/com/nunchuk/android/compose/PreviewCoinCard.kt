@@ -3,9 +3,18 @@ package com.nunchuk.android.compose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Checkbox
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,13 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.CoinStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.simpleDateFormat
-import java.util.*
+import java.util.Date
 
 const val MODE_VIEW_ONLY = 1
 const val MODE_VIEW_DETAIL = 2
@@ -111,6 +121,11 @@ fun PreviewCoinCard(
                     )
                 }
             }
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = output.amount.getCurrencyAmount(),
+                style = NunchukTheme.typography.bodySmall
+            )
             Row(
                 modifier = Modifier.padding(top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically

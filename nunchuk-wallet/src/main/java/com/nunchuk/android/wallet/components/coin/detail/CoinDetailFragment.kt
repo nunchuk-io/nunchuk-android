@@ -57,6 +57,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getBtcFormatDate
+import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showSuccess
@@ -301,6 +302,11 @@ private fun CoinDetailContent(
                         text = output.amount.getBTCAmount(),
                         style = NunchukTheme.typography.heading,
                         modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Text(
+                        text = output.amount.getCurrencyAmount(),
+                        style = NunchukTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
