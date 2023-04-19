@@ -41,7 +41,13 @@ import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxSuccessEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionError
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
 import com.nunchuk.android.transaction.components.send.confirmation.tag.AssignTagFragment
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
@@ -84,6 +90,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             magicalPhrase = args.magicalPhrase,
             inputs = args.inputs
         )
+        viewModel.draftTransaction()
     }
 
     private fun observeEvent() {

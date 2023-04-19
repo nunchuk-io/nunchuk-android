@@ -116,7 +116,6 @@ class TransactionConfirmViewModel @Inject constructor(
         }
         this.masterSignerId = masterSignerId
         this.magicalPhrase = magicalPhrase
-        if (isInheritanceClaimingFlow().not()) draftTransaction()
         if (inputs.isNotEmpty()) {
             getAllTags()
         }
@@ -149,7 +148,7 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    private fun draftTransaction() {
+    fun draftTransaction() {
         if (slots.isEmpty()) {
             draftNormalTransaction()
         } else {

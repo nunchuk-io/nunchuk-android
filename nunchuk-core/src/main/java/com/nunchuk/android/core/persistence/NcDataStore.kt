@@ -21,7 +21,13 @@ package com.nunchuk.android.core.persistence
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
@@ -53,6 +59,7 @@ class NcDataStore @Inject constructor(
     private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
     private val qrDensityKey = intPreferencesKey("qr_density")
     private val assistedKeysPreferenceKey = stringSetPreferencesKey("assisted_key")
+    private val feeJsonPreferenceKey = stringPreferencesKey("fee_key")
 
     /**
      * Current membership plan key
@@ -201,6 +208,17 @@ class NcDataStore @Inject constructor(
     val assistedKeys: Flow<Set<String>>
         get() = context.dataStore.data.map {
             it[assistedKeysPreferenceKey] ?: emptySet()
+        }
+
+    suspend fun setFeeJsonString(feeJson: String) {
+        context.dataStore.edit {
+            it[feeJsonPreferenceKey] = feeJson
+        }
+    }
+
+    val fee: Flow<String>
+        get() = context.dataStore.data.map {
+            it[feeJsonPreferenceKey].orEmpty()
         }
 
     suspend fun clear() {
