@@ -147,6 +147,7 @@ internal class SearchTransactionViewModel @Inject constructor(
                     .toAmount().value
             val transactions = allTransactionExtends
                 .asSequence()
+                .filter { it.transaction.memo.contains(lowCaseQuery) }
                 .filter {
                     if (it.transaction.isReceive) {
                         it.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().lowercase()
