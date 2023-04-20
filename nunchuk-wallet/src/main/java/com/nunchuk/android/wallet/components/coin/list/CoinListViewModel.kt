@@ -138,7 +138,8 @@ class CoinListViewModel @Inject constructor(
             RemoveCoinFromCollectionUseCase.Param(
                 walletId = walletId,
                 collectionIds = listOf(collectionId),
-                coins = _state.value.selectedCoins.toList()
+                coins = _state.value.selectedCoins.toList(),
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
             )
         )
         if (result.isSuccess) {

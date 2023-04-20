@@ -4,17 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.DeleteCoinCollectionUseCase
 import com.nunchuk.android.usecase.coin.RemoveCoinFromCollectionUseCase
-import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
-import com.nunchuk.android.usecase.coin.UpdateCoinCollectionUseCase
-import com.nunchuk.android.wallet.components.coin.tag.CoinTagListEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -27,8 +23,8 @@ import javax.inject.Inject
 class CoinCollectionDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val deleteCoinCollectionUseCase: DeleteCoinCollectionUseCase,
-    private val updateCoinCollectionUseCase: UpdateCoinCollectionUseCase,
     private val removeCoinFromCollectionUseCase: RemoveCoinFromCollectionUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<CoinCollectionDetailEvent>()
@@ -61,7 +57,8 @@ class CoinCollectionDetailViewModel @Inject constructor(
         val result = deleteCoinCollectionUseCase(
             DeleteCoinCollectionUseCase.Param(
                 walletId = args.walletId,
-                collectionId = args.coinCollection.id
+                collectionId = args.coinCollection.id,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
             )
         )
         if (result.isSuccess) {
@@ -80,7 +77,8 @@ class CoinCollectionDetailViewModel @Inject constructor(
             RemoveCoinFromCollectionUseCase.Param(
                 walletId = args.walletId,
                 collectionIds = listOf(args.coinCollection.id),
-                coins = coins
+                coins = coins,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
             )
         )
         if (result.isSuccess) {

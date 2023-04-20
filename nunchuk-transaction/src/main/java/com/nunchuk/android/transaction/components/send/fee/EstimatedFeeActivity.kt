@@ -89,13 +89,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.tvCustomize.setUnderline()
         binding.toolbarTitle.text = args.sweepType.toTitle(this)
         val subtractFeeFromAmount = args.subtractFeeFromAmount
-        binding.subtractFeeCheckBox.isChecked = subtractFeeFromAmount
-        binding.subtractFeeCheckBox.isEnabled = !subtractFeeFromAmount
-        viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount, binding.subtractFeeCheckBox.isEnabled)
+        viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount, !subtractFeeFromAmount)
 
-        binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked ->
+        binding.subtractFeeCheckBox.setOnClickListener {
             viewModel.handleSubtractFeeSwitch(
-                isChecked
+                binding.subtractFeeCheckBox.isChecked
             )
         }
         binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked ->
@@ -150,6 +148,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     private fun handleState(state: EstimatedFeeState) {
         binding.estimatedFeeBTC.text = state.estimatedFee.getBTCAmount()
         binding.estimatedFeeUSD.text = state.estimatedFee.getCurrencyAmount()
+
+        binding.subtractFeeCheckBox.isChecked = state.subtractFeeFromAmount
+        binding.subtractFeeCheckBox.isEnabled = state.enableSubtractFeeFromAmount
 
         if (state.subtractFeeFromAmount) {
             bindSubtotal(args.outputAmount)

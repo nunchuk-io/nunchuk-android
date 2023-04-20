@@ -20,7 +20,7 @@
             android:label="@string/nc_transaction_new"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible" />
 
         <activity
             android:name=".components.send.fee.EstimatedFeeActivity"

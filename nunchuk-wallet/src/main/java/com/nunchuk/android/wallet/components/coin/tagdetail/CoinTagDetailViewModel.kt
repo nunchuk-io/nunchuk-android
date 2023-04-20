@@ -51,7 +51,8 @@ class CoinTagDetailViewModel @Inject constructor(
         val result = deleteCoinTagUseCase(
             DeleteCoinTagUseCase.Param(
                 walletId = args.walletId,
-                tagId = args.coinTag.id
+                tagId = args.coinTag.id,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
             )
         )
         if (result.isSuccess) {
