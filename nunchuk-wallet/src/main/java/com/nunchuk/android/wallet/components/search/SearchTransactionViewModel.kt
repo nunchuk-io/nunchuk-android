@@ -27,14 +27,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
@@ -122,7 +120,7 @@ internal class SearchTransactionViewModel @Inject constructor(
         queryState.value = query
     }
 
-    private fun handleSearch(query: String)  {
+    private fun handleSearch(query: String) {
         if (query.isEmpty()) {
             _state.update { it.copy(transactions = emptyList()) }
         } else {
@@ -147,15 +145,10 @@ internal class SearchTransactionViewModel @Inject constructor(
                     .toAmount().value
             val transactions = allTransactionExtends
                 .asSequence()
-                .filter { it.transaction.memo.contains(lowCaseQuery) }
                 .filter {
-                    if (it.transaction.isReceive) {
-                        it.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().lowercase()
-                            .contains(lowCaseQuery)
-                    } else {
-                        it.transaction.outputs.firstOrNull()?.first.orEmpty().lowercase()
-                            .contains(lowCaseQuery)
-                    }
+                    it.transaction.memo.contains(lowCaseQuery)
+                            || (it.transaction.isReceive && it.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().lowercase().contains(lowCaseQuery))
+                            || (it.transaction.isReceive.not() && it.transaction.outputs.firstOrNull()?.first.orEmpty().lowercase().contains(lowCaseQuery))
                 }
                 .filter { it.transaction.totalAmount.value in minSat..maxSat }
                 .filter { it.transaction.blockTime in startTimeInSeconds..endTimeInSeconds }
