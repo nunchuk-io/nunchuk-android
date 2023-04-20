@@ -11,7 +11,6 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.paging.PagingData
@@ -19,17 +18,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragmentArgs
 import com.nunchuk.android.wallet.components.details.TransactionAdapter
 import com.nunchuk.android.wallet.databinding.FragmentSearchTransactionBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SearchTransactionFragment : BaseFragment<FragmentSearchTransactionBinding>() {
@@ -95,6 +88,7 @@ class SearchTransactionFragment : BaseFragment<FragmentSearchTransactionBinding>
         }
 
         flowObserver(viewModel.state) {
+            binding.emptyView.isVisible = it.query.isEmpty().not() && it.transactions.isEmpty()
             adapter.submitData(PagingData.from(it.transactions))
         }
     }

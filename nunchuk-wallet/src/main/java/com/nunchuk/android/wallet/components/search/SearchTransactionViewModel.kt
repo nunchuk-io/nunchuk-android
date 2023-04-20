@@ -122,7 +122,7 @@ internal class SearchTransactionViewModel @Inject constructor(
 
     private fun handleSearch(query: String) {
         if (query.isEmpty()) {
-            _state.update { it.copy(transactions = emptyList()) }
+            _state.update { it.copy(query = query, transactions = emptyList()) }
         } else {
             val filter = filter.value
             val endTimeInSeconds =
@@ -154,7 +154,7 @@ internal class SearchTransactionViewModel @Inject constructor(
                 .filter { it.transaction.blockTime in startTimeInSeconds..endTimeInSeconds }
                 .sortedWith(comparator)
                 .toList()
-            _state.update { it.copy(transactions = transactions) }
+            _state.update { it.copy(query = query, transactions = transactions) }
         }
     }
 
