@@ -79,7 +79,8 @@ class CoinTagListViewModel @Inject constructor(
                 RemoveCoinFromTagUseCase.Param(
                     walletId = args.walletId,
                     tagIds = deletedTags.toList(),
-                    coins = args.coins.toList()
+                    coins = args.coins.toList(),
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
                 )
             )
         }

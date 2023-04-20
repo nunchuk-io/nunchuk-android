@@ -61,7 +61,8 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
                 updateCoinCollectionUseCase(
                     UpdateCoinCollectionUseCase.Param(
                         walletId = args.walletId,
-                        coinCollection = coinCollection
+                        coinCollection = coinCollection,
+                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
                     )
                 )
             }

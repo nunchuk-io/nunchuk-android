@@ -91,7 +91,8 @@ class CoinTagDetailViewModel @Inject constructor(
             RemoveCoinFromTagUseCase.Param(
                 walletId = args.walletId,
                 tagIds = listOf(args.coinTag.id),
-                coins = coins
+                coins = coins,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
             )
         )
         if (result.isSuccess) {

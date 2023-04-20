@@ -3,15 +3,20 @@ package com.nunchuk.android.usecase.coin
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.UseCase
+import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 class RemoveCoinFromTagUseCase @Inject constructor(
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    repository: PremiumWalletRepository,
     private val nunchukNativeSdk: NunchukNativeSdk,
-) : UseCase<RemoveCoinFromTagUseCase.Param, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: Param) {
+) : BaseSyncCoinUseCase<RemoveCoinFromTagUseCase.Param, Unit>(
+    repository,
+    nunchukNativeSdk,
+    ioDispatcher
+) {
+    override suspend fun run(parameters: Param) {
         parameters.coins.forEach { output ->
             parameters.tagIds.forEach { tagId ->
                 nunchukNativeSdk.removeFromCoinTag(
@@ -24,5 +29,10 @@ class RemoveCoinFromTagUseCase @Inject constructor(
         }
     }
 
-    class Param(val walletId: String, val tagIds: List<Int>, val coins: List<UnspentOutput>)
+    class Param(
+        override val walletId: String,
+        val tagIds: List<Int>,
+        val coins: List<UnspentOutput>,
+        override val isAssistedWallet: Boolean,
+    ) : BaseSyncCoinUseCase.Param(walletId, isAssistedWallet)
 }
