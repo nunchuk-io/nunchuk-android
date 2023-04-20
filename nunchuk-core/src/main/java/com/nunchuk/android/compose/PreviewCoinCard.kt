@@ -49,6 +49,7 @@ fun PreviewCoinCard(
     mode: Int = MODE_VIEW_DETAIL,
     isSelected: Boolean = false,
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
+    onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
     Box(modifier = modifier
@@ -153,7 +154,8 @@ fun PreviewCoinCard(
                     modifier = Modifier.padding(top = 4.dp),
                     note = output.memo,
                     tagIds = output.tags,
-                    tags = tags
+                    tags = tags,
+                    onViewTagDetail = onViewTagDetail
                 )
             }
         }

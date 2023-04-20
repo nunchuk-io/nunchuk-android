@@ -106,6 +106,14 @@ class CoinListFragment : BaseCoinListFragment() {
                             )
                         )
                     },
+                    onViewTagDetail = {
+                        findNavController().navigate(
+                            CoinListFragmentDirections.actionCoinListFragmentToCoinTagDetailFragment(
+                                walletId = args.walletId,
+                                coinTag = it
+                            )
+                        )
+                    }
                 )
             }
         }
@@ -243,6 +251,7 @@ class CoinListFragment : BaseCoinListFragment() {
 private fun CoinListScreen(
     viewModel: CoinListViewModel = viewModel(),
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
+    onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
     onSendBtc: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
@@ -275,6 +284,7 @@ private fun CoinListScreen(
         enableSelectMode = viewModel::enableSelectMode,
         enableSearchMode = enableSearchMode,
         onViewCoinDetail = onViewCoinDetail,
+        onViewTagDetail = onViewTagDetail,
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
         onSendBtc = onSendBtc,
         onShowMoreOptions = onShowMoreOptions,
@@ -293,6 +303,7 @@ private fun CoinListContent(
     onSelectOrUnselectAll: (isSelect: Boolean, coins: List<UnspentOutput>) -> Unit = { _, _ -> },
     onSelectDone: () -> Unit = {},
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
+    onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onSendBtc: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
@@ -349,6 +360,7 @@ private fun CoinListContent(
                             isSelected = selectedCoin.contains(coin),
                             mode = if (mode == CoinListMode.SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
                             onViewCoinDetail = onViewCoinDetail,
+                            onViewTagDetail = onViewTagDetail,
                             tags = tags,
                         )
                     }

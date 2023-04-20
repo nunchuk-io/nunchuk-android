@@ -155,6 +155,14 @@ class CoinSearchFragment : BaseCoinListFragment() {
                             requireActivity().finish()
                         }
                     },
+                    onViewTagDetail = {
+                        findNavController().navigate(
+                            CoinSearchFragmentDirections.actionCoinSearchFragmentToCoinTagDetailFragment(
+                                walletId = args.walletId,
+                                coinTag = it
+                            )
+                        )
+                    }
                 )
             }
         }
@@ -193,6 +201,7 @@ private fun CoinSearchFragmentScreen(
     coinListViewModel: CoinListViewModel = viewModel(),
     onFilterClicked: () -> Unit = {},
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
+    onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onSendBtc: () -> Unit = {},
     onViewAllTags: () -> Unit,
     onViewAllCollections: () -> Unit = {},
@@ -217,6 +226,7 @@ private fun CoinSearchFragmentScreen(
         onSelectOrUnselectAll = viewModel::onSelectOrUnselectAll,
         onSendBtc = onSendBtc,
         onViewAllTags = onViewAllTags,
+        onViewTagDetail = onViewTagDetail,
         onViewAllCollections = onViewAllCollections,
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
         onUseCoinClicked = onUseCoinClicked,
@@ -239,6 +249,7 @@ private fun CoinSearchFragmentContent(
     mode: CoinListMode = CoinListMode.NONE,
     selectedCoins: Set<UnspentOutput> = emptySet(),
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
+    onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> },
     onSelectOrUnselectAll: (isSelect: Boolean, coins: List<UnspentOutput>) -> Unit = { _, _ -> },
     onSelectDone: () -> Unit = {},
@@ -323,7 +334,8 @@ private fun CoinSearchFragmentContent(
                                             isSelected = selectedCoins.contains(coin),
                                             mode = if (mode == CoinListMode.SELECT || mode == CoinListMode.TRANSACTION_SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
                                             onViewCoinDetail = onViewCoinDetail,
-                                            tags = tags,
+                                            onViewTagDetail = onViewTagDetail,
+                                            tags = tags
                                         )
                                     }
                                 }

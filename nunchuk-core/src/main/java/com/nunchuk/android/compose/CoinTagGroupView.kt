@@ -29,7 +29,8 @@ fun CoinTagGroupView(
     modifier: Modifier = Modifier,
     note: String = "",
     tagIds: Set<Int>,
-    tags: Map<Int, CoinTag>
+    tags: Map<Int, CoinTag>,
+    onViewTagDetail: (tag: CoinTag) -> Unit = {}
 ) {
     val context = LocalContext.current
     var isTextOverFlow by remember { mutableStateOf(false) }
@@ -48,11 +49,13 @@ fun CoinTagGroupView(
         ) {
             tagIds.take(if (onTagExpand) Int.MAX_VALUE else 5).mapNotNull { tags[it] }
                 .sortedBy { it.name }.forEach { coinTag ->
-                CoinTagView(
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-                    tag = coinTag
-                )
-            }
+                    CoinTagView(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                            .clickable { onViewTagDetail(coinTag) },
+                        tag = coinTag
+                    )
+                }
             if (tagIds.size > 5) {
                 Text(
                     modifier = Modifier
