@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.util.Patterns
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -32,6 +33,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ExtendedTransaction
@@ -43,6 +45,7 @@ import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
 import com.nunchuk.android.widget.util.inflate
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import java.util.Date
 
 internal class TransactionAdapter(
@@ -74,6 +77,19 @@ internal class TransactionAdapter(
         private val receivedAmountColor = ContextCompat.getColor(context, R.color.nc_slime_dark)
         private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_primary_color)
 
+        init {
+            binding.tvNote.setOnDebounceClickListener {
+                runCatching {
+                    val note = it.tag as String
+                    val matcher = Patterns.WEB_URL.matcher(note)
+                    if (matcher.find()) {
+                        val link = note.substring(matcher.start(1), matcher.end())
+                        context.openExternalLink(link)
+                    }
+                }
+            }
+        }
+
         override fun bind(data: ExtendedTransaction) {
             if (data.transaction.isReceive) {
                 binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
@@ -100,6 +116,7 @@ internal class TransactionAdapter(
                 if (hideWalletDetail.not()) onItemSelectedListener(data.transaction)
             }
             handleServerTransaction(data.transaction, data.serverTransaction)
+            binding.tvNote.tag = data.transaction.memo
             binding.tvNote.isVisible = data.transaction.memo.isNotEmpty()
             binding.tvNote.text = data.transaction.memo
         }

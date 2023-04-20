@@ -5,6 +5,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
@@ -19,6 +20,7 @@ fun NcLinkifyText(
     style: TextStyle,
     overflow: TextOverflow = TextOverflow.Clip,
     maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val linksList = extractUrls(text)
     val annotatedString = buildAnnotatedString {
@@ -44,7 +46,8 @@ fun NcLinkifyText(
         text = annotatedString,
         style = style,
         overflow = overflow,
-        maxLines = maxLines
+        maxLines = maxLines,
+        onTextLayout = onTextLayout
     )
 }
 

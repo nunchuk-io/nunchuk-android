@@ -1,5 +1,6 @@
 package com.nunchuk.android.compose
 
+import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,12 +13,14 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.model.CoinTag
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -28,6 +31,7 @@ fun CoinTagGroupView(
     tagIds: Set<Int>,
     tags: Map<Int, CoinTag>
 ) {
+    val context = LocalContext.current
     var isTextOverFlow by remember { mutableStateOf(false) }
     var isNoteExpand by remember { mutableStateOf(false) }
     var onTagExpand by remember { mutableStateOf(false) }
@@ -42,7 +46,8 @@ fun CoinTagGroupView(
                 .padding(4.dp),
             maxItemsInEachRow = 4
         ) {
-            tagIds.take( if (onTagExpand) Int.MAX_VALUE else 5).mapNotNull { tags[it] }.sortedBy { it.name }.forEach { coinTag ->
+            tagIds.take(if (onTagExpand) Int.MAX_VALUE else 5).mapNotNull { tags[it] }
+                .sortedBy { it.name }.forEach { coinTag ->
                 CoinTagView(
                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
                     tag = coinTag
@@ -69,7 +74,17 @@ fun CoinTagGroupView(
             }
         }
         Row(
-            modifier = Modifier.padding(bottom = if (note.isNotEmpty()) 8.dp else 0.dp),
+            modifier = Modifier
+                .padding(bottom = if (note.isNotEmpty()) 8.dp else 0.dp)
+                .clickable {
+                    runCatching {
+                        val matcher = Patterns.WEB_URL.matcher(note)
+                        if (matcher.find()) {
+                            val link = note.substring(matcher.start(1), matcher.end())
+                            context.openExternalLink(link)
+                        }
+                    }
+                },
         ) {
             if (note.isNotEmpty()) {
                 Icon(
@@ -81,11 +96,12 @@ fun CoinTagGroupView(
                     painter = painterResource(id = R.drawable.ic_transaction_note),
                     contentDescription = "Transaction Note"
                 )
-                Column(modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterVertically)
                 ) {
-                    Text(
+                    NcLinkifyText(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         text = note,
                         maxLines = if (isNoteExpand) Int.MAX_VALUE else 1,

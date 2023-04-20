@@ -22,6 +22,7 @@ package com.nunchuk.android.core.util
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.View
@@ -121,6 +122,17 @@ fun Activity.openExternalLink(url: String) {
         } catch (e: ActivityNotFoundException) {
             CrashlyticsReporter.recordException(e)
             NCToastMessage(this).showWarning(getString(R.string.nc_transaction_no_app_to_open_link))
+        }
+    }
+}
+
+fun Context.openExternalLink(url: String) {
+    if (url.isNotEmpty()) {
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        try {
+            startActivity(webIntent)
+        } catch (e: ActivityNotFoundException) {
+            CrashlyticsReporter.recordException(e)
         }
     }
 }

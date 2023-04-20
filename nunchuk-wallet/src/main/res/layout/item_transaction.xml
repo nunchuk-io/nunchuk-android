@@ -99,6 +99,7 @@
         android:background="@drawable/nc_rounded_12dp_stroke_border"
         android:drawablePadding="@dimen/nc_padding_4"
         android:ellipsize="end"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
         android:gravity="center_vertical"
         android:maxLines="1"
         android:padding="@dimen/nc_padding_8"
