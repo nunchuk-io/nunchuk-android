@@ -1,6 +1,7 @@
 package com.nunchuk.android.wallet.components.coin.tagdetail
 
 import android.os.Bundle
+import android.text.InputFilter
 import android.text.Selection
 import android.view.LayoutInflater
 import android.view.View
@@ -67,6 +68,10 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
 
     private fun setupViews() {
         binding.edtName.setText(args.coinTag.name)
+        val filter = InputFilter { source, _, _, _, _, _ ->
+            source.filterNot { it.isWhitespace() }
+        }
+        binding.edtName.filters = arrayOf(filter)
         binding.closeBtn.setOnClickListener {
             cleanUp()
         }

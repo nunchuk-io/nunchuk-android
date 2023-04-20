@@ -134,7 +134,7 @@ class CoinTagListViewModel @Inject constructor(
 
     fun onInputValueChange(value: String) {
         _state.update {
-            val newCoinTagInputHolder = it.coinTagInputHolder?.copy(name = value)
+            val newCoinTagInputHolder = it.coinTagInputHolder?.copy(name = value.replace("\\s".toRegex(), ""))
             it.copy(coinTagInputHolder = newCoinTagInputHolder)
         }
     }
