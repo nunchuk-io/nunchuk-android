@@ -275,6 +275,7 @@ private fun CoinSearchFragmentContent(
                         },
                         enableSelectMode = enableSelectMode,
                         onFilterClicked = onFilterClicked,
+                        isShowSelect = mode == CoinListMode.NONE
                     )
                 } else if (mode == CoinListMode.SELECT) {
                     CoinListTopBarSelectMode(

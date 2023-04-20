@@ -8,7 +8,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -33,7 +39,8 @@ fun SearchCoinTopAppBar(
     isEmpty: Boolean = false,
     onQueryChange: (String) -> Unit,
     enableSelectMode: () -> Unit,
-    onFilterClicked: () -> Unit
+    onFilterClicked: () -> Unit,
+    isShowSelect: Boolean = true
 ) {
     val isShowClearSearch by remember(query) {
         derivedStateOf { query.isNotEmpty() }
@@ -49,14 +56,16 @@ fun SearchCoinTopAppBar(
             }
         },
         actions = {
-            AnimatedVisibility(visible = isEmpty.not()) {
-                Text(
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .clickable { enableSelectMode() },
-                    text = stringResource(R.string.nc_select),
-                    style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-                )
+            if (isShowSelect) {
+                AnimatedVisibility(visible = isEmpty.not()) {
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clickable { enableSelectMode() },
+                        text = stringResource(R.string.nc_select),
+                        style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                    )
+                }
             }
             IconButton(onClick = onFilterClicked) {
                 Icon(
