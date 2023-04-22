@@ -323,7 +323,7 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun exportCoinControlNunchuk() = viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("${walletId}.json")) {
+            when (val event = createShareFileUseCase.execute("${walletName()}_labels.json")) {
                 is Result.Success -> {
                     val result = exportTxCoinControlUseCase(ExportTxCoinControlUseCase.Param(walletId = walletId, filePath = event.data))
                     if (result.isSuccess) {
@@ -348,7 +348,7 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun exportCoinControlBIP329() = viewModelScope.launch {
-        when (val event = createShareFileUseCase.execute("${walletId}.json")) {
+        when (val event = createShareFileUseCase.execute("${walletName()}_BIP329labels.json")) {
             is Result.Success -> {
                 val result = exportCoinControlBIP329UseCase(ExportCoinControlBIP329UseCase.Param(walletId = walletId, filePath = event.data))
                 if (result.isSuccess) {

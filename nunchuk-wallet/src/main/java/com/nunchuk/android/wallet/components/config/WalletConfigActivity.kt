@@ -119,7 +119,13 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             }
 
-            SheetOptionType.TYPE_IMPORT_BIP329 -> openSelectFileChooser(requestCode = IMPORT_BIP329_REQ)
+            SheetOptionType.TYPE_IMPORT_BIP329 -> {
+                NCWarningDialog(this).showDialog(
+                    title = getString(R.string.nc_confirmation),
+                    message = getString(R.string.nc_select_import_format_desc),
+                    onYesClick = { openSelectFileChooser(requestCode = IMPORT_BIP329_REQ) }
+                )
+            }
         }
     }
 
@@ -291,14 +297,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 R.string.nc_wallet_save_wallet_configuration
             ),
             SheetOption(
-                SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL,
-                R.drawable.ic_import,
-                R.string.nc_import_labels
-            ),
-            SheetOption(
                 SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL,
                 R.drawable.ic_export,
                 R.string.nc_export_labels
+            ),
+            SheetOption(
+                SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL,
+                R.drawable.ic_import,
+                R.string.nc_import_labels
             ),
         )
         if (viewModel.isAssistedWallet()) {
