@@ -39,11 +39,16 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
     }
 
     fun createCoinCollection(name: String) = viewModelScope.launch {
-        val existedCollection =
-            allCollections.firstOrNull { it.name == name }
-        if (existedCollection != null) {
-            _event.emit(CoinCollectionBottomSheetEvent.ExistedCollectionError)
-            return@launch
+        val ignoreCheckingName = if (args.flow == CollectionFlow.VIEW) {
+            coinCollection.name == name
+        } else { false }
+        if (ignoreCheckingName.not()) {
+            val existedCollection =
+                allCollections.firstOrNull { it.name == name }
+            if (existedCollection != null) {
+                _event.emit(CoinCollectionBottomSheetEvent.ExistedCollectionError)
+                return@launch
+            }
         }
         coinCollection = coinCollection.copy(name = name)
         val result = when (args.flow) {
