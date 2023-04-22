@@ -3,6 +3,7 @@ package com.nunchuk.android.settings.walletsecurity
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
+import com.nunchuk.android.core.domain.CheckHasPassphrasePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
@@ -29,7 +30,7 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
     private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase,
     private val signInModeHolder: SignInModeHolder,
-    private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder
+    private val checkHasPassphrasePrimaryKeyUseCase: CheckHasPassphrasePrimaryKeyUseCase
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
 
     override val initialState = WalletSecuritySettingState()
@@ -53,8 +54,8 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
 
         viewModelScope.launch {
             if (signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY) {
-                val enablePassphrase = primaryKeySignerInfoHolder.isNeedPassphraseSent()
-                updateState { copy(isEnablePassphrase = enablePassphrase ) }
+                val enablePassphrase = checkHasPassphrasePrimaryKeyUseCase(Unit)
+                updateState { copy(isEnablePassphrase = enablePassphrase.getOrDefault(false) ) }
             }
         }
     }
