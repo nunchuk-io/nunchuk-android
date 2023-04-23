@@ -89,7 +89,7 @@ class CoinSearchViewModel @Inject constructor(
 
     suspend fun handleSearch(query: String) = withContext(ioDispatcher) {
         mutex.withLock {
-            if (query.isEmpty() && !isCustomizeCoinFlow) {
+            if (query.isEmpty() && !isCustomizeCoinFlow && !isFilteringOrSearch) {
                 _state.update { it.copy(coins = emptyList()) }
             } else {
                 val filter = filter.value

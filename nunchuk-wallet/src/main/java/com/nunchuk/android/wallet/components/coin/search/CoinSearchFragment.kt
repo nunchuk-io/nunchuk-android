@@ -126,7 +126,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
                         findNavController().navigate(
                             CoinNavigationDirections.actionGlobalCoinTagListFragment(
                                 args.walletId,
-                                TagFlow.NONE,
+                                TagFlow.VIEW,
                                 emptyArray()
                             )
                         )
@@ -231,14 +231,14 @@ private fun CoinSearchFragmentScreen(
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
         onUseCoinClicked = onUseCoinClicked,
         amount = args.amount ?: Amount(),
-        isFiltering = viewModel.isFilteringOrSearch
+        isFilteringOrSearch = viewModel.isFilteringOrSearch
     )
 }
 
 @Composable
 private fun CoinSearchFragmentContent(
     amount: Amount = Amount(),
-    isFiltering: Boolean = false,
+    isFilteringOrSearch: Boolean = false,
     onFilterClicked: () -> Unit = {},
     enableSelectMode: () -> Unit = {},
     queryState: MutableState<String> = mutableStateOf(""),
@@ -303,7 +303,7 @@ private fun CoinSearchFragmentContent(
             },
         ) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
-                if (query.isBlank() && mode != CoinListMode.TRANSACTION_SELECT) {
+                if (query.isBlank() && mode != CoinListMode.TRANSACTION_SELECT && !isFilteringOrSearch) {
                     TagHorizontalList(tags = tags.values.toList(), onViewAll = onViewAllTags)
                     CollectionHorizontalList(
                         collections = collections.values.toList(),
@@ -313,7 +313,7 @@ private fun CoinSearchFragmentContent(
                     Box(modifier = Modifier.weight(1f)) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             if (coins.isNotEmpty()) {
-                                if (mode != CoinListMode.SELECT && isFiltering) {
+                                if (mode != CoinListMode.SELECT && isFilteringOrSearch) {
                                     Text(
                                         modifier = Modifier.padding(
                                             horizontal = 16.dp,
@@ -339,7 +339,7 @@ private fun CoinSearchFragmentContent(
                                         )
                                     }
                                 }
-                            } else if (isFiltering) {
+                            } else if (isFilteringOrSearch) {
                                 EmptySearchState()
                             }
                         }
