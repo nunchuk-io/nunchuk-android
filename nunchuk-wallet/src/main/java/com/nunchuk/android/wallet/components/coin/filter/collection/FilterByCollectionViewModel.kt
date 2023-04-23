@@ -30,8 +30,7 @@ class FilterByCollectionViewModel @Inject constructor(
         }
         val tagAdditions = collections.map { CoinCollectionAddition(it, numberOfCoinByCollectionId[it.id] ?: 0) }
             .sortedBy { it.collection.name }
-        val selectedIds = if (args.collectionIds.isEmpty()) collections.map { it.id }.toSet()
-        else args.collectionIds.toSet()
+        val selectedIds = args.collectionIds.toSet()
         _state.update { it.copy(allCollections = tagAdditions, previousCollectionIds = selectedIds, selectedIds = _state.value.selectedIds.ifEmpty { selectedIds }) }
     }
 
@@ -55,10 +54,7 @@ class FilterByCollectionViewModel @Inject constructor(
         }
     }
 
-    fun getSelectCollections(): List<Int> {
-        return if (state.value.allCollections.size == state.value.selectedIds.size) emptyList()
-        else state.value.selectedIds.toList()
-    }
+    fun getSelectCollections(): List<Int> = state.value.selectedIds.toList()
 }
 
 data class FilterByTagUiState(

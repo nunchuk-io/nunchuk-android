@@ -9,11 +9,26 @@ import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Checkbox
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.RadioButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +52,12 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NumberCommaTransformation
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.CurrencyFormatter
@@ -50,7 +70,8 @@ import com.nunchuk.android.wallet.components.coin.filter.collection.FilterByColl
 import com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragment
 import com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragmentArgs
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 @AndroidEntryPoint
 class CoinFilterFragment : Fragment() {
@@ -273,7 +294,7 @@ private fun CoinFilterContent(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .align(Alignment.CenterStart),
-                                            text = if (selectTags.isEmpty()) stringResource(R.string.nc_all_tags)
+                                            text = if (selectTags.isEmpty()) stringResource(R.string.nc_no_filter)
                                             else stringResource(
                                                 R.string.nc_tags_selected, selectTags.size
                                             ),
@@ -310,7 +331,7 @@ private fun CoinFilterContent(
                                                 .fillMaxWidth()
                                                 .align(Alignment.CenterStart),
                                             text = if (selectCollections.isEmpty()) stringResource(
-                                                R.string.nc_all_collections
+                                                R.string.nc_no_filter
                                             )
                                             else stringResource(
                                                 R.string.nc_collections_selected,

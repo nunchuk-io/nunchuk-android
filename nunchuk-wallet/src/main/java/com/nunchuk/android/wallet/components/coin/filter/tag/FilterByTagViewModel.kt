@@ -30,8 +30,7 @@ class FilterByTagViewModel @Inject constructor(
         }
         val tagAdditions = tags.map { CoinTagAddition(it, numberOfCoinByTagId[it.id] ?: 0) }
             .sortedBy { it.coinTag.name }
-        val selectedIds = if (args.tagIds.isEmpty()) tags.map { it.id }.toSet()
-        else args.tagIds.toSet()
+        val selectedIds = args.tagIds.toSet()
         _state.update { it.copy(allTags = tagAdditions, previousTags = selectedIds, selectedTags = _state.value.selectedTags.ifEmpty { selectedIds }) }
     }
 
@@ -55,10 +54,7 @@ class FilterByTagViewModel @Inject constructor(
         }
     }
 
-    fun getSelectTags(): List<Int> {
-        return if (state.value.allTags.size == state.value.selectedTags.size) emptyList<Int>()
-        else state.value.selectedTags.toList()
-    }
+    fun getSelectTags(): List<Int> = state.value.selectedTags.toList()
 }
 
 data class FilterByTagUiState(
