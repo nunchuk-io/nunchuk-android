@@ -1,6 +1,5 @@
 package com.nunchuk.android.compose
 
-import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,31 +18,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.util.openExternalLink
 
 @Composable
 fun TransactionNoteView(modifier: Modifier = Modifier, note: String) {
-    val context = LocalContext.current
     var isTextOverFlow by remember { mutableStateOf(false) }
     var isNoteExpand by remember { mutableStateOf(false) }
+    val onTextClick = {
+        if (isTextOverFlow) {
+            isNoteExpand = isNoteExpand.not()
+        }
+    }
     Row(
         modifier = modifier
-            .clickable {
-                runCatching {
-                    val matcher = Patterns.WEB_URL.matcher(note)
-                    if (matcher.find()) {
-                        val link = note.substring(matcher.start(1), matcher.end())
-                        context.openExternalLink(link)
-                    }
-                }
-            },
+            .clickable(onClick = onTextClick),
     ) {
         Icon(
             modifier = Modifier
@@ -68,7 +61,8 @@ fun TransactionNoteView(modifier: Modifier = Modifier, note: String) {
                     if (it.hasVisualOverflow) {
                         isTextOverFlow = true
                     }
-                }
+                },
+                onClick = onTextClick
             )
             if (isNoteExpand) {
                 Text(
