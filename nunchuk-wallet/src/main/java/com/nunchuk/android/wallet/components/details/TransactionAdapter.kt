@@ -149,7 +149,7 @@ internal class TransactionAdapter(
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
                 setContent {
-                    NunchukTheme {
+                    NunchukTheme(isSetStatusBar = false) {
                         TransactionNoteView(
                             modifier = Modifier
                                 .border(1.dp, NcColor.border, RoundedCornerShape(12.dp))

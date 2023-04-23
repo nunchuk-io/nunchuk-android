@@ -25,7 +25,7 @@ import android.util.TypedValue
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
-import androidx.core.widget.doOnTextChanged
+import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
@@ -34,6 +34,7 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatCurrencyDecimal
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.getBTCAmount
@@ -49,11 +50,14 @@ import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.P
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ShowError
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
+import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
 @AndroidEntryPoint
 class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>() {
@@ -120,13 +124,13 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         val originalTextSize = binding.mainCurrency.textSize
         binding.tvMainCurrency.doOnPreDraw {
             val tvWidth = resources.displayMetrics.widthPixels - resources.getDimensionPixelSize(R.dimen.nc_padding_16) * 3 - it.measuredWidth
-            binding.tvMainCurrency.width = tvWidth
+            binding.tvMainCurrency.maxWidth = tvWidth
         }
-        binding.mainCurrency.doOnTextChanged { text, _, _, _ ->
+        flowObserver(binding.mainCurrency.textChanges().stateIn(lifecycleScope, SharingStarted.Eagerly, "")) { text ->
             binding.tvMainCurrency.text = text
-            viewModel.handleAmountChanged(text.toString())
+            viewModel.handleAmountChanged(text)
             binding.mainCurrency.post {
-                if (text.isNullOrBlank()) {
+                if (text.isBlank()) {
                     binding.mainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
                     binding.mainCurrencyLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
                     binding.tvMainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
