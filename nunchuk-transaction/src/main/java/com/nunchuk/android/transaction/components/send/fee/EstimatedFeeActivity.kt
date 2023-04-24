@@ -130,7 +130,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 context = this,
                 walletId = args.walletId,
                 inputs = viewModel.getSelectedCoins(),
-                amount = args.outputAmount
+                amount = binding.totalAmountBTC.tag as Double
             )
         }
     }
@@ -141,6 +141,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun bindSubtotal(subtotal: Double) {
+        binding.totalAmountBTC.tag = subtotal
         binding.totalAmountBTC.text = subtotal.getBTCAmount()
         binding.totalAmountUSD.text = subtotal.getCurrencyAmount()
     }
