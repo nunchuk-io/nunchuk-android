@@ -44,7 +44,7 @@ class VerifiedPKeyTokenUseCase @Inject constructor(
         )
         val message = "${primaryKeyInfo.account}${nonce}"
         nunchukNativeSdk.clearSignerPassphrase(primaryKeyInfo.masterFingerprint)
-        if (primaryKeySignerInfoHolder.isNeedPassphraseSent()) {
+        if (primaryKeySignerInfoHolder.isNeedPassphraseSent(forceNewData = true)) {
             nunchukNativeSdk.sendSignerPassphrase(
                 signerInfo.id,
                 parameters

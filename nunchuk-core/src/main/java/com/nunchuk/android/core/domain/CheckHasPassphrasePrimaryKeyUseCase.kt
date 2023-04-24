@@ -18,6 +18,6 @@ class CheckHasPassphrasePrimaryKeyUseCase @Inject constructor(
     override suspend fun execute(parameters: Unit): Boolean {
         val primaryKeyInfo = primaryKeySignerInfoHolder.getPrimaryKeyInfo() ?: return false
         nunchukNativeSdk.clearSignerPassphrase(primaryKeyInfo.masterFingerprint)
-        return primaryKeySignerInfoHolder.isNeedPassphraseSent()
+        return primaryKeySignerInfoHolder.isNeedPassphraseSent(forceNewData = true)
     }
 }
