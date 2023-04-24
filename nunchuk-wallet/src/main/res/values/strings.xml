@@ -68,4 +68,7 @@
     <string name="nc_sort">Sort</string>
     <string name="nc_search_transactions">Search transactions</string>
     <string name="nc_no_results_found">No results found.</string>
+    <string name="nc_coin_ancestry">Coin ancestry</string>
+    <string name="nc_wallet_this_coin">This coin</string>
+    <string name="nc_wallet_spent">Spent</string>
 </resources>

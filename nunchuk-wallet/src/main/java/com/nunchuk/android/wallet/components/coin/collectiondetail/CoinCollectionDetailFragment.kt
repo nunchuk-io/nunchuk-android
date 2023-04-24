@@ -79,8 +79,7 @@ class CoinCollectionDetailFragment : Fragment(), BottomSheetOptionListener {
                         findNavController().navigate(
                             CoinNavigationDirections.actionGlobalCoinDetailFragment(
                                 walletId = args.walletId,
-                                txId = it.txid,
-                                vout = it.vout
+                                output = it,
                             )
                         )
                     }, onShowMoreOptions = {

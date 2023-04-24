@@ -89,8 +89,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
                         findNavController().navigate(
                             CoinNavigationDirections.actionGlobalCoinDetailFragment(
                                 walletId = args.walletId,
-                                txId = it.txid,
-                                vout = it.vout
+                                output = it
                             )
                         )
                     },

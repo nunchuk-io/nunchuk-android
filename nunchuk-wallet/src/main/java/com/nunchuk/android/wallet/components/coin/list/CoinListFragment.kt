@@ -76,7 +76,7 @@ class CoinListFragment : BaseCoinListFragment() {
                     onViewCoinDetail = {
                         findNavController().navigate(
                             CoinNavigationDirections.actionGlobalCoinDetailFragment(
-                                walletId = args.walletId, txId = it.txid, vout = it.vout
+                                walletId = args.walletId, output = it
                             )
                         )
                     },
