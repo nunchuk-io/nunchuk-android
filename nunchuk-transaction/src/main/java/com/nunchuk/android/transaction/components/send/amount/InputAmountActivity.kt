@@ -31,24 +31,10 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.qr.startQRCodeScan
-import com.nunchuk.android.core.util.LOCAL_CURRENCY
-import com.nunchuk.android.core.util.USD_CURRENCY
-import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.formatCurrencyDecimal
-import com.nunchuk.android.core.util.formatDecimal
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getCurrencyAmount
-import com.nunchuk.android.core.util.setUnderline
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsEvent
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsLockedCoinEvent
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.Loading
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ParseBtcUriSuccess
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ShowError
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCInfoDialog
@@ -140,6 +126,9 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                     binding.mainCurrencyLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, optimalSize)
                 }
             }
+        }
+        if (args.inputs.isNotEmpty()) {
+            binding.btnSendAll.text = getString(R.string.nc_send_all_selected)
         }
     }
 
