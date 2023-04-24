@@ -27,6 +27,7 @@ import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
 
@@ -40,7 +41,8 @@ data class EstimatedFeeArgs(
     val sweepType: SweepType = SweepType.NONE,
     val slots: List<SatsCardSlot> = emptyList(),
     val masterSignerId: String = "",
-    val magicalPhrase: String = ""
+    val magicalPhrase: String = "",
+    val inputs: List<UnspentOutput> = emptyList(),
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, EstimatedFeeActivity::class.java).apply {
@@ -52,6 +54,7 @@ data class EstimatedFeeArgs(
         putExtra(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
         putExtra(EXTRA_SWEEP_TYPE, sweepType)
         putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
+        putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
         putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
         putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
     }
@@ -67,18 +70,20 @@ data class EstimatedFeeArgs(
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
         private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
         private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
+        private const val EXTRA_INPUT = "EXTRA_INPUT"
 
         fun deserializeFrom(intent: Intent) = EstimatedFeeArgs(
-            intent.extras.getStringValue(EXTRA_WALLET_ID),
-            intent.extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
-            intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
-            intent.extras.getStringValue(EXTRA_ADDRESS),
-            intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
-            intent.extras.getBooleanValue(EXTRA_SUBTRACT_FEE),
-            intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
-            intent.extras?.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
-            intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
-            intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE)
+            walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
+            outputAmount = intent.extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
+            availableAmount = intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
+            address = intent.extras.getStringValue(EXTRA_ADDRESS),
+            privateNote = intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
+            subtractFeeFromAmount = intent.extras.getBooleanValue(EXTRA_SUBTRACT_FEE),
+            sweepType = intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
+            slots = intent.extras?.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
+            masterSignerId = intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
+            magicalPhrase = intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE),
+            inputs = intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty()
         )
     }
 }

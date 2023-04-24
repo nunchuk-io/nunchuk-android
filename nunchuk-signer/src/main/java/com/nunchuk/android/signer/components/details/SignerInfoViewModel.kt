@@ -35,10 +35,15 @@ import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
+import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -58,10 +63,16 @@ internal class SignerInfoViewModel @Inject constructor(
     private val topUpXpubTapSignerUseCase: TopUpXpubTapSignerUseCase,
     private val cardIdManager: CardIdManager,
     private val generateColdCardHealthCheckMessageUseCase: GenerateColdCardHealthCheckMessageUseCase,
-    private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase
+    private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
+    private val updateServerKeyNameUseCase: UpdateServerKeyNameUseCase,
+    getAssistedKeysUseCase: GetAssistedKeysUseCase
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
+
+    private val assistedKeys = getAssistedKeysUseCase(Unit)
+        .map { it.getOrDefault(emptySet()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     private lateinit var args: SignerInfoArgs
 
@@ -100,21 +111,35 @@ internal class SignerInfoViewModel @Inject constructor(
         viewModelScope.launch {
             val state = getState()
             if (shouldLoadMasterSigner(args.signerType)) {
-                state.masterSigner?.let {
-                    when (val result =
-                        updateMasterSignerUseCase.execute(masterSigner = it.copy(name = updateSignerName))) {
-                        is Success -> event(UpdateNameSuccessEvent(updateSignerName))
-                        is Error -> event(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
-                    }
+                state.masterSigner?.let { signer ->
+                    updateMasterSignerUseCase(parameters = signer.copy(name = updateSignerName))
+                        .onSuccess {
+                            event(UpdateNameSuccessEvent(updateSignerName))
+                            updateServerKeyName(signer.id, updateSignerName)
+                        }
+                        .onFailure { e ->
+                            event(UpdateNameErrorEvent(e.message.orUnknownError()))
+                        }
                 }
             } else {
-                state.remoteSigner?.let {
+                state.remoteSigner?.let {signer ->
                     when (val result =
-                        updateRemoteSignerUseCase.execute(signer = it.copy(name = updateSignerName))) {
-                        is Success -> event(UpdateNameSuccessEvent(updateSignerName))
+                        updateRemoteSignerUseCase.execute(signer = signer.copy(name = updateSignerName))) {
+                        is Success -> {
+                            event(UpdateNameSuccessEvent(updateSignerName))
+                            updateServerKeyName(signer.masterFingerprint, updateSignerName)
+                        }
                         is Error -> event(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
                     }
                 }
+            }
+        }
+    }
+
+    private fun updateServerKeyName(xfp: String, name: String) {
+        viewModelScope.launch {
+            if (assistedKeys.value.contains(xfp)) {
+                updateServerKeyNameUseCase(UpdateServerKeyNameUseCase.Param(xfp, name))
             }
         }
     }

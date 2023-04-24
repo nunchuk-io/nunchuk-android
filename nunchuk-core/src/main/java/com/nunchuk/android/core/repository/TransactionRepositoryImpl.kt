@@ -19,21 +19,38 @@
 
 package com.nunchuk.android.core.repository
 
+import com.google.gson.Gson
 import com.nunchuk.android.core.data.api.TransactionApi
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.repository.TransactionRepository
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 class TransactionRepositoryImpl @Inject constructor(
-    private val transactionApi: TransactionApi
+    private val transactionApi: TransactionApi,
+    private val gson: Gson,
+    private val ncDataStore: NcDataStore
 ) : TransactionRepository {
     override suspend fun getFees(): EstimateFeeRates {
         val data = transactionApi.getFees()
-        return EstimateFeeRates(
+        val fee = EstimateFeeRates(
             priorityRate = data.priorityRate,
             standardRate = data.standardRate,
             economicRate = data.economicRate,
             minimumFee = data.minimumFee
         )
+
+        ncDataStore.setFeeJsonString(gson.toJson(fee))
+        return fee
+    }
+
+    override suspend fun getLocalFee(): EstimateFeeRates {
+        return runCatching {
+            gson.fromJson(
+                ncDataStore.fee.firstOrNull(),
+                EstimateFeeRates::class.java
+            )
+        }.getOrDefault(EstimateFeeRates())
     }
 }

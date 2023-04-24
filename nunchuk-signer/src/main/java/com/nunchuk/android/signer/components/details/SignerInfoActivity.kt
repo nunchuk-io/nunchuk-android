@@ -32,7 +32,12 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.core.util.toReadableDrawable
+import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
@@ -46,6 +51,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
@@ -108,7 +114,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
 
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }
                     .collect {
@@ -118,7 +124,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             }
         }
 
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_HEALTH_CHECK }
                     .collect {
@@ -133,7 +139,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             }
         }
 
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }
                     .collect {

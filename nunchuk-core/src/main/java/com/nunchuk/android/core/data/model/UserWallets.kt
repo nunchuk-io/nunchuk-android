@@ -52,6 +52,11 @@ internal data class UpdateWalletPayload(
     val name: String? = null,
 )
 
+internal data class UpdateKeyPayload(
+    @SerializedName("name")
+    val name: String? = null,
+)
+
 data class SecurityQuestionDataResponse(
     @SerializedName("questions")
     val questions: List<SecurityQuestionResponse>,

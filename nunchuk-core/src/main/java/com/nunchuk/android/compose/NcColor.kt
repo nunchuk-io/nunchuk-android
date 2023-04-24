@@ -30,4 +30,5 @@ object NcColor {
     val greyLight = Color(0xFFF5F5F5)
     val denimDark = Color(0xFF2F466C)
     val white = Color(0xFFFFFFFF)
+    val beeswaxLight = Color(0xFFFDD95C)
 }

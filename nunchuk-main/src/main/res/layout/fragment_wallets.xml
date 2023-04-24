@@ -115,9 +115,11 @@
                     android:layout_marginStart="@dimen/nc_padding_12"
                     android:layout_marginTop="@dimen/nc_padding_4"
                     android:text="@string/nc_assisted_wallet_intro_desc"
+                    app:layout_constraintBottom_toTopOf="@+id/tv_intro_action"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/iv_intro"
-                    app:layout_constraintTop_toBottomOf="@+id/tv_intro_title" />
+                    app:layout_constraintTop_toBottomOf="@+id/tv_intro_title"
+                    app:layout_constraintVertical_chainStyle="spread_inside" />
 
                 <TextView
                     android:id="@+id/tv_intro_action"
@@ -125,12 +127,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/nc_padding_12"
+                    android:layout_marginTop="@dimen/nc_padding_8"
                     android:drawablePadding="@dimen/nc_padding_6"
                     android:gravity="center_vertical"
                     android:text="@string/nc_start_wizard"
                     app:drawableEndCompat="@drawable/ic_arrow"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/iv_intro" />
+                    app:layout_constraintStart_toEndOf="@+id/iv_intro"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_intro_desc" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

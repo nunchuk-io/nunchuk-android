@@ -40,6 +40,7 @@ import com.nunchuk.android.transaction.databinding.FragmentReplaceByFeeBinding
 import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ReplaceFeeFragment : BaseFragment<FragmentReplaceByFeeBinding>() {
@@ -77,7 +78,7 @@ class ReplaceFeeFragment : BaseFragment<FragmentReplaceByFeeBinding>() {
     }
 
     private fun observer() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewModel.state.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                 .collect {
                     bindEstimateFeeRates(it.estimateFeeRates)

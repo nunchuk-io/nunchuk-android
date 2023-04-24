@@ -4,6 +4,10 @@ apply plugin: 'kotlin-parcelize'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
+android {
+    namespace 'com.nunchuk.android.wallet'
+}
+
 dependencies {
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-core')
@@ -22,6 +26,8 @@ dependencies {
     implementation zxingDeps.values()
     implementation pagingDeps.values()
     implementation matrixDeps.values()
+
+    implementation 'de.charlex.compose:revealswipe:1.0.0'
 
     testImplementation otherTestDeps.junit
 }

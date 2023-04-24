@@ -19,13 +19,31 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.util.Patterns
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.TransactionNoteView
 import com.nunchuk.android.core.base.BaseViewHolder
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.bindTransactionStatus
+import com.nunchuk.android.core.util.canBroadCast
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getFormatDate
+import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
@@ -36,11 +54,14 @@ import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
 import com.nunchuk.android.widget.util.inflate
-import java.util.*
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import java.util.Date
 
 internal class TransactionAdapter(
     private val listener: (Transaction) -> Unit
-) : PagingDataAdapter<ExtendedTransaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback) {
+) : PagingDataAdapter<ExtendedTransaction, TransactionAdapter.TransactionViewHolder>(
+    TransactionDiffCallback
+) {
 
     private var hideWalletDetail: Boolean = false
 
@@ -67,24 +88,53 @@ internal class TransactionAdapter(
         private val receivedAmountColor = ContextCompat.getColor(context, R.color.nc_slime_dark)
         private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_primary_color)
 
+        init {
+            binding.noteContainer.setOnDebounceClickListener {
+                runCatching {
+                    val note = it.tag as String
+                    val matcher = Patterns.WEB_URL.matcher(note)
+                    if (matcher.find()) {
+                        val link = note.substring(matcher.start(1), matcher.end())
+                        context.openExternalLink(link)
+                    }
+                }
+            }
+        }
+
         override fun bind(data: ExtendedTransaction) {
             if (data.transaction.isReceive) {
                 binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
-                binding.amountBTC.text = Utils.maskValue(data.transaction.totalAmount.getBTCAmount(), hideWalletDetail)
+                binding.amountBTC.text =
+                    Utils.maskValue(data.transaction.totalAmount.getBTCAmount(), hideWalletDetail)
                 binding.amountBTC.setTextColor(receivedAmountColor)
-                binding.amountUSD.text = Utils.maskValue(data.transaction.totalAmount.getCurrencyAmount(), hideWalletDetail)
-                binding.receiverName.text = Utils.maskValue(data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
+                binding.amountUSD.text = Utils.maskValue(
+                    data.transaction.totalAmount.getCurrencyAmount(),
+                    hideWalletDetail
+                )
+                binding.receiverName.text = Utils.maskValue(
+                    data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty()
+                        .truncatedAddress(), hideWalletDetail
+                )
             } else {
                 if (data.transaction.status.isConfirmed()) {
-                    binding.sendTo.text = context.getString(R.string.nc_transaction_sent_to)
+                    binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
                 } else {
                     binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
                 }
-                binding.amountBTC.text = Utils.maskValue("- ${data.transaction.totalAmount.getBTCAmount()}", hideWalletDetail)
+                binding.amountBTC.text = Utils.maskValue(
+                    "- ${data.transaction.totalAmount.getBTCAmount()}",
+                    hideWalletDetail
+                )
                 binding.amountBTC.setTextColor(sentAmountColor)
-                binding.amountUSD.text = Utils.maskValue("- ${data.transaction.totalAmount.getCurrencyAmount()}", hideWalletDetail)
+                binding.amountUSD.text = Utils.maskValue(
+                    "- ${data.transaction.totalAmount.getCurrencyAmount()}",
+                    hideWalletDetail
+                )
                 binding.receiverName.text =
-                    Utils.maskValue(data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
+                    Utils.maskValue(
+                        data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress(),
+                        hideWalletDetail
+                    )
             }
             binding.status.bindTransactionStatus(data.transaction)
             binding.date.text = data.transaction.getFormatDate()
@@ -93,6 +143,22 @@ internal class TransactionAdapter(
                 if (hideWalletDetail.not()) onItemSelectedListener(data.transaction)
             }
             handleServerTransaction(data.transaction, data.serverTransaction)
+            binding.noteContainer.tag = data.transaction.memo
+            binding.noteContainer.isVisible = data.transaction.memo.isNotEmpty()
+            binding.noteContainer.apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+                setContent {
+                    NunchukTheme(isSetStatusBar = false) {
+                        TransactionNoteView(
+                            modifier = Modifier
+                                .border(1.dp, NcColor.border, RoundedCornerShape(12.dp))
+                                .padding(8.dp),
+                            note = data.transaction.memo
+                        )
+                    }
+                }
+            }
         }
 
         private fun handleServerTransaction(

@@ -76,6 +76,8 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private val walletViewModel: WalletsViewModel by viewModels()
 
+    private val syncInfoViewModel : SyncInfoViewModel by viewModels()
+
     private val loginHalfToken
         get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
 
@@ -107,7 +109,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
 
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -122,6 +123,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         MatrixEvenBus.instance.subscribe(matrixEventListener)
         AppEvenBus.instance.subscribe(appEventListener)
         viewModel.checkAppUpdateRecommend(false)
+        syncInfoViewModel.init()
 
         messages.forEachIndexed { index, message ->
             NCToastMessage(this).showMessage(

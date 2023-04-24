@@ -34,6 +34,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
@@ -42,7 +43,10 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
-import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.*
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AcceptedAddressEvent
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AddressRequiredEvent
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.InvalidAddressEvent
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ShowError
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
@@ -119,13 +123,13 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         }
         lifecycleScope.launch {
             binding.receiptInput.textChanges()
-                .map { it.toString() }
+                .map { it }
                 .distinctUntilChanged()
                 .collect(viewModel::handleReceiptChanged)
         }
         lifecycleScope.launch {
             binding.privateNoteInput.textChanges()
-                .map { it.toString() }
+                .map { it }
                 .distinctUntilChanged()
                 .collect(viewModel::handlePrivateNoteChanged)
         }
@@ -213,6 +217,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
             is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
             is TransactionConfirmEvent.UpdateChangeAddress -> {}
+            is TransactionConfirmEvent.AssignTagEvent -> {}
         }
     }
 
@@ -236,11 +241,12 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 privateNote = state.privateNote,
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 slots = args.slots,
+                inputs = args.inputs,
                 manualFeeRate = manualFeeRate,
                 masterSignerId = args.masterSignerId,
                 magicalPhrase = args.magicalPhrase
             )
-            transactionConfirmViewModel.handleConfirmEvent()
+            transactionConfirmViewModel.handleConfirmEvent(true)
         }
     }
 
@@ -281,15 +287,16 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             address = address,
             privateNote = privateNote,
             subtractFeeFromAmount = subtractFeeFromAmount,
-            slots = args.slots,
             sweepType = args.sweepType,
+            slots = args.slots,
             masterSignerId = args.masterSignerId,
-            magicalPhrase = args.magicalPhrase
+            magicalPhrase = args.magicalPhrase,
+            inputs = args.inputs
         )
     }
 
     companion object {
-        private const val MAX_NOTE_LENGTH = 80
+        private const val MAX_NOTE_LENGTH = 280
 
         fun start(
             activityContext: Context,
@@ -302,7 +309,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             slots: List<SatsCardSlot> = emptyList(),
             sweepType: SweepType = SweepType.NONE,
             masterSignerId: String = "",
-            magicalPhrase: String = ""
+            magicalPhrase: String = "",
+            inputs: List<UnspentOutput> = emptyList(),
         ) {
             activityContext.startActivity(
                 AddReceiptArgs(
@@ -315,7 +323,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     privateNote = privateNote,
                     sweepType = sweepType,
                     masterSignerId = masterSignerId,
-                    magicalPhrase = magicalPhrase
+                    magicalPhrase = magicalPhrase,
+                    inputs = inputs,
                 ).buildIntent(activityContext)
             )
         }

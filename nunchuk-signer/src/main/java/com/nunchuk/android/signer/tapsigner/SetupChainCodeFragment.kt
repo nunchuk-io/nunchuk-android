@@ -52,6 +52,7 @@ import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -90,12 +91,12 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
     }
 
     private fun observer() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleState)
             }
         }
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SETUP }
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect(::handleSetupSatscard)

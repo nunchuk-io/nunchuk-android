@@ -24,6 +24,7 @@ import android.app.Dialog
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
+import androidx.core.text.HtmlCompat
 import com.nunchuk.android.widget.databinding.NcWarningDialogBinding
 import javax.inject.Inject
 
@@ -48,7 +49,7 @@ class NCWarningDialog @Inject constructor(
         binding.title.text = title
         binding.btnYes.text = btnYes
         binding.btnNo.text = btnNo
-        binding.message.text = message
+        binding.message.text = HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_COMPACT)
         binding.btnYes.setOnClickListener {
             onYesClick()
             dismiss()

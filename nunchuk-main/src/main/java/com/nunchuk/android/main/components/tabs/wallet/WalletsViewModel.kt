@@ -176,6 +176,7 @@ internal class WalletsViewModel @Inject constructor(
                 getRemotePriceConvertBTCUseCase(Unit)
             }
         }
+        getAppSettings()
     }
 
     fun reloadMembership() {
@@ -222,7 +223,7 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    fun getAppSettings() {
+    private fun getAppSettings() {
         viewModelScope.launch {
             getChainSettingFlowUseCase(Unit)
                 .map { it.getOrElse { Chain.MAIN } }

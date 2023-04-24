@@ -23,22 +23,41 @@ import android.content.Context
 import android.os.Bundle
 import android.util.TypedValue
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
-import androidx.core.widget.doOnTextChanged
+import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.qr.startQRCodeScan
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.LOCAL_CURRENCY
+import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.formatCurrencyDecimal
+import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.setUnderline
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsLockedCoinEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.Loading
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ParseBtcUriSuccess
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ShowError
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
+import com.nunchuk.android.utils.textChanges
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
 @AndroidEntryPoint
 class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>() {
@@ -61,7 +80,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(args.availableAmount)
+        viewModel.init(args.availableAmount, args.walletId, args.inputs.isNotEmpty())
     }
 
     private fun observeEvent() {
@@ -81,10 +100,22 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
         binding.mainCurrency.setText("")
         binding.mainCurrency.requestFocus()
-        binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount, true) }
+        binding.btnSendAll.setOnClickListener {
+            if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked }) || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())) {
+                showUnlockCoinBeforeSend()
+            } else {
+                openAddReceiptScreen(args.availableAmount, true)
+            }
+        }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
         binding.btnContinue.setOnDebounceClickListener {
             viewModel.handleContinueEvent()
+        }
+
+        if (args.inputs.isNotEmpty()) {
+            binding.balanceLabel.text = getString(R.string.nc_total_amount_selected)
+            binding.amountBTC.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
+            binding.amountUSD.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
         }
         binding.amountBTC.text = args.availableAmount.getBTCAmount()
         binding.amountUSD.text = "(${args.availableAmount.getCurrencyAmount()})"
@@ -93,13 +124,13 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         val originalTextSize = binding.mainCurrency.textSize
         binding.tvMainCurrency.doOnPreDraw {
             val tvWidth = resources.displayMetrics.widthPixels - resources.getDimensionPixelSize(R.dimen.nc_padding_16) * 3 - it.measuredWidth
-            binding.tvMainCurrency.width = tvWidth
+            binding.tvMainCurrency.maxWidth = tvWidth
         }
-        binding.mainCurrency.doOnTextChanged { text, _, _, _ ->
+        flowObserver(binding.mainCurrency.textChanges().stateIn(lifecycleScope, SharingStarted.Eagerly, "")) { text ->
             binding.tvMainCurrency.text = text
-            viewModel.handleAmountChanged(text.toString())
+            viewModel.handleAmountChanged(text)
             binding.mainCurrency.post {
-                if (text.isNullOrBlank()) {
+                if (text.isBlank()) {
                     binding.mainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
                     binding.mainCurrencyLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
                     binding.tvMainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
@@ -110,6 +141,11 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 }
             }
         }
+    }
+
+    private fun showUnlockCoinBeforeSend() {
+        NCInfoDialog(this)
+            .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
     }
 
     private fun handleTextCurrency() = when (CURRENT_DISPLAY_UNIT_TYPE) {
@@ -125,7 +161,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             availableAmount = args.availableAmount,
             address = viewModel.getAddress(),
             privateNote = viewModel.getPrivateNote(),
-            subtractFeeFromAmount = subtractFeeFromAmount
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            inputs = args.inputs
         )
     }
 
@@ -161,7 +198,13 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 } else "")
             }
             is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
-            InsufficientFundsEvent -> NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
+            InsufficientFundsEvent -> {
+                if (args.inputs.isNotEmpty()) {
+                    NCToastMessage(this).showError(getString(R.string.nc_send_amount_too_large))
+                } else {
+                    NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
+                }
+            }
             is ParseBtcUriSuccess -> {
                 if (event.btcUri.amount.value > 0 || viewModel.getAmountBtc() > 0.0) {
                     viewModel.handleContinueEvent()
@@ -170,17 +213,20 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 }
             }
             is ShowError -> NCToastMessage(this).showError(event.message)
+            is Loading -> showOrHideLoading(event.isLoading)
+            InsufficientFundsLockedCoinEvent -> showUnlockCoinBeforeSend()
         }
     }
 
     companion object {
 
-        fun start(activityContext: Context, roomId: String = "", walletId: String, availableAmount: Double) {
+        fun start(activityContext: Context, roomId: String = "", walletId: String, availableAmount: Double, inputs: List<UnspentOutput> = emptyList()) {
             activityContext.startActivity(
                 InputAmountArgs(
                     roomId = roomId,
                     walletId = walletId,
-                    availableAmount = availableAmount
+                    availableAmount = availableAmount,
+                    inputs = inputs
                 ).buildIntent(activityContext)
             )
         }

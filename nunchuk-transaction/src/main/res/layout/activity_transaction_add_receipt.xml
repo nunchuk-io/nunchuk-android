@@ -76,23 +76,10 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_transaction_private_note"
+        android:text="@string/nc_transaction_note"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/errorText" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/optional"
-        style="@style/NCText.EditText.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_2"
-        android:gravity="center"
-        android:text="@string/nc_transaction_private_note_optional"
-        android:textColor="@color/nc_grey_dark_color"
-        app:layout_constraintBottom_toBottomOf="@+id/nameTitle"
-        app:layout_constraintStart_toEndOf="@+id/nameTitle"
-        app:layout_constraintTop_toTopOf="@+id/nameTitle" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/privateNoteCounter"
@@ -102,9 +89,9 @@
         android:padding="@dimen/nc_padding_4"
         android:textColor="@color/nc_grey_dark_color"
         android:textSize="@dimen/nc_text_size_12"
-        app:layout_constraintBottom_toBottomOf="@+id/optional"
+        app:layout_constraintBottom_toBottomOf="@+id/nameTitle"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/optional"
+        app:layout_constraintTop_toTopOf="@+id/nameTitle"
         tools:text="18/20" />
 
     <com.nunchuk.android.widget.NCFontEditText
@@ -113,9 +100,9 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:background="@drawable/nc_edit_text_bg"
-        android:inputType="textMultiLine"
+        android:inputType="textMultiLine|textCapSentences"
         android:maxLength="500"
-        android:maxLines="5"
+        android:maxLines="7"
         android:padding="@dimen/nc_padding_12"
         android:scrollHorizontally="false"
         android:singleLine="false"
@@ -148,7 +135,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_customize_fee_settings"
+        android:text="@string/nc_customize_transaction"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

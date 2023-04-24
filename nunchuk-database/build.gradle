@@ -2,6 +2,8 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
 android {
+
+    namespace 'com.nunchuk.android.database'
     defaultConfig {
         kapt { arguments { arg("room.schemaLocation", "$projectDir/schemas") } }
     }

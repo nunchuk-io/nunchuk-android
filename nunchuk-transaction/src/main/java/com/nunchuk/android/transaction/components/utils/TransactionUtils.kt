@@ -25,11 +25,11 @@ import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.transaction.R
 
 fun SweepType.toTitle(context: Context) = when (this) {
-    SweepType.NONE -> context.getString(R.string.nc_transaction_new)
+    SweepType.NONE -> context.getString(R.string.nc_customize_transaction)
     SweepType.SWEEP_TO_NUNCHUK_WALLET,
     SweepType.UNSEAL_SWEEP_TO_NUNCHUK_WALLET -> context.getString(R.string.nc_sweep_to_a_wallet)
     SweepType.SWEEP_TO_EXTERNAL_ADDRESS,
-    SweepType.UNSEAL_SWEEP_TO_EXTERNAL_ADDRESS -> context.getString(R.string.nc_sweep_to_an_address)
+    SweepType.UNSEAL_SWEEP_TO_EXTERNAL_ADDRESS -> context.getString(R.string.nc_withdraw_to_an_address)
 }
 
 val BtcUri.privateNote: String

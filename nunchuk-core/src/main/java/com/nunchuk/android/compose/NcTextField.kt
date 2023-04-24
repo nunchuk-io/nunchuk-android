@@ -50,7 +50,7 @@ fun NcTextField(
     modifier: Modifier = Modifier,
     title: String,
     value: String,
-    rightContent: @Composable BoxScope.() -> Unit = {},
+    rightContent: @Composable (() -> Unit)? = null,
     error: String? = null,
     showErrorMessageOnly: Boolean = false,
     onClick: () -> Unit = {},
@@ -65,7 +65,7 @@ fun NcTextField(
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: String) -> Unit,
 ) {
-    val hasError = error != null && error.isNotEmpty()
+    val hasError = !error.isNullOrEmpty()
     var backgroundErrorColor = MaterialTheme.colors.surface
     var borderErrorColor = Color(0xFFDEDEDE)
     if (hasError && showErrorMessageOnly.not()) {
@@ -81,57 +81,54 @@ fun NcTextField(
                 style = NunchukTheme.typography.titleSmall
             )
         }
-        Box {
-            BasicTextField(
-                modifier = Modifier
-                    .background(
-                        color = backgroundErrorColor,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .onFocusEvent(onFocusEvent)
-                    .defaultMinSize(
-                        minWidth = TextFieldDefaults.MinWidth,
-                    )
-                    .clickable(onClick = onClick)
-                    .fillMaxWidth(),
-                value = value,
-                textStyle = NunchukTheme.typography.body,
-                keyboardOptions = keyboardOptions,
-                keyboardActions = keyboardActions,
-                maxLines = maxLines,
-                enabled = enabled,
-                onValueChange = onValueChange,
-                visualTransformation = visualTransformation,
-                decorationBox = @Composable { innerTextField ->
-                    // places leading icon, text field with label and placeholder, trailing icon
-                    TextFieldDefaults.OutlinedTextFieldDecorationBox(
-                        value = value,
-                        visualTransformation = VisualTransformation.None,
-                        innerTextField = innerTextField,
-                        placeholder = placeholder,
-                        label = null,
-                        leadingIcon = null,
-                        trailingIcon = null,
-                        singleLine = singleLine,
-                        enabled = enabled,
-                        isError = false,
-                        interactionSource = interactionSource,
-                        colors = colors,
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
-                        border = {
-                            Box(
-                                Modifier.border(
-                                    width = 1.dp,
-                                    color = borderErrorColor,
-                                    shape = RoundedCornerShape(8.dp),
-                                )
+        BasicTextField(
+            modifier = Modifier
+                .background(
+                    color = backgroundErrorColor,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .onFocusEvent(onFocusEvent)
+                .defaultMinSize(
+                    minWidth = TextFieldDefaults.MinWidth,
+                )
+                .clickable(onClick = onClick)
+                .fillMaxWidth(),
+            value = value,
+            textStyle = NunchukTheme.typography.body,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            maxLines = maxLines,
+            enabled = enabled,
+            onValueChange = onValueChange,
+            visualTransformation = visualTransformation,
+            decorationBox = @Composable { innerTextField ->
+                // places leading icon, text field with label and placeholder, trailing icon
+                TextFieldDefaults.OutlinedTextFieldDecorationBox(
+                    value = value,
+                    visualTransformation = VisualTransformation.None,
+                    innerTextField = innerTextField,
+                    placeholder = placeholder,
+                    label = null,
+                    leadingIcon = null,
+                    trailingIcon = rightContent,
+                    singleLine = singleLine,
+                    enabled = enabled,
+                    isError = false,
+                    interactionSource = interactionSource,
+                    colors = colors,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
+                    border = {
+                        Box(
+                            Modifier.border(
+                                width = 1.dp,
+                                color = borderErrorColor,
+                                shape = RoundedCornerShape(8.dp),
                             )
-                        }
-                    )
-                },
-            )
-            rightContent()
-        }
+                        )
+                    }
+                )
+            },
+        )
         if (hasError) {
             Row(
                 modifier = Modifier.padding(top = 4.dp),

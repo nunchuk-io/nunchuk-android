@@ -25,7 +25,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.CreateTapSignerUseCase
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -93,17 +92,14 @@ class AddNfcNameViewModel @Inject constructor(
 
     fun updateName(masterSigner: MasterSigner, updateSignerName: String) {
         viewModelScope.launch {
-            when (val result =
-                updateMasterSignerUseCase.execute(masterSigner = masterSigner.copy(name = updateSignerName))) {
-                is Result.Success -> {
+            updateMasterSignerUseCase(parameters = masterSigner.copy(name = updateSignerName))
+                .onSuccess {
                     _event.emit(
                         AddNfcNameEvent.Success(masterSigner.copy(name = updateSignerName))
                     )
+                }.onFailure { e ->
+                    _event.emit(AddNfcNameEvent.UpdateError(e))
                 }
-                is Result.Error -> {
-                    _event.emit(AddNfcNameEvent.UpdateError(result.exception))
-                }
-            }
         }
     }
 

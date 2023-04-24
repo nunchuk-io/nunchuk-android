@@ -1,6 +1,14 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
+android {
+    namespace 'com.nunchuk.android.core.network'
+
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
 dependencies {
     implementation networkDeps.values()
 }

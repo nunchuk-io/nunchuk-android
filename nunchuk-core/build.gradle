@@ -3,6 +3,14 @@ apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-parcelize'
 
+android {
+    namespace 'com.nunchuk.android.core'
+
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
 dependencies {
 
     implementation project(':nunchuk-arch')

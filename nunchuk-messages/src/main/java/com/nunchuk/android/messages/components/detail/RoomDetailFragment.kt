@@ -232,7 +232,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
                 activityContext = requireActivity(),
                 roomId = event.roomId,
                 walletId = event.walletId,
-                availableAmount = event.availableAmount
+                availableAmount = event.availableAmount,
             )
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(
                 requireActivity(),

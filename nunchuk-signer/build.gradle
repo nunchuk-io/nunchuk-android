@@ -3,6 +3,10 @@ apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
+android {
+    namespace 'com.nunchuk.android.signer'
+}
+
 dependencies {
 
     implementation project(':nunchuk-arch')

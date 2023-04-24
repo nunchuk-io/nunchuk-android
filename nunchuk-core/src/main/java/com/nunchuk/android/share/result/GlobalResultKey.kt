@@ -25,4 +25,5 @@ object GlobalResultKey {
     const val SECURITY_QUESTION_TOKEN = "SECURITY_QUESTION_TOKEN"
     const val UPDATE_INHERITANCE = "UPDATE_INHERITANCE"
     const val WALLET_ID = "WALLET_ID"
+    const val EXTRA_COINS = "coins"
 }
