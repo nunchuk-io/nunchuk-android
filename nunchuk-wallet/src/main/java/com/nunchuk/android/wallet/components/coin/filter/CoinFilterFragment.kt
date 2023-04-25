@@ -1,7 +1,6 @@
 package com.nunchuk.android.wallet.components.coin.filter
 
 import android.app.DatePickerDialog
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,26 +8,11 @@ import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,17 +37,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcColor
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTextField
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NumberCommaTransformation
-import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.domain.data.SAT
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
+import com.nunchuk.android.core.util.getTextBtcUnit
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.filter.collection.FilterByCollectionFragment
@@ -360,14 +339,26 @@ private fun CoinFilterContent(
                                     .padding(top = 16.dp),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                     title = stringResource(R.string.nc_minimum_amount),
+                                    placeholder = {
+                                        val unit =
+                                            if (isMinBtc) LocalContext.current.getTextBtcUnit()
+                                            else LOCAL_CURRENCY
+                                        Text(
+                                            text = "0.00 $unit",
+                                            style = NunchukTheme.typography.body.copy(
+                                                color = colorResource(
+                                                    id = R.color.nc_boulder_color
+                                                )
+                                            )
+                                        )
+                                    },
                                     value = min,
                                     onValueChange = { value: String ->
                                         min = CurrencyFormatter.format(value, MAX_FRACTION_DIGITS)
                                     },
                                     visualTransformation = NumberCommaTransformation(
-                                        if (isMinBtc) handleTextCurrency(
-                                            LocalContext.current
-                                        ) else LOCAL_CURRENCY
+                                        if (isMinBtc) LocalContext.current.getTextBtcUnit()
+                                        else LOCAL_CURRENCY
                                     ),
                                     rightContent = {
                                         SwitchAmount(isMinBtc) { isBtc ->
@@ -379,14 +370,26 @@ private fun CoinFilterContent(
                                     .padding(top = 16.dp),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                     title = stringResource(R.string.nc_maximum_amount),
+                                    placeholder = {
+                                        val unit =
+                                            if (isMaxBtc) LocalContext.current.getTextBtcUnit()
+                                            else LOCAL_CURRENCY
+                                        Text(
+                                            text = "0.00 $unit",
+                                            style = NunchukTheme.typography.body.copy(
+                                                color = colorResource(
+                                                    id = R.color.nc_boulder_color
+                                                )
+                                            )
+                                        )
+                                    },
                                     value = max,
                                     onValueChange = { value: String ->
                                         max = CurrencyFormatter.format(value)
                                     },
                                     visualTransformation = NumberCommaTransformation(
-                                        if (isMaxBtc) handleTextCurrency(
-                                            LocalContext.current
-                                        ) else LOCAL_CURRENCY
+                                        if (isMaxBtc) LocalContext.current.getTextBtcUnit()
+                                        else LOCAL_CURRENCY
                                     ),
                                     rightContent = {
                                         SwitchAmount(isMaxBtc) { isBtc ->
@@ -535,13 +538,9 @@ private fun CoinFilterContent(
     }
 }
 
-private fun handleTextCurrency(context: Context) = when (CURRENT_DISPLAY_UNIT_TYPE) {
-    SAT -> context.getString(R.string.nc_currency_sat)
-    else -> context.getString(R.string.nc_currency_btc)
-}
-
 @Composable
 private fun SwitchAmount(isBtc: Boolean, onSwitchBtcAndCurrency: (Boolean) -> Unit) {
+    val unit = if (isBtc) LOCAL_CURRENCY else LocalContext.current.getTextBtcUnit()
     Row(
         modifier = Modifier.clickable { onSwitchBtcAndCurrency(isBtc.not()) },
         verticalAlignment = Alignment.CenterVertically
@@ -553,9 +552,7 @@ private fun SwitchAmount(isBtc: Boolean, onSwitchBtcAndCurrency: (Boolean) -> Un
         )
         Text(
             modifier = Modifier.padding(horizontal = 8.dp),
-            text = if (isBtc) stringResource(
-                R.string.nc_transaction_switch_to_currency_data, LOCAL_CURRENCY
-            ) else stringResource(id = R.string.nc_transaction_switch_to_btc),
+            text = stringResource(R.string.nc_transaction_switch_to_currency_data, unit),
             textDecoration = TextDecoration.Underline,
             style = NunchukTheme.typography.titleSmall
         )
