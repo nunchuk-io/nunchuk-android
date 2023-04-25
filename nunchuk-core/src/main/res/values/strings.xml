@@ -634,7 +634,10 @@
     <string name="nc_transaction_imported">Transaction imported</string>
     <string name="nc_coin_selection_updated">Coin selection updated</string>
     <string name="nc_total_amount_selected">Total amount selected</string>
-    <string name="nc_results_found">%1$d results found</string>
+    <plurals name="nc_results_found">
+        <item quantity="one">%1$d result found</item>
+        <item quantity="other">%1$d results found</item>
+    </plurals>
     <string name="nc_import_completed">Import completed</string>
     <string name="nc_export_labels">Export labels</string>
     <string name="nc_import_labels">Import labels</string>
