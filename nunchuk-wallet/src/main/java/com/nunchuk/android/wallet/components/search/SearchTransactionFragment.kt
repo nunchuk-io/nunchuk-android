@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragmentArgs
 import com.nunchuk.android.wallet.components.details.TransactionAdapter
@@ -88,7 +89,10 @@ class SearchTransactionFragment : BaseFragment<FragmentSearchTransactionBinding>
         }
 
         flowObserver(viewModel.state) {
-            binding.emptyView.isVisible = it.query.isEmpty().not() && it.transactions.isEmpty()
+            binding.viewBadge.isVisible = viewModel.isFiltering
+            binding.emptyView.isVisible = viewModel.isFilteringOrSearch && it.transactions.isEmpty()
+            binding.tvNumResult.isVisible = it.transactions.isEmpty().not()
+            binding.tvNumResult.text = resources.getQuantityString(R.plurals.nc_results_found, it.transactions.size, it.transactions.size)
             adapter.submitData(PagingData.from(it.transactions))
         }
     }
