@@ -20,9 +20,9 @@ Build and run the app on your device.
 You can use prebuilt sdk version from github, check it [here](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild).
 
 Change `nativeSdk` in `dependencies.gradle` to the prebuilt version
-
+[![](https://jitpack.io/v/nunchuk-io/nunchuk-android-nativesdk-prebuild.svg)](https://jitpack.io/#nunchuk-io/nunchuk-android-nativesdk-prebuild)
 ```
     nunchukDeps = [
-            nativeSdk: "com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:1.1.55@aar"
+            nativeSdk: "com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:latest_version@aar"
     ]
 ```
