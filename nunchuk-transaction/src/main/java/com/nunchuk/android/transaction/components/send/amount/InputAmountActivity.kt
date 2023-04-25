@@ -157,6 +157,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     private fun handleState(state: InputAmountState) {
         if (state.useBtc) {
+            binding.mainCurrency.allowDecimal(CURRENT_DISPLAY_UNIT_TYPE != SAT)
             binding.mainCurrencyLabel.text = handleTextCurrency()
             binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_currency_data, LOCAL_CURRENCY)
 
@@ -167,6 +168,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             }
             binding.secondaryCurrency.text = secondaryCurrency
         } else {
+            binding.mainCurrency.allowDecimal(true)
             binding.mainCurrencyLabel.text = LOCAL_CURRENCY
             binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_btc)
 
@@ -179,10 +181,12 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         when (event) {
             is SwapCurrencyEvent -> {
                 binding.mainCurrency.setText(if (event.amount > 0) {
-                    if (LOCAL_CURRENCY == USD_CURRENCY || viewModel.getUseBTC()) {
-                        "${event.amount.formatDecimal()}"
+                    if (viewModel.getUseBTC()) {
+                        if (CURRENT_DISPLAY_UNIT_TYPE == SAT) event.amount.toAmount().value.formatDecimalWithoutZero() else event.amount.formatDecimal()
+                    } else if (LOCAL_CURRENCY == USD_CURRENCY) {
+                        event.amount.formatDecimal()
                     } else {
-                        "${event.amount.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+                        event.amount.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
                     }
                 } else "")
             }
