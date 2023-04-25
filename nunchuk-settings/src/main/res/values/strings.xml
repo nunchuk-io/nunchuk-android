@@ -87,4 +87,8 @@
     <string name="nc_local_currency_updated">Local currency updated</string>
     <string name="nc_re_enter_your_passphrase">Re-enter your passphrase</string>
     <string name="nc_re_enter_your_passphrase_dialog_desc">For security, please re-enter your passphrase.</string>
+    <string name="nc_ssigner_primary_key_notification_title">Stay in the know</string>
+    <string name="nc_ssigner_primary_key_notification_desc">Get notified when you receive new messages or contact requests.</string>
+    <string name="nc_ssigner_primary_key_turn_notification">Turn on notifications</string>
+    <string name="nc_ssigner_primary_key_not_now">Not now</string>
 </resources>
