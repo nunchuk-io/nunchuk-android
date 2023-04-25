@@ -31,7 +31,6 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.databinding.DialogInputBottomSheetBinding
 import com.nunchuk.android.core.util.setUnderline
-import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 
 class InputBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>() {
@@ -68,10 +67,6 @@ class InputBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>() {
 
         binding.desc.isVisible = args.desc.isNullOrEmpty().not()
         binding.desc.text = args.desc
-
-        binding.edit.addTextChangedCallback {
-            binding.btnSave.isVisible = it.isNotEmpty()
-        }
 
         binding.iconClose.setOnClickListener {
             onCloseClicked()
