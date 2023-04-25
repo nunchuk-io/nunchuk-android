@@ -27,6 +27,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -78,7 +80,9 @@ private fun UniversalNfcIntroScreen(viewModel: UniversalNfcIntroViewModel = view
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .fillMaxSize()
                     .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(backgroundRes = R.drawable.nc_bg_universal_nfc_intro)
                 Text(

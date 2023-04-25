@@ -26,6 +26,7 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 
@@ -127,7 +128,11 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         keyPolicy: KeyPolicy? = null
     )
 
-    fun openDynamicQRScreen(activityContext: Context, launcher: ActivityResultLauncher<Intent>, walletId: String)
+    fun openDynamicQRScreen(
+        activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>,
+        walletId: String
+    )
 
     fun openWalletDetailsScreen(activityContext: Context, walletId: String)
 
@@ -141,4 +146,26 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
     )
 
     fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context)
+
+    fun openCoinList(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        context: Context,
+        walletId: String,
+        txId: String = "",
+        inputs: List<UnspentOutput> = emptyList(),
+        amount: Double = 0.0,
+    )
+
+    fun openCoinDetail(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        context: Context,
+        walletId: String,
+        txId: String,
+        vout: Int
+    )
+
+    fun openSearchTransaction(
+        context: Context,
+        walletId: String, roomId: String
+    )
 }

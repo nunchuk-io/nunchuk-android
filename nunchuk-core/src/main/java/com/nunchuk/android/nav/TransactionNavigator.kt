@@ -26,6 +26,7 @@ import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.UnspentOutput
 
 interface TransactionNavigator {
 
@@ -44,7 +45,8 @@ interface TransactionNavigator {
         activityContext: Activity,
         roomId: String = "",
         walletId: String,
-        availableAmount: Double
+        availableAmount: Double,
+        inputs: List<UnspentOutput> = emptyList()
     )
 
     fun openAddReceiptScreen(
@@ -58,7 +60,8 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         sweepType: SweepType = SweepType.NONE,
         masterSignerId: String = "",
-        magicalPhrase: String = ""
+        magicalPhrase: String = "",
+        inputs: List<UnspentOutput> = emptyList(),
     )
 
     /**
@@ -77,6 +80,7 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         masterSignerId: String = "",
         magicalPhrase: String = "",
+        inputs: List<UnspentOutput> = emptyList(),
     )
 
     /**
@@ -97,6 +101,7 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         masterSignerId: String = "",
         magicalPhrase: String = "",
+        inputs: List<UnspentOutput> = emptyList(),
     )
 
     /**
@@ -107,7 +112,7 @@ interface TransactionNavigator {
         walletId: String,
         txId: String,
         initEventId: String = "",
-        roomId: String,
+        roomId: String = "",
         transaction: Transaction? = null,
         isInheritanceClaimingFlow: Boolean = false
     )
@@ -118,7 +123,7 @@ interface TransactionNavigator {
         walletId: String,
         txId: String,
         initEventId: String = "",
-        roomId: String,
+        roomId: String = "",
         transaction: Transaction? = null
     )
 

@@ -99,38 +99,43 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
     }
 
     private fun handleState(state: AccountState) {
-        binding.avatar.loadImage(
-            imageUrl = state.account.avatarUrl.orEmpty().fromMxcUriToMatrixDownloadUrl(),
-            circleCrop = true,
-            cornerRadius = null,
-            errorHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account),
-            placeHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account)
-        )
-        binding.avatar.isInvisible = state.account.avatarUrl?.isEmpty().orFalse()
-
-        binding.avatarHolder.text = state.account.name.shorten()
-        binding.avatarHolder.isInvisible = state.account.avatarUrl?.isNotEmpty().orFalse()
-
-        binding.name.text = state.account.name
-        if (signInModeHolder.getCurrentMode().isPrimaryKey()) {
-            binding.primaryTag.isVisible = true
-            binding.subContent.isVisible = state.account.primaryKeyInfo?.xfp.isNullOrBlank().not()
-            binding.subContent.text =
-                String.format(
-                    getString(R.string.nc_primary_key_account_xfp),
-                    state.account.primaryKeyInfo?.xfp
-                )
-            binding.name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
-            binding.name.isClickable = false
+        val isGuestMode = signInModeHolder.getCurrentMode().isGuestMode()
+        if (isGuestMode) {
+            handleSetupGuestProfile()
         } else {
-            binding.subContent.text = state.account.email
+            binding.avatar.loadImage(
+                imageUrl = state.account.avatarUrl.orEmpty().fromMxcUriToMatrixDownloadUrl(),
+                circleCrop = true,
+                cornerRadius = null,
+                errorHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account),
+                placeHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account)
+            )
+            binding.avatar.isInvisible = state.account.avatarUrl?.isEmpty().orFalse()
+
+            binding.avatarHolder.text = state.account.name.shorten()
+            binding.avatarHolder.isInvisible = state.account.avatarUrl?.isNotEmpty().orFalse()
+
+            binding.name.text = state.account.name
+            if (signInModeHolder.getCurrentMode().isPrimaryKey()) {
+                binding.primaryTag.isVisible = true
+                binding.subContent.isVisible =
+                    state.account.primaryKeyInfo?.xfp.isNullOrBlank().not()
+                binding.subContent.text =
+                    String.format(
+                        getString(R.string.nc_primary_key_account_xfp),
+                        state.account.primaryKeyInfo?.xfp
+                    )
+                binding.name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
+                binding.name.isClickable = false
+            } else {
+                binding.subContent.text = state.account.email
+            }
         }
 
         binding.layoutSync.root.isVisible = state.isSyncing()
         binding.layoutSync.tvSyncingPercent.text = "${state.syncProgress}%"
         binding.layoutSync.progressBarSyncing.progress = state.syncProgress
 
-        val isGuestMode = signInModeHolder.getCurrentMode().isGuestMode()
         binding.btnSignOut.isVisible = !isGuestMode
         binding.signIn.isVisible = isGuestMode
         binding.signUp.isVisible = isGuestMode
@@ -218,7 +223,6 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
                     avatarUrl = event.matrixUri
                 )
             }
-            is AccountEvent.GetUserProfileGuestEvent -> handleSetupGuestProfile()
             is AccountEvent.LoadingEvent -> showOrHideLoading(event.loading)
             is AccountEvent.ShowError -> showError(event.message)
         }

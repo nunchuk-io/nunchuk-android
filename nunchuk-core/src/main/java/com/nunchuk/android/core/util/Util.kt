@@ -24,6 +24,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.text.util.Linkify
 import android.widget.TextView
+import com.nunchuk.android.core.R
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.ConnectionStatus
@@ -32,7 +35,8 @@ import java.io.File
 import java.io.InputStream
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 import java.util.regex.Pattern
 
 fun Throwable.readableMessage() = message ?: UNKNOWN_ERROR
@@ -109,6 +113,7 @@ fun Double.roundDecimal(): Double = formatRoundDecimal().toDoubleOrNull() ?: 0.0
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
 fun Transaction.getFormatDate(): String = if (blockTime <= 0) "--/--/--" else (blockTime).formatDate()
+fun Long.getBtcFormatDate(): String = if (this <= 0) "--/--/--" else (this).formatDate()
 
 fun String.fromMxcUriToMatrixDownloadUrl(): String {
     if (this.isEmpty()) return ""
@@ -144,5 +149,10 @@ fun Context.copyToClipboard(label: String, text: String) {
     val clip =
         ClipData.newPlainText(label, text)
     clipboard.setPrimaryClip(clip)
+}
+
+fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
+    SAT -> getString(R.string.nc_currency_sat)
+    else ->getString(R.string.nc_currency_btc)
 }
 

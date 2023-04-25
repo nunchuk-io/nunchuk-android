@@ -24,17 +24,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -48,7 +50,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
 class InheritanceKeyTipFragment : MembershipFragment() {
     private val viewModel: InheritanceKeyTipViewModel by viewModels()
@@ -58,6 +59,8 @@ class InheritanceKeyTipFragment : MembershipFragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 InheritanceKeyTipContent(remainTime) {
@@ -95,7 +98,9 @@ private fun InheritanceKeyTipContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .fillMaxSize()
                     .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_inheritance_key_tip,

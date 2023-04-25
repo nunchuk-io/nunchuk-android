@@ -23,11 +23,14 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.sum
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
@@ -35,6 +38,8 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.Est
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -45,26 +50,63 @@ import javax.inject.Inject
 class EstimatedFeeViewModel @Inject constructor(
     private val estimateFeeUseCase: EstimateFeeUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase,
-    private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase
+    private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
+    private val getAllTagsUseCase: GetAllTagsUseCase,
+    private val getAllCoinUseCase: GetAllCoinUseCase,
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
     private var address: String = ""
     private var sendAmount: Double = 0.0
+    private var forceSubtractFeeFromAmount: Boolean = false
     private var draftTranJob: Job? = null
-    private var slots = mutableListOf<SatsCardSlot>()
+    private val slots = mutableListOf<SatsCardSlot>()
+    private val inputs = mutableListOf<UnspentOutput>()
 
     override val initialState = EstimatedFeeState()
 
-    fun init(walletId: String, address: String, sendAmount: Double, slots: List<SatsCardSlot>) {
-        this.walletId = walletId
-        this.address = address
-        this.sendAmount = sendAmount
+    fun init(args: EstimatedFeeArgs) {
+        this.walletId = args.walletId
+        this.address = args.address
+        this.sendAmount = args.outputAmount
         this.slots.apply {
             clear()
             addAll(slots)
         }
+        this.inputs.apply {
+            clear()
+            addAll(args.inputs)
+        }
+        forceSubtractFeeFromAmount = args.subtractFeeFromAmount
         getEstimateFeeRates()
+        if (slots.isEmpty()) {
+            getAllTags()
+            getAllCoins()
+        }
+    }
+
+    fun updateNewInputs(inputs: List<UnspentOutput>) {
+        this.inputs.apply {
+            clear()
+            addAll(inputs)
+        }
+        getEstimateFeeRates()
+    }
+
+    private fun getAllTags() {
+        viewModelScope.launch {
+            getAllTagsUseCase(walletId).onSuccess {
+                updateState { copy(allTags = it.associateBy { it.id }) }
+            }
+        }
+    }
+
+    private fun getAllCoins() {
+        viewModelScope.launch {
+            getAllCoinUseCase(walletId).onSuccess {
+                updateState { copy(allCoins = it) }
+            }
+        }
     }
 
     fun getEstimateFeeRates() {
@@ -97,13 +139,33 @@ class EstimatedFeeViewModel @Inject constructor(
     private suspend fun draftNormalTransaction() {
         val state = getState()
         setEvent(EstimatedFeeEvent.Loading(true))
+        // if selected coin amount is smaller than send amount + fee, we should auto check subtract fee and disable toggle
+        var subtractFeeFromAmount = state.subtractFeeFromAmount
+        var enableSubtractFeeFromAmount = state.enableSubtractFeeFromAmount
+        if (!forceSubtractFeeFromAmount && inputs.isNotEmpty()) {
+            val selectedAmount = inputs.map { it.amount }.sum()
+            if (selectedAmount.value <= state.estimatedFee.value + sendAmount.toAmount().value) {
+                subtractFeeFromAmount = true
+                enableSubtractFeeFromAmount = false
+            }
+        }
         when (val result = draftTransactionUseCase.execute(
             walletId = walletId,
             outputs = mapOf(address to sendAmount.toAmount()),
-            subtractFeeFromAmount = state.subtractFeeFromAmount,
-            feeRate = state.manualFeeRate.toManualFeeRate()
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            feeRate = state.manualFeeRate.toManualFeeRate(),
+            inputs = inputs.map { TxInput(it.txid, it.vout) }
         )) {
-            is Success -> updateState { copy(estimatedFee = result.data.fee) }
+            is Success -> {
+                updateState {
+                    copy(
+                        estimatedFee = result.data.fee,
+                        inputs = result.data.inputs,
+                        subtractFeeFromAmount = subtractFeeFromAmount,
+                        enableSubtractFeeFromAmount = enableSubtractFeeFromAmount,
+                    )
+                }
+            }
             is Error -> {
                 if (result.exception !is CancellationException) {
                     setEvent(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
@@ -132,8 +194,8 @@ class EstimatedFeeViewModel @Inject constructor(
         }
     }
 
-    fun handleSubtractFeeSwitch(checked: Boolean) {
-        updateState { copy(subtractFeeFromAmount = checked) }
+    fun handleSubtractFeeSwitch(checked: Boolean, enable : Boolean = true) {
+        updateState { copy(subtractFeeFromAmount = checked, enableSubtractFeeFromAmount = enable) }
         draftTransaction()
     }
 
@@ -172,4 +234,9 @@ class EstimatedFeeViewModel @Inject constructor(
 
     val defaultRate: Int
         get() = getState().estimateFeeRates.defaultRate
+
+    fun getSelectedCoins() : List<UnspentOutput> {
+        val inputs = getState().inputs
+        return getState().allCoins.filter { coin -> inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
+    }
 }

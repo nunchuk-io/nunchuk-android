@@ -35,6 +35,13 @@ fun Number.formatDecimal(minFractionDigits: Int = MIN_FRACTION_DIGITS, maxFracti
     }.format(this)
 }
 
+fun Number.formatDecimalWithoutZero(maxFractionDigits: Int = MAX_FRACTION_DIGITS): String {
+    return DecimalFormat("#,###.##").apply {
+        minimumFractionDigits = 0
+        maximumFractionDigits = maxFractionDigits
+    }.format(this)
+}
+
 fun Number.formatCurrencyDecimal(maxFractionDigits: Int = MAX_FRACTION_DIGITS, locale: Locale = Locale.US): String {
     return NumberFormat.getCurrencyInstance(locale).apply {
         minimumFractionDigits = MIN_FRACTION_DIGITS

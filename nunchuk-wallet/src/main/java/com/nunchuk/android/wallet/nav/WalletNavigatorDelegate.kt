@@ -36,6 +36,7 @@ import com.nunchuk.android.wallet.components.configure.ConfigureWalletActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
+import com.nunchuk.android.wallet.components.search.SearchTransactionActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
 import com.nunchuk.android.wallet.personal.components.TaprootWarningActivity
 import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
@@ -229,5 +230,9 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openAddRecoverSharedWalletScreen(activityContext: Context, data: String) {
         AddRecoverSharedWalletActivity.start(activityContext, data)
+    }
+
+    override fun openSearchTransaction(context: Context, walletId: String, roomId: String) {
+        SearchTransactionActivity.start(context, walletId, roomId)
     }
 }

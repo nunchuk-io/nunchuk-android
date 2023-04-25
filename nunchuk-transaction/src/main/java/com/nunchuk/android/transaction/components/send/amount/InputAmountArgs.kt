@@ -24,11 +24,14 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.utils.parcelableArrayList
 
 data class InputAmountArgs(
     val roomId: String = "",
     val walletId: String,
     val availableAmount: Double,
+    val inputs: List<UnspentOutput> = emptyList(),
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(
@@ -38,17 +41,20 @@ data class InputAmountArgs(
         putExtra(EXTRA_ROOM_ID, roomId)
         putExtra(EXTRA_WALLET_ID, walletId)
         putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
+        putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
     }
 
     companion object {
         private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_AVAILABLE_AMOUNT = "EXTRA_AVAILABLE_AMOUNT"
+        private const val EXTRA_INPUT = "EXTRA_INPUT"
 
         fun deserializeFrom(intent: Intent) = InputAmountArgs(
             intent.extras.getStringValue(EXTRA_ROOM_ID),
             intent.extras.getStringValue(EXTRA_WALLET_ID),
-            intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT)
+            intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
+            intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
         )
     }
 }

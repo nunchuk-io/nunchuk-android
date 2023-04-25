@@ -26,6 +26,7 @@ import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
@@ -66,13 +67,15 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         activityContext: Activity,
         roomId: String,
         walletId: String,
-        availableAmount: Double
+        availableAmount: Double,
+        inputs: List<UnspentOutput>
     ) {
         InputAmountActivity.start(
             activityContext = activityContext,
             roomId = roomId,
             walletId = walletId,
-            availableAmount = availableAmount
+            availableAmount = availableAmount,
+            inputs = inputs,
         )
     }
 
@@ -87,7 +90,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         slots: List<SatsCardSlot>,
         sweepType: SweepType,
         masterSignerId: String,
-        magicalPhrase: String
+        magicalPhrase: String,
+        inputs: List<UnspentOutput>
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -100,7 +104,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             slots = slots,
             sweepType = sweepType,
             masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase
+            magicalPhrase = magicalPhrase,
+            inputs = inputs
         )
     }
 
@@ -115,7 +120,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
         masterSignerId: String,
-        magicalPhrase: String
+        magicalPhrase: String,
+        inputs: List<UnspentOutput>
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -128,7 +134,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             sweepType = sweepType,
             slots = slots,
             masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase
+            magicalPhrase = magicalPhrase,
+            inputs = inputs,
         )
     }
 
@@ -145,7 +152,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
         masterSignerId: String,
-        magicalPhrase: String
+        magicalPhrase: String,
+        inputs: List<UnspentOutput>
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -160,7 +168,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             sweepType = sweepType,
             slots = slots,
             masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase
+            magicalPhrase = magicalPhrase,
+            inputs = inputs
         )
     }
 

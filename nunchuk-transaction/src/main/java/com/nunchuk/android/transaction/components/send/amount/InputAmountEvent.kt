@@ -22,11 +22,13 @@ package com.nunchuk.android.transaction.components.send.amount
 import com.nunchuk.android.model.BtcUri
 
 sealed class InputAmountEvent {
+    data class Loading(val isLoading: Boolean) : InputAmountEvent()
     data class AcceptAmountEvent(val amount: Double) : InputAmountEvent()
     data class SwapCurrencyEvent(val amount: Double) : InputAmountEvent()
     data class ParseBtcUriSuccess(val btcUri: BtcUri) : InputAmountEvent()
     data class ShowError(val message: String) : InputAmountEvent()
     object InsufficientFundsEvent : InputAmountEvent()
+    object InsufficientFundsLockedCoinEvent : InputAmountEvent()
 }
 
 data class InputAmountState(

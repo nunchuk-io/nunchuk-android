@@ -10,10 +10,7 @@
 
     <string name="nc_transaction_new">New transaction</string>
     <string name="nc_transaction_send_all">Send all</string>
-    <string name="nc_transaction_switch_to_currency_data">Switch to %s</string>
     <string name="nc_transaction_switch_to_btc">Switch to BTC</string>
-    <string name="nc_transaction_private_note">Private note</string>
-    <string name="nc_transaction_private_note_optional">(optional off-chain data)</string>
     <string name="nc_transaction_enter_receipt">Enter recipient’s address or email</string>
     <string name="nc_transaction_customize_fee_setting">Customize fee setting</string>
     <string name="nc_transaction_subtract_fee_title">Subtract fee from send amount</string>
@@ -34,7 +31,6 @@
     <string name="nc_transaction_insufficient_funds">Insufficient funds</string>
     <string name="nc_transaction_invalid_address">Invalid address</string>
 
-    <string name="nc_transaction_sent_to">Sent to</string>
     <string name="nc_text_n_a">N/A</string>
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
@@ -49,7 +45,6 @@
     <string name="nc_transaction_broadcast_successful">Transaction has been broadcast</string>
     <string name="nc_transaction_cancelled">Transaction cancelled</string>
     <string name="nc_transaction_removed">Transaction removed</string>
-    <string name="nc_transaction_imported">Transaction imported</string>
     <string name="nc_transaction_imported_failed">Import failed :</string>
     <string name="nc_export_transaction_file">Export transaction via file</string>
     <string name="nc_input_fee_invalid_error">Rate cannot be lower than the minimum fee rate</string>
@@ -60,4 +55,7 @@
     <string name="nc_schedule_broadcast_hint">The transaction must have enough signatures before it can be broadcast. If the wallet has been configured to automatically broadcast after co-signing, this action will override the policy.</string>
     <string name="nc_error_schedule_broadcast_out_of_range">Scheduled broadcast must happen within a year.</string>
     <string name="nc_schedule_broadcast_has_been_canceled">Scheduled broadcast has been canceled</string>
+    <string name="nc_dont_assign_any_tags">Don’t assign any tags</string>
+    <string name="nc_transaction_generate_change_coin_title">This transaction generates a change coin. Would you like the change coin to inherit the tags from the parent coin(s)?</string>
+    <string name="nc_send_all_selected">Send all selected</string>
 </resources>

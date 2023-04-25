@@ -23,6 +23,7 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingPolicy
@@ -51,7 +52,7 @@ class ConfigSpendingLimitViewModel @Inject constructor(
         _state.update {
             it.copy(
                 timeUnit = args.keyPolicy?.spendingPolicy?.timeUnit ?: SpendingTimeUnit.DAILY,
-                currencyUnit = args.keyPolicy?.spendingPolicy?.currencyUnit ?: SpendingCurrencyUnit.USD
+                currencyUnit = args.keyPolicy?.spendingPolicy?.currencyUnit ?: LOCAL_CURRENCY
             )
         }
     }
@@ -86,13 +87,13 @@ class ConfigSpendingLimitViewModel @Inject constructor(
         _state.update { it.copy(timeUnit = unit) }
     }
 
-    fun setCurrencyUnit(unit: SpendingCurrencyUnit) {
+    fun setCurrencyUnit(unit: String) {
         _state.update { it.copy(currencyUnit = unit) }
     }
 }
 
 data class ConfigSpendingLimitState(
-    val currencyUnit: SpendingCurrencyUnit = SpendingCurrencyUnit.USD,
+    val currencyUnit: String = LOCAL_CURRENCY,
     val timeUnit: SpendingTimeUnit = SpendingTimeUnit.DAILY
 )
 
@@ -103,7 +104,7 @@ sealed class ConfigSpendingLimitEvent {
 }
 
 fun SpendingCurrencyUnit.toLabel(context: Context) = when (this) {
-    SpendingCurrencyUnit.USD -> context.getString(R.string.nc_currency_usd)
+    SpendingCurrencyUnit.CURRENCY_UNIT -> LOCAL_CURRENCY
     SpendingCurrencyUnit.BTC -> context.getString(R.string.nc_currency_btc)
     SpendingCurrencyUnit.sat -> context.getString(R.string.nc_currency_sat)
 }

@@ -63,7 +63,6 @@
     <string name="nc_message_transaction_status_ready_broadcast">Ready to broadcast</string>
     <string name="nc_message_transaction_to_sign">Continue to sign</string>
     <string name="nc_message_transaction_ignore">Ignore</string>
-    <string name="nc_message_transaction_view_details">View details</string>
     <string name="nc_message_transaction_sending_to"><![CDATA[Sending to <b>%1$s</b>]]></string>
     <string name="nc_message_transaction_sent_to"><![CDATA[Sent to <b>%1$s</b>]]></string>
     <string name="nc_message_transaction_enough_signature">Enough signatures collected</string>

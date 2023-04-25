@@ -140,37 +140,85 @@
         app:barrierDirection="end"
         app:constraint_referenced_ids="configuration_container,btcAmount" />
 
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnSend"
-        style="@style/NCPrimaryButton.Light.Solid"
-        android:layout_width="0dp"
+    <ImageView
+        android:id="@+id/iv_send_btc"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:layout_marginEnd="@dimen/nc_padding_8"
-        android:text="@string/nc_wallet_send"
-        app:layout_constraintEnd_toStartOf="@id/guideline"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:background="@drawable/nc_circle_white_background"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        android:padding="@dimen/nc_padding_12"
+        app:layout_constraintEnd_toStartOf="@+id/iv_receive_btc"
+        app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" />
+        app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig"
+        app:srcCompat="@drawable/ic_sending_bitcoin" />
 
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnReceive"
-        style="@style/NCPrimaryButton.Light.Solid"
-        android:layout_width="0dp"
+    <ImageView
+        android:id="@+id/iv_receive_btc"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_8"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:layout_marginEnd="@dimen/nc_padding_16"
-        android:text="@string/nc_wallet_receive"
+        android:background="@drawable/nc_circle_white_background"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        android:padding="@dimen/nc_padding_12"
+        app:layout_constraintEnd_toStartOf="@+id/iv_view_coin"
+        app:layout_constraintStart_toEndOf="@+id/iv_send_btc"
+        app:layout_constraintTop_toTopOf="@+id/iv_send_btc"
+        app:srcCompat="@drawable/ic_receive_bitcoin" />
+
+    <ImageView
+        android:id="@+id/iv_view_coin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nc_circle_white_background"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        android:padding="@dimen/nc_padding_12"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" />
+        app:layout_constraintStart_toEndOf="@+id/iv_receive_btc"
+        app:layout_constraintTop_toTopOf="@+id/iv_send_btc"
+        app:srcCompat="@drawable/ic_bitcoin_dark" />
+
+    <TextView
+        android:id="@+id/tv_send"
+        style="@style/NCText.Title.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/nc_wallet_send"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintEnd_toEndOf="@+id/iv_send_btc"
+        app:layout_constraintStart_toStartOf="@+id/iv_send_btc"
+        app:layout_constraintTop_toBottomOf="@+id/iv_send_btc" />
+
+    <TextView
+        android:id="@+id/tv_receive"
+        style="@style/NCText.Title.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/nc_wallet_receive"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintEnd_toEndOf="@+id/iv_receive_btc"
+        app:layout_constraintStart_toStartOf="@+id/iv_receive_btc"
+        app:layout_constraintTop_toBottomOf="@+id/iv_receive_btc" />
+
+    <TextView
+        android:id="@+id/tv_view_coin"
+        style="@style/NCText.Title.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/nc_view_coins"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintEnd_toEndOf="@+id/iv_view_coin"
+        app:layout_constraintStart_toStartOf="@+id/iv_view_coin"
+        app:layout_constraintTop_toBottomOf="@+id/iv_view_coin" />
 
     <Space
         android:id="@+id/spaceBottom16"
         android:layout_width="match_parent"
         android:layout_height="@dimen/nc_padding_16"
-        app:layout_constraintTop_toBottomOf="@+id/btnReceive" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_send" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollViewWalletTransactions"

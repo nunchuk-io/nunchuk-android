@@ -21,7 +21,7 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_transaction_new" />
+            android:text="@string/nc_customize_transaction" />
     </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
@@ -32,335 +32,383 @@
         app:layout_constraintBottom_toTopOf="@+id/btnContinue"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/estimatedFeeBTC"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_24"
-                android:layout_marginEnd="@dimen/nc_padding_16"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_16"
-                app:fontTextStyle="semi_bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="0.001 BTC" />
-
-            <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/estimatedFeeUSD"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_4"
-                android:layout_marginEnd="@dimen/nc_padding_16"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_14"
-                app:fontTextStyle="semi_bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/estimatedFeeBTC"
-                tools:text="$5,400,504.52" />
-
-            <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/estimatedFeeLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/NCText.Title"
+                android:drawableStart="@drawable/ic_fee_setting"
+                android:drawablePadding="@dimen/nc_padding_8"
                 android:layout_marginStart="@dimen/nc_padding_16"
-                android:drawableEnd="@drawable/ic_help"
-                android:drawablePadding="@dimen/nc_padding_4"
-                android:text="@string/nc_transaction_estimate_fee"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_16"
-                app:fontTextStyle="semi_bold"
-                app:layout_constraintBottom_toBottomOf="@+id/estimatedFeeUSD"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/estimatedFeeBTC" />
-
-            <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/totalAmountBTC"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_16"
-                android:layout_marginEnd="@dimen/nc_padding_16"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_16"
-                app:fontTextStyle="semi_bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/estimatedFeeUSD"
-                tools:text="0.001 BTC" />
-
-            <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/totalAmountUSD"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_4"
-                android:layout_marginEnd="@dimen/nc_padding_16"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_14"
-                app:fontTextStyle="semi_bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/totalAmountBTC"
-                tools:text="$5,400,504.52" />
-
-            <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/totalAmountLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/nc_padding_16"
-                android:text="@string/nc_transaction_total_amount"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_16"
-                app:fontTextStyle="semi_bold"
-                app:layout_constraintBottom_toBottomOf="@+id/totalAmountUSD"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/totalAmountBTC" />
-
-            <View
-                android:id="@+id/divider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_margin="@dimen/nc_padding_16"
-                android:background="@color/nc_whisper_color"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/totalAmountUSD" />
+                android:text="@string/nc_fee_settings"/>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/customizeFeeDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/nc_padding_16"
-                android:visibility="visible"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/divider"
-                tools:visibility="visible">
+                android:layout_margin="@dimen/nc_padding_16"
+                android:background="@drawable/nc_rounded_12dp_primary_background">
 
                 <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/subtractFeeLabel"
+                    android:id="@+id/estimatedFeeBTC"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/nc_transaction_subtract_fee_title"
+                    android:layout_marginTop="@dimen/nc_padding_24"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
                     android:textColor="@color/nc_black_color"
                     android:textSize="@dimen/nc_text_size_16"
                     app:fontTextStyle="semi_bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="0.001 BTC" />
 
                 <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/subtractFeeDesc"
-                    android:layout_width="0dp"
+                    android:id="@+id/estimatedFeeUSD"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_4"
                     android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:lineSpacingMultiplier="1.2"
-                    android:text="@string/nc_transaction_subtract_fee_desc"
-                    android:textColor="#757575"
-                    android:textSize="@dimen/nc_text_size_12"
-                    app:layout_constraintEnd_toStartOf="@+id/subtractFeeCheckBox"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/subtractFeeLabel" />
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_14"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/estimatedFeeBTC"
+                    tools:text="$5,400,504.52" />
 
-                <CheckBox
-                    android:id="@+id/subtractFeeCheckBox"
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/estimatedFeeLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:buttonTint="@color/nc_primary_color"
-                    android:checked="false"
-                    android:visibility="visible"
-                    app:layout_constraintBottom_toBottomOf="@+id/subtractFeeDesc"
+                    android:layout_marginStart="@dimen/nc_padding_16"
+                    android:drawableEnd="@drawable/ic_help"
+                    android:drawablePadding="@dimen/nc_padding_4"
+                    android:text="@string/nc_transaction_estimate_fee"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/estimatedFeeUSD"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/estimatedFeeBTC" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/totalAmountBTC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/subtractFeeLabel"
-                    tools:checked="true" />
+                    app:layout_constraintTop_toBottomOf="@+id/estimatedFeeUSD"
+                    tools:text="0.001 BTC" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/totalAmountUSD"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_14"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/totalAmountBTC"
+                    tools:text="$5,400,504.52" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/totalAmountLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_16"
+                    android:text="@string/nc_transaction_total_amount"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/totalAmountUSD"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/totalAmountBTC" />
 
                 <View
-                    android:id="@+id/bottomDivider"
+                    android:id="@+id/divider"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:layout_margin="@dimen/nc_padding_16"
                     android:background="@color/nc_whisper_color"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/subtractFeeDesc" />
-
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/manualFeeLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_16"
-                    android:text="@string/nc_transaction_manual_fee_rate"
-                    android:textColor="@color/nc_black_color"
-                    android:textSize="@dimen/nc_text_size_16"
-                    app:fontTextStyle="semi_bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/bottomDivider" />
-
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/manualFeeDesc"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_4"
-                    android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:lineSpacingMultiplier="1.2"
-                    android:text="@string/nc_transaction_manual_fee_rate_desc"
-                    android:textColor="#757575"
-                    android:textSize="@dimen/nc_text_size_12"
-                    app:layout_constraintEnd_toStartOf="@+id/manualFeeCheckBox"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/manualFeeLabel" />
-
-                <CheckBox
-                    android:id="@+id/manualFeeCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:buttonTint="@color/nc_primary_color"
-                    android:checked="false"
-                    android:visibility="visible"
-                    app:layout_constraintBottom_toBottomOf="@+id/manualFeeDesc"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/manualFeeLabel"
-                    tools:checked="true" />
+                    app:layout_constraintTop_toBottomOf="@+id/totalAmountUSD" />
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/manualFeeDetails"
+                    android:id="@+id/customizeFeeDetails"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_16"
-                    android:visibility="gone"
+                    android:padding="@dimen/nc_padding_16"
+                    android:visibility="visible"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/manualFeeDesc"
+                    app:layout_constraintTop_toBottomOf="@+id/divider"
                     tools:visibility="visible">
 
-                    <com.nunchuk.android.widget.NCFontEditText
-                        android:id="@+id/feeRateInput"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/nc_padding_8"
-                        android:background="@drawable/nc_edit_text_bg"
-                        android:inputType="numberDecimal"
-                        android:maxLength="20"
-                        android:padding="@dimen/nc_padding_12"
-                        android:scrollHorizontally="false"
-                        android:singleLine="true"
-                        android:textColor="@color/nc_black_color"
-                        android:textCursorDrawable="@null"
-                        android:textSize="@dimen/nc_text_size_16"
-                        app:layout_constraintEnd_toStartOf="@+id/feeUnit"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        tools:text="210" />
-
                     <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/feeUnit"
+                        android:id="@+id/subtractFeeLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/nc_padding_4"
-                        android:text="@string/nc_transaction_fee_rate_unit"
+                        android:text="@string/nc_transaction_subtract_fee_title"
                         android:textColor="@color/nc_black_color"
-                        android:textSize="@dimen/nc_text_size_14"
+                        android:textSize="@dimen/nc_text_size_16"
                         app:fontTextStyle="semi_bold"
-                        app:layout_constraintBottom_toBottomOf="@+id/feeRateInput"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="@+id/feeRateInput" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/processingSpeed"
+                        android:id="@+id/subtractFeeDesc"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/nc_padding_4"
+                        android:layout_marginEnd="@dimen/nc_padding_16"
+                        android:lineSpacingMultiplier="1.2"
+                        android:text="@string/nc_transaction_subtract_fee_desc"
+                        android:textColor="#757575"
+                        android:textSize="@dimen/nc_text_size_12"
+                        app:layout_constraintEnd_toStartOf="@+id/subtractFeeCheckBox"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/subtractFeeLabel" />
+
+                    <CheckBox
+                        android:id="@+id/subtractFeeCheckBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"
+                        android:visibility="visible"
+                        app:layout_constraintBottom_toBottomOf="@+id/subtractFeeDesc"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/subtractFeeLabel"
+                        tools:checked="true" />
+
+                    <View
+                        android:id="@+id/bottomDivider"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/nc_padding_16"
+                        android:background="@color/nc_whisper_color"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/subtractFeeDesc" />
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/manualFeeLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/nc_padding_16"
-                        android:text="@string/nc_transaction_processing_speed"
+                        android:text="@string/nc_transaction_manual_fee_rate"
                         android:textColor="@color/nc_black_color"
-                        android:textSize="@dimen/nc_text_size_14"
+                        android:textSize="@dimen/nc_text_size_16"
                         app:fontTextStyle="semi_bold"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/feeRateInput" />
+                        app:layout_constraintTop_toBottomOf="@+id/bottomDivider" />
 
-                    <androidx.constraintlayout.widget.Guideline
-                        android:id="@+id/guidelineStart"
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/manualFeeDesc"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/nc_padding_4"
+                        android:layout_marginEnd="@dimen/nc_padding_16"
+                        android:lineSpacingMultiplier="1.2"
+                        android:text="@string/nc_transaction_manual_fee_rate_desc"
+                        android:textColor="#757575"
+                        android:textSize="@dimen/nc_text_size_12"
+                        app:layout_constraintEnd_toStartOf="@+id/manualFeeCheckBox"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/manualFeeLabel" />
+
+                    <CheckBox
+                        android:id="@+id/manualFeeCheckBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"
+                        android:visibility="visible"
+                        app:layout_constraintBottom_toBottomOf="@+id/manualFeeDesc"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/manualFeeLabel"
+                        tools:checked="true" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/manualFeeDetails"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        app:layout_constraintGuide_percent="0.33" />
-
-                    <androidx.constraintlayout.widget.Guideline
-                        android:id="@+id/guidelineEnd"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        app:layout_constraintGuide_percent="0.66" />
-
-                    <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/priorityRate"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/nc_padding_8"
-                        android:text="@string/nc_transaction_priority_rate"
-                        android:textColor="#757575"
-                        android:textSize="@dimen/nc_text_size_14"
-                        app:layout_constraintEnd_toStartOf="@+id/guidelineStart"
+                        android:layout_marginTop="@dimen/nc_padding_16"
+                        android:visibility="gone"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+                        app:layout_constraintTop_toBottomOf="@+id/manualFeeDesc"
+                        tools:visibility="visible">
 
-                    <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/priorityRateValue"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/nc_padding_4"
-                        android:text="@string/nc_transaction_priority_rate_value"
-                        android:textColor="@color/nc_primary_dark_color"
-                        android:textSize="@dimen/nc_text_size_14"
-                        app:layout_constraintEnd_toStartOf="@+id/guidelineStart"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/priorityRate" />
+                        <com.nunchuk.android.widget.NCFontEditText
+                            android:id="@+id/feeRateInput"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/nc_padding_8"
+                            android:background="@drawable/nc_edit_text_bg"
+                            android:inputType="numberDecimal"
+                            android:maxLength="20"
+                            android:padding="@dimen/nc_padding_12"
+                            android:scrollHorizontally="false"
+                            android:singleLine="true"
+                            android:textColor="@color/nc_black_color"
+                            android:textCursorDrawable="@null"
+                            android:textSize="@dimen/nc_text_size_16"
+                            app:layout_constraintEnd_toStartOf="@+id/feeUnit"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:text="210" />
 
-                    <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/standardRate"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/nc_padding_8"
-                        android:text="@string/nc_transaction_standard_rate"
-                        android:textColor="#757575"
-                        android:textSize="@dimen/nc_text_size_14"
-                        app:layout_constraintEnd_toStartOf="@+id/guidelineEnd"
-                        app:layout_constraintStart_toEndOf="@+id/guidelineStart"
-                        app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/feeUnit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_4"
+                            android:text="@string/nc_transaction_fee_rate_unit"
+                            android:textColor="@color/nc_black_color"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:fontTextStyle="semi_bold"
+                            app:layout_constraintBottom_toBottomOf="@+id/feeRateInput"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/feeRateInput" />
 
-                    <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/standardRateValue"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/nc_padding_4"
-                        android:text="@string/nc_transaction_standard_rate_value"
-                        android:textColor="@color/nc_primary_dark_color"
-                        android:textSize="@dimen/nc_text_size_14"
-                        app:layout_constraintEnd_toStartOf="@+id/guidelineEnd"
-                        app:layout_constraintStart_toEndOf="@+id/guidelineStart"
-                        app:layout_constraintTop_toBottomOf="@+id/standardRate" />
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/processingSpeed"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_16"
+                            android:text="@string/nc_transaction_processing_speed"
+                            android:textColor="@color/nc_black_color"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:fontTextStyle="semi_bold"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/feeRateInput" />
 
-                    <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/economicalRate"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/nc_padding_8"
-                        android:text="@string/nc_transaction_economical_rate"
-                        android:textColor="#757575"
-                        android:textSize="@dimen/nc_text_size_14"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@+id/guidelineEnd"
-                        app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+                        <androidx.constraintlayout.widget.Guideline
+                            android:id="@+id/guidelineStart"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            app:layout_constraintGuide_percent="0.33" />
 
-                    <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/economicalRateValue"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/nc_padding_4"
-                        android:text="@string/nc_transaction_economical_rate_value"
-                        android:textColor="@color/nc_primary_dark_color"
-                        android:textSize="@dimen/nc_text_size_14"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/guidelineEnd"
-                        app:layout_constraintTop_toBottomOf="@+id/economicalRate" />
+                        <androidx.constraintlayout.widget.Guideline
+                            android:id="@+id/guidelineEnd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            app:layout_constraintGuide_percent="0.66" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/priorityRate"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_8"
+                            android:text="@string/nc_transaction_priority_rate"
+                            android:textColor="#757575"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:layout_constraintEnd_toStartOf="@+id/guidelineStart"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/priorityRateValue"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_4"
+                            android:text="@string/nc_transaction_priority_rate_value"
+                            android:textColor="@color/nc_primary_dark_color"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:layout_constraintEnd_toStartOf="@+id/guidelineStart"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/priorityRate" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/standardRate"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_8"
+                            android:text="@string/nc_transaction_standard_rate"
+                            android:textColor="#757575"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:layout_constraintEnd_toStartOf="@+id/guidelineEnd"
+                            app:layout_constraintStart_toEndOf="@+id/guidelineStart"
+                            app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/standardRateValue"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_4"
+                            android:text="@string/nc_transaction_standard_rate_value"
+                            android:textColor="@color/nc_primary_dark_color"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:layout_constraintEnd_toStartOf="@+id/guidelineEnd"
+                            app:layout_constraintStart_toEndOf="@+id/guidelineStart"
+                            app:layout_constraintTop_toBottomOf="@+id/standardRate" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/economicalRate"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_8"
+                            android:text="@string/nc_transaction_economical_rate"
+                            android:textColor="#757575"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/guidelineEnd"
+                            app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/economicalRateValue"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_4"
+                            android:text="@string/nc_transaction_economical_rate_value"
+                            android:textColor="@color/nc_primary_dark_color"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/guidelineEnd"
+                            app:layout_constraintTop_toBottomOf="@+id/economicalRate" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <FrameLayout
+                android:id="@+id/coin_selection_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/NCText.Title"
+                    android:drawableStart="@drawable/ic_bitcoin_dark"
+                    android:drawablePadding="@dimen/nc_padding_8"
+                    android:layout_marginStart="@dimen/nc_padding_16"
+                    android:text="@string/nc_coin_selection"/>
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tv_customize"
+                    android:background="?attr/selectableItemBackground"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_height="wrap_content"
+                    style="@style/NCText.Title"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:layout_marginStart="@dimen/nc_padding_16"
+                    android:text="@string/nc_customize"/>
+            </FrameLayout>
+
+            <androidx.compose.ui.platform.ComposeView
+                android:id="@+id/compose_coin_selection"
+                android:layout_width="match_parent"
+                android:layout_margin="@dimen/nc_padding_16"
+                android:background="@drawable/nc_rounded_12dp_primary_background"
+                tools:layout_height="300dp"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
     </ScrollView>
 
     <com.nunchuk.android.widget.NCFontButton

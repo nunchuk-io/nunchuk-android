@@ -39,4 +39,5 @@
     <string name="nc_text_signup_primary_key">Create account using Primary Key</string>
     <string name="nc_text_signin_primary_key">Sign in with Primary Key</string>
     <string name="nc_text_change_your_password_info">We’ve sent a temporary password to %1$s. Please change your password.</string>
+    <string name="nc_error_unconfirmed_coin_can_not_locked">Unconfirmed coins cannot be locked</string>
 </resources>

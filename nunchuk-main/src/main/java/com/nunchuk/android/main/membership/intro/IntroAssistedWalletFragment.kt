@@ -24,11 +24,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,6 +54,8 @@ class IntroAssistedWalletFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
             setContent {
                 IntroAssistedWalletScreen(viewModel)
             }
@@ -73,7 +78,9 @@ fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewMode
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
+                        .fillMaxSize()
                         .navigationBarsPadding()
+                        .verticalScroll(rememberScrollState())
                 ) {
                     NcImageAppBar(
                         backgroundRes = R.drawable.nc_bg_intro_assisted_wallet,

@@ -27,7 +27,14 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Scaffold
@@ -38,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
@@ -49,7 +57,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -58,10 +65,15 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.formatRoundDecimal
+import com.nunchuk.android.core.util.LOCAL_CURRENCY
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.SpendingPolicy
+import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
@@ -69,6 +81,7 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -104,6 +117,8 @@ class CosigningPolicyFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
             setContent {
                 CosigningPolicyScreen(viewModel)
             }
@@ -112,7 +127,7 @@ class CosigningPolicyFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
@@ -168,7 +183,6 @@ class CosigningPolicyFragment : Fragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun CosigningPolicyScreen(viewModel: CosigningPolicyViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -250,7 +264,7 @@ private fun CosigningPolicyContent(
                             Text(
                                 modifier = Modifier.weight(1.0f),
                                 textAlign = TextAlign.End,
-                                text = "${spendingPolicy.limit.formatRoundDecimal()} ${spendingPolicy.currencyUnit.name}/${
+                                text = "${spendingPolicy.limit.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)} ${spendingPolicy.currencyUnit}/${
                                     spendingPolicy.timeUnit.name.lowercase()
                                         .capitalize(Locale.current)
                                 }",
@@ -371,6 +385,6 @@ private fun CosigningPolicyScreenPreview() {
         isAutoBroadcast = true,
         keyPolicy = KeyPolicy(),
         isUpdateFlow = true,
-        spendingPolicy = SpendingPolicy(5000.0, SpendingTimeUnit.DAILY, SpendingCurrencyUnit.USD)
+        spendingPolicy = SpendingPolicy(5000.0, SpendingTimeUnit.DAILY, LOCAL_CURRENCY)
     )
 }

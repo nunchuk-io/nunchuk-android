@@ -21,6 +21,7 @@ package com.nunchuk.android.api.key
 
 import com.nunchuk.android.core.network.Data
 import com.nunchuk.android.model.MembershipSubscription
+import com.nunchuk.android.model.VerifiedPKeyTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenResponse
 import retrofit2.http.Body
@@ -39,5 +40,11 @@ interface MembershipApi {
     suspend fun verifiedPasswordToken(
         @Path("target_action") targetAction: String,
         @Body payload: VerifiedPasswordTokenRequest
+    ): Data<VerifiedPasswordTokenResponse>
+
+    @POST("/v1.1/passport/verified-pkey-token/{target_action}")
+    suspend fun verifiedPKeyToken(
+        @Path("target_action") targetAction: String,
+        @Body payload: VerifiedPKeyTokenRequest
     ): Data<VerifiedPasswordTokenResponse>
 }

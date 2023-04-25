@@ -24,6 +24,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
@@ -32,13 +34,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -83,6 +85,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
             setContent {
                 Mk4IntroScreen(viewModel, args.isMembershipFlow, ::handleShowMore)
             }
@@ -190,7 +194,6 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun Mk4IntroScreen(
     viewModel: Mk4IntroViewModel = viewModel(),
@@ -219,7 +222,9 @@ private fun Mk4IntroContent(
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
+                        .fillMaxSize()
                         .navigationBarsPadding()
+                        .verticalScroll(rememberScrollState())
                 ) {
                     NcImageAppBar(
                         backgroundRes = R.drawable.nc_bg_coldcard_intro,

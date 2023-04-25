@@ -44,9 +44,9 @@ class PrimaryKeySignerInfoHolder @Inject constructor(
         this.masterSigner = masterSigner
     }
 
-    suspend fun getSignerInfo(): MasterSigner? {
+    suspend fun getSignerInfo(forceNewData: Boolean = false): MasterSigner? {
         signerMutex.withLock {
-            if (masterSigner != null) return masterSigner
+            if (masterSigner != null && forceNewData.not()) return masterSigner
             val signerId = accountManager.getPrimaryKeyInfo()?.xfp ?: return null
             val result = getMasterSignerUseCase(signerId)
             if (result.isSuccess) {
@@ -75,8 +75,8 @@ class PrimaryKeySignerInfoHolder @Inject constructor(
         return primaryKey
     }
 
-    suspend fun isNeedPassphraseSent(): Boolean {
-        val masterSigner = getSignerInfo()
+    suspend fun isNeedPassphraseSent(forceNewData: Boolean = false): Boolean {
+        val masterSigner = getSignerInfo(forceNewData)
         return masterSigner?.let {
             it.software && it.device.needPassPhraseSent
         } == true

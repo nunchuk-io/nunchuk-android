@@ -43,7 +43,17 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.bindTransactionStatus
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getPendingSignatures
+import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentDummyTransactionDetailsBinding
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
@@ -57,6 +67,7 @@ import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDetailsBinding>(),
@@ -121,7 +132,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                 is DummyTransactionDetailEvent.TransactionError -> showError(it.error)
             }
         }
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+        viewLifecycleOwner.lifecycleScope.launch {
             walletAuthenticationViewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {

@@ -87,7 +87,7 @@ object NunchukTheme {
 
 @Composable
 fun NunchukTheme(
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val nunchukTypography = NunchukTypography(
         body = TextStyle(fontSize = 16.sp, fontFamily = latoRegular, color = PrimaryColor),
@@ -101,6 +101,36 @@ fun NunchukTheme(
     )
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = true)
+    CompositionLocalProvider(
+        LocalNunchukTypography provides nunchukTypography,
+    ) {
+        MaterialTheme(
+            colors = LightColors,
+            typography = Typography(defaultFontFamily = latoSemiBold),
+            content = content,
+        )
+    }
+}
+
+@Composable
+fun NunchukTheme(
+    isSetStatusBar: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val nunchukTypography = NunchukTypography(
+        body = TextStyle(fontSize = 16.sp, fontFamily = latoRegular, color = PrimaryColor),
+        title = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
+        bold = TextStyle(fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
+        heading = TextStyle(fontSize = 24.sp, fontFamily = montserratMedium, color = PrimaryColor),
+        titleLarge = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
+        titleSmall = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
+        bodySmall = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = PrimaryColor),
+        caption = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = PrimaryColor, fontWeight = FontWeight.Medium),
+    )
+    if (isSetStatusBar) {
+        val systemUiController = rememberSystemUiController()
+        systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = true)
+    }
     CompositionLocalProvider(
         LocalNunchukTypography provides nunchukTypography,
     ) {

@@ -2,10 +2,16 @@ package com.nunchuk.android.settings.walletsecurity
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
+import com.nunchuk.android.core.domain.CheckHasPassphrasePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
+import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
+import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
@@ -21,6 +27,10 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val getWalletPinUseCase: GetWalletPinUseCase,
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
+    private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase,
+    private val signInModeHolder: SignInModeHolder,
+    private val checkHasPassphrasePrimaryKeyUseCase: CheckHasPassphrasePrimaryKeyUseCase
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
 
     override val initialState = WalletSecuritySettingState()
@@ -41,11 +51,19 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 updateState { copy(walletPin = it.getOrDefault("")) }
             }
         }
+
+        viewModelScope.launch {
+            if (signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY) {
+                val enablePassphrase = checkHasPassphrasePrimaryKeyUseCase(Unit)
+                updateState { copy(isEnablePassphrase = enablePassphrase.getOrDefault(false) ) }
+            }
+        }
     }
 
     fun updateHideWalletDetail(forceUpdate: Boolean = false) = viewModelScope.launch {
         val walletSecuritySetting = getState().walletSecuritySetting
-        val hideWalletDetail = if (forceUpdate) true else walletSecuritySetting.hideWalletDetail.not()
+        val hideWalletDetail =
+            if (forceUpdate) true else walletSecuritySetting.hideWalletDetail.not()
         updateSetting(walletSecuritySetting.copy(hideWalletDetail = hideWalletDetail))
     }
 
@@ -54,9 +72,17 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
         updateSetting(walletSecuritySetting.copy(protectWalletPassword = data))
     }
 
+    fun updateProtectWalletPassphrase(data: Boolean) = viewModelScope.launch {
+        val walletSecuritySetting = getState().walletSecuritySetting
+        updateSetting(walletSecuritySetting.copy(protectWalletPassphrase = data))
+    }
+
     fun updateProtectWalletPin(data: Boolean) = viewModelScope.launch {
         val walletSecuritySetting = getState().walletSecuritySetting
         updateSetting(walletSecuritySetting.copy(protectWalletPin = data))
+        if (data.not()) {
+            createOrUpdateWalletPinUseCase("")
+        }
     }
 
     fun getWalletSecuritySetting() = getState().walletSecuritySetting
@@ -106,6 +132,25 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 }
             } else {
                 if (isHideWalletDetailFlow.not()) updateProtectWalletPassword(true) else updateHideWalletDetail(true)
+                event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+
+    fun confirmPassphrase(passphrase: String, isHideWalletDetailFlow: Boolean = false) =
+        viewModelScope.launch {
+            if (passphrase.isBlank() && isHideWalletDetailFlow.not()) {
+                updateProtectWalletPassphrase(true)
+                return@launch
+            }
+            val result = verifiedPKeyTokenUseCase(passphrase)
+            if (result.isSuccess) {
+                if (isHideWalletDetailFlow) {
+                    event(WalletSecuritySettingEvent.CheckPassphraseSuccess)
+                } else {
+                    updateProtectWalletPassphrase(false)
+                }
+            } else {
+                if (isHideWalletDetailFlow.not()) updateProtectWalletPassphrase(true) else updateHideWalletDetail(true)
                 event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
             }
         }

@@ -25,6 +25,7 @@ import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
 import com.nunchuk.android.core.util.SUPPORT_ROOM_USER_ID
 import com.nunchuk.android.core.util.SUPPORT_TEST_NET_ROOM_TYPE
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.messages.components.list.isSupportRoom
 import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.UseCase
@@ -34,7 +35,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
@@ -55,11 +55,9 @@ class GetOrCreateSupportRoomUseCase @Inject constructor(
             ?: throw NullPointerException("Can not get active session")
         val roomType = getRoomType()
         val roomId = session.roomService().getRoomSummaries(roomSummaryQueryParams {
-            includeType = listOf(roomType)
-            memberships = listOf(Membership.JOIN)
-        }, RoomSortOrder.ACTIVITY).firstOrNull()?.takeIf {
-            session.roomService()
-                .getRoomMember(SUPPORT_ROOM_USER_ID, it.roomId)?.membership == Membership.JOIN
+            memberships = Membership.activeMemberships()
+        }).find { roomSummary ->
+            roomSummary.isSupportRoom()
         }?.roomId ?: run {
             val params = CreateRoomParams().apply {
                 visibility = RoomDirectoryVisibility.PRIVATE
@@ -68,12 +66,13 @@ class GetOrCreateSupportRoomUseCase @Inject constructor(
                 preset = CreateRoomPreset.PRESET_TRUSTED_PRIVATE_CHAT
                 this.roomType = roomType
             }
-            session.roomService().createRoom(params).also {
-                session.roomService().getRoom(it)?.tagsService()?.addTag(SUPPORT_ROOM_USER_ID, 1.0)
-            }
+            session.roomService().createRoom(params)
         }
-        val room = session.roomService().getRoom(roomId)
-            ?: throw NullPointerException("Can not get room")
+        val room = session.roomService().getRoom(roomId)?.also { room ->
+            if (room.roomSummary()?.tags?.any { tag -> tag.name == roomType } == false) {
+                room.tagsService().addTag(roomType, 1.0)
+            }
+        } ?: throw NullPointerException("Can not get room")
         delay(500L)
         return room
     }

@@ -24,19 +24,23 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
-import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.BufferPeriodCountdown
 
@@ -47,6 +51,8 @@ class InheritanceClaimBufferPeriodFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
             setContent {
                 InheritanceClaimScreen(args) {
                     requireActivity().finish()
@@ -56,7 +62,6 @@ class InheritanceClaimBufferPeriodFragment : Fragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun InheritanceClaimScreen(
     args: InheritanceClaimBufferPeriodFragmentArgs,
@@ -68,7 +73,6 @@ fun InheritanceClaimScreen(
     )
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun InheritanceClaimBufferPeriodContent(
     countdown: BufferPeriodCountdown,
@@ -79,7 +83,9 @@ private fun InheritanceClaimBufferPeriodContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .fillMaxSize()
                     .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_buffer_period_illustration,
@@ -114,7 +120,6 @@ private fun InheritanceClaimBufferPeriodContent(
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Preview
 @Composable
 private fun InheritanceClaimBufferPeriodScreenPreview() {

@@ -22,10 +22,9 @@ package com.nunchuk.android.core.util
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.MediaStore
-import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -41,6 +40,7 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.launch
 import java.io.File
 
 fun Activity.showToast(message: String) = NCToastMessage(this).show(message)
@@ -58,13 +58,6 @@ fun Activity.showOrHideLoading(
 ) {
     (this as BaseActivity<*>).showOrHideLoading(loading, title, message)
 }
-
-fun Activity.startActivityAppSetting() = startActivity(
-    Intent(
-        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-        Uri.parse("package:" + application.packageName)
-    )
-)
 
 fun Fragment.showLoading() {
     activity?.let(FragmentActivity::showLoading)
@@ -104,11 +97,6 @@ fun Fragment.showOrHideLoading(
     activity?.showOrHideLoading(loading, title, message)
 }
 
-fun Fragment.takePhotoWithResult(requestCode: Int) {
-    val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-    startActivityForResult(takePictureIntent, requestCode)
-}
-
 fun View.hideKeyboard() =
     ViewCompat.getWindowInsetsController(this)?.hide(WindowInsetsCompat.Type.ime())
 
@@ -138,6 +126,17 @@ fun Activity.openExternalLink(url: String) {
     }
 }
 
+fun Context.openExternalLink(url: String) {
+    if (url.isNotEmpty()) {
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        try {
+            startActivity(webIntent)
+        } catch (e: ActivityNotFoundException) {
+            CrashlyticsReporter.recordException(e)
+        }
+    }
+}
+
 fun Activity.sendEmail(email: String, subject: String = "", text: String = ""): Boolean {
     val intent = Intent(Intent.ACTION_SENDTO)
     intent.data = Uri.parse("mailto:")
@@ -161,9 +160,13 @@ fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File):
     null
 }
 
-fun <T> AppCompatActivity.flowObserver(flow: Flow<T>, collector: FlowCollector<T>) {
-    lifecycleScope.launchWhenStarted {
-        flow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect(collector)
+fun <T> AppCompatActivity.flowObserver(
+    flow: Flow<T>,
+    state: Lifecycle.State = Lifecycle.State.STARTED,
+    collector: FlowCollector<T>
+) {
+    lifecycleScope.launch {
+        flow.flowWithLifecycle(lifecycle, state).collect(collector)
     }
 }
 

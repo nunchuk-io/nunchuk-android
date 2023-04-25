@@ -90,6 +90,7 @@ fun BottomSheetDialogFragment.addStateChangedCallback(
     (dialog?.findViewById(R.id.design_bottom_sheet) as ViewGroup?)?.let {
         val bottomSheetBehavior = BottomSheetBehavior.from(it)
         bottomSheetBehavior.peekHeight = BottomSheetBehavior.PEEK_HEIGHT_AUTO
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(view: View, i: Int) {
                 if (BottomSheetBehavior.STATE_EXPANDED == i) {
