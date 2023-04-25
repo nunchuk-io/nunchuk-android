@@ -149,6 +149,7 @@ internal class SearchTransactionViewModel @Inject constructor(
                     it.transaction.memo.contains(lowCaseQuery)
                             || (it.transaction.isReceive && it.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().lowercase().contains(lowCaseQuery))
                             || (it.transaction.isReceive.not() && it.transaction.outputs.firstOrNull()?.first.orEmpty().lowercase().contains(lowCaseQuery))
+                            || it.transaction.totalAmount.value.toString().contains(lowCaseQuery)
                 }
                 .filter { it.transaction.totalAmount.value in minSat..maxSat }
                 .filter { it.transaction.blockTime in startTimeInSeconds..endTimeInSeconds }
