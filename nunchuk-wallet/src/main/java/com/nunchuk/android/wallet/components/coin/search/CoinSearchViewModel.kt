@@ -190,6 +190,9 @@ class CoinSearchViewModel @Inject constructor(
     val isFilteringOrSearch: Boolean
         get() = defaultFilter != filter.value || queryState.value.isNotEmpty()
 
+    val isFiltering: Boolean
+        get() = defaultFilter != filter.value
+
     companion object {
         private const val KEY_FILTER = "filter"
     }
