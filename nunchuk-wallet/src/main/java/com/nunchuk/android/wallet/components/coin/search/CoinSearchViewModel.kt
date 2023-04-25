@@ -15,11 +15,7 @@ import com.nunchuk.android.wallet.components.coin.filter.CoinFilterUiState
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -131,6 +127,7 @@ class CoinSearchViewModel @Inject constructor(
                                 || it.memo.contains(lowCaseQuery)
                                 || it.txid.contains(lowCaseQuery)
                                 || it.address.contains(lowCaseQuery)
+                                || it.amount.value.toString().contains(lowCaseQuery)
                     }
                     .filter {
                         filter.selectTags.isEmpty() || it.tags.any { tag ->

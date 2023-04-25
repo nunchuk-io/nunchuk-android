@@ -79,10 +79,10 @@ fun Transaction.hasChangeIndex() = outputs.isNotEmpty() && changeIndex >= 0 && c
 
 fun CoinStatus.toName(context: Context) : String {
     return when(this) {
-        CoinStatus.INCOMING_PENDING_CONFIRMATION -> "Incoming ${context.getString(R.string.nc_pending_conf)}"
-        CoinStatus.OUTGOING_PENDING_CONFIRMATION -> "Outgoing ${context.getString(R.string.nc_pending_conf)}"
-        CoinStatus.OUTGOING_PENDING_SIGNATURES -> "Outgoing ${context.getString(R.string.nc_pending_sig)}"
-        CoinStatus.OUTGOING_PENDING_BROADCAST -> "Outgoing ${context.getString(R.string.nc_pending_broadcast)}"
+        CoinStatus.INCOMING_PENDING_CONFIRMATION -> "Incoming (${context.getString(R.string.nc_pending_conf)})"
+        CoinStatus.OUTGOING_PENDING_CONFIRMATION -> "Outgoing (${context.getString(R.string.nc_pending_conf)})"
+        CoinStatus.OUTGOING_PENDING_SIGNATURES -> "Outgoing (${context.getString(R.string.nc_pending_sig)})"
+        CoinStatus.OUTGOING_PENDING_BROADCAST -> "Outgoing (${context.getString(R.string.nc_pending_broadcast)})"
         else -> ""
     }
 }
