@@ -96,8 +96,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .collect {
                     updateState {
                         copy(
-                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail
-                                ?: WalletSecuritySetting().hideWalletDetail
+                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail ?: WalletSecuritySetting().hideWalletDetail
                         )
                     }
                 }
@@ -265,7 +264,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     val isForceRefreshProcessing: Boolean
         get() = getState().isForceRefreshProcessing
 
-    val isHideWalletDetail: Boolean
+    val isHideWalletDetailLocal: Boolean
         get() = getState().hideWalletDetailLocal
 
     val isLeaveRoom: Boolean
