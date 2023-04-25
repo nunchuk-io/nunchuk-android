@@ -102,15 +102,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_EXPORT_BSMS -> handleExportBSMS()
             SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL -> showImportFormatOption()
             SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL -> showExportFormatOption()
-            SheetOptionType.TYPE_EXPORT_NUNCHUK -> {
+            SheetOptionType.TYPE_EXPORT_NUNCHUK -> viewModel.exportCoinControlNunchuk()
+
+            SheetOptionType.TYPE_EXPORT_BIP329 -> {
                 NCWarningDialog(this).showDialog(
                     title = getString(R.string.nc_confirmation),
                     message = getString(R.string.nc_select_export_format_desc),
-                    onYesClick = { viewModel.exportCoinControlNunchuk() }
+                    onYesClick = { viewModel.exportCoinControlBIP329() }
                 )
             }
 
-            SheetOptionType.TYPE_EXPORT_BIP329 -> viewModel.exportCoinControlBIP329()
             SheetOptionType.TYPE_IMPORT_NUNCHUK -> {
                 NCWarningDialog(this).showDialog(
                     title = getString(R.string.nc_confirmation),
