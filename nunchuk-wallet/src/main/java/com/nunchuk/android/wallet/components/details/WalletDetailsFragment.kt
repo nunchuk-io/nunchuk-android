@@ -335,10 +335,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.toolbar.setOnMenuItemClickListener { menu ->
             when (menu.itemId) {
                 R.id.menu_search -> {
-                    navigator.openSearchTransaction(
-                        requireContext(), walletId = args.walletId,
-                        roomId = viewModel.getRoomWallet()?.roomId.orEmpty(),
-                    )
+                    if (viewModel.isHideWalletDetailLocal.not()) {
+                        navigator.openSearchTransaction(
+                            requireContext(), walletId = args.walletId,
+                            roomId = viewModel.getRoomWallet()?.roomId.orEmpty(),
+                        )
+                    }
                     true
                 }
 

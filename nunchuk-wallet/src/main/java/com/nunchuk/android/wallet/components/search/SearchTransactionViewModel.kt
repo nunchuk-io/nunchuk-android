@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -58,7 +57,8 @@ internal class SearchTransactionViewModel @Inject constructor(
     private val isAssistedWallet by lazy { assistedWalletManager.isActiveAssistedWallet(args.walletId) }
     private val queryState = MutableStateFlow("")
 
-    val filter = savedStateHandle.getStateFlow(KEY_FILTER, CoinFilterUiState())
+    private val defaultFilter = CoinFilterUiState()
+    val filter = savedStateHandle.getStateFlow(KEY_FILTER, defaultFilter)
 
     fun updateFilter(filter: CoinFilterUiState) {
         savedStateHandle[KEY_FILTER] = filter
@@ -71,7 +71,6 @@ internal class SearchTransactionViewModel @Inject constructor(
         getTransactionHistory()
 
         queryState.debounce(300)
-            .distinctUntilChanged()
             .flowOn(ioDispatcher)
             .onEach {
                 handleSearch(it)
@@ -121,7 +120,7 @@ internal class SearchTransactionViewModel @Inject constructor(
     }
 
     private fun handleSearch(query: String) {
-        if (query.isEmpty()) {
+        if (query.isEmpty() && isFiltering.not()) {
             _state.update { it.copy(query = query, transactions = emptyList()) }
         } else {
             val filter = filter.value
@@ -146,7 +145,8 @@ internal class SearchTransactionViewModel @Inject constructor(
             val transactions = allTransactionExtends
                 .asSequence()
                 .filter {
-                    it.transaction.memo.contains(lowCaseQuery)
+                    lowCaseQuery.isEmpty()
+                            || it.transaction.memo.contains(lowCaseQuery)
                             || (it.transaction.isReceive && it.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().lowercase().contains(lowCaseQuery))
                             || (it.transaction.isReceive.not() && it.transaction.outputs.firstOrNull()?.first.orEmpty().lowercase().contains(lowCaseQuery))
                             || it.transaction.totalAmount.value.toString().contains(lowCaseQuery)
@@ -158,6 +158,12 @@ internal class SearchTransactionViewModel @Inject constructor(
             _state.update { it.copy(query = query, transactions = transactions) }
         }
     }
+
+    val isFiltering: Boolean
+        get() = defaultFilter != filter.value
+
+    val isFilteringOrSearch: Boolean
+        get() = defaultFilter != filter.value || queryState.value.isNotEmpty()
 
     companion object {
         private const val KEY_FILTER = "filter"

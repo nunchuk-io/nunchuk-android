@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
@@ -291,6 +293,7 @@ private fun CoinListScreen(
     )
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun CoinListContent(
     mode: CoinListMode = CoinListMode.NONE,
@@ -309,6 +312,13 @@ private fun CoinListContent(
     onShowMoreOptions: () -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
+    val listState = rememberLazyListState()
+    val fabVisibility by remember {
+        derivedStateOf {
+            listState.isScrollInProgress.not()
+        }
+    }
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -343,16 +353,22 @@ private fun CoinListContent(
                 }
             }, floatingActionButton = {
                 if (mode == CoinListMode.NONE) {
-                    FloatingActionButton(onClick = enableSearchMode) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_search_white),
-                            contentDescription = "Search"
-                        )
+                    AnimatedVisibility(
+                        visible = fabVisibility,
+                        enter = scaleIn() + fadeIn(),
+                        exit = scaleOut() + fadeOut()
+                    ) {
+                        FloatingActionButton(onClick = enableSearchMode) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_search_white),
+                                contentDescription = "Search"
+                            )
+                        }
                     }
                 }
             }) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
-                LazyColumn(modifier = Modifier.weight(1f)) {
+                LazyColumn(modifier = Modifier.weight(1f), state = listState) {
                     items(coins) { coin ->
                         PreviewCoinCard(
                             output = coin,

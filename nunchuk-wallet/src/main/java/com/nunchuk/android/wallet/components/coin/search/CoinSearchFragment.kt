@@ -7,34 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.clearFragmentResult
@@ -231,7 +215,8 @@ private fun CoinSearchFragmentScreen(
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
         onUseCoinClicked = onUseCoinClicked,
         amount = args.amount ?: Amount(),
-        isFilteringOrSearch = viewModel.isFilteringOrSearch
+        isFilteringOrSearch = viewModel.isFilteringOrSearch,
+        isFiltering = viewModel.isFiltering
     )
 }
 
@@ -239,6 +224,7 @@ private fun CoinSearchFragmentScreen(
 private fun CoinSearchFragmentContent(
     amount: Amount = Amount(),
     isFilteringOrSearch: Boolean = false,
+    isFiltering: Boolean = false,
     onFilterClicked: () -> Unit = {},
     enableSelectMode: () -> Unit = {},
     queryState: MutableState<String> = mutableStateOf(""),
@@ -286,7 +272,8 @@ private fun CoinSearchFragmentContent(
                         },
                         enableSelectMode = enableSelectMode,
                         onFilterClicked = onFilterClicked,
-                        isShowSelect = mode == CoinListMode.NONE
+                        isShowSelect = mode == CoinListMode.NONE,
+                        isFiltering = isFiltering
                     )
                 } else if (mode == CoinListMode.SELECT) {
                     CoinListTopBarSelectMode(
@@ -319,8 +306,9 @@ private fun CoinSearchFragmentContent(
                                             horizontal = 16.dp,
                                             vertical = 8.dp
                                         ),
-                                        text = stringResource(
-                                            R.string.nc_results_found,
+                                        text = pluralStringResource(
+                                            R.plurals.nc_results_found,
+                                            coins.size,
                                             coins.size
                                         ),
                                         style = NunchukTheme.typography.body
@@ -386,5 +374,5 @@ private fun CoinSearchFragmentContent(
 @Preview
 @Composable
 private fun CoinSearchFragmentScreenPreview() {
-    CoinSearchFragmentContent()
+    CoinSearchFragmentContent(isFiltering = true)
 }
