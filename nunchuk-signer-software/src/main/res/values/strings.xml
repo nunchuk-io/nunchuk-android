@@ -37,10 +37,6 @@
     <string name="nc_ssigner_primary_key_choose_username_title">Choose your username</string>
     <string name="nc_ssigner_primary_key_choose_username">Username</string>
     <string name="nc_ssigner_primary_key_choose_username_desc">Almost there! Now we just need to pick a username for your account.\n\nThe default username is the fingerprint (XFP) of your Primary Key. You can change this if you want to.</string>
-    <string name="nc_ssigner_primary_key_notification_title">Stay in the know</string>
-    <string name="nc_ssigner_primary_key_notification_desc">Get notified when you receive new messages or contact requests.</string>
-    <string name="nc_ssigner_primary_key_turn_notification">Turn on notifications</string>
-    <string name="nc_ssigner_primary_key_not_now">Not now</string>
     <string name="nc_primary_key_signin_intro_desc">A Primary Key is a dual-purpose key that can be used both for account-based authentication and for signing Bitcoin transactions. A Primary Key account is an account that does not require an associated email address.\n\nWe strongly recommend enabling passphrases for Primary Keys.</string>
     <string name="nc_primary_key_signin_intro_manually">Sign in manually</string>
     <string name="nc_primary_key_signin_intro_import">Import Primary Key</string>

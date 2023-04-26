@@ -14,6 +14,10 @@ class CreateOrUpdateWalletPinUseCase @Inject constructor(
 ) : UseCase<String, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: String) {
-        settingRepository.setWalletPin(androidNativeSdk.hashSHA256(parameters))
+        if (parameters.isNotBlank()) {
+            settingRepository.setWalletPin(androidNativeSdk.hashSHA256(parameters))
+        } else {
+            settingRepository.setWalletPin("")
+        }
     }
 }

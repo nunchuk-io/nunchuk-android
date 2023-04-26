@@ -20,12 +20,17 @@
 package com.nunchuk.android.transaction.components.details
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.transaction.ServerTransaction
 
 data class TransactionDetailsState(
     val viewMore: Boolean = false,
     val transaction: Transaction = Transaction(),
     val serverTransaction: ServerTransaction? = null,
-    val signers: List<SignerModel> = emptyList()
+    val signers: List<SignerModel> = emptyList(),
+    val coins: List<UnspentOutput> = emptyList(),
+    val tags: Map<Int, CoinTag> = emptyMap(),
+    val isShowInputCoin: Boolean = false,
 )

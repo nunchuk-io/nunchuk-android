@@ -4,6 +4,14 @@ apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 apply plugin: 'kotlin-parcelize'
 
+android {
+    namespace 'com.nunchuk.android.main'
+
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
 dependencies {
 
     implementation project(':nunchuk-arch')

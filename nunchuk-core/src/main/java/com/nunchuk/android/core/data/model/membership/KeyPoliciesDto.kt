@@ -46,7 +46,7 @@ internal fun KeyPolicy.toDto(): KeyPoliciesDto = KeyPoliciesDto(
     spendingLimit = spendingPolicy?.let {
         SpendingPolicyDto(
             interval = it.timeUnit.name,
-            currency = it.currencyUnit.name,
+            currency = it.currencyUnit,
             limit = it.limit,
         )
     }

@@ -44,12 +44,14 @@ import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
+import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
 import javax.inject.Inject
 
@@ -101,6 +103,40 @@ internal class NunchukNavigatorImpl @Inject constructor(
     override fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean) {
         fragment.findNavController()
             .navigate(QuickWalletNavigationDirections.showCreateNewSeedFragment(isQuickWallet))
+    }
+
+    override fun openCoinList(
+        launcher: ActivityResultLauncher<Intent>?,
+        context: Context,
+        walletId: String,
+        txId: String,
+        inputs: List<UnspentOutput>,
+        amount: Double
+    ) {
+        val intent = CoinActivity.buildIntent(
+            context = context,
+            walletId = walletId,
+            txId = txId,
+            inputs = inputs,
+            amount = amount
+        )
+        launcher?.launch(intent) ?: context.startActivity(intent)
+    }
+
+    override fun openCoinDetail(
+        launcher: ActivityResultLauncher<Intent>?,
+        context: Context,
+        walletId: String,
+        txId: String,
+        vout: Int
+    ) {
+        val intent = CoinActivity.buildIntent(
+            context = context,
+            walletId = walletId,
+            txId = txId,
+            vout = vout
+        )
+        launcher?.launch(intent) ?: context.startActivity(intent)
     }
 }
 

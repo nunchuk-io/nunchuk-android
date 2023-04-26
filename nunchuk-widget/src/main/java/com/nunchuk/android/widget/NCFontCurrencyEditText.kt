@@ -29,7 +29,7 @@ import com.nunchuk.android.widget.currency.getLocaleFromTag
 import com.nunchuk.android.widget.currency.parseMoneyValueWithLocale
 import com.nunchuk.android.widget.util.FontInitializer
 import java.math.BigDecimal
-import java.util.*
+import java.util.Locale
 
 class NCFontCurrencyEditText : TextInputEditText {
     private val initializer: FontInitializer by lazy { FontInitializer(context) }
@@ -93,6 +93,14 @@ class NCFontCurrencyEditText : TextInputEditText {
     fun setMaxNumberOfDecimalDigits(maxDP: Int) {
         this.maxDP = maxDP
         invalidateTextWatcher()
+    }
+
+    fun allowDecimal(isAllow: Boolean) {
+        inputType = if (isAllow) {
+            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        } else {
+            InputType.TYPE_CLASS_NUMBER
+        }
     }
 
     private fun invalidateTextWatcher() {

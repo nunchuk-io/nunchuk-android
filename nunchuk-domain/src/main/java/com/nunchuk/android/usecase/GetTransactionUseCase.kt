@@ -19,13 +19,16 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.TransactionStatus
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface GetTransactionUseCase {
@@ -39,6 +42,7 @@ interface GetTransactionUseCase {
 internal class GetTransactionUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val repository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : GetTransactionUseCase {
 
     override fun execute(
@@ -57,7 +61,7 @@ internal class GetTransactionUseCaseImpl @Inject constructor(
             )
             emit(extendedTransaction.copy(transaction = transaction))
         }
-    }
+    }.flowOn(ioDispatcher)
 
     private fun TransactionStatus.isPending() =
         this == TransactionStatus.PENDING_SIGNATURES || this == TransactionStatus.READY_TO_BROADCAST

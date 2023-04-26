@@ -28,6 +28,8 @@ sealed class WalletConfigEvent {
     data class WalletDetailsError(val message: String) : WalletConfigEvent()
 
     object DeleteWalletSuccess : WalletConfigEvent()
+    data class ExportTxCoinControlSuccess(val filePath: String) : WalletConfigEvent()
+    object ImportTxCoinControlSuccess : WalletConfigEvent()
 
     data class VerifyPasswordSuccess(val token: String, val xfp: String) : WalletConfigEvent()
     class Loading(val isLoading: Boolean) : WalletConfigEvent()

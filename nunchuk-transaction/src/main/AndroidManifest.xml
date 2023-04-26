@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.nunchuk.android.transaction">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
 
@@ -21,7 +20,7 @@
             android:label="@string/nc_transaction_new"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible" />
 
         <activity
             android:name=".components.send.fee.EstimatedFeeActivity"

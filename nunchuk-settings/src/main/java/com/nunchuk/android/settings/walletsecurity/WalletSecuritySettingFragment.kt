@@ -49,7 +49,11 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.hideWalletDetailOption.setOptionChecked(state.walletSecuritySetting.hideWalletDetail)
         binding.passwordOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassword)
         binding.pinOption.setOptionChecked(state.walletSecuritySetting.protectWalletPin)
+        binding.passphraseOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassphrase)
         binding.passwordOption.isVisible = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
+        binding.passphraseOption.isVisible =
+            signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY
+        binding.passphraseOption.enableSwitchButton(state.isEnablePassphrase)
         binding.pinOptionCreateButton.isVisible =
             state.walletPin.isBlank() && state.walletSecuritySetting.protectWalletPin
         binding.pinOptionChangeButton.isVisible =
@@ -61,10 +65,12 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
             is WalletSecuritySettingEvent.Error -> NCToastMessage(requireActivity()).showError(
                 message = event.message
             )
+
             is WalletSecuritySettingEvent.Loading -> showOrHideLoading(loading = event.loading)
             WalletSecuritySettingEvent.UpdateConfigSuccess -> {
 
             }
+
             is WalletSecuritySettingEvent.CheckWalletPin -> {
                 if (event.match.not()) {
                     NCToastMessage(requireActivity()).showError(
@@ -74,9 +80,12 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                     viewModel.updateHideWalletDetail()
                 }
             }
+
             WalletSecuritySettingEvent.None -> {}
-            WalletSecuritySettingEvent.CheckPasswordSuccess -> {
-                if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin().isNotBlank()) {
+            WalletSecuritySettingEvent.CheckPasswordSuccess, WalletSecuritySettingEvent.CheckPassphraseSuccess -> {
+                if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin()
+                        .isNotBlank()
+                ) {
                     showInputPinDialog(true)
                 } else {
                     viewModel.updateHideWalletDetail()
@@ -100,6 +109,13 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 enterPasswordDialog(false)
             } else {
                 viewModel.updateProtectWalletPassword(it)
+            }
+        }
+        binding.passphraseOption.setOptionChangeListener {
+            if (it.not()) {
+                enterPassphraseDialog(false)
+            } else {
+                viewModel.updateProtectWalletPassphrase(it)
             }
         }
         binding.pinOption.setOptionChangeListener {
@@ -128,7 +144,11 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
     private fun checkWalletSecurity() {
         if (viewModel.getWalletSecuritySetting().protectWalletPassword) {
             enterPasswordDialog(true)
-        } else if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin().isNotBlank()) {
+        } else if (viewModel.getWalletSecuritySetting().protectWalletPassphrase) {
+            enterPassphraseDialog(true)
+        } else if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin()
+                .isNotBlank()
+        ) {
             showInputPinDialog(true)
         } else {
             viewModel.updateHideWalletDetail()
@@ -156,6 +176,19 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
             },
             onConfirmed = {
                 viewModel.confirmPassword(it, isHideWalletDetailFlow)
+            }
+        )
+    }
+
+    private fun enterPassphraseDialog(isHideWalletDetailFlow: Boolean) {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(R.string.nc_re_enter_your_passphrase),
+            descMessage = getString(R.string.nc_re_enter_your_passphrase_dialog_desc),
+            onCanceled = {
+                viewModel.updateProtectWalletPassphrase(true)
+            },
+            onConfirmed = {
+                viewModel.confirmPassphrase(it, isHideWalletDetailFlow)
             }
         )
     }

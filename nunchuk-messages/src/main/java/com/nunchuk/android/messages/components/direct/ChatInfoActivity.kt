@@ -70,7 +70,7 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
             activityContext = this,
             roomId = roomId,
             walletId = walletId,
-            availableAmount = amount
+            availableAmount = amount,
         )
     }
 

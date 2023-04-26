@@ -40,7 +40,7 @@ class DeletePrimaryKeyUseCase @Inject constructor(
         val nonce = signerSoftwareRepository.getPKeyNonce(address = primaryKeyInfo.address, username = primaryKeyInfo.account)
         val message = "${primaryKeyInfo.account}${nonce}"
         nunchukNativeSdk.clearSignerPassphrase(primaryKeyInfo.masterFingerprint)
-        if (primaryKeySignerInfoHolder.isNeedPassphraseSent()) {
+        if (primaryKeySignerInfoHolder.isNeedPassphraseSent(forceNewData = true)) {
             nunchukNativeSdk.sendSignerPassphrase(
                 signerInfo.id,
                 parameters.passphrase

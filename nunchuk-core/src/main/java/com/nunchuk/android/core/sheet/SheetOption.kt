@@ -94,4 +94,26 @@ object SheetOptionType {
     const val TYPE_EXPORT_BSMS = 41
 
     const val TYPE_SATSCARD_SKIP_SLOT = 42
+
+    const val TYPE_LOCK_COIN = 43
+    const val TYPE_UNLOCK_COIN = 44
+    const val TYPE_ADD_COLLECTION = 45
+    const val TYPE_ADD_TAG = 46
+    const val TYPE_VIEW_TAG = 47
+    const val TYPE_VIEW_COLLECTION = 48
+    const val TYPE_VIEW_LOCKED_COIN = 49
+    const val TYPE_SHOW_OUTPOINT = 50
+    const val TYPE_DELETE_TAG = 51
+    const val TYPE_REMOVE_COIN_FROM_TAG = 52
+    const val TYPE_DELETE_COLLECTION = 53
+    const val TYPE_VIEW_COLLECTION_SETTING = 54
+    const val TYPE_REMOVE_COIN_FROM_COLLECTION = 55
+    const val TYPE_MOVE_COIN_TO_COLLECTION = 56
+
+    const val TYPE_IMPORT_TX_COIN_CONTROL = 57
+    const val TYPE_EXPORT_TX_COIN_CONTROL = 58
+    const val TYPE_IMPORT_NUNCHUK = 59
+    const val TYPE_IMPORT_BIP329 = 60
+    const val TYPE_EXPORT_NUNCHUK = 61
+    const val TYPE_EXPORT_BIP329 = 62
 }

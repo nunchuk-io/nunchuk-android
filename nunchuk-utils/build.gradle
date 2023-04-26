@@ -1,6 +1,10 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
+android {
+    namespace 'com.nunchuk.android.utils'
+}
+
 dependencies {
     implementation platform(playServices.firebaseBom)
     implementation playServices.firebaseCrashlytics

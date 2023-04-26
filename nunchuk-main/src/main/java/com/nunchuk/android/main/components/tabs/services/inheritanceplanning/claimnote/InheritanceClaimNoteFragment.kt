@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -45,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -84,6 +84,8 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
             setContent {
                 InheritanceClaimNoteScreen(viewModel, onDoneClick = {
                     requireActivity().finish()
@@ -122,7 +124,7 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
                 SheetOption(
                     SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS,
                     R.drawable.ic_sending_bitcoin,
-                    R.string.nc_sweep_to_an_address
+                    R.string.nc_withdraw_to_an_address
                 ),
             )
         )
@@ -168,7 +170,6 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun InheritanceClaimNoteScreen(
     viewModel: InheritanceClaimNoteViewModel = viewModel(),
@@ -185,7 +186,6 @@ fun InheritanceClaimNoteScreen(
     )
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun InheritanceClaimNoteContent(
     note: String = "",
@@ -308,7 +308,6 @@ private fun InheritanceClaimNoteContent(
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Preview
 @Composable
 private fun InheritanceClaimNotePreview() {

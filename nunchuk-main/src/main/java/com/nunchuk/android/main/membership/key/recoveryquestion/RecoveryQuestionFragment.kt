@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -56,7 +57,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -103,6 +103,8 @@ class RecoveryQuestionFragment : MembershipFragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
             setContent {
                 RecoveryQuestionScreen(viewModel, membershipStepManager, args)
             }
@@ -181,7 +183,6 @@ class RecoveryQuestionFragment : MembershipFragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun RecoveryQuestionScreen(
     viewModel: RecoveryQuestionViewModel = viewModel(),
@@ -238,7 +239,7 @@ fun RecoveryQuestionScreenContent(
                 } else {
                     ""
                 }
-                NcTopAppBar(title)
+                NcTopAppBar(elevation = 0.dp, title = title)
 
                 LazyColumn(
                     modifier = Modifier.weight(1.0f),

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/nc_bottom_sheet_background"
+    android:minHeight="700dp"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/nc_padding_24"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="100dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/avatar"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+            app:layout_constraintEnd_toEndOf="@+id/avatarHolder"
+            app:layout_constraintStart_toStartOf="@+id/avatarHolder"
+            app:layout_constraintTop_toTopOf="@+id/avatarHolder" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="end"
+            app:constraint_referenced_ids="avatar" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/take_picture"
+            android:layout_width="@dimen/nc_padding_36"
+            android:layout_height="@dimen/nc_padding_36"
+            android:background="@color/nc_white_color"
+            android:gravity="center"
+            android:shape="ring"
+            app:cardCornerRadius="@dimen/nc_padding_18"
+            app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+            app:layout_constraintEnd_toEndOf="@+id/barrier"
+            app:layout_constraintStart_toStartOf="@+id/barrier">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                style="@style/NCText.Body.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:src="@drawable/ic_camera" />
+        </androidx.cardview.widget.CardView>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/avatarHolder"
+            style="@style/NCText.Heading"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:background="@drawable/nc_circle_beeswax_light_background"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="HT" />
+
+        <com.nunchuk.android.widget.NCEditTextView
+            android:id="@+id/collectionNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:layout_marginTop="24dp"
+            app:edit_title="@string/nc_collection_name"
+            app:errorEnabled="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/avatarHolder" />
+
+        <View
+            android:id="@+id/view_div"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="24dp"
+            android:background="#EAEAEA"
+            app:layout_constraintTop_toBottomOf="@+id/collectionNameInput" />
+
+        <TextView
+            android:id="@+id/tv_collection_settings_title"
+            style="@style/NCText.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="24dp"
+            android:text="@string/nc_collection_settings"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/view_div" />
+
+        <TextView
+            android:id="@+id/tv_move_all_coin_title"
+            style="@style/NCText.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/nc_move_all_coins_collections"
+            app:layout_constraintBottom_toBottomOf="@+id/switch_button_move_new_coins"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/switch_button_move_new_coins" />
+
+        <com.nunchuk.android.widget.NCSwitchButton
+            android:id="@+id/switch_button_move_new_coins"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_collection_settings_title"
+            app:sb_checked_color="@color/nc_primary_color" />
+
+        <TextView
+            android:id="@+id/tv_auto_lock_title"
+            style="@style/NCText.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/nc_auto_lock_new_coins"
+            app:layout_constraintBottom_toBottomOf="@+id/switch_button_auto_lock"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/switch_button_auto_lock" />
+
+        <com.nunchuk.android.widget.NCSwitchButton
+            android:id="@+id/switch_button_auto_lock"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/switch_button_move_new_coins"
+            app:sb_checked_color="@color/nc_primary_color" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/createCollectionButton"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:text="@string/nc_create_collection"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/space" />
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

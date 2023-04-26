@@ -1,6 +1,10 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
+android {
+    namespace 'com.nunchuk.android.signer.core'
+}
+
 dependencies {
 
     implementation project(':nunchuk-arch')

@@ -19,7 +19,11 @@
 
 package com.nunchuk.android.core.util
 
+import android.content.Context
+import androidx.core.content.ContextCompat
+import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.type.CoinStatus
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.*
 
@@ -61,7 +65,36 @@ fun String.truncatedAddress(): String = if (length < PREFIX_LENGTH + SUFFIX_LENG
     "${take(PREFIX_LENGTH)}...${takeLast(SUFFIX_LENGTH)}"
 }
 
+fun Transaction.formatAddress(context: Context) : String {
+    return if (isReceive) {
+        val address = receiveOutputs.firstOrNull()?.first.orEmpty()
+        "${context.getString(R.string.nc_transaction_receive_at)} ${address.truncatedAddress()}"
+    } else {
+        val address = outputs.firstOrNull()?.first.orEmpty()
+        "${context.getString(R.string.nc_transaction_send_to)} ${address.truncatedAddress()}"
+    }
+}
+
 fun Transaction.hasChangeIndex() = outputs.isNotEmpty() && changeIndex >= 0 && changeIndex < outputs.size
+
+fun CoinStatus.toName(context: Context) : String {
+    return when(this) {
+        CoinStatus.INCOMING_PENDING_CONFIRMATION -> "Incoming (${context.getString(R.string.nc_pending_conf)})"
+        CoinStatus.OUTGOING_PENDING_CONFIRMATION -> "Outgoing (${context.getString(R.string.nc_pending_conf)})"
+        CoinStatus.OUTGOING_PENDING_SIGNATURES -> "Outgoing (${context.getString(R.string.nc_pending_sig)})"
+        CoinStatus.OUTGOING_PENDING_BROADCAST -> "Outgoing (${context.getString(R.string.nc_pending_broadcast)})"
+        else -> ""
+    }
+}
+
+fun CoinStatus.toColor(context: Context) : Int {
+    return when(this) {
+        CoinStatus.INCOMING_PENDING_CONFIRMATION, CoinStatus.OUTGOING_PENDING_CONFIRMATION -> ContextCompat.getColor(context, R.color.nc_lavender_tint_color)
+        CoinStatus.OUTGOING_PENDING_SIGNATURES -> ContextCompat.getColor(context, R.color.nc_red_tint_color)
+        CoinStatus.OUTGOING_PENDING_BROADCAST -> ContextCompat.getColor(context, R.color.nc_beeswax_tint)
+        else -> ContextCompat.getColor(context, R.color.nc_beeswax_tint)
+    }
+}
 
 internal const val PREFIX_LENGTH = 5
 internal const val SUFFIX_LENGTH = 4

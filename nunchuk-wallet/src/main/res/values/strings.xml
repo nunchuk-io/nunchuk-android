@@ -33,7 +33,7 @@
     <string name="nc_wallet_add_a_wallet">Add a wallet</string>
     <string name="nc_wallet_backup_wallet">Backup wallet</string>
     <string name="nc_wallet_import_psbt">Import PSBT</string>
-    <string name="nc_wallet_save_wallet_configuration">Save wallet configuration</string>
+    <string name="nc_wallet_save_wallet_configuration">Export wallet configuration</string>
     <string name="nc_wallet_upload_device_registration">Upload device registration</string>
     <string name="nc_wallet_upload_success">Upload wallet success</string>
     <string name="nc_wallet_delete_wallet">Delete wallet</string>
@@ -41,6 +41,8 @@
     <string name="nc_delete_assisted_wallet_success">%s has been deleted</string>
     <string name="nc_txt_send_from_shared_description">For collaborative wallets, please initiate the send transaction from inside the chat room</string>
     <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
+    <string name="nc_import_transaction_note_and_coin_tag">Import transaction notes and coin tags</string>
+    <string name="nc_export_transaction_note_and_coin_tag">Export transaction notes and coin tags</string>
 
     <string name="nc_wallet_select_file">Please select your transaction file</string>
     <string name="nc_wallet_psbt_imported">PSBT imported successfully</string>
@@ -49,7 +51,7 @@
     <string name="nc_import_psbt_via_qr">Import PSBT via QR</string>
     <string name="nc_import_transaction">Import transaction</string>
     <string name="nc_show_as_qr_code">Show as QR code</string>
-    <string name="nc_select_export_format">Select the export format</string>
+    <string name="nc_select_the_export_format">Select the export format</string>
     <string name="nc_select_import_method">Select the import method</string>
     <string name="nc_delete_collaborative_wallet">Deleting this collaborative wallet will also delete the corresponding chat. Are you sure you want to delete?</string>
     <string name="nc_spending_limit">Spending limit</string>
@@ -57,4 +59,13 @@
     <string name="nc_discard_changes">Discard changes</string>
     <string name="nc_assisted_wallet_downgrade_hint">Your assisted wallet has been downgraded to a regular wallet. Please renew your subscription to continue using our services.</string>
     <string name="nc_setup_inheritance_for_this_wallet">Set up an inheritance plan for this wallet</string>
+    <string name="nc_view_coins">View coins</string>
+    <string name="nc_number_of_coin_selected">%1$d coins selected</string>
+    <string name="nc_scheduled_transaction">Scheduled transaction</string>
+    <string name="nc_show_out_point">Show outpoint</string>
+    <string name="nc_copied">Copied</string>
+    <string name="nc_search_coins">Search coins</string>
+    <string name="nc_sort">Sort</string>
+    <string name="nc_search_transactions">Search transactions</string>
+    <string name="nc_no_results_found">No results found.</string>
 </resources>

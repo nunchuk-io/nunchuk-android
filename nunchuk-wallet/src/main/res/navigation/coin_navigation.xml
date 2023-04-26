@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/coin_navigation"
+    app:startDestination="@id/coinListFragment">
+
+    <fragment
+        android:id="@+id/coinListFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.list.CoinListFragment"
+        android:label="CoinListFragment">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="txId"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="tagId"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="collectionId"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="list_type"
+            android:defaultValue="ALL"
+            app:argType="com.nunchuk.android.wallet.components.coin.list.CoinListType" />
+
+        <action
+            android:id="@+id/action_coinListFragment_self"
+            app:destination="@id/coinListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coinListFragment_to_coinTagDetailFragment"
+            app:destination="@id/coinTagDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coinListFragment_to_coin_search_navigation"
+            app:destination="@id/coinSearchFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="wallet_id"
+                app:argType="string" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinDetailFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.detail.CoinDetailFragment"
+        android:label="CoinDetailFragment">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="txId"
+            app:argType="string" />
+        <argument
+            android:name="vout"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_coinDetailFragment_to_coinTagListFragment"
+            app:destination="@id/coinTagListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinDetailFragment_to_coinTagDetailFragment"
+            app:destination="@id/coinTagDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinDetailFragment_to_coinCollectionListFragment"
+            app:destination="@id/coinCollectionListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinDetailFragment_to_coinCollectionDetailFragment"
+            app:destination="@id/coinCollectionDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinTagListFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.tag.CoinTagListFragment"
+        android:label="CoinTagListFragment">
+
+        <action
+            android:id="@+id/action_coinTagListFragment_to_coinTagSelectColorBottomSheetFragment"
+            app:destination="@id/coinTagSelectColorBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coinTagListFragment_to_coinTagDetailFragment"
+            app:destination="@id/coinTagDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="tag_flow"
+            app:argType="integer" />
+
+        <argument
+            android:name="coins"
+            app:argType="com.nunchuk.android.model.UnspentOutput[]" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinCollectionListFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.collection.CoinCollectionListFragment"
+        android:label="CoinTagListFragment">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="collection_flow"
+            app:argType="integer" />
+
+        <argument
+            android:name="coins"
+            app:argType="com.nunchuk.android.model.UnspentOutput[]" />
+
+        <action
+            android:id="@+id/action_coinCollectionListFragment_to_coinCollectionDetailFragment"
+            app:destination="@id/coinCollectionDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/coinTagDetailFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.tagdetail.CoinTagDetailFragment"
+        android:label="CoinTagDetailFragment">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="coin_tag"
+            app:argType="com.nunchuk.android.model.CoinTag" />
+
+        <action
+            android:id="@+id/action_coinTagDetailFragment_to_editTagNameBottomSheetFragment"
+            app:destination="@id/editTagNameBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coinTagDetailFragment_to_coinTagSelectColorBottomSheetFragment"
+            app:destination="@id/coinTagSelectColorBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinTagDetailFragment_to_coinListFragment"
+            app:destination="@id/coinListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinCollectionDetailFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.collectiondetail.CoinCollectionDetailFragment"
+        android:label="CoinCollectionDetailFragment">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="coin_collection"
+            app:argType="com.nunchuk.android.model.CoinCollection" />
+
+        <action
+            android:id="@+id/action_coinCollectionDetailFragment_to_coinListFragment"
+            app:destination="@id/coinListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coinCollectionDetailFragment_to_coinCollectionBottomSheetFragment"
+            app:destination="@id/coinCollectionBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+
+    <dialog
+        android:id="@+id/coinTagSelectColorBottomSheetFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment"
+        android:label="CoinTagSelectColorBottomSheetFragment">
+
+        <argument
+            android:name="selected_color"
+            app:argType="string" />
+    </dialog>
+
+    <dialog
+        android:id="@+id/editTagNameBottomSheetFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.tagdetail.EditTagNameBottomSheetFragment"
+        android:label="EditTagNameBottomSheetFragment">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="coin_tag"
+            app:argType="com.nunchuk.android.model.CoinTag" />
+
+    </dialog>
+
+    <dialog
+        android:id="@+id/coinCollectionBottomSheetFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.collection.CoinCollectionBottomSheetFragment"
+        android:label="CoinCollectionBottomSheetFragment">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="coin_collection"
+            app:argType="com.nunchuk.android.model.CoinCollection"
+            app:nullable="true" />
+
+        <argument
+            android:name="flow"
+            app:argType="integer" />
+    </dialog>
+
+    <action
+        android:id="@+id/action_global_coinTagListFragment"
+        app:destination="@id/coinTagListFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:launchSingleTop="true"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    <action
+        android:id="@+id/action_global_coinDetailFragment"
+        app:destination="@id/coinDetailFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:launchSingleTop="true"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    <action
+        android:id="@+id/action_global_coinCollectionListFragment"
+        app:destination="@id/coinCollectionListFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:launchSingleTop="true"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    <action
+        android:id="@+id/action_global_coinCollectionBottomSheetFragment"
+        app:destination="@id/coinCollectionBottomSheetFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:launchSingleTop="true"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+
+    <fragment
+        android:id="@+id/coinSearchFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.search.CoinSearchFragment"
+        android:label="CoinSearchFragmentFragment">
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="inputs"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.UnspentOutput[]"
+            app:nullable="true" />
+        <argument
+            android:name="amount"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.Amount"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_coinSearchFragmentFragment_to_coinFilterFragment"
+            app:destination="@id/coinFilterFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinSearchFragment_to_coinTagDetailFragment"
+            app:destination="@id/coinTagDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinFilterFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment"
+        android:label="CoinFilterFragment">
+        <action
+            android:id="@+id/action_coinFilterFragment_to_filterByTagFragment"
+            app:destination="@id/filterByTagFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinFilterFragment_to_filterByCollectionFragment"
+            app:destination="@id/filterByCollectionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="filter"
+            app:argType="com.nunchuk.android.wallet.components.coin.filter.CoinFilterUiState" />
+
+        <argument
+            android:name="is_search_transaction"
+            android:defaultValue="false"
+            app:argType="boolean" />
+    </fragment>
+    <fragment
+        android:id="@+id/filterByTagFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragment"
+        android:label="FilterByTagFragment">
+
+        <argument
+            android:name="tagIds"
+            app:argType="integer[]" />
+    </fragment>
+    <fragment
+        android:id="@+id/filterByCollectionFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.collection.FilterByCollectionFragment"
+        android:label="FilterByCollectionFragment">
+
+        <argument
+            android:name="collectionIds"
+            app:argType="integer[]" />
+    </fragment>
+</navigation>

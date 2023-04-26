@@ -48,7 +48,6 @@ import com.nunchuk.android.main.components.WalletsViewBinder
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
@@ -245,16 +244,19 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     showError(message = getString(R.string.nc_incorrect_current_pin))
                 }
             }
-            is VerifyPasswordSuccess -> {
-                if (walletsViewModel.isWalletPinEnable()) {
-                    showInputPinDialog(event.walletId)
-                } else {
-                    openWalletDetailsScreen(event.walletId)
-                }
-            }
+            is VerifyPasswordSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
+            is VerifyPassphraseSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
             None -> {}
         }
         walletsViewModel.clearEvent()
+    }
+
+    private fun actionAfterCheckingPasswordOrPassphrase(walletId: String) {
+        if (walletsViewModel.isWalletPinEnable()) {
+            showInputPinDialog(walletId)
+        } else {
+            openWalletDetailsScreen(walletId)
+        }
     }
 
     private fun showInputPinDialog(walletId: String) {
@@ -268,10 +270,20 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun enterPasswordDialog(walletId: String) {
         NCInputDialog(requireContext()).showDialog(
-            title = getString(com.nunchuk.android.settings.R.string.nc_re_enter_your_password),
-            descMessage = getString(com.nunchuk.android.settings.R.string.nc_re_enter_your_password_dialog_desc),
+            title = getString(R.string.nc_re_enter_your_password),
+            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
             onConfirmed = {
                 walletsViewModel.confirmPassword(it, walletId)
+            }
+        )
+    }
+
+    private fun enterPassphraseDialog(walletId: String) {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(R.string.nc_re_enter_your_passphrase),
+            descMessage = getString(R.string.nc_re_enter_your_passphrase_dialog_desc),
+            onConfirmed = {
+                walletsViewModel.confirmPassphrase(it, walletId)
             }
         )
     }
@@ -313,9 +325,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun handleMainActivityEvent(event: MainAppEvent) {
-        if (event is GetConnectionStatusSuccessEvent) {
-            walletsViewModel.getAppSettings()
-        } else if (event == SyncCompleted) {
+        if (event == SyncCompleted) {
             walletsViewModel.retrieveData()
         }
     }
@@ -468,6 +478,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun checkWalletSecurity(walletId: String) {
         if (walletsViewModel.isWalletPasswordEnable()) {
             enterPasswordDialog(walletId)
+        } else if (walletsViewModel.isWalletPassphraseEnable()) {
+            enterPassphraseDialog(walletId)
         } else if (walletsViewModel.isWalletPinEnable()) {
             showInputPinDialog(walletId)
         } else {
@@ -519,6 +531,5 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     override fun onResume() {
         super.onResume()
         walletsViewModel.retrieveData()
-        walletsViewModel.getAppSettings()
     }
 }

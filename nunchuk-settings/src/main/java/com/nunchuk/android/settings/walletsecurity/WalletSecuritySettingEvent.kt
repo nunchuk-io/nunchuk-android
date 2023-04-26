@@ -4,12 +4,14 @@ import com.nunchuk.android.model.setting.WalletSecuritySetting
 
 data class WalletSecuritySettingState(
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
-    val walletPin: String = ""
+    val walletPin: String = "",
+    val isEnablePassphrase: Boolean = false
 )
 
 sealed class WalletSecuritySettingEvent {
     object UpdateConfigSuccess : WalletSecuritySettingEvent()
     object CheckPasswordSuccess : WalletSecuritySettingEvent()
+    object CheckPassphraseSuccess : WalletSecuritySettingEvent()
     data class CheckWalletPin(val match: Boolean, val isHideWalletDetailFlow: Boolean) : WalletSecuritySettingEvent()
     data class Loading(val loading: Boolean) : WalletSecuritySettingEvent()
     data class Error(val message: String) : WalletSecuritySettingEvent()

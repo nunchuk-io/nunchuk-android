@@ -19,18 +19,17 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
-
-interface UpdateMasterSignerUseCase {
-    suspend fun execute(masterSigner: MasterSigner): Result<Boolean>
-}
-
-internal class UpdateMasterSignerUseCaseImpl @Inject constructor(
+class UpdateMasterSignerUseCase @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), UpdateMasterSignerUseCase {
-    override suspend fun execute(masterSigner: MasterSigner) = exe { nativeSdk.updateMasterSigner(masterSigner) }
+) : UseCase<MasterSigner, Boolean>(ioDispatcher) {
+    override suspend fun execute(parameters: MasterSigner): Boolean {
+        return nativeSdk.updateMasterSigner(parameters)
+    }
 
 }

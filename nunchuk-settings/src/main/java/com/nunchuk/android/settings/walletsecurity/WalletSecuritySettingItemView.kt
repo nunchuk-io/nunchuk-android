@@ -16,7 +16,12 @@ internal class WalletSecuritySettingItemView @JvmOverloads constructor(
 
     init {
         val ta =
-            context.obtainStyledAttributes(attrs, R.styleable.WalletSecuritySettingItemView, defStyleAttr, 0)
+            context.obtainStyledAttributes(
+                attrs,
+                R.styleable.WalletSecuritySettingItemView,
+                defStyleAttr,
+                0
+            )
         val title = ta.getString(R.styleable.WalletSecuritySettingItemView_wss_title)
         setTitle(title.orEmpty())
         val desc = ta.getString(R.styleable.WalletSecuritySettingItemView_wss_desc)
@@ -34,6 +39,10 @@ internal class WalletSecuritySettingItemView @JvmOverloads constructor(
 
     fun setOptionChecked(checked: Boolean) {
         binding.switchButton.isChecked = checked
+    }
+
+    fun enableSwitchButton(enable: Boolean) {
+        binding.switchButton.isEnabled = enable
     }
 
     fun setOptionChangeListener(onChanged: (Boolean) -> Unit) {

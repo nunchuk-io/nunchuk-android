@@ -34,13 +34,12 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.transaction.ServerTransaction
-import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.onException
@@ -72,7 +71,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val assistedWalletManager: AssistedWalletManager,
     private val getServerTransactionUseCase: GetServerTransactionUseCase,
     private val syncTransactionUseCase: SyncTransactionUseCase,
-    private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase
+    private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
+    private val getAllCoinUseCase: GetAllCoinUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -96,8 +96,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .collect {
                     updateState {
                         copy(
-                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail
-                                ?: WalletSecuritySetting().hideWalletDetail
+                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail ?: WalletSecuritySetting().hideWalletDetail
                         )
                     }
                 }
@@ -109,6 +108,11 @@ internal class WalletDetailsViewModel @Inject constructor(
             val result = syncTransactionUseCase(args.walletId)
             if (result.isSuccess) {
                 getTransactionHistory()
+            }
+        }
+        viewModelScope.launch {
+            getAllCoinUseCase(args.walletId).onSuccess { coins ->
+                updateState { copy(isHasCoin = coins.isNotEmpty()) }
             }
         }
     }
@@ -260,7 +264,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     val isForceRefreshProcessing: Boolean
         get() = getState().isForceRefreshProcessing
 
-    val isHideWalletDetail: Boolean
+    val isHideWalletDetailLocal: Boolean
         get() = getState().hideWalletDetailLocal
 
     val isLeaveRoom: Boolean

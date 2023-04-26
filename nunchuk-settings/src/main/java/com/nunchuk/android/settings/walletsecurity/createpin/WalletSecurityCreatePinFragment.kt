@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -21,7 +22,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -44,6 +44,8 @@ class WalletSecurityCreatePinFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
             setContent {
                 WalletSecurityCreatePinScreen(viewModel, args.currentPin.isBlank())
             }
@@ -72,7 +74,6 @@ class WalletSecurityCreatePinFragment : Fragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun WalletSecurityCreatePinScreen(
     viewModel: WalletSecurityCreatePinViewModel = viewModel(),
@@ -102,7 +103,6 @@ fun WalletSecurityCreatePinScreen(
         })
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun WalletSecurityCreatePinContent(
     createPinFlow: Boolean = true,
@@ -174,7 +174,6 @@ private fun WalletSecurityCreatePinContent(
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Preview
 @Composable
 private fun WalletSecurityCreatePinScreenPreview() {

@@ -28,6 +28,9 @@ import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getIntValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.utils.serializable
 
 data class TransactionConfirmArgs(
     val walletId: String, // in case sweep it's target wallet id, other cases it's source wallet id
@@ -41,7 +44,8 @@ data class TransactionConfirmArgs(
     val sweepType: SweepType,
     val slots: List<SatsCardSlot>,
     val masterSignerId: String,
-    val magicalPhrase: String
+    val magicalPhrase: String,
+    val inputs: List<UnspentOutput> = emptyList(),
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -58,6 +62,7 @@ data class TransactionConfirmArgs(
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
             putExtra(EXTRA_MASTER_SIGNER_ID, magicalPhrase)
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
+            putParcelableArrayListExtra(EXTRA_INPUTS, ArrayList(inputs))
         }
 
     companion object {
@@ -71,24 +76,26 @@ data class TransactionConfirmArgs(
         private const val EXTRA_MANUAL_FEE_RATE = "EXTRA_MANUAL_FEE_RATE"
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
+        private const val EXTRA_INPUTS = "EXTRA_INPUTS"
         private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
         private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
             val extras = intent.extras
             return TransactionConfirmArgs(
-                extras.getStringValue(EXTRA_WALLET_ID),
-                extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
-                extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
-                extras.getStringValue(EXTRA_ADDRESS),
-                extras.getStringValue(EXTRA_PRIVATE_NOTE),
-                extras.getDoubleValue(EXTRA_ESTIMATE_FEE),
-                extras.getBooleanValue(EXTRA_SUBTRACT_FEE_FROM_AMOUNT),
-                extras.getIntValue(EXTRA_MANUAL_FEE_RATE),
-                extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType,
-                extras.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
+                walletId = extras.getStringValue(EXTRA_WALLET_ID),
+                outputAmount = extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
+                availableAmount = extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
+                address = extras.getStringValue(EXTRA_ADDRESS),
+                privateNote = extras.getStringValue(EXTRA_PRIVATE_NOTE),
+                estimatedFee = extras.getDoubleValue(EXTRA_ESTIMATE_FEE),
+                subtractFeeFromAmount = extras.getBooleanValue(EXTRA_SUBTRACT_FEE_FROM_AMOUNT),
+                manualFeeRate = extras.getIntValue(EXTRA_MANUAL_FEE_RATE),
+                sweepType = extras?.serializable(EXTRA_SWEEP_TYPE)!!,
+                slots = extras.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
                 masterSignerId = extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
-                magicalPhrase = extras.getStringValue(EXTRA_MAGICAL_PHRASE)
+                magicalPhrase = extras.getStringValue(EXTRA_MAGICAL_PHRASE),
+                inputs = extras.parcelableArrayList<UnspentOutput>(EXTRA_INPUTS).orEmpty()
             )
         }
     }

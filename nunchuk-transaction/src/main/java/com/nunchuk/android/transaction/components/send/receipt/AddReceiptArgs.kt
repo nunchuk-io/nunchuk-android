@@ -27,6 +27,7 @@ import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
 
@@ -40,7 +41,8 @@ data class AddReceiptArgs(
     val privateNote: String = "",
     val sweepType: SweepType,
     val masterSignerId: String = "",
-    val magicalPhrase: String = ""
+    val magicalPhrase: String = "",
+    val inputs: List<UnspentOutput>,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -55,6 +57,7 @@ data class AddReceiptArgs(
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
             putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
+            putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
         }
 
     companion object {
@@ -68,6 +71,7 @@ data class AddReceiptArgs(
         private const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
         private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
         private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
+        private const val EXTRA_INPUT = "EXTRA_INPUT"
 
         fun deserializeFrom(intent: Intent) = AddReceiptArgs(
             intent.extras.getStringValue(EXTRA_WALLET_ID),
@@ -79,7 +83,8 @@ data class AddReceiptArgs(
             intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
             intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
             intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
-            intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE)
+            intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE),
+            intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
         )
     }
 }

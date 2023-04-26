@@ -2,6 +2,10 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
 
+android {
+    namespace 'com.nunchuk.android.auth'
+}
+
 dependencies {
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-core')
