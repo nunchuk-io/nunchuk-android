@@ -28,6 +28,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -180,10 +181,9 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
         navigator.openEstimatedFeeScreen(
             activityContext = requireActivity(),
             walletId = viewModel.selectedWalletId,
-            outputAmount = totalInBtc,
             availableAmount = totalInBtc,
-            address = address,
-            "",
+            txReceipts = listOf(TxReceipt(address = address, totalInBtc)),
+            privateNote = "",
             subtractFeeFromAmount = true,
             sweepType = type,
             slots = args.slots.toList(),

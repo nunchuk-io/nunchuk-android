@@ -29,6 +29,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
+import com.nunchuk.android.utils.MaxLengthTransformation
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -62,6 +64,8 @@ fun NcTextField(
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     textFieldColor: Color = MaterialTheme.colors.surface,
+    maxLength: Int = Int.MAX_VALUE,
+    enableMaxLength: Boolean = false,
     colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
@@ -76,12 +80,21 @@ fun NcTextField(
     }
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     Column(modifier = modifier) {
-        if (title.isNotEmpty()) {
-            Text(
-                modifier = Modifier.padding(bottom = 4.dp),
-                text = title,
-                style = NunchukTheme.typography.titleSmall
-            )
+        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            if (title.isNotEmpty()) {
+                Text(
+                    modifier = Modifier.padding(bottom = 4.dp),
+                    text = title,
+                    style = NunchukTheme.typography.titleSmall
+                )
+            }
+            if (enableMaxLength) {
+                Text(
+                    modifier = Modifier.padding(bottom = 4.dp),
+                    text = "${value.length}/$maxLength",
+                    style = NunchukTheme.typography.bodySmall
+                )
+            }
         }
         BasicTextField(
             modifier = Modifier
@@ -299,6 +312,23 @@ fun NcTextFieldErrorPreview() {
                         contentDescription = ""
                     )
                 }
+            ) {
+
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun NcTextFieldMaxLengthPreview() {
+    NunchukTheme {
+        Box(Modifier.background(color = Color.White)) {
+            NcTextField(
+                title = "Title here",
+                value = "Value here",
+                maxLength = 100,
+                enableMaxLength = true
             ) {
 
             }

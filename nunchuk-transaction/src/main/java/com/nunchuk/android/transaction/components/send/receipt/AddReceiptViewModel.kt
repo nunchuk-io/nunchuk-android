@@ -62,9 +62,13 @@ internal class AddReceiptViewModel @Inject constructor(
             val address = currentState.address
             when {
                 address.isEmpty() -> event(AddressRequiredEvent)
-                else -> when (checkAddressValidUseCase.execute(address = address)) {
-                    is Success -> setEvent(AcceptedAddressEvent(address, currentState.privateNote, currentState.amount, isCreateTransaction))
-                    is Error -> setEvent(InvalidAddressEvent)
+                else -> {
+                    val result = checkAddressValidUseCase(CheckAddressValidUseCase.Params(listOf(address)))
+                    if (result.isSuccess && result.getOrThrow().isEmpty()) {
+                        setEvent(AcceptedAddressEvent(address, currentState.privateNote, currentState.amount, isCreateTransaction))
+                    } else {
+                        setEvent(InvalidAddressEvent)
+                    }
                 }
             }
         }

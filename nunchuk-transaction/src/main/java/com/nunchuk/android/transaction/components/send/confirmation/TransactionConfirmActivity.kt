@@ -27,10 +27,12 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
@@ -40,6 +42,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.TxReceiptViewBinder
 import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
@@ -53,6 +56,7 @@ import com.nunchuk.android.transaction.components.utils.openTransactionDetailScr
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -80,8 +84,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         observeEvent()
         viewModel.init(
             walletId = args.walletId,
-            address = args.address,
-            sendAmount = args.outputAmount,
+            txReceipts = args.txReceipts,
             subtractFeeFromAmount = args.subtractFeeFromAmount,
             privateNote = args.privateNote,
             manualFeeRate = args.manualFeeRate,
@@ -97,7 +100,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         viewModel.event.observe(this, ::handleEvent)
         observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { args.walletId }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
-            sweepSatscardViewModel.init(args.address, args.manualFeeRate)
+            sweepSatscardViewModel.init(args.txReceipts.first().address, args.manualFeeRate)
             sweepSatscardViewModel.handleSweepBalance(
                 IsoDep.get(it.tag),
                 nfcViewModel.inputCvc.orEmpty(),
@@ -121,20 +124,15 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             SweepType.NONE -> getString(R.string.nc_transaction_confirm_and_create_transaction)
             else -> getString(R.string.nc_confirm_and_sweep)
         }
-        binding.sendAddressLabel.text = args.address
         binding.estimatedFeeBTC.text = args.estimatedFee.getBTCAmount()
         binding.estimatedFeeUSD.text = args.estimatedFee.getCurrencyAmount()
-        val sendAmount: Double
         val totalAmount: Double
-        if (args.subtractFeeFromAmount) {
-            sendAmount = args.outputAmount - args.estimatedFee
-            totalAmount = args.outputAmount
+        val outputAmount = args.txReceipts.sumOf { it.amount }
+        totalAmount = if (args.subtractFeeFromAmount) {
+            outputAmount
         } else {
-            sendAmount = args.outputAmount
-            totalAmount = args.outputAmount + args.estimatedFee
+            outputAmount + args.estimatedFee
         }
-        binding.sendAddressBTC.text = sendAmount.getBTCAmount()
-        binding.sendAddressUSD.text = sendAmount.getCurrencyAmount()
         binding.totalAmountBTC.text = totalAmount.getBTCAmount()
         binding.totalAmountUSD.text = totalAmount.getCurrencyAmount()
         binding.noteContent.isVisible = args.privateNote.isNotEmpty()
@@ -154,6 +152,11 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         }
         binding.inputCoin.isVisible = args.inputs.isNotEmpty()
         binding.composeCoin.isVisible = args.inputs.isNotEmpty()
+    }
+
+    private fun handleCopyContent(content: String) {
+        copyToClipboard(label = "Nunchuk", text = content)
+        NCToastMessage(this).showMessage(getString(R.string.nc_copied_to_clipboard))
     }
 
     private fun handleEvent(event: TransactionConfirmEvent) {
@@ -186,6 +189,13 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     }
                     .show(supportFragmentManager, "AssignTagFragment")
             }
+
+            is TransactionConfirmEvent.DraftTransactionSuccess -> {
+                val coins = event.transaction.outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
+                TxReceiptViewBinder(binding.receiptList, coins) {
+                    handleCopyContent(it)
+                }.bindItems()
+            }
         }
     }
 
@@ -217,9 +227,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         fun start(
             activityContext: Activity,
             walletId: String,
-            outputAmount: Double,
             availableAmount: Double,
-            address: String,
+            txReceipts: List<TxReceipt>,
             privateNote: String,
             estimatedFee: Double,
             subtractFeeFromAmount: Boolean = false,
@@ -233,9 +242,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             activityContext.startActivity(
                 TransactionConfirmArgs(
                     walletId = walletId,
-                    outputAmount = outputAmount,
                     availableAmount = availableAmount,
-                    address = address,
+                    txReceipts = txReceipts,
                     privateNote = privateNote,
                     estimatedFee = estimatedFee,
                     subtractFeeFromAmount = subtractFeeFromAmount,

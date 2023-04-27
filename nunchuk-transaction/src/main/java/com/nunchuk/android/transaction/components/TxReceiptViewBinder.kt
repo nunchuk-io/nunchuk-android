@@ -17,29 +17,35 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.send.confirmation
+package com.nunchuk.android.transaction.components
 
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.UnspentOutput
+import android.view.ViewGroup
+import androidx.core.view.get
+import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.model.TxOutput
+import com.nunchuk.android.transaction.databinding.ItemTransactionAddressBinding
+import com.nunchuk.android.widget.util.AbsViewBinder
 
-sealed class TransactionConfirmEvent {
-    object LoadingEvent : TransactionConfirmEvent()
-    data class CreateTxSuccessEvent(val transaction: Transaction) : TransactionConfirmEvent()
-    data class AssignTagEvent(
-        val walletId: String,
-        val txId: String,
-        val output: UnspentOutput,
-        val tags: List<CoinTag>,
-    ) : TransactionConfirmEvent()
+internal class TxReceiptViewBinder(
+    container: ViewGroup,
+    outputs: List<TxOutput>,
+    private val onCopyText: (text: String) -> Unit
+) : AbsViewBinder<TxOutput, ItemTransactionAddressBinding>(container, outputs) {
 
-    data class CreateTxErrorEvent(val message: String) : TransactionConfirmEvent()
-    data class UpdateChangeAddress(val address: String, val amount: Amount) :
-        TransactionConfirmEvent()
+    override fun initializeBinding() =
+        ItemTransactionAddressBinding.inflate(inflater, container, false)
 
-    data class DraftTransactionSuccess(val transaction: Transaction) : TransactionConfirmEvent()
+    override fun bindItem(position: Int, model: TxOutput) {
+        val binding = ItemTransactionAddressBinding.bind(container[position])
+        binding.sendAddressLabel.text = model.first
+        binding.sendAddressBTC.text = model.second.getBTCAmount()
+        binding.sendAddressUSD.text = model.second.getCurrencyAmount()
 
-    data class InitRoomTransactionError(val message: String) : TransactionConfirmEvent()
-    data class InitRoomTransactionSuccess(val roomId: String) : TransactionConfirmEvent()
+        binding.sendAddressLabel.setOnLongClickListener {
+            onCopyText(binding.sendAddressLabel.text.toString())
+            true
+        }
+    }
 }

@@ -334,68 +334,26 @@ private fun CoinFilterContent(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 title = stringResource(id = R.string.nc_amount),
                             ) {
-                                NcTextField(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                    title = stringResource(R.string.nc_minimum_amount),
-                                    placeholder = {
-                                        val unit =
-                                            if (isMinBtc) LocalContext.current.getTextBtcUnit()
-                                            else LOCAL_CURRENCY
-                                        Text(
-                                            text = "0.00 $unit",
-                                            style = NunchukTheme.typography.body.copy(
-                                                color = colorResource(
-                                                    id = R.color.nc_boulder_color
-                                                )
-                                            )
-                                        )
+                                InputSwitchCurrencyView(title = stringResource(R.string.nc_minimum_amount),
+                                    isBtc = isMinBtc,
+                                    currencyValue = min,
+                                    onValueChange = {
+                                        min = CurrencyFormatter.format(it, MAX_FRACTION_DIGITS)
                                     },
-                                    value = min,
-                                    onValueChange = { value: String ->
-                                        min = CurrencyFormatter.format(value, MAX_FRACTION_DIGITS)
+                                    onSwitchBtcAndCurrency = {
+                                        isMinBtc = it
+                                    }
+                                )
+                                InputSwitchCurrencyView(title = stringResource(R.string.nc_maximum_amount),
+                                    isBtc = isMaxBtc,
+                                    currencyValue = max,
+                                    onValueChange = {
+                                        max = CurrencyFormatter.format(it)
                                     },
-                                    visualTransformation = NumberCommaTransformation(
-                                        if (isMinBtc) LocalContext.current.getTextBtcUnit()
-                                        else LOCAL_CURRENCY
-                                    ),
-                                    rightContent = {
-                                        SwitchAmount(isMinBtc) { isBtc ->
-                                            isMinBtc = isBtc
-                                        }
-                                    })
-                                NcTextField(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                    title = stringResource(R.string.nc_maximum_amount),
-                                    placeholder = {
-                                        val unit =
-                                            if (isMaxBtc) LocalContext.current.getTextBtcUnit()
-                                            else LOCAL_CURRENCY
-                                        Text(
-                                            text = "0.00 $unit",
-                                            style = NunchukTheme.typography.body.copy(
-                                                color = colorResource(
-                                                    id = R.color.nc_boulder_color
-                                                )
-                                            )
-                                        )
-                                    },
-                                    value = max,
-                                    onValueChange = { value: String ->
-                                        max = CurrencyFormatter.format(value)
-                                    },
-                                    visualTransformation = NumberCommaTransformation(
-                                        if (isMaxBtc) LocalContext.current.getTextBtcUnit()
-                                        else LOCAL_CURRENCY
-                                    ),
-                                    rightContent = {
-                                        SwitchAmount(isMaxBtc) { isBtc ->
-                                            isMaxBtc = isBtc
-                                        }
-                                    })
+                                    onSwitchBtcAndCurrency = {
+                                        isMaxBtc = it
+                                    }
+                                )
                             }
                         }
                         item {

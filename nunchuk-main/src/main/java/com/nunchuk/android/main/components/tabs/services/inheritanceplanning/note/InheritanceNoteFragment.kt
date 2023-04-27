@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
@@ -151,7 +152,9 @@ fun InheritanceNoteScreenContent(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else ""
-                NcTopAppBar(title = title)
+                NcTopAppBar(title = title, elevation = 0.dp, actions = {
+                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                })
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_inheritance_leave_message),

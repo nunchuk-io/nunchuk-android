@@ -35,6 +35,7 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
+import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCInfoDialog
@@ -81,7 +82,17 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             finish()
         }
         binding.toolbar.setOnMenuItemClickListener {
-            startQRCodeScan(launcher)
+            if (it.itemId == R.id.menu_scan_qr) {
+                startQRCodeScan(launcher)
+            } else if (it.itemId == R.id.menu_batch_transaction) {
+                navigator.openBatchTransactionScreen(
+                    this,
+                    roomId = args.roomId,
+                    walletId = args.walletId,
+                    availableAmount = args.availableAmount,
+                    inputs = args.inputs
+                )
+            }
             true
         }
         binding.mainCurrency.setText("")

@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/menu_scan_qr"
+        app:menu="@menu/menu_create_transaction"
         app:navigationIcon="@drawable/ic_close">
 
         <com.nunchuk.android.widget.NCFontTextView

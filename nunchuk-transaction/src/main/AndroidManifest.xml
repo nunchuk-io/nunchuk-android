@@ -72,6 +72,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
+        <activity
+            android:name=".components.send.batchtransaction.BatchTransactionActivity"
+            android:label="@string/nc_batched_transaction"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
     </application>
 
 </manifest>

@@ -132,6 +132,7 @@
     <string name="nc_create_transaction">Create transaction</string>
     <string name="nc_customize_fee_settings">Customize fee settings</string>
     <string name="nc_scan_qr">Scan QR</string>
+    <string name="nc_batch_transaction">Batch transaction</string>
     <string name="nc_continue_to_sweep">Continue to sweep</string>
     <string name="nc_data_transfer_in_progress">Data transfer in progress…</string>
     <string name="nc_keep_hold_coldcard_until_finish">Keep holding your device near the COLDCARD until it\'s finished.</string>
@@ -648,4 +649,9 @@
     <string name="nc_no_filter">No filter</string>
     <string name="nc_select_import_format_desc">The import might overwrite existing labels. Are you sure you want to continue?</string>
     <string name="nc_select_export_format_desc">Please note that certain Nunchuk labels might not be supported by BIP329. Are you sure you want to continue?</string>
+    <string name="nc_batched_transaction">Batched transaction</string>
+    <string name="nc_recipient_data">Recipient %1$d</string>
+    <string name="nc_remove">Remove</string>
+    <string name="nc_add_recipient">Add recipient</string>
+    <string name="nc_address">Address</string>
 </resources>
