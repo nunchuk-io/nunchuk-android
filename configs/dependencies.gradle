@@ -41,7 +41,7 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 29
-    TASK_LABEL = "UAT"
+    TASK_LABEL = "Hotfix"
 
     VERSION_CODE = 204
 
