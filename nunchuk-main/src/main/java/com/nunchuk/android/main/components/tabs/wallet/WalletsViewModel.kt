@@ -23,13 +23,7 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.BaseNfcUseCase
-import com.nunchuk.android.core.domain.CheckWalletPinUseCase
-import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
-import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
-import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.GetWalletPinUseCase
-import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
@@ -41,25 +35,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GoToSatsCardScreen
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.Loading
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NeedSetupSatsCard
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
-import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.SatsCardStatus
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.TapSignerStatus
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
+import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -75,19 +52,8 @@ import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.zip
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -255,6 +221,11 @@ internal class WalletsViewModel @Inject constructor(
                     updateState { copy(signers = emptyList()) }
                 }
                 .flowOn(Dispatchers.Main)
+                .onStart {
+                    if (getState().wallets.isEmpty()) {
+                        event(Loading(true))
+                    }
+                }
                 .onCompletion {
                     event(Loading(false))
                     isRetrievingData.set(false)
