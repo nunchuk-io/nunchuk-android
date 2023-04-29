@@ -344,6 +344,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.fab.setOnClickListener {
             viewModel.updateHideWalletDetailLocal()
         }
+        binding.container.setTransitionDuration(150)
         binding.transactionList.addOnScrollListener(object: RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
