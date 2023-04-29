@@ -156,7 +156,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
     }
 
     private fun openScanQRCodeScreen() {
-        navigator.openRecoverWalletQRCodeScreen(requireContext())
+        navigator.openRecoverWalletQRCodeScreen(requireContext(), false)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {

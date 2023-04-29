@@ -71,12 +71,16 @@ class RecoverWalletQrCodeActivity : BaseActivity<ActivityImportWalletQrcodeBindi
 
     private fun onImportQRCodeSuccess(event: RecoverWalletQrCodeEvent.ImportQRCodeSuccess) {
         hideLoading()
-        navigator.openAddRecoverWalletScreen(
-            this, RecoverWalletData(
-                type = RecoverWalletType.QR_CODE,
-                walletId = event.walletId
+        if (isCollaborativeWallet) {
+            navigator.openAddRecoverSharedWalletScreen(this, event.wallet)
+        } else {
+            navigator.openAddRecoverWalletScreen(
+                this, RecoverWalletData(
+                    type = RecoverWalletType.QR_CODE,
+                    walletId = event.wallet.id
+                )
             )
-        )
+        }
         finish()
     }
 
@@ -95,9 +99,15 @@ class RecoverWalletQrCodeActivity : BaseActivity<ActivityImportWalletQrcodeBindi
         binding.barcodeView.pause()
     }
 
+    private val isCollaborativeWallet: Boolean
+        get() = intent.getBooleanExtra(EXTRA_COLLABORATIVE_WALLET, false)
+
     companion object {
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, RecoverWalletQrCodeActivity::class.java))
+        private const val EXTRA_COLLABORATIVE_WALLET = "_a"
+        fun start(activityContext: Context, isCollaborativeWallet: Boolean) {
+            activityContext.startActivity(Intent(activityContext, RecoverWalletQrCodeActivity::class.java).apply {
+                putExtra(EXTRA_COLLABORATIVE_WALLET, isCollaborativeWallet)
+            })
         }
     }
 

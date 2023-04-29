@@ -25,7 +25,10 @@ import android.os.Bundle
 import android.text.InputFilter.LengthFilter
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.shared.R
 import com.nunchuk.android.wallet.shared.databinding.ActivityAddRecoverSharedWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -38,8 +41,8 @@ class AddRecoverSharedWalletActivity : BaseActivity<ActivityAddRecoverSharedWall
 
     private val viewModel: RecoverSharedWalletViewModel by viewModels()
 
-    private val recoverWalletData: String?
-        get() = intent.getStringExtra(EXTRAS_DATA)
+    private val wallet: Wallet
+        get() = intent.parcelable(EXTRAS_DATA)!!
 
     override fun initializeBinding() = ActivityAddRecoverSharedWalletBinding.inflate(layoutInflater)
 
@@ -53,15 +56,19 @@ class AddRecoverSharedWalletActivity : BaseActivity<ActivityAddRecoverSharedWall
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
+        flowObserver(viewModel.event) {
+            handleEvent(it)
+        }
+        flowObserver(viewModel.state) {
+            handleState(it)
+        }
     }
 
 
     private fun handleEvent(event: RecoverSharedWalletEvent) {
         when (event) {
             is RecoverSharedWalletEvent.RecoverSharedWalletSuccess -> {
-                val walletName = viewModel.walletName.orEmpty()
+                val walletName = viewModel.walletName
                 navigator.openReviewSharedWalletScreen(
                     activityContext = this,
                     walletName = walletName,
@@ -87,9 +94,16 @@ class AddRecoverSharedWalletActivity : BaseActivity<ActivityAddRecoverSharedWall
     }
 
     private fun handleWalletSetupDoneEvent() {
-        recoverWalletData?.let {
-            viewModel.parseWalletDescriptor(it)
-        }
+        val walletName = viewModel.walletName
+        navigator.openReviewSharedWalletScreen(
+            activityContext = this,
+            walletName = walletName,
+            walletType = if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG,
+            addressType = wallet.addressType,
+            totalSigns = wallet.signers.size,
+            requireSigns = wallet.totalRequireSigns,
+            signers = wallet.signers
+        )
     }
 
     private fun setupViews() {
@@ -110,11 +124,11 @@ class AddRecoverSharedWalletActivity : BaseActivity<ActivityAddRecoverSharedWall
 
     companion object {
         private const val MAX_LENGTH = 20
-        private const val EXTRAS_DATA = "EXTRAS_DATA"
+        private const val EXTRAS_DATA = "EXTRAS_WALLET"
 
-        fun start(activityContext: Context, data: String) {
+        fun start(activityContext: Context, wallet: Wallet) {
             val intent = Intent(activityContext, AddRecoverSharedWalletActivity::class.java).apply {
-                putExtra(EXTRAS_DATA, data)
+                putExtra(EXTRAS_DATA, wallet)
             }
             activityContext.startActivity(intent)
         }

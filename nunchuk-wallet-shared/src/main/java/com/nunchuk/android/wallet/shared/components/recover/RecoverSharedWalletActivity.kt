@@ -22,17 +22,22 @@ package com.nunchuk.android.wallet.shared.components.recover
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import com.nunchuk.android.core.base.BaseActivity
+import androidx.activity.viewModels
+import com.nunchuk.android.core.base.BaseCameraActivity
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.wallet.shared.databinding.ActivityRecoverSharedWalletBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class RecoverSharedWalletActivity : BaseActivity<ActivityRecoverSharedWalletBinding>() {
+class RecoverSharedWalletActivity : BaseCameraActivity<ActivityRecoverSharedWalletBinding>() {
 
     override fun initializeBinding() = ActivityRecoverSharedWalletBinding.inflate(layoutInflater)
+
+    private val viewModel: RecoverSharedWalletViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +45,23 @@ class RecoverSharedWalletActivity : BaseActivity<ActivityRecoverSharedWalletBind
         setLightStatusBar()
 
         setupViews()
+        observeEvent()
     }
 
+    private fun observeEvent() {
+        flowObserver(viewModel.event) {
+            handleEvent(it)
+        }
+    }
+
+    private fun handleEvent(event: RecoverSharedWalletEvent) {
+        when (event) {
+            is RecoverSharedWalletEvent.RecoverSharedWalletSuccess -> {
+                navigator.openAddRecoverSharedWalletScreen(this, event.wallet)
+            }
+            else -> Unit
+        }
+    }
 
     private fun setupViews() {
         binding.toolbar.setNavigationOnClickListener {
@@ -50,6 +70,17 @@ class RecoverSharedWalletActivity : BaseActivity<ActivityRecoverSharedWalletBind
         binding.btnRecoverUsingBSMS.setOnClickListener {
             openSelectFileChooser(REQUEST_CODE)
         }
+        binding.btnRecoverViaQrCode.setOnDebounceClickListener {
+            requestCameraPermissionOrExecuteAction()
+        }
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        openScanQRCodeScreen()
+    }
+
+    private fun openScanQRCodeScreen() {
+        navigator.openRecoverWalletQRCodeScreen(this, true)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -59,17 +90,10 @@ class RecoverSharedWalletActivity : BaseActivity<ActivityRecoverSharedWalletBind
                 getFileFromUri(contentResolver, it, cacheDir)
             }
             file?.let {
-                moveToAddRecoverSharedWalletScreen(it.readText())
+                viewModel.parseWalletDescriptor(it.readText())
             }
         }
     }
-
-    private fun moveToAddRecoverSharedWalletScreen(data: String) {
-        navigator.openAddRecoverSharedWalletScreen(
-            this,data
-        )
-    }
-
 
     companion object {
         private const val REQUEST_CODE = 10000
