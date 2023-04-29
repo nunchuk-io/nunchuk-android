@@ -19,7 +19,11 @@
 
 package com.nunchuk.android.transaction.components.details
 
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableString
 import android.text.format.DateUtils
+import android.text.style.StyleSpan
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
@@ -36,7 +40,7 @@ import com.nunchuk.android.utils.formatByWeek
 import com.nunchuk.android.widget.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
-import java.util.*
+import java.util.Date
 
 internal class TransactionSignersViewBinder(
     container: ViewGroup,
@@ -91,17 +95,13 @@ internal class TransactionSignersViewBinder(
                 binding.xpf.text = serverTransaction?.spendingLimitMessage
             } else if (cosignedTime > 0L && isSigned.not() && txStatus.isPendingSignatures()) {
                 val cosignDate = Date(cosignedTime)
-                if (DateUtils.isToday(cosignedTime)) {
-                    binding.xpf.text = context.getString(
-                        R.string.nc_cosign_at,
-                        cosignDate.formatByHour()
-                    )
+               val spannable = if (DateUtils.isToday(cosignedTime)) {
+                    SpannableString("${context.getString(R.string.nc_cosign_at)} ${cosignDate.formatByHour()}")
                 } else {
-                    binding.xpf.text = context.getString(
-                        R.string.nc_cosign_at,
-                        "${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}"
-                    )
+                   SpannableString("${context.getString(R.string.nc_cosign_at)} ${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}")
                 }
+                spannable.setSpan(StyleSpan(Typeface.BOLD), context.getString(R.string.nc_cosign_at).length, spannable.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                binding.xpf.text = spannable
             }
             binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_beeswax_dark))
         } else {
