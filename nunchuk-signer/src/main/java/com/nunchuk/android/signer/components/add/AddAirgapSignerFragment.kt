@@ -36,6 +36,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
 import com.nunchuk.android.signer.databinding.FragmentAddSignerBinding
@@ -46,10 +47,13 @@ import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setMaxLength
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
     BottomSheetOptionListener {
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
 
     private val viewModel: AddAirgapSignerViewModel by viewModels()
 
@@ -73,6 +77,16 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         container: ViewGroup?
     ): FragmentAddSignerBinding {
         return FragmentAddSignerBinding.inflate(inflater, container, false)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        membershipStepManager.updateStep(true)
+    }
+
+    override fun onDestroy() {
+        membershipStepManager.updateStep(false)
+        super.onDestroy()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -153,6 +167,14 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
             binding.signerName.isVisible = this.not()
             binding.signerNameLabel.isVisible = this.not()
             binding.signerNameCounter.isVisible = this.not()
+            binding.toolbarTitle.isVisible = this
+        }
+        if (isMembershipFlow) {
+            binding.toolbarTitle.textSize = 12f
+            binding.toolbarTitle.text = getString(
+                R.string.nc_estimate_remain_time,
+                membershipStepManager.remainingTime.value
+            )
         }
         binding.signerName.addTextChangedCallback {
             updateCounter(it.length)
