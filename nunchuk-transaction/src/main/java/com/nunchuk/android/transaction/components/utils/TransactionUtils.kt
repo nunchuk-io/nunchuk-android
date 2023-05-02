@@ -24,8 +24,8 @@ import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.transaction.R
 
-fun SweepType.toTitle(context: Context) = when (this) {
-    SweepType.NONE -> context.getString(R.string.nc_customize_transaction)
+fun SweepType.toTitle(context: Context, label: String) = when (this) {
+    SweepType.NONE -> label
     SweepType.SWEEP_TO_NUNCHUK_WALLET,
     SweepType.UNSEAL_SWEEP_TO_NUNCHUK_WALLET -> context.getString(R.string.nc_sweep_to_a_wallet)
     SweepType.SWEEP_TO_EXTERNAL_ADDRESS,
