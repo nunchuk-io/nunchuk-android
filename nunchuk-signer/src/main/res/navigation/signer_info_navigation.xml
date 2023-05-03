@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/signer_info_navigation"
+    app:startDestination="@id/signerInfoFragment">
+
+    <fragment
+        android:id="@+id/signerInfoFragment"
+        android:name="com.nunchuk.android.signer.components.details.SignerInfoFragment"
+        android:label="SignerInfoFragment" >
+
+        <argument
+            android:name="id"
+            app:argType="string" />
+        <argument
+            android:name="masterFingerprint"
+            app:argType="string" />
+        <argument
+            android:name="name"
+            app:argType="string" />
+        <argument
+            android:name="customMessage"
+            app:argType="string" />
+        <argument
+            android:name="derivationPath"
+            app:argType="string" />
+        <argument
+            android:name="justAdded"
+            app:argType="boolean" />
+        <argument
+            android:name="setPassphrase"
+            app:argType="boolean" />
+        <argument
+            android:name="isInWallet"
+            app:argType="boolean" />
+        <argument
+            android:name="isReplacePrimaryKey"
+            app:argType="boolean" />
+        <argument
+            android:name="signer_type"
+            app:argType="com.nunchuk.android.type.SignerType" />
+    </fragment>
+</navigation>
