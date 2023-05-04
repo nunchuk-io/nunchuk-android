@@ -17,31 +17,31 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.compose
+package com.nunchuk.android.usecase.signer
 
-import androidx.compose.material.Colors
-import androidx.compose.ui.graphics.Color
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.SignedMessage
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-object NcColor {
-    val greyDark = Color(0xFF595959)
-    val boulder = Color(0xFF757575)
-    val border = Color(0xFFDEDEDE)
-    val whisper = Color(0xFFEAEAEA)
-    val denimTint = Color(0xFFD0E2FF)
-    val greyLight = Color(0xFFF5F5F5)
-    val denimDark = Color(0xFF2F466C)
-    val white = Color(0xFFFFFFFF)
-    val beeswaxLight = Color(0xFFFDD95C)
+class SignMessageBySoftwareKeyUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk,
+) : UseCase<SignMessageBySoftwareKeyUseCase.Data, SignedMessage?>(dispatcher) {
+
+    override suspend fun execute(parameters: Data): SignedMessage? {
+        return nunchukNativeSdk.signMessageBySoftwareKey(
+            masterSignerId = parameters.masterSignerId,
+            path = parameters.path,
+            message = parameters.message
+        )
+    }
+
+    class Data(
+        val path: String,
+        val message: String,
+        val masterSignerId: String
+    )
 }
-
-val Colors.border: Color
-    get() = Color(0xFFDEDEDE)
-
-val Colors.greyLight: Color
-    get() = Color(0xFFF5F5F5)
-
-val Colors.whisper: Color
-    get() = Color(0xFFEAEAEA)
-
-val Colors.denimTint: Color
-    get() = Color(0xFFD0E2FF)

@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/signerInfoFragment"
         android:name="com.nunchuk.android.signer.components.details.SignerInfoFragment"
-        android:label="SignerInfoFragment" >
+        android:label="SignerInfoFragment">
 
         <argument
             android:name="id"
@@ -39,5 +39,25 @@
         <argument
             android:name="signer_type"
             app:argType="com.nunchuk.android.type.SignerType" />
+        <action
+            android:id="@+id/action_signerInfoFragment_to_signMessageFragment"
+            app:destination="@id/signMessageFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
+    <fragment
+        android:id="@+id/signMessageFragment"
+        android:name="com.nunchuk.android.signer.components.details.message.SignMessageFragment"
+        android:label="SignMessageFragment">
+        <argument
+            android:name="master_signer_id"
+            app:argType="string" />
+        <argument
+            android:name="signer_type"
+            app:argType="com.nunchuk.android.type.SignerType" />
+    </fragment>
+
+
 </navigation>
