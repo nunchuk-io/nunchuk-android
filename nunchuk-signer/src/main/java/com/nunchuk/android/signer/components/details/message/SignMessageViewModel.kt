@@ -125,6 +125,10 @@ class SignMessageViewModel @Inject constructor(
         }
     }
 
+    fun resetSignature() {
+        _state.update { it.copy(signedMessage = null) }
+    }
+
     private suspend fun exportTransaction(filePath: String, signature: String) {
             runCatching {
                 withContext(ioDispatcher) {

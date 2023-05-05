@@ -110,9 +110,8 @@ class SignMessageFragment : Fragment() {
                     onCopySignature = {
                         showSuccess(getString(R.string.nc_signer_signature_copied_to_clipboard))
                     },
-                    onExportSignature = {
-                        viewModel.exportSignatureToFile()
-                    }
+                    onExportSignature = viewModel::exportSignatureToFile,
+                    onResetSignature = viewModel::resetSignature
                 )
             }
         }
@@ -163,6 +162,7 @@ private fun SignMessageContent(
     onCopyAddress: () -> Unit = {},
     onCopySignature: () -> Unit = {},
     onExportSignature: () -> Unit = {},
+    onResetSignature: () -> Unit = {},
 ) {
     val focusRequester = remember { FocusRequester() }
     var message by remember {
@@ -216,6 +216,7 @@ private fun SignMessageContent(
                     minLines = 3,
                     onValueChange = { value ->
                         message = value
+                        onResetSignature()
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 )
@@ -232,6 +233,7 @@ private fun SignMessageContent(
                     value = path,
                     onValueChange = { value ->
                         path = value
+                        onResetSignature()
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 )
