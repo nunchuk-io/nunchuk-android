@@ -87,7 +87,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     @OptIn(FlowPreview::class)
     private fun setupViews() {
         binding.tvCustomize.setUnderline()
-        binding.toolbarTitle.text = args.sweepType.toTitle(this)
+        binding.toolbarTitle.text = args.sweepType.toTitle(this, getString(R.string.nc_customize_transaction))
         val subtractFeeFromAmount = args.subtractFeeFromAmount
         viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount, !subtractFeeFromAmount)
 

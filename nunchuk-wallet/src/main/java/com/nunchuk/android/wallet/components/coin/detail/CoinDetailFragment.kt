@@ -2,7 +2,6 @@ package com.nunchuk.android.wallet.components.coin.detail
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,28 +9,16 @@ import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -47,20 +34,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.CoinStatusBadge
-import com.nunchuk.android.compose.NcColor
-import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getBtcFormatDate
-import com.nunchuk.android.core.util.getCurrencyAmount
-import com.nunchuk.android.core.util.openExternalLink
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
@@ -119,7 +99,7 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                             launcher = transactionDetailLauncher,
                             activityContext = requireActivity(),
                             walletId = args.walletId,
-                            txId = args.txId,
+                            txId = args.output.txid,
                         )
                     },
                     onUpdateTag = {
@@ -156,14 +136,13 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                             )
                         )
                     },
-                    onNoteClick = {
-                        runCatching {
-                            val matcher = Patterns.WEB_URL.matcher(it)
-                            if (matcher.find()) {
-                                val link = it.substring(matcher.start(1), matcher.end())
-                                requireActivity().openExternalLink(link)
-                            }
-                        }
+                    onViewCoinAncestry = { output ->
+                        findNavController().navigate(
+                            CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinAncestryFragment(
+                                walletId = args.walletId,
+                                output = output
+                            )
+                        )
                     }
                 )
             }
@@ -173,7 +152,7 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_SHOW_OUTPOINT ->
-                OutpointBottomSheet.newInstance("${args.txId}:${args.vout}")
+                OutpointBottomSheet.newInstance("${args.output.txid}:${args.output.vout}")
                     .show(
                         childFragmentManager, "OutpointBottomSheet"
                     )
@@ -210,13 +189,13 @@ private fun CoinDetailScreen(
     onUpdateCollection: (output: UnspentOutput) -> Unit,
     onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onViewCollectionDetail: (collection: CoinCollection) -> Unit = {},
-    onNoteClick: (note: String) -> Unit = {},
+    onViewCoinAncestry: (output: UnspentOutput) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val coinListState by coinViewModel.state.collectAsStateWithLifecycle()
 
     val output =
-        coinListState.coins.find { it.txid == args.txId && it.vout == args.vout } ?: UnspentOutput()
+        coinListState.coins.find { it.txid == args.output.txid && it.vout == args.output.vout } ?: args.output
 
     CoinDetailContent(
         output = output,
@@ -229,14 +208,16 @@ private fun CoinDetailScreen(
         coinTags = coinListState.tags,
         onViewTagDetail = onViewTagDetail,
         onViewCollectionDetail = onViewCollectionDetail,
-        onNoteClick = onNoteClick,
-        onLockOrUnlock = viewModel::lockCoin
+        onLockOrUnlock = viewModel::lockCoin,
+        onViewCoinAncestry = onViewCoinAncestry,
+        isSpentCoin = args.isSpent
     )
 }
 
 @Composable
 private fun CoinDetailContent(
     output: UnspentOutput = UnspentOutput(),
+    isSpentCoin: Boolean = false,
     coinTags: Map<Int, CoinTag> = emptyMap(),
     coinCollections: Map<Int, CoinCollection> = emptyMap(),
     transaction: Transaction = Transaction(),
@@ -246,15 +227,16 @@ private fun CoinDetailContent(
     onUpdateCollection: (output: UnspentOutput) -> Unit = {},
     onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onViewCollectionDetail: (collection: CoinCollection) -> Unit = {},
-    onNoteClick: (note: String) -> Unit = {},
     onLockOrUnlock: (isLocked: Boolean) -> Unit = {},
+    onViewCoinAncestry: (output: UnspentOutput) -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
+    val backgroundColor = if (isSpentCoin) MaterialTheme.colors.whisper else MaterialTheme.colors.denimTint
     NunchukTheme {
         Scaffold(topBar = {
             Box(
                 modifier = Modifier
-                    .background(color = colorResource(id = R.color.nc_denim_tint_color))
+                    .background(color = backgroundColor)
                     .statusBarsPadding()
             ) {
                 TopAppBar(
@@ -274,7 +256,7 @@ private fun CoinDetailContent(
                             text = stringResource(R.string.nc_coin_detail)
                         )
                     },
-                    backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
+                    backgroundColor = backgroundColor,
                     actions = {
                         IconButton(onClick = onShowMore) {
                             Icon(
@@ -295,7 +277,7 @@ private fun CoinDetailContent(
             ) {
                 Column(
                     modifier = Modifier
-                        .background(color = colorResource(id = R.color.nc_denim_tint_color))
+                        .background(color = backgroundColor)
                 ) {
                     CoinBadgeRow(output)
                     Text(
@@ -324,28 +306,42 @@ private fun CoinDetailContent(
 
                     CoinTransactionCard(
                         transaction = transaction,
-                        onNoteClick = onNoteClick,
                         onViewTransactionDetail = onViewTransactionDetail
                     )
+
+                    if (isSpentCoin.not()) {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .padding(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    bottom = 24.dp
+                                )
+                                .fillMaxWidth(), onClick = { onViewCoinAncestry(output) }) {
+                            Text(text = "View coin ancestry", style = NunchukTheme.typography.title)
+                        }
+                    }
                 }
 
-                LockCoinRow(output = output, onLockCoin = onLockOrUnlock)
+                if (isSpentCoin.not()) {
+                    LockCoinRow(output = output, onLockCoin = onLockOrUnlock)
 
-                TagHorizontalList(
-                    modifier = Modifier.padding(top = 8.dp),
-                    output = output,
-                    onUpdateTag = onUpdateTag,
-                    coinTags = coinTags,
-                    onViewTagDetail = onViewTagDetail
-                )
+                    TagHorizontalList(
+                        modifier = Modifier.padding(top = 8.dp),
+                        output = output,
+                        onUpdateTag = onUpdateTag,
+                        coinTags = coinTags,
+                        onViewTagDetail = onViewTagDetail
+                    )
 
-                CollectionHorizontalList(
-                    modifier = Modifier.padding(top = 8.dp),
-                    output = output,
-                    onUpdateCollection = onUpdateCollection,
-                    coinCollections = coinCollections,
-                    onViewCollectionDetail = onViewCollectionDetail
-                )
+                    CollectionHorizontalList(
+                        modifier = Modifier.padding(top = 8.dp),
+                        output = output,
+                        onUpdateCollection = onUpdateCollection,
+                        coinCollections = coinCollections,
+                        onViewCollectionDetail = onViewCollectionDetail
+                    )
+                }
             }
         }
     }

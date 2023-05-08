@@ -89,8 +89,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
                         findNavController().navigate(
                             CoinNavigationDirections.actionGlobalCoinDetailFragment(
                                 walletId = args.walletId,
-                                txId = it.txid,
-                                vout = it.vout
+                                output = it
                             )
                         )
                     },
@@ -98,13 +97,19 @@ class CoinSearchFragment : BaseCoinListFragment() {
                         showSelectCoinOptions()
                     },
                     onSendBtc = {
-                        navigator.openInputAmountScreen(
-                            activityContext = requireActivity(),
-                            walletId = args.walletId,
-                            inputs = viewModel.getSelectedCoins(),
-                            availableAmount = viewModel.getSelectedCoins()
-                                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
-                        )
+                        val selectedCoins = viewModel.getSelectedCoins()
+                        if (selectedCoins.any { it.isLocked }) {
+                            NCInfoDialog(requireActivity())
+                                .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
+                        } else {
+                            navigator.openInputAmountScreen(
+                                activityContext = requireActivity(),
+                                walletId = args.walletId,
+                                inputs = viewModel.getSelectedCoins(),
+                                availableAmount = viewModel.getSelectedCoins()
+                                    .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+                            )
+                        }
                     },
                     onViewAllTags = {
                         findNavController().navigate(

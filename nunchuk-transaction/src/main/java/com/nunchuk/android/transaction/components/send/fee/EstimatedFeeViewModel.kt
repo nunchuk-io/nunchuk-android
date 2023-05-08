@@ -71,7 +71,7 @@ class EstimatedFeeViewModel @Inject constructor(
         this.sendAmount = args.outputAmount
         this.slots.apply {
             clear()
-            addAll(slots)
+            addAll(args.slots)
         }
         this.inputs.apply {
             clear()

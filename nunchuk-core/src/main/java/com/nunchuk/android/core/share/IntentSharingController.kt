@@ -19,13 +19,9 @@
 
 package com.nunchuk.android.core.share
 
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.PendingIntent
-import android.app.PendingIntent.*
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.FileProvider
 import java.io.File
@@ -35,25 +31,13 @@ class IntentSharingController private constructor(
     private val launcher: ActivityResultLauncher<Intent>? = null,
 ) {
 
-    private val receiver: Intent = Intent(activityContext, IntentSharingReceiver::class.java)
-
-    @SuppressLint("UnspecifiedImmutableFlag")
-    private val pendingIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        getBroadcast(activityContext, 0, receiver, FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT)
-    } else {
-        getBroadcast(activityContext, 0, receiver, FLAG_UPDATE_CURRENT)
-    }
-
     fun share(intent: Intent, title: String = "Nunchuk") {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            activityContext.startActivity(
-                Intent.createChooser(
-                    intent,
-                    title,
-                    pendingIntent.intentSender
-                )
+        activityContext.startActivity(
+            Intent.createChooser(
+                intent,
+                title,
             )
-        }
+        )
     }
 
     fun shareFile(filePath: String) {

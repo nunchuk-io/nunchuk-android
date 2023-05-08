@@ -17,16 +17,38 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.share
+package com.nunchuk.android.core.domain.signer
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
+import android.nfc.tech.IsoDep
+import com.nunchuk.android.core.domain.BaseNfcUseCase
+import com.nunchuk.android.core.domain.WaitAutoCardUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.SignedMessage
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-class IntentSharingReceiver : BroadcastReceiver() {
+class SignMessageByTapSignerUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk,
+    waitAutoCardUseCase: WaitAutoCardUseCase
+) : BaseNfcUseCase<SignMessageByTapSignerUseCase.Data, SignedMessage?>(dispatcher, waitAutoCardUseCase) {
 
-    override fun onReceive(context: Context, intent: Intent) {
-        IntentSharingEventBus.instance.publish()
+    override suspend fun executeNfc(parameters: Data): SignedMessage? {
+        return nunchukNativeSdk.signMessageByTapSigner(
+            isoDep = parameters.isoDep,
+            cvc = parameters.cvc,
+            masterSignerId = parameters.masterSignerId,
+            path = parameters.path,
+            message = parameters.message
+        )
     }
 
+    class Data(
+        isoDep: IsoDep,
+        val cvc: String,
+        val path: String,
+        val message: String,
+        val masterSignerId: String
+    ) : BaseNfcUseCase.Data(isoDep)
 }

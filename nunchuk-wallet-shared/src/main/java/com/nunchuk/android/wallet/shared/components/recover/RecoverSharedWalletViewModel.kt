@@ -19,36 +19,41 @@
 
 package com.nunchuk.android.wallet.shared.components.recover
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class RecoverSharedWalletViewModel @Inject constructor(
     private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase
-) : NunchukViewModel<RecoverSharedWalletState, RecoverSharedWalletEvent>() {
-    val walletName: String?
-        get() = state.value?.walletName
+) : ViewModel() {
+    val walletName: String
+        get() = state.value.walletName
 
-    override val initialState = RecoverSharedWalletState()
+    private val _state = MutableStateFlow(RecoverSharedWalletState())
+    val state = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<RecoverSharedWalletEvent>()
+    val event = _event.asSharedFlow()
+
 
     fun updateWalletName(walletName: String) {
-        updateState { copy(walletName = walletName) }
+        _state.update { it.copy(walletName = walletName) }
     }
 
-    fun handleContinueEvent() {
-        val currentState = getState()
+    fun handleContinueEvent() = viewModelScope.launch {
+        val currentState = _state.value
         if (currentState.walletName.isNotEmpty()) {
-            event(RecoverSharedWalletEvent.WalletSetupDoneEvent(walletName = currentState.walletName))
+            _event.emit(RecoverSharedWalletEvent.WalletSetupDoneEvent(walletName = currentState.walletName))
         } else {
-            event(RecoverSharedWalletEvent.WalletNameRequiredEvent)
+            _event.emit(RecoverSharedWalletEvent.WalletNameRequiredEvent)
         }
     }
 
@@ -56,12 +61,11 @@ internal class RecoverSharedWalletViewModel @Inject constructor(
         viewModelScope.launch {
             parseWalletDescriptorUseCase.execute(content)
                 .flowOn(Dispatchers.IO)
-                .onException { setEvent(RecoverSharedWalletEvent.ShowError(it.message.orUnknownError())) }
+                .onException { _event.emit(RecoverSharedWalletEvent.ShowError(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect {
-                    event(RecoverSharedWalletEvent.RecoverSharedWalletSuccess(it))
+                    _event.emit(RecoverSharedWalletEvent.RecoverSharedWalletSuccess(it))
                 }
         }
     }
-
 }

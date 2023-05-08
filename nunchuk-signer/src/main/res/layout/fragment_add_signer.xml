@@ -35,6 +35,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <TextView
+                android:id="@+id/title"
+                style="@style/NCText.Heading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                android:text="@string/nc_create_signer_title"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/signerNameLabel"
                 style="@style/NCText.EditText.Title"
@@ -45,7 +55,7 @@
                 android:layout_marginEnd="@dimen/nc_padding_16"
                 android:text="@string/nc_text_signer_name"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@+id/title" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/signerNameCounter"

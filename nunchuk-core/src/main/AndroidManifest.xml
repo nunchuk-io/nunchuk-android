@@ -3,10 +3,6 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application>
-        <receiver
-            android:name=".share.IntentSharingReceiver"
-            android:exported="false" />
-
         <activity
             android:name=".qr.ScannerActivity"
             android:screenOrientation="portrait" />

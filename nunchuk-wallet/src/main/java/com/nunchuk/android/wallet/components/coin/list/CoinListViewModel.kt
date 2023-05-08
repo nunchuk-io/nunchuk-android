@@ -4,21 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
-import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
-import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
-import com.nunchuk.android.usecase.coin.LockCoinUseCase
-import com.nunchuk.android.usecase.coin.RemoveCoinFromCollectionUseCase
-import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
-import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
+import com.nunchuk.android.usecase.coin.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -42,6 +33,15 @@ class CoinListViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     init {
+        viewModelScope.launch {
+            TransactionListener.transactionUpdateFlow.sample(1000L).collect {
+                if (it.walletId == walletId) {
+                    getAllCoins()
+                    getAllTags()
+                    getAllCollections()
+                }
+            }
+        }
         refresh()
     }
 

@@ -29,6 +29,7 @@ import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.DialogSignerDetailOptionsSheetBinding
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.serializable
 
 class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsSheetBinding>(), View.OnClickListener {
     private lateinit var listener : OptionClickListener
@@ -58,10 +59,11 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
     }
 
     private fun initViews() {
-        val signerType = requireArguments().getSerializable(EXTRA_SIGNER_TYPE) as SignerType
+        val signerType = requireArguments().serializable<SignerType>(EXTRA_SIGNER_TYPE)!!
         binding.btnChangeCvc.isVisible = signerType == SignerType.NFC
         binding.btnTopUpXpu.isVisible = signerType == SignerType.NFC
         binding.btnBackUpKey.isVisible = signerType == SignerType.NFC
+        binding.btnSignMessage.isVisible = signerType == SignerType.NFC || signerType == SignerType.SOFTWARE
     }
 
     override fun onClick(v: View?) {
@@ -70,6 +72,7 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
             binding.btnBackUpKey.id -> listener.onOptionClickListener(SingerOption.BACKUP_KEY)
             binding.btnChangeCvc.id -> listener.onOptionClickListener(SingerOption.CHANGE_CVC)
             binding.btnRemoveKey.id -> listener.onOptionClickListener(SingerOption.REMOVE_KEY)
+            binding.btnSignMessage.id -> listener.onOptionClickListener(SingerOption.SIGN_MESSAGE)
         }
         dismiss()
     }
@@ -79,6 +82,7 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
         binding.btnTopUpXpu.setOnClickListener(this)
         binding.btnChangeCvc.setOnClickListener(this)
         binding.btnRemoveKey.setOnClickListener(this)
+        binding.btnSignMessage.setOnClickListener(this)
     }
 
     interface OptionClickListener {

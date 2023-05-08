@@ -19,10 +19,9 @@
 
 package com.nunchuk.android.wallet.personal.components.recover
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import com.nunchuk.android.model.Wallet
 
 sealed class RecoverWalletQrCodeEvent {
-    data class ImportQRCodeSuccess(val walletId: String) : RecoverWalletQrCodeEvent()
+    data class ImportQRCodeSuccess(val wallet: Wallet) : RecoverWalletQrCodeEvent()
     data class ImportQRCodeError(val message: String) : RecoverWalletQrCodeEvent()
 }
