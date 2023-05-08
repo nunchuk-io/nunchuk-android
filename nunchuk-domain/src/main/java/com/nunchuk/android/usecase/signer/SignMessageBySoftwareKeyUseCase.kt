@@ -36,7 +36,9 @@ class SignMessageBySoftwareKeyUseCase @Inject constructor(
             masterSignerId = parameters.masterSignerId,
             path = parameters.path,
             message = parameters.message
-        )
+        ).also {
+            nunchukNativeSdk.clearSignerPassphrase(parameters.masterSignerId)
+        }
     }
 
     class Data(

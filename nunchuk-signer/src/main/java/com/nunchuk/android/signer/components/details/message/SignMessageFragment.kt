@@ -5,35 +5,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -51,28 +31,16 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcOutlineButton
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTextField
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.border
-import com.nunchuk.android.compose.greyLight
-import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.copyToClipboard
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.util.showOrHideNfcLoading
-import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.SignedMessage
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
@@ -121,6 +89,11 @@ class SignMessageFragment : Fragment() {
         viewModel.saveMessage(message, path)
         if (args.signerType == SignerType.NFC) {
             (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
+        } else if (viewModel.needPassphrase()) {
+            NCInputDialog(requireActivity()).showDialog(
+                title = getString(R.string.nc_transaction_enter_passphrase),
+                onConfirmed = { viewModel.handleHealthCheck(it) }
+            )
         } else {
             viewModel.signMessageBySoftware()
         }

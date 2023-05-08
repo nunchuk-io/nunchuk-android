@@ -7,17 +7,18 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.IsValidDerivationPathUseCase
+import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.signer.GetHealthCheckPathUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
+import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
@@ -31,6 +32,8 @@ class SignMessageViewModel @Inject constructor(
     private val signMessageBySoftwareKeyUseCase: SignMessageBySoftwareKeyUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val savedStateHandle: SavedStateHandle,
+    private val getMasterSignerUseCase: GetMasterSignerUseCase,
+    private val sendSignerPassphrase: SendSignerPassphrase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val args: SignMessageFragmentArgs =
@@ -45,6 +48,14 @@ class SignMessageViewModel @Inject constructor(
         viewModelScope.launch {
             getHealthCheckPathUseCase(Unit).onSuccess { path ->
                 _state.update { it.copy(defaultPath = path) }
+            }
+        }
+        if (args.signerType == SignerType.SOFTWARE) {
+            viewModelScope.launch {
+                getMasterSignerUseCase.invoke(args.masterSignerId)
+                    .onSuccess { signer ->
+                        _state.update { it.copy(needPassphrase = signer.device.needPassPhraseSent) }
+                    }
             }
         }
     }
@@ -91,6 +102,16 @@ class SignMessageViewModel @Inject constructor(
         }
     }
 
+    fun handleHealthCheck(passPhrase: String) {
+        viewModelScope.launch {
+            sendSignerPassphrase.execute(args.masterSignerId, passPhrase)
+                .flowOn(Dispatchers.IO)
+                .onException { _event.emit(SignMessageEvent.ShowError(it)) }
+                .flowOn(Dispatchers.Main)
+                .collect { signMessageBySoftware() }
+        }
+    }
+
     fun signMessageBySoftware() {
         viewModelScope.launch {
             _event.emit(SignMessageEvent.Loading(true))
@@ -114,11 +135,17 @@ class SignMessageViewModel @Inject constructor(
         }
     }
 
+    fun needPassphrase() = _state.value.needPassphrase
+
     fun exportSignatureToFile() {
         viewModelScope.launch {
             _event.emit(SignMessageEvent.Loading(true))
-            when (val result = createShareFileUseCase.execute( "signature.txt")) {
-                is Result.Success -> exportTransaction(result.data, state.value.signedMessage?.rfc2440.orEmpty())
+            when (val result = createShareFileUseCase.execute("signature.txt")) {
+                is Result.Success -> exportTransaction(
+                    result.data,
+                    state.value.signedMessage?.rfc2440.orEmpty()
+                )
+
                 is Result.Error -> _event.emit(SignMessageEvent.ShowError(result.exception))
             }
             _event.emit(SignMessageEvent.Loading(false))
@@ -130,17 +157,17 @@ class SignMessageViewModel @Inject constructor(
     }
 
     private suspend fun exportTransaction(filePath: String, signature: String) {
-            runCatching {
-                withContext(ioDispatcher) {
-                    FileOutputStream(filePath).use {
-                        it.write(signature.toByteArray(Charsets.UTF_8))
-                    }
+        runCatching {
+            withContext(ioDispatcher) {
+                FileOutputStream(filePath).use {
+                    it.write(signature.toByteArray(Charsets.UTF_8))
                 }
-            }.onSuccess {
-                _event.emit(SignMessageEvent.ShareFile(filePath))
-            }.onFailure { e ->
-                _event.emit(SignMessageEvent.ShowError(e))
             }
+        }.onSuccess {
+            _event.emit(SignMessageEvent.ShareFile(filePath))
+        }.onFailure { e ->
+            _event.emit(SignMessageEvent.ShowError(e))
+        }
     }
 
     companion object {
