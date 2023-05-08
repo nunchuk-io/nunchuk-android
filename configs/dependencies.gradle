@@ -56,7 +56,7 @@ ext {
     pluginsDeps = [
             gradleAndroid       : "com.android.tools.build:gradle:${gradleVersion}",
             googleServices      : "com.google.gms:google-services:${googleServiceVersion}",
-            crashlytics         : "com.google.firebase:firebase-crashlytics-gradle:2.9.5",
+            crashlytics         : "com.google.firebase:firebase-crashlytics-gradle:2.9.2",
             kotlinAndroidRuntime: "org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinStdlibVersion}",
             appdistribution     : "com.google.firebase:firebase-appdistribution-gradle:4.0.0",
             hilt                : "com.google.dagger:hilt-android-gradle-plugin:${hiltVersion}",
