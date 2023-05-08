@@ -57,4 +57,4 @@ publishProduction:
   only:
     - /^android.\d+.\d+.\d+$/
   script:
-    - ./gradlew bundleProductionRelease appDistributionUploadProductionRelease -PappDistribution-artifactType="AAB"
+    - ./gradlew bundleProductionRelease appDistributionUploadProductionRelease --artifactType="AAB"
