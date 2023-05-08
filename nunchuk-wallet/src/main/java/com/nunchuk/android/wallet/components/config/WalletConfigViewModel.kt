@@ -23,7 +23,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
-import com.nunchuk.android.core.domain.membership.*
+import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDeleteAssistedWalletUseCase
+import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -32,22 +35,22 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
-import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
-import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
-import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
-import com.nunchuk.android.usecase.membership.ImportCoinControlBIP329UseCase
-import com.nunchuk.android.usecase.membership.ImportTxCoinControlUseCase
+import com.nunchuk.android.usecase.membership.*
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -264,6 +267,7 @@ internal class WalletConfigViewModel @Inject constructor(
     fun forceRefreshWallet() = viewModelScope.launch {
         setEvent(WalletConfigEvent.Loading(true))
         val result = forceRefreshWalletUseCase(walletId)
+        delay(3000L)
         setEvent(WalletConfigEvent.Loading(false))
         if (result.isSuccess) {
             setEvent(WalletConfigEvent.ForceRefreshWalletSuccess)

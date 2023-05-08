@@ -21,11 +21,14 @@ package com.nunchuk.android.compose
 
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -37,7 +40,13 @@ import com.nunchuk.android.core.R
 fun NcTopAppBar(
     title: String,
     textStyle: TextStyle = NunchukTheme.typography.titleSmall,
-    actions: @Composable RowScope.() -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {
+        Spacer(
+            modifier = Modifier.size(
+                LocalViewConfiguration.current.minimumTouchTargetSize
+            )
+        )
+    },
     isBack: Boolean = true,
     elevation: Dp = AppBarDefaults.TopAppBarElevation,
     backgroundColor: Color = MaterialTheme.colors.background

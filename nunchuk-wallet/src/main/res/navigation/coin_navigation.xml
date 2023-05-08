@@ -67,11 +67,12 @@
             android:name="wallet_id"
             app:argType="string" />
         <argument
-            android:name="txId"
-            app:argType="string" />
+            android:name="output"
+            app:argType="com.nunchuk.android.model.UnspentOutput" />
         <argument
-            android:name="vout"
-            app:argType="integer" />
+            android:name="is_spent"
+            android:defaultValue="false"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_coinDetailFragment_to_coinTagListFragment"
             app:destination="@id/coinTagListFragment"
@@ -96,6 +97,13 @@
         <action
             android:id="@+id/action_coinDetailFragment_to_coinCollectionDetailFragment"
             app:destination="@id/coinCollectionDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinDetailFragment_to_coinAncestryFragment"
+            app:destination="@id/coinAncestryFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -396,5 +404,17 @@
         <argument
             android:name="collectionIds"
             app:argType="integer[]" />
+    </fragment>
+    <fragment
+        android:id="@+id/coinAncestryFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.detail.ancestry.CoinAncestryFragment"
+        android:label="CoinAncestryFragment">
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="output"
+            app:argType="com.nunchuk.android.model.UnspentOutput" />
     </fragment>
 </navigation>

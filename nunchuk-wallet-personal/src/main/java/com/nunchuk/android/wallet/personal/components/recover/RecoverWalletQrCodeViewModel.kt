@@ -53,7 +53,7 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
                     .onException { }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
-                    .collect { event(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it.id)) }
+                    .collect { event(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it)) }
             }
         }
     }

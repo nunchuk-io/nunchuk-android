@@ -55,18 +55,20 @@ fun NcTextField(
     showErrorMessageOnly: Boolean = false,
     onClick: () -> Unit = {},
     placeholder: @Composable (() -> Unit)? = null,
+    minLines: Int = 1,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions(),
     enabled: Boolean = true,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
+    textFieldColor: Color = MaterialTheme.colors.surface,
     colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: String) -> Unit,
 ) {
     val hasError = !error.isNullOrEmpty()
-    var backgroundErrorColor = MaterialTheme.colors.surface
+    var backgroundErrorColor = textFieldColor
     var borderErrorColor = Color(0xFFDEDEDE)
     if (hasError && showErrorMessageOnly.not()) {
         backgroundErrorColor = colorResource(id = R.color.nc_red_tint_color)
@@ -99,6 +101,7 @@ fun NcTextField(
             keyboardActions = keyboardActions,
             maxLines = maxLines,
             enabled = enabled,
+            minLines = minLines,
             onValueChange = onValueChange,
             visualTransformation = visualTransformation,
             decorationBox = @Composable { innerTextField ->
@@ -162,6 +165,7 @@ fun NcTextField(
     value: TextFieldValue,
     rightContent: @Composable BoxScope.() -> Unit = {},
     error: String? = null,
+    minLines: Int = 1,
     placeholder: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions(),
@@ -173,7 +177,7 @@ fun NcTextField(
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: TextFieldValue) -> Unit,
 ) {
-    val hasError = error != null && error.isNotEmpty()
+    val hasError = !error.isNullOrEmpty()
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
@@ -201,6 +205,7 @@ fun NcTextField(
                 keyboardActions = keyboardActions,
                 maxLines = maxLines,
                 enabled = enabled,
+                minLines = minLines,
                 onValueChange = onValueChange,
                 visualTransformation = visualTransformation,
                 decorationBox = @Composable { innerTextField ->

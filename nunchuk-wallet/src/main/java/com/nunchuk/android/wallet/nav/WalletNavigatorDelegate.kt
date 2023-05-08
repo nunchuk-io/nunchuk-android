@@ -23,10 +23,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
-import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.RecoverWalletData
-import com.nunchuk.android.model.RoomWalletData
-import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.*
 import com.nunchuk.android.nav.WalletNavigator
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -65,8 +62,11 @@ interface WalletNavigatorDelegate : WalletNavigator {
         AddRecoverWalletActivity.start(activityContext, data)
     }
 
-    override fun openRecoverWalletQRCodeScreen(activityContext: Context) {
-        RecoverWalletQrCodeActivity.start(activityContext)
+    override fun openRecoverWalletQRCodeScreen(
+        activityContext: Context,
+        isCollaborativeWallet: Boolean
+    ) {
+        RecoverWalletQrCodeActivity.start(activityContext, isCollaborativeWallet)
     }
 
     override fun openConfigureWalletScreen(
@@ -228,8 +228,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         RecoverSharedWalletActivity.start(activityContext)
     }
 
-    override fun openAddRecoverSharedWalletScreen(activityContext: Context, data: String) {
-        AddRecoverSharedWalletActivity.start(activityContext, data)
+    override fun openAddRecoverSharedWalletScreen(activityContext: Context, wallet: Wallet) {
+        AddRecoverSharedWalletActivity.start(activityContext, wallet)
     }
 
     override fun openSearchTransaction(context: Context, walletId: String, roomId: String) {

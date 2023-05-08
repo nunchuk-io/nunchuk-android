@@ -10,7 +10,6 @@ apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 android {
     compileSdkVersion androidConfig.compileSdkVersion
-    buildToolsVersion androidConfig.buildToolsVersion
 
     buildFeatures {
         viewBinding = true

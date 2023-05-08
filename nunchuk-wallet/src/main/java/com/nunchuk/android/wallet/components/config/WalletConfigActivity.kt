@@ -308,15 +308,13 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 R.string.nc_import_labels
             ),
         )
-        if (viewModel.isAssistedWallet()) {
-            options.add(
-                SheetOption(
-                    SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
-                    R.drawable.ic_cached,
-                    R.string.nc_force_refresh
-                )
+        options.add(
+            SheetOption(
+                SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
+                R.drawable.ic_cached,
+                R.string.nc_force_refresh
             )
-        }
+        )
         if (viewModel.isShowDeleteWallet()) {
             options.add(
                 SheetOption(

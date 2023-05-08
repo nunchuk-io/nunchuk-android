@@ -22,11 +22,7 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.RecoverWalletData
-import com.nunchuk.android.model.RoomWalletData
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.*
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 
@@ -38,7 +34,7 @@ interface PersonalWalletNavigator {
 
     fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData)
 
-    fun openRecoverWalletQRCodeScreen(activityContext: Context)
+    fun openRecoverWalletQRCodeScreen(activityContext: Context, isCollaborativeWallet: Boolean)
 
     fun openReviewWalletScreen(
         activityContext: Context,
@@ -93,7 +89,7 @@ interface SharedWalletNavigator {
 
     fun openAddRecoverSharedWalletScreen(
         activityContext: Context,
-        data: String
+        wallet: Wallet
     )
 }
 

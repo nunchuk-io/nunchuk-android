@@ -28,6 +28,17 @@
     </androidx.appcompat.widget.Toolbar>
 
     <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btn_recover_via_qr_code"
+        style="@style/NCOutlineButton.Light"
+        android:layout_width="0dp"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:layout_height="wrap_content"
+        android:text="Recover via QR code"
+        app:layout_constraintBottom_toTopOf="@+id/btnRecoverUsingBSMS"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnRecoverUsingBSMS"
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="0dp"

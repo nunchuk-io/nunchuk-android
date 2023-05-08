@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/signer_info_navigation"
+    app:startDestination="@id/signerInfoFragment">
+
+    <fragment
+        android:id="@+id/signerInfoFragment"
+        android:name="com.nunchuk.android.signer.components.details.SignerInfoFragment"
+        android:label="SignerInfoFragment">
+
+        <argument
+            android:name="id"
+            app:argType="string" />
+        <argument
+            android:name="masterFingerprint"
+            app:argType="string" />
+        <argument
+            android:name="name"
+            app:argType="string" />
+        <argument
+            android:name="customMessage"
+            app:argType="string" />
+        <argument
+            android:name="derivationPath"
+            app:argType="string" />
+        <argument
+            android:name="justAdded"
+            app:argType="boolean" />
+        <argument
+            android:name="setPassphrase"
+            app:argType="boolean" />
+        <argument
+            android:name="isInWallet"
+            app:argType="boolean" />
+        <argument
+            android:name="isReplacePrimaryKey"
+            app:argType="boolean" />
+        <argument
+            android:name="signer_type"
+            app:argType="com.nunchuk.android.type.SignerType" />
+        <action
+            android:id="@+id/action_signerInfoFragment_to_signMessageFragment"
+            app:destination="@id/signMessageFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+    <fragment
+        android:id="@+id/signMessageFragment"
+        android:name="com.nunchuk.android.signer.components.details.message.SignMessageFragment"
+        android:label="SignMessageFragment">
+        <argument
+            android:name="master_signer_id"
+            app:argType="string" />
+        <argument
+            android:name="signer_type"
+            app:argType="com.nunchuk.android.type.SignerType" />
+    </fragment>
+
+
+</navigation>

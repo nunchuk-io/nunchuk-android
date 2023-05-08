@@ -117,7 +117,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
     }
 
     private fun setupViews() {
-        binding.toolbarTitle.text = args.sweepType.toTitle(this)
+        binding.toolbarTitle.text = args.sweepType.toTitle(this, getString(R.string.nc_transaction_new))
         if (args.sweepType != SweepType.NONE) {
             binding.receiptLabel.text = getString(R.string.nc_enter_recipient_address)
         }

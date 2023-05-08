@@ -24,7 +24,6 @@ import com.nunchuk.android.model.Transaction
 @Composable
 fun CoinTransactionCard(
     transaction: Transaction,
-    onNoteClick: (note: String) -> Unit = {},
     onViewTransactionDetail: () -> Unit = {},
 ) {
     Column(

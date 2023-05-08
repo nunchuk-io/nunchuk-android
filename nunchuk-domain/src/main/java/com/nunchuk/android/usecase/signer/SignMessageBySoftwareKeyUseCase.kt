@@ -17,29 +17,33 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.share
+package com.nunchuk.android.usecase.signer
 
-class IntentSharingEventBus {
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.SignedMessage
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-    private var listener: IntentSharingListener? = null
+class SignMessageBySoftwareKeyUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk,
+) : UseCase<SignMessageBySoftwareKeyUseCase.Data, SignedMessage?>(dispatcher) {
 
-    fun subscribe(listener: IntentSharingListener) {
-        this.listener = listener
+    override suspend fun execute(parameters: Data): SignedMessage? {
+        return nunchukNativeSdk.signMessageBySoftwareKey(
+            masterSignerId = parameters.masterSignerId,
+            path = parameters.path,
+            message = parameters.message
+        ).also {
+            nunchukNativeSdk.clearSignerPassphrase(parameters.masterSignerId)
+        }
     }
 
-    fun unsubscribe() {
-        listener = null
-    }
-
-    fun publish() {
-        listener?.onCompleted()
-    }
-
-    companion object {
-        val instance = InstanceHolder.instance
-    }
-
-    private object InstanceHolder {
-        var instance = IntentSharingEventBus()
-    }
+    class Data(
+        val path: String,
+        val message: String,
+        val masterSignerId: String
+    )
 }
