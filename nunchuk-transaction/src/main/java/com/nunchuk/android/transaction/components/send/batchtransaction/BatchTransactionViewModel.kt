@@ -28,7 +28,7 @@ class BatchTransactionViewModel @Inject constructor(
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val checkAddressValidUseCase: CheckAddressValidUseCase,
     private val estimateFeeUseCase: EstimateFeeUseCase,
-    ) : ViewModel() {
+) : ViewModel() {
 
     private val args = BatchTransactionFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<BatchTransactionEvent>()
@@ -96,18 +96,10 @@ class BatchTransactionViewModel @Inject constructor(
             _event.emit(BatchTransactionEvent.InsufficientFundsLockedCoinEvent)
         } else {
             val addressList = _state.value.recipients.map { it.address }
-            val resultCheckAddress = checkAddressValidUseCase(CheckAddressValidUseCase.Params(addressList))
+            val resultCheckAddress =
+                checkAddressValidUseCase(CheckAddressValidUseCase.Params(addressList))
             if (resultCheckAddress.isSuccess && resultCheckAddress.getOrThrow().isEmpty()) {
-                if (isCustomTx) {
-                    _event.emit(BatchTransactionEvent.CheckAddressSuccess)
-                } else {
-                    val resultEstimateFee = estimateFeeUseCase(Unit)
-                    if (resultEstimateFee.isSuccess) {
-                        _event.emit(BatchTransactionEvent.GetFeeRateSuccess(resultEstimateFee.getOrThrow()))
-                    } else {
-                        _event.emit((BatchTransactionEvent.Error(resultEstimateFee.exceptionOrNull()?.message.orUnknownError())))
-                    }
-                }
+                _event.emit(BatchTransactionEvent.CheckAddressSuccess(isCustomTx))
             } else {
                 _event.emit(BatchTransactionEvent.Error(resultCheckAddress.exceptionOrNull()?.message.orUnknownError()))
             }
@@ -160,6 +152,8 @@ class BatchTransactionViewModel @Inject constructor(
         newRecipients.add(BatchTransactionState.Recipient.DEFAULT)
         _state.update { it.copy(recipients = newRecipients) }
     }
+
+    fun isEnableRemoveRecipient() = _state.value.recipients.toMutableList().size > 1
 
     fun removeRecipient(index: Int) {
         val newRecipients = _state.value.recipients.toMutableList()

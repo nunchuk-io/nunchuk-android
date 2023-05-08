@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
@@ -50,24 +49,17 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
-import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
-import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
-import com.nunchuk.android.transaction.components.utils.returnActiveRoom
-import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
+import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeArgs
+import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
+import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.utils.MaxLengthTransformation
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -85,7 +77,7 @@ class BatchTransactionFragment : Fragment() {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel: BatchTransactionViewModel by viewModels()
-    private val transactionConfirmViewModel: TransactionConfirmViewModel by viewModels()
+    private val estimatedFeeViewModel: EstimatedFeeViewModel by viewModels()
     private val args: BatchTransactionFragmentArgs by navArgs()
 
     private val launcher = registerForActivityResult(ScanContract()) { result ->
@@ -124,57 +116,51 @@ class BatchTransactionFragment : Fragment() {
                     }
 
                     BatchTransactionEvent.InsufficientFundsLockedCoinEvent -> showUnlockCoinBeforeSend()
-                    is BatchTransactionEvent.GetFeeRateSuccess -> handleCreateTransaction(event)
-                    BatchTransactionEvent.CheckAddressSuccess -> openEstimatedFeeScreen()
+                    is BatchTransactionEvent.CheckAddressSuccess -> {
+                        if (event.isCustomTx) {
+                            openEstimatedFeeScreen()
+                        } else {
+                            estimatedFeeViewModel.init(
+                                EstimatedFeeArgs(
+                                    walletId = args.walletId,
+                                    txReceipts = viewModel.getTxReceiptList(),
+                                    availableAmount = args.availableAmount.toDouble(),
+                                    privateNote = viewModel.getNote(),
+                                    subtractFeeFromAmount = false,
+                                    slots = emptyList(),
+                                    masterSignerId = "",
+                                    magicalPhrase = "",
+                                    inputs = args.unspentOutputs.toList()
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
-        transactionConfirmViewModel.event.observe(requireActivity()) { event ->
+        estimatedFeeViewModel.event.observe(requireActivity()) { event ->
             when (event) {
-                is TransactionConfirmEvent.CreateTxErrorEvent -> showError(message = event.message)
-                is TransactionConfirmEvent.CreateTxSuccessEvent -> {
-                    (requireActivity() as BaseActivity<*>).openTransactionDetailScreen(
-                        event.transaction.txId,
-                        args.walletId,
-                        sessionHolder.getActiveRoomIdSafe(),
-                        isInheritanceClaimingFlow = false
-                    )
-                }
-
-                TransactionConfirmEvent.LoadingEvent -> showLoading()
-                is TransactionConfirmEvent.InitRoomTransactionError -> (requireActivity() as BaseActivity<*>).showCreateTransactionError(
+                is EstimatedFeeEvent.EstimatedFeeErrorEvent -> NCToastMessage(requireActivity()).showError(
                     event.message
                 )
 
-                is TransactionConfirmEvent.InitRoomTransactionSuccess -> (requireActivity() as BaseActivity<*>).returnActiveRoom(event.roomId)
-                is TransactionConfirmEvent.UpdateChangeAddress -> {}
-                is TransactionConfirmEvent.AssignTagEvent -> {}
+                is EstimatedFeeEvent.EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(
+                    estimatedFee = event.estimatedFee,
+                    subtractFeeFromAmount = event.subtractFeeFromAmount,
+                    manualFeeRate = event.manualFeeRate
+                )
+
+                is EstimatedFeeEvent.Loading -> showOrHideLoading(event.isLoading)
+                EstimatedFeeEvent.DraftTransactionSuccess -> estimatedFeeViewModel.handleContinueEvent()
                 else -> {}
             }
         }
+
     }
 
     private fun showUnlockCoinBeforeSend() {
         NCInfoDialog(requireActivity())
             .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
-    }
-
-    private fun handleCreateTransaction(
-        event: BatchTransactionEvent.GetFeeRateSuccess
-    ) {
-        val manualFeeRate = event.estimateFeeRates.defaultRate
-        transactionConfirmViewModel.init(
-            walletId = args.walletId,
-            txReceipts = viewModel.getTxReceiptList(),
-            privateNote = viewModel.getNote(),
-            subtractFeeFromAmount = false,
-            slots = emptyList(),
-            inputs = args.unspentOutputs.toList(),
-            manualFeeRate = manualFeeRate,
-            masterSignerId = "",
-            magicalPhrase = ""
-        )
-        transactionConfirmViewModel.handleConfirmEvent(true)
     }
 
     private fun openEstimatedFeeScreen() {
@@ -191,6 +177,31 @@ class BatchTransactionFragment : Fragment() {
             inputs = args.unspentOutputs.toList()
         )
     }
+
+    private fun openTransactionConfirmScreen(
+        estimatedFee: Double,
+        subtractFeeFromAmount: Boolean,
+        manualFeeRate: Int
+    ) {
+        navigator.openTransactionConfirmScreen(
+            activityContext = requireActivity(),
+            walletId = args.walletId,
+            txReceipts = viewModel.getTxReceiptList(),
+            availableAmount = args.availableAmount.toDouble(),
+            privateNote = viewModel.getNote(),
+            estimatedFee = estimatedFee,
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            manualFeeRate = manualFeeRate,
+            slots = emptyList(),
+            masterSignerId = "",
+            magicalPhrase = "",
+            inputs = args.unspentOutputs.toList()
+        )
+    }
+
+    companion object {
+        const val LIMIT_NOTE = 280
+    }
 }
 
 @Composable
@@ -202,6 +213,7 @@ private fun BatchTransactionScreen(
     BatchTransactionContent(
         recipientList = state.recipients,
         note = state.note,
+        isEnableRemoveRecipient = viewModel.isEnableRemoveRecipient(),
         onInputAmountChange = { index, amount ->
             viewModel.updateRecipient(index, amount = amount)
         },
@@ -235,6 +247,7 @@ private fun BatchTransactionContent(
     recipientList: List<BatchTransactionState.Recipient> = emptyList(),
     note: String = "",
     isEnableCreateTransaction: Boolean = false,
+    isEnableRemoveRecipient: Boolean = false,
     onAddRecipient: () -> Unit = {},
     onRemoveRecipient: (Int) -> Unit = {},
     onInputNoteChange: (String) -> Unit = {},
@@ -248,6 +261,7 @@ private fun BatchTransactionContent(
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
+//                Test()
                 NcTopAppBar(
                     title = stringResource(id = R.string.nc_batched_transaction),
                     textStyle = NunchukTheme.typography.titleLarge,
@@ -267,6 +281,7 @@ private fun BatchTransactionContent(
                             amount = recipient.amount,
                             isBtc = recipient.isBtc,
                             error = recipient.error,
+                            enableRemove = isEnableRemoveRecipient,
                             onRemoveClick = {
                                 onRemoveRecipient(index)
                             },
@@ -313,10 +328,14 @@ private fun BatchTransactionContent(
                                 .padding(horizontal = 16.dp),
                             title = stringResource(id = R.string.nc_transaction_note),
                             value = note,
-                            maxLength = 280,
+                            maxLength = BatchTransactionFragment.LIMIT_NOTE,
                             enableMaxLength = true,
-                            visualTransformation = MaxLengthTransformation(maxLength = 280),
-                            onValueChange = onInputNoteChange
+                            visualTransformation = MaxLengthTransformation(maxLength = BatchTransactionFragment.LIMIT_NOTE),
+                            onValueChange = {
+                                if (it.length <= BatchTransactionFragment.LIMIT_NOTE) {
+                                    onInputNoteChange(it)
+                                }
+                            }
                         )
                     }
                 }
@@ -352,6 +371,7 @@ private fun RecipientView(
     amount: String = "",
     isBtc: Boolean = true,
     error: String = "",
+    enableRemove: Boolean = false,
     onRemoveClick: () -> Unit = {},
     onScanClick: () -> Unit = {},
     onInputAmountChange: (String) -> Unit = {},
@@ -374,12 +394,15 @@ private fun RecipientView(
                 style = NunchukTheme.typography.title
             )
             Text(
-                modifier = Modifier.clickable {
+                modifier = Modifier.clickable(enabled = enableRemove) {
                     onRemoveClick()
                 },
                 text = stringResource(id = R.string.nc_remove),
                 style = NunchukTheme.typography.title,
                 textDecoration = TextDecoration.Underline,
+                color = if (enableRemove) colorResource(id = R.color.nc_primary_color) else colorResource(
+                    id = R.color.nc_grey_dark_color
+                )
             )
         }
         Box(

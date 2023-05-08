@@ -5,10 +5,9 @@ import com.nunchuk.android.model.EstimateFeeRates
 sealed class BatchTransactionEvent {
     data class Loading(val loading: Boolean) : BatchTransactionEvent()
     data class Error(val message: String) : BatchTransactionEvent()
-    object CheckAddressSuccess : BatchTransactionEvent()
+    data class CheckAddressSuccess(val isCustomTx: Boolean) : BatchTransactionEvent()
     object InsufficientFundsEvent : BatchTransactionEvent()
     object InsufficientFundsLockedCoinEvent : BatchTransactionEvent()
-    data class GetFeeRateSuccess(val estimateFeeRates: EstimateFeeRates) : BatchTransactionEvent()
 }
 
 data class BatchTransactionState(

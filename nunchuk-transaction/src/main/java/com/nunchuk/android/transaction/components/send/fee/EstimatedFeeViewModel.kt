@@ -165,6 +165,7 @@ class EstimatedFeeViewModel @Inject constructor(
                         enableSubtractFeeFromAmount = enableSubtractFeeFromAmount,
                     )
                 }
+                setEvent(EstimatedFeeEvent.DraftTransactionSuccess)
             }
             is Error -> {
                 if (result.exception !is CancellationException) {

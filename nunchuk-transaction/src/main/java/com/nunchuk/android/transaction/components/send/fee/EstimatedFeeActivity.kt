@@ -189,6 +189,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             is EstimatedFeeEvent.Loading -> showOrHideLoading(event.isLoading)
             is EstimatedFeeEvent.InvalidManualFee -> NCToastMessage(this).showError(getString(R.string.nc_input_fee_invalid_error))
             is EstimatedFeeEvent.GetFeeRateSuccess -> {}
+            EstimatedFeeEvent.DraftTransactionSuccess -> {}
         }
     }
 

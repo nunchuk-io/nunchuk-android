@@ -44,7 +44,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
-import com.nunchuk.android.utils.MaxLengthTransformation
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable

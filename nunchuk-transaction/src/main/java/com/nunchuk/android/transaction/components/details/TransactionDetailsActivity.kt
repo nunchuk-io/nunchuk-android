@@ -397,13 +397,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun bindTransaction(transaction: Transaction, coins: List<UnspentOutput>) {
         binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
-        val output = if (transaction.isReceive) {
-            transaction.receiveOutputs.firstOrNull()
-        } else {
-            transaction.outputs.firstOrNull()
-        }
         binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
-        binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
@@ -456,7 +450,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 handleCopyContent(it)
             }.bindItems()
         }
-
+        if (coins.size >= 2) {
+            binding.sendingTo.text = getString(R.string.nc_multiple_addresses)
+        } else {
+            val output = if (transaction.isReceive) {
+                transaction.receiveOutputs.firstOrNull()
+            } else {
+                transaction.outputs.firstOrNull()
+            }
+            binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
+        }
         if (transaction.isReceive) {
             binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)
             binding.sendToAddress.text = getString(R.string.nc_transaction_receive_address)
