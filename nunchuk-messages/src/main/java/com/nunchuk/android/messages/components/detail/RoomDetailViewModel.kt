@@ -396,7 +396,7 @@ class RoomDetailViewModel @Inject constructor(
 
     fun markMessageRead(eventId: String) {
         viewModelScope.launch(ioDispatcher) {
-            room.readService().setReadReceipt(eventId = eventId)
+            room.readService().setReadReceipt(eventId = eventId, threadId = ReadService.THREAD_ID_MAIN)
         }
     }
 

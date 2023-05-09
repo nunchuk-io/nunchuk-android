@@ -61,7 +61,7 @@ fun TimelineEvent.getLastMessageContentSafe() = try {
 }
 
 fun TimelineEvent.getTextEditableContentSafe() = try {
-    getTextEditableContent()
+    getTextEditableContent(false)
 } catch (e: Throwable) {
     ""
 }

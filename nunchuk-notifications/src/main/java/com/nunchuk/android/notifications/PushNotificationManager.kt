@@ -24,7 +24,7 @@ import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.core.provider.LocaleProvider
 import com.nunchuk.android.core.provider.StringProvider
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -33,8 +33,6 @@ interface PushNotificationManager {
     suspend fun testPush(pushKey: String)
 
     fun enqueueRegisterPusherWithFcmKey(pushKey: String): UUID?
-
-    suspend fun registerPusherWithFcmKey(pushKey: String)
 }
 
 internal class PushNotificationManagerImpl @Inject constructor(
@@ -57,10 +55,6 @@ internal class PushNotificationManagerImpl @Inject constructor(
         return getPushersService()?.enqueueAddHttpPusher(createHttpPusher(pushKey))
     }
 
-    override suspend fun registerPusherWithFcmKey(pushKey: String) {
-        getPushersService()?.addHttpPusher(createHttpPusher(pushKey))
-    }
-
     private fun createHttpPusher(pushKey: String) = HttpPusher(
         pushKey,
         stringProvider.getString(R.string.push_app_id),
@@ -70,7 +64,9 @@ internal class PushNotificationManagerImpl @Inject constructor(
         sessionHolder.getSafeActiveSession()?.sessionParams?.deviceId ?: "MOBILE",
         stringProvider.getString(R.string.push_http_url),
         append = false,
-        withEventIdOnly = true
+        withEventIdOnly = true,
+        enabled = true,
+        deviceId = sessionHolder.getSafeActiveSession()?.sessionParams?.deviceId.orEmpty(),
     )
 
     suspend fun unregisterPusher(pushKey: String) {

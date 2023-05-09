@@ -31,7 +31,7 @@ ext {
     nativeSdkVersion = '1.1.60'
 
     // Matrix
-    matrixSdkVersion = '1.4.27'
+    matrixSdkVersion = '1.5.30'
     // https://user-images.githubusercontent.com/9841565/164481595-53564bf0-416c-469c-b251-71b0e59074c8.png
 
     navVersion = "2.5.3"
