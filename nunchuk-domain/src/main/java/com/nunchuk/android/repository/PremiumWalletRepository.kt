@@ -236,4 +236,6 @@ interface PremiumWalletRepository {
     suspend fun getCoinControlData(walletId: String): String
 
     suspend fun uploadCoinControlData(walletId: String, data: String)
+
+    suspend fun clearTransactionEmergencyLockdown(walletId: String)
 }

@@ -242,7 +242,7 @@ internal interface UserWalletsApi {
     ): Data<InheritanceCheckResponse>
 
     @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&status=PENDING_SIGNATURES,READY_TO_BROADCAST&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
-    suspend fun getTransactions(
+    suspend fun getTransactionsToSync(
         @Path("wallet_id_or_local_id") walletId: String,
         @Query("offset") offset: Int
     ): Data<TransactionsResponse>
@@ -281,4 +281,10 @@ internal interface UserWalletsApi {
     suspend fun getCoinControlData(
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<CoinDataContent>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&status=CANCELED&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
+    suspend fun getTransactionsToDelete(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int
+    ): Data<TransactionsResponse>
 }
