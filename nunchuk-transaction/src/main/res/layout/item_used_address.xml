@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="@dimen/nc_padding_16">
 
@@ -30,6 +30,7 @@
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toEndOf="@+id/qrCodeContainer"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
 
