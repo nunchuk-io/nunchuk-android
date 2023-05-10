@@ -84,7 +84,8 @@ data class NunchukTransactionMessage(
     val isOwner: Boolean = false,
     val roomWallet: RoomWallet?,
     val walletId: String,
-    val transaction: Transaction?
+    val transaction: Transaction?,
+    val numSendingAddress: Int = 0
 ) : Message(
     sender, content, SendState.UNKNOWN, time, type
 )

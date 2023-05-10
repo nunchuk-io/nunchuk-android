@@ -37,6 +37,7 @@ import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.trySafe
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -72,6 +73,7 @@ class RoomDetailViewModel @Inject constructor(
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val sessionHolder: SessionHolder,
     private val sendMediaUseCase: SendMediaUseCase,
+    private val isMyCoinUseCase: IsMyCoinUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
@@ -417,7 +419,8 @@ class RoomDetailViewModel @Inject constructor(
                     roomWallet,
                     transactions,
                     isSelectedEnable,
-                    getState().selectedEventIds
+                    getState().selectedEventIds,
+                    onCheckIsMyCoin = { walletId, address -> isMyCoin(walletId, address) }
                 )
             }
             updateState {
@@ -430,6 +433,11 @@ class RoomDetailViewModel @Inject constructor(
             }
         }
     }
+
+    fun isMyCoin(walletId: String, address: String) =
+        runBlocking { isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, address)) }.getOrDefault(
+            false
+        )
 
     fun applySelected(isSelectedEnable: Boolean) {
         if (isSelectedEnable != getState().isSelectEnable) {

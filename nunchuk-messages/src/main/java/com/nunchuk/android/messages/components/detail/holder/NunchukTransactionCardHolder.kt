@@ -39,7 +39,7 @@ internal class NunchukTransactionCardHolder(
         val initEventId = model.timelineEvent.eventId
         Timber.tag(TAG).d("initEventId::$initEventId")
         model.transaction?.let {
-            bindTransaction(walletId = model.walletId, initEventId = initEventId, transaction = model.transaction)
+            bindTransaction(walletId = model.walletId, initEventId = initEventId, transaction = model.transaction, numAddress = model.numSendingAddress)
         } ?: run {
             bindUnknownTransaction()
         }
@@ -47,7 +47,7 @@ internal class NunchukTransactionCardHolder(
         CardHelper.adjustCardLayout(binding.root, binding.cardTopContainer, model.isOwner)
     }
 
-    private fun bindTransaction(walletId: String, initEventId: String, transaction: Transaction) {
+    private fun bindTransaction(walletId: String, initEventId: String, transaction: Transaction, numAddress: Int) {
         val context = itemView.context
         binding.amount.text = transaction.totalAmount.getBTCAmount()
         binding.status.bindTransactionStatus(transaction)
@@ -56,7 +56,11 @@ internal class NunchukTransactionCardHolder(
         } else {
             R.string.nc_message_transaction_sending_to
         }
-        binding.address.text = getHtmlString(resId, transaction.outputs.first().first)
+        if (numAddress >= 2) {
+            binding.address.text = getHtmlString(resId, getString(R.string.nc_multiple_addresses))
+        } else {
+            binding.address.text = getHtmlString(resId, transaction.outputs.first().first)
+        }
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
             binding.signatureStatus.text =
