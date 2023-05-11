@@ -32,6 +32,7 @@ import com.nunchuk.android.model.*
 fun ViewWalletStickyBinding.bindRoomWallet(
     wallet: RoomWallet,
     transactions: List<Transaction>,
+    numSendingAddress: Int? = null,
     onClick: () -> Unit,
     onClickViewTransactionDetail: (txId: String) -> Unit
 ) {
@@ -40,7 +41,7 @@ fun ViewWalletStickyBinding.bindRoomWallet(
 
     val transaction = transactions.firstOrNull { it.status.isPending() }
     if (transaction != null) {
-        bindPendingSignature(transaction)
+        bindPendingSignature(transaction, numSendingAddress)
         root.isVisible = true
         root.setOnClickListener { onClickViewTransactionDetail(transaction.txId) }
         return
@@ -70,7 +71,10 @@ private fun TextView.bindRatio(isEscrow: Boolean, requireSigners: Int, totalSign
     text = ratio
 }
 
-fun ViewWalletStickyBinding.bindPendingSignature(transaction: Transaction) {
+fun ViewWalletStickyBinding.bindPendingSignature(
+    transaction: Transaction,
+    numAddress: Int? = null
+) {
     icon.setImageDrawable(ContextCompat.getDrawable(icon.context, R.drawable.ic_pending_transaction))
     status.bindTransactionStatus(transaction)
     name.text = transaction.totalAmount.getBTCAmount()
@@ -79,7 +83,21 @@ fun ViewWalletStickyBinding.bindPendingSignature(transaction: Transaction) {
     } else {
         R.string.nc_message_transaction_sending_to
     }
-    configuration.text = Html.fromHtml(name.context.getString(resId, transaction.outputs.first().first.formatToShortBTCAddress()))
+    if (numAddress != null && numAddress >= 2) {
+        configuration.text = Html.fromHtml(
+            name.context.getString(
+                resId,
+                name.context.getString(R.string.nc_multiple_addresses)
+            )
+        )
+    }  else {
+        configuration.text = Html.fromHtml(
+            name.context.getString(
+                resId,
+                transaction.outputs.first().first.formatToShortBTCAddress()
+            )
+        )
+    }
 }
 
 fun String.formatToShortBTCAddress(): String {

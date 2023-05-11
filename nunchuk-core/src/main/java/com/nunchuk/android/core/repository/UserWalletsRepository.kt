@@ -979,7 +979,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun syncTransaction(walletId: String) {
         (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
-            val response = userWalletApiManager.walletApi.getTransactions(walletId, index)
+            val response = userWalletApiManager.walletApi.getTransactionsToSync(walletId, index)
             if (response.isSuccess.not()) throw response.error
             response.data.transactions.forEach { transition ->
                 if (transition.psbt.isNullOrEmpty().not()) {
@@ -1129,6 +1129,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun uploadCoinControlData(walletId: String, data: String) {
         userWalletApiManager.walletApi.uploadCoinControlData(walletId, CoinDataContent(data))
+    }
+
+    override suspend fun clearTransactionEmergencyLockdown(walletId: String) {
+        (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
+            val response = userWalletApiManager.walletApi.getTransactionsToDelete(walletId, index)
+            if (response.isSuccess.not()) throw response.error
+            response.data.transactions.forEach { transition ->
+                transition.transactionId?.let {
+                    nunchukNativeSdk.deleteTransaction(walletId = walletId, txId = transition.transactionId)
+                }
+            }
+            if (response.data.transactions.size < TRANSACTION_PAGE_COUNT) return
+        }
     }
 
     override fun assistedKeys(): Flow<Set<String>> {

@@ -38,7 +38,8 @@ fun List<TimelineEvent>.toMessages(
     roomWallet: RoomWallet?,
     transactions: List<TransactionExtended>,
     isSelectEnable: Boolean,
-    selectedEventIds: Set<Long>
+    selectedEventIds: Set<Long>,
+    onCheckIsMyCoin: ((String, String) -> Boolean)? = null,
 ) =
     sortedBy { it.root.ageLocalTs }.mapNotNull {
         it.toMessageSafe(
@@ -46,7 +47,8 @@ fun List<TimelineEvent>.toMessages(
             roomWallet,
             transactions.filterNot { tx -> tx.initEventId.startsWith("\$local.") },
             isSelectEnable,
-            selectedEventIds
+            selectedEventIds,
+            onCheckIsMyCoin = onCheckIsMyCoin
         )
     }
 
@@ -55,9 +57,10 @@ fun TimelineEvent.toMessageSafe(
     roomWallet: RoomWallet?,
     transactions: List<TransactionExtended>,
     isSelectEnable: Boolean,
-    selectedEventIds: Set<Long>
+    selectedEventIds: Set<Long>,
+    onCheckIsMyCoin: ((String, String) -> Boolean)? = null
 ): Message? = try {
-    toMessage(chatId, roomWallet, transactions, isSelectEnable, selectedEventIds)
+    toMessage(chatId, roomWallet, transactions, isSelectEnable, selectedEventIds, onCheckIsMyCoin = onCheckIsMyCoin)
 } catch (e: Exception) {
     CrashlyticsReporter.recordException(e)
     null
@@ -68,7 +71,8 @@ fun TimelineEvent.toMessage(
     roomWallet: RoomWallet?,
     transactions: List<TransactionExtended>,
     isSelectEnable: Boolean,
-    selectedEventIds: Set<Long>
+    selectedEventIds: Set<Long>,
+    onCheckIsMyCoin: ((String, String) -> Boolean)? = null
 ): Message? {
     return when {
         isNunchukWalletEvent() -> {
@@ -95,6 +99,7 @@ fun TimelineEvent.toMessage(
                 walletId = transactions.firstOrNull { it.walletId.isNotEmpty() }?.walletId.orEmpty()
             }
             val transaction = transactions.find { it.initEventId == eventId } ?: return null
+            val coins = transaction.transaction.outputs.filter { onCheckIsMyCoin?.invoke(walletId, it.first) == transaction.transaction.isReceive }
             NunchukTransactionMessage(
                 sender = senderInfo,
                 content = gson.toJson(root.getClearContent()),
@@ -106,7 +111,8 @@ fun TimelineEvent.toMessage(
                 isOwner = chatId == senderInfo.userId,
                 roomWallet = roomWallet,
                 walletId = walletId,
-                transaction = transaction.transaction
+                transaction = transaction.transaction,
+                numSendingAddress = coins.size
             )
         }
         root.isImageMessage() -> root.getClearContent().toModel<MessageImageContent>()

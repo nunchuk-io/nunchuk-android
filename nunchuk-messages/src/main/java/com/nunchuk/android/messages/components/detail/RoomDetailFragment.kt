@@ -212,9 +212,14 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         binding.expand.isVisible = hasRoomWallet
         expandChatBar()
         state.roomWallet?.let {
+            val transactions = state.transactions.map(TransactionExtended::transaction)
+            val pendingTransaction = transactions.firstOrNull { it.status.isPending() }
+            val walletId = it.walletId
+            val coins = pendingTransaction?.outputs?.filter { viewModel.isMyCoin(walletId = walletId, it.first) == pendingTransaction.isReceive }
             stickyBinding.bindRoomWallet(
                 wallet = it,
                 transactions = state.transactions.map(TransactionExtended::transaction),
+                numSendingAddress = coins?.size,
                 onClick = viewModel::viewConfig,
                 onClickViewTransactionDetail = { txId ->
                     openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = "")
