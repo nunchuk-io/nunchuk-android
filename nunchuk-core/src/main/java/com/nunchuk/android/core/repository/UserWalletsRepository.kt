@@ -23,76 +23,18 @@ import com.google.gson.Gson
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.api.TRANSACTION_PAGE_COUNT
-import com.nunchuk.android.core.data.model.CalculateRequiredSignaturesSecurityQuestionPayload
-import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
-import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
-import com.nunchuk.android.core.data.model.CreateServerKeysPayload
-import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
-import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
-import com.nunchuk.android.core.data.model.InheritanceCancelRequest
-import com.nunchuk.android.core.data.model.InheritanceCheckRequest
-import com.nunchuk.android.core.data.model.InheritanceClaimClaimRequest
-import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequest
-import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
-import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
-import com.nunchuk.android.core.data.model.LockdownUpdateRequest
-import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
-import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequestBody
-import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
-import com.nunchuk.android.core.data.model.SyncTransactionRequest
-import com.nunchuk.android.core.data.model.UpdateKeyPayload
-import com.nunchuk.android.core.data.model.UpdateWalletPayload
+import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
-import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
-import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
-import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
-import com.nunchuk.android.core.data.model.membership.InheritanceDto
-import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
-import com.nunchuk.android.core.data.model.membership.PeriodResponse
-import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
-import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
-import com.nunchuk.android.core.data.model.membership.SignerServerDto
-import com.nunchuk.android.core.data.model.membership.TapSignerDto
-import com.nunchuk.android.core.data.model.membership.TransactionServerDto
-import com.nunchuk.android.core.data.model.membership.toDto
-import com.nunchuk.android.core.data.model.membership.toServerTransaction
+import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
-import com.nunchuk.android.model.BackupKey
-import com.nunchuk.android.model.BufferPeriodCountdown
-import com.nunchuk.android.model.CalculateRequiredSignatures
-import com.nunchuk.android.model.Inheritance
-import com.nunchuk.android.model.InheritanceAdditional
-import com.nunchuk.android.model.InheritanceCheck
-import com.nunchuk.android.model.InheritanceStatus
-import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.MembershipStepInfo
-import com.nunchuk.android.model.Period
-import com.nunchuk.android.model.QuestionsAndAnswer
-import com.nunchuk.android.model.SecurityQuestion
-import com.nunchuk.android.model.ServerKeyExtra
-import com.nunchuk.android.model.SeverWallet
-import com.nunchuk.android.model.SignerExtra
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.SpendingPolicy
-import com.nunchuk.android.model.SpendingTimeUnit
-import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.TransactionAdditional
-import com.nunchuk.android.model.VerifiedPKeyTokenRequest
-import com.nunchuk.android.model.VerifiedPasswordTokenRequest
-import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.model.WalletServerSync
+import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
-import com.nunchuk.android.model.toMembershipPlan
-import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
@@ -133,13 +75,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
 
-    override suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion> {
+    override suspend fun getSecurityQuestions(): List<SecurityQuestion> {
         val questions =
-            userWalletApiManager.walletApi.getSecurityQuestion(verifyToken).data.questions.map {
+            userWalletApiManager.walletApi.getSecurityQuestion().data.questions.map {
                 SecurityQuestion(
                     id = it.id, question = it.question, isAnswer = it.isAnswer ?: false
                 )
             }
+        ncDataStore.setSetupSecurityQuestion(questions.any { it.isAnswer })
         return questions
     }
 
@@ -165,6 +108,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             })
         )
         if (result.isSuccess) {
+            ncDataStore.setSetupSecurityQuestion(true)
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
                     step = MembershipStep.SETUP_KEY_RECOVERY,

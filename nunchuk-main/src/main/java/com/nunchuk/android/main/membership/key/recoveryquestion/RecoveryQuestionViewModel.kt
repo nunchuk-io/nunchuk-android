@@ -67,7 +67,6 @@ class RecoveryQuestionViewModel @Inject constructor(
             val result = getSecurityQuestionUseCase(
                 GetSecurityQuestionUseCase.Param(
                     isFilterAnswer = false,
-                    verifyToken = args.verifyToken
                 )
             )
             _event.emit(RecoveryQuestionEvent.Loading(false))

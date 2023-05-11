@@ -21,13 +21,7 @@ package com.nunchuk.android.core.persistence
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.doublePreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
@@ -60,6 +54,7 @@ class NcDataStore @Inject constructor(
     private val qrDensityKey = intPreferencesKey("qr_density")
     private val assistedKeysPreferenceKey = stringSetPreferencesKey("assisted_key")
     private val feeJsonPreferenceKey = stringPreferencesKey("fee_key")
+    private val securityQuestionKey = booleanPreferencesKey("security_question")
 
     /**
      * Current membership plan key
@@ -221,6 +216,17 @@ class NcDataStore @Inject constructor(
             it[feeJsonPreferenceKey].orEmpty()
         }
 
+    suspend fun setSetupSecurityQuestion(isSetup: Boolean) {
+        context.dataStore.edit {
+            it[securityQuestionKey] = isSetup
+        }
+    }
+
+    val isSetupSecurityQuestion: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[securityQuestionKey] ?: false
+        }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
@@ -229,6 +235,7 @@ class NcDataStore @Inject constructor(
             it.remove(hideUpsellBannerKey)
             it.remove(syncRoomSuccessKey)
             it.remove(assistedKeysPreferenceKey)
+            it.remove(securityQuestionKey)
         }
     }
 }

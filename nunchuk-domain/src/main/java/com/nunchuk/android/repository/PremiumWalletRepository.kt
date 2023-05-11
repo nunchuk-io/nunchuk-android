@@ -19,20 +19,7 @@
 
 package com.nunchuk.android.repository
 
-import com.nunchuk.android.model.BackupKey
-import com.nunchuk.android.model.CalculateRequiredSignatures
-import com.nunchuk.android.model.Inheritance
-import com.nunchuk.android.model.InheritanceAdditional
-import com.nunchuk.android.model.InheritanceCheck
-import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.Period
-import com.nunchuk.android.model.QuestionsAndAnswer
-import com.nunchuk.android.model.SecurityQuestion
-import com.nunchuk.android.model.SeverWallet
-import com.nunchuk.android.model.TransactionAdditional
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.model.WalletServerSync
+import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
@@ -40,7 +27,7 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import kotlinx.coroutines.flow.Flow
 
 interface PremiumWalletRepository {
-    suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion>
+    suspend fun getSecurityQuestions(): List<SecurityQuestion>
     suspend fun verifySecurityQuestions(questions: List<QuestionsAndAnswer>): String
     suspend fun configSecurityQuestions(questions: List<QuestionsAndAnswer>, plan: MembershipPlan)
     suspend fun createServerKeys(

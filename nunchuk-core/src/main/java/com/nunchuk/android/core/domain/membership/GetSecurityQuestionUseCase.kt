@@ -31,12 +31,12 @@ class GetSecurityQuestionUseCase @Inject constructor(
     private val userWalletsRepository: PremiumWalletRepository,
 ) : UseCase<GetSecurityQuestionUseCase.Param, List<SecurityQuestion>>(dispatcher) {
     override suspend fun execute(parameters: Param): List<SecurityQuestion> {
-        val questions = userWalletsRepository.getSecurityQuestions(parameters.verifyToken)
+        val questions = userWalletsRepository.getSecurityQuestions()
         if (parameters.isFilterAnswer) {
             return questions.filter { it.isAnswer }
         }
         return questions
     }
 
-    class Param(val isFilterAnswer: Boolean, val verifyToken: String? = null)
+    class Param(val isFilterAnswer: Boolean)
 }

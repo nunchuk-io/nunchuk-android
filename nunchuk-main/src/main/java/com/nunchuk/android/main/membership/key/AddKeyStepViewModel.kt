@@ -23,6 +23,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
@@ -37,6 +38,7 @@ import javax.inject.Inject
 class AddKeyStepViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val savedStateHandle: SavedStateHandle,
+    private val getSecurityQuestionUseCase: GetSecurityQuestionUseCase,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
 ) : ViewModel() {
     private val currentStep =
@@ -70,10 +72,7 @@ class AddKeyStepViewModel @Inject constructor(
             membershipStepManager.isConfigKeyDone() || stage == MembershipStage.SETUP_INHERITANCE
         }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val isSetupRecoverKeyDone =
-        membershipStepManager.stepDone.combine(currentStage) { _, stage ->
-            membershipStepManager.isConfigRecoverKeyDone() || stage == MembershipStage.SETUP_INHERITANCE
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isSetupRecoverKeyDone = membershipStepManager.isConfigRecoverKeyDone
 
     val isCreateWalletDone =
         membershipStepManager.stepDone.combine(currentStage) { _, stage ->
@@ -109,6 +108,9 @@ class AddKeyStepViewModel @Inject constructor(
             currentStep.filterNotNull().collect {
                 membershipStepManager.setCurrentStep(it)
             }
+        }
+        viewModelScope.launch {
+            getSecurityQuestionUseCase(GetSecurityQuestionUseCase.Param(isFilterAnswer = false,))
         }
     }
 

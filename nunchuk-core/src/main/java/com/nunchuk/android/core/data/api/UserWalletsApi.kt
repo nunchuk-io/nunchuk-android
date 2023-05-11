@@ -46,7 +46,7 @@ internal interface UserWalletsApi {
     ): Data<CreateServerKeyResponse>
 
     @GET("/v1.1/user-wallets/security-questions")
-    suspend fun getSecurityQuestion(@Header("Verify-token") verifyToken: String?): Data<SecurityQuestionDataResponse>
+    suspend fun getSecurityQuestion(): Data<SecurityQuestionDataResponse>
 
     @POST("/v1.1/user-wallets/security-questions/verify-answer")
     suspend fun verifySecurityQuestion(@Body request: ConfigSecurityQuestionPayload): Data<VerifySecurityQuestionResponse>
