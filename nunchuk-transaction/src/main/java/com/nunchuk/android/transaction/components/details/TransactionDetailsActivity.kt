@@ -227,13 +227,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.tvEditNote.setUnderline()
         binding.tvEditChangeAddress.setUnderline()
         binding.tvEditChangeAddress.setOnDebounceClickListener {
-            navigator.openCoinDetail(
-                launcher = coinLauncher,
-                context = this,
-                walletId = args.walletId,
-                txId = args.txId,
-                vout = viewModel.getTransaction().changeIndex
-            )
+            viewModel.coins().find { it.vout == viewModel.getTransaction().changeIndex }?.let {
+                navigator.openCoinDetail(
+                    launcher = coinLauncher,
+                    context = this,
+                    walletId = args.walletId,
+                    it
+                )
+            }
         }
         binding.viewMore.setOnClickListener {
             viewModel.handleViewMoreEvent()
@@ -279,8 +280,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     launcher = coinLauncher,
                     context = this,
                     walletId = args.walletId,
-                    txId = args.txId,
-                    vout = viewModel.coins().first().vout
+                    viewModel.coins().first()
                 )
                 else -> navigator.openCoinList(
                     launcher = coinLauncher,

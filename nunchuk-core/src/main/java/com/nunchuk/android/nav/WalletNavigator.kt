@@ -156,8 +156,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         launcher: ActivityResultLauncher<Intent>? = null,
         context: Context,
         walletId: String,
-        txId: String,
-        vout: Int
+        output: UnspentOutput
     )
 
     fun openSearchTransaction(
