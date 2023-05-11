@@ -132,7 +132,10 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                     showTagUpdated()
                 }
 
-                CoinTagDetailEvent.RemoveCoinSuccess -> handleTagInfoChange()
+                CoinTagDetailEvent.RemoveCoinSuccess -> {
+                    handleTagInfoChange()
+                    showTagUpdated()
+                }
             }
         }
 

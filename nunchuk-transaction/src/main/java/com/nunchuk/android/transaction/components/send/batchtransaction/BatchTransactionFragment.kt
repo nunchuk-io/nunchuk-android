@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,11 +20,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
@@ -64,6 +69,7 @@ import com.nunchuk.android.utils.MaxLengthTransformation
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -242,6 +248,7 @@ private fun BatchTransactionScreen(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BatchTransactionContent(
     recipientList: List<BatchTransactionState.Recipient> = emptyList(),
@@ -258,10 +265,11 @@ private fun BatchTransactionContent(
     onSwitchBtcAndCurrency: (Int, Boolean) -> Unit = { _, _ -> },
     onInputAddressChange: (Int, String) -> Unit = { _, _ -> }
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
-//                Test()
                 NcTopAppBar(
                     title = stringResource(id = R.string.nc_batched_transaction),
                     textStyle = NunchukTheme.typography.titleLarge,
@@ -335,12 +343,21 @@ private fun BatchTransactionContent(
                                 if (it.length <= BatchTransactionFragment.LIMIT_NOTE) {
                                     onInputNoteChange(it)
                                 }
+                            },
+                            onFocusEvent = { focusState ->
+                                if (focusState.isFocused) {
+                                    coroutineScope.launch {
+                                        delay(500L)
+                                        bringIntoViewRequester.bringIntoView()
+                                    }
+                                }
                             }
                         )
                     }
                 }
                 NcPrimaryDarkButton(
                     modifier = Modifier
+                        .bringIntoViewRequester(bringIntoViewRequester)
                         .fillMaxWidth()
                         .padding(16.dp), onCreateTransactionClick,
                     enabled = isEnableCreateTransaction

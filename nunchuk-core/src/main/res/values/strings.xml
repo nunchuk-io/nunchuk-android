@@ -550,7 +550,7 @@
     <string name="nc_lock_this_coin">Lock this coin</string>
     <string name="nc_tags">Tags</string>
     <string name="nc_coin_has_no_tags">This coin has no tags.</string>
-    <string name="nc_coin_has_no_collections">This coin has no collections.</string>
+    <string name="nc_coin_has_no_collections">This coin is not in any collections.</string>
     <string name="nc_outpoint">Outpoint</string>
     <string name="nc_copy_outpoint">Copy outpoint</string>
     <string name="nc_manage_coin">Manage coin</string>
