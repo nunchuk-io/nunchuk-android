@@ -42,6 +42,7 @@ import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -187,7 +188,12 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 manualFeeRate = event.manualFeeRate
             )
             is EstimatedFeeEvent.Loading -> showOrHideLoading(event.isLoading)
-            is EstimatedFeeEvent.InvalidManualFee -> NCToastMessage(this).showError(getString(R.string.nc_input_fee_invalid_error))
+            is EstimatedFeeEvent.InvalidManualFee -> {
+                NCWarningDialog(this).showDialog(
+                    message = getString(R.string.nc_transaction_smaller_than_minimum_fee_msg),
+                    onYesClick = viewModel::handleContinueEvent
+                )
+            }
             is EstimatedFeeEvent.GetFeeRateSuccess -> {}
             EstimatedFeeEvent.DraftTransactionSuccess -> {}
         }

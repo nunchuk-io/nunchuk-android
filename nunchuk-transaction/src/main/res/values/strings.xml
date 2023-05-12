@@ -59,4 +59,5 @@
     <string name="nc_transaction_generate_change_coin_title">This transaction generates a change coin. Would you like the change coin to inherit the tags from the parent coin(s)?</string>
     <string name="nc_send_all_selected">Send all selected</string>
     <string name="nc_multiple_addresses">multiple addresses</string>
+    <string name="nc_transaction_smaller_than_minimum_fee_msg">Transactions with fee too low might get kicked out of the mempool. Are you sure you want to continue?</string>
 </resources>
