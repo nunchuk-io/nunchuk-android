@@ -389,7 +389,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                             startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                         }
                     }
-                    SignerType.AIRGAP -> showSignByAirgapOptions()
+                    SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
                     else -> viewModel.handleSignSoftwareKey(signer)
                 }
             }).bindItems()
