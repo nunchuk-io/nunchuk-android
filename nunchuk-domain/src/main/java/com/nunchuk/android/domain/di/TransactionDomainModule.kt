@@ -45,9 +45,6 @@ internal interface TransactionDomainModule {
     fun bindGetTransactionUseCase(useCase: GetTransactionUseCaseImpl): GetTransactionUseCase
 
     @Binds
-    fun bindImportTransactionUseCase(useCase: ImportTransactionUseCaseImpl): ImportTransactionUseCase
-
-    @Binds
     fun bindExportTransactionHistoryUseCase(useCase: ExportTransactionHistoryUseCaseImpl): ExportTransactionHistoryUseCase
 
     @Binds

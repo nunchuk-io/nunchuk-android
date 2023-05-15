@@ -27,13 +27,11 @@ import androidx.paging.cachedIn
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
-import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.setting.WalletSecuritySetting
@@ -237,18 +235,18 @@ internal class WalletDetailsViewModel @Inject constructor(
         event(SendMoneyEvent(getState().walletExtended))
     }
 
-    private fun showError(event: Error) {
-        WalletDetailsError(event.exception.messageOrUnknownError())
-    }
-
     fun handleImportPSBT(filePath: String) {
         viewModelScope.launch {
-            importTransactionUseCase.execute(args.walletId, filePath).flowOn(IO)
-                .onException { event(WalletDetailsError(it.readableMessage())) }.flowOn(Main)
-                .collect {
-                    event(ImportPSBTSuccess)
-                    getTransactionHistory()
-                }
+            importTransactionUseCase(ImportTransactionUseCase.Param(
+                walletId = args.walletId,
+                filePath = filePath,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+            )).onSuccess {
+                event(ImportPSBTSuccess)
+                getTransactionHistory()
+            }.onFailure {
+                event(WalletDetailsError(it.readableMessage()))
+            }
         }
     }
 

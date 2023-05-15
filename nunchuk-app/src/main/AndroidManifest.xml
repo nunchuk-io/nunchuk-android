@@ -12,6 +12,13 @@
 
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
     <uses-feature
         android:name="android.hardware.nfc"
         android:required="false" />
