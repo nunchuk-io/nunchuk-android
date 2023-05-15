@@ -127,6 +127,21 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     onYesClick = { openSelectFileChooser(requestCode = IMPORT_BIP329_REQ) }
                 )
             }
+
+            SheetOptionType.TYPE_CONFIGURE_GAP_LIMIT -> {
+                showConfigureGapLimitDialog()
+            }
+        }
+    }
+
+    private fun showConfigureGapLimitDialog() {
+        val bottomSheet = ConfigureGapLimitBottomSheetFragment.show(
+            gapLimit = viewModel.walletGapLimit(),
+            fragmentManager = supportFragmentManager
+        )
+
+        bottomSheet.listener = {
+            viewModel.updateGapLimit(it)
         }
     }
 
@@ -208,6 +223,12 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             WalletConfigEvent.ImportTxCoinControlSuccess -> NCToastMessage(this).showMessage(
                 message = getString(
                     R.string.nc_import_completed
+                )
+            )
+
+            WalletConfigEvent.UpdateGapLimitSuccessEvent -> NCToastMessage(this).showMessage(
+                message = getString(
+                    R.string.nc_gap_limit_updated
                 )
             )
         }
@@ -307,12 +328,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 R.drawable.ic_import,
                 R.string.nc_import_labels
             ),
-        )
-        options.add(
             SheetOption(
                 SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
                 R.drawable.ic_cached,
                 R.string.nc_force_refresh
+            ),
+            SheetOption(
+                SheetOptionType.TYPE_CONFIGURE_GAP_LIMIT,
+                R.drawable.ic_gap_limit,
+                R.string.nc_configure_gap_limit
             )
         )
         if (viewModel.isShowDeleteWallet()) {
