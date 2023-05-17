@@ -24,6 +24,7 @@ import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragmentArgs
 import com.nunchuk.android.wallet.databinding.BottomSheetEditTagNameBinding
+import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -77,6 +78,7 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
             source.filterNot { it.isWhitespace() }
         }
         binding.edtName.filters = arrayOf(filter)
+        binding.edtName.setMaxLength(40)
         binding.closeBtn.setOnClickListener {
             cleanUp()
         }
