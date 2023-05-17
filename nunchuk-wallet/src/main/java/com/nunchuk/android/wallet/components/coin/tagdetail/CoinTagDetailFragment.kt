@@ -318,10 +318,12 @@ private fun CoinTagDetailContent(
                                 }
 
                                 Row(
-                                    modifier = Modifier.padding(top = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    modifier = Modifier
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
+                                        modifier = Modifier.weight(1f, fill = false),
                                         text = coinTag.name,
                                         style = NunchukTheme.typography.heading
                                     )
