@@ -69,6 +69,8 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
     @Inject
     lateinit var ncMediaManager: NcMediaManager
 
+    private var handleRoomAction: Boolean = false
+
     private val viewModel: RoomDetailViewModel by activityViewModels()
 
     private val args: RoomDetailFragmentArgs by navArgs()
@@ -511,11 +513,13 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
     }
 
     private fun handleRoomAction(roomAction: RoomAction) {
+        if (handleRoomAction) return
         when (roomAction) {
             RoomAction.SEND -> sendBTCAction()
             RoomAction.RECEIVE -> receiveBTCAction()
             RoomAction.NONE -> Unit
         }
+        handleRoomAction = true
     }
 
     companion object {
