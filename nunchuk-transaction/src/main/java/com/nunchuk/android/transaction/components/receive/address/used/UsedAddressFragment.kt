@@ -28,7 +28,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.transaction.components.receive.TabCountChangeListener
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentArgs
+import com.nunchuk.android.transaction.components.receive.address.AddressTab
 import com.nunchuk.android.transaction.components.receive.address.used.UsedAddressEvent.GetUsedAddressErrorEvent
 import com.nunchuk.android.transaction.databinding.FragmentUsedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -74,6 +76,7 @@ internal class UsedAddressFragment : BaseFragment<FragmentUsedAddressBinding>() 
 
     private fun handleState(state: UsedAddressState) {
         adapter.items = state.addresses
+        (requireActivity() as TabCountChangeListener).onChange(AddressTab.USED, state.addresses.size)
     }
 
     private fun handleEvent(event: UsedAddressEvent) {

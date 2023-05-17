@@ -4,6 +4,14 @@
     <string name="nc_transaction_receive">Receive</string>
     <string name="nc_transaction_unused">Unused address</string>
     <string name="nc_transaction_used">Used address</string>
+    <plurals name="nc_transaction_unused_with_count">
+        <item quantity="one">Unused address (%1$d)</item>
+        <item quantity="other">Unused addresses (%1$d)</item>
+    </plurals>
+    <plurals name="nc_transaction_used_with_count">
+        <item quantity="one">Used address (%1$d)</item>
+        <item quantity="other">Used addresses (%1$d)</item>
+    </plurals>
 
     <string name="nc_address_used_introduction">An address is marked as used as soon as money is deposited into it. For better privacy, reusing addresses is not recommended.</string>
     <string name="nc_address_generate_address">Generate a new address</string>
