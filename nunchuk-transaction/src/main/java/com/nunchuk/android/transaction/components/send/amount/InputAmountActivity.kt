@@ -35,7 +35,6 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
-import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCInfoDialog
@@ -43,8 +42,10 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>() {
@@ -101,7 +102,11 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked }) || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())) {
                 showUnlockCoinBeforeSend()
             } else {
-                openAddReceiptScreen(args.availableAmount, true)
+                lifecycleScope.launch {
+                    showAmount(if(viewModel.getUseBTC()) args.availableAmount else args.availableAmount.fromBTCToCurrency())
+                    delay(200L) // delay here to see the UI update
+                    openAddReceiptScreen(args.availableAmount, true)
+                }
             }
         }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
@@ -119,7 +124,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.mainCurrencyLabel.text = getTextBtcUnit()
 
         val originalTextSize = binding.mainCurrency.textSize
-        binding.tvMainCurrency.doOnPreDraw {
+        binding.mainCurrencyLabel.doOnPreDraw {
             val tvWidth =
                 resources.displayMetrics.widthPixels - resources.getDimensionPixelSize(R.dimen.nc_padding_16) * 3 - it.measuredWidth
             binding.tvMainCurrency.maxWidth = tvWidth
@@ -193,20 +198,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     private fun handleEvent(event: InputAmountEvent) {
         when (event) {
-            is SwapCurrencyEvent -> {
-                binding.mainCurrency.setText(
-                    if (event.amount > 0) {
-                        if (viewModel.getUseBTC()) {
-                            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) event.amount.toAmount().value.formatDecimalWithoutZero() else event.amount.formatDecimal()
-                        } else if (LOCAL_CURRENCY == USD_CURRENCY) {
-                            event.amount.formatDecimal()
-                        } else {
-                            event.amount.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
-                        }
-                    } else ""
-                )
-            }
-
+            is SwapCurrencyEvent -> showAmount(event.amount)
             is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
             InsufficientFundsEvent -> {
                 if (args.inputs.isNotEmpty()) {
@@ -228,6 +220,20 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             is Loading -> showOrHideLoading(event.isLoading)
             InsufficientFundsLockedCoinEvent -> showUnlockCoinBeforeSend()
         }
+    }
+
+    private fun showAmount(amount: Double) {
+        binding.mainCurrency.setText(
+            if (amount > 0) {
+                if (viewModel.getUseBTC()) {
+                    if (CURRENT_DISPLAY_UNIT_TYPE == SAT) amount.toAmount().value.formatDecimalWithoutZero() else amount.formatDecimal()
+                } else if (LOCAL_CURRENCY == USD_CURRENCY) {
+                    amount.formatDecimal()
+                } else {
+                    amount.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
+                }
+            } else ""
+        )
     }
 
     companion object {
