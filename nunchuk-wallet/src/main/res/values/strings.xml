@@ -75,4 +75,5 @@
     <string name="nc_max_data">Max: %1$d</string>
     <string name="nc_gap_limit_error">Gap limit cannot exceed %1$d.</string>
     <string name="nc_gap_limit_updated">Gap limit has been updated</string>
+    <string name="nc_gap_limit">Gap limit</string>
 </resources>

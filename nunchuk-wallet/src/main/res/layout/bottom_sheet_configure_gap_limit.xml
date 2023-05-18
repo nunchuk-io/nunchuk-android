@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_tag_name"
+        android:text="@string/nc_gap_limit"
         app:fontTextStyle="semi_bold" />
 
     <com.nunchuk.android.widget.NCFontTextView
