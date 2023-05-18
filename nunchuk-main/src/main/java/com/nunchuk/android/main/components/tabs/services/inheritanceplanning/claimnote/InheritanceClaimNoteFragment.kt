@@ -289,6 +289,7 @@ private fun InheritanceClaimNoteContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    enabled = balance > 0,
                     onClick = onWithdrawClick,
                 ) {
                     Text(text = stringResource(id = R.string.nc_withdraw_inheritance))
