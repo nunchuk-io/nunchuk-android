@@ -206,7 +206,7 @@ private fun CosigningPolicyContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(title = "")
+                NcTopAppBar(title = "", elevation = 0.dp)
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = stringResource(R.string.nc_cosigning_policies),
@@ -247,7 +247,7 @@ private fun CosigningPolicyContent(
                         ) {
                             Text(
                                 modifier = Modifier.weight(1.0f),
-                                text = "${spendingPolicy.limit.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)} ${spendingPolicy.currencyUnit}/${
+                                text = "${spendingPolicy.limit.formatDecimalWithoutZero(maxFractionDigits = USD_FRACTION_DIGITS)} ${spendingPolicy.currencyUnit}/${
                                     spendingPolicy.timeUnit.name.lowercase()
                                         .capitalize(Locale.current)
                                 }",
