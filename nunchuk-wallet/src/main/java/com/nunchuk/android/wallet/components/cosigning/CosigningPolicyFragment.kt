@@ -27,14 +27,7 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Scaffold
@@ -65,11 +58,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.LOCAL_CURRENCY
-import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
-import com.nunchuk.android.core.util.formatDecimal
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SpendingPolicy
@@ -258,12 +247,6 @@ private fun CosigningPolicyContent(
                         ) {
                             Text(
                                 modifier = Modifier.weight(1.0f),
-                                text = stringResource(R.string.nc_cosigning_spending_limit),
-                                style = NunchukTheme.typography.body
-                            )
-                            Text(
-                                modifier = Modifier.weight(1.0f),
-                                textAlign = TextAlign.End,
                                 text = "${spendingPolicy.limit.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)} ${spendingPolicy.currencyUnit}/${
                                     spendingPolicy.timeUnit.name.lowercase()
                                         .capitalize(Locale.current)
