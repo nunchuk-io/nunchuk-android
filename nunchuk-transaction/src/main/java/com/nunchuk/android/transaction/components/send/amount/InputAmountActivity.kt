@@ -42,10 +42,8 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>() {
@@ -102,11 +100,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked }) || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())) {
                 showUnlockCoinBeforeSend()
             } else {
-                lifecycleScope.launch {
-                    showAmount(if(viewModel.getUseBTC()) args.availableAmount else args.availableAmount.fromBTCToCurrency())
-                    delay(200L) // delay here to see the UI update
-                    openAddReceiptScreen(args.availableAmount, true)
-                }
+                showAmount(if(viewModel.getUseBTC()) args.availableAmount else args.availableAmount.fromBTCToCurrency())
             }
         }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
