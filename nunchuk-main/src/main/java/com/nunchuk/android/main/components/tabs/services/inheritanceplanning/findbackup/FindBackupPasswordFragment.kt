@@ -59,7 +59,6 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class FindBackupPasswordFragment : MembershipFragment() {
     private val viewModel: FindBackupPasswordViewModel by viewModels()
-    private val args: FindBackupPasswordFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -71,10 +70,7 @@ class FindBackupPasswordFragment : MembershipFragment() {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 FindBackupPasswordContent(remainTime) {
                     findNavController().navigate(
-                        FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment(
-                            magicalPhrase = args.magicalPhrase,
-                            walletId = args.walletId
-                        )
+                        FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment()
                     )
                 }
             }

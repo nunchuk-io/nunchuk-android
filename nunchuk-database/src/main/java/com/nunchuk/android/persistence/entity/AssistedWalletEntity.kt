@@ -30,6 +30,8 @@ data class AssistedWalletEntity(
     @PrimaryKey
     @ColumnInfo(name = "local_id")
     val localId: String,
+    @ColumnInfo(name = "group_id", defaultValue = "")
+    val groupId: String = "",
     @ColumnInfo(name = "id", defaultValue = "0")
     val id: Long,
     @ColumnInfo(name = "plan")

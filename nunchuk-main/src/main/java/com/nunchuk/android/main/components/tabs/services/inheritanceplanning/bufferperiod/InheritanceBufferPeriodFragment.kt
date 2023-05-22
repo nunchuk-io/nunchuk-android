@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,6 +56,8 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.model.Period
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -67,6 +70,7 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel: InheritanceBufferPeriodViewModel by viewModels()
+    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
     private val args: InheritanceBufferPeriodFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -76,19 +80,21 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceBufferPeriodScreen(viewModel, args)
+                InheritanceBufferPeriodScreen(viewModel, args, inheritanceViewModel)
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.init(inheritanceViewModel.setupOrReviewParam)
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceBufferPeriodEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is InheritanceBufferPeriodEvent.Error -> showError(message = event.message)
                 is InheritanceBufferPeriodEvent.OnContinueClick -> {
-                    if (args.isUpdateRequest || args.planFlow == InheritancePlanFlow.VIEW) {
+                    inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(bufferPeriod = event.period))
+                    if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                         setFragmentResult(
                             REQUEST_KEY,
                             bundleOf(EXTRA_BUFFER_PERIOD to event.period)
@@ -96,15 +102,7 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
                         findNavController().popBackStack()
                     } else {
                         findNavController().navigate(
-                            InheritanceBufferPeriodFragmentDirections.actionInheritanceBufferPeriodFragmentToInheritanceNotifyPrefFragment(
-                                activationDate = args.activationDate,
-                                verifyToken = args.verifyToken,
-                                note = args.note,
-                                magicalPhrase = args.magicalPhrase,
-                                planFlow = args.planFlow,
-                                bufferPeriod = event.period,
-                                walletId = args.walletId
-                            )
+                            InheritanceBufferPeriodFragmentDirections.actionInheritanceBufferPeriodFragmentToInheritanceNotifyPrefFragment()
                         )
                     }
                 }
@@ -121,14 +119,15 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
 @Composable
 private fun InheritanceBufferPeriodScreen(
     viewModel: InheritanceBufferPeriodViewModel = viewModel(),
-    args: InheritanceBufferPeriodFragmentArgs
+    args: InheritanceBufferPeriodFragmentArgs,
+    inheritanceViewModel: InheritancePlanningViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
 
     InheritanceBufferPeriodContent(
         remainTime = remainTime,
-        planFlow = args.planFlow,
+        planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         options = state.options,
         isUpdateRequest = args.isUpdateRequest,
         onOptionClick = viewModel::onOptionClick,
@@ -238,6 +237,10 @@ private fun OptionItem(
 @Preview
 @Composable
 private fun InheritanceBufferPeriodFragmentContentPreview() {
-    InheritanceBufferPeriodContent()
+    InheritanceBufferPeriodContent(options = listOf(
+        BufferPeriodOption(period = Period(
+            "", "", 3, true, "My Name", true
+        ), false)
+    ))
 }
 

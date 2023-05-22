@@ -23,7 +23,7 @@ import androidx.annotation.Keep
 
 @Keep
 enum class MembershipPlan {
-    NONE, IRON_HAND, HONEY_BADGER
+    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE
 }
 
 fun String?.toMembershipPlan() = when (this) {
@@ -33,6 +33,9 @@ fun String?.toMembershipPlan() = when (this) {
     HONEY_BADGER_PLAN, HONEY_BADGER_PLAN_TESTNET -> {
         MembershipPlan.HONEY_BADGER
     }
+    BYZANTINE_PLAN_TESTNET, BYZANTINE_PLAN_ -> {
+        MembershipPlan.BYZANTINE
+    }
     else -> {
         MembershipPlan.NONE
     }
@@ -41,4 +44,6 @@ fun String?.toMembershipPlan() = when (this) {
 private const val IRON_HAND_PLAN = "iron_hand"
 private const val IRON_HAND_PLAN_TESTNET = "iron_hand_testnet"
 private const val HONEY_BADGER_PLAN_TESTNET = "honey_badger_testnet"
+private const val BYZANTINE_PLAN_TESTNET = "byzantine_testnet"
+private const val BYZANTINE_PLAN_ = "byzantine"
 private const val HONEY_BADGER_PLAN = "honey_badger"

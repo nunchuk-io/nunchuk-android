@@ -26,24 +26,28 @@ interface NfcNavigator {
     fun openSetupMk4(
         activity: Activity,
         fromMembershipFlow: Boolean,
-        action: ColdcardAction = ColdcardAction.CREATE
+        action: ColdcardAction = ColdcardAction.CREATE,
+        groupId: String = ""
     )
 
     fun openSetupTapSigner(
         activity: Activity,
         fromMembershipFlow: Boolean,
+        groupId: String = "",
     )
 
     fun openVerifyBackupTapSigner(
         activity: Activity,
         fromMembershipFlow: Boolean,
         backUpFilePath: String,
-        masterSignerId: String
+        masterSignerId: String,
+        groupId: String = "",
     )
 
     fun openCreateBackUpTapSigner(
         activity: Activity,
         fromMembershipFlow: Boolean,
-        masterSignerId: String
+        masterSignerId: String,
+        groupId: String = "",
     )
 }

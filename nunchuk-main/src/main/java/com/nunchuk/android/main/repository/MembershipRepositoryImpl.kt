@@ -50,8 +50,8 @@ class MembershipRepositoryImpl @Inject constructor(
     applicationScope: CoroutineScope,
 ) : MembershipRepository {
     private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
-    override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
-        return ncDataStore.chain.flatMapLatest { chain -> membershipStepDao.getSteps(accountManager.getAccount().chatId, chain, plan) }
+    override fun getSteps(plan: MembershipPlan, groupId: String): Flow<List<MembershipStepInfo>> {
+        return ncDataStore.chain.flatMapLatest { chain -> membershipStepDao.getSteps(accountManager.getAccount().chatId, chain, plan, groupId) }
             .map {
                 it.map { entity -> entity.toModel() }
             }
@@ -69,7 +69,8 @@ class MembershipRepositoryImpl @Inject constructor(
                     extraJson = info.extraData,
                     keyIdInServer = info.keyIdInServer,
                     plan = info.plan,
-                    chain = chain.value
+                    chain = chain.value,
+                    groupId = info.groupId
                 )
             )
         )
@@ -107,8 +108,8 @@ class MembershipRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun restart(plan: MembershipPlan) {
-        val steps = getSteps(plan).firstOrNull().orEmpty()
+    override suspend fun restart(plan: MembershipPlan, groupId: String) {
+        val steps = getSteps(plan, groupId).firstOrNull().orEmpty()
         steps.filter { it.masterSignerId.isNotEmpty() }.forEach {
             runCatching {
                gson.fromJson(it.extraData, SignerExtra::class.java)

@@ -29,20 +29,23 @@ interface NfcNavigatorDelegate : NfcNavigator {
     override fun openSetupMk4(
         activity: Activity,
         fromMembershipFlow: Boolean,
-        action: ColdcardAction
+        action: ColdcardAction,
+        groupId: String,
     ) {
-        Mk4Activity.navigate(activity, fromMembershipFlow, action)
+        Mk4Activity.navigate(activity, fromMembershipFlow, action, groupId)
     }
 
     override fun openSetupTapSigner(
         activity: Activity,
         fromMembershipFlow: Boolean,
+        groupId: String,
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
                 activity = activity,
                 setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
                 fromMembershipFlow = fromMembershipFlow,
+                groupId = groupId,
             )
         )
     }
@@ -52,6 +55,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
         fromMembershipFlow: Boolean,
         backUpFilePath: String,
         masterSignerId: String,
+        groupId: String,
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -59,7 +63,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 setUpAction = NfcSetupActivity.VERIFY_TAP_SIGNER,
                 fromMembershipFlow = fromMembershipFlow,
                 backUpFilePath = backUpFilePath,
-                masterSignerId = masterSignerId
+                masterSignerId = masterSignerId,
+                groupId = groupId,
             )
         )
     }
@@ -67,14 +72,16 @@ interface NfcNavigatorDelegate : NfcNavigator {
     override fun openCreateBackUpTapSigner(
         activity: Activity,
         fromMembershipFlow: Boolean,
-        masterSignerId: String
+        masterSignerId: String,
+        groupId: String
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
                 activity = activity,
                 setUpAction = NfcSetupActivity.CREATE_BACK_UP_KEY,
                 fromMembershipFlow = fromMembershipFlow,
-                masterSignerId = masterSignerId
+                masterSignerId = masterSignerId,
+                groupId = groupId,
             )
         )
     }

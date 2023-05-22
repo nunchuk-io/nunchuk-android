@@ -48,8 +48,7 @@ class BatchTransactionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
-    private val checkAddressValidUseCase: CheckAddressValidUseCase,
-    private val estimateFeeUseCase: EstimateFeeUseCase,
+    private val checkAddressValidUseCase: CheckAddressValidUseCase
 ) : ViewModel() {
 
     private val args = BatchTransactionFragmentArgs.fromSavedStateHandle(savedStateHandle)

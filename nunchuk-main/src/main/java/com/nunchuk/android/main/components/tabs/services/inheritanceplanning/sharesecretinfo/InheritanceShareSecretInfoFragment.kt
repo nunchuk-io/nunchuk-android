@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,6 +51,7 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -65,6 +67,7 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
     private val args: InheritanceShareSecretInfoFragmentArgs by navArgs()
     private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
+    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -74,8 +77,7 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
             setContent {
                 InheritanceShareSecretInfoScreen(viewModel, args) {
-                    val isOpenFromWizard =
-                        (requireActivity() as? InheritancePlanningActivity)?.isOpenFromWizard.orFalse()
+                    val isOpenFromWizard = inheritanceViewModel.setupOrReviewParam.isOpenFromWizard
                     showDialogInfo(isOpenFromWizard)
                 }
             }

@@ -63,6 +63,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.mk4.Mk4Activity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -73,7 +74,7 @@ class ColdcardRecoverFragment : MembershipFragment() {
 
     private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            viewModel.parseColdcardSigner(uri)
+            viewModel.parseColdcardSigner(uri, (activity as Mk4Activity).groupId)
         }
     }
 

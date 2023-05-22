@@ -51,7 +51,9 @@ data class MembershipStepEntity(
     @ColumnInfo(name = "chain")
     val chain: Chain,
     @ColumnInfo(name = "plan")
-    val plan: MembershipPlan
+    val plan: MembershipPlan,
+    @ColumnInfo(name = "group_id", defaultValue = "")
+    val groupId: String
 )
 
 fun MembershipStepEntity.toModel() = MembershipStepInfo(
@@ -61,5 +63,6 @@ fun MembershipStepEntity.toModel() = MembershipStepInfo(
     verifyType = verifyType,
     keyIdInServer = keyIdInServer,
     extraData = extraJson,
-    plan = plan
+    plan = plan,
+    groupId = groupId
 )

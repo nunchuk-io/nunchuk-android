@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.data.api
 
 import com.nunchuk.android.core.data.model.*
+import com.nunchuk.android.core.data.model.byzantine.*
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.network.Data
@@ -45,6 +46,14 @@ internal interface UserWalletsApi {
         @Body body: KeyPolicyUpdateRequest
     ): Data<CreateServerKeyResponse>
 
+    @PUT("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}")
+    suspend fun updateGroupServerKeys(
+        @HeaderMap headers: Map<String, String>,
+        @Path("key_id_or_xfp") keyId: String,
+        @Path("group_id") groupId: String,
+        @Body body: KeyPolicyUpdateRequest
+    ): Data<CreateServerKeyResponse>
+
     @GET("/v1.1/user-wallets/security-questions")
     suspend fun getSecurityQuestion(): Data<SecurityQuestionDataResponse>
 
@@ -62,8 +71,7 @@ internal interface UserWalletsApi {
 
     @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}")
     suspend fun updateWallet(
-        @Path("wallet_id_or_local_id") walletLocalId: String,
-        @Body payload: UpdateWalletPayload
+        @Path("wallet_id_or_local_id") walletLocalId: String, @Body payload: UpdateWalletPayload
     ): Data<CreateOrUpdateWalletResponse>
 
     @GET("/v1.1/user-wallets/wallets")
@@ -102,18 +110,16 @@ internal interface UserWalletsApi {
     ): Data<TransactionResponse>
 
     @GET("/v1.1/user-wallets/inheritance")
-    suspend fun getInheritance(@Query("wallet") wallet: String): Data<InheritanceResponse>
+    suspend fun getInheritance(@Query("wallet") wallet: String, @Query("groupId") groupId: String? = null): Data<InheritanceResponse>
 
     @POST("/v1.1/user-wallets/inheritance")
     suspend fun createInheritance(
-        @HeaderMap headers: Map<String, String>,
-        @Body payload: CreateUpdateInheritancePlanRequest
+        @HeaderMap headers: Map<String, String>, @Body payload: CreateUpdateInheritancePlanRequest
     ): Data<InheritanceResponse>
 
     @PUT("/v1.1/user-wallets/inheritance")
     suspend fun updateInheritance(
-        @HeaderMap headers: Map<String, String>,
-        @Body payload: CreateUpdateInheritancePlanRequest
+        @HeaderMap headers: Map<String, String>, @Body payload: CreateUpdateInheritancePlanRequest
     ): Data<InheritanceResponse>
 
     @POST("/v1.1/user-wallets/inheritance/calculate-required-signatures")
@@ -140,14 +146,19 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/server-keys/{key_id_or_xfp}/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesUpdateServerKey(
+        @Path("key_id_or_xfp") id: String, @Body payload: CreateServerKeysPayload
+    ): Data<CalculateRequiredSignaturesResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesUpdateGroupServerKey(
+        @Path("group_id") groupId: String,
         @Path("key_id_or_xfp") id: String,
         @Body payload: CreateServerKeysPayload
     ): Data<CalculateRequiredSignaturesResponse>
 
     @PUT("/v1.1/user-wallets/security-questions/update")
     suspend fun securityQuestionsUpdate(
-        @HeaderMap headers: Map<String, String>,
-        @Body payload: SecurityQuestionsUpdateRequest
+        @HeaderMap headers: Map<String, String>, @Body payload: SecurityQuestionsUpdateRequest
     )
 
     @GET("/v1.1/user-wallets/nonce")
@@ -178,8 +189,7 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/lockdown/lock")
     suspend fun lockdownUpdate(
-        @HeaderMap headers: Map<String, String>,
-        @Body payload: LockdownUpdateRequest
+        @HeaderMap headers: Map<String, String>, @Body payload: LockdownUpdateRequest
     )
 
     @POST("/v1.1/user-wallets/lockdown/calculate-required-signatures")
@@ -199,14 +209,12 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/user-keys/{key_id}/verify")
     suspend fun setKeyVerified(
-        @Path("key_id") keyId: String,
-        @Body payload: KeyVerifiedRequest
+        @Path("key_id") keyId: String, @Body payload: KeyVerifiedRequest
     ): Data<Unit>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/status")
     suspend fun inheritanceClaimingStatus(
-        @HeaderMap headers: Map<String, String>,
-        @Body payload: InheritanceClaimStatusRequest
+        @HeaderMap headers: Map<String, String>, @Body payload: InheritanceClaimStatusRequest
     ): Data<InheritanceClaimStatusResponse>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/download-backup")
@@ -232,8 +240,7 @@ internal interface UserWalletsApi {
 
     @HTTP(method = "DELETE", path = "/v1.1/user-wallets/inheritance", hasBody = true)
     suspend fun inheritanceCancel(
-        @HeaderMap headers: Map<String, String>,
-        @Body payload: InheritanceCancelRequest
+        @HeaderMap headers: Map<String, String>, @Body payload: InheritanceCancelRequest
     ): Data<TransactionResponse>
 
     @POST("/v1.1/user-wallets/inheritance/check")
@@ -243,8 +250,7 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=PENDING_SIGNATURES,READY_TO_BROADCAST&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
     suspend fun getTransactionsToSync(
-        @Path("wallet_id_or_local_id") walletId: String,
-        @Query("offset") offset: Int
+        @Path("wallet_id_or_local_id") walletId: String, @Query("offset") offset: Int
     ): Data<TransactionsResponse>
 
     @GET("/v1.1/user-wallets/inheritance/buffer-period")
@@ -255,7 +261,11 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String
     ): Data<CalculateRequiredSignaturesResponse>
 
-    @HTTP(method = "DELETE", path = "/v1.1/user-wallets/wallets/{wallet_id_or_local_id}", hasBody = true)
+    @HTTP(
+        method = "DELETE",
+        path = "/v1.1/user-wallets/wallets/{wallet_id_or_local_id}",
+        hasBody = true
+    )
     suspend fun deleteAssistedWallet(
         @Path("wallet_id_or_local_id") walletId: String,
         @HeaderMap headers: Map<String, String>,
@@ -265,16 +275,17 @@ internal interface UserWalletsApi {
     @GET("/v1.1/user-wallets/configs")
     suspend fun getAssistedWalletConfig(): Data<AssistedWalletConfigResponse>
 
+    @GET("/v1.1/group-wallets/configs")
+    suspend fun getGroupAssistedWalletConfig(): Data<GroupAssistedWalletConfigResponse>
+
     @PUT("/v1.1/user-wallets/wallet-keys/{xfp}")
     suspend fun updateKeyName(
-        @Path("xfp") xfp: String,
-        @Body payload: UpdateKeyPayload
+        @Path("xfp") xfp: String, @Body payload: UpdateKeyPayload
     ): Data<Unit>
 
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/coin-control")
     suspend fun uploadCoinControlData(
-        @Path("wallet_id_or_local_id") walletId: String,
-        @Body payload: CoinDataContent
+        @Path("wallet_id_or_local_id") walletId: String, @Body payload: CoinDataContent
     ): Data<Unit>
 
     @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/coin-control")
@@ -284,8 +295,7 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
     suspend fun getTransactionsToDelete(
-        @Path("wallet_id_or_local_id") walletId: String,
-        @Query("offset") offset: Int
+        @Path("wallet_id_or_local_id") walletId: String, @Query("offset") offset: Int
     ): Data<TransactionsResponse>
 
     @POST("/v1.1/user-wallets/draft-wallets/request-add-key")
@@ -309,5 +319,78 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}/push")
     suspend fun pushRequestAddKey(
         @Path("request_id") requestId: String,
+    ): Data<Unit>
+
+    @GET("/v1.1/group-wallets/permissions/default")
+    suspend fun getPermissionGroupWallet(): Data<PermissionResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/add-key")
+    suspend fun addKeyToServer(
+        @Path("group_id") groupId: String,
+        @Body payload: SignerServerDto
+    ): Data<SignerServerDto>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/server-keys")
+    suspend fun createGroupServerKey(
+        @Path("group_id") groupId: String, @Body payload: CreateServerKeysPayload
+    ): Data<CreateServerKeyResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/set-server-key")
+    suspend fun setGroupServerKey(
+        @Path("group_id") groupId: String, @Body payload: Map<String, String>
+    ): Data<CreateServerKeyResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}")
+    suspend fun getGroupServerKey(
+        @Path("group_id") groupId: String, @Path("key_id_or_xfp") id: String,
+    ): Data<CreateServerKeyResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")
+    suspend fun getDraftWallet(@Path("group_id") groupId: String): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")
+    suspend fun deleteDraftWallet(@Path("group_id") groupId: String)
+
+    @POST("/v1.1/group-wallets/groups")
+    suspend fun createGroupWallet(@Body payload: CreateGroupWalletRequest): Data<GroupWalletDataResponse>
+
+    @GET("/v1.1/group-wallets/configs/wallet-constraints")
+    suspend fun getGroupWalletsConstraints(): Data<WalletConstraintsDataResponse>
+
+    @GET("/v1.1/group-wallets/groups")
+    suspend fun getGroupWallets(): Data<GetGroupWalletsResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}")
+    suspend fun getGroupWalletById(@Path("group_id") groupId: String): Data<GroupWalletDataResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/members/calculate-requires-signatures")
+    suspend fun calculateRequiredSignaturesEditMember(
+        @Path("group_id") groupId: String,
+        @Body payload: EditGroupMemberRequest.Body
+    ): Data<CalculateRequiredSignaturesResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/members")
+    suspend fun editGroupMember(
+        @Path("group_id") groupId: String,
+        @HeaderMap headers: Map<String, String>, @Body payload: EditGroupMemberRequest
+    ): Data<GroupWalletDataResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/create-from-draft")
+    suspend fun createGroupWallet(
+        @Path("group_id") groupId: String,
+        @Body payload: Map<String, String>
+    ): Data<CreateOrUpdateWalletResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/current")
+    suspend fun getGroupWallet(@Path("group_id") groupId: String): Data<CreateOrUpdateWalletResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/members/accept")
+    suspend fun groupMemberAcceptRequest(
+        @Path("group_id") groupId: String,
+    ): Data<Unit>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/members/deny")
+    suspend fun groupMemberDenyRequest(
+        @Path("group_id") groupId: String,
     ): Data<Unit>
 }

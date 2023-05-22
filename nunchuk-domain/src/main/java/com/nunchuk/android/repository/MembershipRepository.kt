@@ -25,11 +25,11 @@ import com.nunchuk.android.model.MembershipStepInfo
 import kotlinx.coroutines.flow.Flow
 
 interface MembershipRepository {
-    fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>>
+    fun getSteps(plan: MembershipPlan, groupId: String): Flow<List<MembershipStepInfo>>
     suspend fun saveStepInfo(info: MembershipStepInfo)
     suspend fun deleteStepBySignerId(masterSignerId: String)
     suspend fun getSubscription() : MemberSubscription
-    suspend fun restart(plan: MembershipPlan)
+    suspend fun restart(plan: MembershipPlan, groupId: String)
     fun getLocalCurrentPlan(): Flow<MembershipPlan>
     fun isHideUpsellBanner(): Flow<Boolean>
     suspend fun setRegisterColdcard(walletId: String, value: Boolean)

@@ -71,7 +71,10 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         nfcViewModel.updateMasterSigner(args.masterSignerId)
-        viewModel.init((requireActivity() as NfcSetupActivity).isAddNewSigner)
+        viewModel.init(
+            isAddNewKey = (requireActivity() as NfcSetupActivity).isAddNewSigner,
+            groupId = (requireActivity() as NfcSetupActivity).groupId
+        )
     }
 
     override fun onCreateView(
@@ -101,6 +104,7 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
                             .setPopUpTo(findNavController().graph.startDestinationId, true).build()
                     )
                 }
+
                 is UploadBackUpTapSignerEvent.ShowError -> showError(it.message)
                 is UploadBackUpTapSignerEvent.KeyVerified -> {
                     NcToastManager.scheduleShowMessage(it.message)

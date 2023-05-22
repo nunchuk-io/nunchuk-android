@@ -235,13 +235,23 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun openServerKeyDetail(event: WalletConfigEvent.VerifyPasswordSuccess) {
-        CosigningPolicyActivity.start(
-            activity = this,
-            keyPolicy = args.keyPolicy,
-            xfp = event.xfp,
-            token = event.token,
-            walletId = args.walletId,
-        )
+        if (!event.groupId.isNullOrEmpty()) {
+            CosigningPolicyActivity.start(
+                activity = this,
+                xfp = event.xfp,
+                token = event.token,
+                walletId = args.walletId,
+                groupId = event.groupId,
+            )
+        } else {
+            CosigningPolicyActivity.start(
+                activity = this,
+                keyPolicy = args.keyPolicy,
+                xfp = event.xfp,
+                token = event.token,
+                walletId = args.walletId,
+            )
+        }
     }
 
     private fun onGetWalletError(event: WalletConfigEvent.WalletDetailsError) {

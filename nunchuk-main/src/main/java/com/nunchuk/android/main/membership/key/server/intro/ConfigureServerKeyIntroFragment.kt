@@ -49,6 +49,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -82,6 +83,20 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
                 MembershipPlan.HONEY_BADGER -> findNavController().navigate(
                     ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
                 )
+                MembershipPlan.BYZANTINE -> {
+                    val groupId = (requireActivity() as ConfigServerKeyActivity).groupId
+                    if (groupId.isNotEmpty()) {
+                        findNavController().navigate(
+                            ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigByzantineSpendingLimitFragment(
+                                (requireActivity() as ConfigServerKeyActivity).groupId
+                            )
+                        )
+                    } else {
+                        findNavController().navigate(
+                            ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
+                        )
+                    }
+                }
                 MembershipPlan.NONE -> Unit
             }
         }

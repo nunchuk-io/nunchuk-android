@@ -48,5 +48,6 @@ enum class VerifiedPasswordTargetAction {
     UPDATE_INHERITANCE_PLAN,
     UPDATE_SERVER_KEY,
     DELETE_WALLET,
-    PROTECT_WALLET
+    PROTECT_WALLET,
+    EDIT_GROUP_MEMBERS
 }

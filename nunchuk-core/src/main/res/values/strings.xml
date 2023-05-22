@@ -246,7 +246,7 @@
     <string name="nc_create_wallet_success_desc">For best security, please keep your keys stored in physically distributed locations.</string>
     <string name="nc_create_my_own_question">Create my own question</string>
     <string name="nc_cosigning_policies">Platform key co-signing policies</string>
-    <string name="nc_co_signing_delay">Co-signing delay</string>
+    <string name="nc_co_signing_delay">Broadcast and delay</string>
     <string name="nc_edit">Edit</string>
     <string name="nc_automation_broadcast_transaction">Automatically broadcast transaction after co-signing</string>
     <string name="nc_on">On</string>
@@ -656,4 +656,6 @@
     <string name="nc_add_recipient">Add recipient</string>
     <string name="nc_address">Address</string>
     <string name="nc_use_desktop_app_to_sign">Please use the desktop app to sign with this key</string>
+    <string name="nc_master">Master</string>
+    <string name="nc_member">Member</string>
 </resources>

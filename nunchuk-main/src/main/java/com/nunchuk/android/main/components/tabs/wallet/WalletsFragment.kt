@@ -27,6 +27,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -34,6 +39,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
@@ -41,15 +47,34 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.WalletsViewBinder
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GoToSatsCardScreen
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.Loading
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NeedSetupSatsCard
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPassphraseSuccess
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.WalletEmptySignerEvent
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
+import com.nunchuk.android.main.membership.byzantine.views.PendingWalletView
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
@@ -129,7 +154,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             navigator.openMembershipActivity(
                 activityContext = requireActivity(),
                 groupStep = walletsViewModel.getGroupStage(),
-                walletId = walletsViewModel.getAssistedWalletId()
+                walletId = walletsViewModel.getAssistedWalletId(),
             )
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {
@@ -217,6 +242,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     showError(event.e?.message.orUnknownError())
                 }
             }
+
             is GetTapSignerStatusSuccess -> requireActivity().handleTapSignerStatus(
                 event.status,
                 onCreateSigner = {
@@ -232,6 +258,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     )
                 }
             )
+
             is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
             is NeedSetupSatsCard -> handleNeedSetupSatsCard(event)
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
@@ -244,6 +271,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     showError(message = getString(R.string.nc_incorrect_current_pin))
                 }
             }
+
             is VerifyPasswordSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
             is VerifyPassphraseSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
             None -> {}
@@ -339,15 +367,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showWalletState(state: WalletsState) {
-        val wallets = state.wallets
-        showWallets(
-            wallets,
-            state.assistedWallets.map { it.localId }.toSet(),
-            state.walletSecuritySetting.hideWalletDetail
-        )
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
+        showPendingWallet(state.groupWalletUis)
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
@@ -369,6 +392,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     )
                 )
             }
+
             ConnectionStatus.SYNCING -> {
                 binding.tvConnectionStatus.text = getString(
                     R.string.nc_text_home_wallet_connection,
@@ -385,6 +409,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     )
                 )
             }
+
             ConnectionStatus.ONLINE -> {
                 binding.tvConnectionStatus.text = getString(
                     R.string.nc_text_home_wallet_connection,
@@ -401,6 +426,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     )
                 )
             }
+
             else -> {}
         }
     }
@@ -442,37 +468,48 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showWallets(
-        wallets: List<WalletExtended>,
-        assistedWalletId: Set<String>,
-        hideWalletDetail: Boolean
-    ) {
-        if (wallets.isEmpty()) {
-            showWalletsEmptyView()
-        } else {
-            showWalletsListView(wallets, assistedWalletId, hideWalletDetail)
+    private fun showPendingWallet(groupWalletUis: List<GroupWalletUi>) {
+        binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
+        binding.walletList.isVisible = groupWalletUis.isNotEmpty()
+        binding.pendingWallet.setContent {
+            NunchukTheme(false) {
+                Column {
+                    groupWalletUis.forEach {
+                        PendingWalletView(
+                            group = it.group,
+                            walletsExtended = it.wallet,
+                            inviterName = it.inviterName,
+                            isGroupMasterOrAdmin = it.isGroupMasterOrAdmin,
+                            isAssistedWallet = it.isAssistedWallet,
+                            onAccept = {
+                                it.group?.id?.let {
+                                    walletsViewModel.acceptInviteMember(it)
+                                }
+                            },
+                            onDeny = {
+                                it.group?.id?.let {
+                                    walletsViewModel.denyInviteMember(it)
+                                }
+                            },
+                            onGroupClick = {
+                                if (it.isGroupMasterOrAdmin && it.group?.id != null) {
+                                    navigator.openGroupDashboardScreen(
+                                        groupId = it.group.id,
+                                        activityContext = requireActivity()
+                                    )
+                                }
+                            },
+                            onWalletClick = {
+                                it.wallet?.wallet?.id?.let {
+                                    checkWalletSecurity(it)
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
         }
-    }
-
-    private fun showWalletsEmptyView() {
-        binding.walletEmpty.isVisible = true
-        binding.walletList.isVisible = false
-    }
-
-    private fun showWalletsListView(
-        wallets: List<WalletExtended>,
-        assistedWalletIds: Set<String>,
-        hideWalletDetail: Boolean
-    ) {
-        binding.walletEmpty.isVisible = false
-        binding.walletList.isVisible = true
-        WalletsViewBinder(
-            container = binding.walletList,
-            wallets = wallets,
-            assistedWalletIds = assistedWalletIds,
-            hideWalletDetail = hideWalletDetail,
-            callback = ::checkWalletSecurity
-        ).bindItems()
     }
 
     private fun checkWalletSecurity(walletId: String) {

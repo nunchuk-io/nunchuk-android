@@ -36,6 +36,7 @@ import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -51,6 +52,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val importWalletFromMk4UseCase: ImportWalletFromMk4UseCase,
     private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
     private val createWallet2UseCase: CreateWallet2UseCase,
+    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -75,7 +77,7 @@ class Mk4IntroViewModel @Inject constructor(
     val mk4Signers: List<SingleSigner>
         get() = _mk4Signers
 
-    fun getMk4Signer(records: List<NdefRecord>) {
+    fun getMk4Signer(records: List<NdefRecord>, groupId: String) {
         viewModelScope.launch {
             _event.emit(Mk4IntroViewEvent.Loading(true))
             val result = getMk4SingersUseCase(records.toTypedArray())
@@ -114,9 +116,20 @@ class Mk4IntroViewModel @Inject constructor(
                                         isAddNew = true,
                                         signerType = coldcardSigner.type
                                     )
-                                )
+                                ),
+                                groupId = groupId
                             )
                         )
+                        if (groupId.isNotEmpty()) {
+                            syncKeyToGroupUseCase(
+                                SyncKeyToGroupUseCase.Param(
+                                    step = membershipStepManager.currentStep
+                                        ?: throw IllegalArgumentException("Current step empty"),
+                                    groupId = groupId,
+                                    signer = coldcardSigner
+                                )
+                            )
+                        }
                         _event.emit(Mk4IntroViewEvent.OnCreateSignerSuccess)
                     } else {
                         _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
@@ -194,4 +207,4 @@ class Mk4IntroViewModel @Inject constructor(
     }
 }
 
-data class Mk4IntroState(val wallets: List<Wallet> = emptyList(),)
+data class Mk4IntroState(val wallets: List<Wallet> = emptyList())

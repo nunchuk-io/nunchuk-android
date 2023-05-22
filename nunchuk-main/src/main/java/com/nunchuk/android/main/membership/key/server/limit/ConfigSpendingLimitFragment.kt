@@ -27,18 +27,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -47,11 +36,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -69,19 +54,11 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcHintMessage
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTextField
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.util.ClickAbleText
-import com.nunchuk.android.core.util.LOCAL_CURRENCY
-import com.nunchuk.android.core.util.fixAfterDecimal
-import com.nunchuk.android.core.util.formatRoundDecimal
-import com.nunchuk.android.core.util.roundDecimal
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingTimeUnit
@@ -274,7 +251,7 @@ private fun ConfigSpendingLimitContent(
                         title = "",
                         value = spendingLimit.value,
                         onValueChange = {
-                            spendingLimit.value = it.fixAfterDecimal().take(15)
+                            spendingLimit.value = CurrencyFormatter.format(it, 2).take(15)
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )

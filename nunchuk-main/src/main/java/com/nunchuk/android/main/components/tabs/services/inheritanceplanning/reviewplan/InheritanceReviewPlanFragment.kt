@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,6 +64,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.InheritanceBufferPeriodFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
@@ -86,7 +88,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     lateinit var navigator: NunchukNavigator
 
     private val viewModel: InheritanceReviewPlanViewModel by viewModels()
-    private val args: InheritanceReviewPlanFragmentArgs by navArgs()
+    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -108,33 +110,22 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceReviewPlanScreen(viewModel, args, onEditActivationDateClick = {
+                InheritanceReviewPlanScreen(viewModel, inheritanceViewModel, onEditActivationDateClick = {
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceActivationDateFragment(
                             isUpdateRequest = true,
-                            selectedActivationDate = it,
-                            planFlow = args.planFlow,
-                            walletId = args.walletId,
                         )
                     )
                 }, onEditNoteClick = {
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNoteFragment(
                             isUpdateRequest = true,
-                            preNoted = it,
-                            planFlow = args.planFlow,
-                            walletId = args.walletId,
                         )
                     )
                 }, onNotifyPrefClick = { isNotify, emails ->
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNotifyPrefFragment(
                             isUpdateRequest = true,
-                            preIsNotify = isNotify,
-                            preEmails = emails.toTypedArray(),
-                            planFlow = args.planFlow,
-                            bufferPeriod = args.bufferPeriod,
-                            walletId = args.walletId
                         )
                     )
                 }, onDiscardChange = {
@@ -142,13 +133,13 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                 }, onShareSecretClicked = {
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
-                            magicalPhrase = args.magicalPhrase,
-                            planFlow = args.planFlow,
-                            walletId = args.walletId
+                            magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
+                            planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
+                            walletId = inheritanceViewModel.setupOrReviewParam.walletId
                         )
                     )
                 }, onActionTopBarClick = {
-                    if (args.planFlow == InheritancePlanFlow.VIEW) {
+                    if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                         showActionOptions()
                     }
                 }, onViewClaimingInstruction = {
@@ -159,9 +150,6 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBufferPeriodFragment(
                             isUpdateRequest = true,
-                            preBufferPeriod = it,
-                            planFlow = args.planFlow,
-                            walletId = args.walletId,
                         )
                     )
                 })
@@ -181,6 +169,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.init(inheritanceViewModel.setupOrReviewParam)
         setFragmentResultListener(InheritanceActivationDateFragment.REQUEST_KEY) { _, bundle ->
             val date = bundle.getLong(InheritanceActivationDateFragment.EXTRA_ACTIVATION_DATE)
             viewModel.updateActivationDate(date)
@@ -212,15 +201,15 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     )
                 }
                 is InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess -> {
-                    if (args.planFlow == InheritancePlanFlow.SETUP) {
+                    if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.SETUP) {
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
-                                magicalPhrase = args.magicalPhrase,
-                                planFlow = args.planFlow,
-                                walletId = args.walletId
+                                magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
+                                planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
+                                walletId = inheritanceViewModel.setupOrReviewParam.walletId
                             )
                         )
-                    } else if (args.planFlow == InheritancePlanFlow.VIEW) {
+                    } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                         NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_updated_notify))
                         handleResult()
                     }
@@ -260,7 +249,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     private fun handleResult() {
         requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
             putExtra(GlobalResultKey.UPDATE_INHERITANCE, viewModel.isDataChanged())
-            putExtra(GlobalResultKey.WALLET_ID, args.walletId)
+            putExtra(GlobalResultKey.WALLET_ID, inheritanceViewModel.setupOrReviewParam.walletId)
         })
         requireActivity().finish()
     }
@@ -269,7 +258,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
 @Composable
 fun InheritanceReviewPlanScreen(
     viewModel: InheritanceReviewPlanViewModel = viewModel(),
-    args: InheritanceReviewPlanFragmentArgs,
+    inheritanceViewModel: InheritancePlanningViewModel,
     onEditActivationDateClick: (date: Long) -> Unit,
     onEditNoteClick: (note: String) -> Unit,
     onNotifyPrefClick: (isNotifyToday: Boolean, emails: List<String>) -> Unit,
@@ -286,9 +275,9 @@ fun InheritanceReviewPlanScreen(
         remainTime = remainTime,
         note = state.note,
         emails = state.emails,
-        planFlow = args.planFlow,
+        planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         isNotifyToday = state.isNotifyToday,
-        magicalPhrase = args.magicalPhrase,
+        magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
         activationDate = state.activationDate,
         walletName = state.walletName.orEmpty(),
         bufferPeriod = state.bufferPeriod,

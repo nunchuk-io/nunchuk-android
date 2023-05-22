@@ -43,6 +43,9 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
+import com.nunchuk.android.model.*
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
@@ -66,11 +69,11 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.usecase.GetCompoundSignersUseCase
-import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
-import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
-import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
+import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
+import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
@@ -119,6 +122,10 @@ internal class WalletsViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
+    private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
+    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val groupMemberAcceptRequestUseCase: GroupMemberAcceptRequestUseCase,
+    private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
@@ -193,6 +200,7 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         getAppSettings()
+        getGroupWallet()
     }
 
     fun reloadMembership() {
@@ -208,7 +216,12 @@ internal class WalletsViewModel @Inject constructor(
         supervisorScope {
             honeyWalletsUnSetupInheritance.map {
                 async {
-                    getInheritanceUseCase(it.localId)
+                    getInheritanceUseCase(
+                        GetInheritanceUseCase.Param(
+                            it.localId,
+                            groupId = it.groupId
+                        )
+                    )
                 }
             }.awaitAll()
         }
@@ -226,7 +239,13 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
+                if (subscription.plan == MembershipPlan.BYZANTINE) {
+                    syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                        if (shouldReload) retrieveData()
+                    }
+                }
                 updateState { copy(plan = subscription.plan) }
+                mapGroupWalletUi()
             } else {
                 updateState { copy(plan = MembershipPlan.NONE) }
             }
@@ -235,6 +254,16 @@ internal class WalletsViewModel @Inject constructor(
                 updateState {
                     copy(banner = bannerResult.getOrNull())
                 }
+            }
+        }
+    }
+
+    private fun getGroupWallet() = viewModelScope.launch {
+        val result = getGroupWalletsUseCase(Unit)
+        if (result.isSuccess) {
+            val allGroups = result.getOrThrow()
+            updateState {
+                copy(allGroups = allGroups)
             }
         }
     }
@@ -277,7 +306,51 @@ internal class WalletsViewModel @Inject constructor(
                             signers = signers, wallets = wallets
                         )
                     }
+                    mapGroupWalletUi()
                 }
+        }
+    }
+
+    private fun mapGroupWalletUi() {
+        viewModelScope.launch {
+            val results = arrayListOf<GroupWalletUi>()
+            val wallets = getState().wallets
+            val groups = getState().allGroups
+            val assistedWallets = getState().assistedWallets
+            val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()
+            val pendingGroup = groups.filter { it.isPendingWallet() }
+            wallets.forEach { wallet ->
+                var groupWalletUi = GroupWalletUi(wallet = wallet, isAssistedWallet = wallet.wallet.id in assistedWalletIds)
+                val group = groups.firstOrNull { it.id in assistedWalletIds }
+                if (group != null) {
+                    val isGroupMasterOrAdmin = isGroupMasterOrAdmin(group)
+                    var inviterName = ""
+                    if (isGroupMasterOrAdmin.not()) {
+                        inviterName = getInviterName(group)
+                    }
+                    groupWalletUi = groupWalletUi.copy(
+                        group = group,
+                        isGroupMasterOrAdmin = isGroupMasterOrAdmin,
+                        inviterName = inviterName
+                    )
+                }
+                results.add(groupWalletUi)
+            }
+            pendingGroup.forEach { group ->
+                var groupWalletUi = GroupWalletUi(group = group)
+                val isGroupMasterOrAdmin = isGroupMasterOrAdmin(group)
+                var inviterName = ""
+                if (isGroupMasterOrAdmin.not()) {
+                    inviterName = getInviterName(group)
+                }
+                groupWalletUi = groupWalletUi.copy(
+                    group = group,
+                    isGroupMasterOrAdmin = isGroupMasterOrAdmin,
+                    inviterName = inviterName
+                )
+                results.add(groupWalletUi)
+            }
+            updateState { copy(groupWalletUis = results) }
         }
     }
 
@@ -364,6 +437,11 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
 
+            MembershipPlan.BYZANTINE -> {
+                val allGroups = getState().allGroups
+                return if (allGroups.isEmpty()) MembershipStage.NONE else MembershipStage.DONE
+            }
+
             else -> return MembershipStage.DONE // no subscription plan it means done
         }
     }
@@ -412,9 +490,60 @@ internal class WalletsViewModel @Inject constructor(
         }
         val result = verifiedPKeyTokenUseCase(passphrase)
         if (result.isSuccess) {
-            event(WalletsEvent.VerifyPassphraseSuccess(walletId))
+            event(VerifyPassphraseSuccess(walletId))
         } else {
             event(ShowErrorEvent(result.exceptionOrNull()))
         }
+    }
+
+    private fun isMatchingEmailOrUserName(emailOrUsername: String) =
+        emailOrUsername == accountManager.getAccount().email
+                || emailOrUsername == accountManager.getAccount().username
+
+    private fun isGroupMasterOrAdmin(group: ByzantineGroup): Boolean {
+        val masterOrAdminName = group.members.firstOrNull {
+            it.role == AssistedWalletRole.MASTER.name || it.role == AssistedWalletRole.ADMIN.name
+        }?.emailOrUsername
+        return getState().plan == MembershipPlan.BYZANTINE && isMatchingEmailOrUserName(
+            masterOrAdminName.orEmpty()
+        )
+    }
+
+    private fun getInviterName(group: ByzantineGroup): String {
+        val invitee =
+            group.members.firstOrNull {
+                it.isPendingRequest() && isMatchingEmailOrUserName(it.emailOrUsername)
+            } ?: return ""
+        val inviter = group.members.firstOrNull { it.user?.id == invitee.inviterUserId }
+        return inviter?.user?.name.orEmpty()
+    }
+
+    fun acceptInviteMember(groupId: String) = viewModelScope.launch {
+        val result = groupMemberAcceptRequestUseCase(groupId)
+        if (result.isSuccess) {
+            removePendingInviteMember(groupId)
+        } else {
+            event(ShowErrorEvent(result.exceptionOrNull()))
+        }
+    }
+
+    fun denyInviteMember(groupId: String) = viewModelScope.launch {
+        val result = groupMemberDenyRequestUseCase(groupId)
+        if (result.isSuccess) {
+            removePendingInviteMember(groupId)
+        } else {
+            event(ShowErrorEvent(result.exceptionOrNull()))
+        }
+    }
+
+    private fun removePendingInviteMember(groupId: String) {
+        val results = getState().groupWalletUis.map {
+            if (it.group != null && it.group.id == groupId) {
+                it.copy(inviterName = "")
+            } else {
+                it
+            }
+        }
+        updateState { copy(groupWalletUis = results) }
     }
 }

@@ -66,14 +66,17 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     val action : ColdcardAction by lazy(LazyThreadSafetyMode.NONE) {
         intent.serializable(EXTRA_ACTION)!!
     }
+    val groupId : String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
     companion object {
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
         private const val EXTRA_ACTION = "action"
-        fun navigate(activity: Activity, isMembershipFlow: Boolean, action: ColdcardAction) {
+        private const val EXTRA_GROUP_ID = "group_id"
+        fun navigate(activity: Activity, isMembershipFlow: Boolean, action: ColdcardAction, groupId: String) {
             activity.startActivity(Intent(activity, Mk4Activity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
                 putExtra(EXTRA_ACTION, action)
+                putExtra(EXTRA_GROUP_ID, groupId)
             })
         }
     }

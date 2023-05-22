@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseC
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
@@ -43,7 +44,15 @@ import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -61,6 +70,7 @@ class ServicesTabViewModel @Inject constructor(
     private val getAssistedWalletPageContentUseCase: GetAssistedWalletPageContentUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val submitEmailUseCase: SubmitEmailUseCase,
+    private val assistedWalletManager: AssistedWalletManager
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -86,7 +96,10 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
-    private fun handleAssistedWallet(assistedWallets: List<AssistedWalletBrief>, plan: MembershipPlan) {
+    private fun handleAssistedWallet(
+        assistedWallets: List<AssistedWalletBrief>,
+        plan: MembershipPlan
+    ) {
         if (plan == MembershipPlan.NONE) {
             getNonSubscriberPageContent()
         } else {
@@ -109,8 +122,8 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getRowItems() = _state.value.initRowItems()
 
-    fun getInheritance(walletId: String, token: String) = viewModelScope.launch {
-        getInheritanceUseCase(walletId).onSuccess {
+    fun getInheritance(walletId: String, token: String, groupId: String?) = viewModelScope.launch {
+        getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId)).onSuccess {
             _event.emit(ServicesTabEvent.GetInheritanceSuccess(walletId, it, token))
         }.onFailure {
             _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
@@ -132,24 +145,20 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
-    fun confirmPassword(walletId: String, password: String, item: ServiceTabRowItem) = viewModelScope.launch {
+    fun confirmPassword(
+        walletId: String,
+        password: String,
+        item: ServiceTabRowItem
+    ) = viewModelScope.launch {
         if (password.isBlank()) {
             return@launch
         }
         _event.emit(ServicesTabEvent.Loading(true))
         val targetAction = when (item) {
-            is ServiceTabRowItem.EmergencyLockdown -> {
-                VerifiedPasswordTargetAction.EMERGENCY_LOCKDOWN.name
-            }
-            is ServiceTabRowItem.CoSigningPolicies -> {
-                VerifiedPasswordTargetAction.UPDATE_SERVER_KEY.name
-            }
-            is ServiceTabRowItem.ViewInheritancePlan -> {
-                VerifiedPasswordTargetAction.UPDATE_INHERITANCE_PLAN.name
-            }
-            else -> {
-                throw IllegalArgumentException()
-            }
+            is ServiceTabRowItem.EmergencyLockdown -> VerifiedPasswordTargetAction.EMERGENCY_LOCKDOWN.name
+            is ServiceTabRowItem.CoSigningPolicies -> VerifiedPasswordTargetAction.UPDATE_SERVER_KEY.name
+            is ServiceTabRowItem.ViewInheritancePlan -> VerifiedPasswordTargetAction.UPDATE_INHERITANCE_PLAN.name
+            else -> throw IllegalArgumentException()
         }
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
@@ -161,9 +170,10 @@ class ServicesTabViewModel @Inject constructor(
         if (result.isSuccess) {
             _event.emit(
                 ServicesTabEvent.CheckPasswordSuccess(
-                    result.getOrThrow().orEmpty(),
-                    walletId,
-                    item
+                    token = result.getOrThrow().orEmpty(),
+                    walletId = walletId,
+                    item = item,
+                    groupId = assistedWalletManager.getGroupId(walletId)
                 )
             )
         } else {
@@ -228,6 +238,13 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
+    fun openSetupInheritancePlan(walletId: String) {
+        viewModelScope.launch {
+            val groupId = assistedWalletManager.getGroupId(walletId)
+            _event.emit(ServicesTabEvent.OpenSetupInheritancePlan(walletId, groupId))
+        }
+    }
+
     fun submitEmail(email: String) {
         viewModelScope.launch {
             if (EmailValidator.valid(email).not()) {
@@ -255,7 +272,7 @@ class ServicesTabViewModel @Inject constructor(
     fun getUnSetupInheritanceWallets() =
         state.value.assistedWallets.filter { it.isSetupInheritance.not() }
 
-    fun getWallet(ignoreSetupInheritance: Boolean = true) : List<AssistedWalletBrief> {
+    fun getWallet(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
         if (ignoreSetupInheritance.not()) return state.value.assistedWallets.filter { it.isSetupInheritance }
         return state.value.assistedWallets
     }

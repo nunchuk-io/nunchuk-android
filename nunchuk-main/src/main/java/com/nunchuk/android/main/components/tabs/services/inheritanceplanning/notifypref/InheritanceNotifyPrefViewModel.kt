@@ -23,6 +23,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.contact.components.add.EmailWithState
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,17 +47,17 @@ class InheritanceNotifyPrefViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    init {
+    fun init(param: InheritancePlanningParam.SetupOrReview) {
         if (args.isUpdateRequest) {
             _state.update {
                 it.copy(
-                    isNotify = args.preIsNotify,
-                    emails = args.preEmails?.map { email ->
+                    isNotify = param.isNotify,
+                    emails = param.emails.map { email ->
                         EmailWithState(
                             email = email,
                             valid = true
                         )
-                    }.orEmpty()
+                    }
                 )
             }
         }

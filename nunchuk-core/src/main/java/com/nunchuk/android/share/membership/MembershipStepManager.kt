@@ -34,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -44,7 +45,7 @@ class MembershipStepManager @Inject constructor(
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val applicationScope: CoroutineScope,
     private val gson: Gson,
-    ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore
 ) {
     private var job: Job? = null
     private val _plan = MutableStateFlow(MembershipPlan.NONE)
@@ -81,26 +82,55 @@ class MembershipStepManager @Inject constructor(
                 observerStep(it)
             }
         }
+        applicationScope.launch {
+            ncDataStore.currentStep.filterNotNull().collect {
+                Timber.d("currentStep $it")
+                currentStep = it
+            }
+        }
     }
 
     // Special case when set up wallet done and login in another device to setup inheritance we should mark all created wallet step to done
     private fun initStep(currentPlan: MembershipPlan) =
         synchronized(this) {
             steps.clear()
-            if (currentPlan == MembershipPlan.IRON_HAND) {
-                steps[MembershipStep.IRON_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
-                steps[MembershipStep.IRON_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
-                steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
-                steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-                steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
-                steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-            } else if (currentPlan == MembershipPlan.HONEY_BADGER) {
-                steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
-                steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
-                steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-                steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
-                steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-                steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
+            when (currentPlan) {
+                MembershipPlan.IRON_HAND -> {
+                    steps[MembershipStep.IRON_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.IRON_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
+                    steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+                }
+
+                MembershipPlan.HONEY_BADGER -> {
+                    steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
+                }
+
+                MembershipPlan.BYZANTINE -> {
+                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
+                }
+
+                MembershipPlan.NONE -> Unit
             }
             _remainingTime.value = calculateRemainTime(steps.toMap().values)
             _stepDone.value = emptySet()
@@ -109,26 +139,30 @@ class MembershipStepManager @Inject constructor(
     private fun observerStep(currentPlan: MembershipPlan) {
         job?.cancel()
         job = applicationScope.launch {
-            getMembershipStepUseCase(currentPlan)
-                .map { it.getOrElse { emptyList() } }
-                .collect { steps ->
-                    stepInfo.value = steps
-                    if (steps.isEmpty()) {
-                        restart()
-                    } else {
-                        steps.forEach { step ->
-                            if (step.isVerifyOrAddKey) markStepDone(step.step)
-                            else addRequireStep(step.step)
-                        }
-                    }
-
-                    _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
-                }
+//            getMembershipStepUseCase(currentPlan)
+//                .map { it.getOrElse { emptyList() } }
+//                .collect { steps ->
+//                    stepInfo.value = steps
+//                    if (steps.isEmpty()) {
+//                        restart()
+//                    } else {
+//                        steps.forEach { step ->
+//                            if (step.isVerifyOrAddKey) markStepDone(step.step)
+//                            else addRequireStep(step.step)
+//                        }
+//                    }
+//
+//                    _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
+//                }
         }
     }
 
     fun setCurrentStep(step: MembershipStep) {
+        Timber.d("setCurrentStep")
         currentStep = step
+        applicationScope.launch {
+            ncDataStore.setCurrentStep(step)
+        }
     }
 
     private fun markStepDone(step: MembershipStep) {
@@ -165,28 +199,42 @@ class MembershipStepManager @Inject constructor(
     fun isNotConfig() = _stepDone.value.none { it != MembershipStep.SETUP_INHERITANCE }
 
     fun isConfigKeyDone(): Boolean {
-        val isConfigKeyDone = if (plan == MembershipPlan.IRON_HAND) {
-            _stepDone.value.containsAll(
-                listOf(
-                    MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-                    MembershipStep.IRON_ADD_HARDWARE_KEY_2,
-                    MembershipStep.ADD_SEVER_KEY
+        val isConfigKeyDone = when (plan) {
+            MembershipPlan.IRON_HAND -> {
+                _stepDone.value.containsAll(
+                    listOf(
+                        MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                        MembershipStep.IRON_ADD_HARDWARE_KEY_2,
+                        MembershipStep.ADD_SEVER_KEY
+                    )
                 )
-            )
-        } else {
-            _stepDone.value.containsAll(
-                listOf(
-                    MembershipStep.HONEY_ADD_TAP_SIGNER,
-                    MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                    MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-                    MembershipStep.ADD_SEVER_KEY
+            }
+            MembershipPlan.HONEY_BADGER -> {
+                _stepDone.value.containsAll(
+                    listOf(
+                        MembershipStep.HONEY_ADD_TAP_SIGNER,
+                        MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+                        MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+                        MembershipStep.ADD_SEVER_KEY
+                    )
                 )
-            )
+            }
+            else -> {
+                _stepDone.value.containsAll(
+                    listOf(
+                        MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
+                        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+                        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+                        MembershipStep.ADD_SEVER_KEY
+                    )
+                )
+            }
         }
         return isConfigKeyDone
     }
 
-    val isConfigRecoverKeyDone = ncDataStore.isSetupSecurityQuestion.stateIn(applicationScope, SharingStarted.Eagerly, false)
+    val isConfigRecoverKeyDone =
+        ncDataStore.isSetupSecurityQuestion.stateIn(applicationScope, SharingStarted.Eagerly, false)
 
     fun isCreatedAssistedWalletDone(): Boolean {
         return isConfigRecoverKeyDone.value && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
@@ -221,31 +269,13 @@ class MembershipStepManager @Inject constructor(
 
     private fun updateRemainTime() = synchronized(this) {
         _remainingTime.update {
-            calculateRemainTime(steps.toMap().filter { isStepInThisPlan(it.key, plan) }.values)
+            calculateRemainTime(steps.toMap().values)
         }
     }
 
     private fun calculateRemainTime(stepFlows: Collection<MembershipStepFlow>) =
         stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * DURATION_EACH_STEP }
             .roundToInt()
-
-    private fun isStepInThisPlan(step: MembershipStep, plan: MembershipPlan): Boolean {
-        return when (plan) {
-            MembershipPlan.IRON_HAND ->
-                step == MembershipStep.CREATE_WALLET
-                        || step == MembershipStep.ADD_SEVER_KEY
-                        || step == MembershipStep.IRON_ADD_HARDWARE_KEY_1
-                        || step == MembershipStep.IRON_ADD_HARDWARE_KEY_2
-            MembershipPlan.HONEY_BADGER ->
-                step == MembershipStep.CREATE_WALLET
-                        || step == MembershipStep.ADD_SEVER_KEY
-                        || step == MembershipStep.HONEY_ADD_TAP_SIGNER
-                        || step == MembershipStep.HONEY_ADD_HARDWARE_KEY_1
-                        || step == MembershipStep.HONEY_ADD_HARDWARE_KEY_2
-                        || step == MembershipStep.SETUP_INHERITANCE
-            MembershipPlan.NONE -> false
-        }
-    }
 
     companion object {
         private const val DURATION_EACH_STEP = 0.5

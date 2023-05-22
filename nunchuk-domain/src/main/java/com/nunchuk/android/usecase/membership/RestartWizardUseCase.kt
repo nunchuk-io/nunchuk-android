@@ -31,10 +31,16 @@ class RestartWizardUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val repository: MembershipRepository,
     private val userWalletRepository: PremiumWalletRepository,
-) : UseCase<MembershipPlan, Unit>(dispatcher) {
-    override suspend fun execute(parameters: MembershipPlan) {
-        return repository.restart(parameters).also {
-            userWalletRepository.deleteDraftWallet()
+) : UseCase<RestartWizardUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        return repository.restart(parameters.plan, parameters.groupId).also {
+            if (parameters.groupId.isNotEmpty()) {
+                userWalletRepository.deleteGroupWallet(parameters.groupId)
+            } else {
+                userWalletRepository.deleteDraftWallet()
+            }
         }
     }
+
+    data class Param(val plan: MembershipPlan, val groupId: String,)
 }

@@ -85,16 +85,25 @@ class AddKeyStepViewModel @Inject constructor(
 
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
-            val setupKeySteps = if (plan == MembershipPlan.IRON_HAND) listOf(
-                MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-                MembershipStep.IRON_ADD_HARDWARE_KEY_2,
-                MembershipStep.ADD_SEVER_KEY
-            ) else listOf(
-                MembershipStep.HONEY_ADD_TAP_SIGNER,
-                MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-                MembershipStep.ADD_SEVER_KEY
-            )
+            val setupKeySteps = when (plan) {
+                MembershipPlan.IRON_HAND -> listOf(
+                    MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                    MembershipStep.IRON_ADD_HARDWARE_KEY_2,
+                    MembershipStep.ADD_SEVER_KEY
+                )
+                MembershipPlan.HONEY_BADGER -> listOf(
+                    MembershipStep.HONEY_ADD_TAP_SIGNER,
+                    MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+                    MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+                    MembershipStep.ADD_SEVER_KEY
+                )
+                else -> listOf(
+                    MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
+                    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+                    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+                    MembershipStep.ADD_SEVER_KEY
+                )
+            }
             intArrayOf(
                 membershipStepManager.getRemainTimeBySteps(setupKeySteps),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_KEY_RECOVERY)),

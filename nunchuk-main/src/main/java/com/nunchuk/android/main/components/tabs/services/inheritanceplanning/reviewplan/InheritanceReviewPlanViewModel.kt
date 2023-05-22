@@ -19,12 +19,12 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -44,10 +44,9 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private val cancelInheritanceUseCase: CancelInheritanceUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val args = InheritanceReviewPlanFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private lateinit var param: InheritancePlanningParam.SetupOrReview
 
     private val _event = MutableSharedFlow<InheritanceReviewPlanEvent>()
     val event = _event.asSharedFlow()
@@ -57,20 +56,21 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    init {
+    fun init(param: InheritancePlanningParam.SetupOrReview) {
+        this.param = param
         updateDataState()
         getWalletName()
     }
 
     private fun getWalletName() = viewModelScope.launch {
-        getWalletUseCase.execute(args.walletId)
+        getWalletUseCase.execute(param.walletId)
             .flowOn(Dispatchers.IO)
             .onException { _event.emit(InheritanceReviewPlanEvent.ProcessFailure(it.message.orUnknownError())) }
             .flowOn(Dispatchers.Main)
             .collect { wallet ->
                 _state.update { state ->
                     state.copy(
-                        walletId = args.walletId,
+                        walletId = param.walletId,
                         walletName = wallet.wallet.name
                     )
                 }
@@ -102,7 +102,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     notificationEmails = stateValue.emails.toList(),
                     notifyToday = stateValue.isNotifyToday,
                     activationTimeMilis = stateValue.activationDate,
-                    bufferPeriodId = stateValue.bufferPeriod?.id
+                    bufferPeriodId = stateValue.bufferPeriod?.id,
+                    groupId = param.groupId
                 )
             )
         }
@@ -132,9 +133,9 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private fun updateDataState() {
         _state.update {
             it.copy(
-                activationDate = args.activationDate, note = args.note,
-                isNotifyToday = args.isNotify, emails = args.emails.toList(),
-                bufferPeriod = args.bufferPeriod
+                activationDate = param.activationDate, note = param.note,
+                isNotifyToday = param.isNotify, emails = param.emails.toList(),
+                bufferPeriod = param.bufferPeriod
             )
         }
     }
@@ -172,11 +173,11 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     ) = viewModelScope.launch {
         val state = _state.value
         _event.emit(InheritanceReviewPlanEvent.Loading(true))
-        val isUpdate = args.planFlow == InheritancePlanFlow.VIEW
+        val isUpdate = param.planFlow == InheritancePlanFlow.VIEW
         val result = createOrUpdateInheritanceUseCase(
             CreateOrUpdateInheritanceUseCase.Param(
                 signatures = signatures,
-                verifyToken = args.verifyToken,
+                verifyToken = param.verifyToken,
                 userData = state.userData.orEmpty(),
                 securityQuestionToken = securityQuestionToken,
                 isUpdate = isUpdate,
@@ -203,7 +204,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         val result = cancelInheritanceUseCase(
             CancelInheritanceUseCase.Param(
                 signatures = signatures,
-                verifyToken = args.verifyToken,
+                verifyToken = param.verifyToken,
                 userData = state.userData.orEmpty(),
                 securityQuestionToken = securityQuestionToken,
                 walletId = state.walletId.orEmpty()

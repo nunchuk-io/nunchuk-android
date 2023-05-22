@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *
- * Copyright (C) 2022, 2023 Nunchuk                                       *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -17,8 +17,25 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model
+package com.nunchuk.android.usecase.byzantine
 
-data class CreateServerKey(
-    val keyId: String? = null,
-)
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.GroupKeyPolicy
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
+
+class GetGroupServerKeysUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletsRepository: PremiumWalletRepository,
+) : UseCase<GetGroupServerKeysUseCase.Param, GroupKeyPolicy>(dispatcher) {
+    override suspend fun execute(parameters: Param): GroupKeyPolicy {
+        return userWalletsRepository.getGroupServerKey(
+            groupId = parameters.groupId,
+            xfp = parameters.xfp
+        )
+    }
+
+    data class Param(val groupId: String, val xfp: String)
+}

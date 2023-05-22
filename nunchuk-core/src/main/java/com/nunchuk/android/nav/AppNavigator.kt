@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
@@ -35,15 +36,26 @@ interface AppNavigator {
         activityContext: Activity,
         groupStep: MembershipStage,
         walletId: String? = null,
-        isClearTop: Boolean = false
+        groupId: String? = null,
+        isClearTop: Boolean = false,
+        addOnHoneyBadger: Boolean = false
     )
 
-    fun openMembershipActivity(
-        launcher: ActivityResultLauncher<Intent>,
+    fun openConfigServerKeyActivity(
+        launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Activity,
         groupStep: MembershipStage,
         keyPolicy: KeyPolicy? = null,
         xfp: String? = null
+    )
+
+    fun openConfigGroupServerKeyActivity(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: GroupKeyPolicy? = null,
+        xfp: String? = null,
+        groupId: String? = null
     )
 
     fun openKeyRecoveryScreen(activityContext: Context)
@@ -59,7 +71,8 @@ interface AppNavigator {
         verifyToken: String? = null,
         inheritance: Inheritance? = null,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
-        isOpenFromWizard: Boolean = false
+        isOpenFromWizard: Boolean = false,
+        groupId: String? = null
     )
 
     fun openWalletAuthentication(
@@ -69,5 +82,11 @@ interface AppNavigator {
         type: String,
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity
+    )
+
+    fun openGroupDashboardScreen(
+        groupId: String,
+        walletId: String? = null,
+        activityContext: Context
     )
 }

@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.no
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -45,9 +46,9 @@ class InheritanceNoteViewModel @Inject constructor(
 
     private val args = InheritanceNoteFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    init {
+    fun init(param: InheritancePlanningParam.SetupOrReview) {
         if (args.isUpdateRequest) {
-            updateNote(args.preNoted)
+            updateNote(param.note)
         }
     }
 

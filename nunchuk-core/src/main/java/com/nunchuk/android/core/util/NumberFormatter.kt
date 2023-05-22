@@ -21,7 +21,7 @@ package com.nunchuk.android.core.util
 
 import java.text.DecimalFormat
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 
 const val USD_FRACTION_DIGITS = 2
 
@@ -51,8 +51,4 @@ fun Number.formatCurrencyDecimal(maxFractionDigits: Int = MAX_FRACTION_DIGITS, l
 
 fun Number.beautifySATFormat(locale: Locale = Locale.US): String {
     return DecimalFormat.getNumberInstance(locale).format(this)
-}
-
-fun Number.numberFormat(locale: Locale = Locale.US): String {
-    return NumberFormat.getNumberInstance(locale).format(this)
 }

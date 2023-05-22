@@ -80,12 +80,14 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.nav.NunchukNavigator
@@ -305,7 +307,18 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_SEVER_KEY -> {
-                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
+                if (groupId.isNotEmpty()) {
+                    navigator.openConfigGroupServerKeyActivity(
+                        activityContext = requireActivity(),
+                        groupStep = MembershipStage.NONE,
+                        groupId = groupId,
+                    )
+                } else {
+                    navigator.openConfigServerKeyActivity(
+                        activityContext = requireActivity(),
+                        groupStep = MembershipStage.NONE
+                    )
+                }
             }
 
             MembershipStep.HONEY_ADD_TAP_SIGNER -> {
@@ -317,11 +330,12 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
 
-            MembershipStep.SETUP_KEY_RECOVERY,
-            MembershipStep.SETUP_INHERITANCE,
-            MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
+            else -> Unit
         }
     }
+    
+    private val groupId: String
+        get() = (activity as MembershipActivity).groupId
 
     private fun openSelectHardwareOption() {
         BottomSheetOption.newInstance(
@@ -377,15 +391,15 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         navigator.openVerifyBackupTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
             masterSignerId = event.signer.id,
-            backUpFilePath = event.filePath
         )
     }
 
     private fun openSetupTapSigner() {
         navigator.openSetupTapSigner(
             activity = requireActivity(),
-            fromMembershipFlow = true
+            fromMembershipFlow = true,
         )
     }
 
@@ -393,7 +407,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
-            masterSignerId = masterSignerId
+            masterSignerId = masterSignerId,
         )
     }
 }

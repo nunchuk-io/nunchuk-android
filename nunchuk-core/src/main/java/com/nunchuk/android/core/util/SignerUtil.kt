@@ -42,6 +42,8 @@ fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String
     }
 }
 
+fun String?.toSignerType() = SignerType.values().find { it.name == this } ?: UNKNOWN
+
 fun SignerModel.toReadableSignerType(context: Context, isIgnorePrimary: Boolean = false) =
     type.toReadableString(context, if (isIgnorePrimary) false else isPrimaryKey)
 

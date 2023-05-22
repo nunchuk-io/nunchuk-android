@@ -49,6 +49,9 @@ const val ADD_DESKTOP_KEY_COMPLETED = "io.nunchuk.custom.draft_wallet_add_key_re
 const val EVENT_WALLET_CREATED = "io.nunchuk.custom.wallet_created"
 const val EVENT_TRANSACTION_CANCEL = "io.nunchuk.custom.transaction_canceled"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
+const val GROUP_MEMBERSHIP_REQUEST_CREATED = "io.nunchuk.custom.group_membership_request_created"
+const val GROUP_MEMBERSHIP_REQUEST_ACCEPTED = "io.nunchuk.custom.group_membership_request_accepted"
+const val GROUP_MEMBERSHIP_REQUEST_DENIED = "io.nunchuk.custom.group_membership_request_denied"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
     return if (isSupportRoom.not()) {
@@ -125,3 +128,6 @@ fun TimelineEvent.getMsgBody() = root.getClearContent()?.get("body")?.toString()
 fun TimelineEvent.getTransactionId() = root.getClearContent()?.get("transaction_id").toString()
 
 fun TimelineEvent.getWalletId() = root.getClearContent()?.get("wallet_local_id").toString()
+
+fun TimelineEvent.isGroupMembershipRequestEvent() =
+    getMsgType() == GROUP_MEMBERSHIP_REQUEST_ACCEPTED || getMsgType() == GROUP_MEMBERSHIP_REQUEST_DENIED

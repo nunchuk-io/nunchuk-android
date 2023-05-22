@@ -27,6 +27,7 @@ import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -53,8 +54,11 @@ class NcDataStore @Inject constructor(
     private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
     private val qrDensityKey = intPreferencesKey("qr_density")
     private val assistedKeysPreferenceKey = stringSetPreferencesKey("assisted_key")
+    private val groupAssistedKeysPreferenceKey = stringSetPreferencesKey("group_assisted_key")
     private val feeJsonPreferenceKey = stringPreferencesKey("fee_key")
     private val securityQuestionKey = booleanPreferencesKey("security_question")
+    private val groupIdKey = stringPreferencesKey("group_id")
+    private val currentStepKey = intPreferencesKey("current_step")
 
     /**
      * Current membership plan key
@@ -74,6 +78,11 @@ class NcDataStore @Inject constructor(
     val syncRoomSuccess: Flow<Boolean>
         get() = context.dataStore.data.map {
             it[syncRoomSuccessKey] ?: false
+        }
+
+    val groupId: Flow<String>
+        get() = context.dataStore.data.map {
+            it[groupIdKey].orEmpty()
         }
 
     suspend fun markSyncRoomSuccess() {
@@ -205,6 +214,17 @@ class NcDataStore @Inject constructor(
             it[assistedKeysPreferenceKey] ?: emptySet()
         }
 
+    suspend fun setGroupAssistedKey(keys: Set<String>) {
+        context.dataStore.edit {
+            it[groupAssistedKeysPreferenceKey] = keys
+        }
+    }
+
+    val groupAssistedKeys: Flow<Set<String>>
+        get() = context.dataStore.data.map {
+            it[groupAssistedKeysPreferenceKey] ?: emptySet()
+        }
+
     suspend fun setFeeJsonString(feeJson: String) {
         context.dataStore.edit {
             it[feeJsonPreferenceKey] = feeJson
@@ -227,6 +247,17 @@ class NcDataStore @Inject constructor(
             it[securityQuestionKey] ?: false
         }
 
+    val currentStep: Flow<MembershipStep?>
+        get() = context.dataStore.data.map {
+            it[currentStepKey]?.let { index -> MembershipStep.values()[index] }
+        }
+
+    suspend fun setCurrentStep(step: MembershipStep) {
+        context.dataStore.edit {
+            it[currentStepKey] = step.ordinal
+        }
+    }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
@@ -236,6 +267,7 @@ class NcDataStore @Inject constructor(
             it.remove(syncRoomSuccessKey)
             it.remove(assistedKeysPreferenceKey)
             it.remove(securityQuestionKey)
+            it.remove(groupIdKey)
         }
     }
 }

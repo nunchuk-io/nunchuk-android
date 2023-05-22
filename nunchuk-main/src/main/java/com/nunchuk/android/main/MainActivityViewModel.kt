@@ -31,7 +31,10 @@ import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.main.di.MainAppEvent.*
+import com.nunchuk.android.main.di.MainAppEvent.ConsumeSyncEventCompleted
+import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
+import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
+import com.nunchuk.android.main.di.MainAppEvent.UpdateAppRecommendEvent
 import com.nunchuk.android.messages.model.RoomNotFoundException
 import com.nunchuk.android.messages.model.SessionLostException
 import com.nunchuk.android.messages.util.isLocalEvent

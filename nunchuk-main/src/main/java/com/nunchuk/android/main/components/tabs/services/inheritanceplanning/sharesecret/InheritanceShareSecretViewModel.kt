@@ -29,7 +29,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceShareSecretViewModel @Inject constructor(
-    private val membershipStepManager: MembershipStepManager,
+    membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<InheritanceShareSecretEvent>()

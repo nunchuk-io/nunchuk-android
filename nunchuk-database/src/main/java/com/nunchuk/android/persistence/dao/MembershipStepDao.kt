@@ -31,22 +31,23 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MembershipStepDao : BaseDao<MembershipStepEntity> {
-    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND `plan` = :plan")
-    fun getSteps(chatId: String, chain: Chain, plan: MembershipPlan): Flow<List<MembershipStepEntity>>
+    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND `plan` = :plan AND group_id = :groupId")
+    fun getSteps(chatId: String, chain: Chain, plan: MembershipPlan, groupId: String): Flow<List<MembershipStepEntity>>
 
-    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND step = :step")
-    suspend fun getStep(chatId: String, chain: Chain, step: MembershipStep): MembershipStepEntity?
+    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND step = :step AND group_id = :groupId")
+    suspend fun getStep(chatId: String, chain: Chain, step: MembershipStep, groupId: String = ""): MembershipStepEntity?
 
-    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :email AND chain = :chain AND master_signer_id = :masterSignerId")
+    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :email AND chain = :chain AND master_signer_id = :masterSignerId AND group_id = :groupId")
     suspend fun getStepByMasterSignerId(
         email: String,
         chain: Chain,
-        masterSignerId: String
+        masterSignerId: String,
+        groupId: String = ""
     ): MembershipStepEntity?
 
-    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND master_signer_id = :masterSignerId")
-    suspend fun deleteByMasterSignerId(chatId: String, chain: Chain, masterSignerId: String)
+    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND master_signer_id = :masterSignerId AND group_id = :groupId")
+    suspend fun deleteByMasterSignerId(chatId: String, chain: Chain, masterSignerId: String, groupId: String = "")
 
-    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain")
-    suspend fun deleteStepByChatId(chain: Chain, chatId: String)
+    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND group_id = :groupId")
+    suspend fun deleteStepByChatId(chain: Chain, chatId: String, groupId: String = "")
 }

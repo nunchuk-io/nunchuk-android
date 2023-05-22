@@ -19,8 +19,6 @@
 
 package com.nunchuk.android.transaction.components.send.batchtransaction
 
-import com.nunchuk.android.model.EstimateFeeRates
-
 sealed class BatchTransactionEvent {
     data class Loading(val loading: Boolean) : BatchTransactionEvent()
     data class Error(val message: String) : BatchTransactionEvent()

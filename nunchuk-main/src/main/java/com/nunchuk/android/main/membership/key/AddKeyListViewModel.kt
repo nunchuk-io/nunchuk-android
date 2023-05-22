@@ -70,7 +70,7 @@ class AddKeyListViewModel @Inject constructor(
     private val currentStep =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
-    private val membershipStepState = getMembershipStepUseCase(membershipStepManager.plan)
+    private val membershipStepState = getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.plan, ""))
         .map { it.getOrElse { emptyList() } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -171,7 +171,7 @@ class AddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             val hasTag =
                 signer.tags.any { it == SignerTag.SEEDSIGNER || it == SignerTag.KEYSTONE || it == SignerTag.PASSPORT || it == SignerTag.JADE }
-            if (signer.type == SignerType.COLDCARD_NFC || hasTag) {
+            if (signer.type == SignerType.COLDCARD_NFC || hasTag || signer.type == SignerType.COLDCARD_NFC) {
                 saveMembershipStepUseCase(
                     MembershipStepInfo(
                         step = membershipStepManager.currentStep
@@ -185,7 +185,8 @@ class AddKeyListViewModel @Inject constructor(
                                 isAddNew = false,
                                 signerType = signer.type
                             )
-                        )
+                        ),
+                        groupId = ""
                     )
                 )
             } else {
@@ -221,7 +222,7 @@ class AddKeyListViewModel @Inject constructor(
         }
     }
 
-    fun isSignerExist(masterSignerId: String) = membershipStepManager.isKeyExisted(masterSignerId)
+    private fun isSignerExist(masterSignerId: String) = membershipStepManager.isKeyExisted(masterSignerId)
 
     fun onVerifyClicked(data: AddKeyData) {
         data.signer?.let { signer ->
@@ -246,7 +247,7 @@ class AddKeyListViewModel @Inject constructor(
 
     private fun getStepInfo(step: MembershipStep) =
         membershipStepState.value.find { it.step == step } ?: run {
-            MembershipStepInfo(step = step, plan = membershipStepManager.plan)
+            MembershipStepInfo(step = step, plan = membershipStepManager.plan, groupId = "")
         }
 
     fun getTapSigners() =

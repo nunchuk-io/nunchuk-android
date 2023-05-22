@@ -19,24 +19,26 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.magicalphrase
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MagicalPhraseIntroViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
-    savedStateHandle: SavedStateHandle,
     private val getInheritanceUseCase: GetInheritanceUseCase,
 ) : ViewModel() {
-    private val args = MagicalPhraseIntroFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<MagicalPhraseIntroEvent>()
     val event = _event.asSharedFlow()
 
@@ -45,13 +47,13 @@ class MagicalPhraseIntroViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    init {
-        getInheritance()
+    fun init(param: InheritancePlanningParam.SetupOrReview) {
+        getInheritance(param)
     }
 
-    private fun getInheritance() = viewModelScope.launch {
+    private fun getInheritance(param: InheritancePlanningParam.SetupOrReview) = viewModelScope.launch {
         _event.emit(MagicalPhraseIntroEvent.Loading(true))
-        val result = getInheritanceUseCase(args.walletId)
+        val result = getInheritanceUseCase(GetInheritanceUseCase.Param(walletId = param.walletId, groupId = param.groupId))
         _event.emit(MagicalPhraseIntroEvent.Loading(false))
         if (result.isSuccess) {
             _state.update { it.copy(magicalPhrase = result.getOrThrow().magic) }

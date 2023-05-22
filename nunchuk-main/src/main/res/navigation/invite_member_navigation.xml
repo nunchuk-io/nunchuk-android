@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/invite_member_navigation"
+    app:startDestination="@id/byzantineInviteMembersFragment">
+    <fragment
+        android:id="@+id/byzantineInviteMembersFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.initvitemember.ByzantineInviteMembersFragment"
+        android:label="ByzantineInviteMembersFragment">
+
+        <argument android:name="group_id"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <argument
+            android:name="members"
+            app:argType="com.nunchuk.android.model.byzantine.AssistedMember[]" />
+
+        <argument
+            android:name="flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+
+        <argument
+            android:name="setup_preference"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <argument
+            android:name="group_type"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_byzantineInviteMembersFragment_to_byzantineSelectRoleFragment"
+            app:destination="@id/byzantineSelectRoleFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_byzantineInviteMembersFragment_to_introAssistedWalletFragment"
+            app:destination="@id/introAssistedWalletFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/byzantineSelectRoleFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleFragment"
+        android:label="ByzantineSelectRoleFragment">
+
+        <argument
+            android:name="role"
+            app:argType="string" />
+
+    </fragment>
+</navigation>

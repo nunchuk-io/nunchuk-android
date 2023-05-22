@@ -23,7 +23,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -45,7 +45,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     @Inject
     lateinit var nunchukNavigator: NunchukNavigator
 
-    private val viewModel : MembershipViewModel by viewModels()
+    private val viewModel : MembershipViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

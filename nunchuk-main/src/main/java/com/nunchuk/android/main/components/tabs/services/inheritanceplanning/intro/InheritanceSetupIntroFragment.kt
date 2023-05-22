@@ -54,7 +54,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritanceSetupIntroFragment : MembershipFragment() {
-    private val args by navArgs<InheritanceSetupIntroFragmentArgs>()
     private val viewModel: InheritanceSetupIntroViewModel by viewModels()
 
     override fun onCreateView(
@@ -66,7 +65,7 @@ class InheritanceSetupIntroFragment : MembershipFragment() {
             setContent {
                 InheritanceSetupIntroScreen(viewModel) {
                     findNavController().navigate(
-                        InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment(walletId = args.walletId)
+                        InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment()
                     )
                 }
             }

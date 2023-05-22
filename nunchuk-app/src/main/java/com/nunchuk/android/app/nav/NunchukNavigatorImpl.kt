@@ -40,11 +40,10 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
+import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
-import com.nunchuk.android.model.Inheritance
-import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.*
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
@@ -151,30 +150,68 @@ interface AppNavigatorDelegate : AppNavigator {
         activityContext: Activity,
         groupStep: MembershipStage,
         walletId: String?,
-        isClearTop: Boolean
+        groupId: String?,
+        isClearTop: Boolean,
+        addOnHoneyBadger: Boolean
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
             groupStep = groupStep,
-            walletId = walletId
+            walletId = walletId,
+            groupId = groupId,
+            addOnHoneyBadger = addOnHoneyBadger
         )
         if (isClearTop) intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         activityContext.startActivity(intent)
     }
 
-    override fun openMembershipActivity(
-        launcher: ActivityResultLauncher<Intent>,
+    override fun openConfigServerKeyActivity(
+        launcher: ActivityResultLauncher<Intent>?,
         activityContext: Activity,
         groupStep: MembershipStage,
         keyPolicy: KeyPolicy?,
         xfp: String?
     ) {
-        launcher.launch(
-            MembershipActivity.buildIntent(
+        launcher?.launch(
+            ConfigServerKeyActivity.buildIntent(
                 activity = activityContext,
-                groupStep = groupStep,
                 keyPolicy = keyPolicy,
-                xfp = xfp
+                xfp = xfp,
+                groupStep = groupStep
+            )
+        ) ?: activityContext.startActivity(
+            ConfigServerKeyActivity.buildIntent(
+                activity = activityContext,
+                keyPolicy = keyPolicy,
+                xfp = xfp,
+                groupStep = groupStep
+            )
+        )
+    }
+
+    override fun openConfigGroupServerKeyActivity(
+        launcher: ActivityResultLauncher<Intent>?,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: GroupKeyPolicy?,
+        xfp: String?,
+        groupId: String?
+    ) {
+        launcher?.launch(
+            ConfigServerKeyActivity.buildIntent(
+                activity = activityContext,
+                keyPolicy = keyPolicy,
+                groupId = groupId,
+                xfp = xfp,
+                groupStep = groupStep
+            )
+        ) ?: activityContext.startActivity(
+            ConfigServerKeyActivity.buildIntent(
+                activity = activityContext,
+                keyPolicy = keyPolicy,
+                groupId = groupId,
+                xfp = xfp,
+                groupStep = groupStep
             )
         )
     }
@@ -193,7 +230,8 @@ interface AppNavigatorDelegate : AppNavigator {
         verifyToken: String?,
         inheritance: Inheritance?,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
-        isOpenFromWizard: Boolean
+        isOpenFromWizard: Boolean,
+        groupId: String?
     ) {
         InheritancePlanningActivity.navigate(
             activity = activityContext,
@@ -202,6 +240,7 @@ interface AppNavigatorDelegate : AppNavigator {
             inheritance = inheritance,
             isOpenFromWizard = isOpenFromWizard,
             walletId = walletId,
+            groupId = groupId
         )
     }
 
@@ -221,5 +260,9 @@ interface AppNavigatorDelegate : AppNavigator {
             launcher = launcher,
             activityContext = activityContext
         )
+    }
+
+    override fun openGroupDashboardScreen(groupId: String, walletId: String?, activityContext: Context) {
+        GroupDashboardActivity.navigate(activityContext, groupId = groupId, walletId = walletId)
     }
 }

@@ -36,6 +36,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -52,6 +53,7 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val parseJsonSignerUseCase: ParseJsonSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val createSignerUseCase: CreateSignerUseCase,
+    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ColdcardRecoverEvent>()
     val event = _event.asSharedFlow()
@@ -70,7 +72,7 @@ class ColdcardRecoverViewModel @Inject constructor(
         }
     }
 
-    fun parseColdcardSigner(uri: Uri) {
+    fun parseColdcardSigner(uri: Uri, groupId: String) {
         viewModelScope.launch {
             _event.emit(ColdcardRecoverEvent.LoadingEvent(true))
             withContext(ioDispatcher) {
@@ -81,11 +83,13 @@ class ColdcardRecoverViewModel @Inject constructor(
                 )
                 if (parseResult.isFailure) {
                     _event.emit(ColdcardRecoverEvent.ParseFileError)
+                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
                 val signer = parseResult.getOrThrow().first()
                 if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                     _event.emit(ColdcardRecoverEvent.AddSameKey)
+                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
                 val createSignerResult = createSignerUseCase(
@@ -101,6 +105,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                 )
                 if (createSignerResult.isFailure) {
                     _event.emit(ColdcardRecoverEvent.ShowError(createSignerResult.exceptionOrNull()?.message.orUnknownError()))
+                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
                 val coldcardSigner = createSignerResult.getOrThrow()
@@ -117,9 +122,20 @@ class ColdcardRecoverViewModel @Inject constructor(
                                 isAddNew = true,
                                 signerType = coldcardSigner.type
                             )
-                        )
+                        ),
+                        groupId = groupId
                     )
                 )
+                if (groupId.isNotEmpty()) {
+                    syncKeyToGroupUseCase(
+                        SyncKeyToGroupUseCase.Param(
+                            step = membershipStepManager.currentStep
+                                ?: throw IllegalArgumentException("Current step empty"),
+                            groupId = groupId,
+                            signer = coldcardSigner
+                        )
+                    )
+                }
                 _event.emit(ColdcardRecoverEvent.CreateSignerSuccess)
             }
             _event.emit(ColdcardRecoverEvent.LoadingEvent(false))

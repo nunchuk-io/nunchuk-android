@@ -20,8 +20,11 @@
 package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.*
+import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
+import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.SignerTag
@@ -36,8 +39,18 @@ interface PremiumWalletRepository {
     ): KeyPolicy
 
     suspend fun getServerKey(xfp: String): KeyPolicy
+    suspend fun getGroupServerKey(groupId: String, xfp: String): GroupKeyPolicy
     suspend fun updateServerKeys(
         signatures: Map<String, String>,
+        keyIdOrXfp: String,
+        token: String,
+        securityQuestionToken: String,
+        body: String,
+    ): KeyPolicy
+
+    suspend fun updateGroupServerKeys(
+        signatures: Map<String, String>,
+        groupId: String,
         keyIdOrXfp: String,
         token: String,
         securityQuestionToken: String,
@@ -62,7 +75,7 @@ interface PremiumWalletRepository {
 
     suspend fun getServerTransaction(walletId: String, transactionId: String): ExtendedTransaction
     suspend fun deleteServerTransaction(walletId: String, transactionId: String)
-    suspend fun getInheritance(walletId: String): Inheritance
+    suspend fun getInheritance(walletId: String, groupId: String?): Inheritance
     suspend fun downloadBackup(
         id: String,
         questions: List<QuestionsAndAnswer>,
@@ -82,6 +95,13 @@ interface PremiumWalletRepository {
         keyPolicy: KeyPolicy
     ): CalculateRequiredSignatures
 
+    suspend fun calculateRequiredSignaturesUpdateGroupKeyPolicy(
+        xfp: String,
+        walletId: String,
+        groupId: String,
+        keyPolicy: GroupKeyPolicy
+    ): CalculateRequiredSignatures
+
     suspend fun securityQuestionsUpdate(
         authorizations: List<String>,
         verifyToken: String,
@@ -96,6 +116,7 @@ interface PremiumWalletRepository {
     ): String
 
     suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String
+    suspend fun generateUpdateGroupServerKey(walletId: String, keyPolicy: GroupKeyPolicy): String
 
     suspend fun scheduleTransaction(
         walletId: String,
@@ -132,7 +153,8 @@ interface PremiumWalletRepository {
         notifyToday: Boolean,
         activationTimeMilis: Long,
         bufferPeriodId: String?,
-        walletId: String
+        walletId: String,
+        groupId: String?
     ): String
 
     suspend fun generateInheritanceClaimStatusUserData(
@@ -218,6 +240,7 @@ interface PremiumWalletRepository {
     suspend fun updateServerKeyName(xfp: String, name: String)
 
     suspend fun getAssistedWalletConfig(): AssistedWalletConfig
+    suspend fun getGroupAssistedWalletConfig(): GroupConfig
 
     fun assistedKeys(): Flow<Set<String>>
 
@@ -232,4 +255,44 @@ interface PremiumWalletRepository {
     suspend fun checkKeyAdded(plan: MembershipPlan, requestId: String?): Boolean
     suspend fun deleteDraftWallet()
     suspend fun cancelRequestIdIfNeed(step: MembershipStep)
+
+    suspend fun getPermissionGroupWallet(): DefaultPermissions
+    suspend fun syncGroupDraftWallet(groupId: String): DraftWallet
+    suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)
+    suspend fun syncKeyToGroup(groupId: String, step: MembershipStep, signer: SingleSigner)
+    suspend fun createGroupWallet(
+        m: Int,
+        n: Int,
+        requiredServerKey: Boolean,
+        allowInheritance: Boolean,
+        setupPreference: String,
+        members: List<AssistedMember>
+    ): ByzantineGroup
+
+    suspend fun getWalletConstraints(): WalletConstraints
+    suspend fun getGroupWallets(): List<ByzantineGroup>
+    suspend fun syncGroupWallets(): Boolean
+    suspend fun getGroupWallet(groupId: String): ByzantineGroup
+    suspend fun deleteGroupWallet(groupId: String)
+    suspend fun generateEditGroupMemberUserData(
+        members: List<AssistedMember>
+    ): String
+
+    suspend fun calculateRequiredSignaturesEditGroupMember(
+        groupId: String,
+        members: List<AssistedMember>
+    ): CalculateRequiredSignatures
+
+    suspend fun editGroupMember(
+        groupId: String,
+        authorizations: List<String>,
+        verifyToken: String,
+        members: List<AssistedMember>,
+        securityQuestionToken: String,
+    ): ByzantineGroup
+
+    suspend fun createGroupWallet(groupId: String, name: String): Wallet
+    suspend fun groupMemberAcceptRequest(groupId: String)
+    suspend fun groupMemberDenyRequest(groupId: String)
+    suspend fun syncGroupWallet(groupId: String, groupAssistedKeys: MutableSet<String> = mutableSetOf()): Boolean
 }

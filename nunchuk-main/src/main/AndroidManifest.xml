@@ -37,6 +37,15 @@
             android:name=".nonsubscriber.NonSubscriberActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".membership.byzantine.groupdashboard.GroupDashboardActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+        <activity
+            android:name="com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar" />
     </application>
 
 </manifest>

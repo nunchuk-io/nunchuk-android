@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/key_recovery_navigation"
+    app:startDestination="@id/groupDashboardFragment">
+
+    <fragment
+        android:id="@+id/groupDashboardFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardFragment"
+        android:label="GroupDashboardFragment">
+
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string"
+            app:nullable="true"/>
+
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_byzantineInviteMembersFragment"
+            app:destination="@id/invite_member_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+
+            <argument android:name="group_id"
+                android:defaultValue=""
+                app:argType="string" />
+
+            <argument
+                android:name="members"
+                app:argType="com.nunchuk.android.model.byzantine.AssistedMember[]" />
+
+            <argument
+                android:name="flow"
+                android:defaultValue="0"
+                app:argType="integer" />
+
+            <argument
+                android:name="setup_preference"
+                android:defaultValue=""
+                app:argType="string" />
+
+            <argument
+                android:name="group_type"
+                android:defaultValue=""
+                app:argType="string" />
+
+        </action>
+
+    </fragment>
+
+    <include app:graph="@navigation/invite_member_navigation" />
+
+</navigation>

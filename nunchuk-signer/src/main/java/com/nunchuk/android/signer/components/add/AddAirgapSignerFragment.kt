@@ -93,6 +93,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
+        viewModel.init((activity as AddAirgapSignerActivity).groupId)
     }
 
     override fun onOptionClicked(option: SheetOption) {

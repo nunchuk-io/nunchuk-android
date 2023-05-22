@@ -47,7 +47,8 @@ class UploadBackupFileKeyUseCase @Inject constructor(
             cardId = parameters.cardId,
             filePath = parameters.filePath,
             isAddNewKey = parameters.isAddNewKey,
-            plan = parameters.plan
+            plan = parameters.plan,
+            groupId = parameters.groupId
         ).onCompletion {
             withContext(NonCancellable) {
                 runCatching {
@@ -64,6 +65,7 @@ class UploadBackupFileKeyUseCase @Inject constructor(
         val cardId: String,
         val filePath: String,
         val isAddNewKey: Boolean,
-        val plan: MembershipPlan
+        val plan: MembershipPlan,
+        val groupId: String
     )
 }

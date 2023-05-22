@@ -138,7 +138,9 @@ data class CreateUpdateInheritancePlanRequest(
         @SerializedName("wallet")
         val walletId: String? = null,
         @SerializedName("buffer_period_id")
-        val bufferPeriodId: String? = null
+        val bufferPeriodId: String? = null,
+        @SerializedName("groupId")
+        val groupId: String? = null
     )
 }
 

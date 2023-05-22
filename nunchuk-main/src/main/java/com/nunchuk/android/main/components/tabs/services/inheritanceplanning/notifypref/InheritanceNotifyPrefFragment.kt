@@ -27,6 +27,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -37,6 +38,7 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.databinding.FragmentInheritanceNotifyPrefBinding
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.EmailValidator
@@ -52,6 +54,7 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
 
     private val viewModel: InheritanceNotifyPrefViewModel by viewModels()
     private val args: InheritanceNotifyPrefFragmentArgs by navArgs()
+    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +70,7 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
-
+        viewModel.init(inheritanceViewModel.setupOrReviewParam)
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceNotifyPrefEvent.ContinueClick -> openReviewPlanScreen(
@@ -87,7 +90,8 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
     }
 
     private fun openReviewPlanScreen(isDiscard: Boolean, emails: List<String>, isNotify: Boolean) {
-        if (args.isUpdateRequest || args.planFlow == InheritancePlanFlow.VIEW) {
+        inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(isNotify = isNotify, emails = emails))
+        if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
             if (isDiscard.not()) {
                 setFragmentResult(
                     REQUEST_KEY,
@@ -100,17 +104,7 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
             findNavController().popBackStack()
         } else {
             findNavController().navigate(
-                InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceReviewPlanFragment(
-                    activationDate = args.activationDate,
-                    note = args.note,
-                    verifyToken = args.verifyToken,
-                    emails = emails.toTypedArray(),
-                    planFlow = args.planFlow,
-                    isNotify = isNotify,
-                    magicalPhrase = args.magicalPhrase,
-                    bufferPeriod = args.bufferPeriod,
-                    walletId = args.walletId,
-                )
+                InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceReviewPlanFragment()
             )
         }
     }
@@ -165,7 +159,7 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
     }
 
     private fun isSetupFlow() =
-        args.planFlow == InheritancePlanFlow.SETUP && args.isUpdateRequest.not()
+        inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.SETUP && args.isUpdateRequest.not()
 
     private fun bindEmailList(emails: List<EmailWithState>) {
         if (emails.isEmpty()) {

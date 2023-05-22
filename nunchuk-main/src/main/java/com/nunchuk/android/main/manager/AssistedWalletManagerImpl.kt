@@ -48,6 +48,10 @@ internal class AssistedWalletManagerImpl @Inject constructor(
         return _assistedWalletId.value.any { it.localId == walletId } && plan.value != MembershipPlan.NONE
     }
 
+    override fun getGroupId(walletId: String): String? {
+        return _assistedWalletId.value.find { it.localId == walletId }?.groupId
+    }
+
     override fun isInactiveAssistedWallet(walletId: String): Boolean {
         return _assistedWalletId.value.any { it.localId == walletId } && plan.value == MembershipPlan.NONE
     }

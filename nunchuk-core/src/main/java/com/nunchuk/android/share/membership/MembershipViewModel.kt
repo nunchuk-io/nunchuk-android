@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.share.membership
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.MembershipPlan
@@ -33,14 +34,16 @@ import javax.inject.Inject
 class MembershipViewModel @Inject constructor(
     private val restartWizardUseCase: RestartWizardUseCase,
     private val membershipStepManager: MembershipStepManager,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-
+    // don't change the value group_id
+    private val groupId = savedStateHandle.get<String>("group_id").orEmpty()
     private val _event = MutableSharedFlow<MembershipEvent>()
     val event = _event.asSharedFlow()
 
     fun resetWizard(plan: MembershipPlan) {
         viewModelScope.launch {
-            val result = restartWizardUseCase(plan)
+            val result = restartWizardUseCase(RestartWizardUseCase.Param(plan, groupId))
             if (result.isSuccess) {
                 membershipStepManager.restart()
                 _event.emit(MembershipEvent.RestartWizardSuccess)

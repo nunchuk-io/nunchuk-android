@@ -39,14 +39,16 @@ val MembershipStep.resId: Int
     get() {
         return when (this) {
             MembershipStep.ADD_SEVER_KEY -> R.drawable.ic_server_key_dark
-            MembershipStep.HONEY_ADD_TAP_SIGNER -> R.drawable.ic_nfc_card
+            MembershipStep.HONEY_ADD_TAP_SIGNER,
+            MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+            -> R.drawable.ic_nfc_card
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> R.drawable.ic_hardware_key
-            MembershipStep.SETUP_KEY_RECOVERY,
-            MembershipStep.SETUP_INHERITANCE,
-            MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("Not support")
+            else -> 0
         }
     }
 
@@ -55,12 +57,10 @@ fun MembershipStep.getLabel(context: Context): String {
         MembershipStep.IRON_ADD_HARDWARE_KEY_1 -> "Hardware key"
         MembershipStep.IRON_ADD_HARDWARE_KEY_2 -> "Hardware key #2"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
-        MembershipStep.HONEY_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> "Hardware key #2"
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> "Hardware key #3"
-        MembershipStep.SETUP_KEY_RECOVERY,
-        MembershipStep.SETUP_INHERITANCE,
-        MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("Not support")
+        MembershipStep.HONEY_ADD_TAP_SIGNER, MembershipStep.BYZANTINE_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "Hardware key #2"
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> "Hardware key #3"
+        else -> ""
     }
 }
 

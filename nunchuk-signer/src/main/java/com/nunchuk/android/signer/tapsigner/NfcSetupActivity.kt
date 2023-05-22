@@ -113,12 +113,16 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                 ).orEmpty().isEmpty()
             }
 
+    val groupId: String
+            by lazy(LazyThreadSafetyMode.NONE) {  intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
+
     companion object {
         private const val EXTRA_ACTION = "EXTRA_ACTION"
         private const val EXTRA_HAS_WALLET = "EXTRA_HAS_WALLET"
         private const val EXTRA_FROM_MEMBERSHIP_FLOW = "isMembershipFlow"
         private const val EXTRA_BACKUP_FILE_PATH = "EXTRA_BACKUP_FILE_PATH"
         const val EXTRA_SATSCARD_SLOT = "EXTRA_SATSCARD_SLOT"
+        const val EXTRA_GROUP_ID = "group_id"
 
         /**
          * Setup action
@@ -165,6 +169,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             backUpFilePath: String? = null,
             hasWallet: Boolean = false,
             slot: SatsCardSlot? = null,
+            groupId: String = "",
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
@@ -172,6 +177,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_FROM_MEMBERSHIP_FLOW, fromMembershipFlow)
             putExtra(EXTRA_BACKUP_FILE_PATH, backUpFilePath)
             putExtra(EXTRA_SATSCARD_SLOT, slot)
+            putExtra(EXTRA_GROUP_ID, groupId)
         }
     }
 }

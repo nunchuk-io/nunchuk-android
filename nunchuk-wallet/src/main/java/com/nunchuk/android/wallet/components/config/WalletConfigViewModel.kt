@@ -142,7 +142,8 @@ internal class WalletConfigViewModel @Inject constructor(
                 setEvent(
                     WalletConfigEvent.VerifyPasswordSuccess(
                         result.getOrThrow().orEmpty(),
-                        xfp
+                        xfp,
+                        assistedWalletManager.getGroupId(walletId)
                     )
                 )
             } else {

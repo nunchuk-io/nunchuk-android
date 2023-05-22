@@ -66,11 +66,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
             val item = currentSelectedItem
             if (item == ServiceTabRowItem.SetUpInheritancePlan) {
-                navigator.openInheritancePlanningScreen(
-                    walletId = walletId,
-                    activityContext = requireContext(),
-                    flowInfo = InheritancePlanFlow.SETUP
-                )
+                viewModel.openSetupInheritancePlan(walletId)
             } else {
                 if (walletId.isNotEmpty() && item != null) {
                     enterPasswordDialog(item, walletId)
@@ -111,6 +107,13 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     verifyToken = event.token,
                     inheritance = event.inheritance,
                     flowInfo = InheritancePlanFlow.VIEW
+                )
+
+                is ServicesTabEvent.OpenSetupInheritancePlan -> navigator.openInheritancePlanningScreen(
+                    walletId = event.walletId,
+                    activityContext = requireContext(),
+                    flowInfo = InheritancePlanFlow.SETUP,
+                    groupId = event.groupId
                 )
             }
         }
@@ -158,7 +161,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             }
             ServiceTabRowItem.ViewInheritancePlan -> viewModel.getInheritance(
                 event.walletId,
-                event.token
+                event.token,
+                event.groupId
             )
             else -> Unit
         }
@@ -218,7 +222,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     navigator.openInheritancePlanningScreen(
                         walletId = wallets.first().localId,
                         activityContext = requireContext(),
-                        flowInfo = InheritancePlanFlow.SETUP
+                        flowInfo = InheritancePlanFlow.SETUP,
+                        groupId = wallets.first().groupId
                     )
                 } else {
                     AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })

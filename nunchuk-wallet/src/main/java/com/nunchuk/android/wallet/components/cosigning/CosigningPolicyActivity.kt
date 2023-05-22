@@ -45,8 +45,15 @@ class CosigningPolicyActivity : BaseActivity<ActivityNavigationBinding>() {
     private fun initStartDestination() {
         val navHostFragment =
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
+        val inflater = navHostFragment.navController.navInflater
+        val graph = inflater.inflate(R.navigation.cosigning_policy_navigation)
+        if (intent.hasExtra("group_id")) {
+            graph.setStartDestination(R.id.cosigningGroupPolicyFragment)
+        } else {
+            graph.setStartDestination(R.id.cosigningPolicyFragment)
+        }
         navHostFragment.navController.setGraph(
-            R.navigation.cosigning_policy_navigation,
+            graph,
             intent.extras
         )
     }
@@ -60,6 +67,19 @@ class CosigningPolicyActivity : BaseActivity<ActivityNavigationBinding>() {
                         xfp = xfp,
                         token = token,
                         walletId = walletId
+                    ).toBundle()
+                )
+            })
+        }
+
+        fun start(activity: Activity, walletId: String, token: String, xfp: String, groupId: String) {
+            activity.startActivity(Intent(activity, CosigningPolicyActivity::class.java).apply {
+                putExtras(
+                    CosigningGroupPolicyFragmentArgs(
+                        xfp = xfp,
+                        token = token,
+                        walletId = walletId,
+                        groupId = groupId
                     ).toBundle()
                 )
             })

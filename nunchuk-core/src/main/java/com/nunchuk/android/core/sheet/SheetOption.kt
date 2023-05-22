@@ -122,5 +122,8 @@ object SheetOptionType {
     const val TYPE_ADD_TREZOR = 65
     const val TYPE_ADD_COLDCARD_USB = 66
 
-    const val TYPE_ADD_BITBOX = 67
+    const val TYPE_GROUP_WALLET = 67
+    const val TYPE_HONEY_BADGER_WALLET = 68
+
+    const val TYPE_ADD_BITBOX = 69
 }

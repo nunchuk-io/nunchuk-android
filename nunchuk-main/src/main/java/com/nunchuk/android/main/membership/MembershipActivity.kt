@@ -25,11 +25,9 @@ import android.os.Bundle
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.key.server.setting.ConfigureServerKeySettingFragmentArgs
-import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
@@ -52,25 +50,31 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.membership_navigation)
         val stage = intent.serializable<MembershipStage>(EXTRA_GROUP_STEP)
+        val isCreateAssistedWallet = intent.getBooleanExtra(EXTRA_ADD_ON_HONEY_BADGER, false)
+        val plan = membershipStepManager.plan
         when (stage) {
-            MembershipStage.NONE -> graph.setStartDestination(R.id.introAssistedWalletFragment)
-            MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS, MembershipStage.SETUP_INHERITANCE -> graph.setStartDestination(
-                R.id.addKeyStepFragment
-            )
-            MembershipStage.CONFIG_SERVER_KEY -> graph.setStartDestination(R.id.configureServerKeySettingFragment)
-            MembershipStage.CONFIG_SPENDING_LIMIT -> graph.setStartDestination(R.id.configSpendingLimitFragment)
+            MembershipStage.NONE -> {
+                if (plan == MembershipPlan.BYZANTINE) {
+                    if (groupId.isNotEmpty() || isCreateAssistedWallet) {
+                        graph.setStartDestination(R.id.introAssistedWalletFragment)
+                    } else {
+                        graph.setStartDestination(R.id.groupWalletIntroFragment)
+                    }
+                } else {
+                    graph.setStartDestination(R.id.introAssistedWalletFragment)
+                }
+            }
+
+            MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS, MembershipStage.SETUP_INHERITANCE ->
+                graph.setStartDestination(if (groupId.isEmpty()) R.id.addKeyStepFragment else R.id.addGroupKeyStepFragment)
+
             else -> Unit
         }
-        val bundle = when (stage) {
-            MembershipStage.CONFIG_SPENDING_LIMIT,
-            MembershipStage.CONFIG_SERVER_KEY -> ConfigureServerKeySettingFragmentArgs(
-                keyPolicy = intent.parcelable(EXTRA_KEY_POLICY),
-                xfp = intent.getStringExtra(EXTRA_KEY_XFP)
-            ).toBundle()
-            else -> intent.extras
-        }
-        navHostFragment.navController.setGraph(graph, bundle)
+        navHostFragment.navController.setGraph(graph, intent.extras)
     }
+
+    val groupId: String
+            by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
@@ -79,20 +83,20 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     companion object {
         const val EXTRA_GROUP_STEP = "group_step"
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
-        private const val EXTRA_KEY_POLICY = "key_policy"
-        private const val EXTRA_KEY_XFP = "key_xfp"
+        const val EXTRA_GROUP_ID = "group_id"
+        const val EXTRA_ADD_ON_HONEY_BADGER = "add_on_honey_badger"
 
         fun buildIntent(
             activity: Activity,
             groupStep: MembershipStage,
             walletId: String? = null,
-            keyPolicy: KeyPolicy? = null,
-            xfp: String? = null
+            groupId: String? = null,
+            addOnHoneyBadger: Boolean = false,
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, groupStep)
-            putExtra(EXTRA_KEY_POLICY, keyPolicy)
-            putExtra(EXTRA_KEY_XFP, xfp)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
+            putExtra(EXTRA_GROUP_ID, groupId)
+            putExtra(EXTRA_ADD_ON_HONEY_BADGER, addOnHoneyBadger)
         }
     }
 }

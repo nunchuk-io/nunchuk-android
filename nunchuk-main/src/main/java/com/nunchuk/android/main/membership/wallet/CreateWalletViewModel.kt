@@ -36,25 +36,14 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
+import com.nunchuk.android.usecase.byzantine.CreateGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -68,7 +57,8 @@ class CreateWalletViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
-    private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase
+    private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
+    private val createGroupWalletUseCase: CreateGroupWalletUseCase,
 ) : ViewModel() {
     private val signers = hashMapOf<String, SignerExtra>()
     private var serverKeyExtra: ServerKeyExtra? = null
@@ -84,9 +74,9 @@ class CreateWalletViewModel @Inject constructor(
 
     private var createWalletJob: Job? = null
 
-    init {
+    fun loadSignerFromDatabase() {
         viewModelScope.launch {
-            getMembershipStepUseCase(membershipStepManager.plan)
+            getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.plan, ""))
                 .filter { it.isSuccess }
                 .map { it.getOrThrow() }
                 .collect { steps ->
@@ -106,6 +96,7 @@ class CreateWalletViewModel @Inject constructor(
                                     signers[stepInfo.masterSignerId] = signerExtra
                                 }
                             }
+
                             MembershipStep.ADD_SEVER_KEY -> {
                                 serverKeyExtra = runCatching {
                                     gson.fromJson(
@@ -115,6 +106,7 @@ class CreateWalletViewModel @Inject constructor(
                                 }.getOrNull()
                                 serverKeyId = stepInfo.keyIdInServer
                             }
+
                             else -> {}
                         }
                     }
@@ -128,8 +120,37 @@ class CreateWalletViewModel @Inject constructor(
         }
     }
 
-    fun onContinueClicked() {
-        createQuickWallet()
+    fun onContinueClicked(groupId: String) {
+        if (groupId.isNotEmpty()) {
+            createGroupWallet(groupId)
+        } else {
+            createQuickWallet()
+        }
+    }
+
+    private fun createGroupWallet(groupId: String) {
+        viewModelScope.launch {
+            _event.emit(CreateWalletEvent.Loading(true))
+            createGroupWalletUseCase(
+                CreateGroupWalletUseCase.Param(
+                    name = _state.value.walletName,
+                    groupId = groupId
+                )
+            ).onSuccess {
+                _event.emit(
+                    CreateWalletEvent.OnCreateWalletSuccess(
+                        walletId = it.id,
+                        hasColdcard = it.signers.any { signer -> signer.type == SignerType.COLDCARD_NFC },
+                        hasAirgap = it.signers.any { signer -> signer.type == SignerType.AIRGAP }
+                    )
+                )
+            }.onFailure {
+                _event.emit(
+                    CreateWalletEvent.ShowError(it.message.orUnknownError())
+                )
+            }
+            _event.emit(CreateWalletEvent.Loading(false))
+        }
     }
 
     private fun createQuickWallet() {

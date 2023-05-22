@@ -141,37 +141,6 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
-        <argument
-            android:name="activation_date"
-            app:argType="long" />
-        <argument
-            android:name="note"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
-        <argument
-            android:name="verifyToken"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="emails"
-            app:argType="string[]" />
-        <argument
-            android:name="is_notify"
-            app:argType="boolean" />
-        <argument
-            android:name="magical_phrase"
-            app:argType="string" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
-        <argument
-            android:name="buffer_period"
-            app:argType="com.nunchuk.android.model.Period"
-            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -186,28 +155,9 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
-            android:name="verifyToken"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="magical_phrase"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
-        <argument
             android:name="is_update_request"
             android:defaultValue="false"
             app:argType="boolean" />
-        <argument
-            android:name="selected_activation_date"
-            android:defaultValue="0L"
-            app:argType="long" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
 
     <fragment
@@ -221,34 +171,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-
-        <argument
-            android:name="activation_date"
-            android:defaultValue="0L"
-            app:argType="long" />
-        <argument
-            android:name="magical_phrase"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="verifyToken"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
         <argument
             android:name="is_update_request"
             android:defaultValue="false"
             app:argType="boolean" />
-        <argument
-            android:name="pre_noted"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
 
     <fragment
@@ -262,39 +188,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-
-        <argument
-            android:name="activation_date"
-            android:defaultValue="0L"
-            app:argType="long" />
-        <argument
-            android:name="verifyToken"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="magical_phrase"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="note"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
         <argument
             android:name="is_update_request"
             android:defaultValue="false"
             app:argType="boolean" />
-        <argument
-            android:name="pre_buffer_period"
-            android:defaultValue="@null"
-            app:argType="com.nunchuk.android.model.Period"
-            app:nullable="true" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
 
     <fragment
@@ -309,47 +206,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-
-        <argument
-            android:name="activation_date"
-            android:defaultValue="0L"
-            app:argType="long" />
-        <argument
-            android:name="note"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="verifyToken"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="magical_phrase"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
-        <argument
-            android:name="buffer_period"
-            app:argType="com.nunchuk.android.model.Period"
-            app:nullable="true" />
         <argument
             android:name="is_update_request"
             android:defaultValue="false"
             app:argType="boolean" />
-        <argument
-            android:name="pre_is_notify"
-            android:defaultValue="false"
-            app:argType="boolean" />
-        <argument
-            android:name="pre_emails"
-            android:defaultValue="@null"
-            app:argType="string[]"
-            app:nullable="true" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
 
     <fragment
@@ -363,10 +223,6 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
 
     <fragment
@@ -380,10 +236,6 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/magicalPhraseIntroFragment"
@@ -396,14 +248,6 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <argument
-            android:name="verifyToken"
-            android:defaultValue=""
-            app:argType="string" />
-
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/findBackupPasswordFragment"
@@ -416,12 +260,6 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <argument
-            android:name="magical_phrase"
-            app:argType="string" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/inheritanceKeyTipFragment"
@@ -434,12 +272,6 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <argument
-            android:name="magical_phrase"
-            app:argType="string" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
     </fragment>
 
     <fragment

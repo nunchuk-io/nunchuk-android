@@ -32,7 +32,7 @@ sealed class WalletConfigEvent {
     data class ExportTxCoinControlSuccess(val filePath: String) : WalletConfigEvent()
     object ImportTxCoinControlSuccess : WalletConfigEvent()
 
-    data class VerifyPasswordSuccess(val token: String, val xfp: String) : WalletConfigEvent()
+    data class VerifyPasswordSuccess(val token: String, val xfp: String, val groupId: String?) : WalletConfigEvent()
     class Loading(val isLoading: Boolean) : WalletConfigEvent()
     class Error(val message: String) : WalletConfigEvent()
     object ForceRefreshWalletSuccess : WalletConfigEvent()

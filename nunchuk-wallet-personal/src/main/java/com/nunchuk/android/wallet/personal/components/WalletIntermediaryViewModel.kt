@@ -31,6 +31,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
+import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetLocalCurrentSubscriptionPlan
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,7 +50,8 @@ class WalletIntermediaryViewModel @Inject constructor(
     private val getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
     private val membershipStepManager: MembershipStepManager,
     private val application: Application,
-    private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase
+    private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase,
+    private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
@@ -73,15 +75,22 @@ class WalletIntermediaryViewModel @Inject constructor(
                     .map { it.getOrElse { MembershipPlan.NONE } }
                     .collect { plan ->
                         _state.update { it.copy(plan = plan) }
+                        if (plan != MembershipPlan.NONE) {
+                            getAssistedWalletConfig()
+                        }
                     }
             }
         }
-        getAssistedWalletConfig()
     }
 
     fun getAssistedWalletConfig() {
-        if (getWalletConfigJob?.isActive == true) return
+        if (getWalletConfigJob?.isActive == true || _state.value.plan == MembershipPlan.NONE) return
         getWalletConfigJob = viewModelScope.launch {
+            if (_state.value.plan == MembershipPlan.BYZANTINE) {
+                getGroupAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
+                    _state.update { it.copy(remainGroupCount = configs.remainingGroupCount) }
+                }
+            }
             getAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
                 _state.update { it.copy(remainWalletCount = configs.remainingWalletCount) }
             }
@@ -106,6 +115,12 @@ class WalletIntermediaryViewModel @Inject constructor(
 
     val hasSigner: Boolean
         get() = _state.value.isHasSigner
+
+    val remainWalletCount: Int
+        get() = _state.value.remainWalletCount
+
+    val remainGroupCount: Int
+        get() = _state.value.remainGroupCount
 }
 
 sealed class WalletIntermediaryEvent {
@@ -118,5 +133,6 @@ data class WalletIntermediaryState(
     val isHasSigner: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
     val remainWalletCount: Int = 0,
+    val remainGroupCount: Int = 0,
 )
 

@@ -53,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -67,6 +68,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -74,7 +76,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MagicalPhraseIntroFragment : MembershipFragment() {
     private val viewModel: MagicalPhraseIntroViewModel by viewModels()
-    private val args by navArgs<MagicalPhraseIntroFragmentArgs>()
+    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -90,16 +92,15 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.init(inheritanceViewModel.setupOrReviewParam)
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
                         is MagicalPhraseIntroEvent.OnContinueClicked -> {
+                            inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(magicalPhrase = event.magicalPhrase))
                             findNavController().navigate(
-                                MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment(
-                                    magicalPhrase = event.magicalPhrase,
-                                    walletId = args.walletId
-                                )
+                                MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment()
                             )
                         }
                         is MagicalPhraseIntroEvent.Error -> showError(message = event.message)

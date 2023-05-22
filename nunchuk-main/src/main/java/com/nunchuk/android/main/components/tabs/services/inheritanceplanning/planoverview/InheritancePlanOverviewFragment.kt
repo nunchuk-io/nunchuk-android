@@ -62,7 +62,6 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class InheritancePlanOverviewFragment : MembershipFragment() {
-    private val args by navArgs<InheritancePlanOverviewFragmentArgs>()
     private val viewModel: InheritancePlanOverviewViewModel by viewModels()
 
     override fun onCreateView(
@@ -85,7 +84,7 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
                     when(event) {
                         InheritancePlanOverviewEvent.OnContinueClicked -> {
                             findNavController().navigate(
-                                InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment(walletId = args.walletId)
+                                InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
                             )
                         }
                     }

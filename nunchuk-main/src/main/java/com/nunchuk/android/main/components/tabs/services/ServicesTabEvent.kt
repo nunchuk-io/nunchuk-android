@@ -39,12 +39,13 @@ sealed class ServicesTabEvent {
     ) : ServicesTabEvent()
 
     data class Loading(val loading: Boolean) : ServicesTabEvent()
-    data class CheckPasswordSuccess(val token: String, val walletId: String, val item: ServiceTabRowItem) : ServicesTabEvent()
+    data class CheckPasswordSuccess(val token: String, val walletId: String, val item: ServiceTabRowItem, val groupId: String?) : ServicesTabEvent()
     data class CreateSupportRoomSuccess(val roomId: String) : ServicesTabEvent()
     data class CheckInheritance(val inheritanceCheck: InheritanceCheck) : ServicesTabEvent()
     object EmailInvalid : ServicesTabEvent()
     data class OnSubmitEmailSuccess(val email: String) : ServicesTabEvent()
     data class GetInheritanceSuccess(val walletId: String, val inheritance: Inheritance, val token: String) : ServicesTabEvent()
+    data class OpenSetupInheritancePlan(val walletId: String, val groupId: String?) : ServicesTabEvent()
 }
 
 data class ServicesTabState(

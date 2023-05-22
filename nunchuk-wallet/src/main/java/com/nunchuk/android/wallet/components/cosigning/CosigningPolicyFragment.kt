@@ -122,14 +122,14 @@ class CosigningPolicyFragment : Fragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        CosigningPolicyEvent.OnEditSingingDelayClicked -> navigator.openMembershipActivity(
+                        CosigningPolicyEvent.OnEditSingingDelayClicked -> navigator.openConfigServerKeyActivity(
                             launcher = launcher,
                             activityContext = requireActivity(),
                             groupStep = MembershipStage.CONFIG_SERVER_KEY,
                             keyPolicy = viewModel.state.value.keyPolicy,
                             xfp = args.xfp
                         )
-                        CosigningPolicyEvent.OnEditSpendingLimitClicked -> navigator.openMembershipActivity(
+                        CosigningPolicyEvent.OnEditSpendingLimitClicked -> navigator.openConfigServerKeyActivity(
                             launcher = launcher,
                             activityContext = requireActivity(),
                             groupStep = MembershipStage.CONFIG_SPENDING_LIMIT,
