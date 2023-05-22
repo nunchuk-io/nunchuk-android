@@ -202,6 +202,19 @@
                     android:orientation="vertical"
                     app:layout_constraintTop_toBottomOf="@+id/sendToAddress" />
 
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tv_more_address"
+                    style="@style/NCText.Body.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:visibility="visible"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/container_address"
+                    tools:text="5 more address" />
+
                 <View
                     android:id="@+id/divider"
                     android:layout_width="match_parent"
@@ -209,7 +222,7 @@
                     android:layout_margin="@dimen/nc_padding_16"
                     android:background="@color/nc_whisper_color"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/container_address" />
+                    app:layout_constraintTop_toBottomOf="@+id/tv_more_address" />
 
                 <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/estimatedFeeBTC"

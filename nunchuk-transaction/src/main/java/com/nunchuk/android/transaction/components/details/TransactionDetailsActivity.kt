@@ -443,9 +443,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun bindAddress(transaction: Transaction) {
         val coins = transaction.outputs.filter { viewModel.isMyCoin(it) == transaction.isReceive }
+        binding.tvMoreAddress.isVisible = coins.size > 30
+        binding.tvMoreAddress.text = getString(R.string.nc_more_address, coins.size - 30)
         if (coins.isNotEmpty()) {
             TransactionAddressViewBinder(
-                binding.containerAddress, coins,
+                binding.containerAddress, coins.take(30),
             ) {
                 handleCopyContent(it)
             }.bindItems()
