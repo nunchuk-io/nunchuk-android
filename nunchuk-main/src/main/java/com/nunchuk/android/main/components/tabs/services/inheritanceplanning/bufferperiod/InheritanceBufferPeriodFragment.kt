@@ -157,7 +157,7 @@ private fun InheritanceBufferPeriodContent(
                 id = R.string.nc_estimate_remain_time,
                 remainTime
             ) else ""
-            NcTopAppBar(title = title)
+            NcTopAppBar(title = title, elevation = 0.dp)
             Text(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                 text = stringResource(R.string.nc_set_up_buffer_period),

@@ -32,10 +32,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -189,12 +186,10 @@ class MembershipStepManager @Inject constructor(
         return isConfigKeyDone
     }
 
-    fun isConfigRecoverKeyDone(): Boolean {
-        return (isConfigKeyDone() && _stepDone.value.contains(MembershipStep.SETUP_KEY_RECOVERY)) || assistedWallets.isNotEmpty()
-    }
+    val isConfigRecoverKeyDone = ncDataStore.isSetupSecurityQuestion.stateIn(applicationScope, SharingStarted.Eagerly, false)
 
     fun isCreatedAssistedWalletDone(): Boolean {
-        return isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
+        return isConfigRecoverKeyDone.value && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
     }
 
     fun isSetupInheritanceDone(): Boolean {

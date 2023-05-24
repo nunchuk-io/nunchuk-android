@@ -19,28 +19,41 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import com.nunchuk.android.repository.PremiumWalletRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface ImportTransactionUseCase {
-    fun execute(walletId: String, filePath: String, initEventId: String = "", masterFingerPrint: String = ""): Flow<Transaction>
-}
+class ImportTransactionUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    private val userWalletRepository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<ImportTransactionUseCase.Param, Transaction>(ioDispatcher) {
 
-internal class ImportTransactionUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : ImportTransactionUseCase {
+    data class Param(
+        val walletId: String,
+        val filePath: String,
+        val isAssistedWallet: Boolean,
+        val initEventId: String = "",
+        val masterFingerPrint: String = "",
+    )
 
-    override fun execute(walletId: String, filePath: String, initEventId: String, masterFingerPrint: String): Flow<Transaction> = flow {
-        val result = nativeSdk.importTransaction(walletId = walletId, filePath = filePath)
-        if (masterFingerPrint.isNotEmpty() && initEventId.isNotEmpty()) {
-            nativeSdk.signAirgapTransaction(initEventId, masterFingerPrint)
+    override suspend fun execute(parameters: Param): Transaction {
+        val result = nativeSdk.importTransaction(walletId = parameters.walletId, filePath = parameters.filePath)
+        if (parameters.masterFingerPrint.isNotEmpty() && parameters.initEventId.isNotEmpty()) {
+            nativeSdk.signAirgapTransaction(parameters.initEventId, parameters.masterFingerPrint)
         }
-        emit(result)
-    }.flowOn(Dispatchers.IO)
-
+        if (parameters.isAssistedWallet) {
+            runCatching {
+                userWalletRepository.createServerTransaction(
+                    walletId = parameters.walletId,
+                    psbt = result.psbt,
+                    note = result.memo
+                )
+            }
+        }
+        return result
+    }
 }

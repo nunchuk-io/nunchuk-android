@@ -1,11 +1,11 @@
-package com.nunchuk.android.wallet.components.coin.util
+package com.nunchuk.android.utils
 
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 
-internal class MaxLengthTransformation(private val maxLength: Int, private val prefix: String) :
+class MaxLengthTransformation(private val maxLength: Int, private val prefix: String = "") :
     VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val prefixOffset = prefix.length

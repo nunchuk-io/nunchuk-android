@@ -22,7 +22,6 @@ package com.nunchuk.android.widget
 import android.content.Context
 import android.util.AttributeSet
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
@@ -44,7 +43,6 @@ class NCFontTabLayout @JvmOverloads constructor(
         removeAllTabs()
         val slidingTabStrip = getChildAt(0) as ViewGroup
         val adapter = viewPager.adapter
-        val space = context.resources.getDimension(R.dimen.nc_padding_8).toInt()
         var i = 0
         val count = adapter!!.count
         while (i < count) {
@@ -53,7 +51,6 @@ class NCFontTabLayout @JvmOverloads constructor(
             val view = (slidingTabStrip.getChildAt(i) as ViewGroup).getChildAt(1) as AppCompatTextView
             view.typeface = fontStyle.getCurrentTypeface(FontInitializer.STYLE_SEMI_BOLD)
             view.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
-            view.layoutParams = LinearLayout.LayoutParams(view.measuredWidth + space, LayoutParams.WRAP_CONTENT)
             i++
         }
     }

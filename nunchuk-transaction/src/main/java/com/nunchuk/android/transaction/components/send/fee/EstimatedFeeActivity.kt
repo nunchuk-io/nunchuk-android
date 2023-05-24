@@ -26,6 +26,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.EstimateFeeRates
@@ -41,6 +42,7 @@ import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -122,7 +124,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             }
         }
 
-        bindSubtotal(args.outputAmount)
+        bindSubtotal(viewModel.getOutputAmount())
 
         binding.tvCustomize.setOnDebounceClickListener {
             navigator.openCoinList(
@@ -154,9 +156,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.isEnabled = state.enableSubtractFeeFromAmount
 
         if (state.subtractFeeFromAmount) {
-            bindSubtotal(args.outputAmount)
+            bindSubtotal(viewModel.getOutputAmount())
         } else {
-            bindSubtotal((args.outputAmount + state.estimatedFee.pureBTC()).coerceAtMost(args.availableAmount))
+            bindSubtotal((viewModel.getOutputAmount() + state.estimatedFee.pureBTC()).coerceAtMost(args.availableAmount))
         }
 
         binding.manualFeeDetails.isVisible = state.manualFeeDetails
@@ -186,8 +188,14 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 manualFeeRate = event.manualFeeRate
             )
             is EstimatedFeeEvent.Loading -> showOrHideLoading(event.isLoading)
-            is EstimatedFeeEvent.InvalidManualFee -> NCToastMessage(this).showError(getString(R.string.nc_input_fee_invalid_error))
+            is EstimatedFeeEvent.InvalidManualFee -> {
+                NCWarningDialog(this).showDialog(
+                    message = getString(R.string.nc_transaction_smaller_than_minimum_fee_msg),
+                    onYesClick = viewModel::handleContinueEvent
+                )
+            }
             is EstimatedFeeEvent.GetFeeRateSuccess -> {}
+            EstimatedFeeEvent.DraftTransactionSuccess -> {}
         }
     }
 
@@ -203,9 +211,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         navigator.openTransactionConfirmScreen(
             activityContext = this,
             walletId = args.walletId,
-            outputAmount = args.outputAmount,
+            txReceipts = args.txReceipts,
             availableAmount = args.availableAmount,
-            address = args.address,
             privateNote = args.privateNote,
             estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
@@ -223,9 +230,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         fun start(
             activityContext: Activity,
             walletId: String,
-            outputAmount: Double,
             availableAmount: Double,
-            address: String,
+            txReceipts: List<TxReceipt>,
             privateNote: String,
             subtractFeeFromAmount: Boolean = false,
             sweepType: SweepType = SweepType.NONE,
@@ -237,9 +243,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             activityContext.startActivity(
                 EstimatedFeeArgs(
                     walletId = walletId,
-                    outputAmount = outputAmount,
+                    txReceipts = txReceipts,
                     availableAmount = availableAmount,
-                    address = address,
                     privateNote = privateNote,
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     sweepType = sweepType,

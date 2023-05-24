@@ -90,4 +90,5 @@
         <item quantity="one">%d member</item>
         <item quantity="other">%d members</item>
     </plurals>
+    <string name="nc_multiple_addresses">multiple addresses</string>
 </resources>

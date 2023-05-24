@@ -30,7 +30,9 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.TextUtils
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.receive.TabCountChangeListener
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentArgs
+import com.nunchuk.android.transaction.components.receive.address.AddressTab
 import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -115,6 +117,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
 
     private fun bindAddresses(addresses: List<String>) {
         adapter.items = addresses
+        (requireActivity() as TabCountChangeListener).onChange(AddressTab.UNUSED, addresses.size)
         val hasUnusedAddresses = addresses.isNotEmpty()
         showAddresses(hasUnusedAddresses)
         if (hasUnusedAddresses) {

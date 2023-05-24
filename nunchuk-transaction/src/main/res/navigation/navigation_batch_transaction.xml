@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_schedule_broadcast"
+    app:startDestination="@id/batchTransactionFragment">
+
+    <fragment
+        android:id="@+id/batchTransactionFragment"
+        android:name="com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionFragment"
+        android:label="BatchTransactionFragment">
+
+        <argument
+            android:name="room_id"
+            app:argType="string" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="available_amount"
+            app:argType="float" />
+        <argument
+            android:name="unspent_outputs"
+            app:argType="com.nunchuk.android.model.UnspentOutput[]" />
+    </fragment>
+
+</navigation>

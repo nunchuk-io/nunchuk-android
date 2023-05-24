@@ -81,7 +81,17 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             finish()
         }
         binding.toolbar.setOnMenuItemClickListener {
-            startQRCodeScan(launcher)
+            if (it.itemId == R.id.menu_scan_qr) {
+                startQRCodeScan(launcher)
+            } else if (it.itemId == R.id.menu_batch_transaction) {
+                navigator.openBatchTransactionScreen(
+                    this,
+                    roomId = args.roomId,
+                    walletId = args.walletId,
+                    availableAmount = args.availableAmount,
+                    inputs = args.inputs
+                )
+            }
             true
         }
         binding.mainCurrency.setText("")
@@ -90,7 +100,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked }) || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())) {
                 showUnlockCoinBeforeSend()
             } else {
-                openAddReceiptScreen(args.availableAmount, true)
+                showAmount(if(viewModel.getUseBTC()) args.availableAmount else args.availableAmount.fromBTCToCurrency())
             }
         }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
@@ -108,7 +118,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.mainCurrencyLabel.text = getTextBtcUnit()
 
         val originalTextSize = binding.mainCurrency.textSize
-        binding.tvMainCurrency.doOnPreDraw {
+        binding.mainCurrencyLabel.doOnPreDraw {
             val tvWidth =
                 resources.displayMetrics.widthPixels - resources.getDimensionPixelSize(R.dimen.nc_padding_16) * 3 - it.measuredWidth
             binding.tvMainCurrency.maxWidth = tvWidth
@@ -182,20 +192,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     private fun handleEvent(event: InputAmountEvent) {
         when (event) {
-            is SwapCurrencyEvent -> {
-                binding.mainCurrency.setText(
-                    if (event.amount > 0) {
-                        if (viewModel.getUseBTC()) {
-                            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) event.amount.toAmount().value.formatDecimalWithoutZero() else event.amount.formatDecimal()
-                        } else if (LOCAL_CURRENCY == USD_CURRENCY) {
-                            event.amount.formatDecimal()
-                        } else {
-                            event.amount.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
-                        }
-                    } else ""
-                )
-            }
-
+            is SwapCurrencyEvent -> showAmount(event.amount)
             is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
             InsufficientFundsEvent -> {
                 if (args.inputs.isNotEmpty()) {
@@ -217,6 +214,20 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             is Loading -> showOrHideLoading(event.isLoading)
             InsufficientFundsLockedCoinEvent -> showUnlockCoinBeforeSend()
         }
+    }
+
+    private fun showAmount(amount: Double) {
+        binding.mainCurrency.setText(
+            if (amount > 0) {
+                if (viewModel.getUseBTC()) {
+                    if (CURRENT_DISPLAY_UNIT_TYPE == SAT) amount.toAmount().value.formatDecimalWithoutZero() else amount.formatDecimal()
+                } else if (LOCAL_CURRENCY == USD_CURRENCY) {
+                    amount.formatDecimal()
+                } else {
+                    amount.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
+                }
+            } else ""
+        )
     }
 
     companion object {

@@ -25,4 +25,10 @@ import retrofit2.http.GET
 interface TransactionApi {
     @GET("fees/recommended")
     suspend fun getFees(): EstimateFeeResponse
+
+    @GET("fees/testnet/recommended")
+    suspend fun getTestnetFees(): EstimateFeeResponse
+
+    @GET("fees/signet/recommended")
+    suspend fun getSignetFees(): EstimateFeeResponse
 }

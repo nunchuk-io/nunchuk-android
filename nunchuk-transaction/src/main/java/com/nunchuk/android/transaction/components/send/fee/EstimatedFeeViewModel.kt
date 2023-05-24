@@ -21,17 +21,14 @@ package com.nunchuk.android.transaction.components.send.fee
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.sum
 import com.nunchuk.android.core.util.toAmount
-import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.model.SatsCardSlot
-import com.nunchuk.android.model.TxInput
-import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
@@ -56,8 +53,7 @@ class EstimatedFeeViewModel @Inject constructor(
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
-    private var address: String = ""
-    private var sendAmount: Double = 0.0
+    private var txReceipts: List<TxReceipt> = emptyList()
     private var forceSubtractFeeFromAmount: Boolean = false
     private var draftTranJob: Job? = null
     private val slots = mutableListOf<SatsCardSlot>()
@@ -67,8 +63,7 @@ class EstimatedFeeViewModel @Inject constructor(
 
     fun init(args: EstimatedFeeArgs) {
         this.walletId = args.walletId
-        this.address = args.address
-        this.sendAmount = args.outputAmount
+        this.txReceipts = args.txReceipts
         this.slots.apply {
             clear()
             addAll(args.slots)
@@ -144,14 +139,14 @@ class EstimatedFeeViewModel @Inject constructor(
         var enableSubtractFeeFromAmount = state.enableSubtractFeeFromAmount
         if (!forceSubtractFeeFromAmount && inputs.isNotEmpty()) {
             val selectedAmount = inputs.map { it.amount }.sum()
-            if (selectedAmount.value <= state.estimatedFee.value + sendAmount.toAmount().value) {
+            if (selectedAmount.value <= state.estimatedFee.value + getOutputAmount().toAmount().value) {
                 subtractFeeFromAmount = true
                 enableSubtractFeeFromAmount = false
             }
         }
         when (val result = draftTransactionUseCase.execute(
             walletId = walletId,
-            outputs = mapOf(address to sendAmount.toAmount()),
+            outputs = getOutputs(),
             subtractFeeFromAmount = subtractFeeFromAmount,
             feeRate = state.manualFeeRate.toManualFeeRate(),
             inputs = inputs.map { TxInput(it.txid, it.vout) }
@@ -165,6 +160,7 @@ class EstimatedFeeViewModel @Inject constructor(
                         enableSubtractFeeFromAmount = enableSubtractFeeFromAmount,
                     )
                 }
+                setEvent(EstimatedFeeEvent.DraftTransactionSuccess)
             }
             is Error -> {
                 if (result.exception !is CancellationException) {
@@ -175,11 +171,22 @@ class EstimatedFeeViewModel @Inject constructor(
         setEvent(EstimatedFeeEvent.Loading(false))
     }
 
+    fun getOutputAmount() = txReceipts.sumOf { it.amount }
+
+    private fun getOutputs(): Map<String, Amount> {
+        val outputs = mutableMapOf<String, Amount>()
+        txReceipts.forEach {
+            outputs[it.address] = it.amount.toAmount()
+        }
+        return outputs
+    }
+
+
     private suspend fun draftSatsCardTransaction() {
         setEvent(EstimatedFeeEvent.Loading(true))
         val result = draftSatsCardTransactionUseCase(
             DraftSatsCardTransactionUseCase.Data(
-                address,
+                txReceipts.first().address,
                 slots,
                 getState().manualFeeRate
             )
@@ -217,9 +224,8 @@ class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun updateFeeRate(feeRate: Int) {
-        val newFeeRate = feeRate.coerceAtLeast(getState().estimateFeeRates.minimumFee)
-        if (newFeeRate != getState().manualFeeRate) {
-            updateState { copy(manualFeeRate = newFeeRate) }
+        if (feeRate != getState().manualFeeRate) {
+            updateState { copy(manualFeeRate = feeRate) }
             draftTransaction()
         }
     }

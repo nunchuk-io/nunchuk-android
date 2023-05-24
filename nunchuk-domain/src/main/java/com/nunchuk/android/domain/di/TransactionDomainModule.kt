@@ -45,9 +45,6 @@ internal interface TransactionDomainModule {
     fun bindGetTransactionUseCase(useCase: GetTransactionUseCaseImpl): GetTransactionUseCase
 
     @Binds
-    fun bindImportTransactionUseCase(useCase: ImportTransactionUseCaseImpl): ImportTransactionUseCase
-
-    @Binds
     fun bindExportTransactionHistoryUseCase(useCase: ExportTransactionHistoryUseCaseImpl): ExportTransactionHistoryUseCase
 
     @Binds
@@ -61,9 +58,6 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindValueFromAmountUseCase(useCase: ValueFromAmountUseCaseImpl): ValueFromAmountUseCase
-
-    @Binds
-    fun bindCheckAddressValidUseCase(useCase: CheckAddressValidUseCaseImpl): CheckAddressValidUseCase
 
     @Binds
     fun bindSendSignerPassphrase(useCase: SendSignerPassphraseImpl): SendSignerPassphrase

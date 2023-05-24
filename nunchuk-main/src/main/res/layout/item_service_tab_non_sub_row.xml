@@ -30,10 +30,11 @@
     <TextView
         android:id="@+id/tv_desc"
         style="@style/NCText.Body"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_12"
         android:layout_marginTop="@dimen/nc_padding_8"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/image"
         app:layout_constraintTop_toBottomOf="@+id/tv_title"
         tools:text="Plan your inheritance in a non-custodial way and ensure that your bitcoin can be safely passed on to your loved ones. Compatible with existing estate plans." />

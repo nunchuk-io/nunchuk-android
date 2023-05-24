@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
@@ -35,6 +36,7 @@ import com.nunchuk.android.transaction.components.imports.ImportTransactionActiv
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.address.details.AddressDetailsActivity
 import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
+import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmActivity
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeActivity
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptActivity
@@ -112,9 +114,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     override fun openEstimatedFeeScreen(
         activityContext: Activity,
         walletId: String,
-        outputAmount: Double,
         availableAmount: Double,
-        address: String,
+        txReceipts: List<TxReceipt>,
         privateNote: String,
         subtractFeeFromAmount: Boolean,
         sweepType: SweepType,
@@ -126,9 +127,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            outputAmount = outputAmount,
+            txReceipts = txReceipts,
             availableAmount = availableAmount,
-            address = address,
             privateNote = privateNote,
             subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = sweepType,
@@ -142,9 +142,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     override fun openTransactionConfirmScreen(
         activityContext: Activity,
         walletId: String,
-        outputAmount: Double,
         availableAmount: Double,
-        address: String,
+        txReceipts: List<TxReceipt>,
         privateNote: String,
         estimatedFee: Double,
         subtractFeeFromAmount: Boolean,
@@ -158,9 +157,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            outputAmount = outputAmount,
+            txReceipts = txReceipts,
             availableAmount = availableAmount,
-            address = address,
             privateNote = privateNote,
             estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
@@ -269,5 +267,22 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         transaction: Transaction
     ) {
         ReplaceFeeActivity.start(launcher, context, walletId, transaction)
+    }
+
+    override fun openBatchTransactionScreen(
+        activityContext: Activity,
+        roomId: String,
+        walletId: String,
+        availableAmount: Double,
+        inputs: List<UnspentOutput>
+    ) {
+        activityContext.startActivity(
+            BatchTransactionActivity.buildIntent(
+                activityContext, roomId = roomId,
+                walletId = walletId,
+                availableAmount = availableAmount,
+                inputs = inputs,
+            )
+        )
     }
 }

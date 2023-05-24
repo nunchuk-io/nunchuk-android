@@ -21,6 +21,7 @@ package com.nunchuk.android.transaction.components.send.confirmation
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
@@ -36,6 +37,7 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
@@ -44,10 +46,12 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.DraftTransactionSuccess
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
+import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -58,6 +62,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
@@ -71,14 +76,14 @@ class TransactionConfirmViewModel @Inject constructor(
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
     private val pushEventManager: PushEventManager,
-) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
+    private val isMyCoinUseCase: IsMyCoinUseCase,
+    ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
 
     private var manualFeeRate: Int = -1
     private lateinit var walletId: String
-    private lateinit var address: String
-    private var sendAmount: Double = 0.0
+    private lateinit var txReceipts: List<TxReceipt>
     private var subtractFeeFromAmount: Boolean = false
     private val slots = mutableListOf<SatsCardSlot>()
     private val inputs = mutableListOf<UnspentOutput>()
@@ -90,8 +95,7 @@ class TransactionConfirmViewModel @Inject constructor(
 
     fun init(
         walletId: String,
-        address: String,
-        sendAmount: Double,
+        txReceipts: List<TxReceipt>,
         subtractFeeFromAmount: Boolean,
         privateNote: String,
         manualFeeRate: Int,
@@ -101,8 +105,7 @@ class TransactionConfirmViewModel @Inject constructor(
         inputs: List<UnspentOutput> = emptyList(),
     ) {
         this.walletId = walletId
-        this.address = address
-        this.sendAmount = sendAmount
+        this.txReceipts = txReceipts
         this.subtractFeeFromAmount = subtractFeeFromAmount
         this.privateNote = privateNote
         this.manualFeeRate = manualFeeRate
@@ -121,6 +124,14 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
+    private fun getOutputs(): Map<String, Amount> {
+        val outputs = mutableMapOf<String, Amount>()
+        txReceipts.forEach {
+            outputs[it.address] = it.amount.toAmount()
+        }
+        return outputs
+    }
+
     private fun getAllTags() {
         viewModelScope.launch {
             getAllTagsUseCase(walletId).onSuccess { tags ->
@@ -135,7 +146,7 @@ class TransactionConfirmViewModel @Inject constructor(
             val roomId = sessionHolder.getActiveRoomId()
             initRoomTransactionUseCase.execute(
                 roomId = roomId,
-                outputs = mapOf(address to sendAmount.toAmount()),
+                outputs = getOutputs(),
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 feeRate = manualFeeRate.toManualFeeRate()
             )
@@ -161,7 +172,7 @@ class TransactionConfirmViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = draftTransactionUseCase.execute(
                 walletId = walletId,
-                outputs = mapOf(address to sendAmount.toAmount()),
+                outputs = getOutputs(),
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 feeRate = manualFeeRate.toManualFeeRate(),
                 inputs = inputs.map { TxInput(it.txid, it.vout) }
@@ -177,7 +188,7 @@ class TransactionConfirmViewModel @Inject constructor(
         viewModelScope.launch {
             val result = draftSatsCardTransactionUseCase(
                 DraftSatsCardTransactionUseCase.Data(
-                    address,
+                    txReceipts.first().address,
                     slots,
                     manualFeeRate
                 )
@@ -190,7 +201,13 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
+    fun isMyCoin(output: TxOutput) =
+        runBlocking { isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, output.first)) }.getOrDefault(
+            false
+        )
+
     private fun onDraftTransactionSuccess(data: Transaction) {
+        setEvent(DraftTransactionSuccess(data))
         val hasChange: Boolean = data.hasChangeIndex()
         if (hasChange) {
             val txOutput = data.outputs[data.changeIndex]
@@ -220,7 +237,7 @@ class TransactionConfirmViewModel @Inject constructor(
             val result = createTransactionUseCase(
                 CreateTransactionUseCase.Param(
                     walletId = walletId,
-                    outputs = mapOf(address to sendAmount.toAmount()),
+                    outputs = getOutputs(),
                     inputs = inputs,
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     feeRate = manualFeeRate.toManualFeeRate(),
@@ -261,7 +278,7 @@ class TransactionConfirmViewModel @Inject constructor(
         event(LoadingEvent)
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
-                address = address,
+                address = txReceipts.first().address,
                 feeRate = manualFeeRate.toManualFeeRate(),
                 masterSignerId = masterSignerId,
                 magic = magicalPhrase

@@ -19,7 +19,8 @@
 
 package com.nunchuk.android.core.matrix
 
-import org.matrix.android.sdk.api.RoomDisplayNameFallbackProvider
+import org.matrix.android.sdk.api.provider.RoomDisplayNameFallbackProvider
+
 
 class RoomDisplayNameFallbackProviderImpl : RoomDisplayNameFallbackProvider {
 
