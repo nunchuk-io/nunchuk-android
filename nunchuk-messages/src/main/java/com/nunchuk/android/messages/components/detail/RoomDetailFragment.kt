@@ -69,6 +69,8 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
     @Inject
     lateinit var ncMediaManager: NcMediaManager
 
+    private var handleRoomAction: Boolean = false
+
     private val viewModel: RoomDetailViewModel by activityViewModels()
 
     private val args: RoomDetailFragmentArgs by navArgs()
@@ -212,9 +214,14 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         binding.expand.isVisible = hasRoomWallet
         expandChatBar()
         state.roomWallet?.let {
+            val transactions = state.transactions.map(TransactionExtended::transaction)
+            val pendingTransaction = transactions.firstOrNull { it.status.isPending() }
+            val walletId = it.walletId
+            val coins = pendingTransaction?.outputs?.filter { viewModel.isMyCoin(walletId = walletId, it.first) == pendingTransaction.isReceive }
             stickyBinding.bindRoomWallet(
                 wallet = it,
                 transactions = state.transactions.map(TransactionExtended::transaction),
+                numSendingAddress = coins?.size,
                 onClick = viewModel::viewConfig,
                 onClickViewTransactionDetail = { txId ->
                     openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = "")
@@ -506,11 +513,13 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
     }
 
     private fun handleRoomAction(roomAction: RoomAction) {
+        if (handleRoomAction) return
         when (roomAction) {
             RoomAction.SEND -> sendBTCAction()
             RoomAction.RECEIVE -> receiveBTCAction()
             RoomAction.NONE -> Unit
         }
+        handleRoomAction = true
     }
 
     companion object {

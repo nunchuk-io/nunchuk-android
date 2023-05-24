@@ -4,6 +4,14 @@
     <string name="nc_transaction_receive">Receive</string>
     <string name="nc_transaction_unused">Unused address</string>
     <string name="nc_transaction_used">Used address</string>
+    <plurals name="nc_transaction_unused_with_count">
+        <item quantity="one">Unused address (%1$d)</item>
+        <item quantity="other">Unused addresses (%1$d)</item>
+    </plurals>
+    <plurals name="nc_transaction_used_with_count">
+        <item quantity="one">Used address (%1$d)</item>
+        <item quantity="other">Used addresses (%1$d)</item>
+    </plurals>
 
     <string name="nc_address_used_introduction">An address is marked as used as soon as money is deposited into it. For better privacy, reusing addresses is not recommended.</string>
     <string name="nc_address_generate_address">Generate a new address</string>
@@ -58,4 +66,7 @@
     <string name="nc_dont_assign_any_tags">Don’t assign any tags</string>
     <string name="nc_transaction_generate_change_coin_title">This transaction generates a change coin. Would you like the change coin to inherit the tags from the parent coin(s)?</string>
     <string name="nc_send_all_selected">Send all selected</string>
+    <string name="nc_multiple_addresses">multiple addresses</string>
+    <string name="nc_transaction_smaller_than_minimum_fee_msg">Transactions with fee too low might get kicked out of the mempool. Are you sure you want to continue?</string>
+    <string name="nc_more_address">"%1$d more address"</string>
 </resources>

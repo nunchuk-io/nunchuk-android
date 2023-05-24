@@ -31,6 +31,7 @@ sealed class EstimatedFeeEvent {
         val subtractFeeFromAmount: Boolean,
         val manualFeeRate: Int
     ) : EstimatedFeeEvent()
+    object DraftTransactionSuccess : EstimatedFeeEvent()
 }
 
 data class EstimatedFeeState(

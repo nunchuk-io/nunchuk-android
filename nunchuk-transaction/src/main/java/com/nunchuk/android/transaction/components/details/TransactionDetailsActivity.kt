@@ -227,13 +227,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.tvEditNote.setUnderline()
         binding.tvEditChangeAddress.setUnderline()
         binding.tvEditChangeAddress.setOnDebounceClickListener {
-            navigator.openCoinDetail(
-                launcher = coinLauncher,
-                context = this,
-                walletId = args.walletId,
-                txId = args.txId,
-                vout = viewModel.getTransaction().changeIndex
-            )
+            viewModel.coins().find { it.vout == viewModel.getTransaction().changeIndex }?.let {
+                navigator.openCoinDetail(
+                    launcher = coinLauncher,
+                    context = this,
+                    walletId = args.walletId,
+                    it
+                )
+            }
         }
         binding.viewMore.setOnClickListener {
             viewModel.handleViewMoreEvent()
@@ -279,8 +280,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     launcher = coinLauncher,
                     context = this,
                     walletId = args.walletId,
-                    txId = args.txId,
-                    vout = viewModel.coins().first().vout
+                    viewModel.coins().first()
                 )
                 else -> navigator.openCoinList(
                     launcher = coinLauncher,
@@ -389,7 +389,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                             startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                         }
                     }
-                    SignerType.AIRGAP -> showSignByAirgapOptions()
+                    SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
                     else -> viewModel.handleSignSoftwareKey(signer)
                 }
             }).bindItems()
@@ -397,13 +397,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun bindTransaction(transaction: Transaction, coins: List<UnspentOutput>) {
         binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
-        val output = if (transaction.isReceive) {
-            transaction.receiveOutputs.firstOrNull()
-        } else {
-            transaction.outputs.firstOrNull()
-        }
         binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
-        binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
@@ -449,14 +443,25 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun bindAddress(transaction: Transaction) {
         val coins = transaction.outputs.filter { viewModel.isMyCoin(it) == transaction.isReceive }
+        binding.tvMoreAddress.isVisible = coins.size > 30
+        binding.tvMoreAddress.text = getString(R.string.nc_more_address, coins.size - 30)
         if (coins.isNotEmpty()) {
             TransactionAddressViewBinder(
-                binding.containerAddress, coins,
+                binding.containerAddress, coins.take(30),
             ) {
                 handleCopyContent(it)
             }.bindItems()
         }
-
+        if (coins.size >= 2) {
+            binding.sendingTo.text = getString(R.string.nc_multiple_addresses)
+        } else {
+            val output = if (transaction.isReceive) {
+                transaction.receiveOutputs.firstOrNull()
+            } else {
+                transaction.outputs.firstOrNull()
+            }
+            binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
+        }
         if (transaction.isReceive) {
             binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)
             binding.sendToAddress.text = getString(R.string.nc_transaction_receive_address)

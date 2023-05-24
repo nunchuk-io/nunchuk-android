@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.components.config
 sealed class WalletConfigEvent {
 
     object UpdateNameSuccessEvent : WalletConfigEvent()
+    object UpdateGapLimitSuccessEvent : WalletConfigEvent()
 
     data class UpdateNameErrorEvent(val message: String) : WalletConfigEvent()
 

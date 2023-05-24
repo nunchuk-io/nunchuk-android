@@ -352,6 +352,7 @@ fun InheritanceReviewPlanScreenContent(
                     NcTopAppBar(
                         backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
                         title = title,
+                        elevation = 0.dp,
                         actions = {
                             IconButton(onClick = {
                                 onActionTopBarClick()

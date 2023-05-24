@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_batch_transaction"
+        android:icon="@drawable/ic_batch_transaction"
+        android:title="@string/nc_batch_transaction"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_scan_qr"
+        android:icon="@drawable/ic_qr"
+        android:title="@string/nc_scan_qr"
+        app:showAsAction="ifRoom" />
+
+</menu>

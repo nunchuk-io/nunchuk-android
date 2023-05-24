@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
@@ -71,9 +72,8 @@ interface TransactionNavigator {
     fun openEstimatedFeeScreen(
         activityContext: Activity,
         walletId: String,
-        outputAmount: Double,
         availableAmount: Double,
-        address: String,
+        txReceipts: List<TxReceipt>,
         privateNote: String,
         subtractFeeFromAmount: Boolean = false,
         sweepType: SweepType = SweepType.NONE,
@@ -90,9 +90,8 @@ interface TransactionNavigator {
     fun openTransactionConfirmScreen(
         activityContext: Activity,
         walletId: String,
-        outputAmount: Double,
         availableAmount: Double,
-        address: String,
+        txReceipts: List<TxReceipt>,
         privateNote: String,
         estimatedFee: Double,
         subtractFeeFromAmount: Boolean = false,
@@ -151,5 +150,12 @@ interface TransactionNavigator {
         context: Context,
         walletId: String,
         transaction: Transaction
+    )
+
+    fun openBatchTransactionScreen(
+        activityContext: Activity, roomId: String,
+        walletId: String,
+        availableAmount: Double,
+        inputs: List<UnspentOutput>
     )
 }

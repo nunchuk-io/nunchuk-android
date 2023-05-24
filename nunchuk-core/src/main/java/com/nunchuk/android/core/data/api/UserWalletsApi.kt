@@ -46,7 +46,7 @@ internal interface UserWalletsApi {
     ): Data<CreateServerKeyResponse>
 
     @GET("/v1.1/user-wallets/security-questions")
-    suspend fun getSecurityQuestion(@Header("Verify-token") verifyToken: String?): Data<SecurityQuestionDataResponse>
+    suspend fun getSecurityQuestion(): Data<SecurityQuestionDataResponse>
 
     @POST("/v1.1/user-wallets/security-questions/verify-answer")
     suspend fun verifySecurityQuestion(@Body request: ConfigSecurityQuestionPayload): Data<VerifySecurityQuestionResponse>
@@ -241,8 +241,8 @@ internal interface UserWalletsApi {
         @Body payload: InheritanceCheckRequest
     ): Data<InheritanceCheckResponse>
 
-    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&status=PENDING_SIGNATURES,READY_TO_BROADCAST&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
-    suspend fun getTransactions(
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=PENDING_SIGNATURES,READY_TO_BROADCAST&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
+    suspend fun getTransactionsToSync(
         @Path("wallet_id_or_local_id") walletId: String,
         @Query("offset") offset: Int
     ): Data<TransactionsResponse>
@@ -281,4 +281,10 @@ internal interface UserWalletsApi {
     suspend fun getCoinControlData(
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<CoinDataContent>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
+    suspend fun getTransactionsToDelete(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int
+    ): Data<TransactionsResponse>
 }

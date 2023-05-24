@@ -132,6 +132,7 @@
     <string name="nc_create_transaction">Create transaction</string>
     <string name="nc_customize_fee_settings">Customize fee settings</string>
     <string name="nc_scan_qr">Scan QR</string>
+    <string name="nc_batch_transaction">Batch transaction</string>
     <string name="nc_continue_to_sweep">Continue to sweep</string>
     <string name="nc_data_transfer_in_progress">Data transfer in progress…</string>
     <string name="nc_keep_hold_coldcard_until_finish">Keep holding your device near the COLDCARD until it\'s finished.</string>
@@ -236,7 +237,7 @@
     <string name="nc_create_your_wallet_desc">What would you like to name this wallet?</string>
     <string name="nc_wallet_name">Wallet name</string>
     <string name="nc_setup_security_questions">Set up security questions</string>
-    <string name="nc_setup_security_questions_desc">Fill in the security questions and answers below. They will be used to prevent unauthorized access to features such as key recovery and configuring co-signing policies. Answers are case-sensitive.</string>
+    <string name="nc_setup_security_questions_desc">Fill in the security questions and answers below. They will be used to prevent unauthorized access to security-sensitive features. Answers are case-sensitive.</string>
     <string name="nc_hours">Hours</string>
     <string name="nc_minutes">Minutes</string>
     <string name="nc_take_me_my_wallet">Take me to my wallet</string>
@@ -358,7 +359,7 @@
     <string name="nc_set_up_activation_date">Set up an Activation Date</string>
     <string name="nc_update_activation_date">Update activation date</string>
     <string name="nc_set_up_activation_date_notice">Even with the correct Magic Phrase and Backup Password, one cannot claim the inheritance before this date.</string>
-    <string name="nc_set_up_activation_date_desc">[B]Only on or after this date,[/B] a Beneficiary or Trustee can claim the inheritance.\n\nYou can change the Activation Date later via the Services tab.</string>
+    <string name="nc_set_up_activation_date_desc">[B]Only on or after this date,[/B] a Beneficiary or Trustee can claim the inheritance.\n\nYou can change the Activation Date later via the Services tab.\n\nWe recommend an Activation Date not too far in the future (e.g. 2 years from now). Review the plan annually and adjust the date if necessary to avoid long term uncertainties.</string>
     <string name="nc_inheritance_leave_message">Would you like to leave a message?</string>
     <string name="nc_inheritance_leave_message_desc">After the Beneficiary or Trustee claims the inheritance, they will be able to see this message.</string>
     <string name="nc_update_message">Update message</string>
@@ -549,7 +550,7 @@
     <string name="nc_lock_this_coin">Lock this coin</string>
     <string name="nc_tags">Tags</string>
     <string name="nc_coin_has_no_tags">This coin has no tags.</string>
-    <string name="nc_coin_has_no_collections">This coin has no collections.</string>
+    <string name="nc_coin_has_no_collections">This coin is not in any collections.</string>
     <string name="nc_outpoint">Outpoint</string>
     <string name="nc_copy_outpoint">Copy outpoint</string>
     <string name="nc_manage_coin">Manage coin</string>
@@ -648,4 +649,9 @@
     <string name="nc_no_filter">No filter</string>
     <string name="nc_select_import_format_desc">The import might overwrite existing labels. Are you sure you want to continue?</string>
     <string name="nc_select_export_format_desc">Please note that certain Nunchuk labels might not be supported by BIP329. Are you sure you want to continue?</string>
+    <string name="nc_batched_transaction">Batched transaction</string>
+    <string name="nc_recipient_data">Recipient %1$d</string>
+    <string name="nc_remove">Remove</string>
+    <string name="nc_add_recipient">Add recipient</string>
+    <string name="nc_address">Address</string>
 </resources>

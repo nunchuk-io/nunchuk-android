@@ -10,6 +10,7 @@ class NumberCommaTransformation(private val suffix: String = "") : VisualTransfo
     override fun filter(text: AnnotatedString): TransformedText {
         val formatValue = text.text.toDoubleOrNull()?.formatDecimalWithoutZero() ?: ""
         val value = when {
+            formatValue == "0" -> "$text $suffix"
             formatValue.isEmpty() -> ""
             text.text.endsWith(".") -> "${formatValue}. $suffix"
             else -> "$formatValue $suffix"

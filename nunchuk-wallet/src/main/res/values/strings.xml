@@ -71,4 +71,9 @@
     <string name="nc_coin_ancestry">Coin ancestry</string>
     <string name="nc_wallet_this_coin">This coin</string>
     <string name="nc_wallet_spent">Spent</string>
+    <string name="nc_configure_gap_limit">Configure gap limit (advanced)</string>
+    <string name="nc_max_data">Max: %1$d</string>
+    <string name="nc_gap_limit_error">Gap limit cannot exceed %1$d.</string>
+    <string name="nc_gap_limit_updated">Gap limit has been updated</string>
+    <string name="nc_gap_limit">Gap limit</string>
 </resources>

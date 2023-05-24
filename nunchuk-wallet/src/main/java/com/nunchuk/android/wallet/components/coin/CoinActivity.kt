@@ -59,9 +59,9 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val KEY_WALLET_ID = "wallet_id"
         private const val KEY_SCREEN = "screen"
         private const val KEY_TX_ID = "txId"
-        private const val KEY_VOUT = "vout"
         private const val KEY_AMOUNT = "amount"
         private const val KEY_INPUT = "inputs"
+        private const val KEY_OUTPUT = "output"
 
         fun buildIntent(
             context: Context,
@@ -82,12 +82,11 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
         }
 
         fun buildIntent(
-            context: Context, walletId: String, txId: String, vout: Int
+            context: Context, walletId: String, output: UnspentOutput
         ) = Intent(context, CoinActivity::class.java).apply {
             putExtra(KEY_WALLET_ID, walletId)
             putExtra(KEY_SCREEN, CoinScreen.DETAIL)
-            putExtra(KEY_TX_ID, txId)
-            putExtra(KEY_VOUT, vout)
+            putExtra(KEY_OUTPUT, output)
         }
     }
 }

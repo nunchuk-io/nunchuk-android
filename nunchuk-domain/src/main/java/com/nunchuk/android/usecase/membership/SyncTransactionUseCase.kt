@@ -31,6 +31,7 @@ class SyncTransactionUseCase @Inject constructor(
 ) : UseCase<String, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: String) {
-        return repository.syncTransaction(parameters)
+        repository.syncTransaction(parameters)
+        repository.clearTransactionEmergencyLockdown(parameters)
     }
 }

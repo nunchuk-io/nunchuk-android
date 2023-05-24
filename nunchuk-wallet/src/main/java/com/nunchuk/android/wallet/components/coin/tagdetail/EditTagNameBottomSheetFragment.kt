@@ -1,11 +1,14 @@
 package com.nunchuk.android.wallet.components.coin.tagdetail
 
+import android.content.Context
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.Selection
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
@@ -21,6 +24,7 @@ import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragmentArgs
 import com.nunchuk.android.wallet.databinding.BottomSheetEditTagNameBinding
+import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -55,6 +59,8 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
                 EditTagNameBottomSheetEvent.ExistingTagNameError -> {
                     binding.errorText.text = getString(R.string.nc_tag_name_already_exists)
                     binding.errorText.isVisible = true
+                    val inputMethodManager = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
                 }
 
                 is EditTagNameBottomSheetEvent.Error -> showError(message = event.message)
@@ -72,6 +78,7 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
             source.filterNot { it.isWhitespace() }
         }
         binding.edtName.filters = arrayOf(filter)
+        binding.edtName.setMaxLength(40)
         binding.closeBtn.setOnClickListener {
             cleanUp()
         }

@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.send.confirmation
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
@@ -34,9 +35,8 @@ import com.nunchuk.android.utils.serializable
 
 data class TransactionConfirmArgs(
     val walletId: String, // in case sweep it's target wallet id, other cases it's source wallet id
-    val outputAmount: Double,
     val availableAmount: Double,
-    val address: String,
+    val txReceipts: List<TxReceipt>,
     val privateNote: String,
     val estimatedFee: Double,
     val subtractFeeFromAmount: Boolean = false,
@@ -51,9 +51,7 @@ data class TransactionConfirmArgs(
     override fun buildIntent(activityContext: Context) =
         Intent(activityContext, TransactionConfirmActivity::class.java).apply {
             putExtra(EXTRA_WALLET_ID, walletId)
-            putExtra(EXTRA_OUTPUT_AMOUNT, outputAmount)
             putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
-            putExtra(EXTRA_ADDRESS, address)
             putExtra(EXTRA_PRIVATE_NOTE, privateNote)
             putExtra(EXTRA_ESTIMATE_FEE, estimatedFee)
             putExtra(EXTRA_SUBTRACT_FEE_FROM_AMOUNT, subtractFeeFromAmount)
@@ -61,15 +59,14 @@ data class TransactionConfirmArgs(
             putExtra(EXTRA_SWEEP_TYPE, sweepType)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
             putExtra(EXTRA_MASTER_SIGNER_ID, magicalPhrase)
+            putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
             putParcelableArrayListExtra(EXTRA_INPUTS, ArrayList(inputs))
         }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
-        private const val EXTRA_OUTPUT_AMOUNT = "EXTRA_OUTPUT_AMOUNT"
         private const val EXTRA_AVAILABLE_AMOUNT = "EXTRA_AVAILABLE_AMOUNT"
-        private const val EXTRA_ADDRESS = "EXTRA_ADDRESS"
         private const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
         private const val EXTRA_ESTIMATE_FEE = "EXTRA_ESTIMATE_FEE"
         private const val EXTRA_SUBTRACT_FEE_FROM_AMOUNT = "EXTRA_SUBTRACT_FEE_FROM_AMOUNT"
@@ -79,14 +76,13 @@ data class TransactionConfirmArgs(
         private const val EXTRA_INPUTS = "EXTRA_INPUTS"
         private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
         private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
+        private const val EXTRA_TX_RECEIPTS = "EXTRA_TX_RECEIPTS"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
             val extras = intent.extras
             return TransactionConfirmArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
-                outputAmount = extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
                 availableAmount = extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
-                address = extras.getStringValue(EXTRA_ADDRESS),
                 privateNote = extras.getStringValue(EXTRA_PRIVATE_NOTE),
                 estimatedFee = extras.getDoubleValue(EXTRA_ESTIMATE_FEE),
                 subtractFeeFromAmount = extras.getBooleanValue(EXTRA_SUBTRACT_FEE_FROM_AMOUNT),
@@ -95,7 +91,8 @@ data class TransactionConfirmArgs(
                 slots = extras.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
                 masterSignerId = extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
                 magicalPhrase = extras.getStringValue(EXTRA_MAGICAL_PHRASE),
-                inputs = extras.parcelableArrayList<UnspentOutput>(EXTRA_INPUTS).orEmpty()
+                inputs = extras.parcelableArrayList<UnspentOutput>(EXTRA_INPUTS).orEmpty(),
+                txReceipts = extras.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty()
             )
         }
     }

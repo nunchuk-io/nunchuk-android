@@ -38,6 +38,8 @@ sealed class TransactionConfirmEvent {
     data class UpdateChangeAddress(val address: String, val amount: Amount) :
         TransactionConfirmEvent()
 
+    data class DraftTransactionSuccess(val transaction: Transaction) : TransactionConfirmEvent()
+
     data class InitRoomTransactionError(val message: String) : TransactionConfirmEvent()
     data class InitRoomTransactionSuccess(val roomId: String) : TransactionConfirmEvent()
 }

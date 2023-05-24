@@ -26,6 +26,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
+import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
@@ -218,6 +219,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
             is TransactionConfirmEvent.UpdateChangeAddress -> {}
             is TransactionConfirmEvent.AssignTagEvent -> {}
+            else -> {}
         }
     }
 
@@ -236,8 +238,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 if (transactionConfirmViewModel.isInheritanceClaimingFlow()) event.estimateFeeRates.priorityRate else event.estimateFeeRates.defaultRate
             transactionConfirmViewModel.init(
                 walletId = args.walletId,
-                sendAmount = finalAmount,
-                address = address,
+                txReceipts = listOf(TxReceipt(address,finalAmount)),
                 privateNote = state.privateNote,
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 slots = args.slots,
@@ -282,9 +283,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         navigator.openEstimatedFeeScreen(
             activityContext = this,
             walletId = args.walletId,
-            outputAmount = finalAmount,
             availableAmount = args.availableAmount,
-            address = address,
+            txReceipts = listOf(TxReceipt(address, finalAmount)) ,
             privateNote = privateNote,
             subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = args.sweepType,

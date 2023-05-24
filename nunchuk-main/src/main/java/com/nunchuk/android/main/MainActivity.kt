@@ -22,11 +22,9 @@ package com.nunchuk.android.main
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
-import androidx.annotation.RequiresApi
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -48,6 +46,7 @@ import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
+import com.nunchuk.android.messages.components.list.shouldShow
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
@@ -159,7 +158,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     }
 
     private fun handleRoomState(state: RoomsState) {
-        val count = state.rooms.sumOf { if (it.hasUnreadMessages) it.notificationCount else 0 }
+        val count = state.rooms.sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
         messageBadge.apply {
             isVisible = count > 0
             number = count

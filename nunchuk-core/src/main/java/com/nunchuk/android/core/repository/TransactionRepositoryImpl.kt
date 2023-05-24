@@ -24,16 +24,29 @@ import com.nunchuk.android.core.data.api.TransactionApi
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.repository.TransactionRepository
+import com.nunchuk.android.type.Chain
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 class TransactionRepositoryImpl @Inject constructor(
     private val transactionApi: TransactionApi,
     private val gson: Gson,
-    private val ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore,
+    applicationScope: CoroutineScope,
 ) : TransactionRepository {
+    private val chain =
+        ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
+
     override suspend fun getFees(): EstimateFeeRates {
-        val data = transactionApi.getFees()
+        val data = when (chain.value) {
+            Chain.MAIN -> transactionApi.getFees()
+            Chain.TESTNET -> transactionApi.getTestnetFees()
+            Chain.SIGNET -> transactionApi.getSignetFees()
+            Chain.REGTEST -> transactionApi.getTestnetFees()
+        }
         val fee = EstimateFeeRates(
             priorityRate = data.priorityRate,
             standardRate = data.standardRate,

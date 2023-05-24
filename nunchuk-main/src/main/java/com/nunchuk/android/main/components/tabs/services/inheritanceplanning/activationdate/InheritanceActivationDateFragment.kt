@@ -26,7 +26,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -36,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,7 +57,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -56,7 +70,8 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 @AndroidEntryPoint
 class InheritanceActivationDateFragment : MembershipFragment() {
@@ -110,7 +125,8 @@ class InheritanceActivationDateFragment : MembershipFragment() {
     private fun showDatePicker() {
         val calendar = Calendar.getInstance().apply {
             val selectedDate = viewModel.state.value.date
-            timeInMillis = if (selectedDate == 0L) Calendar.getInstance().timeInMillis else selectedDate
+            timeInMillis =
+                if (selectedDate == 0L) Calendar.getInstance().timeInMillis else selectedDate
         }
         val dialog = DatePickerDialog(
             requireContext(), R.style.NunchukDateTimePicker,
@@ -174,7 +190,9 @@ fun InheritanceActivationDateScreenContent(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else ""
-                NcTopAppBar(title = title)
+                NcTopAppBar(title = title, elevation = 0.dp, actions = {
+                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                })
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_set_up_activation_date),

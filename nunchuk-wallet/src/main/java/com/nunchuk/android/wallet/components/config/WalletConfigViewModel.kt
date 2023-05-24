@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.config
 
+import androidx.annotation.Keep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -38,6 +39,7 @@ import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.ExportFormat
@@ -176,20 +178,31 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun handleEditCompleteEvent(walletName: String) {
-        viewModelScope.launch {
-            val newWallet = getState().walletExtended.wallet.copy(name = walletName)
-            updateWalletUseCase.execute(
-                newWallet,
-                assistedWalletManager.isActiveAssistedWallet(walletId)
-            )
-                .flowOn(Dispatchers.IO)
-                .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    updateState { copy(walletExtended = walletExtended.copy(wallet = newWallet)) }
+        val newWallet = getState().walletExtended.wallet.copy(name = walletName)
+        updateWallet(newWallet, UpdateAction.NAME)
+    }
+
+    fun updateGapLimit(gapLimit: Int) {
+        val newWallet = getState().walletExtended.wallet.copy(gapLimit = gapLimit)
+        updateWallet(newWallet, UpdateAction.GAP_LIMIT)
+    }
+
+    private fun updateWallet(newWallet: Wallet, updateAction: UpdateAction) = viewModelScope.launch {
+        updateWalletUseCase.execute(
+            newWallet,
+            assistedWalletManager.isActiveAssistedWallet(walletId)
+        )
+            .flowOn(Dispatchers.IO)
+            .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
+            .flowOn(Dispatchers.Main)
+            .collect {
+                updateState { copy(walletExtended = walletExtended.copy(wallet = newWallet)) }
+                if (updateAction == UpdateAction.NAME) {
                     event(UpdateNameSuccessEvent)
+                } else if (updateAction == UpdateAction.GAP_LIMIT) {
+                    event(WalletConfigEvent.UpdateGapLimitSuccessEvent)
                 }
-        }
+            }
     }
 
     private fun getTransactionHistory() {
@@ -377,6 +390,13 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun walletName() = getState().walletExtended.wallet.name
 
+    fun walletGapLimit() = getState().walletExtended.wallet.gapLimit
+
     override val initialState: WalletConfigState
         get() = WalletConfigState()
+
+    @Keep
+    enum class UpdateAction {
+        NAME, GAP_LIMIT
+    }
 }
