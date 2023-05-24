@@ -187,6 +187,16 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
+        isTransactionReceived() -> {
+            PushNotificationData(
+                title = getString(R.string.notification_transaction_update),
+                message = getMsgBody(),
+                intent = intentProvider.getTransactionDetailIntent(
+                    getWalletId(),
+                    getTransactionId()
+                )
+            )
+        }
         isCosignedEvent() -> {
             PushNotificationData(
                 title = getString(R.string.notification_transaction_update),
