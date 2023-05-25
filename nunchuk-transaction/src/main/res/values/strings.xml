@@ -69,4 +69,5 @@
     <string name="nc_multiple_addresses">multiple addresses</string>
     <string name="nc_transaction_smaller_than_minimum_fee_msg">Transactions with fee too low might get kicked out of the mempool. Are you sure you want to continue?</string>
     <string name="nc_more_address">"%1$d more address"</string>
+    <string name="nc_estimated_fee_tooltip">The estimated fee is calculated using current market conditions. You can set your own fee via the fee settings below.</string>
 </resources>

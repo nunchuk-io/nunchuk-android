@@ -23,14 +23,19 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetTooltip
+import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
@@ -123,6 +128,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 viewModel.handleContinueEvent()
             }
         }
+        binding.estimatedFeeLabel.setOnClickListener {
+            showEstimatedFeeTooltip()
+        }
 
         bindSubtotal(viewModel.getOutputAmount())
 
@@ -174,6 +182,13 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 TransactionCoinSelection(inputs = inputs, allTags = state.allTags)
             }
         }
+    }
+
+    private fun showEstimatedFeeTooltip() {
+        BottomSheetTooltip.newInstance(
+            title = getString(R.string.nc_text_info),
+            message = getString(R.string.nc_estimated_fee_tooltip),
+        ).show(supportFragmentManager, "BottomSheetTooltip")
     }
 
     private fun bindEstimateFeeRates(estimateFeeRates: EstimateFeeRates) {
