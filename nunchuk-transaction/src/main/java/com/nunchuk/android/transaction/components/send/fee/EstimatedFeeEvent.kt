@@ -44,4 +44,5 @@ data class EstimatedFeeState(
     val allCoins: List<UnspentOutput> = emptyList(),
     val inputs: List<TxInput> = emptyList(),
     val manualFeeRate: Int = estimateFeeRates.defaultRate,
+    val cpfpFee: Amount = Amount.ZER0
 )

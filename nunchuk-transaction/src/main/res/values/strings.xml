@@ -24,7 +24,7 @@
     <string name="nc_transaction_subtract_fee_title">Subtract fee from send amount</string>
     <string name="nc_transaction_subtract_fee_desc">The fee will be deducted from the amount being sent. The recipient will receive less bitcoin than you entered in the amount fee.</string>
     <string name="nc_transaction_manual_fee_rate">Manual fee rate</string>
-    <string name="nc_transaction_manual_fee_rate_desc">You can replace-by-fee later if necessary.</string>
+    <string name="nc_transaction_effective_fee_rate">Effective package fee rate: %1$d sat/vB</string>
     <string name="nc_transaction_fee_rate_unit">sat/vB</string>
     <string name="nc_transaction_processing_speed">Processing speed</string>
     <string name="nc_transaction_priority_rate">Priority rate:</string>
