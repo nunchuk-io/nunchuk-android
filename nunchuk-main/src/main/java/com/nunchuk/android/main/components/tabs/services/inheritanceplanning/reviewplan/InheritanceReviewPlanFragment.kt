@@ -353,6 +353,7 @@ fun InheritanceReviewPlanScreenContent(
                         backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
                         title = title,
                         elevation = 0.dp,
+                        isBack = planFlow != InheritancePlanFlow.VIEW,
                         actions = {
                             IconButton(onClick = {
                                 onActionTopBarClick()
