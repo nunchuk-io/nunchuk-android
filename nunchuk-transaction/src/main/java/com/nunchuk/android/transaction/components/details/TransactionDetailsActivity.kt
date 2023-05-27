@@ -36,6 +36,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.sheet.input.InputBottomSheet
@@ -172,6 +173,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         if (args.isCancelBroadcast) {
             viewModel.cancelScheduleBroadcast()
         }
+        binding.estimatedFeeLabel.setOnClickListener {
+            showEstimatedFeeTooltip()
+        }
+    }
+
+    private fun showEstimatedFeeTooltip() {
+        BottomSheetTooltip.newInstance(
+            title = getString(R.string.nc_text_info),
+            message = getString(R.string.nc_estimated_fee_tooltip),
+        ).show(supportFragmentManager, "BottomSheetTooltip")
     }
 
     private fun showInheritanceClaimingDialog() {
