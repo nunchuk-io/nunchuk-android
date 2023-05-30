@@ -38,6 +38,7 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
+import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.ReuseKeyWalletUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
@@ -60,6 +61,7 @@ class AddKeyListViewModel @Inject constructor(
     private val gson: Gson,
     private val reuseKeyWalletUseCase: ReuseKeyWalletUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
+    private val checkRequestAddDesktopKeyStatusUseCase: CheckRequestAddDesktopKeyStatusUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     private val _event = MutableSharedFlow<AddKeyListEvent>()
@@ -109,7 +111,9 @@ class AddKeyListViewModel @Inject constructor(
                                 SignerExtra::class.java
                             )
                         }.getOrNull()
-                        if (extra?.signerType == SignerType.COLDCARD_NFC || extra?.signerType == SignerType.AIRGAP) {
+                        if (extra?.signerType == SignerType.COLDCARD_NFC
+                            || extra?.signerType == SignerType.AIRGAP
+                            || extra?.signerType == SignerType.HARDWARE) {
                             val result = getRemoteSignerUseCase(
                                 GetRemoteSignerUseCase.Data(
                                     info.masterSignerId,
@@ -138,6 +142,9 @@ class AddKeyListViewModel @Inject constructor(
                 }
                 _keys.value = news
             }
+        }
+        viewModelScope.launch {
+            checkRequestAddDesktopKeyStatusUseCase(CheckRequestAddDesktopKeyStatusUseCase.Param(membershipStepManager.plan))
         }
     }
 

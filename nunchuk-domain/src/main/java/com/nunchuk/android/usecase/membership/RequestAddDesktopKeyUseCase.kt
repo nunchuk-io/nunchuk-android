@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *
- * Copyright (C) 2022, 2023 Nunchuk                                       *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -20,21 +20,21 @@
 package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class RestartWizardUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val repository: MembershipRepository,
-    private val userWalletRepository: PremiumWalletRepository,
-) : UseCase<MembershipPlan, Unit>(dispatcher) {
-    override suspend fun execute(parameters: MembershipPlan) {
-        return repository.restart(parameters).also {
-            userWalletRepository.deleteDraftWallet()
-        }
+class RequestAddDesktopKeyUseCase @Inject constructor(
+    private val repository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<RequestAddDesktopKeyUseCase.Param, String>(ioDispatcher) {
+
+    override suspend fun execute(parameters: Param): String {
+        return repository.requestAddKey(parameters.step, parameters.tags)
     }
+
+    data class Param(val step: MembershipStep, val tags: List<SignerTag>)
 }

@@ -117,4 +117,7 @@ object SheetOptionType {
     const val TYPE_EXPORT_NUNCHUK = 61
     const val TYPE_EXPORT_BIP329 = 62
     const val TYPE_CONFIGURE_GAP_LIMIT = 63
+
+    const val TYPE_ADD_LEDGER = 64
+    const val TYPE_ADD_TREZOR = 65
 }

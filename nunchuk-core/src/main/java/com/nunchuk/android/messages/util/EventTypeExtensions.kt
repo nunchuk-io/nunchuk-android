@@ -40,6 +40,7 @@ const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
 const val TRANSACTION_SCHEDULE_MISSING_SIGNATURES = "io.nunchuk.custom.transaction_schedule_missing_signatures"
 const val TRANSACTION_SCHEDULE_NETWORK_REJECTED = "io.nunchuk.custom.transaction_schedule_network_rejected"
 const val TRANSACTION_RECEIVED = "io.nunchuk.custom.wallet_receive_transaction"
+const val ADD_DESKTOP_KEY_COMPLETED = "io.nunchuk.custom.draft_wallet_add_key_request_completed"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
@@ -101,6 +102,7 @@ fun TimelineEvent.isTransactionScheduleMissingSignaturesEvent() = getMsgType() =
 fun TimelineEvent.isTransactionScheduleNetworkRejectedEvent() = getMsgType() == TRANSACTION_SCHEDULE_NETWORK_REJECTED
 
 fun TimelineEvent.isTransactionReceived() = getMsgType() == TRANSACTION_RECEIVED
+fun TimelineEvent.isAddKeyCompleted() = getMsgType() == ADD_DESKTOP_KEY_COMPLETED
 
 fun TimelineEvent.isTransactionHandleErrorMessageEvent() = isTransactionScheduleMissingSignaturesEvent() || isTransactionScheduleNetworkRejectedEvent()
 

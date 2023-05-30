@@ -130,6 +130,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
                     SignerType.AIRGAP,
                     SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
+
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             } else {
@@ -142,7 +143,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
-        childFragmentManager.setFragmentResultListener(AssistedWalletBottomSheet.TAG, viewLifecycleOwner) { _, bundle ->
+        childFragmentManager.setFragmentResultListener(
+            AssistedWalletBottomSheet.TAG,
+            viewLifecycleOwner
+        ) { _, bundle ->
             val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
             viewModel.reuseKeyFromWallet(walletId)
         }
@@ -156,32 +160,50 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SignerType.NFC,
                 ::openSetupTapSigner
             )
+
             SignerType.COLDCARD_NFC.ordinal -> handleShowKeysOrCreate(
                 viewModel.getColdcard(),
                 SignerType.COLDCARD_NFC,
                 ::showAddColdcardOptions
             )
+
             SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(
                 viewModel.getAirgap(),
                 SignerType.AIRGAP,
                 ::showAirgapOptions
             )
+
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 requireActivity(),
                 true,
                 ColdcardAction.RECOVER_KEY
             )
+
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
+
+            SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
+            SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
+        }
+    }
+
+    private fun openRequestAddDesktopKey(tag: SignerTag) {
+        membershipStepManager.currentStep?.let { step ->
+            findNavController().navigate(
+                AddKeyListFragmentDirections.actionAddKeyListFragmentToAddDesktopKeyFragment(
+                    tag,
+                    step
+                )
+            )
         }
     }
 
     private fun handleSelectAddAirgapType(type: Int) {
-        val tag = when(type) {
+        val tag = when (type) {
             SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
@@ -263,13 +285,16 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             MembershipStep.ADD_SEVER_KEY -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
             }
+
             MembershipStep.HONEY_ADD_TAP_SIGNER -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerInheritanceIntroFragment())
             }
+
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
+
             MembershipStep.SETUP_KEY_RECOVERY,
             MembershipStep.SETUP_INHERITANCE,
             MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
@@ -290,6 +315,14 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SheetOption(
                     type = SignerType.AIRGAP.ordinal,
                     label = getString(R.string.nc_signer_air_gapped)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_LEDGER,
+                    label = getString(R.string.nc_ledger)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_TREZOR,
+                    label = getString(R.string.nc_trezor)
                 ),
             ),
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),

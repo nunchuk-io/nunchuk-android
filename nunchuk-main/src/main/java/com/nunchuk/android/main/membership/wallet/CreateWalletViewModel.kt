@@ -41,8 +41,20 @@ import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -146,7 +158,7 @@ class CreateWalletViewModel @Inject constructor(
                 return@launch
             }
             val remoteSignerResults =
-                signers.filter { it.value.signerType == SignerType.COLDCARD_NFC || it.value.signerType == SignerType.AIRGAP }
+                signers.filter { it.value.signerType == SignerType.COLDCARD_NFC || it.value.signerType == SignerType.AIRGAP || it.value.signerType == SignerType.HARDWARE }
                     .map {
                         async {
                             getRemoteSignerUseCase(

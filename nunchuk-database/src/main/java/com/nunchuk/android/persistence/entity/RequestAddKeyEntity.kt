@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *
- * Copyright (C) 2022, 2023 Nunchuk                                       *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -17,24 +17,26 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.persistence.entity
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.repository.MembershipRepository
-import com.nunchuk.android.repository.PremiumWalletRepository
-import com.nunchuk.android.usecase.UseCase
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.persistence.TABLE_ADD_DESKTOP_KEY
+import com.nunchuk.android.type.Chain
 
-class RestartWizardUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val repository: MembershipRepository,
-    private val userWalletRepository: PremiumWalletRepository,
-) : UseCase<MembershipPlan, Unit>(dispatcher) {
-    override suspend fun execute(parameters: MembershipPlan) {
-        return repository.restart(parameters).also {
-            userWalletRepository.deleteDraftWallet()
-        }
-    }
-}
+@Entity(tableName = TABLE_ADD_DESKTOP_KEY)
+data class RequestAddKeyEntity(
+    @PrimaryKey
+    @ColumnInfo(name = "request_id")
+    val requestId: String = "",
+    @ColumnInfo(name = "chat_id")
+    val chatId: String = "",
+    @ColumnInfo(name = "step")
+    val step: MembershipStep = MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+    @ColumnInfo(name = "chain")
+    val chain: Chain = Chain.MAIN,
+    @ColumnInfo(name = "tag", defaultValue = "")
+    val tag: String = ""
+)

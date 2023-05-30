@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *
- * Copyright (C) 2022, 2023 Nunchuk                                       *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -21,20 +21,19 @@ package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class RestartWizardUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val repository: MembershipRepository,
-    private val userWalletRepository: PremiumWalletRepository,
-) : UseCase<MembershipPlan, Unit>(dispatcher) {
-    override suspend fun execute(parameters: MembershipPlan) {
-        return repository.restart(parameters).also {
-            userWalletRepository.deleteDraftWallet()
-        }
+class CheckRequestAddDesktopKeyStatusUseCase @Inject constructor(
+    private val repository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<CheckRequestAddDesktopKeyStatusUseCase.Param, Boolean>(ioDispatcher) {
+
+    override suspend fun execute(parameters: Param) : Boolean {
+        return repository.checkKeyAdded(parameters.plan, parameters.requestId)
     }
+
+    data class Param(val plan: MembershipPlan, val requestId: String? = null)
 }

@@ -32,6 +32,7 @@ import com.nunchuk.android.messages.util.getLastMessageContentSafe
 import com.nunchuk.android.messages.util.getMsgBody
 import com.nunchuk.android.messages.util.getTransactionId
 import com.nunchuk.android.messages.util.getWalletId
+import com.nunchuk.android.messages.util.isAddKeyCompleted
 import com.nunchuk.android.messages.util.isContactUpdateEvent
 import com.nunchuk.android.messages.util.isCosignedAndBroadcastEvent
 import com.nunchuk.android.messages.util.isCosignedEvent
@@ -92,6 +93,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         if (!NotificationUtils.areNotificationsEnabled(this) || remoteMessage.data.isEmpty()) {
             return
         }
+
         val event = getEvent(remoteMessage.data)?.also {
             if (it.isServerTransactionEvent()) {
                 applicationScope.launch {
@@ -101,6 +103,10 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                             it.getTransactionId()
                         )
                     )
+                }
+            } else if (it.isAddKeyCompleted()) {
+                applicationScope.launch {
+                    pushEventManager.push(PushEvent.AddDesktopKeyCompleted)
                 }
             }
         }

@@ -164,6 +164,12 @@ class ContactsViewModel @Inject constructor(
                         )
                     )
                 }
+            } else if (event.isAddKeyCompleted()) {
+                val result = isHandledEventUseCase.invoke(event.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(event.eventId)
+                    pushEventManager.push(PushEvent.AddDesktopKeyCompleted)
+                }
             }
         }
         events.findLast(TimelineEvent::isContactUpdateEvent)?.let { retrieveContacts() }

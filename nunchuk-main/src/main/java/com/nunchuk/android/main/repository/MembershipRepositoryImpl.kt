@@ -35,7 +35,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
-import java.util.*
+import java.util.Calendar
 import javax.inject.Inject
 
 class MembershipRepositoryImpl @Inject constructor(

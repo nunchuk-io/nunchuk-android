@@ -41,7 +41,9 @@ import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
+import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
+import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.Chain
@@ -70,6 +72,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val accountManager: AccountManager,
     private val membershipApi: MembershipApi,
     private val assistedWalletDao: AssistedWalletDao,
+    private val requestAddKeyDao: RequestAddKeyDao,
     applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
     private val chain =
@@ -206,8 +209,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createServerWallet(
         wallet: Wallet, serverKeyId: String, plan: MembershipPlan
     ): SeverWallet {
+        val account = accountManager.getAccount()
         val inheritanceTapSigner = membershipStepDao.getStep(
-            accountManager.getAccount().chatId, chain.value, MembershipStep.HONEY_ADD_TAP_SIGNER
+            account.chatId, chain.value, MembershipStep.HONEY_ADD_TAP_SIGNER
         )
         val signers = wallet.signers.map {
             if (it.type == SignerType.NFC) {
@@ -260,7 +264,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     id = response.data.wallet.id?.toLongOrNull() ?: 0L
                 )
             )
-            membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
+            requestAddKeyDao.deleteRequests(account.chatId, chain.value)
+            membershipStepDao.deleteStepByChatId(chain.value, account.chatId)
         }
         return SeverWallet(response.data.wallet.id.orEmpty())
     }
@@ -1099,6 +1104,95 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.updateKeyName(xfp, UpdateKeyPayload(name))
         if (response.isSuccess.not()) {
             throw response.error
+        }
+    }
+
+    override suspend fun requestAddKey(step: MembershipStep, tags: List<SignerTag>): String {
+        val chatId = accountManager.getAccount().chatId
+        var localRequest = requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString())
+        if (localRequest != null) {
+            val response = userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
+            if (response.data.request == null) {
+                requestAddKeyDao.delete(localRequest)
+                localRequest = null
+            }
+        }
+        return if (localRequest == null) {
+            val response = userWalletApiManager.walletApi.requestAddKey(DesktopKeyRequest(tags.map { it.name }))
+            val requestId = response.data.request?.id.orEmpty()
+            requestAddKeyDao.insert(RequestAddKeyEntity(
+                requestId = requestId,
+                chain = chain.value,
+                chatId = chatId,
+                step = step,
+                tag = tags.joinToString()
+            ))
+            requestId
+        } else {
+            userWalletApiManager.walletApi.pushRequestAddKey(localRequest.requestId)
+            localRequest.requestId
+        }
+    }
+
+    override suspend fun checkKeyAdded(plan: MembershipPlan, requestId: String?): Boolean {
+        val chatId = accountManager.getAccount().chatId
+        val localRequests = if (requestId == null) {
+            requestAddKeyDao.getRequests(chatId, chain.value)
+        } else {
+            requestAddKeyDao.getRequest(requestId)?.let { listOf(it) }.orEmpty()
+        }
+
+        localRequests.forEach { localRequest ->
+            val response = userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
+            val request = response.data.request
+            val key = request?.key
+            if (request?.status == "COMPLETED" && key != null) {
+                val type = nunchukNativeSdk.signerTypeFromStr(key.type.orEmpty())
+                nunchukNativeSdk.createSigner(
+                    name = key.name.orEmpty(),
+                    xpub = key.xpub.orEmpty(),
+                    publicKey = key.pubkey.orEmpty(),
+                    derivationPath = key.derivationPath.orEmpty(),
+                    masterFingerprint = key.xfp.orEmpty(),
+                    type = type,
+                    tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() }
+                )
+                membershipRepository.saveStepInfo(
+                    MembershipStepInfo(
+                        step = localRequest.step,
+                        masterSignerId = key.xfp.orEmpty(),
+                        plan = plan,
+                        verifyType = VerifyType.APP_VERIFIED,
+                        extraData = gson.toJson(
+                            SignerExtra(
+                                derivationPath = key.derivationPath.orEmpty(),
+                                isAddNew = false,
+                                signerType = type
+                            )
+                        )
+                    )
+                )
+                requestAddKeyDao.delete(localRequest)
+                if (requestId != null) return true
+            } else if (request == null) {
+                requestAddKeyDao.delete(localRequest)
+            }
+        }
+
+        return false
+    }
+
+    override suspend fun deleteDraftWallet() {
+        userWalletApiManager.walletApi.deleteDraftWallet()
+        requestAddKeyDao.deleteRequests(accountManager.getAccount().chatId, chain.value)
+    }
+
+    override suspend fun cancelRequestIdIfNeed(step: MembershipStep) {
+        val account = accountManager.getAccount()
+        val entity = requestAddKeyDao.getRequest(account.chatId, chain.value, step)
+        if (entity != null) {
+            userWalletApiManager.walletApi.cancelRequestAddKey(entity.requestId)
+            requestAddKeyDao.delete(entity)
         }
     }
 
