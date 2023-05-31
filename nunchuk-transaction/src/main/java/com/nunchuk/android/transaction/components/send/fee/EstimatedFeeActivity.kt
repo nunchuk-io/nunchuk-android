@@ -163,8 +163,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.isChecked = state.subtractFeeFromAmount
         binding.subtractFeeCheckBox.isEnabled = state.enableSubtractFeeFromAmount
 
-        binding.manualFeeDesc.isVisible = state.cpfpFee.value > 0
-        binding.manualFeeDesc.text = getString(R.string.nc_transaction_effective_fee_rate, state.cpfpFee.value)
+        binding.tvEffectiveFee.isVisible = state.cpfpFee.value > 0
+        binding.manualFeeDesc.isVisible = binding.tvEffectiveFee.isVisible
+        binding.tvEffectiveFee.text = getString(R.string.nc_transaction_effective_fee_rate, state.cpfpFee.value)
 
         if (state.subtractFeeFromAmount) {
             bindSubtotal(viewModel.getOutputAmount())
