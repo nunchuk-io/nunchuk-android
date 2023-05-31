@@ -927,7 +927,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             if (response.isSuccess.not()) throw response.error
             response.data.transactions.forEach { transition ->
                 if (transition.psbt.isNullOrEmpty().not()) {
-                    nunchukNativeSdk.importPsbt(walletId, transition.psbt.orEmpty())
+                    val importTx = nunchukNativeSdk.importPsbt(walletId, transition.psbt.orEmpty())
+                    if (transition.note.isNullOrEmpty().not() && importTx.memo != transition.note) {
+                        nunchukNativeSdk.updateTransactionMemo(walletId, importTx.txId, transition.note.orEmpty())
+                    }
                     updateScheduleTransactionIfNeed(
                         walletId, transition.transactionId.orEmpty(), transition
                     )
