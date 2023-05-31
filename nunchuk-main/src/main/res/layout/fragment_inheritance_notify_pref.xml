@@ -26,122 +26,138 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/title"
-        style="@style/NCText.Heading"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_10"
-        android:text="@string/nc_notification_preferences"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/warning"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/desc"
-        style="@style/NCText.Body"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_24"
-        android:text="@string/nc_inheritance_notify_pref_desc"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title" />
-
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/inputTitle"
-        style="@style/NCText.EditText.Title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_beneficiary_trustee_email_address"
-        app:layout_constraintTop_toBottomOf="@+id/desc" />
-
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/input_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_12"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:background="@drawable/view_add_contact_background"
-        android:minHeight="96dp"
-        android:orientation="vertical"
-        android:padding="@dimen/nc_padding_16"
-        app:layout_constraintTop_toBottomOf="@+id/inputTitle">
-
-        <androidx.core.widget.NestedScrollView
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="true"
-            android:fillViewport="true"
-            android:fitsSystemWindows="true">
+            android:layout_height="wrap_content">
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/title"
+                style="@style/NCText.Heading"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_10"
+                android:text="@string/nc_notification_preferences"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/desc"
+                style="@style/NCText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_24"
+                android:text="@string/nc_inheritance_notify_pref_desc"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/title" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/inputTitle"
+                style="@style/NCText.EditText.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:text="@string/nc_beneficiary_trustee_email_address"
+                app:layout_constraintTop_toBottomOf="@+id/desc" />
 
             <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/input_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_12"
+                android:layout_marginTop="@dimen/nc_padding_4"
+                android:background="@drawable/view_add_contact_background"
+                android:minHeight="96dp"
+                android:orientation="vertical"
+                android:padding="@dimen/nc_padding_16"
+                app:layout_constraintTop_toBottomOf="@+id/inputTitle">
 
-                <androidx.appcompat.widget.LinearLayoutCompat
-                    android:id="@+id/emails"
+                <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
+                    android:layout_height="match_parent"
+                    android:clipToPadding="true"
+                    android:fillViewport="true"
+                    android:fitsSystemWindows="true">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.LinearLayoutCompat
+                            android:id="@+id/emails"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
 
 
-                <com.nunchuk.android.widget.NCFontEditText
-                    android:id="@+id/input"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@null"
-                    android:backgroundTint="@color/nc_whisper_color"
-                    android:hint="@string/nc_inheritance_notify_pref_hint"
-                    android:inputType="textEmailAddress|textMultiLine"
-                    android:lines="2"
-                    android:scrollHorizontally="false"
-                    android:textColor="@color/nc_primary_color"
-                    android:textSize="@dimen/nc_text_size_16" />
+                        <com.nunchuk.android.widget.NCFontEditText
+                            android:id="@+id/input"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@null"
+                            android:backgroundTint="@color/nc_whisper_color"
+                            android:hint="@string/nc_inheritance_notify_pref_hint"
+                            android:inputType="textEmailAddress|textMultiLine"
+                            android:lines="2"
+                            android:scrollHorizontally="false"
+                            android:textColor="@color/nc_primary_color"
+                            android:textSize="@dimen/nc_text_size_16" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+                </androidx.core.widget.NestedScrollView>
 
             </androidx.appcompat.widget.LinearLayoutCompat>
-        </androidx.core.widget.NestedScrollView>
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/tv_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_4"
+                android:drawableStart="@drawable/ic_error_outline"
+                android:gravity="start|center_vertical"
+                android:text="@string/nc_contact_valid_email_address"
+                android:textColor="@color/nc_red_color"
+                android:textSize="@dimen/nc_text_size_14"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/input_layout"
+                tools:visibility="visible" />
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/tv_error"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:drawableStart="@drawable/ic_error_outline"
-        android:gravity="start|center_vertical"
-        android:text="@string/nc_contact_valid_email_address"
-        android:textColor="@color/nc_red_color"
-        android:textSize="@dimen/nc_text_size_14"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@+id/input_layout"
-        tools:visibility="visible" />
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/notify_title"
+                style="@style/NCText.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_26"
+                android:text="@string/nc_notify_them_today"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_error" />
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/notify_title"
-        style="@style/NCText.Body"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_26"
-        android:text="@string/nc_notify_them_today"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_error" />
+            <CheckBox
+                android:id="@+id/notify_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:buttonTint="@color/nc_primary_color"
+                app:layout_constraintBaseline_toBaselineOf="@+id/notify_title"
+                app:layout_constraintEnd_toEndOf="parent" />
 
-    <CheckBox
-        android:id="@+id/notify_check"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:buttonTint="@color/nc_primary_color"
-        app:layout_constraintBaseline_toBaselineOf="@+id/notify_title"
-        app:layout_constraintEnd_toEndOf="parent" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/warning"

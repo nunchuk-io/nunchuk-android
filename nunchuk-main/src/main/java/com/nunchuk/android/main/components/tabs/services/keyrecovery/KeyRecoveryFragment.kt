@@ -135,6 +135,7 @@ fun KeyRecoveryScreenContent(
             ) {
                 NcTopAppBar(
                     title = stringResource(R.string.nc_key_recovery),
+                    elevation = 0.dp,
                     textStyle = NunchukTheme.typography.titleLarge
                 )
 
