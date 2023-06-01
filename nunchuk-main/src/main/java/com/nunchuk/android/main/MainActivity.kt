@@ -111,10 +111,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        pushNotificationHelper.retrieveFcmToken(
-            NotificationUtils.areNotificationsEnabled(this),
-            onTokenRetrieved = ::onTokenRetrieved,
-        )
+        if (NotificationUtils.areNotificationsEnabled(this).not()) {
+            navigator.openTurnNotificationScreen(this)
+        }
         setupData()
         setupNavigationView()
         setBottomNavViewPosition(bottomNavViewPosition)
@@ -146,6 +145,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             syncRoomViewModel.setupMatrix(loginHalfToken, deviceId)
         }
         if (sessionHolder.getSafeActiveSession() != null) {
+            pushNotificationHelper.retrieveFcmToken(
+                onTokenRetrieved = ::onTokenRetrieved,
+            )
             syncRoomViewModel.findSyncRoom()
         }
         viewModel.scheduleGetBTCConvertPrice()
@@ -179,6 +181,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             is SyncRoomEvent.FindSyncRoomSuccessEvent -> viewModel.syncData(event.syncRoomId)
             is SyncRoomEvent.CreateSyncRoomSucceedEvent -> viewModel.syncData(event.syncRoomId)
             is SyncRoomEvent.LoginMatrixSucceedEvent -> {
+                pushNotificationHelper.retrieveFcmToken(
+                    onTokenRetrieved = ::onTokenRetrieved,
+                )
                 syncRoomViewModel.findSyncRoom()
             }
             is SyncRoomEvent.FindSyncRoomFailedEvent -> if (event.syncRoomSize == 0) {

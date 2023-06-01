@@ -24,6 +24,7 @@ import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.core.provider.LocaleProvider
 import com.nunchuk.android.core.provider.StringProvider
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.abs
@@ -52,7 +53,10 @@ internal class PushNotificationManagerImpl @Inject constructor(
     }
 
     override fun enqueueRegisterPusherWithFcmKey(pushKey: String): UUID? {
-        return getPushersService()?.enqueueAddHttpPusher(createHttpPusher(pushKey))
+        return getPushersService()?.let {
+            Timber.d("enqueueRegisterPusherWithFcmKey")
+            it.enqueueAddHttpPusher(createHttpPusher(pushKey))
+        }
     }
 
     private fun createHttpPusher(pushKey: String) = HttpPusher(

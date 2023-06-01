@@ -24,10 +24,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.auth.R
-import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.*
+import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.ProcessingEvent
+import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.SignInErrorEvent
+import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.SignInSuccessEvent
 import com.nunchuk.android.auth.databinding.ActivityVerifyNewDeviceBinding
 import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -83,12 +86,16 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         hideLoading()
         setResult(RESULT_OK)
         finish()
-        navigator.openMainScreen(
-            activityContext = this,
-            loginHalfToken = token,
-            deviceId = deviceId,
-            isClearTask = true
-        )
+        if (NotificationUtils.areNotificationsEnabled(this).not()) {
+            navigator.openTurnNotificationScreen(this)
+        } else {
+            navigator.openMainScreen(
+                activityContext = this,
+                loginHalfToken = token,
+                deviceId = deviceId,
+                isClearTask = true
+            )
+        }
     }
 
     private fun setupViews() {

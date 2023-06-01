@@ -33,7 +33,6 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.messaging.FirebaseMessaging
-import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.utils.CrashlyticsReporter
 import javax.inject.Inject
 
@@ -42,25 +41,16 @@ private const val CHANNEL_NAME = "Nunchuk Notification Center"
 
 class PushNotificationHelper @Inject constructor(
     private val context: Context,
-    private val preferences: NCSharePreferences
 ) {
 
-    fun storeFcmToken(token: String?) {
-        preferences.fcmToken = token
-    }
-
     fun retrieveFcmToken(
-        isNotificationEnabled: Boolean,
         onTokenRetrieved: (String) -> Unit = {},
     ) {
         try {
             if (checkPlayServices()) {
                 FirebaseMessaging.getInstance().token
                     .addOnSuccessListener { token ->
-                        storeFcmToken(token)
-                        if (isNotificationEnabled) {
-                            onTokenRetrieved(token)
-                        }
+                        onTokenRetrieved(token)
                     }
                     .addOnFailureListener(CrashlyticsReporter::recordException)
             }

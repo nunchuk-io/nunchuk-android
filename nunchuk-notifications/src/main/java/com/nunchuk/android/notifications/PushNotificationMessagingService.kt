@@ -108,10 +108,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(refreshedToken: String) {
         try {
-            notificationHelper.storeFcmToken(refreshedToken)
-            if (NotificationUtils.areNotificationsEnabled(context = this) && sessionHolder.hasActiveSession()) {
-                notificationManager.enqueueRegisterPusherWithFcmKey(refreshedToken)
-            }
+            notificationManager.enqueueRegisterPusherWithFcmKey(refreshedToken)
         } catch (t: Throwable) {
             t.printStackTrace()
         }
