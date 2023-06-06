@@ -35,6 +35,7 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.messaging.FirebaseMessaging
 import com.nunchuk.android.utils.CrashlyticsReporter
 import javax.inject.Inject
+import kotlin.random.Random
 
 private const val CHANNEL_ID = "io.nunchuk.android.channelId"
 private const val CHANNEL_NAME = "Nunchuk Notification Center"
@@ -99,6 +100,6 @@ fun Context.showNotification(data: PushNotificationData) {
             Manifest.permission.POST_NOTIFICATIONS
         ) == PackageManager.PERMISSION_GRANTED
     ) {
-        notificationManager.notify(0, builder.build())
+        notificationManager.notify(Random(1000).nextInt().inc(), builder.build())
     }
 }
