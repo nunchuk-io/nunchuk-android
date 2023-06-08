@@ -48,7 +48,6 @@ import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.components.list.shouldShow
 import com.nunchuk.android.notifications.PushNotificationHelper
-import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -111,9 +110,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (NotificationUtils.areNotificationsEnabled(this).not()) {
-            navigator.openTurnNotificationScreen(this)
-        }
         setupData()
         setupNavigationView()
         setBottomNavViewPosition(bottomNavViewPosition)

@@ -45,10 +45,8 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
 
     private val pushNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            openMainScreen()
-        }
+    ) {
+        openMainScreen()
     }
 
     private val appSettingLauncher = registerForActivityResult(
@@ -95,7 +93,7 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
     }
 
     private fun openNotificationSetting() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
             pushNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             val intent = Intent()
