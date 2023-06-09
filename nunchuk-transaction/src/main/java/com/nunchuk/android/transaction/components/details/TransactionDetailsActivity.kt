@@ -475,14 +475,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
         if (transaction.isReceive) {
             binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)
-            binding.sendToAddress.text = getString(R.string.nc_transaction_receive_address)
+            binding.sendToAddress.text = getString(R.string.nc_transaction_receive_at)
         } else {
             if (transaction.status.isConfirmed()) {
                 binding.sendingToLabel.text = getString(R.string.nc_transaction_send_to)
             } else {
                 binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
             }
-            binding.sendToAddress.text = getString(R.string.nc_transaction_send_to_address)
+            binding.sendToAddress.text = getString(R.string.nc_transaction_sending_to)
         }
     }
 
