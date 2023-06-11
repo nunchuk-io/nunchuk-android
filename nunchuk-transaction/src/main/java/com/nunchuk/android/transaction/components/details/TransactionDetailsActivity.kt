@@ -34,11 +34,7 @@ import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.sheet.BottomSheetOption
-import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.BottomSheetTooltip
-import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.sheet.*
 import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
@@ -453,7 +449,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun bindAddress(transaction: Transaction) {
-        val coins = transaction.outputs.filter { viewModel.isMyCoin(it) == transaction.isReceive }
+        val coins = if (transaction.isReceive)
+            transaction.receiveOutputs else
+                transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
         binding.tvMoreAddress.isVisible = coins.size > 30
         binding.tvMoreAddress.text = getString(R.string.nc_more_address, coins.size - 30)
         if (coins.isNotEmpty()) {
