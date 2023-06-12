@@ -4,7 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.fromCurrencyToBTC
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.transaction.components.utils.privateNote
@@ -108,7 +111,7 @@ class BatchTransactionViewModel @Inject constructor(
 
     private fun getTotalAmount() = _state.value.recipients.sumOf {
         if (it.isBtc) {
-            it.amount.toDouble()
+            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toDouble().fromSATtoBTC() else it.amount.toDouble()
         } else {
             it.amount.toDouble().fromCurrencyToBTC()
         }
@@ -138,7 +141,7 @@ class BatchTransactionViewModel @Inject constructor(
     fun getTxReceiptList() = _state.value.recipients.map {
         TxReceipt(
             address = it.address, amount = if (it.isBtc) {
-                it.amount.toDouble()
+                if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toDouble().fromSATtoBTC() else it.amount.toDouble()
             } else {
                 it.amount.toDouble().fromCurrencyToBTC()
             }
