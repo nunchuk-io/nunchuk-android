@@ -144,7 +144,7 @@ fun PreviewCoinCard(
                     )
                 }
 
-                if (mode != MODE_VIEW_ONLY) {
+                if (mode != MODE_VIEW_ONLY || output.status == CoinStatus.INCOMING_PENDING_CONFIRMATION ) {
                     CoinStatusBadge(output)
                 }
             }
