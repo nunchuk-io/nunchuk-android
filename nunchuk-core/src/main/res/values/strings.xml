@@ -261,7 +261,7 @@
     <string name="nc_assisted">Assisted</string>
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key. Once you have set up an inheritance plan, a Beneficiary or Trustee will be able to recover this TAPSIGNER’s private key at a later date to access your wallet and claim the inheritance.\n\nPlease take a moment to mark or label this key.</string>
-    <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance[/B]. We recommend that you put it away in a safe place.\n\nFor day-to-day spending, please use the other keys in the wallet.</string>
+    <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance[/B]. As such, it should rarely be accessed. However, in an emergency, it can function as a backup signing key.\n\nWe recommend that you put it away in a safe place. Only use this key to sign daily transactions as a last resort.</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_view_inheritance_plan">View inheritance plan</string>
     <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
@@ -496,7 +496,7 @@
     <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
     <string name="nc_xpubs_file_invalid">XPUBs file is invalid</string>
     <string name="nc_card_id_does_not_match">Card ID does not match. Please try a different card.</string>
-    <string name="nc_inheritance_key_warning">This is the inheritance key. We recommend that you reserve it for the purpose of inheritance. Are you sure you want to sign using this key?</string>
+    <string name="nc_inheritance_key_warning">This is the inheritance key. It should only be used to sign transactions in an emergency. Are you sure you want to sign using this key?</string>
     <string name="nc_set_up_buffer_period">Set up buffer period</string>
     <string name="nc_buffer_period">Buffer period</string>
     <string name="nc_buffer_period_has_started">Buffer period has started</string>
