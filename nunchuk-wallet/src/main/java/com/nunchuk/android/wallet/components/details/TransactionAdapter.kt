@@ -41,7 +41,7 @@ import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFormatDate
-import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.getString
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
@@ -111,16 +111,16 @@ internal class TransactionAdapter(
                     data.transaction.totalAmount.getCurrencyAmount(),
                     hideWalletDetail
                 )
-                binding.receiverName.text = Utils.maskValue(
-                    data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty()
-                        .truncatedAddress(), hideWalletDetail
-                )
-            } else {
-                if (data.transaction.status.isConfirmed()) {
-                    binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
+                if (data.transaction.receiveOutputs.size > 1) {
+                    binding.receiverName.text = getString(R.string.nc_multiple_addresses)
                 } else {
-                    binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
+                    binding.receiverName.text = Utils.maskValue(
+                        data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty()
+                            .truncatedAddress(), hideWalletDetail
+                    )
                 }
+            } else {
+                binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
                 binding.amountBTC.text = Utils.maskValue(
                     "- ${data.transaction.totalAmount.getBTCAmount()}",
                     hideWalletDetail
@@ -130,11 +130,17 @@ internal class TransactionAdapter(
                     "- ${data.transaction.totalAmount.getCurrencyAmount()}",
                     hideWalletDetail
                 )
-                binding.receiverName.text =
-                    Utils.maskValue(
-                        data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress(),
-                        hideWalletDetail
-                    )
+                val output = if (data.transaction.changeIndex >= 0) data.transaction.outputs.size - 1 else data.transaction.outputs.size
+                if (output > 1) {
+                    binding.receiverName.text = getString(R.string.nc_multiple_addresses)
+                } else {
+                    binding.receiverName.text =
+                        Utils.maskValue(
+                            data.transaction.outputs.firstOrNull()?.first.orEmpty()
+                                .truncatedAddress(),
+                            hideWalletDetail
+                        )
+                }
             }
             binding.status.bindTransactionStatus(data.transaction)
             binding.date.text = data.transaction.getFormatDate()

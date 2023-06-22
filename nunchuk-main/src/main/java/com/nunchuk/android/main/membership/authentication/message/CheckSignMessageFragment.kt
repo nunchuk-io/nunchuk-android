@@ -113,16 +113,26 @@ class CheckSignMessageFragment : Fragment() {
                             })
                             requireActivity().finish()
                         }
+
                         is WalletAuthenticationEvent.Loading -> showOrHideLoading(event.isLoading)
                         is WalletAuthenticationEvent.ScanTapSigner -> (requireActivity() as NfcActionListener).startNfcFlow(
                             BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION
                         )
-                        WalletAuthenticationEvent.ScanColdCard -> (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG)
+
+                        WalletAuthenticationEvent.ScanColdCard -> (requireActivity() as NfcActionListener).startNfcFlow(
+                            BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG
+                        )
+
                         is WalletAuthenticationEvent.ProcessFailure -> showError(event.message)
                         WalletAuthenticationEvent.GenerateColdcardHealthMessagesSuccess -> (requireActivity() as NfcActionListener).startNfcFlow(
                             BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE
                         )
-                        is WalletAuthenticationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, event.isColdCard)
+
+                        is WalletAuthenticationEvent.NfcLoading -> showOrHideNfcLoading(
+                            event.isLoading,
+                            event.isColdCard
+                        )
+
                         is WalletAuthenticationEvent.ShowError -> showError(event.message)
                         WalletAuthenticationEvent.ShowAirgapOption -> Unit
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> Unit
@@ -133,7 +143,11 @@ class CheckSignMessageFragment : Fragment() {
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION }) { info ->
             walletAuthenticationViewModel.getInteractSingleSigner()?.let {
-                walletAuthenticationViewModel.handleTapSignerSignCheckMessage(it, info, nfcViewModel.inputCvc.orEmpty())
+                walletAuthenticationViewModel.handleTapSignerSignCheckMessage(
+                    it,
+                    info,
+                    nfcViewModel.inputCvc.orEmpty()
+                )
             }
             nfcViewModel.clearScanInfo()
         }
@@ -184,7 +198,7 @@ private fun CheckSignMessageContent(
                 .statusBarsPadding()
                 .navigationBarsPadding(),
         ) {
-            NcTopAppBar(title = "")
+            NcTopAppBar(title = "", elevation = 0.dp)
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                 text = stringResource(R.string.nc_finalize_changes),

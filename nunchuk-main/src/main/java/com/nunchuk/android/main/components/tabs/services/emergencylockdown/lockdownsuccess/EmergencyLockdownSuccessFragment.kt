@@ -110,7 +110,7 @@ fun LockdownSuccessScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(title = "")
+                NcTopAppBar(title = "", elevation = 0.dp)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center

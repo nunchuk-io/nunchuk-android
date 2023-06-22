@@ -43,12 +43,7 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideNfcLoading
-import com.nunchuk.android.core.util.toReadableDrawable
-import com.nunchuk.android.core.util.toReadableString
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
@@ -366,6 +361,8 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
                 (requireActivity() as NfcActionListener).startNfcFlow(
                     REQUEST_GENERATE_HEAL_CHECK_MSG
                 )
+            } else {
+                showWarning(getString(R.string.nc_health_check_is_unavailable_for_this_key))
             }
         }
     }

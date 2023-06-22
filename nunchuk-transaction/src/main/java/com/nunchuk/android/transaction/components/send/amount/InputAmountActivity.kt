@@ -153,7 +153,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
     }
 
-    private fun openAddReceiptScreen(outputAmount: Double, subtractFeeFromAmount: Boolean = false) {
+    private fun openAddReceiptScreen(outputAmount: Double) {
         navigator.openAddReceiptScreen(
             this,
             walletId = args.walletId,
@@ -161,7 +161,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             availableAmount = args.availableAmount,
             address = viewModel.getAddress(),
             privateNote = viewModel.getPrivateNote(),
-            subtractFeeFromAmount = subtractFeeFromAmount,
+            subtractFeeFromAmount = outputAmount >= args.availableAmount,
             inputs = args.inputs
         )
     }

@@ -156,6 +156,7 @@ class EstimatedFeeViewModel @Inject constructor(
                     copy(
                         estimatedFee = result.data.fee,
                         inputs = result.data.inputs,
+                        cpfpFee = result.data.cpfpFee,
                         subtractFeeFromAmount = subtractFeeFromAmount,
                         enableSubtractFeeFromAmount = enableSubtractFeeFromAmount,
                     )

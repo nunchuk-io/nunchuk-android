@@ -25,6 +25,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -111,8 +113,10 @@ fun KeyRecoverySuccessScreenContent(
                     .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
-                NcTopAppBar(title = "")
+                NcTopAppBar(title = "", elevation = 0.dp)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center

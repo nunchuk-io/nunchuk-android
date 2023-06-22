@@ -150,7 +150,7 @@ private fun InheritanceBufferPeriodContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .statusBarsPadding()
-                .navigationBarsPadding(),
+                .navigationBarsPadding()
         ) {
             val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
             val title = if (isSetupFlow) stringResource(
@@ -158,20 +158,22 @@ private fun InheritanceBufferPeriodContent(
                 remainTime
             ) else ""
             NcTopAppBar(title = title, elevation = 0.dp)
-            Text(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                text = stringResource(R.string.nc_set_up_buffer_period),
-                style = NunchukTheme.typography.heading
-            )
-            Text(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                text = stringResource(R.string.nc_set_up_buffer_period_desc),
-                style = NunchukTheme.typography.body,
-            )
             LazyColumn(
+                modifier = Modifier.weight(1F),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.nc_set_up_buffer_period),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp),
+                        text = stringResource(R.string.nc_set_up_buffer_period_desc),
+                        style = NunchukTheme.typography.body,
+                    )
+                }
                 items(options) { item ->
                     OptionItem(
                         modifier = Modifier.fillMaxWidth(),
@@ -183,7 +185,7 @@ private fun InheritanceBufferPeriodContent(
                     }
                 }
             }
-            Spacer(modifier = Modifier.weight(1.0f))
+
             val continueBtnText =
                 if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
                     id = R.string.nc_update_buffer_period
@@ -213,7 +215,10 @@ private fun OptionItem(
     Card(
         modifier = modifier, onClick = onClick,
         border = BorderStroke(
-            width = 2.dp, color = if(isSelected) colorResource(id = R.color.nc_primary_color) else Color(0xFFDEDEDE)
+            width = 2.dp,
+            color = if (isSelected) colorResource(id = R.color.nc_primary_color) else Color(
+                0xFFDEDEDE
+            )
         ),
         shape = RoundedCornerShape(12.dp)
     ) {

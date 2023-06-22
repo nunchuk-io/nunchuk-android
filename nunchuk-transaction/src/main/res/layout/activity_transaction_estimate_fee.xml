@@ -215,9 +215,11 @@
                         android:layout_marginTop="@dimen/nc_padding_4"
                         android:layout_marginEnd="@dimen/nc_padding_16"
                         android:lineSpacingMultiplier="1.2"
-                        android:text="@string/nc_transaction_manual_fee_rate_desc"
-                        android:textColor="#757575"
+                        android:text="@string/nc_transaction_include_unconfirmed_coins"
+                        android:textColor="@color/nc_grey_dark_color"
                         android:textSize="@dimen/nc_text_size_12"
+                        android:visibility="gone"
+                        tools:visibility="visible"
                         app:layout_constraintEnd_toStartOf="@+id/manualFeeCheckBox"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/manualFeeLabel" />
@@ -263,6 +265,18 @@
                             tools:text="210" />
 
                         <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/tv_effective_fee"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_4"
+                            tools:text="Effective package fee rate: 10 sat/vB"
+                            android:textColor="@color/nc_grey_dark_color"
+                            android:textSize="@dimen/nc_text_size_14"
+                            style="@style/NCText.Body.Small"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/feeRateInput" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
                             android:id="@+id/feeUnit"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -285,7 +299,7 @@
                             android:textSize="@dimen/nc_text_size_14"
                             app:fontTextStyle="semi_bold"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/feeRateInput" />
+                            app:layout_constraintTop_toBottomOf="@+id/tv_effective_fee" />
 
                         <androidx.constraintlayout.widget.Guideline
                             android:id="@+id/guidelineStart"

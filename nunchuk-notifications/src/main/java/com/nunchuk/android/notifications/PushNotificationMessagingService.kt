@@ -28,7 +28,22 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.isAtLeastStarted
-import com.nunchuk.android.messages.util.*
+import com.nunchuk.android.messages.util.getLastMessageContentSafe
+import com.nunchuk.android.messages.util.getMsgBody
+import com.nunchuk.android.messages.util.getTransactionId
+import com.nunchuk.android.messages.util.getWalletId
+import com.nunchuk.android.messages.util.isContactUpdateEvent
+import com.nunchuk.android.messages.util.isCosignedAndBroadcastEvent
+import com.nunchuk.android.messages.util.isCosignedEvent
+import com.nunchuk.android.messages.util.isMessageEvent
+import com.nunchuk.android.messages.util.isNunchukTransactionEvent
+import com.nunchuk.android.messages.util.isNunchukWalletEvent
+import com.nunchuk.android.messages.util.isServerTransactionEvent
+import com.nunchuk.android.messages.util.isTransactionReceived
+import com.nunchuk.android.messages.util.isTransactionScheduleMissingSignaturesEvent
+import com.nunchuk.android.messages.util.isTransactionScheduleNetworkRejectedEvent
+import com.nunchuk.android.messages.util.lastMessageContent
+import com.nunchuk.android.messages.util.lastMessageSender
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
@@ -108,10 +123,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(refreshedToken: String) {
         try {
-            notificationHelper.storeFcmToken(refreshedToken)
-            if (NotificationUtils.areNotificationsEnabled(context = this) && sessionHolder.hasActiveSession()) {
-                notificationManager.enqueueRegisterPusherWithFcmKey(refreshedToken)
-            }
+            notificationManager.enqueueRegisterPusherWithFcmKey(refreshedToken)
         } catch (t: Throwable) {
             t.printStackTrace()
         }
@@ -161,6 +173,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     private fun TimelineEvent.toPushNotificationData(roomId: String) = when {
         isNunchukWalletEvent() -> {
             PushNotificationData(
+                id = localId,
                 title = getString(R.string.notification_wallet_update),
                 message = getString(R.string.notification_wallet_update_message),
                 intent = intentProvider.getRoomDetailsIntent(roomId)
@@ -168,6 +181,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         }
         isNunchukTransactionEvent() -> {
             PushNotificationData(
+                id = localId,
                 title = getString(R.string.notification_transaction_update),
                 message = getString(R.string.notification_transaction_update_message),
                 intent = intentProvider.getRoomDetailsIntent(roomId)
@@ -175,6 +189,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         }
         isContactUpdateEvent() -> {
             PushNotificationData(
+                id = localId,
                 title = getString(R.string.notification_contact_update),
                 message = lastMessageContent(this@PushNotificationMessagingService),
                 intent = intentProvider.getMainIntent()
@@ -182,13 +197,26 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         }
         isMessageEvent() -> {
             PushNotificationData(
+                id = localId,
                 title = lastMessageSender(),
                 message = lastMessageContent(this@PushNotificationMessagingService),
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
+        isTransactionReceived() -> {
+            PushNotificationData(
+                id = localId,
+                title = getString(R.string.notification_transaction_update),
+                message = getMsgBody(),
+                intent = intentProvider.getTransactionDetailIntent(
+                    getWalletId(),
+                    getTransactionId()
+                )
+            )
+        }
         isCosignedEvent() -> {
             PushNotificationData(
+                id = localId,
                 title = getString(R.string.notification_transaction_update),
                 message = getString(R.string.nc_notification_transaction_co_signed),
                 intent = intentProvider.getTransactionDetailIntent(
@@ -199,6 +227,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         }
         isCosignedAndBroadcastEvent() -> {
             PushNotificationData(
+                id = localId,
                 title = getString(R.string.notification_transaction_update),
                 message = getString(R.string.nc_notification_cosign_and_broadcast),
                 intent = intentProvider.getTransactionDetailIntent(
@@ -210,6 +239,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         isTransactionScheduleMissingSignaturesEvent() -> {
             val message = this.getLastMessageContentSafe().orEmpty()
             PushNotificationData(
+                id = localId,
                 title = getString(R.string.notification_transaction_update),
                 message = message,
                 intent = intentProvider.getTransactionDetailIntent(
@@ -223,6 +253,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         isTransactionScheduleNetworkRejectedEvent() -> {
             val message = this.getLastMessageContentSafe().orEmpty()
             PushNotificationData(
+                id = localId,
                 title = getString(R.string.notification_transaction_update),
                 message = message,
                 intent = intentProvider.getTransactionDetailIntent(
@@ -234,7 +265,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             )
         }
 
-        else -> defaultNotificationData()
+        else -> defaultNotificationData(localId)
     }
 
     private fun getActiveSession() = if (sessionHolder.hasActiveSession()) {
@@ -246,8 +277,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     private fun getLastSession(): Session? =
         trySafe(matrix.authenticationService()::getLastAuthenticatedSession)
 
-    private fun defaultNotificationData() = if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
+    private fun defaultNotificationData(localId: Long) = if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
         PushNotificationData(
+            id = localId,
             title = getString(R.string.notification_update),
             message = getString(R.string.notification_update_message),
             intent = intentProvider.getMainIntent()
