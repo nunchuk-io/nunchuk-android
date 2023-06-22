@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -34,10 +34,7 @@ import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.sheet.BottomSheetOption
-import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.sheet.*
 import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
@@ -172,6 +169,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         if (args.isCancelBroadcast) {
             viewModel.cancelScheduleBroadcast()
         }
+        binding.estimatedFeeLabel.setOnClickListener {
+            showEstimatedFeeTooltip()
+        }
+    }
+
+    private fun showEstimatedFeeTooltip() {
+        BottomSheetTooltip.newInstance(
+            title = getString(R.string.nc_text_info),
+            message = getString(R.string.nc_estimated_fee_tooltip),
+        ).show(supportFragmentManager, "BottomSheetTooltip")
     }
 
     private fun showInheritanceClaimingDialog() {
@@ -442,7 +449,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun bindAddress(transaction: Transaction) {
-        val coins = transaction.outputs.filter { viewModel.isMyCoin(it) == transaction.isReceive }
+        val coins = if (transaction.isReceive)
+            transaction.receiveOutputs else
+                transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
         binding.tvMoreAddress.isVisible = coins.size > 30
         binding.tvMoreAddress.text = getString(R.string.nc_more_address, coins.size - 30)
         if (coins.isNotEmpty()) {
@@ -464,14 +473,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
         if (transaction.isReceive) {
             binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)
-            binding.sendToAddress.text = getString(R.string.nc_transaction_receive_address)
+            binding.sendToAddress.text = getString(R.string.nc_transaction_receive_at)
         } else {
             if (transaction.status.isConfirmed()) {
                 binding.sendingToLabel.text = getString(R.string.nc_transaction_send_to)
             } else {
                 binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
             }
-            binding.sendToAddress.text = getString(R.string.nc_transaction_send_to_address)
+            binding.sendToAddress.text = getString(R.string.nc_transaction_sending_to)
         }
     }
 

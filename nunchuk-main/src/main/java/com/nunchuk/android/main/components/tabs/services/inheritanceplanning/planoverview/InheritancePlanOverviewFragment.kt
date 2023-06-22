@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -25,11 +25,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -109,6 +112,8 @@ private fun InheritancePlanOverviewContent(
                     .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcTopAppBar(
                     title = stringResource(

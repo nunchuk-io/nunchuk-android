@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -927,7 +927,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             if (response.isSuccess.not()) throw response.error
             response.data.transactions.forEach { transition ->
                 if (transition.psbt.isNullOrEmpty().not()) {
-                    nunchukNativeSdk.importPsbt(walletId, transition.psbt.orEmpty())
+                    val importTx = nunchukNativeSdk.importPsbt(walletId, transition.psbt.orEmpty())
+                    if (transition.note.isNullOrEmpty().not() && importTx.memo != transition.note) {
+                        nunchukNativeSdk.updateTransactionMemo(walletId, importTx.txId, transition.note.orEmpty())
+                    }
                     updateScheduleTransactionIfNeed(
                         walletId, transition.transactionId.orEmpty(), transition
                     )

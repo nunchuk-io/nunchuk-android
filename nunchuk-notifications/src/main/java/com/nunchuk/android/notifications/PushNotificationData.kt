@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -21,4 +21,9 @@ package com.nunchuk.android.notifications
 
 import android.content.Intent
 
-data class PushNotificationData(val title: String, val message: String, val intent: Intent)
+data class PushNotificationData(
+    val id: Long,
+    val title: String,
+    val message: String,
+    val intent: Intent
+)

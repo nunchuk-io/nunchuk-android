@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -33,13 +33,16 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
@@ -223,12 +226,15 @@ private fun ConfigSpendingLimitContent(
                     .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcTopAppBar(
                     title = if (isEditMode) "" else stringResource(
                         R.string.nc_estimate_remain_time,
                         remainTime
                     ),
+                    elevation = 0.dp,
                     actions = {
                         if (!isEditMode) {
                             IconButton(onClick = onMoreClicked) {

@@ -1,10 +1,32 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
 package com.nunchuk.android.transaction.components.send.batchtransaction
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.fromCurrencyToBTC
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.transaction.components.utils.privateNote
@@ -108,7 +130,7 @@ class BatchTransactionViewModel @Inject constructor(
 
     private fun getTotalAmount() = _state.value.recipients.sumOf {
         if (it.isBtc) {
-            it.amount.toDouble()
+            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toDouble().fromSATtoBTC() else it.amount.toDouble()
         } else {
             it.amount.toDouble().fromCurrencyToBTC()
         }
@@ -138,7 +160,7 @@ class BatchTransactionViewModel @Inject constructor(
     fun getTxReceiptList() = _state.value.recipients.map {
         TxReceipt(
             address = it.address, amount = if (it.isBtc) {
-                it.amount.toDouble()
+                if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toDouble().fromSATtoBTC() else it.amount.toDouble()
             } else {
                 it.amount.toDouble().fromCurrencyToBTC()
             }

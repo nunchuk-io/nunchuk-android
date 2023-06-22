@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -39,6 +39,7 @@ const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
     "io.nunchuk.custom.transaction_co_signed_and_broadcast"
 const val TRANSACTION_SCHEDULE_MISSING_SIGNATURES = "io.nunchuk.custom.transaction_schedule_missing_signatures"
 const val TRANSACTION_SCHEDULE_NETWORK_REJECTED = "io.nunchuk.custom.transaction_schedule_network_rejected"
+const val TRANSACTION_RECEIVED = "io.nunchuk.custom.wallet_receive_transaction"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
@@ -99,9 +100,13 @@ fun TimelineEvent.isCosignedAndBroadcastEvent() =
 fun TimelineEvent.isTransactionScheduleMissingSignaturesEvent() = getMsgType() == TRANSACTION_SCHEDULE_MISSING_SIGNATURES
 fun TimelineEvent.isTransactionScheduleNetworkRejectedEvent() = getMsgType() == TRANSACTION_SCHEDULE_NETWORK_REJECTED
 
+fun TimelineEvent.isTransactionReceived() = getMsgType() == TRANSACTION_RECEIVED
+
 fun TimelineEvent.isTransactionHandleErrorMessageEvent() = isTransactionScheduleMissingSignaturesEvent() || isTransactionScheduleNetworkRejectedEvent()
 
 fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
+
+fun TimelineEvent.getMsgBody() = root.getClearContent()?.get("body")?.toString().orEmpty()
 
 fun TimelineEvent.getTransactionId() = root.getClearContent()?.get("transaction_id").toString()
 

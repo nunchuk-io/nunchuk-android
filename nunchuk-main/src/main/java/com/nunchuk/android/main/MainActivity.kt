@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -48,7 +48,6 @@ import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.components.list.shouldShow
 import com.nunchuk.android.notifications.PushNotificationHelper
-import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -111,10 +110,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        pushNotificationHelper.retrieveFcmToken(
-            NotificationUtils.areNotificationsEnabled(this),
-            onTokenRetrieved = ::onTokenRetrieved,
-        )
         setupData()
         setupNavigationView()
         setBottomNavViewPosition(bottomNavViewPosition)
@@ -146,6 +141,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             syncRoomViewModel.setupMatrix(loginHalfToken, deviceId)
         }
         if (sessionHolder.getSafeActiveSession() != null) {
+            pushNotificationHelper.retrieveFcmToken(
+                onTokenRetrieved = ::onTokenRetrieved,
+            )
             syncRoomViewModel.findSyncRoom()
         }
         viewModel.scheduleGetBTCConvertPrice()
@@ -179,6 +177,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             is SyncRoomEvent.FindSyncRoomSuccessEvent -> viewModel.syncData(event.syncRoomId)
             is SyncRoomEvent.CreateSyncRoomSucceedEvent -> viewModel.syncData(event.syncRoomId)
             is SyncRoomEvent.LoginMatrixSucceedEvent -> {
+                pushNotificationHelper.retrieveFcmToken(
+                    onTokenRetrieved = ::onTokenRetrieved,
+                )
                 syncRoomViewModel.findSyncRoom()
             }
             is SyncRoomEvent.FindSyncRoomFailedEvent -> if (event.syncRoomSize == 0) {

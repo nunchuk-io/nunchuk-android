@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -104,6 +105,7 @@ class EmergencyLockdownPeriodFragment : Fragment() {
                     launcher = launcher,
                     activityContext = requireActivity()
                 )
+
                 is LockdownPeriodEvent.LockdownUpdateSuccess -> {
                     findNavController().navigate(
                         EmergencyLockdownPeriodFragmentDirections.actionLockdownPeriodFragmentToLockdownSuccessFragment(
@@ -142,21 +144,24 @@ private fun LockdownPeriodContent(
                 .statusBarsPadding()
                 .navigationBarsPadding(),
         ) {
-            NcTopAppBar(title = "")
-            Text(
-                modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(R.string.nc_emergency_lockdown_period_title),
-                style = NunchukTheme.typography.heading
-            )
-            Text(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                text = stringResource(R.string.nc_emergency_lockdown_period_desc),
-                style = NunchukTheme.typography.body,
-            )
+            NcTopAppBar(title = "", elevation = 0.dp)
             LazyColumn(
+                modifier = Modifier.weight(1F),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.nc_emergency_lockdown_period_title),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp),
+                        text = stringResource(R.string.nc_emergency_lockdown_period_desc),
+                        style = NunchukTheme.typography.body,
+                    )
+                }
+
                 items(options) { item ->
                     OptionItem(
                         modifier = Modifier.fillMaxWidth(),
@@ -167,7 +172,7 @@ private fun LockdownPeriodContent(
                     }
                 }
             }
-            Spacer(modifier = Modifier.weight(1.0f))
+
             NcPrimaryDarkButton(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -192,7 +197,10 @@ private fun OptionItem(
     Card(
         modifier = modifier, onClick = onClick,
         border = BorderStroke(
-            width = 2.dp, color = if(isSelected) colorResource(id = R.color.nc_primary_color) else Color(0xFFDEDEDE)
+            width = 2.dp,
+            color = if (isSelected) colorResource(id = R.color.nc_primary_color) else Color(
+                0xFFDEDEDE
+            )
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -201,4 +209,10 @@ private fun OptionItem(
             Text(text = label, style = NunchukTheme.typography.title)
         }
     }
+}
+
+@Preview
+@Composable
+private fun EmergencyLockdownPeriodScreenPreview() {
+    LockdownPeriodContent()
 }

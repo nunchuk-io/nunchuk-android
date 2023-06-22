@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -19,11 +19,15 @@
 
 package com.nunchuk.android.settings.notification
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import androidx.activity.result.contract.ActivityResultContracts
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.settings.databinding.ActivityTurnNotificationBinding
-import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -38,7 +42,18 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
         )
     }
 
-    private var isNotificationSettingOpened = false
+
+    private val pushNotificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        openMainScreen()
+    }
+
+    private val appSettingLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        openMainScreen()
+    }
 
     override fun initializeBinding() = ActivityTurnNotificationBinding.inflate(layoutInflater)
 
@@ -48,13 +63,6 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
         setLightStatusBar()
         setupViews()
         showMessage()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (isNotificationSettingOpened) {
-            openMainScreen()
-        }
     }
 
     private fun openMainScreen() {
@@ -85,12 +93,28 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
     }
 
     private fun openNotificationSetting() {
-        isNotificationSettingOpened = true
-        NotificationUtils.openNotificationSettings(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+            pushNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            val intent = Intent()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                intent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            } else {
+                intent.action = APP_NOTIFICATION_SETTINGS
+            }
+            intent.putExtra(APP_PACKAGE, packageName)
+            intent.putExtra(APP_UID, applicationInfo.uid)
+            appSettingLauncher.launch(intent)
+        }
     }
 
     companion object {
         private const val DISMISS_TIME = 2000L
+
+        private const val APP_NOTIFICATION_SETTINGS = "android.settings.APP_NOTIFICATION_SETTINGS"
+        private const val APP_PACKAGE = "app_package"
+        private const val APP_UID = "app_uid"
         fun start(
             activityContext: Context,
             messages: ArrayList<String>

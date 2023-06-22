@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -44,4 +44,5 @@ data class EstimatedFeeState(
     val allCoins: List<UnspentOutput> = emptyList(),
     val inputs: List<TxInput> = emptyList(),
     val manualFeeRate: Int = estimateFeeRates.defaultRate,
+    val cpfpFee: Amount = Amount.ZER0
 )

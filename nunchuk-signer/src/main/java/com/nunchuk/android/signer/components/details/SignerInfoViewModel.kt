@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -25,39 +25,17 @@ import android.nfc.tech.Ndef
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.domain.GenerateColdCardHealthCheckMessageUseCase
-import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
-import com.nunchuk.android.core.domain.HealthCheckColdCardUseCase
-import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
-import com.nunchuk.android.core.domain.HealthCheckTapSignerUseCase
-import com.nunchuk.android.core.domain.TopUpXpubTapSignerUseCase
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.GenerateColdcardHealthMessagesSuccess
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.GetTapSignerBackupKeyEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.HealthCheckErrorEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.HealthCheckSuccessEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.NfcError
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.NfcLoading
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.RemoveSignerCompletedEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.RemoveSignerErrorEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.TopUpXpubFailed
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.TopUpXpubSuccess
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.UpdateNameErrorEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.UpdateNameSuccessEvent
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.DeleteMasterSignerUseCase
-import com.nunchuk.android.usecase.DeleteRemoteSignerUseCase
-import com.nunchuk.android.usecase.GetMasterSignerUseCase
-import com.nunchuk.android.usecase.GetRemoteSignerUseCase
-import com.nunchuk.android.usecase.SendSignerPassphrase
-import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
-import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
+import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
 import com.nunchuk.android.utils.onException
@@ -288,7 +266,7 @@ internal class SignerInfoViewModel @Inject constructor(
     }
 
     private fun shouldLoadMasterSigner(type: SignerType) =
-        (type != SignerType.AIRGAP) && (type != SignerType.COLDCARD_NFC)
+        (type != SignerType.AIRGAP) && (type != SignerType.COLDCARD_NFC) && (type != SignerType.HARDWARE)
 
     fun generateColdcardHealthMessages(ndef: Ndef?, derivationPath: String) {
         ndef ?: return

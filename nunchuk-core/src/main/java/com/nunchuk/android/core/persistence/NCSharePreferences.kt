@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -44,10 +44,6 @@ class NCSharePreferences @Inject constructor(context: Context) {
     var showBannerNewChat: Boolean
         get() = prefs.getBoolean(SP_KEY_DEVICE_SHOW_BANNER_NEW_CHAT, true)
         set(value) = prefs.edit().putBoolean(SP_KEY_DEVICE_SHOW_BANNER_NEW_CHAT, value).apply()
-
-    var fcmToken: String?
-        get() = prefs.getString(SP_KEY_FCM_TOKEN, "").orEmpty()
-        set(value) = prefs.edit().putString(SP_KEY_FCM_TOKEN, value).apply()
 
     var developerSetting: String
         get() = prefs.getString(SP_KEY_DEVELOPER_SETTING, "").orEmpty()

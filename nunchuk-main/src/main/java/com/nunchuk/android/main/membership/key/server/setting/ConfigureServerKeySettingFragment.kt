@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -27,7 +27,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -157,12 +159,15 @@ fun ConfigureServerKeySettingScreenContent(
                     .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcTopAppBar(
                     if (isCreateAssistedWalletFlow) stringResource(
                         R.string.nc_estimate_remain_time,
                         remainTime
                     ) else "",
+                    elevation = 0.dp,
                     actions = {
                         if (isCreateAssistedWalletFlow) {
                             IconButton(onClick = onMoreClicked) {

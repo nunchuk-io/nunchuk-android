@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -25,8 +25,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -78,8 +81,10 @@ fun DummyTransactionIntroContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
             ) {
-                NcTopAppBar(title = "")
+                NcTopAppBar(title = "", elevation = 0.dp)
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_two_signatures_required),

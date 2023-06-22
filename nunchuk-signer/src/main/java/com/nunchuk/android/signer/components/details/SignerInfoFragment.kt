@@ -1,19 +1,19 @@
 /**************************************************************************
- * requireActivity() file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
- * requireActivity() program is free software; you can redistribute it and/or          *
+ * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
  * as published by the Free Software Foundation; either version 3         *
  * of the License, or (at your option) any later version.                 *
  *                                                                        *
- * requireActivity() program is distributed in the hope that it will be useful,        *
+ * This program is distributed in the hope that it will be useful,        *
  * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
  * GNU General Public License for more details.                           *
  *                                                                        *
  * You should have received a copy of the GNU General Public License      *
- * along with requireActivity() program.  If not, see <http://www.gnu.org/licenses/>.  *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
  *                                                                        *
  **************************************************************************/
 
@@ -43,12 +43,7 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideNfcLoading
-import com.nunchuk.android.core.util.toReadableDrawable
-import com.nunchuk.android.core.util.toReadableString
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
@@ -366,6 +361,8 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
                 (requireActivity() as NfcActionListener).startNfcFlow(
                     REQUEST_GENERATE_HEAL_CHECK_MSG
                 )
+            } else {
+                showWarning(getString(R.string.nc_health_check_is_unavailable_for_this_key))
             }
         }
     }

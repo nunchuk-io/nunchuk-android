@@ -1,6 +1,6 @@
 /**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
  *                                                                        *
  * This program is free software; you can redistribute it and/or          *
  * modify it under the terms of the GNU General Public License            *
@@ -33,7 +33,6 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.messaging.FirebaseMessaging
-import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.utils.CrashlyticsReporter
 import javax.inject.Inject
 
@@ -42,25 +41,16 @@ private const val CHANNEL_NAME = "Nunchuk Notification Center"
 
 class PushNotificationHelper @Inject constructor(
     private val context: Context,
-    private val preferences: NCSharePreferences
 ) {
 
-    fun storeFcmToken(token: String?) {
-        preferences.fcmToken = token
-    }
-
     fun retrieveFcmToken(
-        isNotificationEnabled: Boolean,
         onTokenRetrieved: (String) -> Unit = {},
     ) {
         try {
             if (checkPlayServices()) {
                 FirebaseMessaging.getInstance().token
                     .addOnSuccessListener { token ->
-                        storeFcmToken(token)
-                        if (isNotificationEnabled) {
-                            onTokenRetrieved(token)
-                        }
+                        onTokenRetrieved(token)
                     }
                     .addOnFailureListener(CrashlyticsReporter::recordException)
             }
@@ -109,6 +99,6 @@ fun Context.showNotification(data: PushNotificationData) {
             Manifest.permission.POST_NOTIFICATIONS
         ) == PackageManager.PERMISSION_GRANTED
     ) {
-        notificationManager.notify(0, builder.build())
+        notificationManager.notify((data.id % Int.MAX_VALUE.toLong()).toInt(), builder.build())
     }
 }
