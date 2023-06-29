@@ -39,9 +39,9 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 33
-    TASK_LABEL = "ADD_DESTOP_KEY"
+    TASK_LABEL = "UAT"
 
-    VERSION_CODE = 208
+    VERSION_CODE = 209
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
