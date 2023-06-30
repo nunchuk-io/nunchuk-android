@@ -214,7 +214,7 @@
     <string name="nc_try_again">Try again</string>
     <string name="nc_upload_failed">Upload failed</string>
     <string name="nc_welcome_assisted_wallet_title">Welcome! Let’s create an assisted wallet</string>
-    <string name="nc_welcome_assisted_wallet_desc">We’ll walk you through the entire process to get your multisig wallet set up.\n\nIt will take a few minutes—so find somewhere private, make yourself comfortable and let’s get started!\n\nP.S: You’ll need an active Internet connection.</string>
+    <string name="nc_welcome_assisted_wallet_desc">We’ll walk you through the entire process to get your multisig wallet set up.\n\nIt will take a few minutes—so find somewhere private, make yourself comfortable and let’s get started!\n\nP.S.: You’ll need an active Internet connection.</string>
     <string name="nc_est_time_in_mins">Est. time: %1$d minutes</string>
     <string name="nc_create_your_wallet">Create your wallet</string>
     <string name="nc_error_add_same_key">You have already added this key.</string>
