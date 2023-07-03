@@ -245,7 +245,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 inputs = args.inputs,
                 manualFeeRate = manualFeeRate,
                 masterSignerId = args.masterSignerId,
-                magicalPhrase = args.magicalPhrase
+                magicalPhrase = args.magicalPhrase,
+                derivationPath = args.derivationPath,
             )
             transactionConfirmViewModel.handleConfirmEvent(true)
         }
@@ -291,6 +292,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             slots = args.slots,
             masterSignerId = args.masterSignerId,
             magicalPhrase = args.magicalPhrase,
+            derivationPath = args.derivationPath,
             inputs = args.inputs
         )
     }
@@ -310,6 +312,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             sweepType: SweepType = SweepType.NONE,
             masterSignerId: String = "",
             magicalPhrase: String = "",
+            derivationPath: String = "",
             inputs: List<UnspentOutput> = emptyList(),
         ) {
             activityContext.startActivity(
@@ -324,6 +327,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     sweepType = sweepType,
                     masterSignerId = masterSignerId,
                     magicalPhrase = magicalPhrase,
+                    derivationPath = derivationPath,
                     inputs = inputs,
                 ).buildIntent(activityContext)
             )

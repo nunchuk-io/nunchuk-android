@@ -27,6 +27,10 @@ import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.manager.UserWalletApiManager
+import com.nunchuk.android.core.mapper.toBackupKey
+import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
+import com.nunchuk.android.core.mapper.toInheritance
+import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
@@ -434,17 +438,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.downloadBackup(
             verifyToken, id, configSecurityQuestionPayload
         )
-        return BackupKey(
-            keyId = response.data.keyId,
-            keyCheckSum = response.data.keyCheckSum,
-            keyBackUpBase64 = response.data.keyBackUpBase64,
-            keyChecksumAlgorithm = response.data.keyChecksumAlgorithm.orEmpty(),
-            keyName = response.data.keyName.orEmpty(),
-            keyXfp = response.data.keyXfp.orEmpty(),
-            cardId = response.data.cardId.orEmpty(),
-            verificationType = response.data.verificationType.orEmpty(),
-            verifiedTimeMilis = response.data.verifiedTimeMilis ?: 0L
-        )
+        return response.data.toBackupKey()
     }
 
     override suspend fun verifiedPasswordToken(targetAction: String, password: String): String? {
@@ -484,14 +478,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         )
         return response.data.result.toCalculateRequiredSignatures()
-    }
-
-    private fun CalculateRequiredSignaturesResponse.Data?.toCalculateRequiredSignatures(): CalculateRequiredSignatures {
-        return CalculateRequiredSignatures(
-            type = this?.type.orEmpty(),
-            requiredSignatures = this?.requiredSignatures.orDefault(0),
-            requiredAnswers = this?.requiredAnswers.orDefault(0)
-        )
     }
 
     override suspend fun calculateRequiredSignaturesLockdown(
@@ -689,17 +675,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackup(
             InheritanceClaimDownloadBackupRequest(magic = magic)
         )
-        return BackupKey(
-            keyId = response.data.keyId,
-            keyCheckSum = response.data.keyCheckSum,
-            keyBackUpBase64 = response.data.keyBackUpBase64,
-            keyChecksumAlgorithm = response.data.keyChecksumAlgorithm.orEmpty(),
-            keyName = response.data.keyName.orEmpty(),
-            keyXfp = response.data.keyXfp.orEmpty(),
-            cardId = response.data.cardId.orEmpty(),
-            verificationType = response.data.verificationType.orEmpty(),
-            verifiedTimeMilis = response.data.verifiedTimeMilis ?: 0L
-        )
+        return response.data.toBackupKey()
     }
 
     override suspend fun inheritanceClaimingClaim(
@@ -1195,34 +1171,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             requestAddKeyDao.delete(entity)
         }
     }
-
-    private fun InheritanceDto.toInheritance(): Inheritance {
-        val status = when (this.status) {
-            "ACTIVE" -> InheritanceStatus.ACTIVE
-            "CLAIMED" -> InheritanceStatus.CLAIMED
-            else -> InheritanceStatus.PENDING_CREATION
-        }
-        return Inheritance(
-            walletId = walletId.orEmpty(), walletLocalId = walletLocalId.orEmpty(),
-            magic = magic.orEmpty(),
-            note = note.orEmpty(),
-            notificationEmails = notificationEmails.orEmpty(),
-            status = status,
-            activationTimeMilis = activationTimeMilis ?: 0,
-            createdTimeMilis = createdTimeMilis ?: 0,
-            lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
-            bufferPeriod = bufferPeriod?.toPeriod()
-        )
-    }
-
-    private fun PeriodResponse.Data.toPeriod() = Period(
-        id = id.orEmpty(),
-        interval = interval.orEmpty(),
-        intervalCount = intervalCount.orDefault(0),
-        enabled = enabled.orFalse(),
-        displayName = displayName.orEmpty(),
-        isRecommended = isRecommended.orFalse()
-    )
 
     companion object {
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"

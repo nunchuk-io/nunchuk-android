@@ -42,6 +42,7 @@ data class AddReceiptArgs(
     val sweepType: SweepType,
     val masterSignerId: String = "",
     val magicalPhrase: String = "",
+    val derivationPath: String = "",
     val inputs: List<UnspentOutput>,
 ) : ActivityArgs {
 
@@ -57,6 +58,7 @@ data class AddReceiptArgs(
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
             putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
+            putExtra(EXTRA_DERIVATION_PATH, derivationPath)
             putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
         }
 
@@ -71,6 +73,7 @@ data class AddReceiptArgs(
         private const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
         private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
         private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
+        private const val EXTRA_DERIVATION_PATH = "EXTRA_DERIVATION_PATH"
         private const val EXTRA_INPUT = "EXTRA_INPUT"
 
         fun deserializeFrom(intent: Intent) = AddReceiptArgs(
@@ -84,6 +87,7 @@ data class AddReceiptArgs(
             intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
             intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
             intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE),
+            intent.extras.getStringValue(EXTRA_DERIVATION_PATH),
             intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
         )
     }

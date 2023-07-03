@@ -47,6 +47,9 @@
         <argument
             android:name="inheritance_additional"
             app:argType="com.nunchuk.android.model.InheritanceAdditional" />
+        <argument
+            android:name="derivation_path"
+            app:argType="string" />
 
         <action
             android:id="@+id/action_inheritanceClaimNoteFragment_to_selectWalletFragment"
@@ -78,6 +81,11 @@
                 android:name="magical_phrase"
                 android:defaultValue=""
                 app:argType="string" />
+
+            <argument
+                android:name="derivation_path"
+                app:argType="string"
+                android:defaultValue=""/>
         </action>
     </fragment>
 

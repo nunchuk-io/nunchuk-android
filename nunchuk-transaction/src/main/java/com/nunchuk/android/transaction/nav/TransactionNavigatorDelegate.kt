@@ -93,6 +93,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         sweepType: SweepType,
         masterSignerId: String,
         magicalPhrase: String,
+        derivationPath: String,
         inputs: List<UnspentOutput>
     ) {
         AddReceiptActivity.start(
@@ -107,6 +108,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             sweepType = sweepType,
             masterSignerId = masterSignerId,
             magicalPhrase = magicalPhrase,
+            derivationPath = derivationPath,
             inputs = inputs
         )
     }
@@ -122,6 +124,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         slots: List<SatsCardSlot>,
         masterSignerId: String,
         magicalPhrase: String,
+        derivationPath: String,
         inputs: List<UnspentOutput>
     ) {
         EstimatedFeeActivity.start(
@@ -135,6 +138,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             slots = slots,
             masterSignerId = masterSignerId,
             magicalPhrase = magicalPhrase,
+            derivationPath = derivationPath,
             inputs = inputs,
         )
     }
@@ -152,6 +156,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         slots: List<SatsCardSlot>,
         masterSignerId: String,
         magicalPhrase: String,
+        derivationPath: String,
         inputs: List<UnspentOutput>
     ) {
         TransactionConfirmActivity.start(
@@ -167,6 +172,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             slots = slots,
             masterSignerId = masterSignerId,
             magicalPhrase = magicalPhrase,
+            derivationPath = derivationPath,
             inputs = inputs
         )
     }

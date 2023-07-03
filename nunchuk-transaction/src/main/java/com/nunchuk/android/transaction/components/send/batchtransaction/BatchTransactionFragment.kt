@@ -153,8 +153,6 @@ class BatchTransactionFragment : Fragment() {
                                     privateNote = viewModel.getNote(),
                                     subtractFeeFromAmount = false,
                                     slots = emptyList(),
-                                    masterSignerId = "",
-                                    magicalPhrase = "",
                                     inputs = args.unspentOutputs.toList()
                                 )
                             )
@@ -197,8 +195,6 @@ class BatchTransactionFragment : Fragment() {
             privateNote = viewModel.getNote(),
             subtractFeeFromAmount = false,
             slots = emptyList(),
-            masterSignerId = "",
-            magicalPhrase = "",
             inputs = args.unspentOutputs.toList()
         )
     }
@@ -218,8 +214,6 @@ class BatchTransactionFragment : Fragment() {
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
             slots = emptyList(),
-            masterSignerId = "",
-            magicalPhrase = "",
             inputs = args.unspentOutputs.toList()
         )
     }

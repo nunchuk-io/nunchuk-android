@@ -188,7 +188,8 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             sweepType = type,
             slots = args.slots.toList(),
             masterSignerId = args.masterSignerId,
-            magicalPhrase = args.magicalPhrase
+            magicalPhrase = args.magicalPhrase,
+            derivationPath = args.derivationPath
         )
     }
 

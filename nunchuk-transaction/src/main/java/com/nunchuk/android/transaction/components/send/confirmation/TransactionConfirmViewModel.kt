@@ -90,6 +90,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private lateinit var privateNote: String
     private var masterSignerId: String = ""
     private var magicalPhrase: String = ""
+    private var derivationPath: String = ""
 
     override val initialState = Unit
 
@@ -103,6 +104,7 @@ class TransactionConfirmViewModel @Inject constructor(
         masterSignerId: String,
         magicalPhrase: String,
         inputs: List<UnspentOutput> = emptyList(),
+        derivationPath: String
     ) {
         this.walletId = walletId
         this.txReceipts = txReceipts
@@ -119,6 +121,7 @@ class TransactionConfirmViewModel @Inject constructor(
         }
         this.masterSignerId = masterSignerId
         this.magicalPhrase = magicalPhrase
+        this.derivationPath = derivationPath
         if (inputs.isNotEmpty()) {
             getAllTags()
         }
@@ -281,7 +284,8 @@ class TransactionConfirmViewModel @Inject constructor(
                 address = txReceipts.first().address,
                 feeRate = manualFeeRate.toManualFeeRate(),
                 masterSignerId = masterSignerId,
-                magic = magicalPhrase
+                magic = magicalPhrase,
+                derivationPath = derivationPath
             )
         )
         if (result.isSuccess) {

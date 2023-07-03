@@ -96,7 +96,8 @@ class InheritanceClaimInputFragment : Fragment() {
                             InheritanceClaimInputFragmentDirections.actionInheritanceClaimInputFragmentToInheritanceClaimNoteFragment(
                                 signer = event.signer,
                                 magic = event.magic,
-                                inheritanceAdditional = event.inheritanceAdditional
+                                inheritanceAdditional = event.inheritanceAdditional,
+                                derivationPath = event.derivationPath
                             )
                         )
                     } else {

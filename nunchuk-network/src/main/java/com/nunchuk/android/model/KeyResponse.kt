@@ -40,4 +40,6 @@ data class KeyResponse(
     val verificationType: String? = null,
     @SerializedName("verified_time_milis")
     val verifiedTimeMilis: Long? = null,
+    @SerializedName("derivation_path")
+    val derivationPath: String? = null,
 )

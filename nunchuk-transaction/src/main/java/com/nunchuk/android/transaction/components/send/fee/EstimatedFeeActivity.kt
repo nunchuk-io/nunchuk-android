@@ -240,6 +240,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             slots = args.slots,
             masterSignerId = args.masterSignerId,
             magicalPhrase = args.magicalPhrase,
+            derivationPath = args.derivationPath,
             inputs = viewModel.getSelectedCoins()
         )
     }
@@ -257,6 +258,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             slots: List<SatsCardSlot>,
             masterSignerId: String = "",
             magicalPhrase: String = "",
+            derivationPath: String = "",
             inputs: List<UnspentOutput> = emptyList()
         ) {
             activityContext.startActivity(
@@ -270,6 +272,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     slots = slots,
                     masterSignerId = masterSignerId,
                     magicalPhrase = magicalPhrase,
+                    derivationPath = derivationPath,
                     inputs = inputs
                 ).buildIntent(activityContext)
             )
