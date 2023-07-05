@@ -26,7 +26,10 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseBottomSheet
+import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideKeyboard
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.BottomSheetConfigureGapLimitBinding
@@ -36,10 +39,14 @@ import dagger.hilt.android.AndroidEntryPoint
 class ConfigureGapLimitBottomSheetFragment :
     BaseBottomSheet<BottomSheetConfigureGapLimitBinding>() {
 
+    private val viewModel by viewModels<ConfigureGapLimitViewModel>()
+
     var listener: (Int) -> Unit = {}
 
     private val gapLimit: Int
         get() = arguments?.getInt(ARG_GAP_LIMIT) ?: 0
+
+    private var isIgnoreLimit: Boolean = false
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -53,6 +60,14 @@ class ConfigureGapLimitBottomSheetFragment :
         dialog?.setCanceledOnTouchOutside(false)
         setupViews()
 
+        flowObserver(viewModel.event) { event ->
+            if (event is ConfigureGapLimitEvent.GetAppSettingSuccess) {
+                if (event.url.isNotEmpty() && event.url != MAIN_NET_HOST) {
+                    isIgnoreLimit = true
+                    binding.tvMax.isVisible = false
+                }
+            }
+        }
     }
 
     private fun setupViews() {
@@ -65,7 +80,7 @@ class ConfigureGapLimitBottomSheetFragment :
         }
         binding.saveBtn.setOnClickListener {
             val limit = binding.edtGapLimit.text.toString().toIntOrNull()
-            if (limit != null && limit <= LIMIT_GAP) {
+            if (limit != null && (limit <= LIMIT_GAP || isIgnoreLimit)) {
                 listener(limit)
                 dismiss()
             } else {
@@ -75,13 +90,8 @@ class ConfigureGapLimitBottomSheetFragment :
         }
     }
 
-    private fun cleanUp() {
-        binding.edtGapLimit.text?.clear()
-        dismiss()
-    }
-
     companion object {
-        const val LIMIT_GAP = 100
+        const val LIMIT_GAP = 200
 
         private const val ARG_GAP_LIMIT = "ARG_GAP_LIMIT"
         fun show(gapLimit: Int, fragmentManager: FragmentManager) =
