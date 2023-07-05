@@ -44,6 +44,7 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>() {
@@ -161,7 +162,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             availableAmount = args.availableAmount,
             address = viewModel.getAddress(),
             privateNote = viewModel.getPrivateNote(),
-            subtractFeeFromAmount = outputAmount >= args.availableAmount,
+            subtractFeeFromAmount = abs(outputAmount - args.availableAmount).toAmount().value <= 0,
             inputs = args.inputs
         )
     }
