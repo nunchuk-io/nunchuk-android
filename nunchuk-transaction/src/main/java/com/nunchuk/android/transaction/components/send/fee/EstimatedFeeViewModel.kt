@@ -26,9 +26,14 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.sum
 import com.nunchuk.android.core.util.toAmount
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
@@ -60,6 +65,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private val inputs = mutableListOf<UnspentOutput>()
 
     override val initialState = EstimatedFeeState()
+    private var useCustomCoin: Boolean = false
 
     fun init(args: EstimatedFeeArgs) {
         this.walletId = args.walletId
@@ -81,6 +87,7 @@ class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun updateNewInputs(inputs: List<UnspentOutput>) {
+        useCustomCoin = true
         this.inputs.apply {
             clear()
             addAll(inputs)
@@ -243,6 +250,11 @@ class EstimatedFeeViewModel @Inject constructor(
         get() = getState().estimateFeeRates.defaultRate
 
     fun getSelectedCoins() : List<UnspentOutput> {
+        if (!useCustomCoin) return emptyList()
+        return getInputsCoins()
+    }
+
+    fun getInputsCoins() : List<UnspentOutput> {
         val inputs = getState().inputs
         return getState().allCoins.filter { coin -> inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
     }
