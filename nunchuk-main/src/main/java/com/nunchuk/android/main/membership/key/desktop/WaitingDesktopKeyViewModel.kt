@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.key.desktop
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -46,7 +47,7 @@ class WaitingDesktopKeyViewModel @Inject constructor(
             ).onSuccess {
                 _state.update { state -> state.copy(isCompleted = it) }
             }.onFailure {
-                _state.update { state -> state.copy(isCompleted = false) }
+                _state.update { state -> state.copy(isCompleted = false, requestCancel = it is RequestAddKeyCancelException) }
             }
         }
     }
@@ -56,4 +57,4 @@ class WaitingDesktopKeyViewModel @Inject constructor(
     }
 }
 
-data class WaitingDesktopKeyUiState(val isCompleted: Boolean? = null, val error: String? = null)
+data class WaitingDesktopKeyUiState(val isCompleted: Boolean? = null, val error: String? = null, val requestCancel: Boolean = false)

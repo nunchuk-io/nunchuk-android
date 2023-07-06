@@ -76,7 +76,12 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                                     if (args.signerTag == SignerTag.LEDGER) getString(R.string.nc_ledger) else getString(
                                         R.string.nc_trezor
                                     )
-                                )
+                                ),
+                                onYesClick = {
+                                    if (state.requestCancel) {
+                                        findNavController().popBackStack(R.id.addKeyListFragment, false)
+                                    }
+                                }
                             )
                         }
                         viewModel.markHandleAddKeyResult()
