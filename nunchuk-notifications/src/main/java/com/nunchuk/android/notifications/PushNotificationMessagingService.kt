@@ -28,23 +28,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.isAtLeastStarted
-import com.nunchuk.android.messages.util.getLastMessageContentSafe
-import com.nunchuk.android.messages.util.getMsgBody
-import com.nunchuk.android.messages.util.getTransactionId
-import com.nunchuk.android.messages.util.getWalletId
-import com.nunchuk.android.messages.util.isAddKeyCompleted
-import com.nunchuk.android.messages.util.isContactUpdateEvent
-import com.nunchuk.android.messages.util.isCosignedAndBroadcastEvent
-import com.nunchuk.android.messages.util.isCosignedEvent
-import com.nunchuk.android.messages.util.isMessageEvent
-import com.nunchuk.android.messages.util.isNunchukTransactionEvent
-import com.nunchuk.android.messages.util.isNunchukWalletEvent
-import com.nunchuk.android.messages.util.isServerTransactionEvent
-import com.nunchuk.android.messages.util.isTransactionReceived
-import com.nunchuk.android.messages.util.isTransactionScheduleMissingSignaturesEvent
-import com.nunchuk.android.messages.util.isTransactionScheduleNetworkRejectedEvent
-import com.nunchuk.android.messages.util.lastMessageContent
-import com.nunchuk.android.messages.util.lastMessageSender
+import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
@@ -256,7 +240,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 )
             )
         }
-        isTransactionScheduleNetworkRejectedEvent() -> {
+        isTransactionScheduleNetworkRejectedEvent() || isTransactionUpdateEvent() -> {
             val message = this.getLastMessageContentSafe().orEmpty()
             PushNotificationData(
                 id = localId,

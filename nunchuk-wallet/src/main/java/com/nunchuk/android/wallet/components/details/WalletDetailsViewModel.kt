@@ -103,9 +103,11 @@ internal class WalletDetailsViewModel @Inject constructor(
             selectedWalletUseCase(args.walletId)
         }
         viewModelScope.launch {
-            val result = syncTransactionUseCase(args.walletId)
-            if (result.isSuccess) {
-                getTransactionHistory()
+            if (assistedWalletManager.isActiveAssistedWallet(args.walletId)) {
+                val result = syncTransactionUseCase(args.walletId)
+                if (result.isSuccess) {
+                    getTransactionHistory()
+                }
             }
         }
         viewModelScope.launch {

@@ -39,6 +39,7 @@ const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
     "io.nunchuk.custom.transaction_co_signed_and_broadcast"
 const val TRANSACTION_SCHEDULE_MISSING_SIGNATURES = "io.nunchuk.custom.transaction_schedule_missing_signatures"
 const val TRANSACTION_SCHEDULE_NETWORK_REJECTED = "io.nunchuk.custom.transaction_schedule_network_rejected"
+const val TRANSACTION_UPDATED = "io.nunchuk.custom.transaction_updated"
 const val TRANSACTION_RECEIVED = "io.nunchuk.custom.wallet_receive_transaction"
 const val ADD_DESKTOP_KEY_COMPLETED = "io.nunchuk.custom.draft_wallet_add_key_request_completed"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
@@ -89,7 +90,7 @@ fun TimelineEvent.isContactRequestAcceptedEvent() =
 fun TimelineEvent.isContactInvitationAcceptedEvent() =
     getMsgType() == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED
 
-fun TimelineEvent.isServerTransactionEvent() = isCosignedEvent() || isBroadcastEvent() || isCosignedAndBroadcastEvent()
+fun TimelineEvent.isServerTransactionEvent() = isCosignedEvent() || isBroadcastEvent() || isCosignedAndBroadcastEvent() || isTransactionUpdateEvent()
 
 fun TimelineEvent.isCosignedEvent() = getMsgType() == TRANSACTION_CO_SIGNED
 
@@ -97,6 +98,9 @@ fun TimelineEvent.isBroadcastEvent() = getMsgType() == TRANSACTION_SCHEDULE_BROA
 
 fun TimelineEvent.isCosignedAndBroadcastEvent() =
     getMsgType() == TRANSACTION_CO_SIGNED_AND_BROADCAST
+
+fun TimelineEvent.isTransactionUpdateEvent() =
+    getMsgType() == TRANSACTION_UPDATED
 
 fun TimelineEvent.isTransactionScheduleMissingSignaturesEvent() = getMsgType() == TRANSACTION_SCHEDULE_MISSING_SIGNATURES
 fun TimelineEvent.isTransactionScheduleNetworkRejectedEvent() = getMsgType() == TRANSACTION_SCHEDULE_NETWORK_REJECTED
