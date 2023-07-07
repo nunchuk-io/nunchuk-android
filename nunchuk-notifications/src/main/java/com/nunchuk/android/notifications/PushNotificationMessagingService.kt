@@ -240,7 +240,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 )
             )
         }
-        isTransactionScheduleNetworkRejectedEvent() || isTransactionUpdateEvent() -> {
+        isTransactionScheduleNetworkRejectedEvent() -> {
             val message = this.getLastMessageContentSafe().orEmpty()
             PushNotificationData(
                 id = localId,
