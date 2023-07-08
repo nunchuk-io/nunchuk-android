@@ -26,12 +26,22 @@ import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.persistence.NcDataStore
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.KeyUpload
+import com.nunchuk.android.model.KeyVerifiedRequest
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.repository.KeyRepository
-import com.nunchuk.android.type.*
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -172,12 +182,17 @@ internal class KeyRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun setKeyVerified(masterSignerId: String, isAppVerify: Boolean) {
+    override suspend fun setKeyVerified(
+        groupId: String,
+        masterSignerId: String,
+        isAppVerify: Boolean
+    ) {
         val stepInfo =
             membershipDao.getStepByMasterSignerId(
                 email = accountManager.getAccount().chatId,
                 chain = chain.value,
-                masterSignerId = masterSignerId
+                masterSignerId = masterSignerId,
+                groupId = groupId
             )
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
         val response =

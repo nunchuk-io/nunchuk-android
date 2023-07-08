@@ -37,7 +37,15 @@ interface AppNavigator {
         groupStep: MembershipStage,
         walletId: String? = null,
         groupId: String? = null,
-        isClearTop: Boolean = false,
+        addOnHoneyBadger: Boolean = false
+    )
+
+    fun openMembershipActivity(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        walletId: String? = null,
+        groupId: String? = null,
         addOnHoneyBadger: Boolean = false
     )
 

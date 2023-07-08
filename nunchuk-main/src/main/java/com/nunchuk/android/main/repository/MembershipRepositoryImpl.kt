@@ -24,7 +24,12 @@ import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.persistence.NcDataStore
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.AppSettings
+import com.nunchuk.android.model.MemberSubscription
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
@@ -34,7 +39,12 @@ import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -123,7 +133,11 @@ class MembershipRepositoryImpl @Inject constructor(
                     }
             }
         }
-        membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
+        if (groupId.isNotEmpty()) {
+            membershipStepDao.deleteStepByGroupId(groupId)
+        } else {
+            membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
+        }
     }
 
     override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan

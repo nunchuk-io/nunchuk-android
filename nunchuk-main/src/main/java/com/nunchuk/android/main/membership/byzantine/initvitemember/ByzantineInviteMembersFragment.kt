@@ -129,8 +129,8 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 is ByzantineInviteMembersEvent.CreateGroupWalletSuccess -> {
                     navigator.openMembershipActivity(
                         activityContext = requireActivity(),
-                        groupId = event.groupId,
-                        groupStep = MembershipStage.NONE
+                        groupStep = MembershipStage.NONE,
+                        groupId = event.groupId
                     )
                     requireActivity().finish()
                 }

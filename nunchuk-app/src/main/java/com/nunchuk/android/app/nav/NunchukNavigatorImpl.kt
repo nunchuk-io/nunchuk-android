@@ -43,7 +43,11 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationAc
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.GroupKeyPolicy
+import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
@@ -151,7 +155,6 @@ interface AppNavigatorDelegate : AppNavigator {
         groupStep: MembershipStage,
         walletId: String?,
         groupId: String?,
-        isClearTop: Boolean,
         addOnHoneyBadger: Boolean
     ) {
         val intent = MembershipActivity.buildIntent(
@@ -161,8 +164,25 @@ interface AppNavigatorDelegate : AppNavigator {
             groupId = groupId,
             addOnHoneyBadger = addOnHoneyBadger
         )
-        if (isClearTop) intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         activityContext.startActivity(intent)
+    }
+
+    override fun openMembershipActivity(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        walletId: String?,
+        groupId: String?,
+        addOnHoneyBadger: Boolean
+    ) {
+        val intent = MembershipActivity.buildIntent(
+            activity = activityContext,
+            groupStep = groupStep,
+            walletId = walletId,
+            groupId = groupId,
+            addOnHoneyBadger = addOnHoneyBadger
+        )
+        launcher.launch(intent)
     }
 
     override fun openConfigServerKeyActivity(

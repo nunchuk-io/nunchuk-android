@@ -30,8 +30,8 @@ class SetKeyVerifiedUseCase @Inject constructor(
     private val repository: KeyRepository
 ) : UseCase<SetKeyVerifiedUseCase.Param, Unit>(dispatcher) {
     override suspend fun execute(parameters: Param) {
-        repository.setKeyVerified(parameters.masterSignerId, parameters.isAppVerified)
+        repository.setKeyVerified(parameters.groupId, parameters.masterSignerId, parameters.isAppVerified)
     }
 
-    data class Param(val masterSignerId: String, val isAppVerified: Boolean)
+    data class Param(val groupId: String, val masterSignerId: String, val isAppVerified: Boolean)
 }

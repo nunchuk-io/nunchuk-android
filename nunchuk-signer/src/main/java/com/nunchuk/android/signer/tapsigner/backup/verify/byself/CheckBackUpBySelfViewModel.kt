@@ -45,10 +45,10 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setKeyVerified() {
+    fun setKeyVerified(groupId: String) {
         viewModelScope.launch {
             val result =
-                setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(args.masterSignerId, false))
+                setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(groupId, args.masterSignerId, false))
             if (result.isSuccess) {
                 _event.emit(OnExitSelfCheck)
             } else {

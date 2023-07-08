@@ -192,14 +192,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         if (result.isSuccess) {
             ncDataStore.setSetupSecurityQuestion(true)
-            membershipRepository.saveStepInfo(
-                MembershipStepInfo(
-                    step = MembershipStep.SETUP_KEY_RECOVERY,
-                    verifyType = VerifyType.APP_VERIFIED,
-                    plan = plan,
-                    groupId = "" // TODO Hai
-                )
-            )
         } else {
             throw result.error
         }
@@ -380,7 +372,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     id = serverWallet.id?.toLongOrNull() ?: 0L
                 )
             )
-            membershipStepDao.deleteStepByChatId(chain.value, chatId, "")
+            membershipStepDao.deleteStepByChatId(chain.value, chatId)
             requestAddKeyDao.deleteRequests(chatId, chain.value)
         }
         return SeverWallet(serverWallet.id.orEmpty())
@@ -1164,7 +1156,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getAssistedWalletConfig(): AssistedWalletConfig {
         val response = userWalletApiManager.walletApi.getAssistedWalletConfig()
-        // TODO Hai
         if (response.data.remainingWalletCount == 0) {
             val chatId = accountManager.getAccount().chatId
             membershipStepDao.deleteStepByChatId(chain.value, chatId)
@@ -1179,12 +1170,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getGroupAssistedWalletConfig(): GroupConfig {
         val response = userWalletApiManager.walletApi.getGroupAssistedWalletConfig()
-        // TODO Hai
-        if (response.data.remainingGroupCount == 0) {
-            val chatId = accountManager.getAccount().chatId
-            membershipStepDao.deleteStepByChatId(chain.value, chatId)
-            requestAddKeyDao.deleteRequests(chatId, chain.value)
-        }
         return GroupConfig(
             totalAllowedGroup = response.data.totalAllowedGroup,
             activeGroupCount = response.data.activeGroupCount,
@@ -1595,6 +1580,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun deleteGroupWallet(groupId: String) {
         userWalletApiManager.walletApi.deleteDraftWallet(groupId)
+        requestAddKeyDao.deleteRequests(groupId)
     }
 
     override suspend fun generateEditGroupMemberUserData(
@@ -1684,6 +1670,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): Boolean {
         val response = userWalletApiManager.walletApi.getGroupWallet(groupId)
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
+        membershipStepDao.deleteStepByGroupId(groupId)
+        requestAddKeyDao.deleteRequests(groupId)
         assistedWalletDao.insert(
             AssistedWalletEntity(
                 localId = wallet.localId.orEmpty(),

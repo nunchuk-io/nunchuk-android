@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.share.membership
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.CallSuper
@@ -60,9 +61,9 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
             if (it is MembershipEvent.RestartWizardSuccess) {
                 nunchukNavigator.openMembershipActivity(
                     requireActivity(),
-                    MembershipStage.NONE,
-                    isClearTop = true
+                    MembershipStage.NONE
                 )
+                requireActivity().setResult(Activity.RESULT_OK)
                 requireActivity().finish()
             }
         }

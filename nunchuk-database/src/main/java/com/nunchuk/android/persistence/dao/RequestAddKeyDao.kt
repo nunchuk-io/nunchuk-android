@@ -39,4 +39,7 @@ interface RequestAddKeyDao : BaseDao<RequestAddKeyEntity> {
 
     @Query("DELETE FROM $TABLE_ADD_DESKTOP_KEY WHERE chat_id = :chatId AND chain = :chain AND group_id = :groupId")
     suspend fun deleteRequests(chatId: String, chain: Chain, groupId: String = "")
+
+    @Query("DELETE FROM $TABLE_ADD_DESKTOP_KEY WHERE group_id = :groupId")
+    suspend fun deleteRequests(groupId: String)
 }

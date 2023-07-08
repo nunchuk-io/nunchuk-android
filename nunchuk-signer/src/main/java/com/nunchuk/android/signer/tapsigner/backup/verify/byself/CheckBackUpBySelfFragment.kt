@@ -62,6 +62,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -103,7 +104,7 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                 title = getString(R.string.nc_confirmation),
                                 message = getString(R.string.nc_confirm_verify_backup_by_self_desc),
                                 onYesClick = {
-                                    viewModel.setKeyVerified()
+                                    viewModel.setKeyVerified((requireActivity() as NfcSetupActivity).groupId)
                                 },
                             )
                         is ShowError -> showError(event.e?.message.orUnknownError())

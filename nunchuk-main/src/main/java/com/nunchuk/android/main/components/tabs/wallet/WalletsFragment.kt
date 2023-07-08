@@ -55,7 +55,6 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.WalletsViewBinder
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
@@ -82,7 +81,6 @@ import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity

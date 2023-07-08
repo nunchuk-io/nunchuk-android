@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
@@ -90,6 +92,12 @@ class GroupDashboardFragment : MembershipFragment() {
 
     private val viewModel: GroupDashboardViewModel by activityViewModels()
 
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) { // case restart should finish this activity
+            requireActivity().finish() // TODO Thong handle refresh group in Wallet Fragment
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -107,6 +115,7 @@ class GroupDashboardFragment : MembershipFragment() {
                     )
                 }, onGroupWalletCreationPending = {
                     navigator.openMembershipActivity(
+                        launcher = launcher,
                         activityContext = requireActivity(),
                         groupStep = MembershipStage.NONE,
                         groupId = args.groupId
