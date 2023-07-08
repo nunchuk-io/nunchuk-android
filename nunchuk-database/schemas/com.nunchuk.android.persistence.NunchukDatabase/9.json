@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "a90471c96011dcd27711e3c702dac49a",
+    "identityHash": "8e0678086dde5abe5d8183f26de9c13a",
     "entities": [
       {
         "tableName": "contact",
@@ -262,20 +262,13 @@
       },
       {
         "tableName": "assisted_wallet",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`local_id` TEXT NOT NULL, `group_id` TEXT NOT NULL DEFAULT '', `id` INTEGER NOT NULL DEFAULT 0, `plan` INTEGER NOT NULL, `is_set_up_inheritance` INTEGER NOT NULL, `is_register_coldcard` INTEGER NOT NULL, `is_register_airgap` INTEGER NOT NULL, PRIMARY KEY(`local_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`local_id` TEXT NOT NULL, `id` INTEGER NOT NULL DEFAULT 0, `plan` INTEGER NOT NULL, `is_set_up_inheritance` INTEGER NOT NULL, `is_register_coldcard` INTEGER NOT NULL, `is_register_airgap` INTEGER NOT NULL, PRIMARY KEY(`local_id`))",
         "fields": [
           {
             "fieldPath": "localId",
             "columnName": "local_id",
             "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "groupId",
-            "columnName": "group_id",
-            "affinity": "TEXT",
-            "notNull": true,
-            "defaultValue": "''"
           },
           {
             "fieldPath": "id",
@@ -367,7 +360,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a90471c96011dcd27711e3c702dac49a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8e0678086dde5abe5d8183f26de9c13a')"
     ]
   }
 }
