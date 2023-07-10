@@ -1,19 +1,24 @@
 package com.nunchuk.android.core.data.model.membership
 
+import com.google.gson.annotations.SerializedName
+
 internal data class DesktopKeyRequest(
+    @SerializedName("tags")
     val tags: List<String>,
+    @SerializedName("key_index")
+    val keyIndex: Int? = null
 )
 
 internal data class RequestDesktopKeyResponse(
+    @SerializedName("request")
     val request: Request? = null
 )
 
 internal data class Request(
-    val created_time_millis: Long = 0L,
+    @SerializedName("id")
     val id: String? = null,
+    @SerializedName("key")
     val key: SignerServerDto? = null,
-    val key_index: Int = 0,
+    @SerializedName("status")
     val status: String = "",
-    val tags: List<String> = emptyList(),
-    val user_id: String = ""
 )
