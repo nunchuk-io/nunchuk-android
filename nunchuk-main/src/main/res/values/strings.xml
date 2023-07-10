@@ -45,16 +45,22 @@
     <string name="nc_seedsigner">SeedSigner</string>
     <string name="nc_main_add_ledger_desc">To use Ledger with your assisted wallet, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
     <string name="nc_main_add_trezor_desc">To use Trezor with your assisted wallet, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
+    <string name="nc_main_add_coldcard_desc">To add COLDCARD via a USB cable, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
     <string name="nc_add_ledger">Add Ledger</string>
     <string name="nc_i_have_already_added_ledger">I have already added Ledger</string>
     <string name="nc_i_have_already_added_trezor">I have already added Trezor</string>
+    <string name="nc_i_have_already_added_coldcard">I have already added COLDCARD</string>
     <string name="nc_waiting_for_ledger_to_be_added">Waiting for Ledger to be added</string>
     <string name="nc_waiting_for_trezor_to_be_added">Waiting for Trezor to be added</string>
+    <string name="nc_waiting_for_coldcard_to_be_added">Waiting for COLDCARD to be added</string>
     <string name="nc_add_trezor_using_desktop_desc">You can now add Trezor using the desktop app. Once finished, you can return here to continue the setup.</string>
+    <string name="nc_add_coldcard_using_desktop_desc">You can now add COLDCARD using the desktop app. Once finished, you can return here to continue the setup.</string>
     <string name="nc_add_ledger_using_desktop_desc">You can now add Ledger using the desktop app. Once finished, you can return here to continue the setup.</string>
     <string name="nc_ledger">Ledger</string>
     <string name="nc_trezor">Trezor</string>
     <string name="nc_add_trezor">Add Trezor</string>
+    <string name="nc_add_coldcard_usb">Add COLDCARD via USB</string>
     <string name="nc_no_device_have_been_detected">No %1$s devices have been detected. Please try again.</string>
     <string name="nc_added_successfully">%1$s added successfully</string>
+    <string name="nc_add_coldcard_via_usb">Add COLDCARD via USB</string>
 </resources>

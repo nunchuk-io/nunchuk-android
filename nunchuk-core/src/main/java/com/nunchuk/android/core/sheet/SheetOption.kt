@@ -120,4 +120,5 @@ object SheetOptionType {
 
     const val TYPE_ADD_LEDGER = 64
     const val TYPE_ADD_TREZOR = 65
+    const val TYPE_ADD_COLDCARD_USB = 66
 }

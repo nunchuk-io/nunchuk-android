@@ -72,25 +72,40 @@ private fun AddLedgerScreen(
     onMoreClicked: () -> Unit = {},
     remainTime: Int = 0,
 ) {
-    if (tag == SignerTag.LEDGER) {
-        AddDesktopKeyContent(
-            title = stringResource(id = R.string.nc_add_ledger),
-            desc = stringResource(id = R.string.nc_main_add_ledger_desc),
-            button = stringResource(id = R.string.nc_text_continue),
-            onContinueClicked = onContinueClicked,
-            onMoreClicked = onMoreClicked,
-            remainTime = remainTime,
-            backgroundId = R.drawable.bg_add_ledger
-        )
-    } else if (tag == SignerTag.TREZOR) {
-        AddDesktopKeyContent(
-            title = stringResource(R.string.nc_add_trezor),
-            desc = stringResource(id = R.string.nc_main_add_trezor_desc),
-            button = stringResource(id = R.string.nc_text_continue),
-            onContinueClicked = onContinueClicked,
-            onMoreClicked = onMoreClicked,
-            remainTime = remainTime,
-            backgroundId = R.drawable.bg_add_trezor
-        )
+    when (tag) {
+        SignerTag.LEDGER -> {
+            AddDesktopKeyContent(
+                title = stringResource(id = R.string.nc_add_ledger),
+                desc = stringResource(id = R.string.nc_main_add_ledger_desc),
+                button = stringResource(id = R.string.nc_text_continue),
+                onContinueClicked = onContinueClicked,
+                onMoreClicked = onMoreClicked,
+                remainTime = remainTime,
+                backgroundId = R.drawable.bg_add_ledger
+            )
+        }
+        SignerTag.TREZOR -> {
+            AddDesktopKeyContent(
+                title = stringResource(R.string.nc_add_trezor),
+                desc = stringResource(id = R.string.nc_main_add_trezor_desc),
+                button = stringResource(id = R.string.nc_text_continue),
+                onContinueClicked = onContinueClicked,
+                onMoreClicked = onMoreClicked,
+                remainTime = remainTime,
+                backgroundId = R.drawable.bg_add_trezor
+            )
+        }
+        SignerTag.COLDCARD -> {
+            AddDesktopKeyContent(
+                title = stringResource(R.string.nc_add_coldcard_usb),
+                desc = stringResource(id = R.string.nc_main_add_coldcard_desc),
+                button = stringResource(id = R.string.nc_text_continue),
+                onContinueClicked = onContinueClicked,
+                onMoreClicked = onMoreClicked,
+                remainTime = remainTime,
+                backgroundId = R.drawable.bg_coldcard_desktop
+            )
+        }
+        else -> Unit
     }
 }

@@ -43,7 +43,17 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.bindTransactionStatus
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getPendingSignatures
+import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentDummyTransactionDetailsBinding
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
@@ -154,7 +164,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                         WalletAuthenticationEvent.ShowAirgapOption -> handleMenuMore()
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
-                        WalletAuthenticationEvent.CanNotSignHardwareKey -> showError("Please use the desktop app to sign with this key")
+                        WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                     }
                 }
         }

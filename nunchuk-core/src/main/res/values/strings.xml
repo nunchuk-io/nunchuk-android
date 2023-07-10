@@ -654,4 +654,5 @@
     <string name="nc_remove">Remove</string>
     <string name="nc_add_recipient">Add recipient</string>
     <string name="nc_address">Address</string>
+    <string name="nc_use_desktop_app_to_sign">Please use the desktop app to sign with this key</string>
 </resources>

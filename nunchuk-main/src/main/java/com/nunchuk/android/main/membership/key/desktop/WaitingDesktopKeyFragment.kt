@@ -35,24 +35,38 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                 val onConfirmAddLedger: () -> Unit = {
                     viewModel.checkRequestStatus()
                 }
-                if (args.signerTag == SignerTag.LEDGER) {
-                    WaitingDesktopKeyContent(
-                        title = context.getString(R.string.nc_waiting_for_ledger_to_be_added),
-                        desc = context.getString(R.string.nc_add_ledger_using_desktop_desc),
-                        button = context.getString(R.string.nc_i_have_already_added_ledger),
-                        remainTime = remainTime,
-                        onMoreClicked = ::handleShowMore,
-                        onConfirmAddLedger = onConfirmAddLedger
-                    )
-                } else {
-                    WaitingDesktopKeyContent(
-                        title = context.getString(R.string.nc_waiting_for_trezor_to_be_added),
-                        desc = context.getString(R.string.nc_add_trezor_using_desktop_desc),
-                        button = context.getString(R.string.nc_i_have_already_added_trezor),
-                        remainTime = remainTime,
-                        onMoreClicked = ::handleShowMore,
-                        onConfirmAddLedger = onConfirmAddLedger
-                    )
+                when (args.signerTag) {
+                    SignerTag.LEDGER -> {
+                        WaitingDesktopKeyContent(
+                            title = context.getString(R.string.nc_waiting_for_ledger_to_be_added),
+                            desc = context.getString(R.string.nc_add_ledger_using_desktop_desc),
+                            button = context.getString(R.string.nc_i_have_already_added_ledger),
+                            remainTime = remainTime,
+                            onMoreClicked = ::handleShowMore,
+                            onConfirmAddLedger = onConfirmAddLedger
+                        )
+                    }
+                    SignerTag.TREZOR -> {
+                        WaitingDesktopKeyContent(
+                            title = context.getString(R.string.nc_waiting_for_trezor_to_be_added),
+                            desc = context.getString(R.string.nc_add_trezor_using_desktop_desc),
+                            button = context.getString(R.string.nc_i_have_already_added_trezor),
+                            remainTime = remainTime,
+                            onMoreClicked = ::handleShowMore,
+                            onConfirmAddLedger = onConfirmAddLedger
+                        )
+                    }
+                    SignerTag.COLDCARD -> {
+                        WaitingDesktopKeyContent(
+                            title = context.getString(R.string.nc_waiting_for_coldcard_to_be_added),
+                            desc = context.getString(R.string.nc_add_coldcard_using_desktop_desc),
+                            button = context.getString(R.string.nc_i_have_already_added_coldcard),
+                            remainTime = remainTime,
+                            onMoreClicked = ::handleShowMore,
+                            onConfirmAddLedger = onConfirmAddLedger
+                        )
+                    }
+                    else -> Unit
                 }
             }
         }
