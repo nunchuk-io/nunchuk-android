@@ -68,6 +68,7 @@ import com.nunchuk.android.share.model.TransactionOption.IMPORT_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
+import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
@@ -580,6 +581,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
             ImportTransactionSuccess -> NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
             NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
+            is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
         }
     }
 
@@ -636,7 +638,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isPendingConfirm = event.isPendingConfirm,
             isRejected = event.isRejected,
             isAssistedWallet = viewModel.isAssistedWallet(),
-            isScheduleBroadcast = viewModel.isScheduleBroadcast()
+            isScheduleBroadcast = viewModel.isScheduleBroadcast(),
+            canBroadcast = event.canBroadcast
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
@@ -644,6 +647,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 IMPORT_TRANSACTION -> showImportTransactionOptions()
                 REPLACE_BY_FEE -> handleOpenEditFee()
                 COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
+                COPY_RAW_TRANSACTION_HEX -> viewModel.getRawTransaction()
                 REMOVE_TRANSACTION -> viewModel.handleDeleteTransactionEvent(false)
                 SCHEDULE_BROADCAST -> if (viewModel.isScheduleBroadcast()) {
                     viewModel.cancelScheduleBroadcast()

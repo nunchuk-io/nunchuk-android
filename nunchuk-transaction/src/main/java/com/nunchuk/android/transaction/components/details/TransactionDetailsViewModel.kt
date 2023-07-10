@@ -51,6 +51,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
@@ -105,6 +106,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
+    private val getRawTransactionUseCase: GetRawTransactionUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
@@ -451,7 +453,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
             PromptTransactionOptions(
                 isPendingTransaction = status.isPending(),
                 isPendingConfirm = status.isPendingConfirm(),
-                isRejected = status.isRejected()
+                isRejected = status.isRejected(),
+                canBroadcast = status.canBroadCast()
             )
         )
     }
@@ -687,6 +690,15 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }.onFailure {
                     event(TransactionError(it.readableMessage()))
                 }
+        }
+    }
+
+    fun getRawTransaction() = viewModelScope.launch {
+        val result = getRawTransactionUseCase(GetRawTransactionUseCase.Param(walletId, txId))
+        if (result.isSuccess) {
+            setEvent(GetRawTransactionSuccess(result.getOrThrow()))
+        } else {
+            setEvent(TransactionError(result.exceptionOrNull()?.readableMessage().orUnknownError()))
         }
     }
 

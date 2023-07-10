@@ -105,6 +105,7 @@
     <string name="nc_incorrect">Incorrect</string>
     <string name="nc_copied_to_clipboard">Copied to your clipboard</string>
     <string name="nc_copy_transaction_id">Copy transaction ID</string>
+    <string name="nc_copy_raw_transaction_hex">Copy raw transaction hex</string>
     <string name="nc_before_you_start">Before you start</string>
     <string name="nc_ensure_to_following_step">Please ensure to do the following on your COLDCARD before proceeding.</string>
     <string name="nc_init_coldcard">Initialize COLDCARD</string>
