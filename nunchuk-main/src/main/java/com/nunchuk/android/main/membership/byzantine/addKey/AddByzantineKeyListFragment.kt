@@ -166,6 +166,21 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
+            SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
+            SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
+            SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
+        }
+    }
+
+    private fun openRequestAddDesktopKey(tag: SignerTag) {
+        membershipStepManager.currentStep?.let { step ->
+            findNavController().navigate(
+                AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToAddDesktopKeyFragment(
+                    tag,
+                    step,
+                    args.groupId
+                )
+            )
         }
     }
 
@@ -198,6 +213,11 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     type = SheetOptionType.TYPE_ADD_COLDCARD_NFC,
                     label = getString(R.string.nc_add_coldcard_via_nfc),
                     resId = R.drawable.ic_nfc_indicator_small
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_USB,
+                    label = getString(R.string.nc_add_coldcard_via_usb),
+                    resId = R.drawable.ic_usb
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_COLDCARD_FILE,
@@ -279,6 +299,14 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 SheetOption(
                     type = SignerType.AIRGAP.ordinal,
                     label = getString(R.string.nc_signer_air_gapped)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_LEDGER,
+                    label = getString(R.string.nc_ledger)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_TREZOR,
+                    label = getString(R.string.nc_trezor)
                 ),
             ),
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),

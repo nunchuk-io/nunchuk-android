@@ -52,7 +52,7 @@ class UploadBackupFileKeyUseCase @Inject constructor(
         ).onCompletion {
             withContext(NonCancellable) {
                 runCatching {
-                    userWalletRepository.cancelRequestIdIfNeed(parameters.step)
+                    userWalletRepository.cancelRequestIdIfNeed(parameters.groupId, parameters.step)
                 }
             }
         }

@@ -32,8 +32,12 @@ class CheckRequestAddDesktopKeyStatusUseCase @Inject constructor(
 ) : UseCase<CheckRequestAddDesktopKeyStatusUseCase.Param, Boolean>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param) : Boolean {
-        return repository.checkKeyAdded(parameters.plan, parameters.requestId)
+        return repository.checkKeyAdded(
+            plan = parameters.plan,
+            groupId = parameters.groupId,
+            requestId = parameters.requestId
+        )
     }
 
-    data class Param(val plan: MembershipPlan, val requestId: String? = null)
+    data class Param(val plan: MembershipPlan, val groupId: String = "", val requestId: String? = null)
 }

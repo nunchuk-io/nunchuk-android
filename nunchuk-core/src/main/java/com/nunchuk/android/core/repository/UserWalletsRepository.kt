@@ -1428,21 +1428,41 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun requestAddKey(step: MembershipStep, tags: List<SignerTag>): String {
+    override suspend fun requestAddKey(
+        groupId: String,
+        step: MembershipStep,
+        tags: List<SignerTag>
+    ): String {
         val chatId = accountManager.getAccount().chatId
         var localRequest =
-            requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString())
+            requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString(), groupId)
         if (localRequest != null) {
             val response =
-                userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
+                if (groupId.isNotEmpty())
+                    userWalletApiManager.walletApi.getRequestAddKeyStatus(
+                        groupId,
+                        localRequest.requestId
+                    )
+                else
+                    userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
             if (response.data.request == null) {
                 requestAddKeyDao.delete(localRequest)
                 localRequest = null
             }
         }
         return if (localRequest == null) {
-            val response =
-                userWalletApiManager.walletApi.requestAddKey(DesktopKeyRequest(tags.map { it.name }))
+            val response = if (groupId.isNotEmpty())
+                userWalletApiManager.walletApi.requestAddKey(
+                    groupId,
+                    DesktopKeyRequest(tags.map { it.name }, keyIndex = step.toIndex())
+                )
+            else
+                userWalletApiManager.walletApi.requestAddKey(
+                    DesktopKeyRequest(
+                        tags.map { it.name },
+                        keyIndex = step.toIndex()
+                    )
+                )
             val requestId = response.data.request?.id.orEmpty()
             requestAddKeyDao.insert(
                 RequestAddKeyEntity(
@@ -1460,17 +1480,21 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun checkKeyAdded(plan: MembershipPlan, requestId: String?): Boolean {
+    override suspend fun checkKeyAdded(plan: MembershipPlan, groupId: String, requestId: String?): Boolean {
         val chatId = accountManager.getAccount().chatId
         val localRequests = if (requestId == null) {
-            requestAddKeyDao.getRequests(chatId, chain.value)
+            requestAddKeyDao.getRequests(chatId, chain.value, groupId)
         } else {
             requestAddKeyDao.getRequest(requestId)?.let { listOf(it) }.orEmpty()
         }
 
         localRequests.forEach { localRequest ->
-            val response =
+            val response = if (groupId.isNotEmpty()) {
+                userWalletApiManager.walletApi.getRequestAddKeyStatus(groupId, localRequest.requestId)
+            }
+            else {
                 userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
+            }
             val request = response.data.request
             val key = request?.key
             if (request?.status == "COMPLETED" && key != null) {
@@ -1516,11 +1540,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         requestAddKeyDao.deleteRequests(accountManager.getAccount().chatId, chain.value)
     }
 
-    override suspend fun cancelRequestIdIfNeed(step: MembershipStep) {
+    override suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep) {
         val account = accountManager.getAccount()
-        val entity = requestAddKeyDao.getRequest(account.chatId, chain.value, step)
+        val entity = requestAddKeyDao.getRequest(account.chatId, chain.value, step, groupId)
         if (entity != null) {
-            userWalletApiManager.walletApi.cancelRequestAddKey(entity.requestId)
+            if (groupId.isNotEmpty()) {
+                userWalletApiManager.walletApi.cancelRequestAddKey(groupId, entity.requestId)
+            } else {
+                userWalletApiManager.walletApi.cancelRequestAddKey(entity.requestId)
+            }
             requestAddKeyDao.delete(entity)
         }
     }

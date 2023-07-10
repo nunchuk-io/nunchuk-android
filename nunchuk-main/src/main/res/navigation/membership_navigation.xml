@@ -21,7 +21,7 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
 
@@ -251,7 +251,6 @@
         android:name="com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyFragment"
         android:label="AddDesktopKeyFragment">
 
-
         <argument
             android:name="signer_tag"
             app:argType="com.nunchuk.android.type.SignerTag" />
@@ -261,10 +260,15 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
             android:name="step"
             app:argType="com.nunchuk.android.model.MembershipStep" />
+        <argument
+            android:name="group_id"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/waitingDesktopKeyFragment"
@@ -277,6 +281,11 @@
         <argument
             android:name="request_id"
             app:argType="string" />
+        <argument
+            android:name="group_id"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <action
             android:id="@+id/action_waitingDesktopKeyFragment_to_requestAddKeySuccessFragment"
             app:destination="@id/requestAddKeySuccessFragment"
@@ -423,7 +432,18 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
             android:id="@+id/action_addByzantineKeyListFragment_to_tapSignerListBottomSheetFragment"
-            app:destination="@id/tapSignerListBottomSheetFragment" />
+            app:destination="@id/tapSignerListBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_addByzantineKeyListFragment_to_addDesktopKeyFragment"
+            app:destination="@id/addDesktopKeyFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />

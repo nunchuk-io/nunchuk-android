@@ -303,6 +303,12 @@ internal interface UserWalletsApi {
         @Body payload: DesktopKeyRequest
     ): Data<RequestDesktopKeyResponse>
 
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/request-add-key")
+    suspend fun requestAddKey(
+        @Path("group_id") groupId: String,
+        @Body payload: DesktopKeyRequest
+    ): Data<RequestDesktopKeyResponse>
+
     @DELETE("/v1.1/user-wallets/draft-wallets/current")
     suspend fun deleteDraftWallet(): Data<Unit>
 
@@ -311,10 +317,22 @@ internal interface UserWalletsApi {
         @Path("request_id") requestId: String,
     ): Data<RequestDesktopKeyResponse>
 
+    @GET("/v1.1/group-wallets/groups/{group_id}/draft-wallets/request-add-key/{request_id}")
+    suspend fun getRequestAddKeyStatus(
+        @Path("group_id") groupId: String,
+        @Path("request_id") requestId: String,
+    ): Data<RequestDesktopKeyResponse>
+
     @DELETE("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}")
     suspend fun cancelRequestAddKey(
         @Path("request_id") requestId: String,
     ): Data<Unit>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/request-add-key/{request_id}")
+    suspend fun cancelRequestAddKey(
+        @Path("group_id") groupId: String,
+        @Path("request_id") requestId: String,
+    ): Data<RequestDesktopKeyResponse>
 
     @POST("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}/push")
     suspend fun pushRequestAddKey(

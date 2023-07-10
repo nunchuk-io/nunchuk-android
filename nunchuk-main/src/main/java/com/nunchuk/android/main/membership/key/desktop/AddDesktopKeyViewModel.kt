@@ -29,6 +29,7 @@ class AddDesktopKeyViewModel @Inject constructor(
                 requestAddDesktopKeyUseCase(
                     RequestAddDesktopKeyUseCase.Param(
                         args.step,
+                        args.groupId.orEmpty(),
                         listOf(args.signerTag)
                     )
                 ).onSuccess {

@@ -57,8 +57,9 @@ class AddDesktopKeyFragment : MembershipFragment() {
                         is AddDesktopKeyEvent.RequestAddKeyFailed -> showError(event.message)
                         is AddDesktopKeyEvent.RequestAddKeySuccess -> findNavController().navigate(
                             AddDesktopKeyFragmentDirections.actionAddDesktopKeyFragmentToWaitingDesktopKeyFragment(
-                                args.signerTag,
-                                event.requestId
+                                signerTag = args.signerTag,
+                                requestId = event.requestId,
+                                groupId = args.groupId
                             )
                         )
                     }

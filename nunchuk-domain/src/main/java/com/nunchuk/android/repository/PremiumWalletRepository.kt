@@ -19,7 +19,26 @@
 
 package com.nunchuk.android.repository
 
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.BackupKey
+import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.DefaultPermissions
+import com.nunchuk.android.model.GroupKeyPolicy
+import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritanceAdditional
+import com.nunchuk.android.model.InheritanceCheck
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.QuestionsAndAnswer
+import com.nunchuk.android.model.SecurityQuestion
+import com.nunchuk.android.model.SeverWallet
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.TransactionAdditional
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.WalletConstraints
+import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -250,12 +269,11 @@ interface PremiumWalletRepository {
 
     suspend fun clearTransactionEmergencyLockdown(walletId: String)
 
-    suspend fun requestAddKey(step: MembershipStep, tags: List<SignerTag>): String
+    suspend fun requestAddKey(groupId: String, step: MembershipStep, tags: List<SignerTag>): String
 
-    suspend fun checkKeyAdded(plan: MembershipPlan, requestId: String?): Boolean
+    suspend fun checkKeyAdded(plan: MembershipPlan, groupId: String, requestId: String?): Boolean
     suspend fun deleteDraftWallet()
-    suspend fun cancelRequestIdIfNeed(step: MembershipStep)
-
+    suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep)
     suspend fun getPermissionGroupWallet(): DefaultPermissions
     suspend fun syncGroupDraftWallet(groupId: String): DraftWallet
     suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)

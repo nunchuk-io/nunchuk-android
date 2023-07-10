@@ -27,8 +27,8 @@ interface RequestAddKeyDao : BaseDao<RequestAddKeyEntity> {
         groupId: String = ""
     ): RequestAddKeyEntity?
 
-    @Query("SELECT * FROM $TABLE_ADD_DESKTOP_KEY WHERE request_id = :requestId AND group_id = :groupId")
-    suspend fun getRequest(requestId: String, groupId: String = ""): RequestAddKeyEntity?
+    @Query("SELECT * FROM $TABLE_ADD_DESKTOP_KEY WHERE request_id = :requestId")
+    suspend fun getRequest(requestId: String): RequestAddKeyEntity?
 
     @Query("SELECT * FROM $TABLE_ADD_DESKTOP_KEY WHERE chat_id = :chatId AND chain = :chain AND group_id = :groupId")
     suspend fun getRequests(
