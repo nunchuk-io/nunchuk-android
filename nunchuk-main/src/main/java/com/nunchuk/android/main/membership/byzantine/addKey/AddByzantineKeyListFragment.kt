@@ -271,7 +271,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_SEVER_KEY -> {
-                navigator.openConfigServerKeyActivity(activityContext = requireActivity(), groupStep = MembershipStage.NONE)
+                navigator.openConfigGroupServerKeyActivity(activityContext = requireActivity(), groupStep = MembershipStage.NONE, groupId = args.groupId)
             }
 
             MembershipStep.BYZANTINE_ADD_TAP_SIGNER -> {
