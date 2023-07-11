@@ -2,7 +2,7 @@ package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
 
-internal class GetGroupWalletsResponse(
+internal class GetGroupsResponse(
     @SerializedName("groups")
-    val groups: List<GroupWalletResponse>? = null
+    val groups: List<GroupResponse>? = null
 )

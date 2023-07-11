@@ -76,6 +76,7 @@ import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
+import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.utils.onException
@@ -125,7 +126,8 @@ internal class WalletsViewModel @Inject constructor(
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     private val groupMemberAcceptRequestUseCase: GroupMemberAcceptRequestUseCase,
-    private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase
+    private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase,
+    private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
@@ -351,6 +353,23 @@ internal class WalletsViewModel @Inject constructor(
                 results.add(groupWalletUi)
             }
             updateState { copy(groupWalletUis = results) }
+            updateBadge()
+        }
+    }
+
+    private fun updateBadge() {
+        viewModelScope.launch {
+            val groupIds = getState().allGroups.map { it.id }
+            val groupWalletUis = getState().groupWalletUis
+            val newGroupWalletUis = arrayListOf<GroupWalletUi>()
+            val result = getPendingWalletNotifyCountUseCase(groupIds)
+            if (result.isSuccess) {
+                val alerts = result.getOrThrow()
+                groupWalletUis.forEach {
+                    newGroupWalletUis.add(it.copy(badgeCount = alerts[it.group?.id] ?: 0))
+                }
+                updateState { copy(groupWalletUis = newGroupWalletUis) }
+            }
         }
     }
 

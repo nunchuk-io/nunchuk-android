@@ -42,20 +42,16 @@ import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
-import com.nunchuk.android.core.data.model.byzantine.CreateGroupWalletRequest
+import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
-import com.nunchuk.android.core.data.model.byzantine.GroupWalletResponse
 import com.nunchuk.android.core.data.model.byzantine.MemberRequest
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
-import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
-import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
-import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
@@ -67,17 +63,22 @@ import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.manager.UserWalletApiManager
+import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toBackupKey
+import com.nunchuk.android.core.mapper.toByzantineGroup
+import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
+import com.nunchuk.android.core.mapper.toInheritance
+import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.toSignerType
+import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
-import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -100,7 +101,6 @@ import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TransactionAdditional
-import com.nunchuk.android.model.User
 import com.nunchuk.android.model.VerifiedPKeyTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenRequest
 import com.nunchuk.android.model.VerifyType
@@ -648,14 +648,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 ),
             )
         return response.data.result.toCalculateRequiredSignatures()
-    }
-
-    private fun CalculateRequiredSignaturesResponse.Data?.toCalculateRequiredSignatures(): CalculateRequiredSignatures {
-        return CalculateRequiredSignatures(
-            type = this?.type.orEmpty(),
-            requiredSignatures = this?.requiredSignatures.orDefault(0),
-            requiredAnswers = this?.requiredAnswers.orDefault(0)
-        )
     }
 
     override suspend fun calculateRequiredSignaturesLockdown(
@@ -1553,7 +1545,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createGroupWallet(
+    override suspend fun createGroup(
         m: Int,
         n: Int,
         requiredServerKey: Boolean,
@@ -1561,8 +1553,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         setupPreference: String,
         members: List<AssistedMember>
     ): ByzantineGroup {
-        val response = userWalletApiManager.walletApi.createGroupWallet(
-            CreateGroupWalletRequest(
+        val response = userWalletApiManager.walletApi.createGroup(
+            CreateGroupRequest(
                 walletConfig = WalletConfigRequest(allowInheritance, m, n, requiredServerKey),
                 setupPreference = setupPreference,
                 members = members.map {
@@ -1581,12 +1573,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getGroupWallets(): List<ByzantineGroup> {
-        val response = userWalletApiManager.walletApi.getGroupWallets()
+        val response = userWalletApiManager.walletApi.getGroups()
         return response.data.groups?.map { it.toByzantineGroup() } ?: emptyList()
     }
 
     override suspend fun syncGroupWallets(): Boolean {
-        val response = userWalletApiManager.walletApi.getGroupWallets()
+        val response = userWalletApiManager.walletApi.getGroups()
         var shouldReload = false
         val groupAssistedKeys = mutableSetOf<String>()
         response.data.groups.orEmpty().forEach {
@@ -1711,65 +1703,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return saveWalletToLib(wallet, groupAssistedKeys)
     }
 
-    private fun GroupWalletResponse.toByzantineGroup(): ByzantineGroup {
-        return ByzantineGroup(
-            createdTimeMillis = createdTimeMillis ?: 0,
-            id = id.orEmpty(),
-            setupPreference = setupPreference.orEmpty(),
-            walletConfig = walletConfig.toModel(),
-            status = status.orEmpty(),
-            members = members?.map {
-                ByzantineMember(emailOrUsername = it.emailOrUsername.orEmpty(),
-                    membershipId = it.membershipId.orEmpty(),
-                    permissions = it.permissions ?: emptyList(),
-                    role = it.role.orEmpty(),
-                    status = it.status.orEmpty(),
-                    inviterUserId = it.inviterUserId.orEmpty(),
-                    user = it.user?.let { user ->
-                        User(
-                            id = user.id,
-                            name = user.name,
-                            email = user.email,
-                            gender = user.gender.orEmpty(),
-                            avatar = user.avatar.orEmpty(),
-                            status = user.status.orEmpty(),
-                            chatId = user.chatId,
-                            loginType = user.loginType.orEmpty(),
-                            username = user.username.orEmpty(),
-                        )
-                    })
-            } ?: emptyList(),
-        )
-    }
-
-    private fun InheritanceDto.toInheritance(): Inheritance {
-        val status = when (this.status) {
-            "ACTIVE" -> InheritanceStatus.ACTIVE
-            "CLAIMED" -> InheritanceStatus.CLAIMED
-            else -> InheritanceStatus.PENDING_CREATION
+    override suspend fun getAlerts(groupId: String): List<Alert> {
+        val alerts = arrayListOf<Alert>()
+        (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
+            val response = userWalletApiManager.walletApi.getAlerts(groupId, offset = index)
+            if (response.isSuccess.not()) throw response.error
+            val alertList = response.data.alerts.orEmpty().map { it.toAlert() }
+            alerts.addAll(alertList)
+            if (response.data.alerts.orEmpty().size < TRANSACTION_PAGE_COUNT) return alerts
         }
-        return Inheritance(
-            walletId = walletId.orEmpty(),
-            walletLocalId = walletLocalId.orEmpty(),
-            magic = magic.orEmpty(),
-            note = note.orEmpty(),
-            notificationEmails = notificationEmails.orEmpty(),
-            status = status,
-            activationTimeMilis = activationTimeMilis ?: 0,
-            createdTimeMilis = createdTimeMilis ?: 0,
-            lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
-            bufferPeriod = bufferPeriod?.toPeriod()
-        )
+        return alerts
     }
-
-    private fun PeriodResponse.Data.toPeriod() = Period(
-        id = id.orEmpty(),
-        interval = interval.orEmpty(),
-        intervalCount = intervalCount.orDefault(0),
-        enabled = enabled.orFalse(),
-        displayName = displayName.orEmpty(),
-        isRecommended = isRecommended.orFalse()
-    )
 
     companion object {
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"

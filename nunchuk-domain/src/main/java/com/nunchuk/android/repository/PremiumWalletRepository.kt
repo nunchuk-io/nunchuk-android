@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.repository
 
+import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
@@ -278,7 +279,7 @@ interface PremiumWalletRepository {
     suspend fun syncGroupDraftWallet(groupId: String): DraftWallet
     suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)
     suspend fun syncKeyToGroup(groupId: String, step: MembershipStep, signer: SingleSigner)
-    suspend fun createGroupWallet(
+    suspend fun createGroup(
         m: Int,
         n: Int,
         requiredServerKey: Boolean,
@@ -313,4 +314,5 @@ interface PremiumWalletRepository {
     suspend fun groupMemberAcceptRequest(groupId: String)
     suspend fun groupMemberDenyRequest(groupId: String)
     suspend fun syncGroupWallet(groupId: String, groupAssistedKeys: MutableSet<String> = mutableSetOf()): Boolean
+    suspend fun getAlerts(groupId: String): List<Alert>
 }

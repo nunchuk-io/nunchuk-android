@@ -1,16 +1,25 @@
 package com.nunchuk.android.core.mapper
 
+import com.nunchuk.android.core.data.model.byzantine.AlertResponse
+import com.nunchuk.android.core.data.model.byzantine.GroupResponse
+import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.model.Alert
+import com.nunchuk.android.model.AlertAction
 import com.nunchuk.android.model.BackupKey
+import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.User
+import com.nunchuk.android.model.transaction.AlertPayload
 
 internal fun KeyResponse.toBackupKey(): BackupKey {
     return BackupKey(
@@ -35,6 +44,26 @@ internal fun CalculateRequiredSignaturesResponse.Data?.toCalculateRequiredSignat
     )
 }
 
+internal fun InheritanceDto.toInheritance(): Inheritance {
+    val status = when (this.status) {
+        "ACTIVE" -> InheritanceStatus.ACTIVE
+        "CLAIMED" -> InheritanceStatus.CLAIMED
+        else -> InheritanceStatus.PENDING_CREATION
+    }
+    return Inheritance(
+        walletId = walletId.orEmpty(),
+        walletLocalId = walletLocalId.orEmpty(),
+        magic = magic.orEmpty(),
+        note = note.orEmpty(),
+        notificationEmails = notificationEmails.orEmpty(),
+        status = status,
+        activationTimeMilis = activationTimeMilis ?: 0,
+        createdTimeMilis = createdTimeMilis ?: 0,
+        lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
+        bufferPeriod = bufferPeriod?.toPeriod()
+    )
+}
+
 internal fun PeriodResponse.Data.toPeriod() = Period(
     id = id.orEmpty(),
     interval = interval.orEmpty(),
@@ -44,21 +73,49 @@ internal fun PeriodResponse.Data.toPeriod() = Period(
     isRecommended = isRecommended.orFalse()
 )
 
-internal fun InheritanceDto.toInheritance(): Inheritance {
-    val status = when (this.status) {
-        "ACTIVE" -> InheritanceStatus.ACTIVE
-        "CLAIMED" -> InheritanceStatus.CLAIMED
-        else -> InheritanceStatus.PENDING_CREATION
-    }
-    return Inheritance(
-        walletId = walletId.orEmpty(), walletLocalId = walletLocalId.orEmpty(),
-        magic = magic.orEmpty(),
-        note = note.orEmpty(),
-        notificationEmails = notificationEmails.orEmpty(),
-        status = status,
-        activationTimeMilis = activationTimeMilis ?: 0,
-        createdTimeMilis = createdTimeMilis ?: 0,
-        lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
-        bufferPeriod = bufferPeriod?.toPeriod()
+internal fun GroupResponse.toByzantineGroup(): ByzantineGroup {
+    return ByzantineGroup(
+        createdTimeMillis = createdTimeMillis ?: 0,
+        id = id.orEmpty(),
+        setupPreference = setupPreference.orEmpty(),
+        walletConfig = walletConfig.toModel(),
+        status = status.orEmpty(),
+        members = members?.map {
+            ByzantineMember(emailOrUsername = it.emailOrUsername.orEmpty(),
+                membershipId = it.membershipId.orEmpty(),
+                permissions = it.permissions ?: emptyList(),
+                role = it.role.orEmpty(),
+                status = it.status.orEmpty(),
+                inviterUserId = it.inviterUserId.orEmpty(),
+                user = it.user?.let { user ->
+                    User(
+                        id = user.id,
+                        name = user.name,
+                        email = user.email,
+                        gender = user.gender.orEmpty(),
+                        avatar = user.avatar.orEmpty(),
+                        status = user.status.orEmpty(),
+                        chatId = user.chatId,
+                        loginType = user.loginType.orEmpty(),
+                        username = user.username.orEmpty(),
+                    )
+                })
+        } ?: emptyList(),
+    )
+}
+
+internal fun AlertResponse.toAlert(): Alert {
+    val actions = actions?.map {
+        AlertAction(label = it.label.orEmpty(), type = it.type.orEmpty())
+    } ?: emptyList()
+    return Alert(
+        actions = actions,
+        body = body.orEmpty(),
+        createdTimeMillis = createdTimeMillis ?: 0,
+        id = id.orEmpty(),
+        status = status.orEmpty(),
+        title = title.orEmpty(),
+        type = type.orEmpty(),
+        payload = AlertPayload(masterName = payload?.masterName.orEmpty(), pendingKeysCount = payload?.pendingKeysCount.orDefault(0))
     )
 }

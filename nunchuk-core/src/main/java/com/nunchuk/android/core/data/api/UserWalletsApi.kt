@@ -370,13 +370,13 @@ internal interface UserWalletsApi {
     suspend fun deleteDraftWallet(@Path("group_id") groupId: String)
 
     @POST("/v1.1/group-wallets/groups")
-    suspend fun createGroupWallet(@Body payload: CreateGroupWalletRequest): Data<GroupWalletDataResponse>
+    suspend fun createGroup(@Body payload: CreateGroupRequest): Data<GroupWalletDataResponse>
 
     @GET("/v1.1/group-wallets/configs/wallet-constraints")
     suspend fun getGroupWalletsConstraints(): Data<WalletConstraintsDataResponse>
 
     @GET("/v1.1/group-wallets/groups")
-    suspend fun getGroupWallets(): Data<GetGroupWalletsResponse>
+    suspend fun getGroups(): Data<GetGroupsResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}")
     suspend fun getGroupWalletById(@Path("group_id") groupId: String): Data<GroupWalletDataResponse>
@@ -411,4 +411,11 @@ internal interface UserWalletsApi {
     suspend fun groupMemberDenyRequest(
         @Path("group_id") groupId: String,
     ): Data<Unit>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/alerts")
+    suspend fun getAlerts(
+        @Path("group_id") groupId: String,
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT
+    ): Data<GroupAlertResponse>
 }

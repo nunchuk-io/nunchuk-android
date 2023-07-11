@@ -4,5 +4,5 @@ import com.google.gson.annotations.SerializedName
 
 internal class GroupWalletDataResponse(
     @SerializedName("group")
-    val data: GroupWalletResponse? = null
+    val data: GroupResponse? = null
 )

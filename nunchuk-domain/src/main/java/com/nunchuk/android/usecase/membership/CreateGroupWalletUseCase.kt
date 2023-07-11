@@ -14,7 +14,7 @@ class CreateGroupWalletUseCase @Inject constructor(
 ) : UseCase<CreateGroupWalletUseCase.Param, ByzantineGroup>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): ByzantineGroup {
-        return repository.createGroupWallet(
+        return repository.createGroup(
             parameters.m,
             parameters.n,
             parameters.requiredServerKey,

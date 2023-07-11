@@ -2,7 +2,7 @@ package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
 
-internal data class GroupWalletResponse(
+internal data class GroupResponse(
     @SerializedName("created_time_millis")
     val createdTimeMillis: Long? = null,
     @SerializedName("id")
@@ -17,7 +17,7 @@ internal data class GroupWalletResponse(
     val walletConfig: WalletConfigDto? = null
 )
 
-data class CreateGroupWalletRequest(
+data class CreateGroupRequest(
     @SerializedName("members")
     val members: List<MemberRequest>,
     @SerializedName("setup_preference")

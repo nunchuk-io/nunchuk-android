@@ -479,6 +479,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             inviterName = it.inviterName,
                             isGroupMasterOrAdmin = it.isGroupMasterOrAdmin,
                             isAssistedWallet = it.isAssistedWallet,
+                            badgeCount = it.badgeCount,
                             onAccept = {
                                 it.group?.id?.let {
                                     walletsViewModel.acceptInviteMember(it)

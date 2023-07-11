@@ -63,6 +63,7 @@ fun PendingWalletView(
     isGroupMasterOrAdmin: Boolean = false,
     hideWalletDetail: Boolean = false,
     isAssistedWallet: Boolean = false,
+    badgeCount: Int = 0,
     inviterName: String = "",
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
@@ -120,7 +121,7 @@ fun PendingWalletView(
                     .padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
                 if (inviterName.isEmpty()) {
-                    WalletAvatar(group = group)
+                    WalletAvatar(group = group, badgeCount = badgeCount)
                 } else {
                     PendingWalletInviteMember(
                         inviterName = inviterName,
@@ -167,7 +168,7 @@ fun RowScope.PendingWalletInviteMember(
 }
 
 @Composable
-fun RowScope.WalletAvatar(group: ByzantineGroup) {
+fun RowScope.WalletAvatar(group: ByzantineGroup, badgeCount: Int = 0) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
         group.members.take(3).forEachIndexed { index, byzantineMember ->
             val padStart = if (index == 0) 0.dp else 4.dp
@@ -183,17 +184,19 @@ fun RowScope.WalletAvatar(group: ByzantineGroup) {
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(24.dp, 24.dp)
-                .clip(CircleShape)
-                .background(color = colorResource(id = R.color.nc_orange_color)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "2",
-                style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
-            )
+        if (badgeCount!=0) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp, 24.dp)
+                    .clip(CircleShape)
+                    .background(color = colorResource(id = R.color.nc_orange_color)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = badgeCount.toString(),
+                    style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
+                )
+            }
         }
 
         Icon(
