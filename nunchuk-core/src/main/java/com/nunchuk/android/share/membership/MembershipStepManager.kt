@@ -32,7 +32,13 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -78,8 +84,6 @@ class MembershipStepManager @Inject constructor(
         applicationScope.launch {
             ncDataStore.membershipPlan.collect {
                 _plan.value = it
-                initStep(it)
-                observerStep(it)
             }
         }
         applicationScope.launch {
@@ -91,9 +95,10 @@ class MembershipStepManager @Inject constructor(
     }
 
     // Special case when set up wallet done and login in another device to setup inheritance we should mark all created wallet step to done
-    private fun initStep(currentPlan: MembershipPlan) =
+    fun initStep(groupId: String) =
         synchronized(this) {
             steps.clear()
+            val currentPlan = plan
             when (currentPlan) {
                 MembershipPlan.IRON_HAND -> {
                     steps[MembershipStep.IRON_ADD_HARDWARE_KEY_1] =
@@ -134,26 +139,27 @@ class MembershipStepManager @Inject constructor(
             }
             _remainingTime.value = calculateRemainTime(steps.toMap().values)
             _stepDone.value = emptySet()
+            observerStep(currentPlan, groupId)
         }
 
-    private fun observerStep(currentPlan: MembershipPlan) {
+    private fun observerStep(currentPlan: MembershipPlan, groupId: String) {
         job?.cancel()
         job = applicationScope.launch {
-//            getMembershipStepUseCase(currentPlan)
-//                .map { it.getOrElse { emptyList() } }
-//                .collect { steps ->
-//                    stepInfo.value = steps
-//                    if (steps.isEmpty()) {
-//                        restart()
-//                    } else {
-//                        steps.forEach { step ->
-//                            if (step.isVerifyOrAddKey) markStepDone(step.step)
-//                            else addRequireStep(step.step)
-//                        }
-//                    }
-//
-//                    _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
-//                }
+            getMembershipStepUseCase(GetMembershipStepUseCase.Param(currentPlan, groupId))
+                .map { it.getOrElse { emptyList() } }
+                .collect { steps ->
+                    stepInfo.value = steps
+                    if (steps.isEmpty()) {
+                        restart()
+                    } else {
+                        steps.forEach { step ->
+                            if (step.isVerifyOrAddKey) markStepDone(step.step)
+                            else addRequireStep(step.step)
+                        }
+                    }
+
+                    _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
+                }
         }
     }
 

@@ -43,6 +43,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        membershipStepManager.initStep(groupId)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val navHostFragment =
@@ -71,6 +72,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             else -> Unit
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
+
     }
 
     val groupId: String

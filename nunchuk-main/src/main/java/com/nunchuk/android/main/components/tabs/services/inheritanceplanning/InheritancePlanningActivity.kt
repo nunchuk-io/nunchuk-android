@@ -46,7 +46,8 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val groupId = intent.getStringExtra(EXTRA_GROUP_ID).orEmpty()
+        membershipStepManager.initStep(groupId)
         membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -91,7 +92,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                     bufferPeriod = inheritance.bufferPeriod,
                     walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
                     isOpenFromWizard = intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false),
-                    groupId = intent.getStringExtra(EXTRA_GROUP_ID).orEmpty()
+                    groupId = groupId
                 ))
             }
         }
