@@ -30,7 +30,15 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -112,7 +120,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             syncGroupDraftWalletUseCase(groupId.value).onSuccess { draftWallet ->
-                val isConfigDone = draftWallet.config.m == draftWallet.signers.size
+                val isConfigDone = draftWallet.config.n == draftWallet.signers.size
                 _isConfigKeyDone.value = isConfigDone
                 _isRequireInheritance.value = draftWallet.config.allowInheritance
                 if (isConfigDone) {

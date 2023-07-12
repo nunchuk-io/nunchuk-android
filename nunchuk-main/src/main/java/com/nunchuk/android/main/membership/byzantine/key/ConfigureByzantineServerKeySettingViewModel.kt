@@ -27,7 +27,12 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.usecase.membership.CreateGroupServerKeyUseCase
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -55,53 +60,57 @@ class ConfigureByzantineServerKeySettingViewModel @Inject constructor(
         }
     }
 
-    fun onContinueClicked() = viewModelScope.launch {
-        if (args.groupId.isEmpty()) return@launch
-        val state = _state.value
-        if (state.enableCoSigningSwitched && state.cosigningTextMinutes.isEmpty() && state.cosigningTextHours.isEmpty()) {
-            _event.emit(ConfigureByzantineServerKeySettingEvent.NoDelayInput)
-            return@launch
-        }
-        val signingDelayInHour =
-            if (state.enableCoSigningSwitched) (state.cosigningTextHours.toIntOrNull() ?: 0) else 0
-        val signingDelayInMinute =
-            if (state.enableCoSigningSwitched) (state.cosigningTextMinutes.toIntOrNull()
-                ?: 0) else 0
-        val signingDelayInMinuteFinal = signingDelayInHour * 60 + signingDelayInMinute
-        if (signingDelayInMinuteFinal > MAX_DELAY_IN_HOUR * 60) {
-            _event.emit(ConfigureByzantineServerKeySettingEvent.DelaySigningInHourInvalid)
-            return@launch
-        }
-        val signingDelayInSeconds =
-            signingDelayInHour * KeyPolicy.ONE_HOUR_TO_SECONDS + signingDelayInMinute * KeyPolicy.ONE_MINUTE_TO_SECONDS
-        _event.emit(ConfigureByzantineServerKeySettingEvent.Loading(true))
-
-        if (args.xfp.isNullOrEmpty()) {
-            val result = createGroupServerKeyUseCase(
-                CreateGroupServerKeyUseCase.Param(
-                    groupId = args.groupId,
-                    name = SERVER_KEY_NAME,
-                    groupKeyPolicy = args.keyPolicy.copy(
-                        autoBroadcastTransaction = state.autoBroadcastSwitched,
-                        signingDelayInSeconds = signingDelayInSeconds,
-                    )
-                )
-            )
-            _event.emit(ConfigureByzantineServerKeySettingEvent.Loading(false))
-            if (result.isSuccess) {
-                _event.emit(ConfigureByzantineServerKeySettingEvent.ConfigServerSuccess)
-            } else {
-                _event.emit(ConfigureByzantineServerKeySettingEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+    private var createServerKeyJob: Job? = null
+    fun onContinueClicked() {
+        if (createServerKeyJob?.isActive == true) return
+        createServerKeyJob = viewModelScope.launch {
+            if (args.groupId.isEmpty()) return@launch
+            val state = _state.value
+            if (state.enableCoSigningSwitched && state.cosigningTextMinutes.isEmpty() && state.cosigningTextHours.isEmpty()) {
+                _event.emit(ConfigureByzantineServerKeySettingEvent.NoDelayInput)
+                return@launch
             }
-        } else {
-            _event.emit(
-                ConfigureByzantineServerKeySettingEvent.EditGroupServerKey(
-                    args.keyPolicy.copy(
-                        autoBroadcastTransaction = state.autoBroadcastSwitched,
-                        signingDelayInSeconds = signingDelayInSeconds,
+            val signingDelayInHour =
+                if (state.enableCoSigningSwitched) (state.cosigningTextHours.toIntOrNull() ?: 0) else 0
+            val signingDelayInMinute =
+                if (state.enableCoSigningSwitched) (state.cosigningTextMinutes.toIntOrNull()
+                    ?: 0) else 0
+            val signingDelayInMinuteFinal = signingDelayInHour * 60 + signingDelayInMinute
+            if (signingDelayInMinuteFinal > MAX_DELAY_IN_HOUR * 60) {
+                _event.emit(ConfigureByzantineServerKeySettingEvent.DelaySigningInHourInvalid)
+                return@launch
+            }
+            val signingDelayInSeconds =
+                signingDelayInHour * KeyPolicy.ONE_HOUR_TO_SECONDS + signingDelayInMinute * KeyPolicy.ONE_MINUTE_TO_SECONDS
+            _event.emit(ConfigureByzantineServerKeySettingEvent.Loading(true))
+
+            if (args.xfp.isNullOrEmpty()) {
+                val result = createGroupServerKeyUseCase(
+                    CreateGroupServerKeyUseCase.Param(
+                        groupId = args.groupId,
+                        name = SERVER_KEY_NAME,
+                        groupKeyPolicy = args.keyPolicy.copy(
+                            autoBroadcastTransaction = state.autoBroadcastSwitched,
+                            signingDelayInSeconds = signingDelayInSeconds,
+                        )
                     )
                 )
-            )
+                _event.emit(ConfigureByzantineServerKeySettingEvent.Loading(false))
+                if (result.isSuccess) {
+                    _event.emit(ConfigureByzantineServerKeySettingEvent.ConfigServerSuccess)
+                } else {
+                    _event.emit(ConfigureByzantineServerKeySettingEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+                }
+            } else {
+                _event.emit(
+                    ConfigureByzantineServerKeySettingEvent.EditGroupServerKey(
+                        args.keyPolicy.copy(
+                            autoBroadcastTransaction = state.autoBroadcastSwitched,
+                            signingDelayInSeconds = signingDelayInSeconds,
+                        )
+                    )
+                )
+            }
         }
     }
 
