@@ -24,4 +24,6 @@ sealed class PushEvent {
     data class MessageEvent(val message: String) : PushEvent()
     object TransactionCreatedEvent : PushEvent()
     object AddDesktopKeyCompleted : PushEvent()
+    data class WalletCreate(val walletId: String) : PushEvent()
+    data class TransactionCancelled(val walletId: String, val transactionId: String) : PushEvent()
 }

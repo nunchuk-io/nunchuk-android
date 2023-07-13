@@ -27,6 +27,8 @@ import androidx.paging.cachedIn
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -36,16 +38,28 @@ import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.transaction.ServerTransaction
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.GetAddressesUseCase
+import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
+import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.ImportTransactionUseCase
+import com.nunchuk.android.usecase.NewAddressUseCase
+import com.nunchuk.android.usecase.SetSelectedWalletUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.onException
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.PaginationTransactions
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SendMoneyEvent
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.UpdateUnusedAddress
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
@@ -71,6 +85,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val syncTransactionUseCase: SyncTransactionUseCase,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
+    private val pushEventManager: PushEventManager,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -80,6 +95,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     override val initialState = WalletDetailsState()
 
     private val serverTransactions = hashMapOf<String, ServerTransaction?>()
+
+    private var syncWalletJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -94,7 +111,8 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .collect {
                     updateState {
                         copy(
-                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail ?: WalletSecuritySetting().hideWalletDetail
+                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail
+                                ?: WalletSecuritySetting().hideWalletDetail
                         )
                     }
                 }
@@ -104,16 +122,28 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             if (assistedWalletManager.isActiveAssistedWallet(args.walletId)) {
-                val result = syncTransactionUseCase(args.walletId)
-                if (result.isSuccess) {
-                    getTransactionHistory()
-                }
+                syncTransactionFromServer()
             }
         }
         viewModelScope.launch {
             getAllCoinUseCase(args.walletId).onSuccess { coins ->
                 updateState { copy(isHasCoin = coins.isNotEmpty()) }
             }
+        }
+        viewModelScope.launch {
+            pushEventManager.event.collect { event ->
+                if ((event is PushEvent.TransactionCancelled && event.walletId == args.walletId)
+                    || (event is PushEvent.ServerTransactionEvent && event.walletId == args.walletId)) {
+                    syncTransactionFromServer()
+                }
+            }
+        }
+    }
+
+    private suspend fun syncTransactionFromServer() {
+        val result = syncTransactionUseCase(args.walletId)
+        if (result.isSuccess) {
+            getTransactionHistory()
         }
     }
 
@@ -125,7 +155,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     }
 
     fun getWalletDetails(shouldRefreshTransaction: Boolean = true) {
-        viewModelScope.launch {
+        syncWalletJob?.cancel()
+        syncWalletJob = viewModelScope.launch {
             getWalletUseCase.execute(args.walletId)
                 .onStart { event(Loading(true)) }
                 .flowOn(IO)
@@ -239,11 +270,13 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleImportPSBT(filePath: String) {
         viewModelScope.launch {
-            importTransactionUseCase(ImportTransactionUseCase.Param(
-                walletId = args.walletId,
-                filePath = filePath,
-                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
-            )).onSuccess {
+            importTransactionUseCase(
+                ImportTransactionUseCase.Param(
+                    walletId = args.walletId,
+                    filePath = filePath,
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+                )
+            ).onSuccess {
                 event(ImportPSBTSuccess)
                 getTransactionHistory()
             }.onFailure {
