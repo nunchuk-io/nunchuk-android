@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.di
 
 import com.nunchuk.android.core.data.api.BannerApi
+import com.nunchuk.android.core.data.api.GroupWalletApi
 import com.nunchuk.android.core.data.api.PriceConverterAPI
 import com.nunchuk.android.core.data.api.TransactionApi
 import com.nunchuk.android.core.data.api.UserWalletsApi
@@ -56,9 +57,20 @@ internal object NetworkModule {
 
     @Singleton
     @Provides
+    fun provideGroupWalletApi(retrofit: Retrofit): GroupWalletApi =
+        retrofit.create(GroupWalletApi::class.java)
+
+    @Singleton
+    @Provides
     @Named(TEST_NET_USER_WALLET_API)
     fun provideTestNetUserWalletsApi(@Named(TEST_NET_RETROFIT) retrofit: Retrofit): UserWalletsApi =
         retrofit.create(UserWalletsApi::class.java)
+
+    @Singleton
+    @Provides
+    @Named(TEST_NET_USER_WALLET_API)
+    fun provideTestNetGroupWalletApi(@Named(TEST_NET_RETROFIT) retrofit: Retrofit): GroupWalletApi =
+        retrofit.create(GroupWalletApi::class.java)
 
     @Singleton
     @Provides

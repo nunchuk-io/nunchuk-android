@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.manager
 
+import com.nunchuk.android.core.data.api.GroupWalletApi
 import com.nunchuk.android.core.data.api.UserWalletsApi
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.network.util.TEST_NET_USER_WALLET_API
@@ -32,9 +33,12 @@ import javax.inject.Singleton
 
 @Singleton
 internal class UserWalletApiManager @Inject constructor(
-    private val userWalletsApi: UserWalletsApi,
+    private val _userWalletsApi: UserWalletsApi,
     @Named(TEST_NET_USER_WALLET_API)
-    private val testNetUserWalletsApi: UserWalletsApi,
+    private val _testNetUserWalletsApi: UserWalletsApi,
+    private val _groupWalletApi: GroupWalletApi,
+    @Named(TEST_NET_USER_WALLET_API)
+    private val _testNetGroupWalletApi: GroupWalletApi,
     applicationScope: CoroutineScope,
     ncDataStore: NcDataStore,
 ) {
@@ -42,5 +46,8 @@ internal class UserWalletApiManager @Inject constructor(
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
 
     val walletApi: UserWalletsApi
-        get() = if (chain.value == Chain.MAIN) userWalletsApi else testNetUserWalletsApi
+        get() = if (chain.value == Chain.MAIN) _userWalletsApi else _testNetUserWalletsApi
+
+    val groupWalletApi: GroupWalletApi
+        get() = if (chain.value == Chain.MAIN) _groupWalletApi else _testNetGroupWalletApi
 }

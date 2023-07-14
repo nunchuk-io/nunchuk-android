@@ -243,7 +243,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getGroupServerKey(groupId: String, xfp: String): GroupKeyPolicy {
-        val response = userWalletApiManager.walletApi.getGroupServerKey(groupId, xfp)
+        val response = userWalletApiManager.groupWalletApi.getGroupServerKey(groupId, xfp)
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
         return if (policy.applySamePendingLimit == true) {
@@ -318,7 +318,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }.forEachIndexed { index, signerToken ->
             headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
         }
-        val response = userWalletApiManager.walletApi.updateGroupServerKeys(
+        val response = userWalletApiManager.groupWalletApi.updateGroupServerKeys(
             headers = headers,
             keyId = keyIdOrXfp,
             groupId = groupId,
@@ -640,7 +640,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         keyPolicy: GroupKeyPolicy
     ): CalculateRequiredSignatures {
         val response =
-            userWalletApiManager.walletApi.calculateRequiredSignaturesUpdateGroupServerKey(
+            userWalletApiManager.groupWalletApi.calculateRequiredSignaturesUpdateGroupServerKey(
                 groupId = groupId,
                 id = xfp,
                 payload = CreateServerKeysPayload(
@@ -1274,7 +1274,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getPermissionGroupWallet(): DefaultPermissions {
-        val response = userWalletApiManager.walletApi.getPermissionGroupWallet()
+        val response = userWalletApiManager.groupWalletApi.getPermissionGroupWallet()
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -1306,7 +1306,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncGroupDraftWallet(groupId: String): DraftWallet {
-        val response = userWalletApiManager.walletApi.getDraftWallet(groupId)
+        val response = userWalletApiManager.groupWalletApi.getDraftWallet(groupId)
         val draftWallet =
             response.data.draftWallet ?: throw NullPointerException("draftWallet null")
         val chatId = accountManager.getAccount().chatId
@@ -1375,13 +1375,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createGroupServerKey(
         groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy
     ) {
-        val response = userWalletApiManager.walletApi.createGroupServerKey(
+        val response = userWalletApiManager.groupWalletApi.createGroupServerKey(
             groupId,
             CreateServerKeysPayload(keyPoliciesDtoPayload = groupKeyPolicy.toDto(), name = name)
         )
         val serverKeyId =
             response.data.key?.id ?: throw NullPointerException("Can not generate server key")
-        val setServerKeyResponse = userWalletApiManager.walletApi.setGroupServerKey(
+        val setServerKeyResponse = userWalletApiManager.groupWalletApi.setGroupServerKey(
             groupId, mapOf("server_key_id" to serverKeyId)
         )
         val key = response.data.key ?: throw NullPointerException("Response from server empty")
@@ -1414,7 +1414,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val signerDto = mapToServerSignerDto(
             signer, step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
         ).copy(index = index)
-        val response = userWalletApiManager.walletApi.addKeyToServer(groupId, signerDto)
+        val response = userWalletApiManager.groupWalletApi.addKeyToServer(groupId, signerDto)
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -1431,7 +1431,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (localRequest != null) {
             val response =
                 if (groupId.isNotEmpty())
-                    userWalletApiManager.walletApi.getRequestAddKeyStatus(
+                    userWalletApiManager.groupWalletApi.getRequestAddKeyStatus(
                         groupId,
                         localRequest.requestId
                     )
@@ -1444,7 +1444,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         return if (localRequest == null) {
             val response = if (groupId.isNotEmpty())
-                userWalletApiManager.walletApi.requestAddKey(
+                userWalletApiManager.groupWalletApi.requestAddKey(
                     groupId,
                     DesktopKeyRequest(tags.map { it.name }, keyIndex = step.toIndex())
                 )
@@ -1482,7 +1482,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
         localRequests.forEach { localRequest ->
             val response = if (groupId.isNotEmpty()) {
-                userWalletApiManager.walletApi.getRequestAddKeyStatus(groupId, localRequest.requestId)
+                userWalletApiManager.groupWalletApi.getRequestAddKeyStatus(groupId, localRequest.requestId)
             }
             else {
                 userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
@@ -1537,7 +1537,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val entity = requestAddKeyDao.getRequest(account.chatId, chain.value, step, groupId)
         if (entity != null) {
             if (groupId.isNotEmpty()) {
-                userWalletApiManager.walletApi.cancelRequestAddKey(groupId, entity.requestId)
+                userWalletApiManager.groupWalletApi.cancelRequestAddKey(groupId, entity.requestId)
             } else {
                 userWalletApiManager.walletApi.cancelRequestAddKey(entity.requestId)
             }
@@ -1553,7 +1553,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         setupPreference: String,
         members: List<AssistedMember>
     ): ByzantineGroup {
-        val response = userWalletApiManager.walletApi.createGroup(
+        val response = userWalletApiManager.groupWalletApi.createGroup(
             CreateGroupRequest(
                 walletConfig = WalletConfigRequest(allowInheritance, m, n, requiredServerKey),
                 setupPreference = setupPreference,
@@ -1568,17 +1568,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getWalletConstraints(): WalletConstraints {
-        val response = userWalletApiManager.walletApi.getGroupWalletsConstraints()
+        val response = userWalletApiManager.groupWalletApi.getGroupWalletsConstraints()
         return WalletConstraints(maximumKeyholder = response.data.data?.maximumKeyholder ?: 0)
     }
 
     override suspend fun getGroupWallets(): List<ByzantineGroup> {
-        val response = userWalletApiManager.walletApi.getGroups()
+        val response = userWalletApiManager.groupWalletApi.getGroups()
         return response.data.groups?.map { it.toByzantineGroup() } ?: emptyList()
     }
 
     override suspend fun syncGroupWallets(): Boolean {
-        val response = userWalletApiManager.walletApi.getGroups()
+        val response = userWalletApiManager.groupWalletApi.getGroups()
         var shouldReload = false
         val groupAssistedKeys = mutableSetOf<String>()
         response.data.groups.orEmpty().forEach {
@@ -1593,13 +1593,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getGroupWallet(groupId: String): ByzantineGroup {
-        val response = userWalletApiManager.walletApi.getGroupWalletById(groupId)
+        val response = userWalletApiManager.groupWalletApi.getGroupWalletById(groupId)
         return response.data.data?.toByzantineGroup()
             ?: throw NullPointerException("Can not get group")
     }
 
     override suspend fun deleteGroupWallet(groupId: String) {
-        userWalletApiManager.walletApi.deleteDraftWallet(groupId)
+        userWalletApiManager.groupWalletApi.deleteDraftWallet(groupId)
         requestAddKeyDao.deleteRequests(groupId)
     }
 
@@ -1617,7 +1617,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun calculateRequiredSignaturesEditGroupMember(
         groupId: String, members: List<AssistedMember>
     ): CalculateRequiredSignatures {
-        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesEditMember(
+        val response = userWalletApiManager.groupWalletApi.calculateRequiredSignaturesEditMember(
             groupId,
             EditGroupMemberRequest.Body(members = members.map {
                 MemberRequest(
@@ -1649,20 +1649,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        val response = userWalletApiManager.walletApi.editGroupMember(groupId, headers, request)
+        val response = userWalletApiManager.groupWalletApi.editGroupMember(groupId, headers, request)
         return response.data.data?.toByzantineGroup()
             ?: throw NullPointerException("Can not get group")
     }
 
     override suspend fun groupMemberAcceptRequest(groupId: String) {
-        val response = userWalletApiManager.walletApi.groupMemberAcceptRequest(groupId)
+        val response = userWalletApiManager.groupWalletApi.groupMemberAcceptRequest(groupId)
         if (response.isSuccess.not()) {
             throw response.error
         }
     }
 
     override suspend fun groupMemberDenyRequest(groupId: String) {
-        val response = userWalletApiManager.walletApi.groupMemberDenyRequest(groupId)
+        val response = userWalletApiManager.groupWalletApi.groupMemberDenyRequest(groupId)
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -1670,7 +1670,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun createGroupWallet(groupId: String, name: String): Wallet {
         val response =
-            userWalletApiManager.walletApi.createGroupWallet(groupId, mapOf("name" to name))
+            userWalletApiManager.groupWalletApi.createGroupWallet(groupId, mapOf("name" to name))
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
         assistedWalletDao.insert(
@@ -1688,7 +1688,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String,
         groupAssistedKeys: MutableSet<String>
     ): Boolean {
-        val response = userWalletApiManager.walletApi.getGroupWallet(groupId)
+        val response = userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         membershipStepDao.deleteStepByGroupId(groupId)
         requestAddKeyDao.deleteRequests(groupId)
@@ -1706,7 +1706,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getAlerts(groupId: String): List<Alert> {
         val alerts = arrayListOf<Alert>()
         (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
-            val response = userWalletApiManager.walletApi.getAlerts(groupId, offset = index)
+            val response = userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
             if (response.isSuccess.not()) throw response.error
             val alertList = response.data.alerts.orEmpty().map { it.toAlert() }
             alerts.addAll(alertList)

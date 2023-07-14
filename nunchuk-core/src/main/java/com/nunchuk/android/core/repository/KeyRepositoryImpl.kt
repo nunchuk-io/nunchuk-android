@@ -140,7 +140,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                             WalletType.MULTI_SIG.ordinal,
                             AddressType.NATIVE_SEGWIT.ordinal
                         )
-                    userWalletApiManager.walletApi.addKeyToServer(
+                    userWalletApiManager.groupWalletApi.addKeyToServer(
                         groupId = groupId,
                         payload = SignerServerDto(
                             name = signer.name,

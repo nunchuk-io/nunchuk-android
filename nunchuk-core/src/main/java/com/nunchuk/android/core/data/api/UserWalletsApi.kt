@@ -46,14 +46,6 @@ internal interface UserWalletsApi {
         @Body body: KeyPolicyUpdateRequest
     ): Data<CreateServerKeyResponse>
 
-    @PUT("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}")
-    suspend fun updateGroupServerKeys(
-        @HeaderMap headers: Map<String, String>,
-        @Path("key_id_or_xfp") keyId: String,
-        @Path("group_id") groupId: String,
-        @Body body: KeyPolicyUpdateRequest
-    ): Data<CreateServerKeyResponse>
-
     @GET("/v1.1/user-wallets/security-questions")
     suspend fun getSecurityQuestion(): Data<SecurityQuestionDataResponse>
 
@@ -147,13 +139,6 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/server-keys/{key_id_or_xfp}/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesUpdateServerKey(
         @Path("key_id_or_xfp") id: String, @Body payload: CreateServerKeysPayload
-    ): Data<CalculateRequiredSignaturesResponse>
-
-    @POST("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}/calculate-required-signatures")
-    suspend fun calculateRequiredSignaturesUpdateGroupServerKey(
-        @Path("group_id") groupId: String,
-        @Path("key_id_or_xfp") id: String,
-        @Body payload: CreateServerKeysPayload
     ): Data<CalculateRequiredSignaturesResponse>
 
     @PUT("/v1.1/user-wallets/security-questions/update")
@@ -303,12 +288,6 @@ internal interface UserWalletsApi {
         @Body payload: DesktopKeyRequest
     ): Data<RequestDesktopKeyResponse>
 
-    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/request-add-key")
-    suspend fun requestAddKey(
-        @Path("group_id") groupId: String,
-        @Body payload: DesktopKeyRequest
-    ): Data<RequestDesktopKeyResponse>
-
     @DELETE("/v1.1/user-wallets/draft-wallets/current")
     suspend fun deleteDraftWallet(): Data<Unit>
 
@@ -317,105 +296,13 @@ internal interface UserWalletsApi {
         @Path("request_id") requestId: String,
     ): Data<RequestDesktopKeyResponse>
 
-    @GET("/v1.1/group-wallets/groups/{group_id}/draft-wallets/request-add-key/{request_id}")
-    suspend fun getRequestAddKeyStatus(
-        @Path("group_id") groupId: String,
-        @Path("request_id") requestId: String,
-    ): Data<RequestDesktopKeyResponse>
-
     @DELETE("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}")
     suspend fun cancelRequestAddKey(
         @Path("request_id") requestId: String,
     ): Data<Unit>
 
-    @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/request-add-key/{request_id}")
-    suspend fun cancelRequestAddKey(
-        @Path("group_id") groupId: String,
-        @Path("request_id") requestId: String,
-    ): Data<RequestDesktopKeyResponse>
-
     @POST("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}/push")
     suspend fun pushRequestAddKey(
         @Path("request_id") requestId: String,
     ): Data<Unit>
-
-    @GET("/v1.1/group-wallets/permissions/default")
-    suspend fun getPermissionGroupWallet(): Data<PermissionResponse>
-
-    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/add-key")
-    suspend fun addKeyToServer(
-        @Path("group_id") groupId: String,
-        @Body payload: SignerServerDto
-    ): Data<SignerServerDto>
-
-    @POST("/v1.1/group-wallets/groups/{group_id}/server-keys")
-    suspend fun createGroupServerKey(
-        @Path("group_id") groupId: String, @Body payload: CreateServerKeysPayload
-    ): Data<CreateServerKeyResponse>
-
-    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/set-server-key")
-    suspend fun setGroupServerKey(
-        @Path("group_id") groupId: String, @Body payload: Map<String, String>
-    ): Data<CreateServerKeyResponse>
-
-    @GET("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}")
-    suspend fun getGroupServerKey(
-        @Path("group_id") groupId: String, @Path("key_id_or_xfp") id: String,
-    ): Data<CreateServerKeyResponse>
-
-    @GET("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")
-    suspend fun getDraftWallet(@Path("group_id") groupId: String): Data<DraftWalletResponse>
-
-    @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")
-    suspend fun deleteDraftWallet(@Path("group_id") groupId: String)
-
-    @POST("/v1.1/group-wallets/groups")
-    suspend fun createGroup(@Body payload: CreateGroupRequest): Data<GroupWalletDataResponse>
-
-    @GET("/v1.1/group-wallets/configs/wallet-constraints")
-    suspend fun getGroupWalletsConstraints(): Data<WalletConstraintsDataResponse>
-
-    @GET("/v1.1/group-wallets/groups")
-    suspend fun getGroups(): Data<GetGroupsResponse>
-
-    @GET("/v1.1/group-wallets/groups/{group_id}")
-    suspend fun getGroupWalletById(@Path("group_id") groupId: String): Data<GroupWalletDataResponse>
-
-    @POST("/v1.1/group-wallets/groups/{group_id}/members/calculate-requires-signatures")
-    suspend fun calculateRequiredSignaturesEditMember(
-        @Path("group_id") groupId: String,
-        @Body payload: EditGroupMemberRequest.Body
-    ): Data<CalculateRequiredSignaturesResponse>
-
-    @PUT("/v1.1/group-wallets/groups/{group_id}/members")
-    suspend fun editGroupMember(
-        @Path("group_id") groupId: String,
-        @HeaderMap headers: Map<String, String>, @Body payload: EditGroupMemberRequest
-    ): Data<GroupWalletDataResponse>
-
-    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/create-from-draft")
-    suspend fun createGroupWallet(
-        @Path("group_id") groupId: String,
-        @Body payload: Map<String, String>
-    ): Data<CreateOrUpdateWalletResponse>
-
-    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/current")
-    suspend fun getGroupWallet(@Path("group_id") groupId: String): Data<CreateOrUpdateWalletResponse>
-
-    @PUT("/v1.1/group-wallets/groups/{group_id}/members/accept")
-    suspend fun groupMemberAcceptRequest(
-        @Path("group_id") groupId: String,
-    ): Data<Unit>
-
-    @PUT("/v1.1/group-wallets/groups/{group_id}/members/deny")
-    suspend fun groupMemberDenyRequest(
-        @Path("group_id") groupId: String,
-    ): Data<Unit>
-
-    @GET("/v1.1/group-wallets/groups/{group_id}/alerts")
-    suspend fun getAlerts(
-        @Path("group_id") groupId: String,
-        @Query("offset") offset: Int,
-        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT
-    ): Data<GroupAlertResponse>
 }
