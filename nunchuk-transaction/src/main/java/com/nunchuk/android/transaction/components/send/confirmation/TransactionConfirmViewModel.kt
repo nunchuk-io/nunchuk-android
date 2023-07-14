@@ -42,11 +42,11 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxSuccessEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.DraftTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionError
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.DraftTransactionSuccess
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
@@ -241,7 +241,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 CreateTransactionUseCase.Param(
                     walletId = walletId,
                     outputs = getOutputs(),
-                    inputs = inputs,
+                    inputs = inputs.map { TxInput(it.txid, it.vout) },
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     feeRate = manualFeeRate.toManualFeeRate(),
                     memo = privateNote,

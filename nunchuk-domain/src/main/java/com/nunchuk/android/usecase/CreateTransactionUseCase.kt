@@ -22,7 +22,7 @@ package com.nunchuk.android.usecase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -60,7 +60,7 @@ class CreateTransactionUseCase @Inject constructor(
         val walletId: String,
         val outputs: Map<String, Amount>,
         val memo: String = "",
-        val inputs: List<UnspentOutput> = emptyList(),
+        val inputs: List<TxInput> = emptyList(),
         val feeRate: Amount = Amount(-1),
         val subtractFeeFromAmount: Boolean = false,
         val isAssistedWallet: Boolean
