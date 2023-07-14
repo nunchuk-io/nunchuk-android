@@ -65,7 +65,6 @@ class EstimatedFeeViewModel @Inject constructor(
     private val inputs = mutableListOf<UnspentOutput>()
 
     override val initialState = EstimatedFeeState()
-    private var useCustomCoin: Boolean = false
 
     fun init(args: EstimatedFeeArgs) {
         this.walletId = args.walletId
@@ -87,7 +86,6 @@ class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun updateNewInputs(inputs: List<UnspentOutput>) {
-        useCustomCoin = true
         this.inputs.apply {
             clear()
             addAll(inputs)
@@ -249,10 +247,7 @@ class EstimatedFeeViewModel @Inject constructor(
     val defaultRate: Int
         get() = getState().estimateFeeRates.defaultRate
 
-    fun getSelectedCoins() : List<UnspentOutput> {
-        if (!useCustomCoin) return emptyList()
-        return getInputsCoins()
-    }
+    fun getSelectedCoins() : List<UnspentOutput> = inputs
 
     fun getInputsCoins() : List<UnspentOutput> {
         val inputs = getState().inputs
