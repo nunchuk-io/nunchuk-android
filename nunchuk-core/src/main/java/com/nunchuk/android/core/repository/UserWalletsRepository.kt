@@ -144,7 +144,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -1750,7 +1749,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             AssistedWalletEntity(
                 localId = wallet.localId.orEmpty(),
                 plan = wallet.slug.toMembershipPlan(),
-                id = wallet.id?.toLongOrNull() ?: 0L
+                id = wallet.id?.toLongOrNull() ?: 0L,
+                groupId = groupId
             )
         )
         membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
