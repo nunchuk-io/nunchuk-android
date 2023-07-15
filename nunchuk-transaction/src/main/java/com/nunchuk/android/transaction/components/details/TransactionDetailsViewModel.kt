@@ -270,7 +270,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                             initNumberOfSignedKey = signedCount
                         } else if (signedCount > initNumberOfSignedKey) {
                             initNumberOfSignedKey = signedCount
-                            if (signedCount > 0 && it.transaction.status.isPendingSignatures()) {
+                            if (signedCount > 0 && (it.transaction.status.isPendingSignatures() || it.transaction.status.canBroadCast())) {
                                 requestServerSignTransaction(it.transaction.psbt)
                             }
                         }
