@@ -22,6 +22,7 @@ package com.nunchuk.android.repository
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -289,10 +290,11 @@ interface PremiumWalletRepository {
     ): ByzantineGroup
 
     suspend fun getWalletConstraints(): WalletConstraints
-    suspend fun getGroupWallets(): List<ByzantineGroup>
+    fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>>
     suspend fun syncGroupWallets(): Boolean
     suspend fun getGroupWallet(groupId: String): ByzantineGroup
     suspend fun deleteGroupWallet(groupId: String)
+    suspend fun deleteGroup(groupId: String)
     suspend fun generateEditGroupMemberUserData(
         members: List<AssistedMember>
     ): String

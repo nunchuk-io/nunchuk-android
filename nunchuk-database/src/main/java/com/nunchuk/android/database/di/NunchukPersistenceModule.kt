@@ -71,4 +71,8 @@ internal object NunchukPersistenceModule {
     @Singleton
     @Provides
     fun provideRequestAddKeyDao(database: NunchukDatabase) = database.requestAddKeyDao()
+
+    @Singleton
+    @Provides
+    fun provideGroupDao(database: NunchukDatabase) = database.groupDao()
 }

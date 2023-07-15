@@ -35,7 +35,10 @@ class RestartWizardUseCase @Inject constructor(
     override suspend fun execute(parameters: Param) {
         return repository.restart(parameters.plan, parameters.groupId).also {
             if (parameters.groupId.isNotEmpty()) {
-                userWalletRepository.deleteGroupWallet(parameters.groupId)
+                userWalletRepository.apply {
+                    deleteGroupWallet(parameters.groupId)
+                    deleteGroup(parameters.groupId)
+                }
             } else {
                 userWalletRepository.deleteDraftWallet()
             }

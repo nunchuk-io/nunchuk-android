@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.nfc.tech.IsoDep
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -43,9 +44,6 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
-import com.nunchuk.android.model.*
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
@@ -57,7 +55,9 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPassphraseSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
+import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -65,11 +65,16 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetGroupBriefsFlowUseCase
+import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
+import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
@@ -124,7 +129,7 @@ internal class WalletsViewModel @Inject constructor(
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
-    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val getGroupBriefsFlowUseCase: GetGroupBriefsFlowUseCase,
     private val groupMemberAcceptRequestUseCase: GroupMemberAcceptRequestUseCase,
     private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase,
     private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
@@ -201,8 +206,13 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            getGroupBriefsFlowUseCase(Unit).collect {
+                updateState { copy(allGroups = it.getOrDefault(emptyList())) }
+                mapGroupWalletUi()
+            }
+        }
         getAppSettings()
-        getGroupWallet()
     }
 
     fun reloadMembership() {
@@ -260,16 +270,6 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    private fun getGroupWallet() = viewModelScope.launch {
-        val result = getGroupWalletsUseCase(Unit)
-        if (result.isSuccess) {
-            val allGroups = result.getOrThrow()
-            updateState {
-                copy(allGroups = allGroups)
-            }
-        }
-    }
-
     private fun getAppSettings() {
         viewModelScope.launch {
             getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.collect {
@@ -318,12 +318,19 @@ internal class WalletsViewModel @Inject constructor(
             val results = arrayListOf<GroupWalletUi>()
             val wallets = getState().wallets
             val groups = getState().allGroups
+            val groupWalletUis = getState().groupWalletUis
             val assistedWallets = getState().assistedWallets
             val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()
+            val assistedWalletGroupIds = assistedWallets.filter { it.groupId.isNotEmpty() }.map { it.groupId }.toHashSet()
             val pendingGroup = groups.filter { it.isPendingWallet() }
             wallets.forEach { wallet ->
-                var groupWalletUi = GroupWalletUi(wallet = wallet, isAssistedWallet = wallet.wallet.id in assistedWalletIds)
-                val group = groups.firstOrNull { it.id in assistedWalletIds }
+                val group = groups.firstOrNull { it.groupId in assistedWalletGroupIds }
+                var groupWalletUi =
+                    groupWalletUis.find { it.wallet?.wallet?.id == wallet.wallet.id }
+                        ?: GroupWalletUi(
+                            wallet = wallet,
+                            isAssistedWallet = wallet.wallet.id in assistedWalletIds
+                        )
                 if (group != null) {
                     val isGroupMasterOrAdmin = isGroupMasterOrAdmin(group)
                     var inviterName = ""
@@ -339,7 +346,9 @@ internal class WalletsViewModel @Inject constructor(
                 results.add(groupWalletUi)
             }
             pendingGroup.forEach { group ->
-                var groupWalletUi = GroupWalletUi(group = group)
+                var groupWalletUi =
+                    groupWalletUis.find { it.group?.groupId == group.groupId }
+                        ?: GroupWalletUi(group = group)
                 val isGroupMasterOrAdmin = isGroupMasterOrAdmin(group)
                 var inviterName = ""
                 if (isGroupMasterOrAdmin.not()) {
@@ -359,16 +368,16 @@ internal class WalletsViewModel @Inject constructor(
 
     private fun updateBadge() {
         viewModelScope.launch {
-            val groupIds = getState().allGroups.map { it.id }
+            val groupIds = getState().allGroups.map { it.groupId }
             val groupWalletUis = getState().groupWalletUis
-            val newGroupWalletUis = arrayListOf<GroupWalletUi>()
             val result = getPendingWalletNotifyCountUseCase(groupIds)
             if (result.isSuccess) {
                 val alerts = result.getOrThrow()
-                groupWalletUis.forEach {
-                    newGroupWalletUis.add(it.copy(badgeCount = alerts[it.group?.id] ?: 0))
+                updateState {
+                    copy(groupWalletUis = groupWalletUis.map {
+                        it.copy(badgeCount = alerts[it.group?.groupId] ?: 0)
+                    })
                 }
-                updateState { copy(groupWalletUis = newGroupWalletUis) }
             }
         }
     }
@@ -519,7 +528,7 @@ internal class WalletsViewModel @Inject constructor(
         emailOrUsername == accountManager.getAccount().email
                 || emailOrUsername == accountManager.getAccount().username
 
-    private fun isGroupMasterOrAdmin(group: ByzantineGroup): Boolean {
+    private fun isGroupMasterOrAdmin(group: ByzantineGroupBrief): Boolean {
         val masterOrAdminName = group.members.firstOrNull {
             it.role == AssistedWalletRole.MASTER.name || it.role == AssistedWalletRole.ADMIN.name
         }?.emailOrUsername
@@ -528,13 +537,13 @@ internal class WalletsViewModel @Inject constructor(
         )
     }
 
-    private fun getInviterName(group: ByzantineGroup): String {
+    private fun getInviterName(group: ByzantineGroupBrief): String {
         val invitee =
             group.members.firstOrNull {
                 it.isPendingRequest() && isMatchingEmailOrUserName(it.emailOrUsername)
             } ?: return ""
-        val inviter = group.members.firstOrNull { it.user?.id == invitee.inviterUserId }
-        return inviter?.user?.name.orEmpty()
+        val inviter = group.members.firstOrNull { it.userId == invitee.inviterUserId }
+        return inviter?.name.orEmpty()
     }
 
     fun acceptInviteMember(groupId: String) = viewModelScope.launch {
@@ -557,7 +566,7 @@ internal class WalletsViewModel @Inject constructor(
 
     private fun removePendingInviteMember(groupId: String) {
         val results = getState().groupWalletUis.map {
-            if (it.group != null && it.group.id == groupId) {
+            if (it.group != null && it.group.groupId == groupId) {
                 it.copy(inviterName = "")
             } else {
                 it

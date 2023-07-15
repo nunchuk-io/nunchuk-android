@@ -481,19 +481,19 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             isAssistedWallet = it.isAssistedWallet,
                             badgeCount = it.badgeCount,
                             onAccept = {
-                                it.group?.id?.let {
+                                it.group?.groupId?.let {
                                     walletsViewModel.acceptInviteMember(it)
                                 }
                             },
                             onDeny = {
-                                it.group?.id?.let {
+                                it.group?.groupId?.let {
                                     walletsViewModel.denyInviteMember(it)
                                 }
                             },
                             onGroupClick = {
-                                if (it.isGroupMasterOrAdmin && it.group?.id != null) {
+                                if (it.isGroupMasterOrAdmin && it.group?.groupId != null) {
                                     navigator.openGroupDashboardScreen(
-                                        groupId = it.group.id,
+                                        groupId = it.group.groupId,
                                         activityContext = requireActivity()
                                     )
                                 }

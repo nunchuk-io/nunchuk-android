@@ -21,6 +21,7 @@ package com.nunchuk.android.main.components.tabs.wallet
 
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
@@ -44,7 +45,7 @@ internal data class WalletsState(
     val banner: Banner? = null,
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
     val currentWalletPin: String = "",
-    val allGroups: List<ByzantineGroup> = emptyList(),
+    val allGroups: List<ByzantineGroupBrief> = emptyList(),
     val groupWalletUis: List<GroupWalletUi> = emptyList()
 )
 
@@ -67,7 +68,7 @@ internal sealed class WalletsEvent {
 
 internal data class GroupWalletUi(
     val wallet: WalletExtended? = null,
-    val group: ByzantineGroup? = null,
+    val group: ByzantineGroupBrief? = null,
     val isGroupMasterOrAdmin: Boolean = false,
     val inviterName: String = "",
     val isAssistedWallet: Boolean = false,

@@ -44,6 +44,7 @@ import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.SingleSigner
@@ -58,7 +59,7 @@ import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
 fun PendingWalletView(
-    group: ByzantineGroup? = null,
+    group: ByzantineGroupBrief? = null,
     walletsExtended: WalletExtended? = null,
     isGroupMasterOrAdmin: Boolean = false,
     hideWalletDetail: Boolean = false,
@@ -168,14 +169,14 @@ fun RowScope.PendingWalletInviteMember(
 }
 
 @Composable
-fun RowScope.WalletAvatar(group: ByzantineGroup, badgeCount: Int = 0) {
+fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
         group.members.take(3).forEachIndexed { index, byzantineMember ->
             val padStart = if (index == 0) 0.dp else 4.dp
             AvatarView(
                 modifier = Modifier.padding(start = padStart),
-                avatarUrl = byzantineMember.user?.avatar.orEmpty(),
-                name = byzantineMember.user?.name.orEmpty()
+                avatarUrl = byzantineMember.avatar.orEmpty(),
+                name = byzantineMember.name.orEmpty()
             )
         }
     }
@@ -442,11 +443,11 @@ fun PendingWalletViewPreview() {
         )
     )
     NunchukTheme {
-        Column {
-            PendingWalletView(
-                walletsExtended = walletsExtended,
-                group = group
-            )
-        }
+//        Column {
+//            PendingWalletView(
+//                walletsExtended = walletsExtended,
+//                group = group
+//            )
+//        }
     }
 }

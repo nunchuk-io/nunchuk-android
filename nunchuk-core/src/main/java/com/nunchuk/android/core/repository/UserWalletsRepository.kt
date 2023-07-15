@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.repository
 
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.api.TRANSACTION_PAGE_COUNT
@@ -44,6 +45,7 @@ import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
+import com.nunchuk.android.core.data.model.byzantine.GroupResponse
 import com.nunchuk.android.core.data.model.byzantine.MemberRequest
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toModel
@@ -79,6 +81,8 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ByzantineGroupBrief
+import com.nunchuk.android.model.ByzantineMemberBrief
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -120,9 +124,11 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
+import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
+import com.nunchuk.android.persistence.entity.GroupEntity
 import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
@@ -138,7 +144,9 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -154,6 +162,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val membershipApi: MembershipApi,
     private val assistedWalletDao: AssistedWalletDao,
     private val requestAddKeyDao: RequestAddKeyDao,
+    private val groupDao: GroupDao,
     applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
     private val chain =
@@ -1472,7 +1481,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun checkKeyAdded(plan: MembershipPlan, groupId: String, requestId: String?): Boolean {
+    override suspend fun checkKeyAdded(
+        plan: MembershipPlan,
+        groupId: String,
+        requestId: String?
+    ): Boolean {
         val chatId = accountManager.getAccount().chatId
         val localRequests = if (requestId == null) {
             requestAddKeyDao.getRequests(chatId, chain.value, groupId)
@@ -1563,8 +1576,29 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     )
                 })
         )
-        return response.data.data?.toByzantineGroup()
+        val group = response.data.data?.toByzantineGroup()
             ?: throw NullPointerException("Can not create group")
+        val memberBrief = group.members.map {
+            ByzantineMemberBrief(
+                emailOrUsername = it.emailOrUsername,
+                role = it.role,
+                inviterUserId = it.inviterUserId,
+                status = it.status,
+                avatar = it.user?.avatar,
+                name = it.user?.name,
+                email = it.user?.email,
+                userId = it.user?.id
+            )
+        }
+        groupDao.updateOrInsert(
+            GroupEntity(
+                groupId = group.id,
+                chatId = accountManager.getAccount().chatId,
+                status = group.status,
+                members = gson.toJson(memberBrief)
+            )
+        )
+        return group
     }
 
     override suspend fun getWalletConstraints(): WalletConstraints {
@@ -1572,24 +1606,59 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return WalletConstraints(maximumKeyholder = response.data.data?.maximumKeyholder ?: 0)
     }
 
-    override suspend fun getGroupWallets(): List<ByzantineGroup> {
-        val response = userWalletApiManager.groupWalletApi.getGroups()
-        return response.data.groups?.map { it.toByzantineGroup() } ?: emptyList()
+    override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> = flow {
+        groupDao.getGroups().collect {
+            val groupBriefs = it.map {group->
+                val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
+                val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
+                ByzantineGroupBrief(groupId = group.groupId, status = group.status, members = members)
+            }
+            emit(groupBriefs)
+        }
     }
 
     override suspend fun syncGroupWallets(): Boolean {
         val response = userWalletApiManager.groupWalletApi.getGroups()
         var shouldReload = false
         val groupAssistedKeys = mutableSetOf<String>()
-        response.data.groups.orEmpty().forEach {
-            if (it.status == "PENDING_WALLET") {
-                syncGroupDraftWallet(it.id.orEmpty())
-            } else if (it.status == "ACTIVE") {
-                if (syncGroupWallet(it.id.orEmpty(), groupAssistedKeys)) shouldReload = true
+        val groups = response.data.groups.orEmpty()
+        if (groups.isNotEmpty()) {
+            val chatId = accountManager.getAccount().chatId
+            groupDao.updateOrInsert(groups.filter { it.id.isNullOrEmpty().not() }.map { group ->
+                group.toGroupEntity(chatId)
+            }.toList())
+            groups.forEach {
+                if (it.status == "PENDING_WALLET") {
+                    syncGroupDraftWallet(it.id.orEmpty())
+                } else if (it.status == "ACTIVE") {
+                    if (syncGroupWallet(it.id.orEmpty(), groupAssistedKeys)) shouldReload = true
+                }
             }
         }
+
         ncDataStore.setGroupAssistedKey(groupAssistedKeys)
         return shouldReload
+    }
+
+    private fun GroupResponse.toGroupEntity(chatId: String): GroupEntity {
+        val memberBrief = members.orEmpty().map {
+            ByzantineMemberBrief(
+                emailOrUsername = it.emailOrUsername.orEmpty(),
+                role = it.role.orEmpty(),
+                inviterUserId = it.inviterUserId.orEmpty(),
+                status = it.status.orEmpty(),
+                avatar = it.user?.avatar,
+                name = it.user?.name,
+                email = it.user?.email,
+                userId = it.user?.id
+            )
+        }
+        return GroupEntity(
+            groupId = id!!,
+            chatId = chatId,
+            status = status.orEmpty(),
+            members = gson.toJson(memberBrief)
+        )
     }
 
     override suspend fun getGroupWallet(groupId: String): ByzantineGroup {
@@ -1601,6 +1670,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun deleteGroupWallet(groupId: String) {
         userWalletApiManager.groupWalletApi.deleteDraftWallet(groupId)
         requestAddKeyDao.deleteRequests(groupId)
+    }
+
+    override suspend fun deleteGroup(groupId: String) {
+        groupDao.deleteGroup(groupId)
     }
 
     override suspend fun generateEditGroupMemberUserData(
