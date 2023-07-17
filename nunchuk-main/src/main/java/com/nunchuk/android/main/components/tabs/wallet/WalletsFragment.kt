@@ -494,6 +494,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 if (it.isGroupMasterOrAdmin && it.group?.groupId != null) {
                                     navigator.openGroupDashboardScreen(
                                         groupId = it.group.groupId,
+                                        walletId = it.wallet?.wallet?.id,
                                         activityContext = requireActivity()
                                     )
                                 }

@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -93,8 +94,8 @@ class GroupDashboardFragment : MembershipFragment() {
     private val viewModel: GroupDashboardViewModel by activityViewModels()
 
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) { // case restart should finish this activity
-            requireActivity().finish() // TODO Thong handle refresh group in Wallet Fragment
+        if (it.resultCode == Activity.RESULT_OK) {
+            requireActivity().finish()
         }
     }
 
@@ -120,6 +121,10 @@ class GroupDashboardFragment : MembershipFragment() {
                         groupStep = MembershipStage.NONE,
                         groupId = args.groupId
                     )
+                }, onWalletClick = {
+                    args.walletId?.let {
+                        navigator.openWalletDetailsScreen(activityContext = requireActivity(), walletId = it)
+                    }
                 })
             }
         }
@@ -140,7 +145,8 @@ class GroupDashboardFragment : MembershipFragment() {
 private fun GroupDashboardScreen(
     viewModel: GroupDashboardViewModel = viewModel(),
     onEditClick: () -> Unit = {},
-    onGroupWalletCreationPending: (String) -> Unit = {}
+    onGroupWalletCreationPending: (String) -> Unit = {},
+    onWalletClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     GroupDashboardContent(
@@ -149,7 +155,8 @@ private fun GroupDashboardScreen(
         isShowSetupInheritance = viewModel.isShowSetupInheritance(),
         walletName = state.walletExtended.wallet.name,
         onEditClick = onEditClick,
-        onGroupWalletCreationPending = onGroupWalletCreationPending
+        onGroupWalletCreationPending = onGroupWalletCreationPending,
+        onWalletClick = onWalletClick
     )
 }
 
@@ -161,7 +168,9 @@ private fun GroupDashboardContent(
     walletName: String = "",
     currentUserRole: String = "",
     onEditClick: () -> Unit = {},
-    onGroupWalletCreationPending: (String) -> Unit = {}
+    onGroupWalletCreationPending: (String) -> Unit = {},
+    onMoreClick: () -> Unit = {},
+    onWalletClick: () -> Unit = {}
 ) {
 
     val master = group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
@@ -175,10 +184,24 @@ private fun GroupDashboardContent(
             topBar = {
                 NcTopAppBar(
                     backgroundColor = colorResource(id = R.color.nc_grey_light),
-                    title = "",
+                    title = walletName,
                     elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                        if (walletName.isNotEmpty()) {
+                            IconButton(onClick = onWalletClick) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_wallets),
+                                    contentDescription = "Wallet icon"
+                                )
+                            }
+                        }
+                        IconButton(onClick = onMoreClick) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
                     })
             },
             floatingActionButton = {

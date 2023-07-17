@@ -10,15 +10,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GroupDao : BaseDao<GroupEntity> {
-    @Query("SELECT * FROM $TABLE_GROUP ORDER BY group_id")
-    fun getGroups(): Flow<List<GroupEntity>>
+    @Query("SELECT * FROM $TABLE_GROUP WHERE chatId = :chatId ORDER BY group_id ")
+    fun getGroups(chatId: String): Flow<List<GroupEntity>>
 
-    @Query("DELETE FROM $TABLE_GROUP where group_id =:id")
-    suspend fun deleteGroup(id: String): Int
+    @Query("DELETE FROM $TABLE_GROUP WHERE group_id IN (:groupIds) AND chatId = :chatId")
+    suspend fun deleteGroups(groupIds: List<String>, chatId: String): Int
 
-    @Query("DELETE FROM $TABLE_GROUP")
-    suspend fun deleteAll()
-
-    @Query("SELECT * FROM $TABLE_GROUP WHERE group_id =:id ")
-    suspend fun getById(id: String): GroupEntity?
+    @Query("SELECT * FROM $TABLE_GROUP WHERE group_id =:id AND chatId = :chatId")
+    suspend fun getById(id: String, chatId: String): GroupEntity?
 }

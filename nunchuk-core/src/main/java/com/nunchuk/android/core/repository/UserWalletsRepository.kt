@@ -145,9 +145,14 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import javax.inject.Inject
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
@@ -1606,8 +1611,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> = flow {
-        groupDao.getGroups().collect {
-            val groupBriefs = it.map {group->
+        groupDao.getGroups(chatId = accountManager.getAccount().chatId).collect {
+            val groupBriefs = it.map { group->
                 val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
                 val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
                 ByzantineGroupBrief(groupId = group.groupId, status = group.status, members = members)
@@ -1622,10 +1627,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val groupAssistedKeys = mutableSetOf<String>()
         val groups = response.data.groups.orEmpty()
         if (groups.isNotEmpty()) {
-            val chatId = accountManager.getAccount().chatId
-            groupDao.updateOrInsert(groups.filter { it.id.isNullOrEmpty().not() }.map { group ->
-                group.toGroupEntity(chatId)
-            }.toList())
+            syncGroup(groups)
             groups.forEach {
                 if (it.status == "PENDING_WALLET") {
                     syncGroupDraftWallet(it.id.orEmpty())
@@ -1637,6 +1639,21 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
         ncDataStore.setGroupAssistedKey(groupAssistedKeys)
         return shouldReload
+    }
+
+    private suspend fun syncGroup(groups: List<GroupResponse>) {
+        val groupLocals = groupDao.getGroups(accountManager.getAccount().chatId).firstOrNull() ?: emptyList()
+        val allGroupIds = groupLocals.map { it.groupId }.toHashSet()
+        val addGroupIds = HashSet<String>()
+        val chatId = accountManager.getAccount().chatId
+        groupDao.updateOrInsert(groups.filter { it.id.isNullOrEmpty().not() }.map { group ->
+            addGroupIds.add(group.id!!)
+            group.toGroupEntity(chatId)
+        }.toList())
+        allGroupIds.removeAll(addGroupIds)
+        if (allGroupIds.isNotEmpty()) {
+            groupDao.deleteGroups(allGroupIds.toList(), chatId = chatId)
+        }
     }
 
     private fun GroupResponse.toGroupEntity(chatId: String): GroupEntity {
@@ -1672,7 +1689,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteGroup(groupId: String) {
-        groupDao.deleteGroup(groupId)
+        groupDao.deleteGroups(listOf(groupId), chatId = accountManager.getAccount().chatId)
     }
 
     override suspend fun generateEditGroupMemberUserData(

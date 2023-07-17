@@ -19,7 +19,9 @@ class GetPendingWalletNotifyCountUseCase @Inject constructor(
         supervisorScope {
             parameters.forEach { groupId ->
                 val result = async { repository.getAlerts(groupId).size }
-                map[groupId] = result.await()
+                kotlin.runCatching {
+                    map[groupId] = result.await()
+                }
             }
         }
         return map
