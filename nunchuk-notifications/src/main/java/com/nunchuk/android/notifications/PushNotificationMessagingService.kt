@@ -24,8 +24,8 @@ import android.os.Looper
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.nunchuk.android.core.domain.message.HandlePushMessageUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.messages.util.getLastMessageContentSafe
@@ -38,7 +38,6 @@ import com.nunchuk.android.messages.util.isCosignedEvent
 import com.nunchuk.android.messages.util.isMessageEvent
 import com.nunchuk.android.messages.util.isNunchukTransactionEvent
 import com.nunchuk.android.messages.util.isNunchukWalletEvent
-import com.nunchuk.android.messages.util.isServerTransactionEvent
 import com.nunchuk.android.messages.util.isTransactionReceived
 import com.nunchuk.android.messages.util.isTransactionScheduleMissingSignaturesEvent
 import com.nunchuk.android.messages.util.isTransactionScheduleNetworkRejectedEvent
@@ -84,6 +83,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var saveHandledEventUseCase: SaveHandledEventUseCase
 
+    @Inject
+    lateinit var handlePushMessageUseCase: HandlePushMessageUseCase
+
     private val mUIHandler by lazy {
         Handler(Looper.getMainLooper())
     }
@@ -92,16 +94,10 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         if (!NotificationUtils.areNotificationsEnabled(this) || remoteMessage.data.isEmpty()) {
             return
         }
-        val event = getEvent(remoteMessage.data)?.also {
-            if (it.isServerTransactionEvent()) {
-                applicationScope.launch {
-                    pushEventManager.push(
-                        PushEvent.ServerTransactionEvent(
-                            it.getWalletId(),
-                            it.getTransactionId()
-                        )
-                    )
-                }
+
+        val event = getEvent(remoteMessage.data)?.also { event ->
+            applicationScope.launch {
+                handlePushMessageUseCase(event)
             }
         }
 
@@ -179,6 +175,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
+
         isNunchukTransactionEvent() -> {
             PushNotificationData(
                 id = localId,
@@ -187,6 +184,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
+
         isContactUpdateEvent() -> {
             PushNotificationData(
                 id = localId,
@@ -195,6 +193,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 intent = intentProvider.getMainIntent()
             )
         }
+
         isMessageEvent() -> {
             PushNotificationData(
                 id = localId,
@@ -203,6 +202,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
+
         isTransactionReceived() -> {
             PushNotificationData(
                 id = localId,
@@ -214,6 +214,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 )
             )
         }
+
         isCosignedEvent() -> {
             PushNotificationData(
                 id = localId,
@@ -225,6 +226,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 )
             )
         }
+
         isCosignedAndBroadcastEvent() -> {
             PushNotificationData(
                 id = localId,
@@ -236,6 +238,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 )
             )
         }
+
         isTransactionScheduleMissingSignaturesEvent() -> {
             val message = this.getLastMessageContentSafe().orEmpty()
             PushNotificationData(
@@ -250,6 +253,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 )
             )
         }
+
         isTransactionScheduleNetworkRejectedEvent() -> {
             val message = this.getLastMessageContentSafe().orEmpty()
             PushNotificationData(
@@ -265,7 +269,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             )
         }
 
-        else -> defaultNotificationData(localId)
+        else -> defaultNotificationData(localId, getLastMessageContentSafe().orEmpty())
     }
 
     private fun getActiveSession() = if (sessionHolder.hasActiveSession()) {
@@ -277,14 +281,15 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     private fun getLastSession(): Session? =
         trySafe(matrix.authenticationService()::getLastAuthenticatedSession)
 
-    private fun defaultNotificationData(localId: Long) = if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
-        PushNotificationData(
-            id = localId,
-            title = getString(R.string.notification_update),
-            message = getString(R.string.notification_update_message),
-            intent = intentProvider.getMainIntent()
-        )
-    } else null
+    private fun defaultNotificationData(localId: Long, message: String) =
+        if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
+            PushNotificationData(
+                id = localId,
+                title = getString(R.string.notification_update),
+                message = message.ifEmpty { getString(R.string.notification_update_message) },
+                intent = intentProvider.getMainIntent()
+            )
+        } else null
 
     private fun isEventAlreadyKnown(session: Session, eventId: String?, roomId: String?): Boolean {
         if (null != eventId && null != roomId) {

@@ -43,10 +43,9 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             address = parameters.address,
             feeRate = nunchukNativeSdk.valueFromAmount(parameters.feeRate)
         )
-        val signer = nunchukNativeSdk.getDefaultSignerFromMasterSigner(
+        val signer = nunchukNativeSdk.getSignerFromMasterSigner(
             masterSignerId = parameters.masterSignerId,
-            walletType = WalletType.MULTI_SIG.ordinal,
-            addressType = AddressType.ANY.ordinal
+            path = parameters.derivationPath
         )
         val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
         val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
@@ -73,6 +72,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val masterSignerId: String,
         val address: String,
         val magic: String,
-        val feeRate: Amount = Amount(-1)
+        val feeRate: Amount = Amount(-1),
+        val derivationPath: String
     )
 }

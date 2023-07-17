@@ -23,13 +23,13 @@ import com.google.gson.annotations.SerializedName
 
 internal data class TapSignerDto(
     @SerializedName("card_id")
-    val cardId: String,
+    val cardId: String = "",
     @SerializedName("version")
-    val version: String,
+    val version: String = "",
     @SerializedName("is_testnet")
-    val isTestnet: Boolean,
+    val isTestnet: Boolean = false,
     @SerializedName("birth_height")
-    val birthHeight: Int,
+    val birthHeight: Int = 0,
     @SerializedName("is_inheritance")
-    val isInheritance: Boolean,
+    val isInheritance: Boolean = false,
 )

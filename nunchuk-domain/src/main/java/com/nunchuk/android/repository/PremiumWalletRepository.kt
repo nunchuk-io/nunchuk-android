@@ -24,6 +24,7 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.type.SignerTag
 import kotlinx.coroutines.flow.Flow
 
 interface PremiumWalletRepository {
@@ -216,13 +217,19 @@ interface PremiumWalletRepository {
 
     suspend fun updateServerKeyName(xfp: String, name: String)
 
-    suspend fun getAssistedWalletConfig() : AssistedWalletConfig
+    suspend fun getAssistedWalletConfig(): AssistedWalletConfig
 
-    fun assistedKeys() : Flow<Set<String>>
+    fun assistedKeys(): Flow<Set<String>>
 
     suspend fun getCoinControlData(walletId: String): String
 
     suspend fun uploadCoinControlData(walletId: String, data: String)
 
     suspend fun clearTransactionEmergencyLockdown(walletId: String)
+
+    suspend fun requestAddKey(step: MembershipStep, tags: List<SignerTag>): String
+
+    suspend fun checkKeyAdded(plan: MembershipPlan, requestId: String?): Boolean
+    suspend fun deleteDraftWallet()
+    suspend fun cancelRequestIdIfNeed(step: MembershipStep)
 }

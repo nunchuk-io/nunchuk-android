@@ -20,11 +20,12 @@
 package com.nunchuk.android.persistence
 
 const val DATABASE_NAME = "NunchukDatabase.db"
-const val DATABASE_VERSION = 7
+const val DATABASE_VERSION = 9
 
 const val TABLE_CONTACT = "contact"
 const val TABLE_SYNC_FILE = "sync_file"
 const val TABLE_SYNC_EVENT = "sync_event"
+const val TABLE_ADD_DESKTOP_KEY = "add_desktop_key"
 const val TABLE_HANDLED_EVENT = "handled_event"
 const val TABLE_MEMBERSHIP_STEP = "membership_flow"
 const val TABLE_ASSISTED_WALLET = "assisted_wallet"

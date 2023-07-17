@@ -26,9 +26,14 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.sum
 import com.nunchuk.android.core.util.toAmount
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
@@ -242,7 +247,9 @@ class EstimatedFeeViewModel @Inject constructor(
     val defaultRate: Int
         get() = getState().estimateFeeRates.defaultRate
 
-    fun getSelectedCoins() : List<UnspentOutput> {
+    fun getSelectedCoins() : List<UnspentOutput> = inputs
+
+    fun getInputsCoins() : List<UnspentOutput> {
         val inputs = getState().inputs
         return getState().allCoins.filter { coin -> inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
     }

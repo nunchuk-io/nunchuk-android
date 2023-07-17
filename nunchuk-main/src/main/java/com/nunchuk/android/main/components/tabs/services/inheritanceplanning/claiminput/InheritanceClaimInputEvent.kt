@@ -20,7 +20,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claiminput
 
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.InheritanceAdditional
 
 sealed class InheritanceClaimInputEvent {
@@ -28,7 +27,12 @@ sealed class InheritanceClaimInputEvent {
     data class Error(val message: String) : InheritanceClaimInputEvent()
     object SubscriptionExpired : InheritanceClaimInputEvent()
     data class InActivated(val message: String) : InheritanceClaimInputEvent()
-    data class GetInheritanceStatusSuccess(val inheritanceAdditional: InheritanceAdditional, val signer: SignerModel, val magic: String) :
+    data class GetInheritanceStatusSuccess(
+        val inheritanceAdditional: InheritanceAdditional,
+        val signer: SignerModel,
+        val magic: String,
+        val derivationPath: String
+    ) :
         InheritanceClaimInputEvent()
 }
 

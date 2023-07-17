@@ -34,4 +34,5 @@ data class BackupKey(
     val cardId: String,
     val verificationType: String,
     val verifiedTimeMilis: Long,
+    val derivationPath: String
 ) : Parcelable

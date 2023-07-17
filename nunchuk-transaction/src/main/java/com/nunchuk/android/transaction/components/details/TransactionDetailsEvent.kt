@@ -45,6 +45,7 @@ sealed class TransactionDetailsEvent {
         val isPendingTransaction: Boolean,
         val isPendingConfirm: Boolean,
         val isRejected: Boolean,
+        val canBroadcast: Boolean,
         val masterFingerPrint: String = ""
     ) : TransactionDetailsEvent()
 
@@ -65,4 +66,5 @@ sealed class TransactionDetailsEvent {
 
     data class NfcLoadingEvent(val isColdcard: Boolean = false) : TransactionDetailsEvent()
     object ImportTransactionSuccess : TransactionDetailsEvent()
+    data class GetRawTransactionSuccess(val rawTransaction: String) : TransactionDetailsEvent()
 }

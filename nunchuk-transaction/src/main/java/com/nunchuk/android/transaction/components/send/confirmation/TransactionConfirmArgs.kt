@@ -45,6 +45,7 @@ data class TransactionConfirmArgs(
     val slots: List<SatsCardSlot>,
     val masterSignerId: String,
     val magicalPhrase: String,
+    val derivationPath: String,
     val inputs: List<UnspentOutput> = emptyList(),
 ) : ActivityArgs {
 
@@ -58,7 +59,8 @@ data class TransactionConfirmArgs(
             putExtra(EXTRA_MANUAL_FEE_RATE, manualFeeRate)
             putExtra(EXTRA_SWEEP_TYPE, sweepType)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
-            putExtra(EXTRA_MASTER_SIGNER_ID, magicalPhrase)
+            putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
+            putExtra(EXTRA_DERIVATION_PATH, derivationPath)
             putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
             putParcelableArrayListExtra(EXTRA_INPUTS, ArrayList(inputs))
@@ -76,6 +78,7 @@ data class TransactionConfirmArgs(
         private const val EXTRA_INPUTS = "EXTRA_INPUTS"
         private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
         private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
+        private const val EXTRA_DERIVATION_PATH = "EXTRA_DERIVATION_PATH"
         private const val EXTRA_TX_RECEIPTS = "EXTRA_TX_RECEIPTS"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
@@ -91,6 +94,7 @@ data class TransactionConfirmArgs(
                 slots = extras.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
                 masterSignerId = extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
                 magicalPhrase = extras.getStringValue(EXTRA_MAGICAL_PHRASE),
+                derivationPath = extras.getStringValue(EXTRA_DERIVATION_PATH),
                 inputs = extras.parcelableArrayList<UnspentOutput>(EXTRA_INPUTS).orEmpty(),
                 txReceipts = extras.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty()
             )

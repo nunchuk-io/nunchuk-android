@@ -122,11 +122,13 @@ internal class ConfigureWalletViewModel @Inject constructor(
 
     fun cacheTapSignerXpub(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
+            setEvent(ConfigureWalletEvent.NfcLoading(true))
             val signer: SignerModel =
                 savedStateHandle[EXTRA_CURRENT_SELECTED_MASTER_SIGNER] ?: return@launch
             val result = cacheDefaultTapsignerMasterSignerXPubUseCase(
                 CacheDefaultTapsignerMasterSignerXPubUseCase.Data(isoDep, cvc, signer.id)
             )
+            setEvent(ConfigureWalletEvent.NfcLoading(false))
             if (result.isSuccess) {
                 updateStateSelectedSigner(true, signer)
                 getSigners()

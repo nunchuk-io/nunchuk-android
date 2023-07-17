@@ -62,12 +62,14 @@ interface TransactionNavigator {
         sweepType: SweepType = SweepType.NONE,
         masterSignerId: String = "",
         magicalPhrase: String = "",
+        derivationPath: String = "",
         inputs: List<UnspentOutput> = emptyList(),
     )
 
     /**
      * @param masterSignerId inheritance claiming flow
      * @param magicalPhrase inheritance claiming flow
+     * @param derivationPath inheritance claiming flow
      */
     fun openEstimatedFeeScreen(
         activityContext: Activity,
@@ -80,6 +82,7 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         masterSignerId: String = "",
         magicalPhrase: String = "",
+        derivationPath: String = "",
         inputs: List<UnspentOutput> = emptyList(),
     )
 
@@ -100,6 +103,7 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         masterSignerId: String = "",
         magicalPhrase: String = "",
+        derivationPath: String = "",
         inputs: List<UnspentOutput> = emptyList(),
     )
 

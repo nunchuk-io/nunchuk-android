@@ -91,6 +91,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             slots = args.slots,
             masterSignerId = args.masterSignerId,
             magicalPhrase = args.magicalPhrase,
+            derivationPath = args.derivationPath,
             inputs = args.inputs
         )
         viewModel.draftTransaction()
@@ -237,6 +238,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             slots: List<SatsCardSlot> = emptyList(),
             masterSignerId: String,
             magicalPhrase: String,
+            derivationPath: String,
             inputs: List<UnspentOutput> = emptyList(),
         ) {
             activityContext.startActivity(
@@ -252,6 +254,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     slots = slots,
                     masterSignerId = masterSignerId,
                     magicalPhrase = magicalPhrase,
+                    derivationPath = derivationPath,
                     inputs = inputs
                 ).buildIntent(activityContext)
             )

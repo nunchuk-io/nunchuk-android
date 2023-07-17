@@ -25,12 +25,18 @@ import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class UploadBackupFileKeyUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher, private val repository: KeyRepository
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: KeyRepository,
+    private val userWalletRepository: PremiumWalletRepository,
 ) : FlowUseCase<UploadBackupFileKeyUseCase.Param, KeyUpload>(dispatcher) {
     override fun execute(parameters: Param): Flow<KeyUpload> =
         repository.uploadBackupKey(
@@ -42,7 +48,13 @@ class UploadBackupFileKeyUseCase @Inject constructor(
             filePath = parameters.filePath,
             isAddNewKey = parameters.isAddNewKey,
             plan = parameters.plan
-        )
+        ).onCompletion {
+            withContext(NonCancellable) {
+                runCatching {
+                    userWalletRepository.cancelRequestIdIfNeed(parameters.step)
+                }
+            }
+        }
 
     data class Param(
         val step: MembershipStep,

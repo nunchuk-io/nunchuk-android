@@ -29,7 +29,12 @@ import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.*
+import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
+import com.nunchuk.android.core.domain.GetRawTransactionUseCase
+import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
+import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
+import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
+import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransactionUseCase
 import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
@@ -37,21 +42,66 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.canBroadCast
+import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.isNoInternetException
+import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.isPendingConfirm
+import com.nunchuk.android.core.util.isPendingSignatures
+import com.nunchuk.android.core.util.isRejected
+import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.BlockListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.Contact
+import com.nunchuk.android.model.Device
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.TxOutput
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.GetContactsUseCase
-import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.DeleteTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ExportToFileSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ExportTransactionToMk4Success
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.GetRawTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ImportTransactionFromMk4Success
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ImportTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.LoadingEvent
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.NfcLoadingEvent
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.NoInternetConnection
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.PromptInputPassphrase
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.PromptTransactionOptions
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.SignTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.TransactionDetailsError
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.TransactionError
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.UpdateTransactionMemoFailed
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.UpdateTransactionMemoSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ViewBlockchainExplorer
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.BroadcastTransactionUseCase
+import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.DeleteTransactionUseCase
+import com.nunchuk.android.usecase.ExportTransactionUseCase
+import com.nunchuk.android.usecase.GetMasterSignersUseCase
+import com.nunchuk.android.usecase.GetTransactionFromNetworkUseCase
+import com.nunchuk.android.usecase.GetTransactionUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.ImportTransactionUseCase
+import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.SignTransactionUseCase
+import com.nunchuk.android.usecase.UpdateTransactionMemo
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
@@ -64,11 +114,15 @@ import com.nunchuk.android.utils.TransactionException
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -105,6 +159,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
+    private val getRawTransactionUseCase: GetRawTransactionUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
@@ -141,11 +196,17 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            pushEventManager.event.filterIsInstance<PushEvent.ServerTransactionEvent>().collect {
-                if (it.transactionId == txId) {
-                    Timber.d("ServerTransactionEvent")
-                    delay(2000L)
-                    getTransactionInfo()
+            pushEventManager.event.collect {event ->
+                if (event is PushEvent.ServerTransactionEvent) {
+                    if (event.transactionId == txId) {
+                        Timber.d("ServerTransactionEvent")
+                        delay(2000L)
+                        getTransactionInfo()
+                    }
+                } else if (event is PushEvent.TransactionCancelled) {
+                    if (event.transactionId == txId) {
+                        setEvent(DeleteTransactionSuccess(true))
+                    }
                 }
             }
         }
@@ -209,7 +270,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                             initNumberOfSignedKey = signedCount
                         } else if (signedCount > initNumberOfSignedKey) {
                             initNumberOfSignedKey = signedCount
-                            if (signedCount > 0 && it.transaction.status.isPendingSignatures()) {
+                            if (signedCount > 0 && (it.transaction.status.isPendingSignatures() || it.transaction.status.canBroadCast())) {
                                 requestServerSignTransaction(it.transaction.psbt)
                             }
                         }
@@ -451,7 +512,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
             PromptTransactionOptions(
                 isPendingTransaction = status.isPending(),
                 isPendingConfirm = status.isPendingConfirm(),
-                isRejected = status.isRejected()
+                isRejected = status.isRejected(),
+                canBroadcast = status.canBroadCast()
             )
         )
     }
@@ -687,6 +749,15 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }.onFailure {
                     event(TransactionError(it.readableMessage()))
                 }
+        }
+    }
+
+    fun getRawTransaction() = viewModelScope.launch {
+        val result = getRawTransactionUseCase(GetRawTransactionUseCase.Param(walletId, txId))
+        if (result.isSuccess) {
+            setEvent(GetRawTransactionSuccess(result.getOrThrow()))
+        } else {
+            setEvent(TransactionError(result.exceptionOrNull()?.readableMessage().orUnknownError()))
         }
     }
 

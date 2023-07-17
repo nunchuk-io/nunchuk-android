@@ -42,6 +42,7 @@ data class EstimatedFeeArgs(
     val slots: List<SatsCardSlot> = emptyList(),
     val masterSignerId: String = "",
     val magicalPhrase: String = "",
+    val derivationPath: String = "",
     val inputs: List<UnspentOutput> = emptyList(),
 ) : ActivityArgs {
 
@@ -56,6 +57,7 @@ data class EstimatedFeeArgs(
         putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
         putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
         putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
+        putExtra(EXTRA_DERIVATION_PATH, derivationPath)
     }
 
     companion object {
@@ -67,6 +69,7 @@ data class EstimatedFeeArgs(
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
         private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
         private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
+        private const val EXTRA_DERIVATION_PATH = "EXTRA_DERIVATION_PATH"
         private const val EXTRA_INPUT = "EXTRA_INPUT"
         private const val EXTRA_TX_RECEIPTS = "EXTRA_TX_RECEIPTS"
 
@@ -79,6 +82,7 @@ data class EstimatedFeeArgs(
             slots = intent.extras?.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
             masterSignerId = intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
             magicalPhrase = intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE),
+            derivationPath = intent.extras.getStringValue(EXTRA_DERIVATION_PATH),
             inputs = intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
             txReceipts = intent.extras?.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty()
         )

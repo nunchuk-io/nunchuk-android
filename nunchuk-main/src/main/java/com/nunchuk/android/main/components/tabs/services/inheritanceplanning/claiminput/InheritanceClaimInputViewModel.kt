@@ -35,7 +35,11 @@ import com.nunchuk.android.main.util.ChecksumUtil
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -85,7 +89,8 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 if (resultImport.isSuccess) {
                     getStatus(
                         masterSignerMapper(resultImport.getOrThrow()),
-                        stateValue.magicalPhrase
+                        stateValue.magicalPhrase,
+                        result.getOrThrow().derivationPath
                     )
                 } else {
                     _event.emit(InheritanceClaimInputEvent.Error(resultImport.exceptionOrNull()?.message.orUnknownError()))
@@ -105,27 +110,30 @@ class InheritanceClaimInputViewModel @Inject constructor(
         }
     }
 
-    private fun getStatus(signer: SignerModel, magic: String) = viewModelScope.launch {
-        _event.emit(InheritanceClaimInputEvent.Loading(true))
-        val result = getInheritanceClaimStateUseCase(
-            GetInheritanceClaimStateUseCase.Param(
-                signer = signer,
-                magic = magic
-            )
-        )
-        _event.emit(InheritanceClaimInputEvent.Loading(false))
-        if (result.isSuccess) {
-            _event.emit(
-                InheritanceClaimInputEvent.GetInheritanceStatusSuccess(
-                    inheritanceAdditional = result.getOrThrow(),
+    private fun getStatus(signer: SignerModel, magic: String, derivationPath: String) =
+        viewModelScope.launch {
+            _event.emit(InheritanceClaimInputEvent.Loading(true))
+            val result = getInheritanceClaimStateUseCase(
+                GetInheritanceClaimStateUseCase.Param(
                     signer = signer,
-                    magic = magic
+                    magic = magic,
+                    derivationPath = derivationPath
                 )
             )
-        } else {
-            _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(InheritanceClaimInputEvent.Loading(false))
+            if (result.isSuccess) {
+                _event.emit(
+                    InheritanceClaimInputEvent.GetInheritanceStatusSuccess(
+                        inheritanceAdditional = result.getOrThrow(),
+                        signer = signer,
+                        magic = magic,
+                        derivationPath = derivationPath
+                    )
+                )
+            } else {
+                _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
-    }
 
     fun updateBackupPassword(password: String) {
         _state.update { it.copy(backupPassword = password) }

@@ -34,12 +34,15 @@ import com.nunchuk.android.persistence.entity.*
         SyncEventEntity::class,
         HandledEventEntity::class,
         AssistedWalletEntity::class,
+        RequestAddKeyEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7),
+        AutoMigration(from = 7, to = 8),
+        AutoMigration(from = 8, to = 9),
     ]
 )
 @TypeConverters(Converters::class)
@@ -50,4 +53,5 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun syncEventDao(): SyncEventDao
     abstract fun handledEventDao(): HandledEventDao
     abstract fun assistedWalletDao(): AssistedWalletDao
+    abstract fun requestAddKeyDao(): RequestAddKeyDao
 }

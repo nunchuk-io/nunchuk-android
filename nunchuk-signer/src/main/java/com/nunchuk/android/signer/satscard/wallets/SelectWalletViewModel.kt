@@ -129,7 +129,8 @@ class SelectWalletViewModel @Inject constructor(
                 address = _state.value.selectWalletAddress,
                 feeRate = _state.value.feeRates.priorityRate.toAmount(),
                 masterSignerId = args.masterSignerId,
-                magic = args.magicalPhrase
+                magic = args.magicalPhrase,
+                derivationPath = args.derivationPath
             )
         )
         _event.emit(SelectWalletEvent.Loading(false))

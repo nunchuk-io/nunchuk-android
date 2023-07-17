@@ -24,7 +24,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,7 +63,13 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcDashLineBox
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTag
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -130,6 +145,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
                     SignerType.AIRGAP,
                     SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
+
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             } else {
@@ -142,7 +158,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
-        childFragmentManager.setFragmentResultListener(AssistedWalletBottomSheet.TAG, viewLifecycleOwner) { _, bundle ->
+        childFragmentManager.setFragmentResultListener(
+            AssistedWalletBottomSheet.TAG,
+            viewLifecycleOwner
+        ) { _, bundle ->
             val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
             viewModel.reuseKeyFromWallet(walletId)
         }
@@ -156,32 +175,51 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SignerType.NFC,
                 ::openSetupTapSigner
             )
+
             SignerType.COLDCARD_NFC.ordinal -> handleShowKeysOrCreate(
                 viewModel.getColdcard(),
                 SignerType.COLDCARD_NFC,
                 ::showAddColdcardOptions
             )
+
             SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(
                 viewModel.getAirgap(),
                 SignerType.AIRGAP,
                 ::showAirgapOptions
             )
+
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 requireActivity(),
                 true,
                 ColdcardAction.RECOVER_KEY
             )
+
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
+
+            SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
+            SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
+            SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
+        }
+    }
+
+    private fun openRequestAddDesktopKey(tag: SignerTag) {
+        membershipStepManager.currentStep?.let { step ->
+            findNavController().navigate(
+                AddKeyListFragmentDirections.actionAddKeyListFragmentToAddDesktopKeyFragment(
+                    tag,
+                    step
+                )
+            )
         }
     }
 
     private fun handleSelectAddAirgapType(type: Int) {
-        val tag = when(type) {
+        val tag = when (type) {
             SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
@@ -208,6 +246,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     type = SheetOptionType.TYPE_ADD_COLDCARD_NFC,
                     label = getString(R.string.nc_add_coldcard_via_nfc),
                     resId = R.drawable.ic_nfc_indicator_small
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_USB,
+                    label = getString(R.string.nc_add_coldcard_via_usb),
+                    resId = R.drawable.ic_usb
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_COLDCARD_FILE,
@@ -263,13 +306,16 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             MembershipStep.ADD_SEVER_KEY -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
             }
+
             MembershipStep.HONEY_ADD_TAP_SIGNER -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerInheritanceIntroFragment())
             }
+
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
+
             MembershipStep.SETUP_KEY_RECOVERY,
             MembershipStep.SETUP_INHERITANCE,
             MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
@@ -290,6 +336,14 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SheetOption(
                     type = SignerType.AIRGAP.ordinal,
                     label = getString(R.string.nc_signer_air_gapped)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_LEDGER,
+                    label = getString(R.string.nc_ledger)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_TREZOR,
+                    label = getString(R.string.nc_trezor)
                 ),
             ),
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),

@@ -23,19 +23,15 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
-import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
-import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
-import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
@@ -139,7 +135,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 launcher = coinSelectLauncher,
                 context = this,
                 walletId = args.walletId,
-                inputs = viewModel.getSelectedCoins(),
+                inputs = viewModel.getInputsCoins(),
                 amount = binding.totalAmountBTC.tag as Double
             )
         }
@@ -240,6 +236,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             slots = args.slots,
             masterSignerId = args.masterSignerId,
             magicalPhrase = args.magicalPhrase,
+            derivationPath = args.derivationPath,
             inputs = viewModel.getSelectedCoins()
         )
     }
@@ -257,6 +254,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             slots: List<SatsCardSlot>,
             masterSignerId: String = "",
             magicalPhrase: String = "",
+            derivationPath: String = "",
             inputs: List<UnspentOutput> = emptyList()
         ) {
             activityContext.startActivity(
@@ -270,6 +268,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     slots = slots,
                     masterSignerId = masterSignerId,
                     magicalPhrase = magicalPhrase,
+                    derivationPath = derivationPath,
                     inputs = inputs
                 ).buildIntent(activityContext)
             )

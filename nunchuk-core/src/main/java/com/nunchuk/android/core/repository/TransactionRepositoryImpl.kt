@@ -64,6 +64,6 @@ class TransactionRepositoryImpl @Inject constructor(
                 ncDataStore.fee.firstOrNull(),
                 EstimateFeeRates::class.java
             )
-        }.getOrDefault(EstimateFeeRates())
+        }.getOrNull() ?: EstimateFeeRates()
     }
 }
