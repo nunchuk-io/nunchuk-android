@@ -287,4 +287,27 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Query("offset") offset: Int
     ): Data<TransactionsResponse>
+
+    @POST("/v1.1/user-wallets/draft-wallets/request-add-key")
+    suspend fun requestAddKey(
+        @Body payload: DesktopKeyRequest
+    ): Data<RequestDesktopKeyResponse>
+
+    @DELETE("/v1.1/user-wallets/draft-wallets/current")
+    suspend fun deleteDraftWallet(): Data<Unit>
+
+    @GET("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}")
+    suspend fun getRequestAddKeyStatus(
+        @Path("request_id") requestId: String,
+    ): Data<RequestDesktopKeyResponse>
+
+    @DELETE("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}")
+    suspend fun cancelRequestAddKey(
+        @Path("request_id") requestId: String,
+    ): Data<Unit>
+
+    @POST("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}/push")
+    suspend fun pushRequestAddKey(
+        @Path("request_id") requestId: String,
+    ): Data<Unit>
 }

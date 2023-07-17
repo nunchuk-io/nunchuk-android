@@ -34,18 +34,60 @@ import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.sheet.*
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.BottomSheetTooltip
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.bindTransactionStatus
+import com.nunchuk.android.core.util.canBroadCast
+import com.nunchuk.android.core.util.copyToClipboard
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getFormatDate
+import com.nunchuk.android.core.util.getPendingSignatures
+import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.hasChangeIndex
+import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.setUnderline
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
-import com.nunchuk.android.share.model.TransactionOption.*
+import com.nunchuk.android.share.model.TransactionOption.CANCEL
+import com.nunchuk.android.share.model.TransactionOption.COPY_TRANSACTION_ID
+import com.nunchuk.android.share.model.TransactionOption.EXPORT_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.IMPORT_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
+import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
+import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.DeleteTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ExportToFileSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ExportTransactionToMk4Success
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ImportTransactionFromMk4Success
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ImportTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.LoadingEvent
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.NfcLoadingEvent
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.NoInternetConnection
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.PromptInputPassphrase
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.PromptTransactionOptions
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.SignTransactionSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.TransactionDetailsError
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.TransactionError
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.UpdateTransactionMemoFailed
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.UpdateTransactionMemoSuccess
+import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ViewBlockchainExplorer
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
@@ -397,6 +439,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                         }
                     }
                     SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
+                    SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                     else -> viewModel.handleSignSoftwareKey(signer)
                 }
             }).bindItems()
@@ -538,6 +581,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
             ImportTransactionSuccess -> NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
             NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
+            is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
         }
     }
 
@@ -594,7 +638,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isPendingConfirm = event.isPendingConfirm,
             isRejected = event.isRejected,
             isAssistedWallet = viewModel.isAssistedWallet(),
-            isScheduleBroadcast = viewModel.isScheduleBroadcast()
+            isScheduleBroadcast = viewModel.isScheduleBroadcast(),
+            canBroadcast = event.canBroadcast
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
@@ -602,6 +647,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 IMPORT_TRANSACTION -> showImportTransactionOptions()
                 REPLACE_BY_FEE -> handleOpenEditFee()
                 COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
+                COPY_RAW_TRANSACTION_HEX -> viewModel.getRawTransaction()
                 REMOVE_TRANSACTION -> viewModel.handleDeleteTransactionEvent(false)
                 SCHEDULE_BROADCAST -> if (viewModel.isScheduleBroadcast()) {
                     viewModel.cancelScheduleBroadcast()

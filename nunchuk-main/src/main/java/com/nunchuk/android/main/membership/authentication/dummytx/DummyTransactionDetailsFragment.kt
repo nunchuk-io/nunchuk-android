@@ -164,6 +164,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                         WalletAuthenticationEvent.ShowAirgapOption -> handleMenuMore()
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
+                        WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                     }
                 }
         }

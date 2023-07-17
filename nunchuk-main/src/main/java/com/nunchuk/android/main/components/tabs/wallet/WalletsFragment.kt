@@ -331,7 +331,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun handleLoading(event: Loading) {
-        binding.walletLoading.root.isVisible = event.loading
+        showOrHideLoading(event.loading)
     }
 
     private fun openWalletIntroScreen() {

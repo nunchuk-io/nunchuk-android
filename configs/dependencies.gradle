@@ -10,7 +10,7 @@ ext {
     gsonVersion = '2.8.2'
     androidTestVersion = '1.1.0'
 
-    roomVersion = '2.5.0'
+    roomVersion = '2.5.2'
     workMangerVersion = '2.0.0'
     lifecycleVersion = '2.5.0'
 
@@ -28,7 +28,7 @@ ext {
     hiltVersion = "2.44.2"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.61'
+    nativeSdkVersion = '1.1.62'
 
     // Matrix
     matrixSdkVersion = '1.5.30'
@@ -38,10 +38,10 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 32
+    PATCH_VERSION = 33
     TASK_LABEL = "UAT"
 
-    VERSION_CODE = 207
+    VERSION_CODE = 210
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",

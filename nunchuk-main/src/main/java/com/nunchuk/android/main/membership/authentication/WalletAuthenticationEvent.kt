@@ -35,6 +35,7 @@ sealed class WalletAuthenticationEvent {
 
     object ScanTapSigner : WalletAuthenticationEvent()
     object ScanColdCard : WalletAuthenticationEvent()
+    object CanNotSignHardwareKey : WalletAuthenticationEvent()
     object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
     object ShowAirgapOption : WalletAuthenticationEvent()
     object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()

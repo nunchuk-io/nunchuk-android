@@ -22,6 +22,8 @@ package com.nunchuk.android.core.push
 sealed class PushEvent {
     data class ServerTransactionEvent(val walletId: String, val transactionId: String) : PushEvent()
     data class MessageEvent(val message: String) : PushEvent()
-
     object TransactionCreatedEvent : PushEvent()
+    object AddDesktopKeyCompleted : PushEvent()
+    data class WalletCreate(val walletId: String) : PushEvent()
+    data class TransactionCancelled(val walletId: String, val transactionId: String) : PushEvent()
 }

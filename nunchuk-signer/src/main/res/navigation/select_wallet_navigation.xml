@@ -30,6 +30,11 @@
             android:name="magical_phrase"
             android:defaultValue=""
             app:argType="string" />
+
+        <argument
+            android:name="derivation_path"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
 
 </navigation>

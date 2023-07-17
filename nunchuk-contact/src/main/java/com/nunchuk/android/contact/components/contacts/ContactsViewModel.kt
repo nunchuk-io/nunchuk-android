@@ -23,20 +23,17 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
 import com.nunchuk.android.contact.usecase.GetSentContactsUseCase
+import com.nunchuk.android.core.domain.message.HandlePushMessageUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.push.PushEvent
-import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.messages.components.list.isServerNotices
-import com.nunchuk.android.messages.util.*
+import com.nunchuk.android.messages.util.isContactUpdateEvent
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.share.GetContactsUseCase
-import com.nunchuk.android.usecase.IsHandledEventUseCase
-import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
@@ -56,10 +53,8 @@ class ContactsViewModel @Inject constructor(
     private val getSentContactsUseCase: GetSentContactsUseCase,
     private val getReceivedContactsUseCase: GetReceivedContactsUseCase,
     private val sessionHolder: SessionHolder,
-    private val pushEventManager: PushEventManager,
-    private val isHandledEventUseCase: IsHandledEventUseCase,
-    private val saveHandledEventUseCase: SaveHandledEventUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val handlePushMessageUseCase: HandlePushMessageUseCase,
 ) : NunchukViewModel<ContactsState, Unit>() {
     override val initialState = ContactsState.empty()
 
@@ -146,25 +141,7 @@ class ContactsViewModel @Inject constructor(
 
     private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
         events.forEach { event ->
-            if (event.isTransactionHandleErrorMessageEvent() || event.isServerTransactionEvent()) {
-                val result = isHandledEventUseCase.invoke(event.eventId)
-                if (result.getOrDefault(false).not()) {
-                    saveHandledEventUseCase.invoke(event.eventId)
-                    if (event.isTransactionHandleErrorMessageEvent()) {
-                        pushEventManager.push(
-                            PushEvent.MessageEvent(
-                                event.getLastMessageContentSafe().orEmpty()
-                            )
-                        )
-                    }
-                    pushEventManager.push(
-                        PushEvent.ServerTransactionEvent(
-                            event.getWalletId(),
-                            event.getTransactionId()
-                        )
-                    )
-                }
-            }
+            handlePushMessageUseCase(event)
         }
         events.findLast(TimelineEvent::isContactUpdateEvent)?.let { retrieveContacts() }
     }

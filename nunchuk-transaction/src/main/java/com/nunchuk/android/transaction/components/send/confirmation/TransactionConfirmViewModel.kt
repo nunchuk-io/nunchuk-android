@@ -42,11 +42,11 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxSuccessEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.DraftTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionError
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.DraftTransactionSuccess
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
@@ -90,6 +90,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private lateinit var privateNote: String
     private var masterSignerId: String = ""
     private var magicalPhrase: String = ""
+    private var derivationPath: String = ""
 
     override val initialState = Unit
 
@@ -103,6 +104,7 @@ class TransactionConfirmViewModel @Inject constructor(
         masterSignerId: String,
         magicalPhrase: String,
         inputs: List<UnspentOutput> = emptyList(),
+        derivationPath: String
     ) {
         this.walletId = walletId
         this.txReceipts = txReceipts
@@ -119,6 +121,7 @@ class TransactionConfirmViewModel @Inject constructor(
         }
         this.masterSignerId = masterSignerId
         this.magicalPhrase = magicalPhrase
+        this.derivationPath = derivationPath
         if (inputs.isNotEmpty()) {
             getAllTags()
         }
@@ -238,7 +241,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 CreateTransactionUseCase.Param(
                     walletId = walletId,
                     outputs = getOutputs(),
-                    inputs = inputs,
+                    inputs = inputs.map { TxInput(it.txid, it.vout) },
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     feeRate = manualFeeRate.toManualFeeRate(),
                     memo = privateNote,
@@ -281,7 +284,8 @@ class TransactionConfirmViewModel @Inject constructor(
                 address = txReceipts.first().address,
                 feeRate = manualFeeRate.toManualFeeRate(),
                 masterSignerId = masterSignerId,
-                magic = magicalPhrase
+                magic = magicalPhrase,
+                derivationPath = derivationPath
             )
         )
         if (result.isSuccess) {
