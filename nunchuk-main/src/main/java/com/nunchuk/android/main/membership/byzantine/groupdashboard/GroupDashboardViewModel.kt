@@ -16,6 +16,7 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletUseCase
+import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -42,6 +43,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val getGroupWalletUseCase: GetGroupWalletUseCase,
     private val assistedWalletManager: AssistedWalletManager,
+    private val getAlertGroupUseCase: GetAlertGroupUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -65,6 +67,14 @@ class GroupDashboardViewModel @Inject constructor(
         getGroupWallets()
         if (args.walletId != null) {
             getWallet(args.walletId)
+        }
+        getAlerts()
+    }
+
+    private fun getAlerts() = viewModelScope.launch {
+        val result = getAlertGroupUseCase(args.groupId)
+        if (result.isSuccess) {
+            _state.value = _state.value.copy(alerts = result.getOrDefault(emptyList()))
         }
     }
 

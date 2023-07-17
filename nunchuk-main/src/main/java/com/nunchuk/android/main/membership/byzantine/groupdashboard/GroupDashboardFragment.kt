@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,12 +67,14 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
+import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -93,11 +96,12 @@ class GroupDashboardFragment : MembershipFragment() {
 
     private val viewModel: GroupDashboardViewModel by activityViewModels()
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            requireActivity().finish()
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                requireActivity().finish()
+            }
         }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -114,19 +118,28 @@ class GroupDashboardFragment : MembershipFragment() {
                             flow = ByzantineMemberFlow.EDIT,
                         )
                     )
-                }, onGroupWalletCreationPending = {
-                    navigator.openMembershipActivity(
-                        launcher = launcher,
-                        activityContext = requireActivity(),
-                        groupStep = MembershipStage.NONE,
-                        groupId = args.groupId
-                    )
+                }, onAlertClick = {
+                    alertClick(it)
                 }, onWalletClick = {
                     args.walletId?.let {
-                        navigator.openWalletDetailsScreen(activityContext = requireActivity(), walletId = it)
+                        navigator.openWalletDetailsScreen(
+                            activityContext = requireActivity(),
+                            walletId = it
+                        )
                     }
                 })
             }
+        }
+    }
+
+    private fun alertClick(type: String) {
+        if (type == "GROUP_WALLET_PENDING") {
+            navigator.openMembershipActivity(
+                launcher = launcher,
+                activityContext = requireActivity(),
+                groupStep = MembershipStage.NONE,
+                groupId = args.groupId
+            )
         }
     }
 
@@ -145,18 +158,18 @@ class GroupDashboardFragment : MembershipFragment() {
 private fun GroupDashboardScreen(
     viewModel: GroupDashboardViewModel = viewModel(),
     onEditClick: () -> Unit = {},
-    onGroupWalletCreationPending: (String) -> Unit = {},
-    onWalletClick: () -> Unit = {}
+    onWalletClick: () -> Unit = {},
+    onAlertClick: (String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     GroupDashboardContent(
         group = state.group,
         currentUserRole = viewModel.currentUserRole(),
-        isShowSetupInheritance = viewModel.isShowSetupInheritance(),
         walletName = state.walletExtended.wallet.name,
+        alerts = state.alerts,
         onEditClick = onEditClick,
-        onGroupWalletCreationPending = onGroupWalletCreationPending,
-        onWalletClick = onWalletClick
+        onWalletClick = onWalletClick,
+        onAlertClick = onAlertClick
     )
 }
 
@@ -164,11 +177,11 @@ private fun GroupDashboardScreen(
 @Composable
 private fun GroupDashboardContent(
     group: ByzantineGroup? = null,
-    isShowSetupInheritance: Boolean = false,
+    alerts: List<Alert> = emptyList(),
     walletName: String = "",
     currentUserRole: String = "",
     onEditClick: () -> Unit = {},
-    onGroupWalletCreationPending: (String) -> Unit = {},
+    onAlertClick: (String) -> Unit = {},
     onMoreClick: () -> Unit = {},
     onWalletClick: () -> Unit = {}
 ) {
@@ -185,6 +198,7 @@ private fun GroupDashboardContent(
                 NcTopAppBar(
                     backgroundColor = colorResource(id = R.color.nc_grey_light),
                     title = walletName,
+                    textStyle = NunchukTheme.typography.titleLarge,
                     elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
@@ -222,83 +236,86 @@ private fun GroupDashboardContent(
             if (group == null) return@Scaffold
             Column(
                 modifier = Modifier
-                    .background(colorResource(id = R.color.nc_grey_light))
                     .padding(innerPadding)
                     .fillMaxHeight()
             ) {
-                Row(modifier = Modifier.padding(bottom = 12.dp, start = 16.dp, end = 16.dp)) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_alert), contentDescription = ""
-                    )
-                    Text(
-                        modifier = Modifier.padding(top = 0.dp, start = 8.dp),
-                        text = stringResource(R.string.nc_alert),
-                        style = NunchukTheme.typography.title
-                    )
-                }
-
-                if (group.isPendingWallet()) {
-                    AlertView(
-                        title = "Group wallet creation pending",
-                        keyText = "1 key pending",
-                        timeText = "06/28/2023 at 5:44 PM",
-                        onViewClick = {
-                            onGroupWalletCreationPending(group.id)
-                        }
-                    )
-                }
-
-                if (isShowSetupInheritance) {
-                    AlertView(
-                        title = "$walletName: inheritance plan creation",
-                        keyText = "1 key pending",
-                        timeText = "06/28/2023 at 5:44 PM",
-                        onViewClick = {
-                            onGroupWalletCreationPending(group.id)
-                        }
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .padding(top = 24.dp)
-                        .background(Color.White)
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_account_member),
-                            contentDescription = ""
-                        )
-                        Text(
-                            modifier = Modifier.padding(top = 0.dp, start = 8.dp, end = 16.dp),
-                            text = stringResource(R.string.nc_members),
-                            style = NunchukTheme.typography.title
-                        )
-                    }
-
-                    if (currentUserRole == AssistedWalletRole.MASTER.name || currentUserRole == AssistedWalletRole.ADMIN.name) {
-                        Text(
-                            modifier = Modifier.clickable {
-                                onEditClick()
-                            },
-                            text = stringResource(id = R.string.nc_edit),
-                            style = NunchukTheme.typography.title,
-                            textDecoration = TextDecoration.Underline,
-                            color = colorResource(id = R.color.nc_primary_color)
-                        )
-                    }
-                }
-
                 LazyColumn(
                     modifier = Modifier
-                        .background(Color.White)
+                        .background(colorResource(id = R.color.nc_grey_light))
                         .weight(1.0f)
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .padding(top = 16.dp)
                 ) {
+                    if (alerts.isNotEmpty()) {
+                        item {
+                            Row(
+                                modifier = Modifier.padding(
+                                    bottom = 12.dp,
+                                    start = 16.dp,
+                                    end = 16.dp
+                                )
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_alert),
+                                    contentDescription = ""
+                                )
+                                Text(
+                                    modifier = Modifier.padding(top = 0.dp, start = 8.dp),
+                                    text = stringResource(R.string.nc_alert),
+                                    style = NunchukTheme.typography.title
+                                )
+                            }
+                        }
+                    }
+                    items(alerts) {
+                        AlertView(
+                            title = it.title,
+                            keyText = it.body,
+                            timeText = (it.createdTimeMillis / 1000).formatDate(),
+                            onViewClick = {
+                                onAlertClick(it.type)
+                            }
+                        )
+                    }
+
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .padding(top = if (alerts.isNotEmpty()) 24.dp else 0.dp)
+                                .background(Color.White)
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_account_member),
+                                    contentDescription = ""
+                                )
+                                Text(
+                                    modifier = Modifier.padding(
+                                        top = 0.dp,
+                                        start = 8.dp,
+                                        end = 16.dp
+                                    ),
+                                    text = stringResource(R.string.nc_members),
+                                    style = NunchukTheme.typography.title
+                                )
+                            }
+
+                            if (currentUserRole == AssistedWalletRole.MASTER.name || currentUserRole == AssistedWalletRole.ADMIN.name) {
+                                Text(
+                                    modifier = Modifier.clickable {
+                                        onEditClick()
+                                    },
+                                    text = stringResource(id = R.string.nc_edit),
+                                    style = NunchukTheme.typography.title,
+                                    textDecoration = TextDecoration.Underline,
+                                    color = colorResource(id = R.color.nc_primary_color)
+                                )
+                            }
+                        }
+                    }
+
                     item {
                         master?.let {
                             ContactMemberView(
@@ -311,7 +328,12 @@ private fun GroupDashboardContent(
                     }
 
                     item {
-                        Divider(color = colorResource(id = R.color.nc_whisper_color))
+                        Divider(
+                            color = colorResource(id = R.color.nc_whisper_color),
+                            modifier = Modifier
+                                .background(color = Color.White)
+                                .padding(8.dp)
+                        )
                     }
 
                     itemsIndexed(group.members) { _, member ->
@@ -326,7 +348,6 @@ private fun GroupDashboardContent(
                             isPendingMember = member.isContact().not()
                         )
                     }
-
                 }
             }
         }
@@ -342,7 +363,7 @@ private fun AlertView(
 ) {
     Box(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(12.dp))
             .border(
@@ -386,9 +407,14 @@ private fun ContactMemberView(
     name: String = "",
     role: String = AssistedWalletRole.NONE.name,
     avatarUrl: String = "",
-    isPendingMember: Boolean = false
+    isPendingMember: Boolean = false,
 ) {
-    Column {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = Color.White)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {

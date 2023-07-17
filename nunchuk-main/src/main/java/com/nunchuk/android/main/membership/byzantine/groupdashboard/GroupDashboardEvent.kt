@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
+import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.WalletExtended
@@ -15,4 +16,5 @@ data class GroupDashboardState(
     val members: List<ByzantineMember> = emptyList(),
     val group: ByzantineGroup? = null,
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
+    val alerts: List<Alert> = emptyList()
 )
