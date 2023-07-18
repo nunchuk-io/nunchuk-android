@@ -4,6 +4,7 @@ import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
+import com.nunchuk.android.core.data.model.byzantine.DummyTransactionResponse
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
 import com.nunchuk.android.core.data.model.byzantine.GetGroupsResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
@@ -141,4 +142,27 @@ internal interface GroupWalletApi {
         @Query("offset") offset: Int,
         @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT
     ): Data<GroupAlertResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun getDummyTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<DummyTransactionResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun updateDummyTransaction(
+        @HeaderMap headers: Map<String, String>,
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun deleteDummyTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<Unit>
+
 }

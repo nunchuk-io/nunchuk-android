@@ -145,14 +145,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.toSet
 import javax.inject.Inject
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
@@ -1810,7 +1806,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         private const val WALLET_DELETED_STATUS = "DELETED"
         private const val VERIFY_TOKEN = "Verify-token"
         private const val SECURITY_QUESTION_TOKEN = "Security-Question-token"
-        private const val AUTHORIZATION_X = "AuthorizationX"
+        internal const val AUTHORIZATION_X = "AuthorizationX"
     }
 }
 

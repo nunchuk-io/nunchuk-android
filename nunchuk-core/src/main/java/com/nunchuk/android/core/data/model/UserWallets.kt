@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.data.model
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
 import com.nunchuk.android.core.data.model.membership.KeyPoliciesDto
 import com.nunchuk.android.core.data.model.membership.ServerKeyDto
 import com.nunchuk.android.core.data.model.membership.TransactionServerDto
@@ -44,7 +45,8 @@ internal data class CreateSecurityQuestionResponse(
 )
 
 internal data class CreateServerKeyResponse(
-    @SerializedName("key") val key: ServerKeyDto? = null
+    @SerializedName("key") val key: ServerKeyDto? = null,
+    @SerializedName("dummy_transaction") val dummyTransaction: DummyTransactionDto? = null
 )
 
 internal data class UpdateWalletPayload(
