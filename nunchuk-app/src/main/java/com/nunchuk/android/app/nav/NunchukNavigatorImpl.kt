@@ -270,7 +270,9 @@ interface AppNavigatorDelegate : AppNavigator {
         requiredSignatures: Int,
         type: String,
         launcher: ActivityResultLauncher<Intent>,
-        activityContext: Activity
+        activityContext: Activity,
+        groupId: String?,
+        dummyTransactionId: String?
     ) {
         WalletAuthenticationActivity.start(
             walletId = walletId,

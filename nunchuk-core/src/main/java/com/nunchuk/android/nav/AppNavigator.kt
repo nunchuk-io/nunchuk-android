@@ -89,7 +89,9 @@ interface AppNavigator {
         requiredSignatures: Int,
         type: String,
         launcher: ActivityResultLauncher<Intent>,
-        activityContext: Activity
+        activityContext: Activity,
+        groupId: String? = null,
+        dummyTransactionId: String? = null
     )
 
     fun openGroupDashboardScreen(

@@ -38,6 +38,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -188,10 +189,9 @@ private fun GroupDashboardContent(
 
     val master = group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
 
-    NunchukTheme {
+    NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
         Scaffold(
             modifier = Modifier
-                .background(colorResource(id = R.color.nc_grey_light))
                 .navigationBarsPadding()
                 .statusBarsPadding(),
             topBar = {
@@ -242,7 +242,6 @@ private fun GroupDashboardContent(
                 LazyColumn(
                     modifier = Modifier
                         .background(colorResource(id = R.color.nc_grey_light))
-                        .weight(1.0f)
                         .padding(top = 16.dp)
                 ) {
                     if (alerts.isNotEmpty()) {
@@ -336,10 +335,7 @@ private fun GroupDashboardContent(
                         )
                     }
 
-                    itemsIndexed(group.members) { _, member ->
-                        if (member.role == AssistedWalletRole.MASTER.name) {
-                            return@itemsIndexed
-                        }
+                    itemsIndexed(group.members.filter { it.role == AssistedWalletRole.MASTER.name }) { _, member ->
                         ContactMemberView(
                             email = member.user?.email.orEmpty(),
                             name = member.user?.name.orEmpty(),
@@ -349,6 +345,13 @@ private fun GroupDashboardContent(
                         )
                     }
                 }
+                
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(color = MaterialTheme.colors.surface)
+                )
             }
         }
     }
