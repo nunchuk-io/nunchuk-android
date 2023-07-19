@@ -35,13 +35,20 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
+import androidx.compose.material.ExtendedFloatingActionButton
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,6 +84,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toTitle
@@ -128,6 +136,12 @@ class GroupDashboardFragment : MembershipFragment() {
                             walletId = it
                         )
                     }
+                }, onGroupChatClick = {
+                    if (viewModel.getGroupChatRoomId() != null) {
+                        openRoomChat()
+                    } else {
+                        viewModel.createGroupChat()
+                    }
                 })
             }
         }
@@ -150,8 +164,17 @@ class GroupDashboardFragment : MembershipFragment() {
             when (event) {
                 is GroupDashboardEvent.Error -> showError(message = event.message)
                 is GroupDashboardEvent.Loading -> showOrHideLoading(event.loading)
+                is GroupDashboardEvent.NavigateToGroupChat -> openRoomChat()
             }
         }
+    }
+
+    private fun openRoomChat() {
+        navigator.openRoomDetailActivity(
+            activityContext = requireActivity(),
+            roomId = viewModel.getGroupChatRoomId()!!,
+            isGroupChat = true
+        )
     }
 }
 
@@ -161,6 +184,7 @@ private fun GroupDashboardScreen(
     onEditClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
     onAlertClick: (String) -> Unit = {},
+    onGroupChatClick: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     GroupDashboardContent(
@@ -168,9 +192,12 @@ private fun GroupDashboardScreen(
         currentUserRole = viewModel.currentUserRole(),
         walletName = state.walletExtended.wallet.name,
         alerts = state.alerts,
+        groupChat = state.groupChat,
+        isEnableStartGroupChat = viewModel.isEnableStartGroupChat(),
         onEditClick = onEditClick,
         onWalletClick = onWalletClick,
-        onAlertClick = onAlertClick
+        onAlertClick = onAlertClick,
+        onGroupChatClick = onGroupChatClick
     )
 }
 
@@ -181,6 +208,9 @@ private fun GroupDashboardContent(
     alerts: List<Alert> = emptyList(),
     walletName: String = "",
     currentUserRole: String = "",
+    isEnableStartGroupChat: Boolean = false,
+    groupChat: GroupChat? = null,
+    onGroupChatClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onAlertClick: (String) -> Unit = {},
     onMoreClick: () -> Unit = {},
@@ -224,11 +254,44 @@ private fun GroupDashboardContent(
                     enter = scaleIn() + fadeIn(),
                     exit = scaleOut() + fadeOut()
                 ) {
-                    FloatingActionButton(onClick = {}) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_messages),
-                            contentDescription = "Search"
-                        )
+                    CompositionLocalProvider(
+                        LocalRippleTheme provides
+                                if (isEnableStartGroupChat) LocalRippleTheme.current else NoRippleTheme
+                    ) {
+                        if (groupChat != null) {
+                            FloatingActionButton(onClick = onGroupChatClick) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_messages),
+                                    contentDescription = "Search"
+                                )
+                            }
+                        } else {
+                            ExtendedFloatingActionButton(onClick = {
+                                if (isEnableStartGroupChat) onGroupChatClick()
+                            },
+                                backgroundColor = if (isEnableStartGroupChat) MaterialTheme.colors.secondary else colorResource(
+                                    id = R.color.nc_whisper_color
+                                ),
+                                text = {
+                                    Text(
+                                        text = "Start group chat",
+                                        color = if (isEnableStartGroupChat) Color.White else colorResource(
+                                            id = R.color.nc_grey_dark_color
+                                        )
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_create_message),
+                                        contentDescription = "Search",
+                                        tint = if (isEnableStartGroupChat) LocalContentColor.current.copy(
+                                            alpha = LocalContentAlpha.current
+                                        ) else colorResource(
+                                            id = R.color.nc_grey_dark_color
+                                        )
+                                    )
+                                })
+                        }
                     }
                 }
             }
@@ -335,7 +398,7 @@ private fun GroupDashboardContent(
                         )
                     }
 
-                    itemsIndexed(group.members.filter { it.role == AssistedWalletRole.MASTER.name }) { _, member ->
+                    itemsIndexed(group.members.filter { it.role != AssistedWalletRole.MASTER.name }) { _, member ->
                         ContactMemberView(
                             email = member.user?.email.orEmpty(),
                             name = member.user?.name.orEmpty(),
@@ -345,7 +408,7 @@ private fun GroupDashboardContent(
                         )
                     }
                 }
-                
+
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -355,6 +418,14 @@ private fun GroupDashboardContent(
             }
         }
     }
+}
+
+private object NoRippleTheme : RippleTheme {
+    @Composable
+    override fun defaultColor() = Color.Unspecified
+
+    @Composable
+    override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f, 0.0f, 0.0f, 0.0f)
 }
 
 @Composable

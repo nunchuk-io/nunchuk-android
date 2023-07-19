@@ -1,7 +1,9 @@
 package com.nunchuk.android.core.mapper
 
 import com.nunchuk.android.core.data.model.byzantine.AlertResponse
+import com.nunchuk.android.core.data.model.byzantine.GroupChatDto
 import com.nunchuk.android.core.data.model.byzantine.GroupResponse
+import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponseOrRequest
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
@@ -14,6 +16,8 @@ import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.GroupChat
+import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
@@ -116,6 +120,28 @@ internal fun AlertResponse.toAlert(): Alert {
         status = status.orEmpty(),
         title = title.orEmpty(),
         type = type.orEmpty(),
-        payload = AlertPayload(masterName = payload?.masterName.orEmpty(), pendingKeysCount = payload?.pendingKeysCount.orDefault(0))
+        payload = AlertPayload(
+            masterName = payload?.masterName.orEmpty(),
+            pendingKeysCount = payload?.pendingKeysCount.orDefault(0)
+        )
+    )
+}
+
+internal fun GroupChatDto.toGroupChat(): GroupChat {
+    return GroupChat(
+        createdTimeMillis = createdTimeMillis ?: 0,
+        groupId = groupId.orEmpty(),
+        historyPeriod = historyPeriod?.toHistoryPeriod() ?: HistoryPeriod(),
+        roomId = roomId.orEmpty()
+    )
+}
+
+internal fun HistoryPeriodResponseOrRequest?.toHistoryPeriod(): HistoryPeriod {
+    return HistoryPeriod(
+        displayName = this?.displayName.orEmpty(),
+        enabled = this?.enabled.orFalse(),
+        id = this?.id.orEmpty(),
+        interval = this?.interval.orEmpty(),
+        intervalCount = this?.intervalCount.orDefault(0)
     )
 }

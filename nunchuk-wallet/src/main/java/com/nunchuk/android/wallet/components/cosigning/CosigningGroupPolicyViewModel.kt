@@ -33,7 +33,7 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.byzantine.GetGroupServerKeysUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupWalletUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +50,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
     private val updateGroupServerKeysUseCase: UpdateGroupServerKeysUseCase,
     private val calculateRequiredSignaturesUpdateGroupKeyPolicyUseCase: CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase,
     private val getGroupKeyPolicyUserDataUseCase: GetGroupKeyPolicyUserDataUseCase,
-    private val getGroupWalletsUseCase: GetGroupWalletUseCase,
+    private val getGroupUseCase: GetGroupUseCase,
 ) : ViewModel() {
     private val args: CosigningGroupPolicyFragmentArgs =
         CosigningGroupPolicyFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -68,7 +68,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                     args.xfp
                 )
             ).getOrNull()
-            val group = getGroupWalletsUseCase(args.groupId).getOrNull()
+            val group = getGroupUseCase(args.groupId).getOrNull()
             if (keyPolicy != null && group != null) {
                 val members = group.members.mapNotNull { member ->
                     if (member.role.toRole.isKeyHolder) {

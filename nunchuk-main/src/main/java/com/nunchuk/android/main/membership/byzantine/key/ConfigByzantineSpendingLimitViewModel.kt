@@ -34,7 +34,7 @@ import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.model.byzantine.*
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.usecase.byzantine.GetGroupWalletUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -45,7 +45,7 @@ import javax.inject.Inject
 class ConfigByzantineSpendingLimitViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
     private val savedStateHandle: SavedStateHandle,
-    private val getGroupWalletsUseCase: GetGroupWalletUseCase,
+    private val getGroupUseCase: GetGroupUseCase,
 ) : ViewModel() {
     private val args =
         ConfigByzantineSpendingLimitFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -73,7 +73,7 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _event.emit(ConfigByzantineSpendingLimitEvent.Loading(true))
-            getGroupWalletsUseCase(args.groupId).onSuccess {
+            getGroupUseCase(args.groupId).onSuccess {
                 val spendingLimits = keyPolicy?.spendingPolicies.orEmpty()
                 val newPolicies = it.members.mapNotNull { member ->
                     val policy = spendingLimits[member.membershipId]?.let { spendingLimit ->

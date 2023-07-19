@@ -44,6 +44,7 @@ import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
+import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
 import com.nunchuk.android.core.data.model.byzantine.GroupResponse
 import com.nunchuk.android.core.data.model.byzantine.MemberRequest
@@ -69,6 +70,8 @@ import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toBackupKey
 import com.nunchuk.android.core.mapper.toByzantineGroup
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
+import com.nunchuk.android.core.mapper.toGroupChat
+import com.nunchuk.android.core.mapper.toHistoryPeriod
 import com.nunchuk.android.core.mapper.toInheritance
 import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.persistence.NcDataStore
@@ -85,7 +88,9 @@ import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.ByzantineMemberBrief
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
+import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
+import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.InheritanceCheck
@@ -1668,8 +1673,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getGroupWallet(groupId: String): ByzantineGroup {
-        val response = userWalletApiManager.groupWalletApi.getGroupWalletById(groupId)
+    override suspend fun getGroup(groupId: String): ByzantineGroup {
+        val response = userWalletApiManager.groupWalletApi.getGroup(groupId)
         return response.data.data?.toByzantineGroup()
             ?: throw NullPointerException("Can not get group")
     }
@@ -1794,6 +1799,35 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             if (response.data.alerts.orEmpty().size < TRANSACTION_PAGE_COUNT) return alerts
         }
         return alerts
+    }
+
+    override suspend fun createOrUpdateGroupChat(groupId: String, historyPeriodId: String?): GroupChat {
+        val response = if (historyPeriodId == null) {
+            userWalletApiManager.groupWalletApi.createGroupChat(
+                groupId = groupId,
+                CreateOrUpdateGroupChatRequest()
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.updateGroupChat(
+                groupId = groupId,
+                CreateOrUpdateGroupChatRequest(historyPeriodId)
+            )
+        }
+        return response.data.chat.toGroupChat()
+    }
+
+    override suspend fun getGroupChat(groupId: String): GroupChat {
+        val response = userWalletApiManager.groupWalletApi.getGroupChat(groupId)
+        return response.data.chat.toGroupChat()
+    }
+
+    override suspend fun deleteGroupChat(groupId: String) {
+        userWalletApiManager.groupWalletApi.deleteGroupChat(groupId)
+    }
+
+    override suspend fun getHistoryPeriod(): List<HistoryPeriod> {
+        val response = userWalletApiManager.groupWalletApi.getHistoryPeriods()
+        return response.data.periods.orEmpty().map { it.toHistoryPeriod() }
     }
 
     companion object {

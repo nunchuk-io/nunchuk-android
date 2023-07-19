@@ -39,6 +39,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private val navHostFragment by lazy(LazyThreadSafetyMode.NONE) {
         supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
     }
+
     override fun initializeBinding(): ActivityRoomDetailBinding {
         return ActivityRoomDetailBinding.inflate(layoutInflater)
     }
@@ -56,7 +57,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         val fragment = navHostFragment.childFragmentManager.primaryNavigationFragment
         if (fragment is RoomMediaViewerFragment) {
-           return fragment.dispatchTouchEvent(ev)
+            return fragment.dispatchTouchEvent(ev)
         }
         return super.dispatchTouchEvent(ev)
     }
@@ -64,13 +65,21 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     fun superDispatchTouchEvent(ev: MotionEvent) = super.dispatchTouchEvent(ev)
 
     companion object {
-        fun start(activityContext: Context, roomId: String, roomAction: RoomAction = RoomAction.NONE) {
+        fun start(
+            activityContext: Context,
+            roomId: String,
+            roomAction: RoomAction = RoomAction.NONE,
+            isGroupChat: Boolean = false
+        ) {
             activityContext.startActivity(
                 Intent(activityContext, RoomDetailActivity::class.java).apply {
-                    putExtras(RoomDetailFragmentArgs(
-                        roomId = roomId,
-                        roomAction = roomAction
-                    ).toBundle())
+                    putExtras(
+                        RoomDetailFragmentArgs(
+                            roomId = roomId,
+                            roomAction = roomAction,
+                            isGroupChat = isGroupChat
+                        ).toBundle()
+                    )
                 }
             )
         }

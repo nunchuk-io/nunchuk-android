@@ -25,7 +25,9 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
+import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
+import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.InheritanceCheck
@@ -292,7 +294,7 @@ interface PremiumWalletRepository {
     suspend fun getWalletConstraints(): WalletConstraints
     fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>>
     suspend fun syncGroupWallets(): Boolean
-    suspend fun getGroupWallet(groupId: String): ByzantineGroup
+    suspend fun getGroup(groupId: String): ByzantineGroup
     suspend fun deleteGroupWallet(groupId: String)
     suspend fun deleteGroup(groupId: String)
     suspend fun generateEditGroupMemberUserData(
@@ -317,4 +319,8 @@ interface PremiumWalletRepository {
     suspend fun groupMemberDenyRequest(groupId: String)
     suspend fun syncGroupWallet(groupId: String, groupAssistedKeys: MutableSet<String> = mutableSetOf()): Boolean
     suspend fun getAlerts(groupId: String): List<Alert>
+    suspend fun createOrUpdateGroupChat(groupId: String, historyPeriodId: String?): GroupChat
+    suspend fun getGroupChat(groupId: String): GroupChat
+    suspend fun deleteGroupChat(groupId: String)
+    suspend fun getHistoryPeriod(): List<HistoryPeriod>
 }

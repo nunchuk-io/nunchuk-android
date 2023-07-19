@@ -7,6 +7,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.components.list.isServerNotices
@@ -15,8 +16,10 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.usecase.GetWalletUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupWalletUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
+import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -41,9 +44,11 @@ class GroupDashboardViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val accountManager: AccountManager,
     private val sessionHolder: SessionHolder,
-    private val getGroupWalletUseCase: GetGroupWalletUseCase,
+    private val getGroupUseCase: GetGroupUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getAlertGroupUseCase: GetAlertGroupUseCase,
+    private val getGroupChatUseCase: GetGroupChatUseCase,
+    private val createOrUpdateGroupChatUseCase: CreateOrUpdateGroupChatUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -64,17 +69,25 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             timelineListenerAdapter.data.collect(::handleTimelineEvents)
         }
-        getGroupWallets()
+        getGroup()
         if (args.walletId != null) {
             getWallet(args.walletId)
         }
         getAlerts()
+        getGroupChat()
     }
 
     private fun getAlerts() = viewModelScope.launch {
         val result = getAlertGroupUseCase(args.groupId)
         if (result.isSuccess) {
             _state.value = _state.value.copy(alerts = result.getOrDefault(emptyList()))
+        }
+    }
+
+    private fun getGroupChat() = viewModelScope.launch {
+        val result = getGroupChatUseCase(args.groupId)
+        if (result.isSuccess) {
+            _state.value = _state.value.copy(groupChat = result.getOrNull())
         }
     }
 
@@ -92,11 +105,16 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    private fun getGroupWallets() {
+    private fun getGroup() {
         viewModelScope.launch {
-            val group = getGroupWalletUseCase(args.groupId).getOrNull()
+            val group = getGroupUseCase(args.groupId).getOrNull()
             _state.value = _state.value.copy(group = group, members = group?.members ?: listOf())
         }
+    }
+
+    fun isEnableStartGroupChat(): Boolean {
+        val members = state.value.members
+        return members.count { it.isContact() } == 2
     }
 
     private fun loadActiveSession() {
@@ -127,7 +145,7 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        events.findLast(TimelineEvent::isGroupMembershipRequestEvent)?.let { getGroupWallets() }
+        events.findLast(TimelineEvent::isGroupMembershipRequestEvent)?.let { getGroup() }
     }
 
     fun getAssistedMembers(): List<AssistedMember> {
@@ -157,4 +175,23 @@ class GroupDashboardViewModel @Inject constructor(
     fun isShowSetupInheritance(): Boolean =
         if (args.walletId != null) assistedWalletManager.isShowSetupInheritance(args.walletId) else false
 
+    fun getGroupChatRoomId(): String? {
+        return state.value.groupChat?.roomId
+    }
+
+    fun createGroupChat() {
+        viewModelScope.launch {
+            _event.emit(GroupDashboardEvent.Loading(true))
+            val result = createOrUpdateGroupChatUseCase(
+                CreateOrUpdateGroupChatUseCase.Param(args.groupId)
+            )
+            _event.emit(GroupDashboardEvent.Loading(false))
+            if (result.isSuccess) {
+                _state.value = _state.value.copy(groupChat = result.getOrNull())
+                _event.emit(GroupDashboardEvent.NavigateToGroupChat)
+            } else {
+                _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
 }

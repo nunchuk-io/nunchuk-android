@@ -372,7 +372,7 @@ internal class WalletsViewModel @Inject constructor(
             val groupWalletUis = getState().groupWalletUis
             val result = getPendingWalletNotifyCountUseCase(groupIds)
             if (result.isSuccess) {
-                val alerts = result.getOrThrow()
+                val alerts = result.getOrDefault(hashMapOf())
                 updateState {
                     copy(groupWalletUis = groupWalletUis.map {
                         it.copy(badgeCount = alerts[it.group?.groupId] ?: 0)
@@ -532,9 +532,7 @@ internal class WalletsViewModel @Inject constructor(
         val masterOrAdminName = group.members.firstOrNull {
             it.role == AssistedWalletRole.MASTER.name || it.role == AssistedWalletRole.ADMIN.name
         }?.emailOrUsername
-        return getState().plan == MembershipPlan.BYZANTINE && isMatchingEmailOrUserName(
-            masterOrAdminName.orEmpty()
-        )
+        return isMatchingEmailOrUserName(masterOrAdminName.orEmpty())
     }
 
     private fun getInviterName(group: ByzantineGroupBrief): String {

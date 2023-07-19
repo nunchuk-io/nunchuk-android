@@ -7,11 +7,11 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetGroupWalletUseCase @Inject constructor(
+class GetGroupUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UseCase<String, ByzantineGroup>(ioDispatcher) {
 
     override suspend fun execute(parameters: String): ByzantineGroup =
-        repository.getGroupWallet(parameters)
+        repository.getGroup(parameters)
 }

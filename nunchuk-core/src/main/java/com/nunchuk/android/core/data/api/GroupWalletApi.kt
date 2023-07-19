@@ -3,12 +3,15 @@ package com.nunchuk.android.core.data.api
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
+import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
 import com.nunchuk.android.core.data.model.byzantine.DummyTransactionResponse
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
 import com.nunchuk.android.core.data.model.byzantine.GetGroupsResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
-import com.nunchuk.android.core.data.model.byzantine.GroupWalletDataResponse
+import com.nunchuk.android.core.data.model.byzantine.GroupChatDataResponse
+import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
+import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
@@ -94,7 +97,7 @@ internal interface GroupWalletApi {
     suspend fun getPermissionGroupWallet(): Data<PermissionResponse>
 
     @POST("/v1.1/group-wallets/groups")
-    suspend fun createGroup(@Body payload: CreateGroupRequest): Data<GroupWalletDataResponse>
+    suspend fun createGroup(@Body payload: CreateGroupRequest): Data<GroupDataResponse>
 
     @GET("/v1.1/group-wallets/configs/wallet-constraints")
     suspend fun getGroupWalletsConstraints(): Data<WalletConstraintsDataResponse>
@@ -103,7 +106,7 @@ internal interface GroupWalletApi {
     suspend fun getGroups(): Data<GetGroupsResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}")
-    suspend fun getGroupWalletById(@Path("group_id") groupId: String): Data<GroupWalletDataResponse>
+    suspend fun getGroup(@Path("group_id") groupId: String): Data<GroupDataResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/members/calculate-requires-signatures")
     suspend fun calculateRequiredSignaturesEditMember(
@@ -115,7 +118,7 @@ internal interface GroupWalletApi {
     suspend fun editGroupMember(
         @Path("group_id") groupId: String,
         @HeaderMap headers: Map<String, String>, @Body payload: EditGroupMemberRequest
-    ): Data<GroupWalletDataResponse>
+    ): Data<GroupDataResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/create-from-draft")
     suspend fun createGroupWallet(
@@ -165,4 +168,28 @@ internal interface GroupWalletApi {
         @Path("dummy_transaction_id") transactionId: String,
     ): Data<Unit>
 
+    @POST("/v1.1/group-wallets/chat/{group_id}")
+    suspend fun createGroupChat(
+        @Path("group_id") groupId: String,
+        @Body payload: CreateOrUpdateGroupChatRequest
+    ): Data<GroupChatDataResponse>
+
+    @DELETE("/v1.1/group-wallets/chat/{group_id}/current")
+    suspend fun deleteGroupChat(
+        @Path("group_id") groupId: String,
+    ): Data<Unit>
+
+    @GET("/v1.1/group-wallets/chat/{group_id}/current")
+    suspend fun getGroupChat(
+        @Path("group_id") groupId: String,
+    ): Data<GroupChatDataResponse>
+
+    @PUT("/v1.1/group-wallets/chat/{group_id}/current")
+    suspend fun updateGroupChat(
+        @Path("group_id") groupId: String,
+        @Body body: CreateOrUpdateGroupChatRequest
+    ): Data<GroupChatDataResponse>
+
+    @GET("/v1.1/group-wallets/chat/settings/history-periods")
+    suspend fun getHistoryPeriods(): Data<HistoryPeriodResponse>
 }
