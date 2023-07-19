@@ -13,20 +13,25 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -244,8 +249,6 @@ private fun InviteMembersContent(
     onInputEmailChange: (Int, String, String) -> Unit = { _, _, _ -> },
     onSelectContact: (String) -> Unit = {}
 ) {
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
-    val coroutineScope = rememberCoroutineScope()
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -357,6 +360,7 @@ private fun InviteMembersContent(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Preview
 @Composable
 private fun MemberView(
@@ -375,6 +379,7 @@ private fun MemberView(
     var expanded by remember { mutableStateOf(false) }
     val isMaster = role == AssistedWalletRole.MASTER.name
     var dropdownSize by remember { mutableStateOf(Size.Zero) }
+    val keyboardController = LocalSoftwareKeyboardController.current
     fun onDropdownDismissRequest() {
         expanded = false
     }
@@ -505,7 +510,11 @@ private fun MemberView(
                                     onInputEmailChange(it, "")
                                     expanded = true
                                 },
-                                title = stringResource(id = R.string.nc_email_address)
+                                title = stringResource(id = R.string.nc_email_address),
+                                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(onDone = {
+                                    keyboardController?.hide()
+                                })
                             )
 
                             if (email.isNotEmpty() && suggestionContacts.isNotEmpty()) {
