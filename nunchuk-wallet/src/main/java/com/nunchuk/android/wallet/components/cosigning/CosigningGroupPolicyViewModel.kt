@@ -28,13 +28,18 @@ import com.nunchuk.android.core.domain.membership.UpdateGroupServerKeysUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.GroupKeyPolicy
+import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.byzantine.GetGroupServerKeysUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -90,6 +95,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
         _state.update {
             it.copy(
                 keyPolicy = keyPolicy,
+                dummyTransactionId = "",
                 isUpdateFlow = isEditMode
             )
         }
@@ -129,6 +135,16 @@ class CosigningGroupPolicyViewModel @Inject constructor(
 
     fun onSaveChangeClicked() {
         viewModelScope.launch {
+            if (state.value.dummyTransactionId.isNotEmpty()) {
+                _event.emit(
+                    CosigningGroupPolicyEvent.OnSaveChange(
+                        _state.value.requiredSignature,
+                        _state.value.userData,
+                        _state.value.dummyTransactionId
+                    )
+                )
+                return@launch
+            }
             _event.emit(CosigningGroupPolicyEvent.Loading(true))
             val result = calculateRequiredSignaturesUpdateGroupKeyPolicyUseCase(
                 CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase.Param(
@@ -140,14 +156,46 @@ class CosigningGroupPolicyViewModel @Inject constructor(
             )
             _event.emit(CosigningGroupPolicyEvent.Loading(false))
             if (result.isSuccess) {
-                val data = getGroupKeyPolicyUserDataUseCase(
+                val requiredSignature = result.getOrThrow()
+                getGroupKeyPolicyUserDataUseCase(
                     GetGroupKeyPolicyUserDataUseCase.Param(
                         args.walletId,
                         state.value.keyPolicy
                     )
-                ).getOrThrow()
-                _state.update { it.copy(userData = data) }
-                _event.emit(CosigningGroupPolicyEvent.OnSaveChange(result.getOrThrow(), data))
+                ).onSuccess { data ->
+                    _state.update { it.copy(userData = data) }
+                    if (requiredSignature.type == VerificationType.SIGN_DUMMY_TX) {
+                        updateGroupServerKeysUseCase(
+                            UpdateGroupServerKeysUseCase.Param(
+                                body = data,
+                                keyIdOrXfp = args.xfp,
+                                signatures = emptyMap(),
+                                securityQuestionToken = "",
+                                token = args.token,
+                                groupId = args.groupId,
+                            )
+                        ).onSuccess { transactionId ->
+                            _state.update { it.copy(dummyTransactionId = transactionId, requiredSignature = requiredSignature) }
+                            _event.emit(
+                                CosigningGroupPolicyEvent.OnSaveChange(
+                                    requiredSignature,
+                                    data,
+                                    transactionId
+                                )
+                            )
+                        }.onFailure { exception ->
+                            _event.emit(CosigningGroupPolicyEvent.ShowError(exception.message.orUnknownError()))
+                        }
+                    } else {
+                        _event.emit(
+                            CosigningGroupPolicyEvent.OnSaveChange(
+                                requiredSignature,
+                                data,
+                                ""
+                            )
+                        )
+                    }
+                }
             } else {
                 _event.emit(CosigningGroupPolicyEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
@@ -172,14 +220,19 @@ data class CosigningGroupPolicyState(
     val members: List<AssistedMember> = emptyList(),
     val isUpdateFlow: Boolean = false,
     val userData: String = "",
-    val signingDelayText: String = ""
+    val signingDelayText: String = "",
+    val dummyTransactionId: String = "",
+    val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
 )
 
 sealed class CosigningGroupPolicyEvent {
     class Loading(val isLoading: Boolean) : CosigningGroupPolicyEvent()
     class ShowError(val error: String) : CosigningGroupPolicyEvent()
-    class OnSaveChange(val required: CalculateRequiredSignatures, val data: String) :
-        CosigningGroupPolicyEvent()
+    class OnSaveChange(
+        val required: CalculateRequiredSignatures,
+        val data: String,
+        val dummyTransactionId: String
+    ) : CosigningGroupPolicyEvent()
 
     object OnEditSpendingLimitClicked : CosigningGroupPolicyEvent()
     object OnEditSingingDelayClicked : CosigningGroupPolicyEvent()

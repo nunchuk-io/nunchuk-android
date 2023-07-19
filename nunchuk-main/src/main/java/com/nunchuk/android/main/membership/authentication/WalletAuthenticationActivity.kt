@@ -27,6 +27,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -49,18 +50,14 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
         val graph = inflater.inflate(R.navigation.check_sign_message_navigation)
 
         when (args.type) {
-            SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
-            SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionIntroFragment)
-            SECURITY_QUESTION -> graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
+            VerificationType.SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
+            VerificationType.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionIntroFragment)
+            VerificationType.SECURITY_QUESTION -> graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
     }
 
     companion object {
-        internal const val SIGN_TEMP_MESSAGE = "SIGN_MESSAGE"
-        internal const val SIGN_DUMMY_TX = "SIGN_DUMMY_TX"
-        internal const val SECURITY_QUESTION = "SECURITY_QUESTION"
-
         fun start(
             walletId: String,
             userData: String,

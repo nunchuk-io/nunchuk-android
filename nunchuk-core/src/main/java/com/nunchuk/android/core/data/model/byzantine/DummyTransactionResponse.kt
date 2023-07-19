@@ -17,12 +17,12 @@ data class DummyTransactionDto(
     @SerializedName("signatures") val signatures: List<SignatureDto> = emptyList(),
     @SerializedName("type") val type: String? = null,
     @SerializedName("status") val status: String? = null,
-    @SerializedName("created_time_millis") val createdTimeMillis: Int = 0
+    @SerializedName("created_time_millis") val createdTimeMillis: Long = 0L
 )
 
 data class SignatureDto(
     @SerializedName("xfp") val xfp: String? = null,
     @SerializedName("signature") val signature: String? = null,
     @SerializedName("signed_by_user_id") val signedByUserId: String? = null,
-    @SerializedName("created_time_millis") val createdTimeMillis: Int? = null
+    @SerializedName("created_time_millis") val createdTimeMillis: Long = 0L
 )

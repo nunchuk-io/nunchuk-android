@@ -76,7 +76,7 @@ interface PremiumWalletRepository {
         token: String,
         securityQuestionToken: String,
         body: String,
-    ): KeyPolicy
+    ): String
 
     suspend fun createSecurityQuestion(question: String): SecurityQuestion
     suspend fun createServerWallet(

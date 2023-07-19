@@ -280,11 +280,17 @@ interface AppNavigatorDelegate : AppNavigator {
             requiredSignatures = requiredSignatures,
             type = type,
             launcher = launcher,
-            activityContext = activityContext
+            activityContext = activityContext,
+            groupId = groupId,
+            dummyTransactionId = dummyTransactionId
         )
     }
 
-    override fun openGroupDashboardScreen(groupId: String, walletId: String?, activityContext: Context) {
+    override fun openGroupDashboardScreen(
+        groupId: String,
+        walletId: String?,
+        activityContext: Context
+    ) {
         GroupDashboardActivity.navigate(activityContext, groupId = groupId, walletId = walletId)
     }
 }

@@ -39,15 +39,24 @@ import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionUseCase
+import com.nunchuk.android.usecase.byzantine.UpdateGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
 import com.nunchuk.android.usecase.membership.GetTxToSignMessage
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -66,6 +75,8 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
     private val getSignatureFromColdCardPsbt: GetSignatureFromColdCardPsbt,
     private val getDummyTransactionSignatureUseCase: GetDummyTransactionSignatureUseCase,
+    private val getGroupDummyTransactionUseCase: GetGroupDummyTransactionUseCase,
+    private val updateGroupDummyTransactionUseCase: UpdateGroupDummyTransactionUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -84,7 +95,25 @@ class WalletAuthenticationViewModel @Inject constructor(
             _state.update { it.copy(interactSingleSigner = signer) }
         }
         viewModelScope.launch {
-            if (args.type == WalletAuthenticationActivity.SIGN_DUMMY_TX) {
+            _event.emit(WalletAuthenticationEvent.Loading(true))
+            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
+                getGroupDummyTransactionUseCase(
+                    GetGroupDummyTransactionUseCase.Param(
+                        groupId = args.groupId,
+                        walletId = args.walletId,
+                        transactionId = args.dummyTransactionId
+                    )
+                ).onSuccess { transaction ->
+                    _state.update {
+                        it.copy(
+                            transaction = transaction
+                        )
+                    }
+                    getWalletDetails()
+                }.onFailure {
+                    _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+                }
+            } else if (args.type == VerificationType.SIGN_DUMMY_TX) {
                 val txToSignResult =
                     getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
                 if (txToSignResult.isFailure) {
@@ -112,6 +141,7 @@ class WalletAuthenticationViewModel @Inject constructor(
             } else {
                 dataToSign.value = getHealthCheckMessageUseCase(args.userData).getOrThrow()
             }
+            _event.emit(WalletAuthenticationEvent.Loading(false))
         }
     }
 
@@ -248,6 +278,17 @@ class WalletAuthenticationViewModel @Inject constructor(
                 return
             }
             signatures[singleSigner.masterFingerprint] = signature
+            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
+                updateGroupDummyTransactionUseCase(UpdateGroupDummyTransactionUseCase.Param(
+                    signatures = mapOf(singleSigner.masterFingerprint to signature),
+                    walletId = args.walletId,
+                    groupId = args.groupId,
+                    transactionId = args.dummyTransactionId
+                )).onFailure {
+                    _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+                    return
+                }
+            }
             if (signatures.size == args.requiredSignatures) {
                 _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
             } else {
@@ -293,7 +334,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     }
 
     private fun isValidSigner(type: SignerType, authenticationType: String): Boolean {
-        if (authenticationType == WalletAuthenticationActivity.SIGN_DUMMY_TX && type == SignerType.AIRGAP) return true
+        if (authenticationType == VerificationType.SIGN_DUMMY_TX && type == SignerType.AIRGAP) return true
         return type == SignerType.SOFTWARE
                 || type == SignerType.HARDWARE
                 || type == SignerType.NFC

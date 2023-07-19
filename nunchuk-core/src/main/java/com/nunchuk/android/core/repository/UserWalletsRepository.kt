@@ -317,7 +317,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         token: String,
         securityQuestionToken: String,
         body: String
-    ): KeyPolicy {
+    ): String {
         val headers = mutableMapOf(VERIFY_TOKEN to token)
         if (securityQuestionToken.isNotEmpty()) {
             headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
@@ -333,12 +333,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             groupId = groupId,
             body = gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
         )
-        val serverPolicy =
-            response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
-        return KeyPolicy(
-            autoBroadcastTransaction = serverPolicy.autoBroadcastTransaction,
-            signingDelayInSeconds = serverPolicy.signingDelaySeconds
-        )
+        return response.data.dummyTransaction?.id.orEmpty()
     }
 
     override suspend fun createSecurityQuestion(question: String): SecurityQuestion {
