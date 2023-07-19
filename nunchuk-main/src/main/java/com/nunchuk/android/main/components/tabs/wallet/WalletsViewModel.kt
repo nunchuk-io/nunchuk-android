@@ -183,7 +183,11 @@ internal class WalletsViewModel @Inject constructor(
             pushEventManager.event.collect { event ->
                 if (event is PushEvent.WalletCreate) {
                     if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                        retrieveData()
+                        getServerWalletUseCase(Unit).onSuccess {
+                            if (it.isNeedReload) {
+                                retrieveData()
+                            }
+                        }
                     }
                 }
             }
@@ -237,9 +241,7 @@ internal class WalletsViewModel @Inject constructor(
 
     private fun getAppSettings() {
         viewModelScope.launch {
-            getChainSettingFlowUseCase(Unit)
-                .map { it.getOrElse { Chain.MAIN } }
-                .collect {
+            getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.collect {
                     updateState {
                         copy(chain = it)
                     }
@@ -251,37 +253,28 @@ internal class WalletsViewModel @Inject constructor(
         if (isRetrievingData.get()) return
         isRetrievingData.set(true)
         viewModelScope.launch {
-            getCompoundSignersUseCase.execute()
-                .zip(getWalletsUseCase.execute()) { p, wallets ->
+            getCompoundSignersUseCase.execute().zip(getWalletsUseCase.execute()) { p, wallets ->
                     Triple(p.first, p.second, wallets)
-                }
-                .map {
+                }.map {
                     mapSigners(it.second, it.first).sortedByDescending { signer ->
                         isPrimaryKey(
                             signer.id
                         )
                     } to it.third
-                }
-                .flowOn(Dispatchers.IO)
-                .onException {
+                }.flowOn(Dispatchers.IO).onException {
                     updateState { copy(signers = emptyList()) }
-                }
-                .flowOn(Dispatchers.Main)
-                .onStart {
+                }.flowOn(Dispatchers.Main).onStart {
                     if (getState().wallets.isEmpty()) {
                         event(Loading(true))
                     }
-                }
-                .onCompletion {
+                }.onCompletion {
                     event(Loading(false))
                     isRetrievingData.set(false)
-                }
-                .collect {
+                }.collect {
                     val (signers, wallets) = it
                     updateState {
                         copy(
-                            signers = signers,
-                            wallets = wallets
+                            signers = signers, wallets = wallets
                         )
                     }
                 }
@@ -300,14 +293,12 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun isInWallet(signer: SignerModel): Boolean {
-        return getState().wallets
-            .any {
+        return getState().wallets.any {
                 it.wallet.signers.any anyLast@{ singleSigner ->
                     if (singleSigner.hasMasterSigner) {
                         return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
                     }
-                    return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
-                            && singleSigner.derivationPath == signer.derivationPath
+                    return@anyLast singleSigner.masterFingerprint == signer.fingerPrint && singleSigner.derivationPath == signer.derivationPath
                 }
             }
     }
@@ -342,8 +333,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private suspend fun mapSigners(
-        singleSigners: List<SingleSigner>,
-        masterSigners: List<MasterSigner>
+        singleSigners: List<SingleSigner>, masterSigners: List<MasterSigner>
     ): List<SignerModel> {
         return masterSigners.map {
             masterSignerMapper(it)
@@ -406,8 +396,7 @@ internal class WalletsViewModel @Inject constructor(
         }
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
-                password = password,
-                targetAction = VerifiedPasswordTargetAction.PROTECT_WALLET.name
+                password = password, targetAction = VerifiedPasswordTargetAction.PROTECT_WALLET.name
             )
         )
         if (result.isSuccess) {
