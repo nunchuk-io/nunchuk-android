@@ -4,7 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -115,9 +121,11 @@ private fun RequestAddKeySuccessContent(
                     modifier = Modifier.padding(24.dp),
                     text = stringResource(
                         R.string.nc_added_successfully,
-                        if (tag == SignerTag.LEDGER)
-                            stringResource(id = R.string.nc_ledger)
-                        else stringResource(id = R.string.nc_trezor)
+                        when (tag) {
+                            SignerTag.LEDGER -> stringResource(id = R.string.nc_ledger)
+                            SignerTag.TREZOR -> stringResource(id = R.string.nc_trezor)
+                            else -> stringResource(id = R.string.nc_coldcard)
+                        }
                     ),
                     style = NunchukTheme.typography.heading
                 )

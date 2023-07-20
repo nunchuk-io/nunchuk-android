@@ -46,6 +46,7 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                             onConfirmAddLedger = onConfirmAddLedger
                         )
                     }
+
                     SignerTag.TREZOR -> {
                         WaitingDesktopKeyContent(
                             title = context.getString(R.string.nc_waiting_for_trezor_to_be_added),
@@ -56,6 +57,7 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                             onConfirmAddLedger = onConfirmAddLedger
                         )
                     }
+
                     SignerTag.COLDCARD -> {
                         WaitingDesktopKeyContent(
                             title = context.getString(R.string.nc_waiting_for_coldcard_to_be_added),
@@ -66,6 +68,7 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                             onConfirmAddLedger = onConfirmAddLedger
                         )
                     }
+
                     else -> Unit
                 }
             }
@@ -81,19 +84,26 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                     if (isCompleted != null) {
                         if (isCompleted) {
                             findNavController().navigate(
-                                WaitingDesktopKeyFragmentDirections.actionWaitingDesktopKeyFragmentToRequestAddKeySuccessFragment(args.signerTag)
+                                WaitingDesktopKeyFragmentDirections.actionWaitingDesktopKeyFragmentToRequestAddKeySuccessFragment(
+                                    args.signerTag
+                                )
                             )
                         } else {
                             NCInfoDialog(requireActivity()).showDialog(
                                 message = getString(
                                     R.string.nc_no_device_have_been_detected,
-                                    if (args.signerTag == SignerTag.LEDGER) getString(R.string.nc_ledger) else getString(
-                                        R.string.nc_trezor
-                                    )
+                                    when (args.signerTag) {
+                                        SignerTag.LEDGER -> getString(R.string.nc_ledger)
+                                        SignerTag.TREZOR -> getString(R.string.nc_trezor)
+                                        else -> getString(R.string.nc_coldcard)
+                                    }
                                 ),
                                 onYesClick = {
                                     if (state.requestCancel) {
-                                        findNavController().popBackStack(R.id.addKeyListFragment, false)
+                                        findNavController().popBackStack(
+                                            R.id.addKeyListFragment,
+                                            false
+                                        )
                                     }
                                 }
                             )
