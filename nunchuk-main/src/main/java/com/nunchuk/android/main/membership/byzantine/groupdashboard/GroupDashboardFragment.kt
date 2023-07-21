@@ -65,38 +65,49 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
+import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
+import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleFragment
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupChat
+import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.utils.parcelable
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class GroupDashboardFragment : MembershipFragment() {
+class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -137,12 +148,30 @@ class GroupDashboardFragment : MembershipFragment() {
                         )
                     }
                 }, onGroupChatClick = {
-                    if (viewModel.getGroupChatRoomId() != null) {
+                    if (viewModel.groupChat() != null) {
                         openRoomChat()
                     } else {
                         viewModel.createGroupChat()
                     }
+                }, onMoreClick = {
+                    showMoreOptions()
                 })
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setFragmentResultListener(GroupChatHistoryFragment.REQUEST_KEY) { _, bundle ->
+            val historyPeriod = bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD)
+            viewModel.updateGroupChatHistoryPeriod(historyPeriod)
+            showSuccess(message = getString(R.string.nc_chat_setting_updated))
+        }
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is GroupDashboardEvent.Error -> showError(message = event.message)
+                is GroupDashboardEvent.Loading -> showOrHideLoading(event.loading)
+                is GroupDashboardEvent.NavigateToGroupChat -> openRoomChat()
             }
         }
     }
@@ -158,23 +187,69 @@ class GroupDashboardFragment : MembershipFragment() {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is GroupDashboardEvent.Error -> showError(message = event.message)
-                is GroupDashboardEvent.Loading -> showOrHideLoading(event.loading)
-                is GroupDashboardEvent.NavigateToGroupChat -> openRoomChat()
+    private fun openRoomChat() {
+        navigator.openRoomDetailActivity(
+            activityContext = requireActivity(),
+            roomId = viewModel.groupChat()!!.roomId,
+            isGroupChat = true
+        )
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
+        when (option.type) {
+            SheetOptionType.SET_UP_INHERITANCE -> {
+
+            }
+
+            SheetOptionType.TYPE_PLATFORM_KEY_POLICY -> {
+
+            }
+
+            SheetOptionType.TYPE_EMERGENCY_LOCKDOWN -> {
+
+            }
+
+            SheetOptionType.TYPE_RECURRING_PAYMENT -> {
+
+            }
+
+            SheetOptionType.TYPE_GROUP_CHAT_HISTORY -> {
+                findNavController().navigate(
+                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
+                        groupId = viewModel.getGroupId(),
+                        historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty()
+                    )
+                )
             }
         }
     }
 
-    private fun openRoomChat() {
-        navigator.openRoomDetailActivity(
-            activityContext = requireActivity(),
-            roomId = viewModel.getGroupChatRoomId()!!,
-            isGroupChat = true
+    private fun showMoreOptions() {
+        val options = mutableListOf(
+            SheetOption(
+                type = SheetOptionType.SET_UP_INHERITANCE,
+                stringId = R.string.nc_view_inheritance_plan
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
+                stringId = R.string.nc_cosigning_policies
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
+                stringId = R.string.nc_emergency_lockdown
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_RECURRING_PAYMENT,
+                stringId = R.string.nc_view_recurring_payments
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
+                stringId = R.string.nc_manage_group_chat_history
+            )
         )
+        val bottomSheet = BottomSheetOption.newInstance(options)
+        bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
 }
 
@@ -185,6 +260,7 @@ private fun GroupDashboardScreen(
     onWalletClick: () -> Unit = {},
     onAlertClick: (String) -> Unit = {},
     onGroupChatClick: () -> Unit = {},
+    onMoreClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     GroupDashboardContent(
@@ -197,7 +273,8 @@ private fun GroupDashboardScreen(
         onEditClick = onEditClick,
         onWalletClick = onWalletClick,
         onAlertClick = onAlertClick,
-        onGroupChatClick = onGroupChatClick
+        onGroupChatClick = onGroupChatClick,
+        onMoreClick = onMoreClick
     )
 }
 

@@ -124,6 +124,10 @@ object SheetOptionType {
 
     const val TYPE_GROUP_WALLET = 67
     const val TYPE_HONEY_BADGER_WALLET = 68
+    const val TYPE_PLATFORM_KEY_POLICY = 69
+    const val TYPE_EMERGENCY_LOCKDOWN = 70
+    const val TYPE_RECURRING_PAYMENT = 71
+    const val TYPE_GROUP_CHAT_HISTORY = 72
 
-    const val TYPE_ADD_BITBOX = 69
+    const val TYPE_ADD_BITBOX = 73
 }

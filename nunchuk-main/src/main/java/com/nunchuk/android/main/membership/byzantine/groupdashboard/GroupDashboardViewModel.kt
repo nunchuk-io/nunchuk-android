@@ -13,6 +13,8 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.ByzantineMember
+import com.nunchuk.android.model.GroupChat
+import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -175,8 +177,8 @@ class GroupDashboardViewModel @Inject constructor(
     fun isShowSetupInheritance(): Boolean =
         if (args.walletId != null) assistedWalletManager.isShowSetupInheritance(args.walletId) else false
 
-    fun getGroupChatRoomId(): String? {
-        return state.value.groupChat?.roomId
+    fun groupChat(): GroupChat? {
+        return state.value.groupChat
     }
 
     fun createGroupChat() {
@@ -193,5 +195,11 @@ class GroupDashboardViewModel @Inject constructor(
                 _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
+    }
+
+    fun updateGroupChatHistoryPeriod(historyPeriod: HistoryPeriod?) {
+        historyPeriod ?: return
+        val groupChat = _state.value.groupChat ?: return
+        _state.value = _state.value.copy(groupChat = groupChat.copy(historyPeriod = historyPeriod))
     }
 }
