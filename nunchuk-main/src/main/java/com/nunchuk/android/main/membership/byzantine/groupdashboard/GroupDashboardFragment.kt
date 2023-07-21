@@ -96,7 +96,9 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toAlertType
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -177,13 +179,18 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun alertClick(type: String) {
-        if (type == "GROUP_WALLET_PENDING") {
+        val alertType = type.toAlertType()
+        if (alertType == AlertType.GROUP_WALLET_PENDING) {
             navigator.openMembershipActivity(
                 launcher = launcher,
                 activityContext = requireActivity(),
                 groupStep = MembershipStage.NONE,
                 groupId = args.groupId
             )
+        } else if (alertType == AlertType.UPDATE_SERVER_KEY) {
+//            navigator.openConfigGroupServerKeyActivity(
+//
+//            )
         }
     }
 

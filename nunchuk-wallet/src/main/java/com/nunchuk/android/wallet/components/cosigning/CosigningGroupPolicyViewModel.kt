@@ -90,7 +90,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
         }
     }
 
-    fun updateState(keyPolicy: GroupKeyPolicy?, isEditMode: Boolean = false) {
+    fun updateState(keyPolicy: GroupKeyPolicy?, isEditMode: Boolean) {
         keyPolicy ?: return
         _state.update {
             it.copy(
