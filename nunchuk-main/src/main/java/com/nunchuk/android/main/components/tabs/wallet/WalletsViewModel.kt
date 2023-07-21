@@ -20,7 +20,6 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.nfc.tech.IsoDep
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -87,6 +86,7 @@ import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -147,6 +147,7 @@ internal class WalletsViewModel @Inject constructor(
     private var isRetrievingData = AtomicBoolean(false)
 
     override val initialState = WalletsState()
+    private var badgeJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -273,10 +274,10 @@ internal class WalletsViewModel @Inject constructor(
     private fun getAppSettings() {
         viewModelScope.launch {
             getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.collect {
-                    updateState {
-                        copy(chain = it)
-                    }
+                updateState {
+                    copy(chain = it)
                 }
+            }
         }
     }
 
@@ -285,31 +286,31 @@ internal class WalletsViewModel @Inject constructor(
         isRetrievingData.set(true)
         viewModelScope.launch {
             getCompoundSignersUseCase.execute().zip(getWalletsUseCase.execute()) { p, wallets ->
-                    Triple(p.first, p.second, wallets)
-                }.map {
-                    mapSigners(it.second, it.first).sortedByDescending { signer ->
-                        isPrimaryKey(
-                            signer.id
-                        )
-                    } to it.third
-                }.flowOn(Dispatchers.IO).onException {
-                    updateState { copy(signers = emptyList()) }
-                }.flowOn(Dispatchers.Main).onStart {
-                    if (getState().wallets.isEmpty()) {
-                        event(Loading(true))
-                    }
-                }.onCompletion {
-                    event(Loading(false))
-                    isRetrievingData.set(false)
-                }.collect {
-                    val (signers, wallets) = it
-                    updateState {
-                        copy(
-                            signers = signers, wallets = wallets
-                        )
-                    }
-                    mapGroupWalletUi()
+                Triple(p.first, p.second, wallets)
+            }.map {
+                mapSigners(it.second, it.first).sortedByDescending { signer ->
+                    isPrimaryKey(
+                        signer.id
+                    )
+                } to it.third
+            }.flowOn(Dispatchers.IO).onException {
+                updateState { copy(signers = emptyList()) }
+            }.flowOn(Dispatchers.Main).onStart {
+                if (getState().wallets.isEmpty()) {
+                    event(Loading(true))
                 }
+            }.onCompletion {
+                event(Loading(false))
+                isRetrievingData.set(false)
+            }.collect {
+                val (signers, wallets) = it
+                updateState {
+                    copy(
+                        signers = signers, wallets = wallets
+                    )
+                }
+                mapGroupWalletUi()
+            }
         }
     }
 
@@ -321,7 +322,8 @@ internal class WalletsViewModel @Inject constructor(
             val groupWalletUis = getState().groupWalletUis
             val assistedWallets = getState().assistedWallets
             val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()
-            val assistedWalletGroupIds = assistedWallets.filter { it.groupId.isNotEmpty() }.map { it.groupId }.toHashSet()
+            val assistedWalletGroupIds =
+                assistedWallets.filter { it.groupId.isNotEmpty() }.map { it.groupId }.toHashSet()
             val pendingGroup = groups.filter { it.isPendingWallet() }
             wallets.forEach { wallet ->
                 val group = groups.firstOrNull { it.groupId in assistedWalletGroupIds }
@@ -361,13 +363,20 @@ internal class WalletsViewModel @Inject constructor(
                 )
                 results.add(groupWalletUi)
             }
-            updateState { copy(groupWalletUis = results) }
+            val sortedList = results.sortedWith { o1, o2 ->
+                val walletNullOrder = if (o1.wallet == null) -1 else 1
+                val groupTimeCreatedOrder =
+                    o1.group?.createdTimeMillis?.compareTo(o2.group?.createdTimeMillis!!) ?: 0
+                walletNullOrder + groupTimeCreatedOrder
+            }
+            updateState { copy(groupWalletUis = sortedList) }
             updateBadge()
         }
     }
 
     private fun updateBadge() {
-        viewModelScope.launch {
+        badgeJob?.cancel()
+        badgeJob = viewModelScope.launch {
             val groupIds = getState().allGroups.map { it.groupId }
             val groupWalletUis = getState().groupWalletUis
             val result = getPendingWalletNotifyCountUseCase(groupIds)
@@ -395,13 +404,13 @@ internal class WalletsViewModel @Inject constructor(
 
     fun isInWallet(signer: SignerModel): Boolean {
         return getState().wallets.any {
-                it.wallet.signers.any anyLast@{ singleSigner ->
-                    if (singleSigner.hasMasterSigner) {
-                        return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
-                    }
-                    return@anyLast singleSigner.masterFingerprint == signer.fingerPrint && singleSigner.derivationPath == signer.derivationPath
+            it.wallet.signers.any anyLast@{ singleSigner ->
+                if (singleSigner.hasMasterSigner) {
+                    return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
                 }
+                return@anyLast singleSigner.masterFingerprint == signer.fingerPrint && singleSigner.derivationPath == signer.derivationPath
             }
+        }
     }
 
     fun hasSigner() = getState().signers.isNotEmpty()
@@ -556,6 +565,7 @@ internal class WalletsViewModel @Inject constructor(
     fun denyInviteMember(groupId: String) = viewModelScope.launch {
         val result = groupMemberDenyRequestUseCase(groupId)
         if (result.isSuccess) {
+            event(WalletsEvent.DenyWalletInvitationSuccess)
             removePendingInviteMember(groupId)
         } else {
             event(ShowErrorEvent(result.exceptionOrNull()))

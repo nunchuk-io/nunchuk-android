@@ -63,6 +63,7 @@ internal sealed class WalletsEvent {
     class CheckWalletPin(val match: Boolean, val walletId: String) : WalletsEvent()
     class VerifyPasswordSuccess(val walletId: String) : WalletsEvent()
     class VerifyPassphraseSuccess(val walletId: String) : WalletsEvent()
+    object DenyWalletInvitationSuccess : WalletsEvent()
     object None : WalletsEvent()
 }
 

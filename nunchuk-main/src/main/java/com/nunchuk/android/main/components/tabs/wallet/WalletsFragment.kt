@@ -53,6 +53,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
@@ -89,6 +90,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -272,6 +274,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
             is VerifyPasswordSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
             is VerifyPassphraseSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
+            WalletsEvent.DenyWalletInvitationSuccess -> showSuccess(message = getString(R.string.nc_deny_wallet_invitation_msg))
             None -> {}
         }
         walletsViewModel.clearEvent()
@@ -486,8 +489,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 }
                             },
                             onDeny = {
-                                it.group?.groupId?.let {
-                                    walletsViewModel.denyInviteMember(it)
+                                showDenyWalletDialog {
+                                    it.group?.groupId?.let {
+                                        walletsViewModel.denyInviteMember(it)
+                                    }
                                 }
                             },
                             onGroupClick = {
@@ -510,6 +515,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 }
             }
         }
+    }
+
+    private fun showDenyWalletDialog(action: () -> Unit) {
+        NCWarningDialog(requireActivity()).showDialog(title = getString(R.string.nc_text_confirmation),
+            message = getString(R.string.nc_deny_wallet_invitation_dialog),
+            onYesClick = action)
     }
 
     private fun checkWalletSecurity(walletId: String) {

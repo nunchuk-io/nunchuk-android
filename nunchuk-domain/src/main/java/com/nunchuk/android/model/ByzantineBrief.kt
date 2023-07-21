@@ -3,6 +3,7 @@ package com.nunchuk.android.model
 data class ByzantineGroupBrief(
     val groupId: String,
     val status: String,
+    val createdTimeMillis: Long,
     val members: List<ByzantineMemberBrief>
 ) {
     fun isPendingWallet() = status == "PENDING_WALLET"

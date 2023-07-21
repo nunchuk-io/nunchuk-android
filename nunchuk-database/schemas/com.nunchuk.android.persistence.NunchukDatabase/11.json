@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "fda6b3f48a9d8e56869ef73418a74967",
+    "identityHash": "c8eea6e8ffe2d99216c0450bb4a3e0c7",
     "entities": [
       {
         "tableName": "contact",
@@ -379,7 +379,7 @@
       },
       {
         "tableName": "byzantine_group",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`group_id` TEXT NOT NULL, `chatId` TEXT NOT NULL, `status` TEXT NOT NULL, `members` TEXT NOT NULL, PRIMARY KEY(`group_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`group_id` TEXT NOT NULL, `chatId` TEXT NOT NULL, `status` TEXT NOT NULL, `createdTimeMillis` INTEGER NOT NULL, `members` TEXT NOT NULL, PRIMARY KEY(`group_id`))",
         "fields": [
           {
             "fieldPath": "groupId",
@@ -397,6 +397,12 @@
             "fieldPath": "status",
             "columnName": "status",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdTimeMillis",
+            "columnName": "createdTimeMillis",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -419,7 +425,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fda6b3f48a9d8e56869ef73418a74967')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c8eea6e8ffe2d99216c0450bb4a3e0c7')"
     ]
   }
 }

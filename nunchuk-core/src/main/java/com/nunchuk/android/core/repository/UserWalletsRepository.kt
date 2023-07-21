@@ -1495,9 +1495,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
         localRequests.forEach { localRequest ->
             val response = if (groupId.isNotEmpty()) {
-                userWalletApiManager.groupWalletApi.getRequestAddKeyStatus(groupId, localRequest.requestId)
-            }
-            else {
+                userWalletApiManager.groupWalletApi.getRequestAddKeyStatus(
+                    groupId,
+                    localRequest.requestId
+                )
+            } else {
                 userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
             }
             val request = response.data.request
@@ -1595,6 +1597,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 groupId = group.id,
                 chatId = accountManager.getAccount().chatId,
                 status = group.status,
+                createdTimeMillis = group.createdTimeMillis,
                 members = gson.toJson(memberBrief)
             )
         )
@@ -1608,10 +1611,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> = flow {
         groupDao.getGroups(chatId = accountManager.getAccount().chatId).collect {
-            val groupBriefs = it.map { group->
+            val groupBriefs = it.map { group ->
                 val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
                 val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
-                ByzantineGroupBrief(groupId = group.groupId, status = group.status, members = members)
+                ByzantineGroupBrief(
+                    groupId = group.groupId,
+                    status = group.status,
+                    members = members,
+                    createdTimeMillis = group.createdTimeMillis
+                )
             }
             emit(groupBriefs)
         }
@@ -1638,7 +1646,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     private suspend fun syncGroup(groups: List<GroupResponse>) {
-        val groupLocals = groupDao.getGroups(accountManager.getAccount().chatId).firstOrNull() ?: emptyList()
+        val groupLocals =
+            groupDao.getGroups(accountManager.getAccount().chatId).firstOrNull() ?: emptyList()
         val allGroupIds = groupLocals.map { it.groupId }.toHashSet()
         val addGroupIds = HashSet<String>()
         val chatId = accountManager.getAccount().chatId
@@ -1669,6 +1678,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             groupId = id!!,
             chatId = chatId,
             status = status.orEmpty(),
+            createdTimeMillis = createdTimeMillis ?: 0,
             members = gson.toJson(memberBrief)
         )
     }
@@ -1734,7 +1744,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        val response = userWalletApiManager.groupWalletApi.editGroupMember(groupId, headers, request)
+        val response =
+            userWalletApiManager.groupWalletApi.editGroupMember(groupId, headers, request)
         return response.data.data?.toByzantineGroup()
             ?: throw NullPointerException("Can not get group")
     }
@@ -1801,7 +1812,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return alerts
     }
 
-    override suspend fun createOrUpdateGroupChat(groupId: String, historyPeriodId: String?): GroupChat {
+    override suspend fun createOrUpdateGroupChat(
+        groupId: String,
+        historyPeriodId: String?
+    ): GroupChat {
         val response = if (historyPeriodId == null) {
             userWalletApiManager.groupWalletApi.createGroupChat(
                 groupId = groupId,

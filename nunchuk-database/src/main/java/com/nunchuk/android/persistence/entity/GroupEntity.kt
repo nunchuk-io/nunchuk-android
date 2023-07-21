@@ -16,6 +16,8 @@ data class GroupEntity(
     val chatId: String,
     @ColumnInfo(name = "status")
     val status: String,
+    @ColumnInfo(name = "createdTimeMillis")
+    val createdTimeMillis: Long,
     @ColumnInfo(name = "members") // ByzantineMemberBrief
     val members: String,
 )
