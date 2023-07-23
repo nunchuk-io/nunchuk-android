@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.GROUP_CHAT_ROOM_TYPE
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
@@ -97,11 +98,11 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun openRoomDetailScreen(summary: RoomSummary) {
-        openRoomDetailScreen(summary.roomId)
+        openRoomDetailScreen(summary.roomId, summary.roomType == GROUP_CHAT_ROOM_TYPE)
     }
 
-    private fun openRoomDetailScreen(roomId: String) {
-        navigator.openRoomDetailActivity(requireContext(), roomId)
+    private fun openRoomDetailScreen(roomId: String, isGroupChat: Boolean = false) {
+        navigator.openRoomDetailActivity(requireContext(), roomId, isGroupChat = isGroupChat)
     }
 
 

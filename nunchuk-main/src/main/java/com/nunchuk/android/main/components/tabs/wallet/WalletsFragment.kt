@@ -480,7 +480,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             group = it.group,
                             walletsExtended = it.wallet,
                             inviterName = it.inviterName,
-                            isGroupMasterOrAdmin = it.isGroupMasterOrAdmin,
                             isAssistedWallet = it.isAssistedWallet,
                             badgeCount = it.badgeCount,
                             onAccept = {
@@ -496,7 +495,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 }
                             },
                             onGroupClick = {
-                                if (it.isGroupMasterOrAdmin && it.group?.groupId != null) {
+                                if (it.group?.groupId != null) {
                                     navigator.openGroupDashboardScreen(
                                         groupId = it.group.groupId,
                                         walletId = it.wallet?.wallet?.id,

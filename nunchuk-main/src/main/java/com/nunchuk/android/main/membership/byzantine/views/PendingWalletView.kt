@@ -61,7 +61,6 @@ import com.skydoves.landscapist.glide.GlideImage
 fun PendingWalletView(
     group: ByzantineGroupBrief? = null,
     walletsExtended: WalletExtended? = null,
-    isGroupMasterOrAdmin: Boolean = false,
     hideWalletDetail: Boolean = false,
     isAssistedWallet: Boolean = false,
     badgeCount: Int = 0,
@@ -117,7 +116,6 @@ fun PendingWalletView(
                 modifier = Modifier
                     .clickable(
                         onClick = onGroupClick,
-                        enabled = isGroupMasterOrAdmin
                     )
                     .padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {

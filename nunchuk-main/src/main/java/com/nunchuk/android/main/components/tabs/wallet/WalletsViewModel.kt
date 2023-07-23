@@ -334,14 +334,14 @@ internal class WalletsViewModel @Inject constructor(
                             isAssistedWallet = wallet.wallet.id in assistedWalletIds
                         )
                 if (group != null) {
-                    val isGroupMasterOrAdmin = isGroupMasterOrAdmin(group)
+                    val role = getCurrentUserRole(group)
                     var inviterName = ""
-                    if (isGroupMasterOrAdmin.not()) {
+                    if ((role == AssistedWalletRole.MASTER.name).not()) {
                         inviterName = getInviterName(group)
                     }
                     groupWalletUi = groupWalletUi.copy(
                         group = group,
-                        isGroupMasterOrAdmin = isGroupMasterOrAdmin,
+                        role = role,
                         inviterName = inviterName
                     )
                 }
@@ -351,14 +351,14 @@ internal class WalletsViewModel @Inject constructor(
                 var groupWalletUi =
                     groupWalletUis.find { it.group?.groupId == group.groupId }
                         ?: GroupWalletUi(group = group)
-                val isGroupMasterOrAdmin = isGroupMasterOrAdmin(group)
+                val role = getCurrentUserRole(group)
                 var inviterName = ""
-                if (isGroupMasterOrAdmin.not()) {
+                if ((role == AssistedWalletRole.MASTER.name).not()) {
                     inviterName = getInviterName(group)
                 }
                 groupWalletUi = groupWalletUi.copy(
                     group = group,
-                    isGroupMasterOrAdmin = isGroupMasterOrAdmin,
+                    role = role,
                     inviterName = inviterName
                 )
                 results.add(groupWalletUi)
@@ -537,11 +537,10 @@ internal class WalletsViewModel @Inject constructor(
         emailOrUsername == accountManager.getAccount().email
                 || emailOrUsername == accountManager.getAccount().username
 
-    private fun isGroupMasterOrAdmin(group: ByzantineGroupBrief): Boolean {
-        val masterOrAdminName = group.members.firstOrNull {
-            it.role == AssistedWalletRole.MASTER.name || it.role == AssistedWalletRole.ADMIN.name
-        }?.emailOrUsername
-        return isMatchingEmailOrUserName(masterOrAdminName.orEmpty())
+    private fun getCurrentUserRole(group: ByzantineGroupBrief): String {
+       return group.members.firstOrNull {
+            isMatchingEmailOrUserName(it.emailOrUsername)
+        }?.role ?: AssistedWalletRole.NONE.name
     }
 
     private fun getInviterName(group: ByzantineGroupBrief): String {

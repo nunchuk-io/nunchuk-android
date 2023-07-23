@@ -233,7 +233,6 @@ private fun InviteMembersScreen(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun InviteMembersContent(
     members: List<AssistedMember> = emptyList(),
@@ -418,9 +417,8 @@ private fun MemberView(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(
-                    width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp)
-                )
+                .clip(shape = RoundedCornerShape(12.dp))
+                .border(width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp))
                 .background(color = NcColor.greyLight)
                 .padding(16.dp)
         ) {

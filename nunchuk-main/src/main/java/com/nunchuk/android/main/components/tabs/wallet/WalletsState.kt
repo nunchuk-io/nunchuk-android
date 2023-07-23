@@ -27,6 +27,7 @@ import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
@@ -70,7 +71,7 @@ internal sealed class WalletsEvent {
 internal data class GroupWalletUi(
     val wallet: WalletExtended? = null,
     val group: ByzantineGroupBrief? = null,
-    val isGroupMasterOrAdmin: Boolean = false,
+    val role: String = AssistedWalletRole.NONE.name,
     val inviterName: String = "",
     val isAssistedWallet: Boolean = false,
     val badgeCount: Int = 0

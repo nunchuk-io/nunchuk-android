@@ -74,6 +74,7 @@ const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
 
 const val SUPPORT_ROOM_USER_ID = "@support:nunchuk.io"
 const val SUPPORT_ROOM_TYPE = "io.nunchuk.support"
+const val GROUP_CHAT_ROOM_TYPE = "io.nunchuk.premium"
 const val SUPPORT_TEST_NET_ROOM_TYPE = "io.nunchuk.support.testnet"
 const val RENEW_ACCOUNT_LINK = "https://nunchuk.io/my-account"
 
