@@ -37,5 +37,7 @@ data class PayloadResponse(
     @SerializedName("master_name")
     val masterName: String? = null,
     @SerializedName("pending_keys_count")
-    val pendingKeysCount: Int? = null
+    val pendingKeysCount: Int? = null,
+    @SerializedName("dummy_transaction_id")
+    val dummyTransactionId: String? = null,
 )

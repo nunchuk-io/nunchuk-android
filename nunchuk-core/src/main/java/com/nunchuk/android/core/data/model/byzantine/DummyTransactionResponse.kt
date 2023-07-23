@@ -1,9 +1,10 @@
 package com.nunchuk.android.core.data.model.byzantine
 
+import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
 
 data class DummyTransactionResponse(
-    @SerializedName("dummy_transaction") val dummyTransaction: DummyTransactionDto? = null
+    @SerializedName("dummy_transaction") val dummyTransaction: DummyTransactionDto? = null,
 )
 
 data class DummyTransactionDto(
@@ -17,6 +18,7 @@ data class DummyTransactionDto(
     @SerializedName("signatures") val signatures: List<SignatureDto> = emptyList(),
     @SerializedName("type") val type: String? = null,
     @SerializedName("status") val status: String? = null,
+    @SerializedName("payload") val payload: JsonObject? = null,
     @SerializedName("created_time_millis") val createdTimeMillis: Long = 0L
 )
 

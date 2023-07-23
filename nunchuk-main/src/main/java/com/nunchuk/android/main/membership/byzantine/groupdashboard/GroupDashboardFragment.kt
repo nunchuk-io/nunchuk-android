@@ -90,7 +90,6 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
-import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleFragment
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupChat
@@ -98,11 +97,11 @@ import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.byzantine.toAlertType
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
@@ -165,7 +164,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setFragmentResultListener(GroupChatHistoryFragment.REQUEST_KEY) { _, bundle ->
-            val historyPeriod = bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD)
+            val historyPeriod =
+                bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD)
             viewModel.updateGroupChatHistoryPeriod(historyPeriod)
             showSuccess(message = getString(R.string.nc_chat_setting_updated))
         }
@@ -178,19 +178,24 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         }
     }
 
-    private fun alertClick(type: String) {
-        val alertType = type.toAlertType()
-        if (alertType == AlertType.GROUP_WALLET_PENDING) {
+    private fun alertClick(alert: Alert) {
+        if (alert.type == AlertType.GROUP_WALLET_PENDING) {
             navigator.openMembershipActivity(
                 launcher = launcher,
                 activityContext = requireActivity(),
                 groupStep = MembershipStage.NONE,
                 groupId = args.groupId
             )
-        } else if (alertType == AlertType.UPDATE_SERVER_KEY) {
-//            navigator.openConfigGroupServerKeyActivity(
-//
-//            )
+        } else if (alert.type == AlertType.UPDATE_SERVER_KEY) {
+            val dummyTransactionId = alert.payload.dummyTransactionId
+            if (dummyTransactionId.isNotEmpty()) {
+                CosigningPolicyActivity.start(
+                    activity = requireActivity(),
+                    walletId = args.walletId.orEmpty(),
+                    groupId = args.groupId,
+                    dummyTransactionId = alert.payload.dummyTransactionId,
+                )
+            }
         }
     }
 
@@ -265,7 +270,7 @@ private fun GroupDashboardScreen(
     viewModel: GroupDashboardViewModel = viewModel(),
     onEditClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
-    onAlertClick: (String) -> Unit = {},
+    onAlertClick: (alert: Alert) -> Unit = {},
     onGroupChatClick: () -> Unit = {},
     onMoreClick: () -> Unit = {}
 ) {
@@ -296,7 +301,7 @@ private fun GroupDashboardContent(
     groupChat: GroupChat? = null,
     onGroupChatClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
-    onAlertClick: (String) -> Unit = {},
+    onAlertClick: (alert: Alert) -> Unit = {},
     onMoreClick: () -> Unit = {},
     onWalletClick: () -> Unit = {}
 ) {
@@ -418,7 +423,7 @@ private fun GroupDashboardContent(
                             keyText = it.body,
                             timeText = (it.createdTimeMillis / 1000).formatDate(),
                             onViewClick = {
-                                onAlertClick(it.type)
+                                onAlertClick(it)
                             }
                         )
                     }

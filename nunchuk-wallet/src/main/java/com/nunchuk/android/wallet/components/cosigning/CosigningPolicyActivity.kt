@@ -84,5 +84,17 @@ class CosigningPolicyActivity : BaseActivity<ActivityNavigationBinding>() {
                 )
             })
         }
+
+        fun start(activity: Activity, walletId: String, groupId: String, dummyTransactionId: String) {
+            activity.startActivity(Intent(activity, CosigningPolicyActivity::class.java).apply {
+                putExtras(
+                    CosigningGroupPolicyFragmentArgs(
+                        dummyTransactionId = dummyTransactionId,
+                        walletId = walletId,
+                        groupId = groupId
+                    ).toBundle()
+                )
+            })
+        }
     }
 }

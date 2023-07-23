@@ -22,6 +22,8 @@ package com.nunchuk.android.core.data.model.membership
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.SpendingPolicy
+import com.nunchuk.android.model.SpendingTimeUnit
 
 internal data class KeyPoliciesDto(
     @SerializedName("auto_broadcast_transaction")
@@ -91,4 +93,33 @@ internal fun GroupKeyPolicy.toDto(): KeyPoliciesDto = if (isApplyAll) {
                 ), membershipId = memberId
             )
         })
+}
+
+internal fun KeyPoliciesDto.toExternalModel() : GroupKeyPolicy {
+   return if (applySamePendingLimit == true) {
+        val spendingLimit = spendingLimit?.let {
+            SpendingPolicy(limit = it.limit,
+                currencyUnit = it.currency,
+                timeUnit = runCatching { SpendingTimeUnit.valueOf(it.interval) }.getOrElse { SpendingTimeUnit.DAILY })
+        }
+        GroupKeyPolicy(
+            autoBroadcastTransaction = autoBroadcastTransaction,
+            signingDelayInSeconds = signingDelaySeconds,
+            spendingPolicies = spendingLimit?.let { mapOf("" to spendingLimit) }.orEmpty(),
+            isApplyAll = applySamePendingLimit
+        )
+    } else {
+        GroupKeyPolicy(
+            autoBroadcastTransaction = autoBroadcastTransaction,
+            signingDelayInSeconds = signingDelaySeconds,
+            spendingPolicies = membersSpendingLimit.orEmpty().associate {
+                it.membershipId.orEmpty() to it.spendingLimit!!.let { policy ->
+                    SpendingPolicy(limit = policy.limit,
+                        currencyUnit = policy.currency,
+                        timeUnit = runCatching { SpendingTimeUnit.valueOf(policy.interval) }.getOrElse { SpendingTimeUnit.DAILY })
+                }
+            },
+            isApplyAll = false
+        )
+    }
 }

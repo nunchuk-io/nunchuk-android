@@ -62,6 +62,7 @@ import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.data.model.membership.TransactionServerDto
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
+import com.nunchuk.android.core.data.model.membership.toExternalModel
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
@@ -260,32 +261,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.groupWalletApi.getGroupServerKey(groupId, xfp)
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
-        return if (policy.applySamePendingLimit == true) {
-            val spendingLimit = policy.spendingLimit?.let {
-                SpendingPolicy(limit = it.limit,
-                    currencyUnit = it.currency,
-                    timeUnit = runCatching { SpendingTimeUnit.valueOf(it.interval) }.getOrElse { SpendingTimeUnit.DAILY })
-            }
-            GroupKeyPolicy(
-                autoBroadcastTransaction = policy.autoBroadcastTransaction,
-                signingDelayInSeconds = policy.signingDelaySeconds,
-                spendingPolicies = spendingLimit?.let { mapOf("" to spendingLimit) }.orEmpty(),
-                isApplyAll = policy.applySamePendingLimit
-            )
-        } else {
-            GroupKeyPolicy(
-                autoBroadcastTransaction = policy.autoBroadcastTransaction,
-                signingDelayInSeconds = policy.signingDelaySeconds,
-                spendingPolicies = policy.membersSpendingLimit.orEmpty().associate {
-                    it.membershipId.orEmpty() to it.spendingLimit!!.let { policy ->
-                        SpendingPolicy(limit = policy.limit,
-                            currencyUnit = policy.currency,
-                            timeUnit = runCatching { SpendingTimeUnit.valueOf(policy.interval) }.getOrElse { SpendingTimeUnit.DAILY })
-                    }
-                },
-                isApplyAll = false
-            )
-        }
+        return policy.toExternalModel()
     }
 
     override suspend fun updateServerKeys(

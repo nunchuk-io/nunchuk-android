@@ -56,5 +56,10 @@
             android:name="token"
             app:argType="string"
             android:defaultValue=""/>
+
+        <argument
+            android:name="dummy_transaction_id"
+            app:argType="string"
+            android:defaultValue=""/>
     </fragment>
 </navigation>

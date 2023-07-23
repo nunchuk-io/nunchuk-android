@@ -23,6 +23,7 @@ import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.User
+import com.nunchuk.android.model.byzantine.toAlertType
 import com.nunchuk.android.model.transaction.AlertPayload
 
 internal fun KeyResponse.toBackupKey(): BackupKey {
@@ -119,10 +120,11 @@ internal fun AlertResponse.toAlert(): Alert {
         id = id.orEmpty(),
         status = status.orEmpty(),
         title = title.orEmpty(),
-        type = type.orEmpty(),
+        type = type.toAlertType(),
         payload = AlertPayload(
             masterName = payload?.masterName.orEmpty(),
-            pendingKeysCount = payload?.pendingKeysCount.orDefault(0)
+            pendingKeysCount = payload?.pendingKeysCount.orDefault(0),
+            dummyTransactionId = payload?.dummyTransactionId.orEmpty()
         )
     )
 }

@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.components.cosigning
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.byzantine.ParseUpdateGroupKeyPayloadUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase
 import com.nunchuk.android.core.domain.membership.GetGroupKeyPolicyUserDataUseCase
 import com.nunchuk.android.core.domain.membership.UpdateGroupServerKeysUseCase
@@ -30,8 +31,10 @@ import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupServerKeysUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,7 +54,10 @@ class CosigningGroupPolicyViewModel @Inject constructor(
     private val calculateRequiredSignaturesUpdateGroupKeyPolicyUseCase: CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase,
     private val getGroupKeyPolicyUserDataUseCase: GetGroupKeyPolicyUserDataUseCase,
     private val getGroupUseCase: GetGroupUseCase,
-) : ViewModel() {
+    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
+    private val parseUpdateGroupKeyPayloadUseCase: ParseUpdateGroupKeyPayloadUseCase,
+
+    ) : ViewModel() {
     private val args: CosigningGroupPolicyFragmentArgs =
         CosigningGroupPolicyFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<CosigningGroupPolicyEvent>()
@@ -62,30 +68,63 @@ class CosigningGroupPolicyViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val keyPolicy = getGroupServerKeysUseCase(
-                GetGroupServerKeysUseCase.Param(
-                    args.groupId,
-                    args.xfp
-                )
-            ).getOrNull()
-            val group = getGroupUseCase(args.groupId).getOrNull()
-            if (keyPolicy != null && group != null) {
-                val members = group.members.mapNotNull { member ->
-                    if (member.role.toRole.isKeyHolder) {
-                        AssistedMember(
-                            role = member.role,
-                            email = member.emailOrUsername,
-                            name = member.user?.name,
-                            membershipId = member.membershipId
-                        )
-                    } else null
-                }
-                _state.update { state ->
-                    state.copy(
-                        keyPolicy = keyPolicy,
-                        members = members,
+            _event.emit(CosigningGroupPolicyEvent.Loading(true))
+            loadMembers()
+            if (args.dummyTransactionId.isNotEmpty()) {
+                getGroupDummyTransactionPayloadUseCase(
+                    GetGroupDummyTransactionPayloadUseCase.Param(
+                        groupId = args.groupId,
+                        transactionId = args.dummyTransactionId,
+                        walletId = args.walletId
                     )
+                ).onSuccess { payload ->
+                    if (payload.type == DummyTransactionType.UPDATE_SERVER_KEY) {
+                        parseUpdateGroupKeyPayloadUseCase(payload).onSuccess { newPolicy ->
+                            _state.update {
+                                it.copy(
+                                    keyPolicy = newPolicy,
+                                    dummyTransactionId = args.dummyTransactionId,
+                                    isUpdateFlow = true,
+                                    requiredSignature = CalculateRequiredSignatures(
+                                        VerificationType.SIGN_DUMMY_TX,
+                                        payload.requiredSignatures
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
+            } else {
+                getGroupServerKeysUseCase(
+                    GetGroupServerKeysUseCase.Param(
+                        args.groupId,
+                        args.xfp
+                    )
+                ).onSuccess {
+                    _state.update { state -> state.copy(keyPolicy = it) }
+                }
+            }
+            _event.emit(CosigningGroupPolicyEvent.Loading(false))
+        }
+    }
+
+    private fun loadMembers() {
+        viewModelScope.launch {
+            val group = getGroupUseCase(args.groupId).getOrNull()
+            val members = group?.members.orEmpty().mapNotNull { member ->
+                if (member.role.toRole.isKeyHolder) {
+                    AssistedMember(
+                        role = member.role,
+                        email = member.emailOrUsername,
+                        name = member.user?.name,
+                        membershipId = member.membershipId
+                    )
+                } else null
+            }
+            _state.update { state ->
+                state.copy(
+                    members = members,
+                )
             }
         }
     }
@@ -175,7 +214,12 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                                 groupId = args.groupId,
                             )
                         ).onSuccess { transactionId ->
-                            _state.update { it.copy(dummyTransactionId = transactionId, requiredSignature = requiredSignature) }
+                            _state.update {
+                                it.copy(
+                                    dummyTransactionId = transactionId,
+                                    requiredSignature = requiredSignature
+                                )
+                            }
                             _event.emit(
                                 CosigningGroupPolicyEvent.OnSaveChange(
                                     requiredSignature,
