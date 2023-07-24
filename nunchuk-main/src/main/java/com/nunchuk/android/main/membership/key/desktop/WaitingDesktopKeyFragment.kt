@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -14,8 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.key.toString
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -35,42 +36,23 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                 val onConfirmAddLedger: () -> Unit = {
                     viewModel.checkRequestStatus()
                 }
-                when (args.signerTag) {
-                    SignerTag.LEDGER -> {
-                        WaitingDesktopKeyContent(
-                            title = context.getString(R.string.nc_waiting_for_ledger_to_be_added),
-                            desc = context.getString(R.string.nc_add_ledger_using_desktop_desc),
-                            button = context.getString(R.string.nc_i_have_already_added_ledger),
-                            remainTime = remainTime,
-                            onMoreClicked = ::handleShowMore,
-                            onConfirmAddLedger = onConfirmAddLedger
-                        )
-                    }
-
-                    SignerTag.TREZOR -> {
-                        WaitingDesktopKeyContent(
-                            title = context.getString(R.string.nc_waiting_for_trezor_to_be_added),
-                            desc = context.getString(R.string.nc_add_trezor_using_desktop_desc),
-                            button = context.getString(R.string.nc_i_have_already_added_trezor),
-                            remainTime = remainTime,
-                            onMoreClicked = ::handleShowMore,
-                            onConfirmAddLedger = onConfirmAddLedger
-                        )
-                    }
-
-                    SignerTag.COLDCARD -> {
-                        WaitingDesktopKeyContent(
-                            title = context.getString(R.string.nc_waiting_for_coldcard_to_be_added),
-                            desc = context.getString(R.string.nc_add_coldcard_using_desktop_desc),
-                            button = context.getString(R.string.nc_i_have_already_added_coldcard),
-                            remainTime = remainTime,
-                            onMoreClicked = ::handleShowMore,
-                            onConfirmAddLedger = onConfirmAddLedger
-                        )
-                    }
-
-                    else -> Unit
-                }
+                WaitingDesktopKeyContent(
+                    title = stringResource(
+                        R.string.nc_waiting_for_desktop_key_to_be_added,
+                        args.signerTag.toString(requireContext())
+                    ),
+                    desc = stringResource(
+                        R.string.nc_add_key_using_desktop_desc,
+                        args.signerTag.toString(requireContext())
+                    ),
+                    button = stringResource(
+                        R.string.nc_i_have_already_added_desktop_key,
+                        args.signerTag.toString(requireContext())
+                    ),
+                    remainTime = remainTime,
+                    onMoreClicked = ::handleShowMore,
+                    onConfirmAddLedger = onConfirmAddLedger
+                )
             }
         }
     }
@@ -92,11 +74,7 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                             NCInfoDialog(requireActivity()).showDialog(
                                 message = getString(
                                     R.string.nc_no_device_have_been_detected,
-                                    when (args.signerTag) {
-                                        SignerTag.LEDGER -> getString(R.string.nc_ledger)
-                                        SignerTag.TREZOR -> getString(R.string.nc_trezor)
-                                        else -> getString(R.string.nc_coldcard)
-                                    }
+                                    args.signerTag.toString(requireContext())
                                 ),
                                 onYesClick = {
                                     if (state.requestCancel) {

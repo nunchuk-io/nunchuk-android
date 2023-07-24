@@ -123,4 +123,5 @@ object SheetOptionType {
     const val TYPE_ADD_COLDCARD_USB = 66
 
     const val TYPE_ADD_AIRGAP_COLDCARD = 67
+    const val TYPE_ADD_BITBOX = 68
 }

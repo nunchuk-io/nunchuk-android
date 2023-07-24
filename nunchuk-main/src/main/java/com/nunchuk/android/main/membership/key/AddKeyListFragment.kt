@@ -205,6 +205,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
             SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
+            SheetOptionType.TYPE_ADD_BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
         }
     }
 
@@ -350,6 +351,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_TREZOR,
                     label = getString(R.string.nc_trezor)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_BITBOX,
+                    label = getString(R.string.nc_bitbox)
                 ),
             ),
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),

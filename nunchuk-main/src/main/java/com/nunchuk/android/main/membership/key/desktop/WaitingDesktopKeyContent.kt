@@ -1,6 +1,10 @@
 package com.nunchuk.android.main.membership.key.desktop
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -81,8 +85,8 @@ fun WaitingDesktopKeyContent(
 @Composable
 private fun AddLedgerScreenPreview() {
     WaitingDesktopKeyContent(
-        title = stringResource(R.string.nc_waiting_for_ledger_to_be_added),
-        desc = stringResource(R.string.nc_add_trezor_using_desktop_desc),
-        button = stringResource(R.string.nc_i_have_already_added_ledger)
+        title = stringResource(R.string.nc_waiting_for_desktop_key_to_be_added, stringResource(id = R.string.nc_ledger)),
+        desc = stringResource(R.string.nc_add_key_using_desktop_desc, stringResource(id = R.string.nc_ledger)),
+        button = stringResource(R.string.nc_i_have_already_added_desktop_key, stringResource(id = R.string.nc_ledger))
     )
 }
