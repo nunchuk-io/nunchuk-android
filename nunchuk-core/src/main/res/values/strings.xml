@@ -520,7 +520,7 @@
     <string name="nc_keystone">Keystone</string>
     <string name="nc_blockstream_jade">Blockstream Jade</string>
     <string name="nc_foudation_passport">Foundation Passport</string>
-    <string name="nc_what_type_of_airgap_you_have">What type of air-gapped device do you have?</string>
+    <string name="nc_what_type_of_airgap_you_have">Select your air-gapped device type</string>
     <string name="nc_do_it_now">Do it now</string>
     <string name="nc_setup_inheritance_for">Set up an inheritance plan for %1$s</string>
     <string name="nc_import_via_qr">Import via QR</string>
