@@ -15,11 +15,11 @@ ext {
     lifecycleVersion = '2.5.0'
 
     retrofitVersion = '2.9.0'
-    okhttpVersion = '4.7.2'
+    okhttpVersion = '4.11.0'
     coroutinesVersion = '1.6.4'
 
     // Plugins versions
-    gradleVersion = '7.4.2'
+    gradleVersion = '8.0.0'
     googleServiceVersion = '4.3.15'
     kotlinGradlePluginVersion = '1.8.10'
     kotlinStdlibVersion = '1.8.10'
