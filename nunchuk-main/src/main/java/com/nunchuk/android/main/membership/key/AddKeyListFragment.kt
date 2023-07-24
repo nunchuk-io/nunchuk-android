@@ -199,6 +199,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+            SheetOptionType.TYPE_ADD_AIRGAP_COLDCARD,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
 
             SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
