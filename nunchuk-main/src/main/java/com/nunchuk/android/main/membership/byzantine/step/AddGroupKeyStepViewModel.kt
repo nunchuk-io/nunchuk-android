@@ -31,6 +31,7 @@ import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -124,16 +125,19 @@ class AddGroupKeyStepViewModel @Inject constructor(
     fun refresh() {
         if (refreshJob?.isActive == true) return
         refreshJob = viewModelScope.launch {
-            syncGroupDraftWalletUseCase(groupId.value).onSuccess { draftWallet ->
-                val isConfigDone = draftWallet.config.n == draftWallet.signers.size
-                _isConfigKeyDone.value = isConfigDone
-                _isRequireInheritance.value = draftWallet.config.allowInheritance
-                if (isConfigDone) {
-                    syncGroupWalletUseCase(groupId.value).onSuccess {
-                        _isCreateWalletDone.value = true
-                    }
-                }
+            val walletDeferred = async {
+                syncGroupWalletUseCase(groupId.value)
             }
+            val draftWalletDeferred = async {
+                syncGroupDraftWalletUseCase(groupId.value)
+            }
+            val isCreateWallet = walletDeferred.await().isSuccess
+            val draftWallet = draftWalletDeferred.await().getOrNull() ?: return@launch
+
+            _isCreateWalletDone.value = isCreateWallet
+            val isConfigDone = draftWallet.config.n == draftWallet.signers.size
+            _isConfigKeyDone.value = isCreateWallet || isConfigDone
+            _isRequireInheritance.value = draftWallet.config.allowInheritance
         }
     }
 

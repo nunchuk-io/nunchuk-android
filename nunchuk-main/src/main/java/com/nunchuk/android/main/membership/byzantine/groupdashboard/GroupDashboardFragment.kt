@@ -185,7 +185,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     launcher = launcher,
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
-                    groupId = args.groupId
+                    groupId = args.groupId,
+                    walletId = args.walletId
                 )
             } else {
                 navigator.openMembershipActivity(

@@ -154,8 +154,8 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"
-            app:popUpTo="@id/addKeyStepFragment"
-            app:popUpToInclusive="false" />
+            app:popUpTo="@id/createWalletFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_createWalletFragment_to_registerWalletToAirgapFragment"
             app:destination="@id/registerWalletToAirgapFragment"
@@ -163,8 +163,8 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"
-            app:popUpTo="@id/addKeyStepFragment"
-            app:popUpToInclusive="false" />
+            app:popUpTo="@id/createWalletFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/createWalletSuccessFragment"

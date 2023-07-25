@@ -43,6 +43,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
@@ -214,8 +215,11 @@ internal class WalletsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getGroupBriefsFlowUseCase(Unit).collect {
-                updateState { copy(allGroups = it.getOrDefault(emptyList())) }
-                mapGroupWalletUi()
+                val groups = it.getOrDefault(emptyList())
+                updateState { copy(allGroups = groups) }
+                if (groups.isNotEmpty()) {
+                    updateBadge()
+                }
             }
         }
         getAppSettings()
@@ -252,13 +256,14 @@ internal class WalletsViewModel @Inject constructor(
                 val subscription = result.getOrThrow()
                 val getServerWalletResult = getServerWalletUseCase(Unit)
                 if (getServerWalletResult.isFailure) return@launch
-                if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
-                    retrieveData()
-                }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
                 updateState { copy(plan = subscription.plan) }
-                mapGroupWalletUi()
+                if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
+                    retrieveData()
+                } else {
+                    mapGroupWalletUi()
+                }
             } else {
                 updateState { copy(plan = MembershipPlan.NONE) }
             }
@@ -319,20 +324,18 @@ internal class WalletsViewModel @Inject constructor(
             val results = arrayListOf<GroupWalletUi>()
             val wallets = getState().wallets
             val groups = getState().allGroups
-            val groupWalletUis = getState().groupWalletUis
             val assistedWallets = getState().assistedWallets
+            val alerts = getState().alerts
             val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()
-            val assistedWalletGroupIds =
-                assistedWallets.filter { it.groupId.isNotEmpty() }.map { it.groupId }.toHashSet()
             val pendingGroup = groups.filter { it.isPendingWallet() }
             wallets.forEach { wallet ->
-                val group = groups.firstOrNull { it.groupId in assistedWalletGroupIds }
-                var groupWalletUi =
-                    groupWalletUis.find { it.wallet?.wallet?.id == wallet.wallet.id }
-                        ?: GroupWalletUi(
-                            wallet = wallet,
-                            isAssistedWallet = wallet.wallet.id in assistedWalletIds
-                        )
+                val groupId = assistedWallets.find { it.localId == wallet.wallet.id }?.groupId
+                val group = groups.firstOrNull { it.groupId == groupId }
+                var groupWalletUi = GroupWalletUi(
+                    wallet = wallet,
+                    isAssistedWallet = wallet.wallet.id in assistedWalletIds,
+                    badgeCount = alerts[groupId] ?: 0
+                )
                 if (group != null) {
                     val role = getCurrentUserRole(group)
                     var inviterName = ""
@@ -348,9 +351,7 @@ internal class WalletsViewModel @Inject constructor(
                 results.add(groupWalletUi)
             }
             pendingGroup.forEach { group ->
-                var groupWalletUi =
-                    groupWalletUis.find { it.group?.groupId == group.groupId }
-                        ?: GroupWalletUi(group = group)
+                var groupWalletUi = GroupWalletUi(group = group)
                 val role = getCurrentUserRole(group)
                 var inviterName = ""
                 if ((role == AssistedWalletRole.MASTER.name).not()) {
@@ -366,27 +367,23 @@ internal class WalletsViewModel @Inject constructor(
             val sortedList = results.sortedWith { o1, o2 ->
                 val walletNullOrder = if (o1.wallet == null) -1 else 1
                 val groupTimeCreatedOrder =
-                    o1.group?.createdTimeMillis?.compareTo(o2.group?.createdTimeMillis!!) ?: 0
+                    o1.group?.createdTimeMillis?.compareTo(o2.group?.createdTimeMillis.orDefault(0L))
+                        ?: 0
                 walletNullOrder + groupTimeCreatedOrder
             }
             updateState { copy(groupWalletUis = sortedList) }
-            updateBadge()
         }
     }
 
     private fun updateBadge() {
-        badgeJob?.cancel()
+        if (badgeJob?.isActive == true) return
         badgeJob = viewModelScope.launch {
             val groupIds = getState().allGroups.map { it.groupId }
-            val groupWalletUis = getState().groupWalletUis
             val result = getPendingWalletNotifyCountUseCase(groupIds)
             if (result.isSuccess) {
                 val alerts = result.getOrDefault(hashMapOf())
-                updateState {
-                    copy(groupWalletUis = groupWalletUis.map {
-                        it.copy(badgeCount = alerts[it.group?.groupId] ?: 0)
-                    })
-                }
+                updateState { copy(alerts = alerts) }
+                mapGroupWalletUi()
             }
         }
     }
@@ -538,7 +535,7 @@ internal class WalletsViewModel @Inject constructor(
                 || emailOrUsername == accountManager.getAccount().username
 
     private fun getCurrentUserRole(group: ByzantineGroupBrief): String {
-       return group.members.firstOrNull {
+        return group.members.firstOrNull {
             isMatchingEmailOrUserName(it.emailOrUsername)
         }?.role ?: AssistedWalletRole.NONE.name
     }
