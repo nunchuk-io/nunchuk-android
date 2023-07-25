@@ -265,7 +265,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back"
-        app:title="Network Setting" />
+        app:title="@string/nc_settings_network" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnSave"
