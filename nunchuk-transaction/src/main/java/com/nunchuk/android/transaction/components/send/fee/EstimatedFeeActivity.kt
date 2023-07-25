@@ -161,7 +161,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         binding.tvEffectiveFee.isVisible = state.cpfpFee.value > 0
         binding.manualFeeDesc.isVisible = binding.tvEffectiveFee.isVisible
-        binding.tvEffectiveFee.text = getString(R.string.nc_transaction_effective_fee_rate, state.cpfpFee.value)
+        binding.tvEffectiveFee.text = getString(R.string.nc_transaction_effective_fee_rate, state.cpfpFee.value / 1000)
 
         if (state.subtractFeeFromAmount) {
             bindSubtotal(viewModel.getOutputAmount())
