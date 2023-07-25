@@ -30,6 +30,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -106,6 +107,8 @@ class AddGroupKeyStepViewModel @Inject constructor(
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(4))
 
+    private var refreshJob: Job? = null
+
     init {
         viewModelScope.launch {
             currentStep.filterNotNull().collect {
@@ -115,10 +118,12 @@ class AddGroupKeyStepViewModel @Inject constructor(
         viewModelScope.launch {
             getSecurityQuestionUseCase(GetSecurityQuestionUseCase.Param(isFilterAnswer = false))
         }
+        refresh()
     }
 
     fun refresh() {
-        viewModelScope.launch {
+        if (refreshJob?.isActive == true) return
+        refreshJob = viewModelScope.launch {
             syncGroupDraftWalletUseCase(groupId.value).onSuccess { draftWallet ->
                 val isConfigDone = draftWallet.config.n == draftWallet.signers.size
                 _isConfigKeyDone.value = isConfigDone

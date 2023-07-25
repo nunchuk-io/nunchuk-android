@@ -152,7 +152,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -1554,28 +1553,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     )
                 })
         )
-        val group = response.data.data?.toByzantineGroup()
-            ?: throw NullPointerException("Can not create group")
-        val memberBrief = group.members.map {
-            ByzantineMemberBrief(
-                emailOrUsername = it.emailOrUsername,
-                role = it.role,
-                inviterUserId = it.inviterUserId,
-                status = it.status,
-                avatar = it.user?.avatar,
-                name = it.user?.name,
-                email = it.user?.email,
-                userId = it.user?.id
-            )
-        }
+        val groupResponse = response.data.data ?: throw NullPointerException("Can not create group")
+        val group = groupResponse.toByzantineGroup()
         groupDao.updateOrInsert(
-            GroupEntity(
-                groupId = group.id,
-                chatId = accountManager.getAccount().chatId,
-                status = group.status,
-                createdTimeMillis = group.createdTimeMillis,
-                members = gson.toJson(memberBrief)
-            )
+            groupResponse.toGroupEntity(accountManager.getAccount().chatId)
         )
         return group
     }
@@ -1585,8 +1566,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return WalletConstraints(maximumKeyholder = response.data.data?.maximumKeyholder ?: 0)
     }
 
-    override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> = flow {
-        groupDao.getGroups(chatId = accountManager.getAccount().chatId).collect {
+    override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> =
+        groupDao.getGroups(chatId = accountManager.getAccount().chatId).map {
             val groupBriefs = it.map { group ->
                 val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
                 val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
@@ -1597,7 +1578,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     createdTimeMillis = group.createdTimeMillis
                 )
             }
-            emit(groupBriefs)
+            groupBriefs
+        }
+
+    override fun getGroupBriefById(groupId: String): Flow<ByzantineGroupBrief> {
+        return groupDao.getById(groupId, chatId = accountManager.getAccount().chatId).map { group ->
+            val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
+            val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
+            ByzantineGroupBrief(
+                groupId = group.groupId,
+                status = group.status,
+                members = members,
+                createdTimeMillis = group.createdTimeMillis
+            )
         }
     }
 
@@ -1650,8 +1643,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 userId = it.user?.id
             )
         }
+       groupDao.getGroupById(id.orEmpty(), chatId)?.let {
+            return it.copy(
+                groupId = id.orEmpty(),
+                chatId = chatId,
+                status = status.orEmpty(),
+                createdTimeMillis = createdTimeMillis ?: 0,
+                members = gson.toJson(memberBrief)
+            )
+        }
         return GroupEntity(
-            groupId = id!!,
+            groupId = id.orEmpty(),
             chatId = chatId,
             status = status.orEmpty(),
             createdTimeMillis = createdTimeMillis ?: 0,

@@ -5,6 +5,7 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 
 sealed class GroupDashboardEvent {
@@ -19,5 +20,6 @@ data class GroupDashboardState(
     val group: ByzantineGroup? = null,
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val alerts: List<Alert> = emptyList(),
-    val groupChat: GroupChat? = null
+    val groupChat: GroupChat? = null,
+    val myRole: AssistedWalletRole = AssistedWalletRole.NONE
 )

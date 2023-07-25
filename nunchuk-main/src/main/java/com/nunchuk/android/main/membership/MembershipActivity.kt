@@ -69,6 +69,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS, MembershipStage.SETUP_INHERITANCE ->
                 graph.setStartDestination(if (groupId.isEmpty()) R.id.addKeyStepFragment else R.id.addGroupKeyStepFragment)
 
+            MembershipStage.ADD_KEY_ONLY -> graph.setStartDestination(R.id.groupPendingIntroFragment)
             else -> Unit
         }
         navHostFragment.navController.setGraph(graph, intent.extras)

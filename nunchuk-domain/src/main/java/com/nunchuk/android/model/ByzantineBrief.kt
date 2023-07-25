@@ -1,5 +1,7 @@
 package com.nunchuk.android.model
 
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+
 data class ByzantineGroupBrief(
     val groupId: String,
     val status: String,
@@ -7,6 +9,8 @@ data class ByzantineGroupBrief(
     val members: List<ByzantineMemberBrief>
 ) {
     fun isPendingWallet() = status == "PENDING_WALLET"
+
+    fun getMasterName() : String = members.find { it.role == AssistedWalletRole.MASTER.name }?.name.orEmpty()
 }
 
 data class ByzantineMemberBrief(

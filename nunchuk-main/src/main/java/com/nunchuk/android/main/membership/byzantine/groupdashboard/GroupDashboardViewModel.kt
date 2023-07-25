@@ -17,6 +17,7 @@ import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -72,8 +74,8 @@ class GroupDashboardViewModel @Inject constructor(
             timelineListenerAdapter.data.collect(::handleTimelineEvents)
         }
         getGroup()
-        if (args.walletId != null) {
-            getWallet(args.walletId)
+        if (!args.walletId.isNullOrEmpty()) {
+            getWallet(args.walletId.orEmpty())
         }
         getAlerts()
         getGroupChat()
@@ -110,7 +112,8 @@ class GroupDashboardViewModel @Inject constructor(
     private fun getGroup() {
         viewModelScope.launch {
             val group = getGroupUseCase(args.groupId).getOrNull()
-            _state.value = _state.value.copy(group = group, members = group?.members ?: listOf())
+            val members = group?.members.orEmpty()
+            _state.update { it.copy(group = group, members = members, myRole = currentUserRole(members)) }
         }
     }
 
@@ -169,13 +172,12 @@ class GroupDashboardViewModel @Inject constructor(
         return state.value.group?.id ?: ""
     }
 
-    fun currentUserRole(): String {
-        return state.value.members.firstOrNull { it.emailOrUsername == accountManager.getAccount().email }?.role
-            ?: AssistedWalletRole.NONE.name
+    private fun currentUserRole(members: List<ByzantineMember>): AssistedWalletRole {
+        return members.firstOrNull { it.emailOrUsername == accountManager.getAccount().email }?.role.toRole
     }
 
     fun isShowSetupInheritance(): Boolean =
-        if (args.walletId != null) assistedWalletManager.isShowSetupInheritance(args.walletId) else false
+        if (args.walletId != null) assistedWalletManager.isShowSetupInheritance(args.walletId.orEmpty()) else false
 
     fun groupChat(): GroupChat? {
         return state.value.groupChat

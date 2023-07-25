@@ -30,7 +30,12 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -38,9 +43,22 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
-import com.nunchuk.android.usecase.membership.*
+import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.ReuseKeyWalletUseCase
+import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -60,6 +78,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
     private val syncGroupDraftWalletUseCase: SyncGroupDraftWalletUseCase,
+    private val applicationScope: CoroutineScope
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -180,14 +199,16 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
                 singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
                     ?.let { signer ->
-                        syncKeyToGroupUseCase(
-                            SyncKeyToGroupUseCase.Param(
-                                groupId = args.groupId,
-                                step = membershipStepManager.currentStep
-                                    ?: throw IllegalArgumentException("Current step empty"),
-                                signer = signer
+                        applicationScope.launch {
+                            syncKeyToGroupUseCase(
+                                SyncKeyToGroupUseCase.Param(
+                                    groupId = args.groupId,
+                                    step = membershipStepManager.currentStep
+                                        ?: throw IllegalArgumentException("Current step empty"),
+                                    signer = signer
+                                )
                             )
-                        )
+                        }
                     }
             } else {
                 savedStateHandle[KEY_CURRENT_SIGNER] = signer

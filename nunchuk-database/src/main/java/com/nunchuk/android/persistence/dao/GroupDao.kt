@@ -3,7 +3,6 @@ package com.nunchuk.android.persistence.dao
 import androidx.room.Dao
 import androidx.room.Query
 import com.nunchuk.android.persistence.BaseDao
-import com.nunchuk.android.persistence.TABLE_ASSISTED_WALLET
 import com.nunchuk.android.persistence.TABLE_GROUP
 import com.nunchuk.android.persistence.entity.GroupEntity
 import kotlinx.coroutines.flow.Flow
@@ -17,5 +16,8 @@ interface GroupDao : BaseDao<GroupEntity> {
     suspend fun deleteGroups(groupIds: List<String>, chatId: String): Int
 
     @Query("SELECT * FROM $TABLE_GROUP WHERE group_id =:id AND chatId = :chatId")
-    suspend fun getById(id: String, chatId: String): GroupEntity?
+    fun getById(id: String, chatId: String): Flow<GroupEntity>
+
+    @Query("SELECT * FROM $TABLE_GROUP WHERE group_id =:id AND chatId = :chatId")
+    fun getGroupById(id: String, chatId: String): GroupEntity?
 }

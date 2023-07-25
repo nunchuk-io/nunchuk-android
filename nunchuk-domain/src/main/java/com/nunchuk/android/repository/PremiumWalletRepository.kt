@@ -293,6 +293,7 @@ interface PremiumWalletRepository {
 
     suspend fun getWalletConstraints(): WalletConstraints
     fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>>
+    fun getGroupBriefById(groupId: String): Flow<ByzantineGroupBrief>
     suspend fun syncGroupWallets(): Boolean
     suspend fun getGroup(groupId: String): ByzantineGroup
     suspend fun deleteGroupWallet(groupId: String)

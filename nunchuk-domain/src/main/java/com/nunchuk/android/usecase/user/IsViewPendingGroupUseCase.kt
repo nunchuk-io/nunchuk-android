@@ -17,11 +17,17 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model
+package com.nunchuk.android.usecase.user
 
-/**
- * ADD_KEY_ONLY only Byzantine
- */
-enum class MembershipStage {
-    NONE, INVITE_MEMBER, CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS, CONFIG_SERVER_KEY, CONFIG_SPENDING_LIMIT, SETUP_INHERITANCE, DONE, ADD_KEY_ONLY
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
+
+class IsViewPendingGroupUseCase @Inject constructor(
+    private val repository: MembershipRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<String, Boolean>(ioDispatcher) {
+    override suspend fun execute(parameters: String) = repository.isViewPendingWallet(parameters)
 }

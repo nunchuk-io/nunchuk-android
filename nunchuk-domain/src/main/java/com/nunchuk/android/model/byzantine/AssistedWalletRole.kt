@@ -10,7 +10,7 @@ enum class AssistedWalletRole {
 val AssistedWalletRole.isKeyHolder: Boolean
     get() = this == AssistedWalletRole.MASTER || this == AssistedWalletRole.KEYHOLDER || this == AssistedWalletRole.ADMIN
 
-val String.toRole : AssistedWalletRole
+val String?.toRole : AssistedWalletRole
     get() = when(this) {
         AssistedWalletRole.MASTER.name -> AssistedWalletRole.MASTER
         AssistedWalletRole.KEYHOLDER.name -> AssistedWalletRole.KEYHOLDER

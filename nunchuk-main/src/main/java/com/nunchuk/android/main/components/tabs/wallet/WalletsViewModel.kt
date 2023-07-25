@@ -208,6 +208,11 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                if (shouldReload) retrieveData()
+            }
+        }
+        viewModelScope.launch {
             getGroupBriefsFlowUseCase(Unit).collect {
                 updateState { copy(allGroups = it.getOrDefault(emptyList())) }
                 mapGroupWalletUi()
@@ -252,11 +257,6 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
-                if (subscription.plan == MembershipPlan.BYZANTINE) {
-                    syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
-                        if (shouldReload) retrieveData()
-                    }
-                }
                 updateState { copy(plan = subscription.plan) }
                 mapGroupWalletUi()
             } else {

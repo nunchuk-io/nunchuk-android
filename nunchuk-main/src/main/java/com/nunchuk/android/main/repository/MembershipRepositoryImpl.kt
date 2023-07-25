@@ -32,6 +32,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
+import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.entity.toModel
@@ -57,11 +58,21 @@ class MembershipRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val ncSharePreferences: NCSharePreferences,
     private val assistedWalletDao: AssistedWalletDao,
+    private val groupDao: GroupDao,
     applicationScope: CoroutineScope,
 ) : MembershipRepository {
-    private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
+    private val chain =
+        ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
+
     override fun getSteps(plan: MembershipPlan, groupId: String): Flow<List<MembershipStepInfo>> {
-        return ncDataStore.chain.flatMapLatest { chain -> membershipStepDao.getSteps(accountManager.getAccount().chatId, chain, plan, groupId) }
+        return ncDataStore.chain.flatMapLatest { chain ->
+            membershipStepDao.getSteps(
+                accountManager.getAccount().chatId,
+                chain,
+                plan,
+                groupId
+            )
+        }
             .map {
                 it.map { entity -> entity.toModel() }
             }
@@ -87,7 +98,11 @@ class MembershipRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteStepBySignerId(masterSignerId: String) {
-        membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().chatId, chain.value, masterSignerId)
+        membershipStepDao.deleteByMasterSignerId(
+            accountManager.getAccount().chatId,
+            chain.value,
+            masterSignerId
+        )
     }
 
     override suspend fun getSubscription(): MemberSubscription {
@@ -122,7 +137,7 @@ class MembershipRepositoryImpl @Inject constructor(
         val steps = getSteps(plan, groupId).firstOrNull().orEmpty()
         steps.filter { it.masterSignerId.isNotEmpty() }.forEach {
             runCatching {
-               gson.fromJson(it.extraData, SignerExtra::class.java)
+                gson.fromJson(it.extraData, SignerExtra::class.java)
                     ?.takeIf { extra -> extra.isAddNew }
                     ?.let { extra ->
                         if (extra.signerType == SignerType.NFC) {
@@ -153,5 +168,22 @@ class MembershipRepositoryImpl @Inject constructor(
         val entity = assistedWalletDao.getById(walletId) ?: return
         assistedWalletDao.update(entity.copy(isRegisterColdcard = value))
     }
+
     override suspend fun setHideUpsellBanner() = ncDataStore.setHideUpsellBanner()
+
+    override suspend fun isViewPendingWallet(groupId: String): Boolean {
+        return groupDao.getGroupById(
+            groupId,
+            accountManager.getAccount().chatId
+        )?.isViewPendingWallet ?: false
+    }
+
+    override suspend fun setViewPendingWallet(groupId: String) {
+        groupDao.getGroupById(
+            groupId,
+            accountManager.getAccount().chatId
+        )?.let {
+            groupDao.updateOrInsert(it.copy(isViewPendingWallet = true))
+        }
+    }
 }

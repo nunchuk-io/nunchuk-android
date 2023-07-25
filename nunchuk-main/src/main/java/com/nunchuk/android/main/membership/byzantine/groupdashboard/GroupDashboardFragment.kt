@@ -139,8 +139,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                             flow = ByzantineMemberFlow.EDIT,
                         )
                     )
-                }, onAlertClick = {
-                    alertClick(it)
+                }, onAlertClick = { alert, role ->
+                    alertClick(alert, role)
                 }, onWalletClick = {
                     args.walletId?.let {
                         navigator.openWalletDetailsScreen(
@@ -178,14 +178,23 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         }
     }
 
-    private fun alertClick(alert: Alert) {
+    private fun alertClick(alert: Alert, role: AssistedWalletRole) {
         if (alert.type == AlertType.GROUP_WALLET_PENDING) {
-            navigator.openMembershipActivity(
-                launcher = launcher,
-                activityContext = requireActivity(),
-                groupStep = MembershipStage.NONE,
-                groupId = args.groupId
-            )
+            if (role == AssistedWalletRole.MASTER) {
+                navigator.openMembershipActivity(
+                    launcher = launcher,
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
+                    groupId = args.groupId
+                )
+            } else {
+                navigator.openMembershipActivity(
+                    launcher = launcher,
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.ADD_KEY_ONLY,
+                    groupId = args.groupId
+                )
+            }
         } else if (alert.type == AlertType.UPDATE_SERVER_KEY) {
             val dummyTransactionId = alert.payload.dummyTransactionId
             if (dummyTransactionId.isNotEmpty()) {
@@ -270,14 +279,14 @@ private fun GroupDashboardScreen(
     viewModel: GroupDashboardViewModel = viewModel(),
     onEditClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
-    onAlertClick: (alert: Alert) -> Unit = {},
+    onAlertClick: (alert: Alert, role: AssistedWalletRole) -> Unit = { _, _ -> },
     onGroupChatClick: () -> Unit = {},
     onMoreClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     GroupDashboardContent(
         group = state.group,
-        currentUserRole = viewModel.currentUserRole(),
+        currentUserRole = state.myRole,
         walletName = state.walletExtended.wallet.name,
         alerts = state.alerts,
         groupChat = state.groupChat,
@@ -296,12 +305,12 @@ private fun GroupDashboardContent(
     group: ByzantineGroup? = null,
     alerts: List<Alert> = emptyList(),
     walletName: String = "",
-    currentUserRole: String = "",
+    currentUserRole: AssistedWalletRole = AssistedWalletRole.NONE,
     isEnableStartGroupChat: Boolean = false,
     groupChat: GroupChat? = null,
     onGroupChatClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
-    onAlertClick: (alert: Alert) -> Unit = {},
+    onAlertClick: (alert: Alert, role: AssistedWalletRole) -> Unit = { _, _ -> },
     onMoreClick: () -> Unit = {},
     onWalletClick: () -> Unit = {}
 ) {
@@ -423,7 +432,7 @@ private fun GroupDashboardContent(
                             keyText = it.body,
                             timeText = (it.createdTimeMillis / 1000).formatDate(),
                             onViewClick = {
-                                onAlertClick(it)
+                                onAlertClick(it, currentUserRole)
                             }
                         )
                     }
@@ -453,7 +462,7 @@ private fun GroupDashboardContent(
                                 )
                             }
 
-                            if (currentUserRole == AssistedWalletRole.MASTER.name || currentUserRole == AssistedWalletRole.ADMIN.name) {
+                            if (currentUserRole == AssistedWalletRole.MASTER || currentUserRole == AssistedWalletRole.ADMIN) {
                                 Text(
                                     modifier = Modifier.clickable {
                                         onEditClick()
