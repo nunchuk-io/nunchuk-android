@@ -1706,7 +1706,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         authorizations: List<String>,
         verifyToken: String,
         members: List<AssistedMember>,
-        securityQuestionToken: String
+        securityQuestionToken: String,
+        confirmCode: String
     ): ByzantineGroup {
         val nonce = getNonce()
         val request = EditGroupMemberRequest(
@@ -1722,6 +1723,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
+        headers[CONFIRMATION_CODE] = confirmCode
         val response =
             userWalletApiManager.groupWalletApi.editGroupMember(groupId, headers, request)
         return response.data.data?.toByzantineGroup()
@@ -1828,6 +1830,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         private const val VERIFY_TOKEN = "Verify-token"
         private const val SECURITY_QUESTION_TOKEN = "Security-Question-token"
         internal const val AUTHORIZATION_X = "AuthorizationX"
+        internal const val CONFIRMATION_CODE = "Confirmation-Code-1"
     }
 }
 

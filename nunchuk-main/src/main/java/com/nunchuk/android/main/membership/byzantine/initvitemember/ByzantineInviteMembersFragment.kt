@@ -83,7 +83,9 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                         ?: return@registerForActivityResult
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                viewModel.editGroupMember(signatureMap, securityQuestionToken)
+                val confirmCode =
+                    data.getString(GlobalResultKey.CONFIRM_CODE).orEmpty()
+                viewModel.editGroupMember(signatureMap, securityQuestionToken, confirmCode)
             }
         }
 

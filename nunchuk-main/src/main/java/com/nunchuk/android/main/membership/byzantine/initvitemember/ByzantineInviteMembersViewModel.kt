@@ -330,7 +330,8 @@ class ByzantineInviteMembersViewModel @Inject constructor(
 
     fun editGroupMember(
         signatures: HashMap<String, String>,
-        securityQuestionToken: String
+        securityQuestionToken: String,
+        confirmCode: String
     ) = viewModelScope.launch {
         if (verifyToken.isNullOrEmpty()) return@launch
         val state = _state.value
@@ -342,6 +343,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
                 securityQuestionToken = securityQuestionToken,
                 members = state.members,
                 groupId = args.groupId,
+                confirmCode = confirmCode
             )
         )
         _event.emit(ByzantineInviteMembersEvent.Loading(false))

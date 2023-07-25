@@ -26,7 +26,8 @@ class EditGroupMemberUseCase @Inject constructor(
             verifyToken = parameters.verifyToken,
             members = parameters.members,
             securityQuestionToken = parameters.securityQuestionToken,
-            groupId = parameters.groupId
+            groupId = parameters.groupId,
+            confirmCode = parameters.confirmCode
         )
     }
 
@@ -35,6 +36,7 @@ class EditGroupMemberUseCase @Inject constructor(
         val members: List<AssistedMember>,
         val verifyToken: String,
         val securityQuestionToken: String,
-        val groupId: String
+        val groupId: String,
+        val confirmCode: String
     )
 }

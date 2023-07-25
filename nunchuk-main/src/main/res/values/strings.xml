@@ -77,7 +77,7 @@
     <string name="nc_apply_the_same_limit">Apply the same limit to all members</string>
     <string name="nc_invite_members">Invite members</string>
     <string name="nc_invite_members_desc">Enter the members’ emails and roles. You can have up to 3 keyholders (including the master account) and 3 observers.</string>
-    <string name="nc_member_data">Member %s</string>
+    <string name="nc_member_data">Member %1$s</string>
     <string name="nc_email_address">Email address</string>
     <string name="nc_add_more_members">Add more members</string>
     <string name="nc_role">Role</string>
@@ -108,4 +108,7 @@
     <string name="nc_deny_wallet_invitation_msg">Wallet invitation has been denied</string>
     <string name="nc_group_wallet_creation_pending">Group wallet creation pending</string>
     <string name="nc_group_wallet_creation_pending_desc">%s initiated a group wallet. If you’re part of this wallet, please add your key.</string>
+    <string name="nc_confirm_changes">Confirm changes</string>
+    <string name="nc_confirm_changes_msg">We’ve sent a code to %1$s. Please enter it below.</string>
+    <string name="nc_code">code</string>
 </resources>

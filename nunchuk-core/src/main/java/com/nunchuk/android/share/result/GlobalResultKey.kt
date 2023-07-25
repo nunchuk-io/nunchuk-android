@@ -23,6 +23,7 @@ object GlobalResultKey {
     const val SIGNATURE_EXTRA = "SIGNATURE_EXTRA"
     const val TRANSACTION_EXTRA = "TRANSACTION_EXTRA"
     const val SECURITY_QUESTION_TOKEN = "SECURITY_QUESTION_TOKEN"
+    const val CONFIRM_CODE = "CONFIRM_CODE"
     const val UPDATE_INHERITANCE = "UPDATE_INHERITANCE"
     const val WALLET_ID = "WALLET_ID"
     const val EXTRA_COINS = "coins"

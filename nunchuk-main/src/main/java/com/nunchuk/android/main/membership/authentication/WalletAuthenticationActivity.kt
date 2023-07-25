@@ -53,6 +53,7 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
             VerificationType.SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
             VerificationType.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionIntroFragment)
             VerificationType.SECURITY_QUESTION -> graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
+            VerificationType.CONFIRMATION_CODE -> graph.setStartDestination(R.id.confirmationCodeFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
     }

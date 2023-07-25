@@ -65,5 +65,9 @@
             app:popUpTo="@id/dummyTransactionIntroFragment"
             app:popUpToInclusive="true" />
     </fragment>
+    <fragment
+        android:id="@+id/confirmationCodeFragment"
+        android:name="com.nunchuk.android.main.membership.authentication.confirmationcode.ConfirmationCodeFragment"
+        android:label="ConfirmationCodeFragment" />
 
 </navigation>

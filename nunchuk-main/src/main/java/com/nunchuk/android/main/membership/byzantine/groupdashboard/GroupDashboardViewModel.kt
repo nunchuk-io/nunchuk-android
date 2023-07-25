@@ -111,7 +111,9 @@ class GroupDashboardViewModel @Inject constructor(
 
     private fun getGroup() {
         viewModelScope.launch {
+            _event.emit(GroupDashboardEvent.Loading(true))
             val group = getGroupUseCase(args.groupId).getOrNull()
+            _event.emit(GroupDashboardEvent.Loading(false))
             val members = group?.members.orEmpty()
             _state.update { it.copy(group = group, members = members, myRole = currentUserRole(members)) }
         }

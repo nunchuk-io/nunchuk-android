@@ -313,6 +313,7 @@ interface PremiumWalletRepository {
         verifyToken: String,
         members: List<AssistedMember>,
         securityQuestionToken: String,
+        confirmCode: String
     ): ByzantineGroup
 
     suspend fun createGroupWallet(groupId: String, name: String): Wallet
