@@ -106,7 +106,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         }
         binding.feeRateInput.textChanges()
             .onEach { binding.btnContinue.tag = true }
-            .debounce(500)
+            .debounce(1000L)
             .onEach { viewModel.updateFeeRate(it.safeManualFee()) }
             .onEach { binding.btnContinue.tag = false }
             .launchIn(lifecycleScope)
