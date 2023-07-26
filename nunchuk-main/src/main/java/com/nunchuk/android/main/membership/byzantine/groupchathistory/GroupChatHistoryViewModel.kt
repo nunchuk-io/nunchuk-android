@@ -19,7 +19,6 @@ import javax.inject.Inject
 @HiltViewModel
 class GroupChatHistoryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getHistoryPeriodUseCase: GetHistoryPeriodUseCase,
     private val createOrUpdateGroupChatUseCase: CreateOrUpdateGroupChatUseCase
 ) : ViewModel() {
 
@@ -33,18 +32,9 @@ class GroupChatHistoryViewModel @Inject constructor(
 
     init {
        setHistoryPeriod(args.historyPeriodId)
-        viewModelScope.launch {
-            _event.emit(GroupChatHistoryEvent.Loading(true))
-            val result = getHistoryPeriodUseCase(Unit)
-            _event.emit(GroupChatHistoryEvent.Loading(false))
-            if (result.isSuccess) {
-                _state.value = _state.value.copy(
-                    historyPeriods = result.getOrNull() ?: emptyList()
-                )
-            } else {
-                _event.emit(GroupChatHistoryEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
+        _state.value = _state.value.copy(
+            historyPeriods = args.periods.toList()
+        )
     }
 
     fun saveHistoryPeriod() {

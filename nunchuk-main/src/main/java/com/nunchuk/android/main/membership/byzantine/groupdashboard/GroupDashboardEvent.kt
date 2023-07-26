@@ -4,6 +4,7 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.GroupChat
+import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -11,6 +12,7 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 sealed class GroupDashboardEvent {
     data class Loading(val loading: Boolean) : GroupDashboardEvent()
     data class Error(val message: String) : GroupDashboardEvent()
+    data class GetHistoryPeriodSuccess(val periods: List<HistoryPeriod>) : GroupDashboardEvent()
     object NavigateToGroupChat : GroupDashboardEvent()
 }
 

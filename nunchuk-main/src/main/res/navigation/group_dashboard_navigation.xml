@@ -63,10 +63,14 @@
 
     <include app:graph="@navigation/invite_member_navigation" />
 
-    <fragment
+    <dialog
         android:id="@+id/groupChatHistoryFragment"
         android:name="com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment"
         android:label="GroupChatHistoryFragment">
+
+        <argument
+            android:name="periods"
+            app:argType="com.nunchuk.android.model.HistoryPeriod[]" />
 
         <argument
             android:name="history_period_id"
@@ -77,6 +81,6 @@
             android:defaultValue=""
             app:argType="string" />
 
-    </fragment>
+    </dialog>
 
 </navigation>

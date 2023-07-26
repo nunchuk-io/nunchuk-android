@@ -174,6 +174,15 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 is GroupDashboardEvent.Error -> showError(message = event.message)
                 is GroupDashboardEvent.Loading -> showOrHideLoading(event.loading)
                 is GroupDashboardEvent.NavigateToGroupChat -> openRoomChat()
+                is GroupDashboardEvent.GetHistoryPeriodSuccess -> {
+                    findNavController().navigate(
+                        GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
+                            periods = event.periods.toTypedArray(),
+                            groupId = viewModel.getGroupId(),
+                            historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty()
+                        )
+                    )
+                }
             }
         }
     }
@@ -237,12 +246,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             }
 
             SheetOptionType.TYPE_GROUP_CHAT_HISTORY -> {
-                findNavController().navigate(
-                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
-                        groupId = viewModel.getGroupId(),
-                        historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty()
-                    )
-                )
+                viewModel.getGroupChatHistoryPeriod()
             }
         }
     }
@@ -264,12 +268,16 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOption(
                 type = SheetOptionType.TYPE_RECURRING_PAYMENT,
                 stringId = R.string.nc_view_recurring_payments
-            ),
-            SheetOption(
-                type = SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
-                stringId = R.string.nc_manage_group_chat_history
             )
         )
+        if (viewModel.groupChat() != null) {
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
+                    stringId = R.string.nc_manage_group_chat_history
+                )
+            )
+        }
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }

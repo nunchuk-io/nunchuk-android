@@ -9,6 +9,7 @@ import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryEvent
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
@@ -24,6 +25,7 @@ import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
 import com.nunchuk.android.usecase.membership.DismissAlertUseCase
 import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
 import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
+import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -57,6 +59,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val createOrUpdateGroupChatUseCase: CreateOrUpdateGroupChatUseCase,
     private val dismissAlertUseCase: DismissAlertUseCase,
     private val markAlertAsReadUseCase: MarkAlertAsReadUseCase,
+    private val getHistoryPeriodUseCase: GetHistoryPeriodUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -182,9 +185,6 @@ class GroupDashboardViewModel @Inject constructor(
         return members.firstOrNull { it.emailOrUsername == accountManager.getAccount().email }?.role.toRole
     }
 
-    fun isShowSetupInheritance(): Boolean =
-        if (args.walletId != null) assistedWalletManager.isShowSetupInheritance(args.walletId.orEmpty()) else false
-
     fun groupChat(): GroupChat? {
         return state.value.groupChat
     }
@@ -199,6 +199,22 @@ class GroupDashboardViewModel @Inject constructor(
             if (result.isSuccess) {
                 _state.value = _state.value.copy(groupChat = result.getOrNull())
                 _event.emit(GroupDashboardEvent.NavigateToGroupChat)
+            } else {
+                _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun getGroupChatHistoryPeriod() {
+        viewModelScope.launch {
+            _event.emit(GroupDashboardEvent.Loading(true))
+            val result = getHistoryPeriodUseCase(Unit)
+            _event.emit(GroupDashboardEvent.Loading(false))
+            if (result.isSuccess) {
+                val periods = result.getOrDefault(emptyList())
+                if (periods.isNotEmpty()) {
+                    _event.emit(GroupDashboardEvent.GetHistoryPeriodSuccess(periods))
+                }
             } else {
                 _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
             }
