@@ -147,7 +147,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-            SheetOptionType.TYPE_ADD_AIRGAP_COLDCARD,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
             SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
             SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
@@ -216,10 +215,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         BottomSheetOption.newInstance(
             title = getString(R.string.nc_what_type_of_airgap_you_have),
             options = listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_COLDCARD,
-                    label = getString(R.string.nc_coldcard),
-                ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
                     label = getString(R.string.nc_blockstream_jade),
