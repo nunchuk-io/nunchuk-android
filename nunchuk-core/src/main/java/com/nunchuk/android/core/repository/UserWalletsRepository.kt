@@ -1792,6 +1792,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return alerts
     }
 
+    override suspend fun markAlertAsRead(groupId: String, alertId: String) {
+        userWalletApiManager.groupWalletApi.markAlertAsRead(groupId, alertId)
+    }
+
+    override suspend fun dismissAlert(groupId: String, alertId: String) {
+        userWalletApiManager.groupWalletApi.dismissAlert(groupId, alertId)
+    }
+
+    override suspend fun getAlertTotal(groupId: String): Int {
+        val response = userWalletApiManager.groupWalletApi.getAlertTotal(groupId)
+        return response.data.total ?: 0
+    }
+
     override suspend fun createOrUpdateGroupChat(
         groupId: String,
         historyPeriodId: String?

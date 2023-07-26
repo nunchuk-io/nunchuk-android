@@ -7,6 +7,11 @@ data class GroupAlertResponse(
     val alerts: List<AlertResponse>? = null
 )
 
+data class TotalAlertResponse(
+    @SerializedName("total")
+    val total: Int? = null
+)
+
 data class ActionResponse(
     @SerializedName("label")
     val label: String? = null,

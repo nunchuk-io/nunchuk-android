@@ -17,7 +17,7 @@ class GetPendingWalletNotifyCountUseCase @Inject constructor(
     override suspend fun execute(parameters: List<String>): Map<String, Int> {
         return supervisorScope {
             parameters.map { groupId ->
-                async { groupId to repository.getAlerts(groupId).size }
+                async { groupId to repository.getAlertTotal(groupId) }
             }.awaitAll().toMap()
         }
     }

@@ -321,6 +321,9 @@ interface PremiumWalletRepository {
     suspend fun groupMemberDenyRequest(groupId: String)
     suspend fun syncGroupWallet(groupId: String, groupAssistedKeys: MutableSet<String> = mutableSetOf()): Boolean
     suspend fun getAlerts(groupId: String): List<Alert>
+    suspend fun markAlertAsRead(groupId: String, alertId: String)
+    suspend fun dismissAlert(groupId: String, alertId: String)
+    suspend fun getAlertTotal(groupId: String): Int
     suspend fun createOrUpdateGroupChat(groupId: String, historyPeriodId: String?): GroupChat
     suspend fun getGroupChat(groupId: String): GroupChat
     suspend fun deleteGroupChat(groupId: String)

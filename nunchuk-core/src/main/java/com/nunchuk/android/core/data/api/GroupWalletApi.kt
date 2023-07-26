@@ -12,6 +12,7 @@ import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupChatDataResponse
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
+import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
@@ -145,6 +146,23 @@ internal interface GroupWalletApi {
         @Query("offset") offset: Int,
         @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT
     ): Data<GroupAlertResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/alerts/{alert_id}/mark-as-read")
+    suspend fun markAlertAsRead(
+        @Path("group_id") groupId: String,
+        @Path("alert_id") alertId: String,
+    ): Data<Unit>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/alerts/{alert_id}/dismiss")
+    suspend fun dismissAlert(
+        @Path("group_id") groupId: String,
+        @Path("alert_id") alertId: String,
+    ): Data<Unit>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/alerts/total")
+    suspend fun getAlertTotal(
+        @Path("group_id") groupId: String
+    ): Data<TotalAlertResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
     suspend fun getDummyTransaction(

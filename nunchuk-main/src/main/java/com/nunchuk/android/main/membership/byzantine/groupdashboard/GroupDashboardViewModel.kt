@@ -21,8 +21,10 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
+import com.nunchuk.android.usecase.membership.DismissAlertUseCase
 import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
 import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
+import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -53,6 +55,8 @@ class GroupDashboardViewModel @Inject constructor(
     private val getAlertGroupUseCase: GetAlertGroupUseCase,
     private val getGroupChatUseCase: GetGroupChatUseCase,
     private val createOrUpdateGroupChatUseCase: CreateOrUpdateGroupChatUseCase,
+    private val dismissAlertUseCase: DismissAlertUseCase,
+    private val markAlertAsReadUseCase: MarkAlertAsReadUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -75,7 +79,7 @@ class GroupDashboardViewModel @Inject constructor(
         }
         getGroup()
         if (!args.walletId.isNullOrEmpty()) {
-            getWallet(args.walletId.orEmpty())
+            getWallet(args.walletId)
         }
         getAlerts()
         getGroupChat()
@@ -206,4 +210,24 @@ class GroupDashboardViewModel @Inject constructor(
         val groupChat = _state.value.groupChat ?: return
         _state.value = _state.value.copy(groupChat = groupChat.copy(historyPeriod = historyPeriod))
     }
+
+    fun dismissAlert(alertId: String) {
+        viewModelScope.launch {
+            val result = dismissAlertUseCase(DismissAlertUseCase.Param(alertId, args.groupId))
+            if (result.isSuccess) {
+                _state.update {
+                    it.copy(alerts = it.alerts.filterNot { it.id == alertId })
+                }
+            } else {
+                _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun markAsReadAlert(alertId: String) {
+        viewModelScope.launch {
+            markAlertAsReadUseCase(MarkAlertAsReadUseCase.Param(alertId, args.groupId))
+        }
+    }
+
 }

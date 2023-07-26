@@ -291,10 +291,14 @@ private fun GroupDashboardScreen(
         walletName = state.walletExtended.wallet.name,
         alerts = state.alerts,
         groupChat = state.groupChat,
+        onDismissClick = viewModel::dismissAlert,
         isEnableStartGroupChat = viewModel.isEnableStartGroupChat(),
         onEditClick = onEditClick,
         onWalletClick = onWalletClick,
-        onAlertClick = onAlertClick,
+        onAlertClick = { alert, role ->
+            onAlertClick(alert, role)
+            viewModel.markAsReadAlert(alert.id)
+        },
         onGroupChatClick = onGroupChatClick,
         onMoreClick = onMoreClick
     )
@@ -313,7 +317,8 @@ private fun GroupDashboardContent(
     onEditClick: () -> Unit = {},
     onAlertClick: (alert: Alert, role: AssistedWalletRole) -> Unit = { _, _ -> },
     onMoreClick: () -> Unit = {},
-    onWalletClick: () -> Unit = {}
+    onWalletClick: () -> Unit = {},
+    onDismissClick: (String) -> Unit = {}
 ) {
 
     val master = group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
@@ -429,11 +434,15 @@ private fun GroupDashboardContent(
                     }
                     items(alerts) {
                         AlertView(
+                            isDismissible = it.isDismissible(),
                             title = it.title,
                             keyText = it.body,
                             timeText = (it.createdTimeMillis / 1000).formatDate(),
                             onViewClick = {
                                 onAlertClick(it, currentUserRole)
+                            },
+                            onDismissClick = {
+                                onDismissClick(it.id)
                             }
                         )
                     }
@@ -529,10 +538,12 @@ private object NoRippleTheme : RippleTheme {
 
 @Composable
 private fun AlertView(
+    isDismissible: Boolean = true,
     title: String = "",
     keyText: String = "",
     timeText: String = "",
-    onViewClick: () -> Unit = {}
+    onViewClick: () -> Unit = {},
+    onDismissClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -544,6 +555,9 @@ private fun AlertView(
             )
             .background(color = NcColor.white)
             .padding(12.dp)
+            .clickable {
+                onViewClick()
+            }
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1.0f, true)) {
@@ -566,9 +580,11 @@ private fun AlertView(
                     .defaultMinSize(minWidth = 72.dp)
                     .height(36.dp)
                     .padding(start = 12.dp),
-                onClick = onViewClick
+                onClick = {
+                    if (isDismissible) onDismissClick() else onViewClick()
+                }
             ) {
-                Text(text = "View")
+                Text(text = if (isDismissible) "Dismiss" else "View")
             }
         }
     }

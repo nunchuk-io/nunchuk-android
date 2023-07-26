@@ -12,4 +12,8 @@ data class Alert(
     val status: String,
     val title: String,
     val type: AlertType
-)
+) {
+    fun isDismissible(): Boolean {
+        return actions.find { it.type == "DISMISS" } != null
+    }
+}

@@ -133,7 +133,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getGroupBriefsFlowUseCase: GetGroupBriefsFlowUseCase,
     private val groupMemberAcceptRequestUseCase: GroupMemberAcceptRequestUseCase,
     private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase,
-    private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
+    private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
