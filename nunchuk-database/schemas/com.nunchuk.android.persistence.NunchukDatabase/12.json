@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 12,
-    "identityHash": "6f5066d035f2a0e060612661994593dc",
+    "identityHash": "b5776c786ab295eddba246eecc6b57ad",
     "entities": [
       {
         "tableName": "contact",
@@ -379,7 +379,7 @@
       },
       {
         "tableName": "byzantine_group",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`group_id` TEXT NOT NULL, `chatId` TEXT NOT NULL, `status` TEXT NOT NULL, `createdTimeMillis` INTEGER NOT NULL, `members` TEXT NOT NULL, `is_view_pending_wallet` INTEGER NOT NULL DEFAULT false, `chain` TEXT, PRIMARY KEY(`group_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`group_id` TEXT NOT NULL, `chatId` TEXT NOT NULL, `status` TEXT NOT NULL, `createdTimeMillis` INTEGER NOT NULL, `members` TEXT NOT NULL, `is_view_pending_wallet` INTEGER NOT NULL DEFAULT false, `chain` TEXT NOT NULL DEFAULT 'MAIN', PRIMARY KEY(`group_id`))",
         "fields": [
           {
             "fieldPath": "groupId",
@@ -422,7 +422,8 @@
             "fieldPath": "chain",
             "columnName": "chain",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true,
+            "defaultValue": "'MAIN'"
           }
         ],
         "primaryKey": {
@@ -438,7 +439,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6f5066d035f2a0e060612661994593dc')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b5776c786ab295eddba246eecc6b57ad')"
     ]
   }
 }

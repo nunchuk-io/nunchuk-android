@@ -21,6 +21,6 @@ data class GroupEntity(
     val members: String,
     @ColumnInfo(name = "is_view_pending_wallet", defaultValue = "false")
     val isViewPendingWallet: Boolean = false,
-    @ColumnInfo(name = "chain")
+    @ColumnInfo(name = "chain", defaultValue = "MAIN")
     val chain: Chain = Chain.MAIN
 )
