@@ -19,7 +19,12 @@
 
 package com.nunchuk.android.transaction.components.send.fee
 
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.defaultRate
 
 sealed class EstimatedFeeEvent {
     class Loading(val isLoading: Boolean) : EstimatedFeeEvent()
