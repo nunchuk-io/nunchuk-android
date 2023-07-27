@@ -152,6 +152,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -1567,18 +1568,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> =
-        groupDao.getGroups(chatId = accountManager.getAccount().chatId).map {
-            val groupBriefs = it.map { group ->
-                val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
-                val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
-                ByzantineGroupBrief(
-                    groupId = group.groupId,
-                    status = group.status,
-                    members = members,
-                    createdTimeMillis = group.createdTimeMillis
-                )
+        chain.flatMapLatest {
+            groupDao.getGroups(chatId = accountManager.getAccount().chatId, it).map {
+                val groupBriefs = it.map { group ->
+                    val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
+                    val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
+                    ByzantineGroupBrief(
+                        groupId = group.groupId,
+                        status = group.status,
+                        members = members,
+                        createdTimeMillis = group.createdTimeMillis
+                    )
+                }
+                groupBriefs
             }
-            groupBriefs
         }
 
     override fun getGroupBriefById(groupId: String): Flow<ByzantineGroupBrief> {
@@ -1616,7 +1619,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     private suspend fun syncGroup(groups: List<GroupResponse>) {
         val groupLocals =
-            groupDao.getGroups(accountManager.getAccount().chatId).firstOrNull() ?: emptyList()
+            groupDao.getGroups(accountManager.getAccount().chatId, chain.value).firstOrNull() ?: emptyList()
         val allGroupIds = groupLocals.map { it.groupId }.toHashSet()
         val addGroupIds = HashSet<String>()
         val chatId = accountManager.getAccount().chatId
@@ -1657,7 +1660,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             chatId = chatId,
             status = status.orEmpty(),
             createdTimeMillis = createdTimeMillis ?: 0,
-            members = gson.toJson(memberBrief)
+            members = gson.toJson(memberBrief),
+            chain = chain.value
         )
     }
 

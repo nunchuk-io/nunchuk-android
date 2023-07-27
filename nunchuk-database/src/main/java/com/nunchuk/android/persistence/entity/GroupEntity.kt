@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.nunchuk.android.persistence.TABLE_GROUP
+import com.nunchuk.android.type.Chain
 
 @Entity(tableName = TABLE_GROUP)
 data class GroupEntity(
@@ -20,4 +21,6 @@ data class GroupEntity(
     val members: String,
     @ColumnInfo(name = "is_view_pending_wallet", defaultValue = "false")
     val isViewPendingWallet: Boolean = false,
+    @ColumnInfo(name = "chain")
+    val chain: Chain = Chain.MAIN
 )
