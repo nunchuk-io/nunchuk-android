@@ -87,6 +87,7 @@ import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.ByzantineMemberBrief
+import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
@@ -1571,13 +1572,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         chain.flatMapLatest {
             groupDao.getGroups(chatId = accountManager.getAccount().chatId, it).map {
                 val groupBriefs = it.map { group ->
-                    val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
-                    val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
+                    val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, object : TypeToken<List<ByzantineMemberBrief>>() {}.type)
+                    val walletConfig = gson.fromJson(group.walletConfig, ByzantineWalletConfig::class.java)
                     ByzantineGroupBrief(
                         groupId = group.groupId,
                         status = group.status,
                         members = members,
-                        createdTimeMillis = group.createdTimeMillis
+                        createdTimeMillis = group.createdTimeMillis,
+                        isViewPendingWallet = group.isViewPendingWallet,
+                        walletConfig = walletConfig
                     )
                 }
                 groupBriefs
@@ -1586,13 +1589,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override fun getGroupBriefById(groupId: String): Flow<ByzantineGroupBrief> {
         return groupDao.getById(groupId, chatId = accountManager.getAccount().chatId).map { group ->
-            val type = object : TypeToken<List<ByzantineMemberBrief>>() {}.type
-            val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, type)
+            val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, object : TypeToken<List<ByzantineMemberBrief>>() {}.type)
+            val walletConfig = gson.fromJson(group.walletConfig, ByzantineWalletConfig::class.java)
             ByzantineGroupBrief(
                 groupId = group.groupId,
                 status = group.status,
                 members = members,
-                createdTimeMillis = group.createdTimeMillis
+                createdTimeMillis = group.createdTimeMillis,
+                isViewPendingWallet = group.isViewPendingWallet,
+                walletConfig = walletConfig
             )
         }
     }
@@ -1646,13 +1651,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 userId = it.user?.id
             )
         }
+        val walletConfig = ByzantineWalletConfig(
+            allowInheritance = walletConfig?.allowInheritance.orFalse(),
+            m = walletConfig?.m.orDefault(0),
+            n = walletConfig?.n.orDefault(0),
+            requiredServerKey = walletConfig?.requiredServerKey.orFalse()
+        )
        groupDao.getGroupById(id.orEmpty(), chatId)?.let {
             return it.copy(
                 groupId = id.orEmpty(),
                 chatId = chatId,
                 status = status.orEmpty(),
                 createdTimeMillis = createdTimeMillis ?: 0,
-                members = gson.toJson(memberBrief)
+                members = gson.toJson(memberBrief),
+                walletConfig = gson.toJson(walletConfig)
             )
         }
         return GroupEntity(
@@ -1661,7 +1673,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             status = status.orEmpty(),
             createdTimeMillis = createdTimeMillis ?: 0,
             members = gson.toJson(memberBrief),
-            chain = chain.value
+            chain = chain.value,
+            walletConfig = gson.toJson(walletConfig)
         )
     }
 

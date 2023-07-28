@@ -57,7 +57,7 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEve
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPassphraseSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
-import com.nunchuk.android.model.ByzantineGroupBrief
+import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -133,7 +133,8 @@ internal class WalletsViewModel @Inject constructor(
     private val getGroupBriefsFlowUseCase: GetGroupBriefsFlowUseCase,
     private val groupMemberAcceptRequestUseCase: GroupMemberAcceptRequestUseCase,
     private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase,
-    private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase
+    private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
@@ -337,10 +338,10 @@ internal class WalletsViewModel @Inject constructor(
                     badgeCount = alerts[groupId] ?: 0
                 )
                 if (group != null) {
-                    val role = getCurrentUserRole(group)
+                    val role = byzantineGroupUtils.getCurrentUserRole(group)
                     var inviterName = ""
                     if ((role == AssistedWalletRole.MASTER.name).not()) {
-                        inviterName = getInviterName(group)
+                        inviterName = byzantineGroupUtils.getInviterName(group)
                     }
                     groupWalletUi = groupWalletUi.copy(
                         group = group,
@@ -352,10 +353,10 @@ internal class WalletsViewModel @Inject constructor(
             }
             pendingGroup.forEach { group ->
                 var groupWalletUi = GroupWalletUi(group = group)
-                val role = getCurrentUserRole(group)
+                val role = byzantineGroupUtils.getCurrentUserRole(group)
                 var inviterName = ""
                 if ((role == AssistedWalletRole.MASTER.name).not()) {
-                    inviterName = getInviterName(group)
+                    inviterName = byzantineGroupUtils.getInviterName(group)
                 }
                 groupWalletUi = groupWalletUi.copy(
                     group = group,
@@ -528,25 +529,6 @@ internal class WalletsViewModel @Inject constructor(
         } else {
             event(ShowErrorEvent(result.exceptionOrNull()))
         }
-    }
-
-    private fun isMatchingEmailOrUserName(emailOrUsername: String) =
-        emailOrUsername == accountManager.getAccount().email
-                || emailOrUsername == accountManager.getAccount().username
-
-    private fun getCurrentUserRole(group: ByzantineGroupBrief): String {
-        return group.members.firstOrNull {
-            isMatchingEmailOrUserName(it.emailOrUsername)
-        }?.role ?: AssistedWalletRole.NONE.name
-    }
-
-    private fun getInviterName(group: ByzantineGroupBrief): String {
-        val invitee =
-            group.members.firstOrNull {
-                it.isPendingRequest() && isMatchingEmailOrUserName(it.emailOrUsername)
-            } ?: return ""
-        val inviter = group.members.firstOrNull { it.userId == invitee.inviterUserId }
-        return inviter?.name.orEmpty()
     }
 
     fun acceptInviteMember(groupId: String) = viewModelScope.launch {

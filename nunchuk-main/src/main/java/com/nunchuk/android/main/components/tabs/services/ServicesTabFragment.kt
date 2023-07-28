@@ -239,6 +239,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
                 }
             }
+
+            ServiceTabRowItem.GetAdditionalWallets -> TODO()
         }
     }
 

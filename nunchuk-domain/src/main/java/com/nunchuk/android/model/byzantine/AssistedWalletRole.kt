@@ -4,7 +4,7 @@ import androidx.annotation.Keep
 
 @Keep
 enum class AssistedWalletRole {
-    NONE, MASTER, KEYHOLDER, OBSERVER, ADMIN
+    NONE, MASTER, KEYHOLDER, OBSERVER, ADMIN, KEYHOLDER_LIMITED
 }
 
 val AssistedWalletRole.isKeyHolder: Boolean

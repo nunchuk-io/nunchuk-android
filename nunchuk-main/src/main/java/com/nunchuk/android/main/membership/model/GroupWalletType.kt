@@ -5,8 +5,8 @@ import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
 
 @Keep
-enum class GroupWalletType {
-    TWO_OF_THREE, TWO_OF_FOUR_MULTISIG, THREE_OF_FIVE
+enum class GroupWalletType(val m: Int, val n: Int) {
+    TWO_OF_THREE(2, 3), TWO_OF_FOUR_MULTISIG(2, 4), THREE_OF_FIVE(3, 5)
 }
 
 @get:StringRes
@@ -28,3 +28,7 @@ val GroupWalletType.desc: Int
             GroupWalletType.THREE_OF_FIVE -> R.string.nc_3_of_5_multisig_desc
         }
     }
+
+fun String.toGroupWalletType(): GroupWalletType {
+    return GroupWalletType.values().first { this == it.name }
+}

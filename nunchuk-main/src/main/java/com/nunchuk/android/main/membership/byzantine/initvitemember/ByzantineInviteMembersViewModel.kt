@@ -9,6 +9,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.model.GroupWalletType
+import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.share.GetContactsUseCase
@@ -240,36 +241,13 @@ class ByzantineInviteMembersViewModel @Inject constructor(
 
     fun createGroupWallet() = viewModelScope.launch {
         _event.emit(ByzantineInviteMembersEvent.Loading(true))
-        var m = 0
-        var n = 0
-        var allowInheritance = false
-        var requiredServerKey = false
-        when (args.groupType) {
-            GroupWalletType.TWO_OF_THREE.name -> {
-                m = 2
-                n = 3
-            }
-
-            GroupWalletType.THREE_OF_FIVE.name -> {
-                m = 3
-                n = 5
-            }
-
-            GroupWalletType.TWO_OF_FOUR_MULTISIG.name -> {
-                m = 2
-                n = 4
-                allowInheritance = true
-                requiredServerKey = true
-            }
-        }
-
         val result = createGroupWalletUseCase(
             CreateGroupWalletUseCase.Param(
                 members = _state.value.members,
-                m = m,
-                n = n,
-                allowInheritance = allowInheritance,
-                requiredServerKey = requiredServerKey,
+                m = args.groupType.toGroupWalletType().m,
+                n = args.groupType.toGroupWalletType().n,
+                allowInheritance = args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG.name,
+                requiredServerKey = args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG.name,
                 setupPreference = args.setupPreference,
             )
         )

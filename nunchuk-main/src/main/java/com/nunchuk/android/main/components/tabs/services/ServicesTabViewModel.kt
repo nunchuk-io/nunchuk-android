@@ -27,13 +27,17 @@ import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseC
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.membership.model.GroupWalletType
+import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
+import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetGroupBriefsFlowUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.banner.GetAssistedWalletPageContentUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
@@ -70,7 +74,9 @@ class ServicesTabViewModel @Inject constructor(
     private val getAssistedWalletPageContentUseCase: GetAssistedWalletPageContentUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val submitEmailUseCase: SubmitEmailUseCase,
-    private val assistedWalletManager: AssistedWalletManager
+    private val assistedWalletManager: AssistedWalletManager,
+    private val getGroupBriefsFlowUseCase: GetGroupBriefsFlowUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -93,6 +99,23 @@ class ServicesTabViewModel @Inject constructor(
                     _state.update { it.copy(assistedWallets = wallets) }
                     handleAssistedWallet(wallets, plan)
                 }
+        }
+        viewModelScope.launch {
+            getGroupBriefsFlowUseCase(Unit)
+                .collect {
+                    updateGroupInfo(it.getOrDefault(emptyList()))
+                }
+        }
+    }
+
+    private fun updateGroupInfo(groups: List<ByzantineGroupBrief>) {
+        val groupTowOfFourMultisig =
+            groups.find { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
+        _state.update {
+            it.copy(
+                isHasGroupTowOfFourMultisig = groupTowOfFourMultisig != null,
+                userRole = byzantineGroupUtils.getCurrentUserRole(groupTowOfFourMultisig)
+            )
         }
     }
 

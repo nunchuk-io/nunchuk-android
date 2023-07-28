@@ -22,5 +22,7 @@ data class GroupEntity(
     @ColumnInfo(name = "is_view_pending_wallet", defaultValue = "false")
     val isViewPendingWallet: Boolean = false,
     @ColumnInfo(name = "chain", defaultValue = "MAIN")
-    val chain: Chain = Chain.MAIN
+    val chain: Chain = Chain.MAIN,
+    @ColumnInfo(name = "walletConfig", defaultValue = "") // ByzantineWalletConfig
+    val walletConfig: String
 )

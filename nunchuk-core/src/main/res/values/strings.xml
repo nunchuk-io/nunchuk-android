@@ -312,6 +312,7 @@
     <string name="nc_order_new_hardware">Order new hardware</string>
     <string name="nc_manage_subscription">Manage subscription</string>
     <string name="nc_roll_over_assisted_wallet">Roll over to a new assisted wallet</string>
+    <string name="nc_get_additional_wallet">Get additional wallets</string>
     <string name="nc_start_key_recovery">Start key recovery</string>
     <string name="nc_update_recovery_question">Update security questions</string>
     <string name="nc_key_recovery_intro_desc">If you lost a TAPSIGNER or the card malfunctions, this procedure will recover the TAPSIGNER’s private key using the encrypted backup from our server. Please note the following:</string>

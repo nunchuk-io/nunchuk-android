@@ -6,7 +6,9 @@ data class ByzantineGroupBrief(
     val groupId: String,
     val status: String,
     val createdTimeMillis: Long,
-    val members: List<ByzantineMemberBrief>
+    val members: List<ByzantineMemberBrief>,
+    val isViewPendingWallet: Boolean,
+    val walletConfig: ByzantineWalletConfig
 ) {
     fun isPendingWallet() = status == "PENDING_WALLET"
 
