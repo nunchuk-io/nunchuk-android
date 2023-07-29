@@ -23,7 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
@@ -35,15 +40,19 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.byzantine.step.AddGroupKeyStepViewModel
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -59,15 +68,18 @@ class CreateWalletSuccessFragment : MembershipFragment() {
     private val args: CreateWalletSuccessFragmentArgs by navArgs()
 
     private val viewModel: CreateWalletSuccessViewModel by viewModels()
+    private val groupKeyStepViewModel: AddGroupKeyStepViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
+        val groupId = (activity as MembershipActivity).groupId
+        val isShowDistributionSetup = groupId.isNotEmpty() && groupKeyStepViewModel.isRequireInheritance.value
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                CreateWalletSuccessScreen(viewModel)
+                CreateWalletSuccessScreen(viewModel, isShowDistributionSetup = isShowDistributionSetup)
             }
         }
     }
@@ -100,14 +112,20 @@ class CreateWalletSuccessFragment : MembershipFragment() {
 @Composable
 private fun CreateWalletSuccessScreen(
     viewModel: CreateWalletSuccessViewModel = viewModel(),
+    isShowDistributionSetup: Boolean = false,
 ) {
-    CreateWalletSuccessScreenContent(viewModel::onContinueClicked, viewModel.plan)
+    CreateWalletSuccessScreenContent(
+        onContinueClicked = viewModel::onContinueClicked,
+        plan = viewModel.plan,
+        isShowDistributionSetup = isShowDistributionSetup
+    )
 }
 
 @Composable
 fun CreateWalletSuccessScreenContent(
     onContinueClicked: () -> Unit = {},
     plan: MembershipPlan = MembershipPlan.IRON_HAND,
+    isShowDistributionSetup: Boolean = false,
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -131,6 +149,14 @@ fun CreateWalletSuccessScreenContent(
                     text = stringResource(R.string.nc_create_wallet_success_desc),
                     style = NunchukTheme.typography.body
                 )
+
+                if (isShowDistributionSetup) {
+                    NcHighlightText(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = stringResource(R.string.nc_create_wallet_success_distribute_setup_desc),
+                        style = NunchukTheme.typography.body
+                    )
+                }
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(
                     modifier = Modifier
@@ -152,5 +178,5 @@ fun CreateWalletSuccessScreenContent(
 @Preview
 @Composable
 private fun CreateWalletSuccessScreenPreview() {
-    CreateWalletSuccessScreenContent()
+    CreateWalletSuccessScreenContent(isShowDistributionSetup = true)
 }
