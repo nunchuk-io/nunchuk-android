@@ -81,6 +81,14 @@ private fun AddLedgerScreen(
         SignerTag.BITBOX -> stringResource(id = R.string.nc_main_add_bitbox_desc)
         else -> ""
     }
+    val imageId = when(tag) {
+        SignerTag.COLDCARD -> R.drawable.bg_coldcard_desktop
+        SignerTag.TREZOR -> R.drawable.bg_add_trezor
+        SignerTag.LEDGER -> R.drawable.bg_add_ledger
+        SignerTag.BITBOX -> R.drawable.bg_add_bitbox
+        else -> 0
+    }
+
     AddDesktopKeyContent(
         title = stringResource(
             id = R.string.nc_add_desktop_key,
@@ -91,6 +99,6 @@ private fun AddLedgerScreen(
         onContinueClicked = onContinueClicked,
         onMoreClicked = onMoreClicked,
         remainTime = remainTime,
-        backgroundId = R.drawable.bg_add_ledger
+        backgroundId = imageId
     )
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -37,6 +38,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.key.toString
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
 
@@ -121,11 +123,7 @@ private fun RequestAddKeySuccessContent(
                     modifier = Modifier.padding(24.dp),
                     text = stringResource(
                         R.string.nc_added_successfully,
-                        when (tag) {
-                            SignerTag.LEDGER -> stringResource(id = R.string.nc_ledger)
-                            SignerTag.TREZOR -> stringResource(id = R.string.nc_trezor)
-                            else -> stringResource(id = R.string.nc_coldcard)
-                        }
+                        tag.toString(LocalContext.current)
                     ),
                     style = NunchukTheme.typography.heading
                 )
