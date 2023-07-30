@@ -1298,6 +1298,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val chatId = accountManager.getAccount().chatId
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
+            saveServerSignerIfNeed(key)
             if (signerType == SignerType.SERVER) {
                 if (membershipStepDao.getStep(
                         chatId, chain.value, MembershipStep.ADD_SEVER_KEY, groupId
@@ -1350,7 +1351,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     )
                 }
             }
-            saveServerSignerIfNeed(key)
         }
         return DraftWallet(
             draftWallet.walletConfig.toModel(),
