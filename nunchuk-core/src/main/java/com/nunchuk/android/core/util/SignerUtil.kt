@@ -27,7 +27,17 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.type.SignerType.*
+import com.nunchuk.android.type.SignerType.AIRGAP
+import com.nunchuk.android.type.SignerType.COLDCARD_NFC
+import com.nunchuk.android.type.SignerType.FOREIGN_SOFTWARE
+import com.nunchuk.android.type.SignerType.HARDWARE
+import com.nunchuk.android.type.SignerType.NFC
+import com.nunchuk.android.type.SignerType.SERVER
+import com.nunchuk.android.type.SignerType.SOFTWARE
+import com.nunchuk.android.type.SignerType.UNKNOWN
+
+val SignerType.isRemoteSigner: Boolean
+    get() = this == AIRGAP || this == COLDCARD_NFC || this == HARDWARE
 
 fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String {
     if (isPrimaryKey) return context.getString(R.string.nc_signer_type_primary_key)

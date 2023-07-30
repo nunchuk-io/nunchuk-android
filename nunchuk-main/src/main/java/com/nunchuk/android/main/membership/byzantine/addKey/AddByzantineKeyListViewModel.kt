@@ -28,6 +28,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
+import com.nunchuk.android.core.util.isRemoteSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipStep
@@ -123,7 +124,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
                                 SignerExtra::class.java
                             )
                         }.getOrNull()
-                        if (extra?.signerType == SignerType.COLDCARD_NFC || extra?.signerType == SignerType.AIRGAP) {
+                        if (extra?.signerType?.isRemoteSigner == true) {
                             val result = getRemoteSignerUseCase(
                                 GetRemoteSignerUseCase.Data(
                                     info.masterSignerId,
