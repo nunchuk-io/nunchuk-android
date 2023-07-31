@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
@@ -83,9 +84,14 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                         ?: return@registerForActivityResult
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                val confirmCode =
-                    data.getString(GlobalResultKey.CONFIRM_CODE).orEmpty()
-                viewModel.editGroupMember(signatureMap, securityQuestionToken, confirmCode)
+                val confirmCodeMap =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.CONFIRM_CODE).orEmpty()
+                viewModel.editGroupMember(
+                    signatureMap,
+                    securityQuestionToken,
+                    confirmCodeMap[GlobalResultKey.CONFIRM_CODE_TOKEN].orEmpty(),
+                    confirmCodeMap[GlobalResultKey.CONFIRM_CODE_NONCE].orEmpty()
+                )
             }
         }
 
@@ -150,6 +156,7 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                         userData = event.userData,
                         requiredSignatures = event.requiredSignatures,
                         type = event.type,
+                        action = TargetAction.EDIT_GROUP_MEMBERS.name,
                         launcher = launcher,
                         activityContext = requireActivity()
                     )

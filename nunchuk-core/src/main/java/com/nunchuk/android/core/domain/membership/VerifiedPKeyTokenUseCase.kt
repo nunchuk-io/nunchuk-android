@@ -54,7 +54,7 @@ class VerifiedPKeyTokenUseCase @Inject constructor(
             nunchukNativeSdk.signLoginMessageImpl(primaryKeyInfo.masterFingerprint, message)
                 ?: return null
         return userWalletsRepository.verifiedPKeyToken(
-            targetAction = VerifiedPasswordTargetAction.PROTECT_WALLET.name,
+            targetAction = TargetAction.PROTECT_WALLET.name,
             signature = signature,
             address = primaryKeyInfo.address
         )

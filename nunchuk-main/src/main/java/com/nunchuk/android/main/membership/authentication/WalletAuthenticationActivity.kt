@@ -67,7 +67,8 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
             launcher: ActivityResultLauncher<Intent>,
             activityContext: Activity,
             groupId: String? = null,
-            dummyTransactionId: String? = null
+            dummyTransactionId: String? = null,
+            action: String? = null
         ) {
             launcher.launch(
                 Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
@@ -78,7 +79,8 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
                             requiredSignatures = requiredSignatures,
                             type = type,
                             groupId = groupId,
-                            dummyTransactionId = dummyTransactionId
+                            dummyTransactionId = dummyTransactionId,
+                            action = action
                         ).toBundle()
                     )
                 }

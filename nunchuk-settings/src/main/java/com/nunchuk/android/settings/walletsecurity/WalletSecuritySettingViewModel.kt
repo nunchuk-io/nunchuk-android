@@ -21,13 +21,12 @@ package com.nunchuk.android.settings.walletsecurity
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
 import com.nunchuk.android.core.domain.CheckHasPassphrasePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
@@ -140,7 +139,7 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
             val result = verifiedPasswordTokenUseCase(
                 VerifiedPasswordTokenUseCase.Param(
                     password = password,
-                    targetAction = VerifiedPasswordTargetAction.PROTECT_WALLET.name
+                    targetAction = TargetAction.PROTECT_WALLET.name
                 )
             )
             if (result.isSuccess) {

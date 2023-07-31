@@ -18,7 +18,6 @@ sealed class GroupDashboardEvent {
 
 data class GroupDashboardState(
     val walletExtended: WalletExtended = WalletExtended(),
-    val members: List<ByzantineMember> = emptyList(),
     val group: ByzantineGroup? = null,
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val alerts: List<Alert> = emptyList(),

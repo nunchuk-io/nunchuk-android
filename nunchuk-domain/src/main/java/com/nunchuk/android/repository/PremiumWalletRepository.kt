@@ -313,7 +313,8 @@ interface PremiumWalletRepository {
         verifyToken: String,
         members: List<AssistedMember>,
         securityQuestionToken: String,
-        confirmCode: String
+        confirmCodeToken: String,
+        confirmCodeNonce: String
     ): ByzantineGroup
 
     suspend fun createGroupWallet(groupId: String, name: String): Wallet
@@ -328,4 +329,6 @@ interface PremiumWalletRepository {
     suspend fun getGroupChat(groupId: String): GroupChat
     suspend fun deleteGroupChat(groupId: String)
     suspend fun getHistoryPeriod(): List<HistoryPeriod>
+    suspend fun requestConfirmationCode(action: String, userData: String): Pair<String, String>
+    suspend fun verifyConfirmationCode(codeId: String, code: String): String
 }

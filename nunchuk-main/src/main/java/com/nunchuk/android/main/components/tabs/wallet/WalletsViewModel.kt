@@ -32,7 +32,7 @@ import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
@@ -509,7 +509,7 @@ internal class WalletsViewModel @Inject constructor(
         }
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
-                password = password, targetAction = VerifiedPasswordTargetAction.PROTECT_WALLET.name
+                password = password, targetAction = TargetAction.PROTECT_WALLET.name
             )
         )
         if (result.isSuccess) {

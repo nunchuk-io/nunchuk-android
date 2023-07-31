@@ -45,6 +45,12 @@
         <argument
             android:name="type"
             app:argType="string" />
+
+        <argument
+            android:name="action"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
     </activity>
     <fragment
         android:id="@+id/answerSecurityQuestionFragment2"
@@ -68,6 +74,5 @@
     <fragment
         android:id="@+id/confirmationCodeFragment"
         android:name="com.nunchuk.android.main.membership.authentication.confirmationcode.ConfirmationCodeFragment"
-        android:label="ConfirmationCodeFragment" />
-
+        android:label="ConfirmationCodeFragment"/>
 </navigation>

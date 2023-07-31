@@ -21,7 +21,7 @@ package com.nunchuk.android.main.components.tabs.services.keyrecovery
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,10 +55,10 @@ class KeyRecoveryViewModel @Inject constructor(
         _event.emit(KeyRecoveryEvent.Loading(true))
         val targetAction = when (item) {
             is KeyRecoveryActionItem.StartKeyRecovery -> {
-                VerifiedPasswordTargetAction.DOWNLOAD_KEY_BACKUP.name
+                TargetAction.DOWNLOAD_KEY_BACKUP.name
             }
             is KeyRecoveryActionItem.UpdateRecoveryQuestion -> {
-                VerifiedPasswordTargetAction.UPDATE_SECURITY_QUESTIONS.name
+                TargetAction.UPDATE_SECURITY_QUESTIONS.name
             }
         }
         val result = verifiedPasswordTokenUseCase(

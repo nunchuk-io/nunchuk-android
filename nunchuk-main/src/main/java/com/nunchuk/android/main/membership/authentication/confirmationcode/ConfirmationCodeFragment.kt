@@ -35,6 +35,9 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,33 +53,48 @@ class ConfirmationCodeFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                ConfirmChangeScreen(viewModel) {
+                ConfirmChangeScreen(viewModel)
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is ConfirmChangeEvent.Error -> showError(message = event.message)
+                is ConfirmChangeEvent.Loading -> showOrHideLoading(loading = event.loading)
+                ConfirmChangeEvent.RequestCodeError -> requireActivity().finish()
+                is ConfirmChangeEvent.VerifyCodeSuccess -> {
                     requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
                         putExtra(
                             GlobalResultKey.SIGNATURE_EXTRA,
                             HashMap<String, String>()
                         )
                         putExtra(GlobalResultKey.SECURITY_QUESTION_TOKEN, "")
-                        putExtra(GlobalResultKey.CONFIRM_CODE, it)
+                        putExtra(GlobalResultKey.CONFIRM_CODE, HashMap<String, String>().apply {
+                            put(GlobalResultKey.CONFIRM_CODE_TOKEN, event.token)
+                            put(GlobalResultKey.CONFIRM_CODE_NONCE, event.nonce)
+                        })
                     })
                     requireActivity().finish()
                 }
             }
         }
     }
+
 }
 
 @Composable
 fun ConfirmChangeScreen(
-    viewModel: ConfirmationCodeViewModel = viewModel(),
-    onContinueClick: (String) -> Unit = {}
+    viewModel: ConfirmationCodeViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ConfirmChangeScreenContent(
         code = state.code,
         email = viewModel.email,
         onInputChange = viewModel::onCodeChange,
-        onContinueClick = onContinueClick
+        onContinueClick = viewModel::verifyCode
     )
 }
 
@@ -85,7 +103,7 @@ fun ConfirmChangeScreenContent(
     code: String = "",
     email: String = "",
     onInputChange: (String) -> Unit = {},
-    onContinueClick: (String) -> Unit = {},
+    onContinueClick: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(
@@ -129,7 +147,7 @@ fun ConfirmChangeScreenContent(
                         .padding(horizontal = 16.dp, vertical = 24.dp),
                     enabled = code.isNotEmpty(),
                     onClick = {
-                        onContinueClick(code.trim())
+                        onContinueClick()
                     }
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))

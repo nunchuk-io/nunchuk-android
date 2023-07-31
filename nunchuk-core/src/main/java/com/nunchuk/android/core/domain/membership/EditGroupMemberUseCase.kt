@@ -27,7 +27,8 @@ class EditGroupMemberUseCase @Inject constructor(
             members = parameters.members,
             securityQuestionToken = parameters.securityQuestionToken,
             groupId = parameters.groupId,
-            confirmCode = parameters.confirmCode
+            confirmCodeToken = parameters.confirmCodeToken,
+            confirmCodeNonce = parameters.confirmCodeNonce
         )
     }
 
@@ -37,6 +38,7 @@ class EditGroupMemberUseCase @Inject constructor(
         val verifyToken: String,
         val securityQuestionToken: String,
         val groupId: String,
-        val confirmCode: String
+        val confirmCodeToken: String,
+        val confirmCodeNonce: String
     )
 }

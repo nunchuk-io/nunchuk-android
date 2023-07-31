@@ -305,4 +305,16 @@ internal interface UserWalletsApi {
     suspend fun pushRequestAddKey(
         @Path("request_id") requestId: String,
     ): Data<Unit>
+
+    @POST("/v1.1/user-wallets/confirmation-code")
+    suspend fun requestConfirmationCode(
+        @Query("action") action: String,
+        @Body payload: ConfirmationCodeRequest
+    ): Data<ConfirmationCodeResponse>
+
+    @POST("/v1.1/user-wallets/confirmation-code/{code_id}/verify")
+    suspend fun verifyConfirmationCode(
+        @Path("code_id") codeId: String,
+        @Body payload: ConfirmationCodeVerifyRequest
+    ): Data<ConfirmationCodeVerifyResponse>
 }

@@ -10,6 +10,7 @@ import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryEvent
+import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
@@ -53,13 +54,13 @@ class GroupDashboardViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val sessionHolder: SessionHolder,
     private val getGroupUseCase: GetGroupUseCase,
-    private val assistedWalletManager: AssistedWalletManager,
     private val getAlertGroupUseCase: GetAlertGroupUseCase,
     private val getGroupChatUseCase: GetGroupChatUseCase,
     private val createOrUpdateGroupChatUseCase: CreateOrUpdateGroupChatUseCase,
     private val dismissAlertUseCase: DismissAlertUseCase,
     private val markAlertAsReadUseCase: MarkAlertAsReadUseCase,
     private val getHistoryPeriodUseCase: GetHistoryPeriodUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -122,12 +123,12 @@ class GroupDashboardViewModel @Inject constructor(
             val group = getGroupUseCase(args.groupId).getOrNull()
             _event.emit(GroupDashboardEvent.Loading(false))
             val members = group?.members.orEmpty()
-            _state.update { it.copy(group = group, members = members, myRole = currentUserRole(members)) }
+            _state.update { it.copy(group = group, myRole = currentUserRole(members)) }
         }
     }
 
     fun isEnableStartGroupChat(): Boolean {
-        val members = state.value.members
+        val members = state.value.group?.members ?: emptyList()
         return members.count { it.isContact() } == 2
     }
 
@@ -163,18 +164,22 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun getAssistedMembers(): List<AssistedMember> {
-        return state.value.members.map {
+        return state.value.group?.members?.map {
             AssistedMember(
                 email = it.user?.email ?: "",
                 role = it.role,
                 name = it.user?.name ?: "",
                 membershipId = it.membershipId
             )
-        }
+        } ?: emptyList()
     }
 
     fun setByzantineMembers(members: List<ByzantineMember>) {
-        _state.value = _state.value.copy(members = members)
+        _state.update {
+            it.copy(
+                group = it.group?.copy(members = members)
+            )
+        }
     }
 
     fun getGroupId(): String {
@@ -182,7 +187,8 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     private fun currentUserRole(members: List<ByzantineMember>): AssistedWalletRole {
-        return members.firstOrNull { it.emailOrUsername == accountManager.getAccount().email }?.role.toRole
+        return members.firstOrNull { it.emailOrUsername == accountManager.getAccount().email
+                || it.emailOrUsername == accountManager.getAccount().username }?.role.toRole
     }
 
     fun groupChat(): GroupChat? {

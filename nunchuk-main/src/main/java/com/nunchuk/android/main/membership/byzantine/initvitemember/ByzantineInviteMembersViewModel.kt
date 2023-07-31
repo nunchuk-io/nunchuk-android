@@ -293,7 +293,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         _event.emit(ByzantineInviteMembersEvent.Loading(true))
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
-                targetAction = VerifiedPasswordTargetAction.EDIT_GROUP_MEMBERS.name,
+                targetAction = TargetAction.EDIT_GROUP_MEMBERS.name,
                 password = password
             )
         )
@@ -309,7 +309,8 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     fun editGroupMember(
         signatures: HashMap<String, String>,
         securityQuestionToken: String,
-        confirmCode: String
+        confirmCodeToken: String,
+        confirmCodeNonce: String
     ) = viewModelScope.launch {
         if (verifyToken.isNullOrEmpty()) return@launch
         val state = _state.value
@@ -321,7 +322,8 @@ class ByzantineInviteMembersViewModel @Inject constructor(
                 securityQuestionToken = securityQuestionToken,
                 members = state.members,
                 groupId = args.groupId,
-                confirmCode = confirmCode
+                confirmCodeToken = confirmCodeToken,
+                confirmCodeNonce = confirmCodeNonce
             )
         )
         _event.emit(ByzantineInviteMembersEvent.Loading(false))

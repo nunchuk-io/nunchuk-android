@@ -26,7 +26,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
@@ -133,7 +133,7 @@ internal class WalletConfigViewModel @Inject constructor(
             setEvent(WalletConfigEvent.Loading(true))
             val result = verifiedPasswordTokenUseCase(
                 VerifiedPasswordTokenUseCase.Param(
-                    VerifiedPasswordTargetAction.UPDATE_SERVER_KEY.name,
+                    TargetAction.UPDATE_SERVER_KEY.name,
                     password
                 )
             )
@@ -156,7 +156,7 @@ internal class WalletConfigViewModel @Inject constructor(
         setEvent(WalletConfigEvent.Loading(true))
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
-                VerifiedPasswordTargetAction.DELETE_WALLET.name,
+                TargetAction.DELETE_WALLET.name,
                 password
             )
         )

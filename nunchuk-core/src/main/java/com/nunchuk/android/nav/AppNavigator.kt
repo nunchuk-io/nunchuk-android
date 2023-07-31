@@ -91,7 +91,8 @@ interface AppNavigator {
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity,
         groupId: String? = null,
-        dummyTransactionId: String? = null
+        dummyTransactionId: String? = null,
+        action: String? = null
     )
 
     fun openGroupDashboardScreen(

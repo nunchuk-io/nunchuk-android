@@ -51,6 +51,8 @@ import com.nunchuk.android.core.data.model.byzantine.MemberRequest
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
+import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
+import com.nunchuk.android.core.data.model.membership.ConfirmationCodeVerifyRequest
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
@@ -65,6 +67,7 @@ import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toExternalModel
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toAlert
@@ -1724,11 +1727,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         verifyToken: String,
         members: List<AssistedMember>,
         securityQuestionToken: String,
-        confirmCode: String
+        confirmCodeToken: String,
+        confirmCodeNonce: String
     ): ByzantineGroup {
-        val nonce = getNonce()
         val request = EditGroupMemberRequest(
-            nonce = nonce, body = EditGroupMemberRequest.Body(members = members.map {
+            nonce = confirmCodeNonce, body = EditGroupMemberRequest.Body(members = members.map {
                 MemberRequest(
                     emailOrUsername = it.email, permissions = emptyList(), role = it.role
                 )
@@ -1740,7 +1743,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        headers[CONFIRMATION_CODE] = confirmCode
+        headers[CONFIRMATION_TOKEN] = confirmCodeToken
         val response =
             userWalletApiManager.groupWalletApi.editGroupMember(groupId, headers, request)
         return response.data.data?.toByzantineGroup()
@@ -1854,13 +1857,30 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.periods.orEmpty().map { it.toHistoryPeriod() }
     }
 
+    override suspend fun requestConfirmationCode(action: String, userData: String): Pair<String, String> {
+        val nonce = getNonce()
+        val body = if (action == TargetAction.EDIT_GROUP_MEMBERS.name) {
+            gson.fromJson(userData, EditGroupMemberRequest.Body::class.java)
+        } else {
+            throw IllegalArgumentException("Unsupported action")
+        }
+        val request = ConfirmationCodeRequest(nonce = nonce, body = body)
+        val response = userWalletApiManager.walletApi.requestConfirmationCode(action = action, payload = request)
+        return Pair(nonce, response.data.codeId.orEmpty())
+    }
+
+    override suspend fun verifyConfirmationCode(codeId: String, code: String): String {
+        val response = userWalletApiManager.walletApi.verifyConfirmationCode(codeId, ConfirmationCodeVerifyRequest(code = code))
+        return response.data.token.orEmpty()
+    }
+
     companion object {
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"
         private const val WALLET_DELETED_STATUS = "DELETED"
         private const val VERIFY_TOKEN = "Verify-token"
         private const val SECURITY_QUESTION_TOKEN = "Security-Question-token"
         internal const val AUTHORIZATION_X = "AuthorizationX"
-        internal const val CONFIRMATION_CODE = "Confirmation-Code-1"
+        internal const val CONFIRMATION_TOKEN = "Confirmation-token"
     }
 }
 

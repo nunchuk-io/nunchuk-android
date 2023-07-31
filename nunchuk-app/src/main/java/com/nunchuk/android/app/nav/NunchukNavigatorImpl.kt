@@ -272,7 +272,8 @@ interface AppNavigatorDelegate : AppNavigator {
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity,
         groupId: String?,
-        dummyTransactionId: String?
+        dummyTransactionId: String?,
+        action: String?
     ) {
         WalletAuthenticationActivity.start(
             walletId = walletId,
@@ -282,7 +283,8 @@ interface AppNavigatorDelegate : AppNavigator {
             launcher = launcher,
             activityContext = activityContext,
             groupId = groupId,
-            dummyTransactionId = dummyTransactionId
+            dummyTransactionId = dummyTransactionId,
+            action = action
         )
     }
 

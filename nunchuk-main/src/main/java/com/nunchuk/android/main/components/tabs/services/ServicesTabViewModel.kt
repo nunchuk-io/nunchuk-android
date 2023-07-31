@@ -24,7 +24,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.GroupWalletType
@@ -178,9 +178,9 @@ class ServicesTabViewModel @Inject constructor(
         }
         _event.emit(ServicesTabEvent.Loading(true))
         val targetAction = when (item) {
-            is ServiceTabRowItem.EmergencyLockdown -> VerifiedPasswordTargetAction.EMERGENCY_LOCKDOWN.name
-            is ServiceTabRowItem.CoSigningPolicies -> VerifiedPasswordTargetAction.UPDATE_SERVER_KEY.name
-            is ServiceTabRowItem.ViewInheritancePlan -> VerifiedPasswordTargetAction.UPDATE_INHERITANCE_PLAN.name
+            is ServiceTabRowItem.EmergencyLockdown -> TargetAction.EMERGENCY_LOCKDOWN.name
+            is ServiceTabRowItem.CoSigningPolicies -> TargetAction.UPDATE_SERVER_KEY.name
+            is ServiceTabRowItem.ViewInheritancePlan -> TargetAction.UPDATE_INHERITANCE_PLAN.name
             else -> throw IllegalArgumentException()
         }
         val result = verifiedPasswordTokenUseCase(
