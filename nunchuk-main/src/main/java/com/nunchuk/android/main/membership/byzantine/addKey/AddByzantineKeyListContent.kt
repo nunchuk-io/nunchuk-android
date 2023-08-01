@@ -69,15 +69,14 @@ fun AddKeyListContent(
                     }
                 })
         }, bottomBar = {
-            if (keys.all { it.isVerifyOrAddKey }) {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
-                }
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                onClick = onContinueClicked,
+                enabled = keys.all { it.isVerifyOrAddKey }
+            ) {
+                Text(text = stringResource(id = R.string.nc_text_continue))
             }
         }) { innerPadding ->
             Box(Modifier.pullRefresh(state)) {
