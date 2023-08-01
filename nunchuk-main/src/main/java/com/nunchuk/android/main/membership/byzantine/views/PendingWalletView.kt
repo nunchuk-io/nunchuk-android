@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.membership.byzantine.views
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -30,8 +32,11 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -174,7 +179,8 @@ fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
             AvatarView(
                 modifier = Modifier.padding(start = padStart),
                 avatarUrl = byzantineMember.avatar.orEmpty(),
-                name = byzantineMember.name.orEmpty()
+                name = byzantineMember.name.orEmpty(),
+                isContact = byzantineMember.isPendingRequest().not()
             )
         }
     }
@@ -307,7 +313,7 @@ internal fun Badge(
 }
 
 @Composable
-fun AvatarView(modifier: Modifier = Modifier, avatarUrl: String = "", name: String = "") {
+fun AvatarView(modifier: Modifier = Modifier, avatarUrl: String = "", name: String = "", isContact: Boolean = false) {
     Box(
         modifier = modifier
             .size(36.dp, 36.dp)
@@ -315,19 +321,35 @@ fun AvatarView(modifier: Modifier = Modifier, avatarUrl: String = "", name: Stri
             .background(color = colorResource(id = R.color.nc_beeswax_light)),
         contentAlignment = Alignment.Center
     ) {
+        val image: @Composable BoxScope.() -> Unit = {
+            if (isContact) {
+                Text(
+                    text = name.shorten(), style = NunchukTheme.typography.title
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp, 36.dp)
+                        .clip(CircleShape)
+                        .background(color = colorResource(id = R.color.nc_whisper_color)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_account_member),
+                        contentDescription = ""
+                    )
+                }
+            }
+        }
         GlideImage(imageModel = { avatarUrl.fromMxcUriToMatrixDownloadUrl() },
             imageOptions = ImageOptions(
                 contentScale = ContentScale.Crop, alignment = Alignment.Center
             ),
             loading = {
-                Text(
-                    text = name.shorten(), style = NunchukTheme.typography.title
-                )
+                image()
             },
             failure = {
-                Text(
-                    text = name.shorten(), style = NunchukTheme.typography.title
-                )
+                image()
             })
     }
 }
