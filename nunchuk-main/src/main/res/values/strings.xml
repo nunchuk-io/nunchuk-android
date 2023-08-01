@@ -76,7 +76,7 @@
     <string name="nc_main_wallet_setup_preference_hint">Only use a single-person setup if all members in the group are able to trust the master account to handle keys on their behalf.\t\t\t</string>
     <string name="nc_apply_the_same_limit">Apply the same limit to all members</string>
     <string name="nc_invite_members">Invite members</string>
-    <string name="nc_invite_members_desc">Enter the members’ emails and roles. You can have up to 3 keyholders (including the master account) and 3 observers.</string>
+    <string name="nc_invite_members_desc">Enter the members’ emails and roles. You can have up to 3 keyholders (including the master account) and an unlimited number of observers.</string>
     <string name="nc_member_data">Member %1$s</string>
     <string name="nc_email_address">Email address</string>
     <string name="nc_add_more_members">Add more members</string>
@@ -111,4 +111,5 @@
     <string name="nc_confirm_changes">Confirm changes</string>
     <string name="nc_confirm_changes_msg">We’ve sent a code to %1$s. Please enter it below.</string>
     <string name="nc_code">code</string>
+    <string name="nc_hint_keyholder_limited">Only applicable for members who own a TAPSIGNER, Ledger or Trezor device.</string>
 </resources>

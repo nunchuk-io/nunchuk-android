@@ -19,11 +19,12 @@ val String?.toRole : AssistedWalletRole
         else -> AssistedWalletRole.NONE
     }
 
-val String.toTitle: String
-    get() = when (this) {
+fun String.toTitle(defaultText: String = ""): String
+    = when (this) {
         AssistedWalletRole.ADMIN.name -> "Keyholder (admin)"
         AssistedWalletRole.MASTER.name -> "Master"
         AssistedWalletRole.KEYHOLDER.name -> "Keyholder"
         AssistedWalletRole.OBSERVER.name -> "Observer"
-        else -> ""
+        AssistedWalletRole.KEYHOLDER_LIMITED.name -> "Keyholder (limited)"
+        else -> defaultText
     }

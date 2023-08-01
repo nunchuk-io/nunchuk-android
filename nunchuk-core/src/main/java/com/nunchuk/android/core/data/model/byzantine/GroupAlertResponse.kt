@@ -12,16 +12,9 @@ data class TotalAlertResponse(
     val total: Int? = null
 )
 
-data class ActionResponse(
-    @SerializedName("label")
-    val label: String? = null,
-    @SerializedName("type")
-    val type: String? = null
-)
-
 data class AlertResponse(
-    @SerializedName("actions")
-    val actions: List<ActionResponse>? = null,
+    @SerializedName("viewable")
+    val viewable: Boolean? = null,
     @SerializedName("body")
     val body: String? = null,
     @SerializedName("created_time_millis")

@@ -88,7 +88,7 @@ fun SpendingLimitAccountView(
                     Text(text = name, style = NunchukTheme.typography.body)
                     NcTag(
                         modifier = Modifier.padding(top = 4.dp),
-                        label = role.toTitle
+                        label = role.toTitle()
                     )
                     Text(
                         modifier = Modifier.padding(top = 4.dp),

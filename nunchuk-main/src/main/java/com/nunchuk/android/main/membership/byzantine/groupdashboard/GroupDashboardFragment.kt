@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
@@ -49,7 +50,9 @@ import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -330,6 +333,12 @@ private fun GroupDashboardContent(
 ) {
 
     val master = group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
+    val listState = rememberLazyListState()
+    val fabVisibility by remember {
+        derivedStateOf {
+            listState.isScrollInProgress.not()
+        }
+    }
 
     NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
         Scaffold(
@@ -362,7 +371,7 @@ private fun GroupDashboardContent(
             },
             floatingActionButton = {
                 AnimatedVisibility(
-                    visible = true,
+                    visible = fabVisibility,
                     enter = scaleIn() + fadeIn(),
                     exit = scaleOut() + fadeOut()
                 ) {
@@ -442,7 +451,7 @@ private fun GroupDashboardContent(
                     }
                     items(alerts) {
                         AlertView(
-                            isDismissible = it.isDismissible(),
+                            isDismissible = it.viewable.not(),
                             title = it.title,
                             keyText = it.body,
                             timeText = (it.createdTimeMillis / 1000).formatDate(),
@@ -654,7 +663,7 @@ private fun ContactMemberView(
                     )
                     NcTag(
                         modifier = Modifier.padding(top = 4.dp),
-                        label = role.toTitle
+                        label = role.toTitle()
                     )
                     Text(
                         modifier = Modifier,
@@ -698,7 +707,7 @@ private fun ContactMemberView(
                             )
                             NcTag(
                                 modifier = Modifier.padding(top = 4.dp),
-                                label = role.toTitle
+                                label = role.toTitle()
                             )
                         }
                     }

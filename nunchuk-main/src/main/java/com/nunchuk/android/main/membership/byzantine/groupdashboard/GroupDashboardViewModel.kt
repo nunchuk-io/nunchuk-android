@@ -60,7 +60,6 @@ class GroupDashboardViewModel @Inject constructor(
     private val dismissAlertUseCase: DismissAlertUseCase,
     private val markAlertAsReadUseCase: MarkAlertAsReadUseCase,
     private val getHistoryPeriodUseCase: GetHistoryPeriodUseCase,
-    private val byzantineGroupUtils: ByzantineGroupUtils,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 

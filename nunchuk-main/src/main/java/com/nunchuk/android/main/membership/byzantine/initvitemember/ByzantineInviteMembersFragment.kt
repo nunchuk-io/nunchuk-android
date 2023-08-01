@@ -55,6 +55,7 @@ import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -514,7 +515,7 @@ private fun MemberView(
                                     },
                                 value = email,
                                 onValueChange = {
-                                    onInputEmailChange(it, "")
+                                    onInputEmailChange(it.trim(), "")
                                     expanded = true
                                 },
                                 title = stringResource(id = R.string.nc_email_address),
@@ -579,29 +580,25 @@ private fun MemberView(
                         }
                     }
                 }
-                val roleText = when (role) {
-                    AssistedWalletRole.ADMIN.name -> stringResource(id = R.string.nc_keyholder_admin)
-                    AssistedWalletRole.KEYHOLDER.name -> stringResource(id = R.string.nc_keyholder)
-                    AssistedWalletRole.OBSERVER.name -> stringResource(id = R.string.nc_observer)
-                    AssistedWalletRole.MASTER.name -> stringResource(id = R.string.nc_master)
-                    else -> stringResource(id = R.string.nc_select_a_role)
-                }
                 NcTextField(
                     modifier = Modifier
                         .padding(top = 16.dp),
                     title = stringResource(id = R.string.nc_role),
-                    value = roleText,
+                    value = role.toTitle(stringResource(id = R.string.nc_select_a_role)),
                     enabled = false,
+                    disableBackgroundColor = if (isMaster) colorResource(id = R.color.nc_whisper_color) else MaterialTheme.colors.surface,
                     onClick = {
                         if (isMaster.not()) onSelectRoleClick()
                     },
                     rightContent = {
-                        Image(
-                            modifier = Modifier
-                                .padding(end = 12.dp),
-                            painter = painterResource(id = R.drawable.ic_arrow),
-                            contentDescription = ""
-                        )
+                        if (isMaster.not()) {
+                            Image(
+                                modifier = Modifier
+                                    .padding(end = 12.dp),
+                                painter = painterResource(id = R.drawable.ic_arrow),
+                                contentDescription = ""
+                            )
+                        }
                     },
                     onValueChange = {}
                 )

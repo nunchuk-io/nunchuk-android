@@ -1816,7 +1816,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun dismissAlert(groupId: String, alertId: String) {
-        userWalletApiManager.groupWalletApi.dismissAlert(groupId, alertId)
+        val response = userWalletApiManager.groupWalletApi.dismissAlert(groupId, alertId)
+        if (response.isSuccess.not()) throw response.error
     }
 
     override suspend fun getAlertTotal(groupId: String): Int {

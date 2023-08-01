@@ -39,11 +39,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -51,7 +53,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class ByzantineSelectRoleFragment : MembershipFragment() {
 
     private val viewModel: ByzantineSelectRoleViewModel by viewModels()
-    private val args: ByzantineSelectRoleFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -133,19 +134,16 @@ private fun SelectRoleContent(
                         style = NunchukTheme.typography.heading
                     )
                     options.forEach { item ->
-                        val title = when (item.role) {
-                            AssistedWalletRole.ADMIN.name -> stringResource(id = R.string.nc_keyholder_admin)
-                            AssistedWalletRole.KEYHOLDER.name -> stringResource(id = R.string.nc_keyholder)
-                            AssistedWalletRole.OBSERVER.name -> stringResource(id = R.string.nc_observer)
-                            else -> ""
-                        }
                         OptionItem(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = 16.dp, end = 16.dp, top = 16.dp),
                             isSelected = selectedRole == item.role,
                             desc = item.desc,
-                            title = title
+                            title = item.role.toTitle(),
+                            hint = if (item.role == AssistedWalletRole.KEYHOLDER_LIMITED.name) stringResource(
+                                id = R.string.nc_hint_keyholder_limited
+                            ) else ""
                         ) {
                             onOptionClick(item.role)
                         }
@@ -163,6 +161,7 @@ private fun OptionItem(
     isSelected: Boolean,
     title: String,
     desc: String,
+    hint: String,
     onClick: () -> Unit
 ) {
     Card(
@@ -175,10 +174,13 @@ private fun OptionItem(
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.padding(horizontal = 8.dp)) {
             RadioButton(selected = isSelected, onClick = onClick)
-            Column(modifier = Modifier.padding(start = 12.dp)) {
+            Column(modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)) {
                 Text(text = title, style = NunchukTheme.typography.title)
+                if (hint.isNotEmpty()) {
+                    Text(text = hint, style = NunchukTheme.typography.bodySmall.copy(color = NcColor.greyDark))
+                }
                 Text(text = desc, style = NunchukTheme.typography.body)
             }
         }

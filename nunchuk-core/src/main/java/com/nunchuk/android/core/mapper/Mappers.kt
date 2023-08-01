@@ -11,7 +11,6 @@ import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.Alert
-import com.nunchuk.android.model.AlertAction
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
@@ -110,11 +109,8 @@ internal fun GroupResponse.toByzantineGroup(): ByzantineGroup {
 }
 
 internal fun AlertResponse.toAlert(): Alert {
-    val actions = actions?.map {
-        AlertAction(label = it.label.orEmpty(), type = it.type.orEmpty())
-    } ?: emptyList()
     return Alert(
-        actions = actions,
+        viewable = viewable.orFalse(),
         body = body.orEmpty(),
         createdTimeMillis = createdTimeMillis ?: 0,
         id = id.orEmpty(),

@@ -60,6 +60,7 @@ fun NcTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions(),
     enabled: Boolean = true,
+    disableBackgroundColor: Color = MaterialTheme.colors.surface,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     textFieldColor: Color = MaterialTheme.colors.surface,
@@ -98,7 +99,7 @@ fun NcTextField(
         BasicTextField(
             modifier = Modifier
                 .background(
-                    color = backgroundErrorColor,
+                    color = if (enabled.not()) disableBackgroundColor else backgroundErrorColor,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .onFocusEvent(onFocusEvent)
