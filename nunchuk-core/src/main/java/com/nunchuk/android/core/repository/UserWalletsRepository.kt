@@ -1607,7 +1607,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun syncGroupWallets(): Boolean {
         val response = userWalletApiManager.groupWalletApi.getGroups()
-        var shouldReload = false
         val groupAssistedKeys = mutableSetOf<String>()
         val groups = response.data.groups.orEmpty()
         if (groups.isNotEmpty()) {
@@ -1616,13 +1615,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 if (it.status == "PENDING_WALLET") {
                     syncGroupDraftWallet(it.id.orEmpty())
                 } else if (it.status == "ACTIVE") {
-                    if (syncGroupWallet(it.id.orEmpty(), groupAssistedKeys)) shouldReload = true
+                    syncGroupWallet(it.id.orEmpty(), groupAssistedKeys)
                 }
             }
         }
 
         ncDataStore.setGroupAssistedKey(groupAssistedKeys)
-        return shouldReload
+        return groups.isNotEmpty()
     }
 
     private suspend fun syncGroup(groups: List<GroupResponse>) {

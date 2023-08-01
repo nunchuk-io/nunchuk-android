@@ -184,7 +184,7 @@ class AddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             val hasTag =
                 signer.tags.any { it == SignerTag.SEEDSIGNER || it == SignerTag.KEYSTONE || it == SignerTag.PASSPORT || it == SignerTag.JADE }
-            if (signer.type == SignerType.COLDCARD_NFC || hasTag || signer.type == SignerType.COLDCARD_NFC) {
+            if (signer.type == SignerType.COLDCARD_NFC || hasTag) {
                 saveMembershipStepUseCase(
                     MembershipStepInfo(
                         step = membershipStepManager.currentStep

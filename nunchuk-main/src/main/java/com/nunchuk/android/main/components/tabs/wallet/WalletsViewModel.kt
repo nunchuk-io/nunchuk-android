@@ -31,8 +31,8 @@ import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
@@ -210,8 +210,8 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
-                if (shouldReload) retrieveData()
+            syncGroupWalletsUseCase(Unit).onSuccess {
+                retrieveData()
             }
         }
         viewModelScope.launch {
