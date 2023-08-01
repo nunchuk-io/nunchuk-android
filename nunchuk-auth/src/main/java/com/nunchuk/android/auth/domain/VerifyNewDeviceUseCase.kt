@@ -22,6 +22,7 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -38,7 +39,8 @@ interface VerifyNewDeviceUseCase {
 
 internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
     private val authRepository: AuthRepository,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
 ) : VerifyNewDeviceUseCase {
 
     override fun execute(
@@ -53,7 +55,7 @@ internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
         storeAccount(email, it, staySignedIn)
     }
 
-    private fun storeAccount(email: String, response: UserTokenResponse, staySignedIn: Boolean): Pair<String, String> {
+    private suspend fun storeAccount(email: String, response: UserTokenResponse, staySignedIn: Boolean): Pair<String, String> {
         val account = accountManager.getAccount()
         accountManager.storeAccount(
             account.copy(
@@ -64,6 +66,8 @@ internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
                 deviceId = response.deviceId
             )
         )
+
+        getUserProfileUseCase(Unit)
         return response.tokenId to response.deviceId
     }
 

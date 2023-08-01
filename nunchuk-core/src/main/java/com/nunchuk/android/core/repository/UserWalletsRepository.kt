@@ -1573,8 +1573,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> =
         chain.flatMapLatest {
-            groupDao.getGroups(chatId = accountManager.getAccount().chatId, it).map {
-                val groupBriefs = it.map { group ->
+            groupDao.getGroups(chatId = accountManager.getAccount().chatId, it).map { group ->
+                val groupBriefs = group.map { group ->
                     val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, object : TypeToken<List<ByzantineMemberBrief>>() {}.type)
                     val walletConfig = gson.fromJson(group.walletConfig, ByzantineWalletConfig::class.java)
                     ByzantineGroupBrief(
@@ -1609,8 +1609,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.groupWalletApi.getGroups()
         val groupAssistedKeys = mutableSetOf<String>()
         val groups = response.data.groups.orEmpty()
+        ncDataStore.setGroupAssistedKey(groupAssistedKeys)
         if (groups.isNotEmpty()) {
-            syncGroup(groups)
             groups.forEach {
                 if (it.status == "PENDING_WALLET") {
                     syncGroupDraftWallet(it.id.orEmpty())
@@ -1618,9 +1618,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     syncGroupWallet(it.id.orEmpty(), groupAssistedKeys)
                 }
             }
+            syncGroup(groups)
         }
 
-        ncDataStore.setGroupAssistedKey(groupAssistedKeys)
         return groups.isNotEmpty()
     }
 
@@ -1631,7 +1631,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val addGroupIds = HashSet<String>()
         val chatId = accountManager.getAccount().chatId
         groupDao.updateOrInsert(groups.filter { it.id.isNullOrEmpty().not() }.map { group ->
-            addGroupIds.add(group.id!!)
+            addGroupIds.add(group.id.orEmpty())
             group.toGroupEntity(chatId)
         }.toList())
         allGroupIds.removeAll(addGroupIds)

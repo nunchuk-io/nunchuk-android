@@ -43,9 +43,14 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
@@ -95,11 +100,8 @@ internal class AccountViewModel @Inject constructor(
     fun getCurrentUser() {
         if (signInModeHolder.getCurrentMode().isGuestMode().not()) {
             viewModelScope.launch {
-                getUserProfileUseCase.execute()
-                    .flowOn(Dispatchers.IO)
-                    .onException { }
-                    .flowOn(Dispatchers.Main)
-                    .collect {
+                getUserProfileUseCase(Unit)
+                    .onSuccess {
                         updateStateUserAccount()
                         event(
                             AccountEvent.GetUserProfileSuccessEvent(
@@ -107,6 +109,8 @@ internal class AccountViewModel @Inject constructor(
                                 avatarUrl = accountManager.getAccount().avatarUrl
                             )
                         )
+                    }.onFailure {
+                        Timber.e(it)
                     }
             }
         }

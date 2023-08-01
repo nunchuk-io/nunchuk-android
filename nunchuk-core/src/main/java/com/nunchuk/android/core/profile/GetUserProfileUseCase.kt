@@ -20,27 +20,27 @@
 package com.nunchuk.android.core.profile
 
 import com.nunchuk.android.core.account.AccountManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetUserProfileUseCase {
-    fun execute(): Flow<String>
-}
-
-internal class GetUserProfileUseCaseImpl @Inject constructor(
+class GetUserProfileUseCase @Inject constructor(
     private val accountManager: AccountManager,
-    private val userProfileRepository: UserProfileRepository
-) : GetUserProfileUseCase {
+    private val userProfileRepository: UserProfileRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<Unit, String>(ioDispatcher) {
 
-    override fun execute() = userProfileRepository.getUserProfile().map {
-        it.chatId.orEmpty().apply {
-            accountManager.storeAccount(
-                accountManager.getAccount()
-                    .copy(chatId = this, name = it.name.orEmpty(), avatarUrl = it.avatar.orEmpty())
-            )
-        }
-    }.flowOn(Dispatchers.IO)
+    override suspend fun execute(parameters: Unit): String {
+        val user = userProfileRepository.getUserProfile()
+        accountManager.storeAccount(
+            accountManager.getAccount()
+                .copy(
+                    chatId = user.chatId.orEmpty(),
+                    name = user.name.orEmpty(),
+                    avatarUrl = user.avatar.orEmpty()
+                )
+        )
+        return user.chatId.orEmpty()
+    }
 }
