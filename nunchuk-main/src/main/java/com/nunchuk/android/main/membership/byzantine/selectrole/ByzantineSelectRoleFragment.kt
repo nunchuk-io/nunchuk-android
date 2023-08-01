@@ -22,7 +22,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
@@ -38,7 +37,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -100,6 +98,7 @@ private fun SelectRoleContent(
     onOptionClick: (String) -> Unit = {},
     onContinueClicked: () -> Unit = {}
 ) = NunchukTheme {
+    val roleOrder = AssistedWalletRole.values().map { it.name }
     Scaffold(
         modifier = Modifier
             .navigationBarsPadding()
@@ -133,19 +132,21 @@ private fun SelectRoleContent(
                         text = stringResource(R.string.nc_select_a_role),
                         style = NunchukTheme.typography.heading
                     )
-                    options.forEach { item ->
-                        OptionItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                            isSelected = selectedRole == item.role,
-                            desc = item.desc,
-                            title = item.role.toTitle(),
-                            hint = if (item.role == AssistedWalletRole.KEYHOLDER_LIMITED.name) stringResource(
-                                id = R.string.nc_hint_keyholder_limited
-                            ) else ""
-                        ) {
-                            onOptionClick(item.role)
+                    roleOrder.forEach { role ->
+                        options.find { it.role == role }?.let { item ->
+                            OptionItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                                isSelected = selectedRole == item.role,
+                                desc = item.desc,
+                                title = item.role.toTitle(),
+                                hint = if (item.role == AssistedWalletRole.KEYHOLDER_LIMITED.name) stringResource(
+                                    id = R.string.nc_hint_keyholder_limited
+                                ) else ""
+                            ) {
+                                onOptionClick(item.role)
+                            }
                         }
                     }
                 }
@@ -179,7 +180,10 @@ private fun OptionItem(
             Column(modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)) {
                 Text(text = title, style = NunchukTheme.typography.title)
                 if (hint.isNotEmpty()) {
-                    Text(text = hint, style = NunchukTheme.typography.bodySmall.copy(color = NcColor.greyDark))
+                    Text(
+                        text = hint,
+                        style = NunchukTheme.typography.bodySmall.copy(color = NcColor.greyDark)
+                    )
                 }
                 Text(text = desc, style = NunchukTheme.typography.body)
             }

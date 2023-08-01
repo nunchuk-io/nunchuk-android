@@ -36,7 +36,9 @@ class ByzantineSelectRoleViewModel @Inject constructor(
     }
 
     private fun getPermissionGroupWallet() = viewModelScope.launch {
+        _event.emit(ByzantineSelectRoleEvent.Loading(true))
         val result = getPermissionGroupWalletUseCase(Unit)
+        _event.emit(ByzantineSelectRoleEvent.Loading(false))
         if (result.isSuccess) {
             val permissions = result.getOrNull() ?: DefaultPermissions(emptyMap())
             val roles = mutableListOf<AdvisorPlanRoleOption>()
