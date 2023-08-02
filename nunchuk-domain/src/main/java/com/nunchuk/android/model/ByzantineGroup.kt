@@ -8,5 +8,5 @@ data class ByzantineGroup(
     val status: String,
     val walletConfig: ByzantineWalletConfig
 ) {
-    fun isPendingWallet() = status == "PENDING_WALLET"
+    fun isPendingWallet() = status == GroupStatus.PENDING_WALLET.name
 }

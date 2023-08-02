@@ -1695,6 +1695,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupDao.deleteGroups(listOf(groupId), chatId = accountManager.getAccount().chatId)
     }
 
+    override suspend fun updateGroupStatus(groupId: String, status: String) {
+        val group = groupDao.getGroupById(groupId, chatId = accountManager.getAccount().chatId) ?: return
+        groupDao.update(group.copy(status = status))
+    }
+
     override suspend fun generateEditGroupMemberUserData(
         members: List<AssistedMember>
     ): String {

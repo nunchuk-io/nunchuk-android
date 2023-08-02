@@ -298,6 +298,7 @@ interface PremiumWalletRepository {
     suspend fun getGroup(groupId: String): ByzantineGroup
     suspend fun deleteGroupWallet(groupId: String)
     suspend fun deleteGroup(groupId: String)
+    suspend fun updateGroupStatus(groupId: String, status: String)
     suspend fun generateEditGroupMemberUserData(
         members: List<AssistedMember>
     ): String

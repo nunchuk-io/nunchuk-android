@@ -10,7 +10,7 @@ data class ByzantineGroupBrief(
     val isViewPendingWallet: Boolean,
     val walletConfig: ByzantineWalletConfig
 ) {
-    fun isPendingWallet() = status == "PENDING_WALLET"
+    fun isPendingWallet() = status == GroupStatus.PENDING_WALLET.name
 
     fun getMasterName() : String = members.find { it.role == AssistedWalletRole.MASTER.name }?.name.orEmpty()
 }
