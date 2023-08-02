@@ -22,10 +22,7 @@ package com.nunchuk.android.core.data.model.membership
 import com.google.gson.annotations.SerializedName
 
 data class GroupAssistedWalletConfigResponse(
-    @SerializedName("total_allowed_groups")
-    val totalAllowedGroup : Int = 0,
-    @SerializedName("active_group_count")
-    val activeGroupCount : Int = 0,
-    @SerializedName("remaining_group_count")
-    val remainingGroupCount : Int = 0,
+    @SerializedName("byzantine") val byzantine: AssistedWalletConfigResponse? = null,
+    @SerializedName("byzantine_pro") val byzantinePro: AssistedWalletConfigResponse? = null,
+    @SerializedName("honey_badger") val honeyBadger: AssistedWalletConfigResponse? = null
 )

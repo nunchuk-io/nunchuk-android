@@ -20,7 +20,7 @@
 package com.nunchuk.android.model.membership
 
 data class GroupConfig(
-    val totalAllowedGroup : Int = 0,
-    val activeGroupCount : Int = 0,
-    val remainingGroupCount : Int = 0,
+    val remainingByzantineWallet : Int = 0,
+    val remainingByzantineProWallet : Int = 0,
+    val remainingHoneyBadgerWallet : Int = 0,
 )

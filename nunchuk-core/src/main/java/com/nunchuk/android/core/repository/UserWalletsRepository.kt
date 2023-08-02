@@ -1152,9 +1152,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getGroupAssistedWalletConfig(): GroupConfig {
         val response = userWalletApiManager.walletApi.getGroupAssistedWalletConfig()
         return GroupConfig(
-            totalAllowedGroup = response.data.totalAllowedGroup,
-            activeGroupCount = response.data.activeGroupCount,
-            remainingGroupCount = response.data.remainingGroupCount
+            remainingByzantineWallet = response.data.byzantine?.remainingWalletCount ?: 0,
+            remainingByzantineProWallet = response.data.byzantinePro?.remainingWalletCount ?: 0,
+            remainingHoneyBadgerWallet = response.data.honeyBadger?.remainingWalletCount ?: 0,
         )
     }
 

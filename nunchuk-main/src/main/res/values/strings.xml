@@ -59,8 +59,8 @@
     <string name="nc_added_successfully">%1$s added successfully</string>
     <string name="nc_add_coldcard_via_usb">Add COLDCARD via USB</string>
     <string name="nc_what_is_a_group_wallet">What is a group wallet?</string>
-    <string name="nc_group_wallet_intro">A Nunchuk group wallet is a multisig wallet where multiple people share control of the wallet. Keys can be distributed among the master account and a secondary account, or secondary accounts.\n\nDepending on your preference, the platform can also hold one additional key to assist in inheritance planning and the daily operation of the wallet.</string>
-    <string name="nc_security_trade_off_desc">On one hand, having multiple people involved in a wallet means that the burden of key management can be shared. The keys are also more likely to be well distributed.\n\nOn the other hand, since members’ skill levels typically vary, it also means that it is harder to guarantee the security of the individual keys. Each member must take care to protect their own key.\n\nWhen in doubt, [B]lean towards having fewer keyholders in a group wallet[/B]. If your use case demands multiple keyholders, please make sure that all members understand their rights and responsibilities.</string>
+    <string name="nc_group_wallet_intro">A Nunchuk group wallet is a multisig wallet where multiple people share control of the funds. Keys can be distributed among the master account and a secondary account, or secondary accounts.</string>
+    <string name="nc_security_trade_off_desc">On one hand, having multiple people involved in a wallet means that the burden of key management can be shared. The keys are also more likely to be well distributed.\n\nOn the other hand, individual members’ skill levels and experience might vary.\n\nFor best security, please make sure that all group members understand the basics of key management and how to secure their own keys.</string>
     <string name="nc_2_of_4_multisig_title">2-of-4 multisig with inheritance planning</string>
     <string name="nc_2_of_3_multisig_title">2-of-3 multisig without inheritance planning</string>
     <string name="nc_3_of_5_multisig_title">3-of-5 multisig without inheritance planning</string>
@@ -112,4 +112,5 @@
     <string name="nc_confirm_changes_msg">We’ve sent a code to %1$s. Please enter it below.</string>
     <string name="nc_code">code</string>
     <string name="nc_hint_keyholder_limited">Only applicable for members who own a TAPSIGNER, Ledger or Trezor device.</string>
+    <string name="nc_a_note_on_security">A note on security</string>
 </resources>

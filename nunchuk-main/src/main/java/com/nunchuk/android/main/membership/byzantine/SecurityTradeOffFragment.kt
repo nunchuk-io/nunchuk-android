@@ -9,7 +9,7 @@ import com.nunchuk.android.main.membership.BaseIntroFragment
 
 class SecurityTradeOffFragment : BaseIntroFragment() {
     override val title: String
-        get() = "Security trade-off"
+        get() = getString(R.string.nc_a_note_on_security)
     override val imageResId: Int
         get() = R.drawable.bg_security_trade_off
     override val content: String

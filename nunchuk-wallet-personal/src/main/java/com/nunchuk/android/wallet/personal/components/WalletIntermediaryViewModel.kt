@@ -37,7 +37,12 @@ import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -88,11 +93,17 @@ class WalletIntermediaryViewModel @Inject constructor(
         getWalletConfigJob = viewModelScope.launch {
             if (_state.value.plan == MembershipPlan.BYZANTINE) {
                 getGroupAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
-                    _state.update { it.copy(remainGroupCount = configs.remainingGroupCount) }
+                    _state.update {
+                        it.copy(
+                            remainGroupCount = configs.remainingByzantineWallet + configs.remainingByzantineProWallet,
+                            remainWalletCount = configs.remainingHoneyBadgerWallet
+                        )
+                    }
                 }
-            }
-            getAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
-                _state.update { it.copy(remainWalletCount = configs.remainingWalletCount) }
+            } else {
+                getAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
+                    _state.update { it.copy(remainWalletCount = configs.remainingWalletCount) }
+                }
             }
         }
     }
