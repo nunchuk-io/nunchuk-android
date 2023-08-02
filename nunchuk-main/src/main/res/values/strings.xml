@@ -113,4 +113,6 @@
     <string name="nc_code">code</string>
     <string name="nc_hint_keyholder_limited">Only applicable for members who own a TAPSIGNER, Ledger or Trezor device.</string>
     <string name="nc_a_note_on_security">A note on security</string>
+    <string name="nc_run_out_of_byzantine_wallet">You’ve run out of %1$s wallets. To purchase additional %1$s wallets, please visit nunchuk.io/my-plan.</string>
+    <string name="nc_take_me_there">Take me there</string>
 </resources>

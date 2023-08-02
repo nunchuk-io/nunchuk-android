@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioOption
@@ -44,15 +45,20 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.GroupWalletType
 import com.nunchuk.android.main.membership.model.desc
 import com.nunchuk.android.main.membership.model.title
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SelectGroupFragment : MembershipFragment() {
+    private val viewMode: SelectGroupViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -62,14 +68,37 @@ class SelectGroupFragment : MembershipFragment() {
             setContent {
                 SelectGroupScreen(
                     onMoreClicked = ::handleShowMore,
-                    onContinueClicked = {
-                        findNavController().navigate(
-                            SelectGroupFragmentDirections.actionSelectGroupFragmentToSelectWalletSetupFragment(
-                                groupType = it
+                    onContinueClicked = { groupType ->
+                        if (viewMode.checkGroupTypeAvailable(groupType)) {
+                            findNavController().navigate(
+                                SelectGroupFragmentDirections.actionSelectGroupFragmentToSelectWalletSetupFragment(
+                                    groupType = groupType.name
+                                )
                             )
-                        )
+                        } else {
+                            NCInfoDialog(requireActivity()).init(
+                                message = getString(
+                                    R.string.nc_run_out_of_byzantine_wallet,
+                                    if (groupType.isPro) "PRO" else "STANDARD"
+                                ),
+                                btnYes = getString(R.string.nc_take_me_there),
+                                btnInfo = getString(R.string.nc_text_got_it),
+                                onYesClick = {
+                                    requireActivity().openExternalLink("https://nunchuk.io/my-plan")
+                                }
+                            ).show()
+                        }
                     },
                 )
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewMode.event) {
+            when (it) {
+                is SelectGroupEvent.Loading -> showOrHideLoading(it.isLoading)
             }
         }
     }
@@ -77,7 +106,7 @@ class SelectGroupFragment : MembershipFragment() {
 
 @Composable
 private fun SelectGroupScreen(
-    onContinueClicked: (String) -> Unit = {},
+    onContinueClicked: (GroupWalletType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     SelectGroupContent(onContinueClicked = onContinueClicked, onMoreClicked = onMoreClicked)
@@ -85,7 +114,7 @@ private fun SelectGroupScreen(
 
 @Composable
 private fun SelectGroupContent(
-    onContinueClicked: (String) -> Unit = {},
+    onContinueClicked: (GroupWalletType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     var selectedType by remember { mutableStateOf(GroupWalletType.TWO_OF_FOUR_MULTISIG) }
@@ -99,7 +128,7 @@ private fun SelectGroupContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = {
-                        onContinueClicked(selectedType.name)
+                        onContinueClicked(selectedType)
                     }
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
@@ -150,9 +179,9 @@ fun GroupWalletTypeOptionView(
     NcRadioOption(modifier = modifier.fillMaxWidth(), isSelected = isSelected, onClick = onClick) {
         Row {
             if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG) {
-                ProBadgePlan(modifier = Modifier.padding(end = 4.dp),)
+                ProBadgePlan(modifier = Modifier.padding(end = 4.dp))
             } else {
-                StandardBadgePlan(modifier = Modifier.padding(end = 4.dp),)
+                StandardBadgePlan(modifier = Modifier.padding(end = 4.dp))
             }
             if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG || type == GroupWalletType.TWO_OF_THREE) {
                 NcTag(
