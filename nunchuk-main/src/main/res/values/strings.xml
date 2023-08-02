@@ -115,4 +115,6 @@
     <string name="nc_a_note_on_security">A note on security</string>
     <string name="nc_run_out_of_byzantine_wallet">You’ve run out of %1$s wallets. To purchase additional %1$s wallets, please visit nunchuk.io/my-plan.</string>
     <string name="nc_take_me_there">Take me there</string>
+    <string name="nc_pro">PRO</string>
+    <string name="nc_standard">STANDARD</string>
 </resources>

@@ -79,7 +79,8 @@ class SelectGroupFragment : MembershipFragment() {
                             NCInfoDialog(requireActivity()).init(
                                 message = getString(
                                     R.string.nc_run_out_of_byzantine_wallet,
-                                    if (groupType.isPro) "PRO" else "STANDARD"
+                                    if (groupType.isPro) getString(R.string.nc_pro)
+                                    else getString(R.string.nc_standard)
                                 ),
                                 btnYes = getString(R.string.nc_take_me_there),
                                 btnInfo = getString(R.string.nc_text_got_it),
@@ -217,7 +218,7 @@ fun ProBadgePlan(modifier: Modifier) {
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),
-            text = "PRO",
+            text = stringResource(id = R.string.nc_pro),
             style = NunchukTheme.typography.bold.copy(
                 color = MaterialTheme.colors.surface,
                 fontSize = 10.sp
@@ -245,7 +246,7 @@ fun StandardBadgePlan(modifier: Modifier) {
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),
-            text = "STANDARD",
+            text = stringResource(id = R.string.nc_standard),
             style = NunchukTheme.typography.bold.copy(fontSize = 10.sp)
         )
     }
