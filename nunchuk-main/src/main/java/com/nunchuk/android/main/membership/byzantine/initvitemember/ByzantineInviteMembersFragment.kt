@@ -193,12 +193,10 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
         NCWarningDialog(requireActivity())
             .showDialog(
                 message = getString(R.string.nc_admin_role_message_dialog),
+                btnYes = getString(R.string.nc_text_got_it),
+                btnNo = getString(R.string.nc_cancel),
                 onYesClick = {
-                    if (viewModel.countKeyholderRole() >= 3) {
-                        showThreeKeyholderSetupDialog(onContinueClick)
-                    } else {
-                        onContinueClick()
-                    }
+                    showThreeKeyholderSetupDialog(onContinueClick)
                 },
                 onNoClick = {
                     viewModel.clearAdminRole()
