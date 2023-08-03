@@ -10,7 +10,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -86,7 +85,8 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
                 val confirmCodeMap =
-                    data.serializable<HashMap<String, String>>(GlobalResultKey.CONFIRM_CODE).orEmpty()
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.CONFIRM_CODE)
+                        .orEmpty()
                 viewModel.editGroupMember(
                     signatureMap,
                     securityQuestionToken,
@@ -113,7 +113,7 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 }, onContinueClick = {
                     if (args.flow == ByzantineMemberFlow.SETUP) {
                         val onCreateGroupWallet: () -> Unit = {
-                            viewModel.createGroupWallet()
+                            viewModel.createGroup()
                         }
                         if (viewModel.hasAdminRole()) {
                             showAdminRoleDialog(onCreateGroupWallet)
@@ -232,8 +232,8 @@ private fun InviteMembersScreen(
             viewModel.interactingMemberIndex(index)
             onSelectRole(role)
         },
-        onInputEmailChange = { index, email, name ->
-            viewModel.updateMember(index, email = email, name = name)
+        onInputEmailChange = { index, email, name, loginType ->
+            viewModel.updateMember(index, email = email, name = name, loginType = loginType)
         },
         onRemoveMember = { viewModel.removeMember(it) },
         onSelectContact = { viewModel.selectContact(it) },
@@ -253,7 +253,7 @@ private fun InviteMembersContent(
     onContinueClick: () -> Unit = {},
     onAddMember: () -> Unit = {},
     onSelectRole: (Int, String) -> Unit = { _, _ -> },
-    onInputEmailChange: (Int, String, String) -> Unit = { _, _, _ -> },
+    onInputEmailChange: (Int, String, String, String) -> Unit = { _, _, _, _ -> },
     onSelectContact: (String) -> Unit = {}
 ) {
     NunchukTheme {
@@ -333,8 +333,8 @@ private fun InviteMembersContent(
                             onRemoveClick = {
                                 onRemoveMember(index)
                             },
-                            onInputEmailChange = { email, name ->
-                                onInputEmailChange(index, email, name)
+                            onInputEmailChange = { email, name, loginType ->
+                                onInputEmailChange(index, email, name, loginType)
                             },
                             onSelectContact = {
                                 onSelectContact(it)
@@ -379,7 +379,7 @@ private fun MemberView(
     selectContact: HashSet<String> = hashSetOf(),
     role: String = AssistedWalletRole.NONE.name,
     onRemoveClick: () -> Unit = {},
-    onInputEmailChange: (String, String) -> Unit = { _, _ -> },
+    onInputEmailChange: (String, String, String) -> Unit = { _, _, _ -> },
     onSelectRoleClick: () -> Unit = {},
     onSelectContact: (String) -> Unit = {}
 ) {
@@ -463,7 +463,7 @@ private fun MemberView(
                             .fillMaxWidth()
                     ) {
                         if (email in selectContact) {
-                            Column() {
+                            Column {
                                 Text(
                                     modifier = Modifier.padding(bottom = 4.dp),
                                     text = stringResource(id = R.string.nc_email_address),
@@ -513,7 +513,7 @@ private fun MemberView(
                                     },
                                 value = email,
                                 onValueChange = {
-                                    onInputEmailChange(it.trim(), "")
+                                    onInputEmailChange(it.trim(), "", "")
                                     expanded = true
                                 },
                                 title = stringResource(id = R.string.nc_email_address),
@@ -539,7 +539,7 @@ private fun MemberView(
                                         DropdownMenuItem(
                                             modifier = Modifier.padding(top = 8.dp),
                                             onClick = {
-                                                onInputEmailChange(contact.email, contact.name)
+                                                onInputEmailChange(contact.email, contact.name, contact.loginType)
                                                 onSelectContact(contact.email)
                                                 onDropdownDismissRequest()
                                             }, text = {

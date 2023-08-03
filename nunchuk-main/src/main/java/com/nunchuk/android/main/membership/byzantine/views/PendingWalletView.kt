@@ -32,11 +32,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -174,7 +171,8 @@ fun RowScope.PendingWalletInviteMember(
 @Composable
 fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
-        group.members.take(3).forEachIndexed { index, byzantineMember ->
+        val sortedList = group.members.sortedWith(compareBy { it.isPendingRequest() })
+        sortedList.take(3).forEachIndexed { index, byzantineMember ->
             val padStart = if (index == 0) 0.dp else 4.dp
             AvatarView(
                 modifier = Modifier.padding(start = padStart),
@@ -189,7 +187,7 @@ fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (badgeCount!=0) {
+        if (badgeCount != 0) {
             Box(
                 modifier = Modifier
                     .size(24.dp, 24.dp)
@@ -313,7 +311,12 @@ internal fun Badge(
 }
 
 @Composable
-fun AvatarView(modifier: Modifier = Modifier, avatarUrl: String = "", name: String = "", isContact: Boolean = false) {
+fun AvatarView(
+    modifier: Modifier = Modifier,
+    avatarUrl: String = "",
+    name: String = "",
+    isContact: Boolean = false
+) {
     Box(
         modifier = modifier
             .size(36.dp, 36.dp)
@@ -341,7 +344,7 @@ fun AvatarView(modifier: Modifier = Modifier, avatarUrl: String = "", name: Stri
                 }
             }
         }
-        GlideImage(imageModel = { avatarUrl.fromMxcUriToMatrixDownloadUrl() },
+        GlideImage(imageModel = { if (isContact) { avatarUrl.fromMxcUriToMatrixDownloadUrl() } else "" },
             imageOptions = ImageOptions(
                 contentScale = ContentScale.Crop, alignment = Alignment.Center
             ),

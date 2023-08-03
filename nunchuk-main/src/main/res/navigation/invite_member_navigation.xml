@@ -28,7 +28,6 @@
 
         <argument
             android:name="group_type"
-            android:defaultValue=""
             app:argType="string" />
 
         <action

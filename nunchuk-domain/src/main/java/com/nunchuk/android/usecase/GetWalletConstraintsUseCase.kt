@@ -12,8 +12,8 @@ import javax.inject.Inject
 class GetWalletConstraintsUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<Unit, WalletConstraints>(ioDispatcher) {
+) : UseCase<Unit, List<WalletConstraints>>(ioDispatcher) {
 
-    override suspend fun execute(parameters: Unit): WalletConstraints =
+    override suspend fun execute(parameters: Unit): List<WalletConstraints> =
          repository.getWalletConstraints()
 }

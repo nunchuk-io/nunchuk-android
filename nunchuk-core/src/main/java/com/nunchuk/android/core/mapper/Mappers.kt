@@ -4,10 +4,12 @@ import com.nunchuk.android.core.data.model.byzantine.AlertResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupChatDto
 import com.nunchuk.android.core.data.model.byzantine.GroupResponse
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponseOrRequest
+import com.nunchuk.android.core.data.model.byzantine.MemberRequest
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.Alert
@@ -22,6 +24,7 @@ import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.User
+import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.toAlertType
 import com.nunchuk.android.model.transaction.AlertPayload
 
@@ -141,5 +144,11 @@ internal fun HistoryPeriodResponseOrRequest?.toHistoryPeriod(): HistoryPeriod {
         id = this?.id.orEmpty(),
         interval = this?.interval.orEmpty(),
         intervalCount = this?.intervalCount.orDefault(0)
+    )
+}
+
+internal fun AssistedMember.toMemberRequest(): MemberRequest {
+    return MemberRequest(
+        emailOrUsername = if (loginType == SignInMode.PRIMARY_KEY.name) name.orEmpty() else email, permissions = emptyList(), role = role
     )
 }

@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.model
 import androidx.annotation.Keep
 import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.ByzantineWalletConfig
 
 @Keep
 enum class GroupWalletType(val m: Int, val n: Int, val isPro: Boolean) {
@@ -31,4 +32,8 @@ val GroupWalletType.desc: Int
 
 fun String.toGroupWalletType(): GroupWalletType {
     return GroupWalletType.values().first { this == it.name }
+}
+
+fun ByzantineWalletConfig.toGroupWalletType(): GroupWalletType {
+    return GroupWalletType.values().first { this.m == m && this.n == n }
 }

@@ -1,3 +1,3 @@
 package com.nunchuk.android.model
 
-data class WalletConstraints(val maximumKeyholder: Int)
+data class WalletConstraints(val maximumKeyholder: Int, val walletConfig: ByzantineWalletConfig)

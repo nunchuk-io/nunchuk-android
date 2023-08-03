@@ -14,6 +14,7 @@ import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
@@ -181,8 +182,8 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun getGroupId(): String {
-        return state.value.group?.id ?: ""
+    fun getByzantineGroup(): ByzantineGroup? {
+        return state.value.group
     }
 
     private fun currentUserRole(members: List<ByzantineMember>): AssistedWalletRole {

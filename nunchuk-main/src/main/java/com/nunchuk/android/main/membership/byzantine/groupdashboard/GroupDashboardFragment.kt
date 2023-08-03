@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -66,6 +67,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
@@ -79,6 +81,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -93,8 +96,10 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
+import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
@@ -138,8 +143,9 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     findNavController().navigate(
                         GroupDashboardFragmentDirections.actionGroupDashboardFragmentToByzantineInviteMembersFragment(
                             members = viewModel.getAssistedMembers().toTypedArray(),
-                            groupId = viewModel.getGroupId(),
+                            groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
                             flow = ByzantineMemberFlow.EDIT,
+                            groupType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()?.name.orEmpty(),
                         )
                     )
                 }, onAlertClick = { alert, role ->
@@ -181,7 +187,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     findNavController().navigate(
                         GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
                             periods = event.periods.toTypedArray(),
-                            groupId = viewModel.getGroupId(),
+                            groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
                             historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty()
                         )
                     )
@@ -428,110 +434,19 @@ private fun GroupDashboardContent(
                         .background(colorResource(id = R.color.nc_grey_light))
                         .padding(top = 16.dp)
                 ) {
-                    if (alerts.isNotEmpty()) {
-                        item {
-                            Row(
-                                modifier = Modifier.padding(
-                                    bottom = 12.dp,
-                                    start = 16.dp,
-                                    end = 16.dp
-                                )
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_alert),
-                                    contentDescription = ""
-                                )
-                                Text(
-                                    modifier = Modifier.padding(top = 0.dp, start = 8.dp),
-                                    text = stringResource(R.string.nc_alert),
-                                    style = NunchukTheme.typography.title
-                                )
-                            }
-                        }
-                    }
-                    items(alerts) {
-                        AlertView(
-                            isDismissible = it.viewable.not(),
-                            title = it.title,
-                            keyText = it.body,
-                            timeText = (it.createdTimeMillis / 1000).formatDate(),
-                            onViewClick = {
-                                onAlertClick(it, currentUserRole)
-                            },
-                            onDismissClick = {
-                                onDismissClick(it.id)
-                            }
-                        )
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .padding(top = if (alerts.isNotEmpty()) 24.dp else 0.dp)
-                                .background(Color.White)
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_account_member),
-                                    contentDescription = ""
-                                )
-                                Text(
-                                    modifier = Modifier.padding(
-                                        top = 0.dp,
-                                        start = 8.dp,
-                                        end = 16.dp
-                                    ),
-                                    text = stringResource(R.string.nc_members),
-                                    style = NunchukTheme.typography.title
-                                )
-                            }
-
-                            if (currentUserRole == AssistedWalletRole.MASTER || currentUserRole == AssistedWalletRole.ADMIN) {
-                                Text(
-                                    modifier = Modifier.clickable {
-                                        onEditClick()
-                                    },
-                                    text = stringResource(id = R.string.nc_edit),
-                                    style = NunchukTheme.typography.title,
-                                    textDecoration = TextDecoration.Underline,
-                                    color = colorResource(id = R.color.nc_primary_color)
-                                )
-                            }
-                        }
-                    }
-
-                    item {
-                        master?.let {
-                            ContactMemberView(
-                                email = it.user?.email.orEmpty(),
-                                name = it.user?.name.orEmpty(),
-                                role = it.role,
-                                avatarUrl = it.user?.avatar.orEmpty(),
-                            )
-                        }
-                    }
-
-                    item {
-                        Divider(
-                            color = colorResource(id = R.color.nc_whisper_color),
-                            modifier = Modifier
-                                .background(color = Color.White)
-                                .padding(8.dp)
-                        )
-                    }
-
-                    itemsIndexed(group.members.filter { it.role != AssistedWalletRole.MASTER.name }) { _, member ->
-                        ContactMemberView(
-                            email = member.user?.email.orEmpty(),
-                            name = member.user?.name.orEmpty(),
-                            role = member.role,
-                            avatarUrl = member.user?.avatar.orEmpty(),
-                            isPendingMember = member.isContact().not()
-                        )
-                    }
+                    AlertListView(
+                        alerts = alerts,
+                        currentUserRole = currentUserRole,
+                        onAlertClick = onAlertClick,
+                        onDismissClick = onDismissClick
+                    )
+                    MemberListView(
+                        group = group,
+                        currentUserRole = currentUserRole,
+                        master = master,
+                        padTop = if (alerts.isNotEmpty()) 24.dp else 0.dp,
+                        onEditClick = onEditClick
+                    )
                 }
 
                 Box(
@@ -551,6 +466,128 @@ private object NoRippleTheme : RippleTheme {
 
     @Composable
     override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f, 0.0f, 0.0f, 0.0f)
+}
+
+private fun LazyListScope.AlertListView(
+    alerts: List<Alert>,
+    currentUserRole: AssistedWalletRole = AssistedWalletRole.NONE,
+    onAlertClick: (Alert, AssistedWalletRole) -> Unit,
+    onDismissClick: (String) -> Unit = {}
+) {
+    if (alerts.isNotEmpty()) {
+        item {
+            Row(
+                modifier = Modifier.padding(
+                    bottom = 12.dp,
+                    start = 16.dp,
+                    end = 16.dp
+                )
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_alert),
+                    contentDescription = ""
+                )
+                Text(
+                    modifier = Modifier.padding(top = 0.dp, start = 8.dp),
+                    text = stringResource(R.string.nc_alert),
+                    style = NunchukTheme.typography.title
+                )
+            }
+        }
+    }
+    items(alerts) {
+        AlertView(
+            isDismissible = it.viewable.not(),
+            title = it.title,
+            keyText = it.body,
+            timeText = (it.createdTimeMillis / 1000).formatDate(),
+            onViewClick = {
+                onAlertClick(it, currentUserRole)
+            },
+            onDismissClick = {
+                onDismissClick(it.id)
+            }
+        )
+    }
+}
+
+private fun LazyListScope.MemberListView(
+    currentUserRole: AssistedWalletRole = AssistedWalletRole.NONE,
+    master: ByzantineMember? = null,
+    group: ByzantineGroup,
+    padTop: Dp = 0.dp,
+    onEditClick: () -> Unit = {}
+) {
+    item {
+        Row(
+            modifier = Modifier
+                .padding(top = padTop)
+                .background(Color.White)
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_account_member),
+                    contentDescription = ""
+                )
+                Text(
+                    modifier = Modifier.padding(
+                        top = 0.dp,
+                        start = 8.dp,
+                        end = 16.dp
+                    ),
+                    text = stringResource(R.string.nc_members),
+                    style = NunchukTheme.typography.title
+                )
+            }
+
+            if (currentUserRole == AssistedWalletRole.MASTER || currentUserRole == AssistedWalletRole.ADMIN) {
+                Text(
+                    modifier = Modifier.clickable {
+                        onEditClick()
+                    },
+                    text = stringResource(id = R.string.nc_edit),
+                    style = NunchukTheme.typography.title,
+                    textDecoration = TextDecoration.Underline,
+                    color = colorResource(id = R.color.nc_primary_color)
+                )
+            }
+        }
+    }
+
+    item {
+        master?.let {
+            ContactMemberView(
+                email = it.user?.email.orEmpty(),
+                name = it.user?.name.orEmpty(),
+                role = it.role,
+                avatarUrl = it.user?.avatar.orEmpty(),
+                loginType = it.user?.loginType.orEmpty(),
+            )
+        }
+    }
+
+    item {
+        Divider(
+            color = colorResource(id = R.color.nc_whisper_color),
+            modifier = Modifier
+                .background(color = Color.White)
+                .padding(8.dp)
+        )
+    }
+
+    itemsIndexed(group.members.filter { it.role != AssistedWalletRole.MASTER.name }) { _, member ->
+        ContactMemberView(
+            email = member.user?.email.orEmpty(),
+            name = member.user?.name.orEmpty(),
+            role = member.role,
+            avatarUrl = member.user?.avatar.orEmpty(),
+            isPendingMember = member.isContact().not(),
+            loginType = member.user?.loginType.orEmpty(),
+        )
+    }
 }
 
 @Composable
@@ -612,6 +649,7 @@ private fun ContactMemberView(
     email: String = "",
     name: String = "",
     role: String = AssistedWalletRole.NONE.name,
+    loginType: String = SignInMode.UNKNOWN.name,
     avatarUrl: String = "",
     isPendingMember: Boolean = false,
 ) {
@@ -702,7 +740,7 @@ private fun ContactMemberView(
                             verticalArrangement = Arrangement.SpaceAround
                         ) {
                             Text(
-                                text = email,
+                                text = if (loginType == SignInMode.PRIMARY_KEY.name) name else email,
                                 style = NunchukTheme.typography.body
                             )
                             NcTag(

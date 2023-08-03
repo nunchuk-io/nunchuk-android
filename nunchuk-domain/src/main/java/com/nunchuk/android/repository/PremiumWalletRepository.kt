@@ -291,7 +291,7 @@ interface PremiumWalletRepository {
         members: List<AssistedMember>
     ): ByzantineGroup
 
-    suspend fun getWalletConstraints(): WalletConstraints
+    suspend fun getWalletConstraints(): List<WalletConstraints>
     fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>>
     fun getGroupBriefById(groupId: String): Flow<ByzantineGroupBrief>
     suspend fun syncGroupWallets(): Boolean

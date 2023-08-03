@@ -69,6 +69,7 @@ import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toBackupKey
@@ -77,6 +78,7 @@ import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
 import com.nunchuk.android.core.mapper.toGroupChat
 import com.nunchuk.android.core.mapper.toHistoryPeriod
 import com.nunchuk.android.core.mapper.toInheritance
+import com.nunchuk.android.core.mapper.toMemberRequest
 import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.toSignerTag
@@ -1552,11 +1554,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             CreateGroupRequest(
                 walletConfig = WalletConfigRequest(allowInheritance, m, n, requiredServerKey),
                 setupPreference = setupPreference,
-                members = members.map {
-                    MemberRequest(
-                        emailOrUsername = it.email, permissions = emptyList(), role = it.role
-                    )
-                })
+                members = members.map { it.toMemberRequest() })
         )
         val groupResponse = response.data.data ?: throw NullPointerException("Can not create group")
         val group = groupResponse.toByzantineGroup()
@@ -1566,9 +1564,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return group
     }
 
-    override suspend fun getWalletConstraints(): WalletConstraints {
+    override suspend fun getWalletConstraints(): List<WalletConstraints> {
         val response = userWalletApiManager.groupWalletApi.getGroupWalletsConstraints()
-        return WalletConstraints(maximumKeyholder = response.data.data?.maximumKeyholder ?: 0)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        return response.data.constraints?.map {
+            WalletConstraints(
+                maximumKeyholder = it.maximumKeyholder.orDefault(0),
+                walletConfig = it.walletConfig.toModel()
+            )
+        } ?: emptyList()
     }
 
     override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> =
@@ -1703,11 +1709,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun generateEditGroupMemberUserData(
         members: List<AssistedMember>
     ): String {
-        val body = EditGroupMemberRequest.Body(members = members.map {
-            MemberRequest(
-                emailOrUsername = it.email, permissions = emptyList(), role = it.role
-            )
-        })
+        val body = EditGroupMemberRequest.Body(members = members.map { it.toMemberRequest() })
         return gson.toJson(body)
     }
 
@@ -1716,11 +1718,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): CalculateRequiredSignatures {
         val response = userWalletApiManager.groupWalletApi.calculateRequiredSignaturesEditMember(
             groupId,
-            EditGroupMemberRequest.Body(members = members.map {
-                MemberRequest(
-                    emailOrUsername = it.email, permissions = emptyList(), role = it.role
-                )
-            })
+            EditGroupMemberRequest.Body(members = members.map { it.toMemberRequest() })
         )
         return response.data.result.toCalculateRequiredSignatures()
     }
@@ -1735,11 +1733,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         confirmCodeNonce: String
     ): ByzantineGroup {
         val request = EditGroupMemberRequest(
-            nonce = confirmCodeNonce, body = EditGroupMemberRequest.Body(members = members.map {
-                MemberRequest(
-                    emailOrUsername = it.email, permissions = emptyList(), role = it.role
-                )
-            })
+            nonce = confirmCodeNonce, body = EditGroupMemberRequest.Body(members = members.map { it.toMemberRequest() })
         )
         val headers = mutableMapOf<String, String>()
         authorizations.forEachIndexed { index, value ->

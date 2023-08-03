@@ -4,7 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.membership.*
+import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesEditGroupMemberUseCase
+import com.nunchuk.android.core.domain.membership.EditGroupMemberUseCase
+import com.nunchuk.android.core.domain.membership.EditGroupMemberUserDataUseCase
+import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
@@ -18,7 +22,13 @@ import com.nunchuk.android.usecase.membership.CreateGroupWalletUseCase
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -64,7 +74,12 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     private fun getWalletConstraints() {
         viewModelScope.launch {
             val result = getWalletConstraintsUseCase(Unit)
-            _state.update { it.copy(walletConstraints = result.getOrNull()) }
+            val groupWalletType = args.groupType.toGroupWalletType()
+            result.getOrDefault(emptyList())
+                .find { it.walletConfig.m == groupWalletType.m && it.walletConfig.n == groupWalletType.n }
+                ?.let { walletConstraints ->
+                    _state.update { it.copy(walletConstraints = walletConstraints) }
+                }
         }
     }
 
@@ -85,19 +100,23 @@ class ByzantineInviteMembersViewModel @Inject constructor(
             name = account.name,
             email = account.email
         )
-        _state.value = _state.value.copy(
-            members = _state.value.members + masterMember
-        )
+        _state.update {
+            it.copy(
+                members = _state.value.members + masterMember
+            )
+        }
     }
 
     fun addMember() {
-        _state.value = _state.value.copy(
-            members = _state.value.members + AssistedMember(
-                role = AssistedWalletRole.NONE.name,
-                name = "",
-                email = ""
+        _state.update {
+            it.copy(
+                members = _state.value.members + AssistedMember(
+                    role = AssistedWalletRole.NONE.name,
+                    name = "",
+                    email = ""
+                )
             )
-        )
+        }
     }
 
     fun removeMember(index: Int) {
@@ -117,51 +136,52 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         index: Int,
         name: String? = null,
         email: String? = null,
-        role: String? = null
+        role: String? = null,
+        loginType: String? = null
     ) {
         if (email != null) {
             viewModelScope.launch(ioDispatcher) {
                 val suggestionContacts = _state.value.contacts.filter {
                     it.email !in getMemberEmails() && it.email.contains(email)
                 }
-                _state.value = _state.value.copy(
-                    suggestionContacts = suggestionContacts
-                )
+                _state.update {
+                    it.copy(
+                        suggestionContacts = suggestionContacts
+                    )
+                }
             }
             if (email in getMemberEmails()) {
                 return
             }
         }
-
-        if (role != null) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            if (role != null) {
                 if (countKeyholderRole() == _state.value.walletConstraints?.maximumKeyholder) {
-                    _event.emit(ByzantineInviteMembersEvent.LimitKeyholderRoleWarning)
+                    emitWithDelay(ByzantineInviteMembersEvent.LimitKeyholderRoleWarning)
                     return@launch
                 }
             }
-        }
-
-        _state.value = _state.value.copy(
-            members = _state.value.members.mapIndexed { i, member ->
-                if (i == index) {
-                    member.copy(
-                        name = name ?: member.name,
-                        email = email ?: member.email,
-                        role = role ?: member.role
-                    )
-                } else {
-                    member
-                }
+            _state.update {
+                it.copy(
+                    members = _state.value.members.mapIndexed { i, member ->
+                        if (i == index) {
+                            member.copy(
+                                name = name ?: member.name,
+                                email = email ?: member.email,
+                                role = role ?: member.role,
+                                loginType = loginType ?: member.loginType
+                            )
+                        } else {
+                            member
+                        }
+                    }
+                )
             }
-        )
-
-        if (role != null && role == AssistedWalletRole.ADMIN.name) {
-            val member = _state.value.members[index]
-            if (member.email.isNotBlank()) {
-                viewModelScope.launch {
+            if (role != null && role == AssistedWalletRole.ADMIN.name) {
+                val member = _state.value.members[index]
+                if (member.email.isNotBlank()) {
                     if (isPrimaryKeyAdminRole(member.email)) {
-                        _event.emit(ByzantineInviteMembersEvent.PrimaryKeyAdminRoleWarning)
+                        emitWithDelay(ByzantineInviteMembersEvent.PrimaryKeyAdminRoleWarning)
                     }
                 }
             }
@@ -169,17 +189,21 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     }
 
     fun interactingMemberIndex(index: Int) {
-        _state.value = _state.value.copy(
-            interactingIndex = index
-        )
+        _state.update {
+            it.copy(
+                interactingIndex = index
+            )
+        }
     }
 
     fun selectContact(email: String, isRemove: Boolean = false) {
-        _state.value = _state.value.copy(
-            selectContacts = _state.value.selectContacts.apply {
-                if (isRemove) remove(email) else add(email)
-            }
-        )
+        _state.update {
+            it.copy(
+                selectContacts = _state.value.selectContacts.apply {
+                    if (isRemove) remove(email) else add(email)
+                }
+            )
+        }
     }
 
     fun enableContinueButton(): Boolean {
@@ -206,21 +230,23 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     }
 
     fun clearAdminRole() {
-        _state.value = _state.value.copy(
-            members = _state.value.members.mapIndexed { i, member ->
-                if (member.role == AssistedWalletRole.ADMIN.name) {
-                    member.copy(
-                        role = AssistedWalletRole.NONE.name
-                    )
-                } else {
-                    member
+        _state.update {
+            it.copy(
+                members = _state.value.members.mapIndexed { i, member ->
+                    if (member.role == AssistedWalletRole.ADMIN.name) {
+                        member.copy(
+                            role = AssistedWalletRole.NONE.name
+                        )
+                    } else {
+                        member
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 
     fun countKeyholderRole(): Int {
-        return _state.value.members.count { it.role == AssistedWalletRole.KEYHOLDER.name || it.role == AssistedWalletRole.MASTER.name }
+        return _state.value.members.count { it.role == AssistedWalletRole.KEYHOLDER.name || it.role == AssistedWalletRole.ADMIN.name }
     }
 
     private fun isPrimaryKeyAdminRole(email: String): Boolean {
@@ -235,11 +261,18 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         return false
     }
 
+    private fun emitWithDelay(event: ByzantineInviteMembersEvent) {
+        viewModelScope.launch {
+            delay(50)
+            _event.emit(event)
+        }
+    }
+
     fun hasAdminRole(): Boolean {
         return _state.value.members.any { it.role == AssistedWalletRole.ADMIN.name }
     }
 
-    fun createGroupWallet() = viewModelScope.launch {
+    fun createGroup() = viewModelScope.launch {
         _event.emit(ByzantineInviteMembersEvent.Loading(true))
         val result = createGroupWalletUseCase(
             CreateGroupWalletUseCase.Param(
