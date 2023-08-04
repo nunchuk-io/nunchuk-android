@@ -261,8 +261,11 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 findNavController().navigate(AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToTapSignerInheritanceIntroFragment())
             }
 
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> openSelectHardwareOption()
 
             else -> Unit
         }
@@ -355,7 +358,7 @@ fun AddKeyListScreen(
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-    AddKeyListContent(
+    AddByzantineKeyListContent(
         onContinueClicked = viewModel::onContinueClicked,
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,

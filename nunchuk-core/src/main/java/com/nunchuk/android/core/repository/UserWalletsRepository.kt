@@ -47,7 +47,6 @@ import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
 import com.nunchuk.android.core.data.model.byzantine.GroupResponse
-import com.nunchuk.android.core.data.model.byzantine.MemberRequest
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
@@ -69,7 +68,6 @@ import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toBackupKey
@@ -1337,13 +1335,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     else -> throw IllegalArgumentException()
                 }
                 val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
-                if (info == null || info.masterSignerId != key.xfp) {
+                val verifyType = if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
+                if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
                     membershipRepository.saveStepInfo(
                         MembershipStepInfo(
                             step = step,
                             masterSignerId = key.xfp.orEmpty(),
                             plan = MembershipPlan.BYZANTINE,
-                            verifyType = if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED,
+                            verifyType = verifyType,
                             extraData = gson.toJson(
                                 SignerExtra(
                                     derivationPath = key.derivationPath.orEmpty(),
@@ -1357,6 +1356,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
+        // TODO Hai should remove local key if sync failed
         return DraftWallet(
             draftWallet.walletConfig.toModel(),
             draftWallet.signers.map { it.toModel() }

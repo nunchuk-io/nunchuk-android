@@ -38,8 +38,10 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.main.MembershipNavigationDirections
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
+import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -57,7 +59,7 @@ class SelectWalletSetupFragment : MembershipFragment() {
                 SelectWalletSetupScreen(
                     onContinueClicked = {
                         findNavController().navigate(
-                            SelectWalletSetupFragmentDirections.actionSelectWalletSetupFragmentToByzantineInviteMembersFragment(
+                            MembershipNavigationDirections.actionGlobalByzantineInviteMembersFragment(
                                 setupPreference = it,
                                 groupType = args.groupType,
                                 members = emptyArray(),
@@ -97,9 +99,9 @@ private fun SelectWalletSetupContent(
                         .padding(16.dp),
                     onClick = {
                         if (isSinglePersonSetup) {
-                            onContinueClicked("SINGLE_PERSON")
+                            onContinueClicked(ByzantinePreferenceSetup.SINGLE_PERSON.name)
                         } else {
-                            onContinueClicked("DISTRIBUTED")
+                            onContinueClicked(ByzantinePreferenceSetup.DISTRIBUTED.name)
                         }
                     }
                 ) {

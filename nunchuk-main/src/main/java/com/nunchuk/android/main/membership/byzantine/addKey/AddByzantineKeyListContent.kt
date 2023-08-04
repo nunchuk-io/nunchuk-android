@@ -35,6 +35,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.AddKeyCard
 import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.main.membership.model.GroupWalletType
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.type.SignerType
@@ -42,7 +43,7 @@ import java.util.Collections.emptyList
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AddKeyListContent(
+fun AddByzantineKeyListContent(
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onContinueClicked: () -> Unit = {},
@@ -93,9 +94,15 @@ fun AddKeyListContent(
                             text = stringResource(R.string.nc_let_add_your_keys),
                             style = NunchukTheme.typography.heading
                         )
+                        val description = when (keys.size) {
+                            GroupWalletType.TWO_OF_FOUR_MULTISIG.n -> stringResource(R.string.nc_byzantine_add_key_2_of_4_desc)
+                            GroupWalletType.TWO_OF_THREE.n -> stringResource(R.string.nc_byzantine_add_key_2_of_3_desc)
+                            GroupWalletType.THREE_OF_FIVE.n -> stringResource(R.string.nc_byzantine_add_key_3_of_5_desc)
+                            else -> ""
+                        }
                         NcSpannedText(
                             modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                            text = stringResource(R.string.nc_byzantine_add_key_desc),
+                            text = description,
                             baseStyle = NunchukTheme.typography.body,
                             styles = mapOf(SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold))
                         )
@@ -119,7 +126,7 @@ fun AddKeyListContent(
 @Preview
 @Composable
 fun AddKeyListScreenHoneyBadgerPreview() {
-    AddKeyListContent(
+    AddByzantineKeyListContent(
         keys = listOf(
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_TAP_SIGNER,

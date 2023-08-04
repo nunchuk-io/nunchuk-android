@@ -92,6 +92,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
         membershipStepManager.stepDone.map { membershipStepManager.isSetupInheritanceDone() }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    // TODO Hai 2/3, 3/5
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
             val setupKeySteps = listOf(

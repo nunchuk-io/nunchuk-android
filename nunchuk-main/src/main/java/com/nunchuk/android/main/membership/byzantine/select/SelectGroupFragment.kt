@@ -179,7 +179,7 @@ fun GroupWalletTypeOptionView(
 ) {
     NcRadioOption(modifier = modifier.fillMaxWidth(), isSelected = isSelected, onClick = onClick) {
         Row {
-            if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG) {
+            if (type.isPro) {
                 ProBadgePlan(modifier = Modifier.padding(end = 4.dp))
             } else {
                 StandardBadgePlan(modifier = Modifier.padding(end = 4.dp))

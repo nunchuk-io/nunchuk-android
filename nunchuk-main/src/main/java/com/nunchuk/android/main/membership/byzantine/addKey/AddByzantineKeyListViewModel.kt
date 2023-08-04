@@ -31,6 +31,8 @@ import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.core.util.isRemoteSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.main.membership.model.GroupWalletType
+import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.Result
@@ -56,6 +58,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -91,7 +94,12 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val currentStep =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
-    private val membershipStepState = getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.plan, args.groupId))
+    private val membershipStepState = getMembershipStepUseCase(
+        GetMembershipStepUseCase.Param(
+            membershipStepManager.plan,
+            args.groupId
+        )
+    )
         .map { it.getOrElse { emptyList() } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -106,16 +114,11 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 membershipStepManager.setCurrentStep(it)
             }
         }
-        _keys.value = listOf(
-            AddKeyData(type = MembershipStep.BYZANTINE_ADD_TAP_SIGNER),
-            AddKeyData(type = MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1),
-            AddKeyData(type = MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2),
-            AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
-        )
+        refresh()
         loadSigners()
         viewModelScope.launch {
-            membershipStepState.collect {
-                val news = _keys.value.map { addKeyData ->
+            membershipStepState.combine(key) { _, key -> key }.collect { key ->
+                val news = key.map { addKeyData ->
                     val info = getStepInfo(addKeyData.type)
                     if (addKeyData.signer == null && info.masterSignerId.isNotEmpty()) {
                         val extra = runCatching {
@@ -180,6 +183,20 @@ class AddByzantineKeyListViewModel @Inject constructor(
             val hasTag =
                 signer.tags.any { it == SignerTag.SEEDSIGNER || it == SignerTag.KEYSTONE || it == SignerTag.PASSPORT || it == SignerTag.JADE }
             if (hasTag || signer.type == SignerType.COLDCARD_NFC) {
+                singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
+                    ?.let { signer ->
+                        syncKeyToGroupUseCase(
+                            SyncKeyToGroupUseCase.Param(
+                                groupId = args.groupId,
+                                step = membershipStepManager.currentStep
+                                    ?: throw IllegalArgumentException("Current step empty"),
+                                signer = signer
+                            )
+                        ).onFailure {
+                            _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
+                            return@launch
+                        }
+                    }
                 saveMembershipStepUseCase(
                     MembershipStepInfo(
                         step = membershipStepManager.currentStep
@@ -197,20 +214,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
                         groupId = args.groupId
                     )
                 )
-
-                singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
-                    ?.let { signer ->
-                        applicationScope.launch {
-                            syncKeyToGroupUseCase(
-                                SyncKeyToGroupUseCase.Param(
-                                    groupId = args.groupId,
-                                    step = membershipStepManager.currentStep
-                                        ?: throw IllegalArgumentException("Current step empty"),
-                                    signer = signer
-                                )
-                            )
-                        }
-                    }
             } else {
                 savedStateHandle[KEY_CURRENT_SIGNER] = signer
                 _event.emit(AddKeyListEvent.SelectAirgapType)
@@ -298,7 +301,13 @@ class AddByzantineKeyListViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
-            syncGroupDraftWalletUseCase(args.groupId)
+            syncGroupDraftWalletUseCase(args.groupId).onSuccess { draft ->
+                GroupWalletType.values()
+                    .find { type -> type.n == draft.config.n && type.m == draft.config.m }
+                    ?.let { type ->
+                        _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
+                    }
+            }
             _state.update { it.copy(isRefreshing = false) }
         }
     }
@@ -317,4 +326,7 @@ sealed class AddKeyListEvent {
     data class ShowError(val message: String) : AddKeyListEvent()
 }
 
-data class AddKeyListState(val isRefreshing: Boolean = false, val signers: List<SignerModel> = emptyList())
+data class AddKeyListState(
+    val isRefreshing: Boolean = false,
+    val signers: List<SignerModel> = emptyList()
+)

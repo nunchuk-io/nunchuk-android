@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.MembershipStep
 
 @Keep
 enum class GroupWalletType(val m: Int, val n: Int, val isPro: Boolean) {
@@ -36,4 +37,25 @@ fun String.toGroupWalletType(): GroupWalletType {
 
 fun ByzantineWalletConfig.toGroupWalletType(): GroupWalletType {
     return GroupWalletType.values().first { this.m == m && this.n == n }
+}
+
+fun GroupWalletType.toSteps() : List<MembershipStep> = when(this) {
+    GroupWalletType.TWO_OF_FOUR_MULTISIG -> listOf(
+        MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+        MembershipStep.ADD_SEVER_KEY,
+    )
+    GroupWalletType.TWO_OF_THREE -> listOf(
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+    )
+    GroupWalletType.THREE_OF_FIVE -> listOf(
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4,
+    )
 }

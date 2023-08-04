@@ -380,39 +380,6 @@
         <argument
             android:name="group_type"
             app:argType="string" />
-
-        <action
-            android:id="@+id/action_selectWalletSetupFragment_to_byzantineInviteMembersFragment"
-            app:destination="@id/invite_member_navigation"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim">
-
-            <argument
-                android:name="group_id"
-                android:defaultValue=""
-                app:argType="string" />
-
-            <argument
-                android:name="members"
-                app:argType="com.nunchuk.android.model.byzantine.AssistedMember[]" />
-
-            <argument
-                android:name="flow"
-                android:defaultValue="0"
-                app:argType="integer" />
-
-            <argument
-                android:name="setup_preference"
-                android:defaultValue=""
-                app:argType="string" />
-
-            <argument
-                android:name="group_type"
-                android:defaultValue=""
-                app:argType="string" />
-        </action>
     </fragment>
 
     <fragment
@@ -423,6 +390,7 @@
         <argument
             android:name="group_id"
             app:argType="string" />
+
         <action
             android:id="@+id/action_addByzantineKeyListFragment_to_tapSignerInheritanceIntroFragment"
             app:destination="@id/tapSignerInheritanceIntroFragment"
@@ -515,4 +483,36 @@
             app:popUpToInclusive="true" />
     </fragment>
 
+    <action
+        android:id="@+id/action_global_byzantineInviteMembersFragment"
+        app:destination="@id/invite_member_navigation"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim">
+
+        <argument
+            android:name="group_id"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <argument
+            android:name="members"
+            app:argType="com.nunchuk.android.model.byzantine.AssistedMember[]" />
+
+        <argument
+            android:name="flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+
+        <argument
+            android:name="setup_preference"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <argument
+            android:name="group_type"
+            android:defaultValue=""
+            app:argType="string" />
+    </action>
 </navigation>
