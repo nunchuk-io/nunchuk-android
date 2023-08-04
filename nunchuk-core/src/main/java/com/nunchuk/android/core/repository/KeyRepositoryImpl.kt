@@ -140,7 +140,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                             WalletType.MULTI_SIG.ordinal,
                             AddressType.NATIVE_SEGWIT.ordinal
                         )
-                    userWalletApiManager.groupWalletApi.addKeyToServer(
+                    val keyResponse = userWalletApiManager.groupWalletApi.addKeyToServer(
                         groupId = groupId,
                         payload = SignerServerDto(
                             name = signer.name,
@@ -162,6 +162,10 @@ internal class KeyRepositoryImpl @Inject constructor(
                             index = step.toIndex()
                         ),
                     )
+
+                    if (keyResponse.isSuccess.not()) {
+                        throw keyResponse.error
+                    }
                 }
                 membershipDao.updateOrInsert(info)
                 send(KeyUpload.Progress(100))
