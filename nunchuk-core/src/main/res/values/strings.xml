@@ -243,7 +243,7 @@
     <string name="nc_minutes">Minutes</string>
     <string name="nc_take_me_my_wallet">Take me to my wallet</string>
     <string name="nc_create_wallet_success">Congratulations! Your wallet has been created</string>
-    <string name="nc_create_wallet_success_desc">For best security, please keep your keys stored in physically distributed locations.</string>
+    <string name="nc_create_wallet_success_desc">To access the wallet configuration file or export it to your device later, navigate to the wallet → View wallet config → More menu → Export wallet configuration.\n\nFor best security, the keys should be stored in physically distributed locations.</string>
     <string name="nc_create_wallet_success_distribute_setup_desc">Since you will need all keys to sign off on the inheritance plan, [B]we recommend that you set up the inheritance plan first before distributing the keys to the keyholders.[/B]</string>
     <string name="nc_create_my_own_question">Create my own question</string>
     <string name="nc_cosigning_policies">Platform key co-signing policies</string>

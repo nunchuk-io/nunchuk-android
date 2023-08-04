@@ -25,7 +25,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -118,7 +118,7 @@ private fun SelectGroupContent(
     onContinueClicked: (GroupWalletType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
-    var selectedType by remember { mutableStateOf(GroupWalletType.TWO_OF_FOUR_MULTISIG) }
+    var selectedType by rememberSaveable { mutableStateOf(GroupWalletType.TWO_OF_FOUR_MULTISIG) }
     NunchukTheme {
         Scaffold(modifier = Modifier
             .navigationBarsPadding()

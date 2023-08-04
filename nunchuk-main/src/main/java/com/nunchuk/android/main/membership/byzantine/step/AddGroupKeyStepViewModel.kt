@@ -70,11 +70,11 @@ class AddGroupKeyStepViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isRegisterAirgap = assistedWallets.combine(walletId) { assistedWallets, id ->
-        assistedWallets.find { it.localId == id }?.isRegisterAirgap == true
+        (assistedWallets.find { it.localId == id }?.registerAirgapCount ?: 0) > 0
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isRegisterColdcard = assistedWallets.combine(walletId) { assistedWallets, id ->
-        assistedWallets.find { it.localId == id }?.isRegisterColdcard == true
+        (assistedWallets.find { it.localId == id }?.registerColdcardCount ?: 0) > 0
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val _isConfigKeyDone = MutableStateFlow(false)
@@ -162,7 +162,6 @@ class AddGroupKeyStepViewModel @Inject constructor(
                     _event.emit(
                         AddKeyStepEvent.OpenRegisterColdCard(
                             walletId,
-                            isRegisterAirgap.value
                         )
                     )
                 } else if (isCreateWalletDone.value && isRegisterAirgap.value.not()) {
@@ -181,7 +180,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
     }
 
     private fun isRegisterWalletDone() = assistedWallets.value.lastOrNull()
-        ?.let { it.isRegisterAirgap && it.isRegisterColdcard } == true
+        ?.let { it.registerAirgapCount <= 0 && it.registerColdcardCount <= 0 } == true
 
     fun onMoreClicked() {
         viewModelScope.launch {
@@ -190,6 +189,12 @@ class AddGroupKeyStepViewModel @Inject constructor(
     }
 
     fun activeWalletId() = walletId.value
+
+    fun getRegisterColdcardIndex() =
+        assistedWallets.value.find { it.localId == walletId.value }?.registerColdcardCount ?: 0
+
+    fun getRegisterAirgapIndex() =
+        assistedWallets.value.find { it.localId == walletId.value }?.registerAirgapCount ?: 0
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
@@ -203,7 +208,6 @@ sealed class AddKeyStepEvent {
     object OpenCreateWallet : AddKeyStepEvent()
     data class OpenRegisterColdCard(
         val walletId: String,
-        val isNeedRegisterAirgap: Boolean,
     ) : AddKeyStepEvent()
 
     data class OpenRegisterAirgap(val walletId: String) : AddKeyStepEvent()

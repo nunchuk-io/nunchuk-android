@@ -25,7 +25,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -51,7 +58,11 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.CONTACT_EMAIL
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -87,8 +98,8 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
                 is AddKeyStepEvent.OpenRegisterColdCard -> handleOpenRegisterColdcard(
                     event.walletId,
-                    event.isNeedRegisterAirgap
                 )
+
                 AddKeyStepEvent.SetupInheritanceSetupDone -> requireActivity().finish()
             }
         }
@@ -99,18 +110,22 @@ class AddGroupKeyStepFragment : MembershipFragment() {
         viewModel.refresh()
     }
 
-    private fun handleOpenRegisterColdcard(walletId: String, needRegisterAirgap: Boolean) {
+    private fun handleOpenRegisterColdcard(walletId: String) {
         findNavController().navigate(
             AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToRegisterWalletToColdcardFragment(
                 walletId,
-                needRegisterAirgap,
+                viewModel.getRegisterColdcardIndex(),
+                viewModel.getRegisterAirgapIndex(),
             )
         )
     }
 
     private fun handleOpenRegisterAirgap(walletId: String) {
         findNavController().navigate(
-            AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToRegisterWalletToAirgapFragment(walletId)
+            AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToRegisterWalletToAirgapFragment(
+                viewModel.getRegisterAirgapIndex(),
+                walletId,
+            )
         )
     }
 
@@ -132,7 +147,11 @@ class AddGroupKeyStepFragment : MembershipFragment() {
 
     private fun handleOpenKeyList() {
         val groupId = (activity as MembershipActivity).groupId
-        findNavController().navigate(AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToAddByzantineKeyListFragment(groupId))
+        findNavController().navigate(
+            AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToAddByzantineKeyListFragment(
+                groupId
+            )
+        )
     }
 
     private fun handleOpenRecoveryQuestion() {

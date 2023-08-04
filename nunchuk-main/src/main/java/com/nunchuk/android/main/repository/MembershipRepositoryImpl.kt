@@ -159,14 +159,14 @@ class MembershipRepositoryImpl @Inject constructor(
 
     override fun isHideUpsellBanner(): Flow<Boolean> = ncDataStore.isHideUpsellBanner
 
-    override suspend fun setRegisterAirgap(walletId: String, value: Boolean) {
+    override suspend fun setRegisterAirgap(walletId: String, value: Int) {
         val entity = assistedWalletDao.getById(walletId) ?: return
-        assistedWalletDao.update(entity.copy(isRegisterAirgap = value))
+        assistedWalletDao.update(entity.copy(registerAirgapCount = entity.registerAirgapCount + value))
     }
 
-    override suspend fun setRegisterColdcard(walletId: String, value: Boolean) {
+    override suspend fun setRegisterColdcard(walletId: String, value: Int) {
         val entity = assistedWalletDao.getById(walletId) ?: return
-        assistedWalletDao.update(entity.copy(isRegisterColdcard = value))
+        assistedWalletDao.update(entity.copy(registerColdcardCount = entity.registerColdcardCount + value))
     }
 
     override suspend fun setHideUpsellBanner() = ncDataStore.setHideUpsellBanner()

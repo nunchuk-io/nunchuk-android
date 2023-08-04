@@ -1165,8 +1165,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     localId = wallet.localId,
                     plan = wallet.plan,
                     isSetupInheritance = wallet.isSetupInheritance,
-                    isRegisterAirgap = wallet.isRegisterAirgap,
-                    isRegisterColdcard = wallet.isRegisterColdcard,
+                    registerAirgapCount = wallet.registerAirgapCount,
+                    registerColdcardCount = wallet.registerColdcardCount,
                     groupId = wallet.groupId
                 )
             }

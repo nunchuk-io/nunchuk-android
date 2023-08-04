@@ -26,6 +26,6 @@ data class AssistedWalletBrief(
     val groupId: String,
     val plan: MembershipPlan,
     val isSetupInheritance: Boolean,
-    val isRegisterAirgap: Boolean,
-    val isRegisterColdcard: Boolean,
+    val registerAirgapCount: Int,
+    val registerColdcardCount: Int,
 )

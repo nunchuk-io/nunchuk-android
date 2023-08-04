@@ -23,7 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -100,16 +105,18 @@ class CreateWalletFragment : MembershipFragment() {
     }
 
     private fun handleCreateWalletSuccess(event: CreateWalletEvent.OnCreateWalletSuccess) {
-        if (event.hasColdcard) {
+        if (event.coldcardCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToColdcardFragment(
                     event.walletId,
-                    event.hasAirgap
+                    event.coldcardCount,
+                    event.airgapCount
                 )
             )
-        } else if (event.hasAirgap) {
+        } else if (event.airgapCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
+                    event.airgapCount,
                     event.walletId,
                 )
             )

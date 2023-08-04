@@ -38,8 +38,8 @@ data class AssistedWalletEntity(
     val plan: MembershipPlan,
     @ColumnInfo(name = "is_set_up_inheritance")
     val isSetupInheritance: Boolean = false,
-    @ColumnInfo(name = "is_register_coldcard")
-    val isRegisterColdcard: Boolean = true,
-    @ColumnInfo(name = "is_register_airgap")
-    val isRegisterAirgap: Boolean = true,
+    @ColumnInfo(name = "register_coldcard_count", defaultValue = "0")
+    val registerColdcardCount: Int = 0,
+    @ColumnInfo(name = "register_airgap_count", defaultValue = "0")
+    val registerAirgapCount: Int = 0,
 )

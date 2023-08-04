@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -33,6 +34,8 @@ import javax.inject.Inject
 class RegisterWalletToColdcardViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
     private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+
 ) : ViewModel() {
     private val _event = MutableSharedFlow<RegisterWalletToColdcardEvent>()
     val event = _event.asSharedFlow()
@@ -47,10 +50,12 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
 
     fun setRegisterColdcardSuccess(walletId: String) {
         viewModelScope.launch {
-            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(walletId, true))
+            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(walletId, -1))
         }
     }
 }
+
+data class RegisterWalletToColdcardUiState(val keyName: String = "")
 
 sealed class RegisterWalletToColdcardEvent {
     object ExportWalletToColdcard : RegisterWalletToColdcardEvent()

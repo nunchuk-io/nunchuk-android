@@ -34,14 +34,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
@@ -52,7 +53,6 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.byzantine.step.AddGroupKeyStepViewModel
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -68,24 +68,25 @@ class CreateWalletSuccessFragment : MembershipFragment() {
     private val args: CreateWalletSuccessFragmentArgs by navArgs()
 
     private val viewModel: CreateWalletSuccessViewModel by viewModels()
-    private val groupKeyStepViewModel: AddGroupKeyStepViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        val groupId = (activity as MembershipActivity).groupId
-        val isShowDistributionSetup = groupId.isNotEmpty() && groupKeyStepViewModel.isRequireInheritance.value
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                CreateWalletSuccessScreen(viewModel, isShowDistributionSetup = isShowDistributionSetup)
+                CreateWalletSuccessScreen(viewModel)
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val groupId = (activity as MembershipActivity).groupId
+        if (groupId.isNotEmpty()) {
+            viewModel.loadGroup(groupId)
+        }
         flowObserver(viewModel.event) {
             when (it) {
                 CreateWalletSuccessEvent.ContinueStepEvent -> {
@@ -114,18 +115,19 @@ private fun CreateWalletSuccessScreen(
     viewModel: CreateWalletSuccessViewModel = viewModel(),
     isShowDistributionSetup: Boolean = false,
 ) {
+    val uiState : CreateWalletSuccessUiState by viewModel.state.collectAsStateWithLifecycle()
     CreateWalletSuccessScreenContent(
+        uiState = uiState,
         onContinueClicked = viewModel::onContinueClicked,
         plan = viewModel.plan,
-        isShowDistributionSetup = isShowDistributionSetup
     )
 }
 
 @Composable
 fun CreateWalletSuccessScreenContent(
+    uiState : CreateWalletSuccessUiState = CreateWalletSuccessUiState(),
     onContinueClicked: () -> Unit = {},
     plan: MembershipPlan = MembershipPlan.IRON_HAND,
-    isShowDistributionSetup: Boolean = false,
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -150,7 +152,7 @@ fun CreateWalletSuccessScreenContent(
                     style = NunchukTheme.typography.body
                 )
 
-                if (isShowDistributionSetup) {
+                if (uiState.isSingleSetup) {
                     NcHighlightText(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         text = stringResource(R.string.nc_create_wallet_success_distribute_setup_desc),
@@ -178,5 +180,5 @@ fun CreateWalletSuccessScreenContent(
 @Preview
 @Composable
 private fun CreateWalletSuccessScreenPreview() {
-    CreateWalletSuccessScreenContent(isShowDistributionSetup = true)
+    CreateWalletSuccessScreenContent()
 }

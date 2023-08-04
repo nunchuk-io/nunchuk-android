@@ -137,10 +137,11 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
 
     private fun openNextScreen() {
         viewModel.setRegisterColdcardSuccess(args.walletId)
-        if (args.hasAirgap) {
+        if (args.airgapIndex > 0) {
             findNavController().navigate(
                 RegisterWalletToColdcardFragmentDirections.actionRegisterWalletToColdcardFragmentToRegisterWalletToAirgapFragment(
-                    args.walletId
+                    args.airgapIndex,
+                    args.walletId,
                 ),
             )
         } else {

@@ -42,8 +42,20 @@ import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -137,11 +149,19 @@ class CreateWalletViewModel @Inject constructor(
                     groupId = groupId
                 )
             ).onSuccess {
+                val totalColdcard = it.signers.count { signer -> signer.type == SignerType.COLDCARD_NFC }
+                if (totalColdcard > 0) {
+                    setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, totalColdcard))
+                }
+                val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP }
+                if (totalAirgap > 0) {
+                    setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
+                }
                 _event.emit(
                     CreateWalletEvent.OnCreateWalletSuccess(
                         walletId = it.id,
-                        hasColdcard = it.signers.any { signer -> signer.type == SignerType.COLDCARD_NFC },
-                        hasAirgap = it.signers.any { signer -> signer.type == SignerType.AIRGAP }
+                        coldcardCount = totalColdcard,
+                        airgapCount = totalAirgap
                     )
                 )
             }.onFailure {
@@ -237,22 +257,19 @@ class CreateWalletViewModel @Inject constructor(
                         _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
                     }
                     .collect {
-                        if (signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC }) {
-                            setRegisterColdcardUseCase(
-                                SetRegisterColdcardUseCase.Params(
-                                    it.id,
-                                    false
-                                )
-                            )
+                        val totalColdcard = signers.count { signer -> signer.value.signerType == SignerType.COLDCARD_NFC }
+                        if (totalColdcard > 0) {
+                            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, totalColdcard))
                         }
-                        if (signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }) {
-                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, false))
+                        val totalAirgap = signers.count { signer -> signer.value.signerType == SignerType.AIRGAP }
+                        if (totalAirgap > 0) {
+                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
                         }
                         _event.emit(
                             CreateWalletEvent.OnCreateWalletSuccess(
                                 walletId = it.id,
-                                hasColdcard = signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC },
-                                hasAirgap = signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }
+                                coldcardCount = totalColdcard,
+                                airgapCount = totalAirgap
                             )
                         )
                     }

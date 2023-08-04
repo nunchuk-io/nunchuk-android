@@ -223,8 +223,12 @@
             app:argType="string" />
 
         <argument
-            android:name="has_airgap"
-            app:argType="boolean" />
+            android:name="index"
+            app:argType="integer" />
+
+        <argument
+            android:name="airgap_index"
+            app:argType="integer" />
 
     </fragment>
     <fragment
@@ -232,6 +236,9 @@
         android:name="com.nunchuk.android.main.membership.honey.registerwallet.RegisterWalletToAirgapFragment"
         android:label="RegisterWalletToAirgapFragment">
 
+        <argument
+            android:name="index"
+            app:argType="integer" />
 
         <argument
             android:name="wallet_id"

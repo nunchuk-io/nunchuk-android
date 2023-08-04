@@ -29,7 +29,7 @@ class SetRegisterAirgapUseCase @Inject constructor(
     private val repository: MembershipRepository,
     @IoDispatcher ioDispatcher: CoroutineDispatcher
 ) : UseCase<SetRegisterAirgapUseCase.Params, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: Params) = repository.setRegisterAirgap(parameters.walletId, parameters.isRegister)
+    override suspend fun execute(parameters: Params) = repository.setRegisterAirgap(parameters.walletId, parameters.count)
 
-    data class Params(val walletId: String, val isRegister: Boolean)
+    data class Params(val walletId: String, val count: Int)
 }
