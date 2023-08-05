@@ -46,7 +46,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     @Inject
     lateinit var nunchukNavigator: NunchukNavigator
 
-    private val viewModel : MembershipViewModel by activityViewModels()
+    private val viewModel: MembershipViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,8 +60,9 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
         flowObserver(viewModel.event) {
             if (it is MembershipEvent.RestartWizardSuccess) {
                 nunchukNavigator.openMembershipActivity(
-                    requireActivity(),
-                    MembershipStage.NONE
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.NONE,
+                    addOnHoneyBadger = viewModel.groupId.isEmpty()
                 )
                 requireActivity().setResult(Activity.RESULT_OK)
                 requireActivity().finish()
@@ -90,18 +91,22 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     }
 
     protected fun handleShowMore() {
-        BottomSheetOption.newInstance(
-            listOf(
+        val options = mutableListOf<SheetOption>()
+        if (allowRestartWizard) {
+            options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_RESTART_WIZARD,
                     label = getString(R.string.nc_restart_wizard)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXIT_WIZARD,
-                    label = getString(R.string.nc_exit_wizard)
                 )
             )
-        ).show(childFragmentManager, "BottomSheetOption")
+        }
+        options.add(
+            SheetOption(
+                type = SheetOptionType.TYPE_EXIT_WIZARD,
+                label = getString(R.string.nc_exit_wizard)
+            )
+        )
+        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun resetWizard() {
@@ -116,4 +121,5 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     }
 
     open val isCountdown: Boolean = true
+    open val allowRestartWizard: Boolean = true
 }

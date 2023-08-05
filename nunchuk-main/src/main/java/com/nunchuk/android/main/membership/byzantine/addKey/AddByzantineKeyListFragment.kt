@@ -135,7 +135,9 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
                 activity = requireActivity(),
-                fromMembershipFlow = true, groupId = args.groupId)
+                fromMembershipFlow = true,
+                groupId = args.groupId
+            )
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 activity = requireActivity(),
                 fromMembershipFlow = true,

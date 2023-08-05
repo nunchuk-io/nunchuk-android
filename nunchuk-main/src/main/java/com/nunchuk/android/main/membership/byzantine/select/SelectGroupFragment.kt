@@ -103,6 +103,8 @@ class SelectGroupFragment : MembershipFragment() {
             }
         }
     }
+
+    override val allowRestartWizard: Boolean = false
 }
 
 @Composable

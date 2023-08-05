@@ -72,6 +72,8 @@ class SelectWalletSetupFragment : MembershipFragment() {
             }
         }
     }
+
+    override val allowRestartWizard: Boolean = false
 }
 
 @Composable
