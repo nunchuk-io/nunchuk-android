@@ -538,10 +538,22 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun updateServerWallet(walletLocalId: String, name: String): SeverWallet {
-        val response = userWalletApiManager.walletApi.updateWallet(
-            walletLocalId, UpdateWalletPayload(name = name)
-        )
+    override suspend fun updateServerWallet(
+        walletLocalId: String,
+        name: String,
+        groupId: String?
+    ): SeverWallet {
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.updateWallet(
+                groupId,
+                walletLocalId,
+                UpdateWalletPayload(name = name)
+            )
+        } else {
+            userWalletApiManager.walletApi.updateWallet(
+                walletLocalId, UpdateWalletPayload(name = name)
+            )
+        }
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         return SeverWallet(wallet.id.orEmpty())
     }
@@ -1335,7 +1347,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     else -> throw IllegalArgumentException()
                 }
                 val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
-                val verifyType = if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
+                val verifyType =
+                    if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
                 if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
                     membershipRepository.saveStepInfo(
                         MembershipStepInfo(
@@ -1581,8 +1594,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         chain.flatMapLatest {
             groupDao.getGroups(chatId = accountManager.getAccount().chatId, it).map { group ->
                 val groupBriefs = group.map { group ->
-                    val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, object : TypeToken<List<ByzantineMemberBrief>>() {}.type)
-                    val walletConfig = gson.fromJson(group.walletConfig, ByzantineWalletConfig::class.java)
+                    val members = gson.fromJson<List<ByzantineMemberBrief>>(
+                        group.members,
+                        object : TypeToken<List<ByzantineMemberBrief>>() {}.type
+                    )
+                    val walletConfig =
+                        gson.fromJson(group.walletConfig, ByzantineWalletConfig::class.java)
                     ByzantineGroupBrief(
                         groupId = group.groupId,
                         status = group.status,
@@ -1598,7 +1615,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override fun getGroupBriefById(groupId: String): Flow<ByzantineGroupBrief> {
         return groupDao.getById(groupId, chatId = accountManager.getAccount().chatId).map { group ->
-            val members = gson.fromJson<List<ByzantineMemberBrief>>(group.members, object : TypeToken<List<ByzantineMemberBrief>>() {}.type)
+            val members = gson.fromJson<List<ByzantineMemberBrief>>(
+                group.members,
+                object : TypeToken<List<ByzantineMemberBrief>>() {}.type
+            )
             val walletConfig = gson.fromJson(group.walletConfig, ByzantineWalletConfig::class.java)
             ByzantineGroupBrief(
                 groupId = group.groupId,
@@ -1632,7 +1652,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     private suspend fun syncGroup(groups: List<GroupResponse>) {
         val groupLocals =
-            groupDao.getGroups(accountManager.getAccount().chatId, chain.value).firstOrNull() ?: emptyList()
+            groupDao.getGroups(accountManager.getAccount().chatId, chain.value).firstOrNull()
+                ?: emptyList()
         val allGroupIds = groupLocals.map { it.groupId }.toHashSet()
         val addGroupIds = HashSet<String>()
         val chatId = accountManager.getAccount().chatId
@@ -1665,7 +1686,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             n = walletConfig?.n.orDefault(0),
             requiredServerKey = walletConfig?.requiredServerKey.orFalse()
         )
-       groupDao.getGroupById(id.orEmpty(), chatId)?.let {
+        groupDao.getGroupById(id.orEmpty(), chatId)?.let {
             return it.copy(
                 groupId = id.orEmpty(),
                 chatId = chatId,
@@ -1702,7 +1723,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateGroupStatus(groupId: String, status: String) {
-        val group = groupDao.getGroupById(groupId, chatId = accountManager.getAccount().chatId) ?: return
+        val group =
+            groupDao.getGroupById(groupId, chatId = accountManager.getAccount().chatId) ?: return
         groupDao.update(group.copy(status = status))
     }
 
@@ -1733,7 +1755,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         confirmCodeNonce: String
     ): ByzantineGroup {
         val request = EditGroupMemberRequest(
-            nonce = confirmCodeNonce, body = EditGroupMemberRequest.Body(members = members.map { it.toMemberRequest() })
+            nonce = confirmCodeNonce,
+            body = EditGroupMemberRequest.Body(members = members.map { it.toMemberRequest() })
         )
         val headers = mutableMapOf<String, String>()
         authorizations.forEachIndexed { index, value ->
@@ -1856,7 +1879,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.periods.orEmpty().map { it.toHistoryPeriod() }
     }
 
-    override suspend fun requestConfirmationCode(action: String, userData: String): Pair<String, String> {
+    override suspend fun requestConfirmationCode(
+        action: String,
+        userData: String
+    ): Pair<String, String> {
         val nonce = getNonce()
         val body = if (action == TargetAction.EDIT_GROUP_MEMBERS.name) {
             gson.fromJson(userData, EditGroupMemberRequest.Body::class.java)
@@ -1864,12 +1890,18 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             throw IllegalArgumentException("Unsupported action")
         }
         val request = ConfirmationCodeRequest(nonce = nonce, body = body)
-        val response = userWalletApiManager.walletApi.requestConfirmationCode(action = action, payload = request)
+        val response = userWalletApiManager.walletApi.requestConfirmationCode(
+            action = action,
+            payload = request
+        )
         return Pair(nonce, response.data.codeId.orEmpty())
     }
 
     override suspend fun verifyConfirmationCode(codeId: String, code: String): String {
-        val response = userWalletApiManager.walletApi.verifyConfirmationCode(codeId, ConfirmationCodeVerifyRequest(code = code))
+        val response = userWalletApiManager.walletApi.verifyConfirmationCode(
+            codeId,
+            ConfirmationCodeVerifyRequest(code = code)
+        )
         return response.data.token.orEmpty()
     }
 

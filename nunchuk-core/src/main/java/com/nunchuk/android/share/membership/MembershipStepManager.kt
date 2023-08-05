@@ -215,22 +215,12 @@ class MembershipStepManager @Inject constructor(
                     )
                 )
             }
-            MembershipPlan.HONEY_BADGER -> {
+            else -> {
                 _stepDone.value.containsAll(
                     listOf(
                         MembershipStep.HONEY_ADD_TAP_SIGNER,
                         MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
                         MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-                        MembershipStep.ADD_SEVER_KEY
-                    )
-                )
-            }
-            else -> {
-                _stepDone.value.containsAll(
-                    listOf(
-                        MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
-                        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-                        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
                         MembershipStep.ADD_SEVER_KEY
                     )
                 )

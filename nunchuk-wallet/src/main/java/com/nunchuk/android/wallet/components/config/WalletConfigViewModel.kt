@@ -44,8 +44,17 @@ import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.*
-import com.nunchuk.android.usecase.membership.*
+import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.DeleteWalletUseCase
+import com.nunchuk.android.usecase.ExportWalletUseCase
+import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.UpdateWalletUseCase
+import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
+import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
+import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
+import com.nunchuk.android.usecase.membership.ImportCoinControlBIP329UseCase
+import com.nunchuk.android.usecase.membership.ImportTxCoinControlUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
@@ -53,7 +62,11 @@ import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -191,7 +204,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private fun updateWallet(newWallet: Wallet, updateAction: UpdateAction) = viewModelScope.launch {
         updateWalletUseCase.execute(
             newWallet,
-            assistedWalletManager.isActiveAssistedWallet(walletId)
+            assistedWalletManager.isActiveAssistedWallet(walletId),
+            assistedWalletManager.getGroupId(walletId),
         )
             .flowOn(Dispatchers.IO)
             .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }

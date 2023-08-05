@@ -2,6 +2,7 @@ package com.nunchuk.android.core.data.api
 
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
+import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
@@ -10,8 +11,8 @@ import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
 import com.nunchuk.android.core.data.model.byzantine.GetGroupsResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupChatDataResponse
-import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
+import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
@@ -209,4 +210,11 @@ internal interface GroupWalletApi {
 
     @GET("/v1.1/group-wallets/chat/settings/history-periods")
     suspend fun getHistoryPeriods(): Data<HistoryPeriodResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}")
+    suspend fun updateWallet(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletLocalId: String,
+        @Body payload: UpdateWalletPayload
+    ): Data<CreateOrUpdateWalletResponse>
 }

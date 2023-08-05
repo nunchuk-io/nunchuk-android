@@ -243,7 +243,7 @@ fun AddKeyStepContent(
                 isCreateWalletDone,
                 isConfigKeyDone && isSetupRecoverKeyDone && isCreateWalletDone.not()
             )
-            if (plan == MembershipPlan.HONEY_BADGER) {
+            if (plan != MembershipPlan.IRON_HAND) {
                 StepWithEstTime(
                     4,
                     stringResource(R.string.nc_set_up_inheritance_plan),

@@ -97,16 +97,10 @@ class AddKeyStepViewModel @Inject constructor(
                     MembershipStep.IRON_ADD_HARDWARE_KEY_2,
                     MembershipStep.ADD_SEVER_KEY
                 )
-                MembershipPlan.HONEY_BADGER -> listOf(
+                else -> listOf(
                     MembershipStep.HONEY_ADD_TAP_SIGNER,
                     MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
                     MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-                    MembershipStep.ADD_SEVER_KEY
-                )
-                else -> listOf(
-                    MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
-                    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-                    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
                     MembershipStep.ADD_SEVER_KEY
                 )
             }

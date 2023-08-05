@@ -86,7 +86,6 @@ interface PremiumWalletRepository {
     ): SeverWallet
 
     suspend fun getServerWallet(): WalletServerSync
-    suspend fun updateServerWallet(walletLocalId: String, name: String): SeverWallet
     suspend fun updateServerKey(xfp: String, name: String): Boolean
     suspend fun createServerTransaction(walletId: String, psbt: String, note: String?)
     suspend fun updateServerTransaction(walletId: String, txId: String, note: String?)
@@ -332,4 +331,5 @@ interface PremiumWalletRepository {
     suspend fun getHistoryPeriod(): List<HistoryPeriod>
     suspend fun requestConfirmationCode(action: String, userData: String): Pair<String, String>
     suspend fun verifyConfirmationCode(codeId: String, code: String): String
+    suspend fun updateServerWallet(walletLocalId: String, name: String, groupId: String?): SeverWallet
 }
