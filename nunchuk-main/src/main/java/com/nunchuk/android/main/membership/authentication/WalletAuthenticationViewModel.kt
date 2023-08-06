@@ -288,7 +288,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                     _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
                 }.onSuccess { transactionStatus ->
                     if (transactionStatus == TransactionStatus.CONFIRMED) {
-                        _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
+                        _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess())
                     } else {
                         _state.update { it.copy(signatures = signatures) }
                     }

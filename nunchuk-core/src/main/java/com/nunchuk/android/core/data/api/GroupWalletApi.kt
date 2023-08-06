@@ -2,6 +2,7 @@ package com.nunchuk.android.core.data.api
 
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
+import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
@@ -22,10 +23,12 @@ import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.PermissionResponse
 import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
+import com.nunchuk.android.core.data.model.membership.TransactionResponse
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.HeaderMap
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -217,4 +220,22 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletLocalId: String,
         @Body payload: UpdateWalletPayload
     ): Data<CreateOrUpdateWalletResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String
+    ): Data<CalculateRequiredSignaturesResponse>
+
+    @HTTP(
+        method = "DELETE",
+        path = "/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}",
+        hasBody = true
+    )
+    suspend fun deleteAssistedWallet(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: DeleteAssistedWalletRequest
+    ): Data<TransactionResponse>
 }

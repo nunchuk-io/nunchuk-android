@@ -27,7 +27,7 @@ sealed class WalletAuthenticationEvent {
     data class Loading(val isLoading: Boolean) : WalletAuthenticationEvent()
     data class ProcessFailure(val message: String) : WalletAuthenticationEvent()
     data class ShowError(val message: String) : WalletAuthenticationEvent()
-    data class WalletAuthenticationSuccess(val signatures: Map<String, String>) :
+    data class WalletAuthenticationSuccess(val signatures: Map<String, String> = emptyMap()) :
         WalletAuthenticationEvent()
 
     class NfcLoading(val isLoading: Boolean, val isColdCard: Boolean = false) :

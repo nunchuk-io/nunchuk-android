@@ -250,13 +250,15 @@ interface PremiumWalletRepository {
 
     suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
         walletId: String,
+        groupId: String?
     ): CalculateRequiredSignatures
 
     suspend fun deleteAssistedWallet(
         authorizations: List<String>,
         verifyToken: String,
         securityQuestionToken: String,
-        walletId: String
+        walletId: String,
+        groupId: String?,
     )
 
     suspend fun updateServerKeyName(xfp: String, name: String)

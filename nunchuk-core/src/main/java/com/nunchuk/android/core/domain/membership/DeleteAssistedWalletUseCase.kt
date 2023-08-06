@@ -20,7 +20,6 @@
 package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
@@ -42,7 +41,8 @@ class DeleteAssistedWalletUseCase @Inject constructor(
             authorizations = authorizations,
             verifyToken = parameters.verifyToken,
             securityQuestionToken = parameters.securityQuestionToken,
-            walletId = parameters.walletId
+            walletId = parameters.walletId,
+            groupId = parameters.groupId
         )
     }
 
@@ -50,6 +50,7 @@ class DeleteAssistedWalletUseCase @Inject constructor(
         val signatures: Map<String, String> = emptyMap(),
         val verifyToken: String,
         val securityQuestionToken: String,
-        val walletId: String
+        val walletId: String,
+        val groupId: String?,
     )
 }

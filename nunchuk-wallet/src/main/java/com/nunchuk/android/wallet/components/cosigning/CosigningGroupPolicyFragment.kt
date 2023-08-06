@@ -57,6 +57,8 @@ import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -85,14 +87,22 @@ class CosigningGroupPolicyFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
-                NCToastMessage(
-                    requireActivity()
-                ).showMessage(
-                    getString(
-                        R.string.nc_policy_updated
+                val signatures =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
+                        .orEmpty()
+                val token = data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
+                if (signatures.isNotEmpty() || token.isNotEmpty()) {
+                    viewModel.updateServerConfig(signatures, token)
+                } else {
+                    NCToastMessage(
+                        requireActivity()
+                    ).showMessage(
+                        getString(
+                            R.string.nc_policy_updated
+                        )
                     )
-                )
-                viewModel.updatePoliciesSuccess()
+                    viewModel.updatePoliciesSuccess()
+                }
             }
         }
 

@@ -1123,9 +1123,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun calculateRequiredSignaturesDeleteAssistedWallet(walletId: String): CalculateRequiredSignatures {
-        val response =
+    override suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
+        walletId: String,
+        groupId: String?
+    ): CalculateRequiredSignatures {
+        val response = if (groupId.isNullOrEmpty())
             userWalletApiManager.walletApi.calculateRequiredSignaturesDeleteAssistedWallet(walletId)
+        else userWalletApiManager.groupWalletApi.calculateRequiredSignaturesDeleteAssistedWallet(
+            groupId = groupId,
+            walletId = walletId
+        )
         return response.data.result.toCalculateRequiredSignatures()
     }
 
@@ -1133,7 +1140,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         authorizations: List<String>,
         verifyToken: String,
         securityQuestionToken: String,
-        walletId: String
+        walletId: String,
+        groupId: String?
     ) {
         val nonce = getNonce()
         val request = DeleteAssistedWalletRequest(nonce = nonce)
@@ -1143,7 +1151,21 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        userWalletApiManager.walletApi.deleteAssistedWallet(walletId, headers, request)
+        if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.deleteAssistedWallet(
+                walletId = walletId,
+                headers = headers,
+                payload = request
+            )
+        }
+        else {
+            userWalletApiManager.groupWalletApi.deleteAssistedWallet(
+                groupId = groupId,
+                walletId = walletId,
+                headers = headers,
+                payload = request
+            )
+        }
         assistedWalletDao.deleteBatch(listOf(walletId))
     }
 
