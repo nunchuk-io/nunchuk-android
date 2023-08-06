@@ -119,4 +119,5 @@
     <string name="nc_take_me_there">Take me there</string>
     <string name="nc_pro">PRO</string>
     <string name="nc_standard">STANDARD</string>
+    <string name="nc_duplicate_email_addresses">Duplicate email addresses</string>
 </resources>

@@ -12,5 +12,6 @@ class GroupMemberDenyRequestUseCase @Inject constructor(
 ) : UseCase<String, Unit>(dispatcher) {
     override suspend fun execute(parameters: String) {
         userWalletRepository.groupMemberDenyRequest(groupId = parameters)
+        userWalletRepository.syncGroupWallets()
     }
 }

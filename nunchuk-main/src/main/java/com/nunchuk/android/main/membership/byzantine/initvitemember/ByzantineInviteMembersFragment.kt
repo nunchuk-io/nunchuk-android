@@ -10,6 +10,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -21,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
@@ -63,6 +66,8 @@ import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -96,6 +101,7 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
             }
         }
 
+    override val allowRestartWizard: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -117,15 +123,13 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                         }
                         if (viewModel.hasAdminRole()) {
                             showAdminRoleDialog(onCreateGroupWallet)
-                        } else if (viewModel.countKeyholderRole() >= 3) {
-                            showThreeKeyholderSetupDialog(onCreateGroupWallet)
                         } else {
                             onCreateGroupWallet()
                         }
                     } else {
                         enterPasswordDialog()
                     }
-                })
+                }, onMoreClicked = ::handleShowMore)
             }
         }
     }
@@ -149,8 +153,6 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                     requireActivity().finish()
                 }
 
-                ByzantineInviteMembersEvent.PrimaryKeyAdminRoleWarning -> showPrimaryKeyAdminRoleDialog()
-                ByzantineInviteMembersEvent.LimitKeyholderRoleWarning -> showLimitKeyholderDialog()
                 is ByzantineInviteMembersEvent.CalculateRequiredSignaturesSuccess -> {
                     navigator.openWalletAuthentication(
                         walletId = "",
@@ -181,14 +183,6 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
         )
     }
 
-    private fun showLimitKeyholderDialog() {
-        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_limit_keyholder_message_dialog))
-    }
-
-    private fun showPrimaryKeyAdminRoleDialog() {
-        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_primary_key_admin_role_message_dialog))
-    }
-
     private fun showAdminRoleDialog(onContinueClick: () -> Unit) {
         NCWarningDialog(requireActivity())
             .showDialog(
@@ -196,19 +190,12 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 btnYes = getString(R.string.nc_text_got_it),
                 btnNo = getString(R.string.nc_cancel),
                 onYesClick = {
-                    showThreeKeyholderSetupDialog(onContinueClick)
+                    onContinueClick()
                 },
                 onNoClick = {
                     viewModel.clearAdminRole()
                 }
             )
-    }
-
-    private fun showThreeKeyholderSetupDialog(onContinueClick: () -> Unit) {
-        NCWarningDialog(requireActivity()).showDialog(
-            message = getString(R.string.nc_three_keyholder_setup_message_dialog),
-            onYesClick = onContinueClick
-        )
     }
 }
 
@@ -217,7 +204,8 @@ private fun InviteMembersScreen(
     viewModel: ByzantineInviteMembersViewModel = viewModel(),
     flow: Int = ByzantineMemberFlow.NONE,
     onSelectRole: (String) -> Unit = { _ -> },
-    onContinueClick: () -> Unit = {}
+    onContinueClick: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     InviteMembersContent(
@@ -225,7 +213,6 @@ private fun InviteMembersScreen(
         members = state.members,
         preMembers = state.preMembers,
         suggestionContacts = state.suggestionContacts,
-        selectContact = state.selectContacts,
         enableContinueButton = viewModel.enableContinueButton(),
         onAddMember = { viewModel.addMember() },
         onSelectRole = { index, role ->
@@ -236,15 +223,16 @@ private fun InviteMembersScreen(
             viewModel.updateMember(index, email = email, name = name, loginType = loginType)
         },
         onRemoveMember = { viewModel.removeMember(it) },
-        onSelectContact = { viewModel.selectContact(it) },
-        onContinueClick = onContinueClick
+        onContinueClick = onContinueClick,
+        onMoreClicked = onMoreClicked
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun InviteMembersContent(
-    members: List<AssistedMember> = emptyList(),
-    preMembers: List<AssistedMember> = emptyList(),
+    members: List<InviteMemberUi> = emptyList(),
+    preMembers: List<InviteMemberUi> = emptyList(),
     suggestionContacts: List<Contact> = emptyList(),
     selectContact: HashSet<String> = hashSetOf(),
     enableContinueButton: Boolean = false,
@@ -254,8 +242,11 @@ private fun InviteMembersContent(
     onAddMember: () -> Unit = {},
     onSelectRole: (Int, String) -> Unit = { _, _ -> },
     onInputEmailChange: (Int, String, String, String) -> Unit = { _, _, _, _ -> },
-    onSelectContact: (String) -> Unit = {}
+    onSelectContact: (String) -> Unit = {},
+    onMoreClicked: () -> Unit = {}
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -287,7 +278,7 @@ private fun InviteMembersContent(
                     isBack = flow != ByzantineMemberFlow.EDIT,
                     elevation = 0.dp,
                     actions = {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
                                 contentDescription = "More icon"
@@ -324,6 +315,7 @@ private fun InviteMembersContent(
                             email = member.email,
                             name = member.name.orEmpty(),
                             role = member.role,
+                            error = member.err.orEmpty(),
                             suggestionContacts = suggestionContacts,
                             selectContact = selectContact,
                             isPreMember = preMembers.find { it.email == member.email } != null,
@@ -338,11 +330,20 @@ private fun InviteMembersContent(
                             },
                             onSelectContact = {
                                 onSelectContact(it)
+                            },
+                            onFocusEvent = {
+                                if (it.isFocused) {
+                                    coroutineScope.launch {
+                                        delay(500L)
+                                        bringIntoViewRequester.bringIntoView()
+                                    }
+                                }
                             })
                     }
                     item {
                         NcOutlineButton(
                             modifier = Modifier
+                                .bringIntoViewRequester(bringIntoViewRequester)
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                                 .height(48.dp),
@@ -374,6 +375,7 @@ private fun MemberView(
     index: Int = 0,
     email: String = "",
     name: String = "",
+    error: String = "",
     isPreMember: Boolean = false,
     suggestionContacts: List<Contact> = emptyList(),
     selectContact: HashSet<String> = hashSetOf(),
@@ -381,7 +383,8 @@ private fun MemberView(
     onRemoveClick: () -> Unit = {},
     onInputEmailChange: (String, String, String) -> Unit = { _, _, _ -> },
     onSelectRoleClick: () -> Unit = {},
-    onSelectContact: (String) -> Unit = {}
+    onSelectContact: (String) -> Unit = {},
+    onFocusEvent: (FocusState) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     val isMaster = role == AssistedWalletRole.MASTER.name
@@ -517,6 +520,8 @@ private fun MemberView(
                                     expanded = true
                                 },
                                 title = stringResource(id = R.string.nc_email_address),
+                                error = error,
+                                onFocusEvent = onFocusEvent,
                                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(onDone = {
                                     keyboardController?.hide()

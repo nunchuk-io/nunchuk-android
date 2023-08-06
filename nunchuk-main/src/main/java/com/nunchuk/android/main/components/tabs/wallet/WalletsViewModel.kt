@@ -537,9 +537,7 @@ internal class WalletsViewModel @Inject constructor(
 
     fun acceptInviteMember(groupId: String) = viewModelScope.launch {
         val result = groupMemberAcceptRequestUseCase(groupId)
-        if (result.isSuccess) {
-            removePendingInviteMember(groupId)
-        } else {
+        if (result.isSuccess.not()) {
             event(ShowErrorEvent(result.exceptionOrNull()))
         }
     }
@@ -548,20 +546,8 @@ internal class WalletsViewModel @Inject constructor(
         val result = groupMemberDenyRequestUseCase(groupId)
         if (result.isSuccess) {
             event(WalletsEvent.DenyWalletInvitationSuccess)
-            removePendingInviteMember(groupId)
         } else {
             event(ShowErrorEvent(result.exceptionOrNull()))
         }
-    }
-
-    private fun removePendingInviteMember(groupId: String) {
-        val results = getState().groupWalletUis.map {
-            if (it.group != null && it.group.groupId == groupId) {
-                it.copy(inviterName = "")
-            } else {
-                it
-            }
-        }
-        updateState { copy(groupWalletUis = results) }
     }
 }

@@ -13,7 +13,7 @@ class MarkAlertAsReadUseCase @Inject constructor(
 ) : UseCase<MarkAlertAsReadUseCase.Param, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param) {
-        return repository.markAlertAsRead(parameters.alertId, parameters.groupId)
+        return repository.markAlertAsRead(alertId = parameters.alertId, groupId = parameters.groupId)
     }
 
     class Param(val alertId: String, val groupId: String)

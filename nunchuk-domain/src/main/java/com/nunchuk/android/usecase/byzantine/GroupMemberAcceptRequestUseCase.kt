@@ -13,5 +13,6 @@ class GroupMemberAcceptRequestUseCase @Inject constructor(
 ) : UseCase<String, Unit>(dispatcher) {
     override suspend fun execute(parameters: String) {
         userWalletRepository.groupMemberAcceptRequest(groupId = parameters)
+        userWalletRepository.syncGroupWallets()
     }
 }
