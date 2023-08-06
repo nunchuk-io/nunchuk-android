@@ -281,8 +281,8 @@
     <string name="nc_monthly">Monthly</string>
     <string name="nc_weekly">Weekly</string>
     <string name="nc_yearly">Yearly</string>
-    <string name="nc_register_wallet_to_coldcard">Please register this wallet with your COLDCARD</string>
-    <string name="nc_register_wallet_to_coldcard_desc">You must register this wallet with your COLDCARD before you can use it to sign transactions.</string>
+    <string name="nc_register_wallet_to_coldcard">Please register this wallet with your %1$s</string>
+    <string name="nc_register_wallet_to_coldcard_desc">You must register this wallet with your %1$s before you can use it to sign transactions.</string>
     <string name="nc_select_your_export_method">Select your export method</string>
     <string name="nc_show_wallet_qr">Show wallet QR code</string>
     <string name="nc_done_scanning">Done scanning</string>

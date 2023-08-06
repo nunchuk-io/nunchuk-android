@@ -20,18 +20,22 @@
 package com.nunchuk.android.wallet.components.upload
 
 import android.nfc.tech.Ndef
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.ExportWalletToMk4UseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.CreateShareFileUseCase
-import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
-import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.*
+import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.DoneScanQr
+import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ExportColdcardSuccess
+import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.NfcLoading
+import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ShowError
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,11 +44,12 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
     private val exportWalletToMk4UseCase: ExportWalletToMk4UseCase,
-) : NunchukViewModel<Unit, UploadConfigurationEvent>() {
+) : ViewModel() {
 
     lateinit var walletId: String
 
-    override val initialState = Unit
+    private val _event = MutableSharedFlow<UploadConfigurationEvent>()
+    val event = _event.asSharedFlow()
 
     fun init(walletId: String) {
         this.walletId = walletId
@@ -52,13 +57,13 @@ class SharedWalletConfigurationViewModel @Inject constructor(
 
     fun handleColdcardExportNfc(ndef: Ndef) {
         viewModelScope.launch {
-            setEvent(NfcLoading(true))
+            _event.emit(NfcLoading(true))
             val result = exportWalletToMk4UseCase(ExportWalletToMk4UseCase.Data(walletId, ndef))
-            setEvent(NfcLoading(false))
+            _event.emit(NfcLoading(false))
             if (result.isSuccess) {
-                setEvent(ExportColdcardSuccess())
+                _event.emit(ExportColdcardSuccess())
             } else {
-                event(ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
@@ -68,19 +73,23 @@ class SharedWalletConfigurationViewModel @Inject constructor(
             when (val event = createShareFileUseCase.execute(walletId + "_coldcard_export.txt")) {
                 is Success -> exportWallet(walletId, event.data)
                 is Error -> {
-                    event(ShowError(event.exception.message.orUnknownError()))
+                    _event.emit(ShowError(event.exception.message.orUnknownError()))
                 }
             }
         }
     }
 
-    fun doneScanQr() = setEvent(DoneScanQr)
+    fun doneScanQr() {
+        viewModelScope.launch {
+            _event.emit(DoneScanQr)
+        }
+    }
 
     private fun exportWallet(walletId: String, filePath: String) {
         viewModelScope.launch {
             when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.COLDCARD)) {
                 is Success -> {
-                    event(ExportColdcardSuccess(filePath))
+                    _event.emit(ExportColdcardSuccess(filePath))
                 }
                 is Error -> showError(event.exception)
             }
@@ -88,6 +97,8 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     }
 
     private fun showError(t: Throwable?) {
-        event(ShowError(t?.message.orUnknownError()))
+        viewModelScope.launch {
+            _event.emit(ShowError(t?.message.orUnknownError()))
+        }
     }
 }

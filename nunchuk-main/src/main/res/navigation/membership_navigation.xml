@@ -229,6 +229,16 @@
         <argument
             android:name="airgap_index"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_registerWalletToColdcardFragment_self"
+            app:destination="@id/registerWalletToColdcardFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/registerWalletToColdcardFragment"
+            app:popUpToInclusive="true"
+            />
 
     </fragment>
     <fragment
@@ -246,6 +256,15 @@
         <action
             android:id="@+id/action_registerWalletToAirgapFragment_to_createWalletSuccessFragment"
             app:destination="@id/createWalletSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/registerWalletToAirgapFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_registerWalletToAirgapFragment_self"
+            app:destination="@id/registerWalletToAirgapFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"

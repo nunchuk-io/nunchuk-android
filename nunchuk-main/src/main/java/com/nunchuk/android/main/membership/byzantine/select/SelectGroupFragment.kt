@@ -38,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.findNavController
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioOption
@@ -58,7 +59,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SelectGroupFragment : MembershipFragment() {
-    private val viewMode: SelectGroupViewModel by activityViewModels()
+    private val viewModel: SelectGroupViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -66,10 +67,12 @@ class SelectGroupFragment : MembershipFragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
+                val uiState by viewModel.state.collectAsStateWithLifecycle()
                 SelectGroupScreen(
+                    uiState = uiState,
                     onMoreClicked = ::handleShowMore,
                     onContinueClicked = { groupType ->
-                        if (viewMode.checkGroupTypeAvailable(groupType)) {
+                        if (viewModel.checkGroupTypeAvailable(groupType)) {
                             findNavController().navigate(
                                 SelectGroupFragmentDirections.actionSelectGroupFragmentToSelectWalletSetupFragment(
                                     groupType = groupType.name
@@ -97,7 +100,7 @@ class SelectGroupFragment : MembershipFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewMode.event) {
+        flowObserver(viewModel.event) {
             when (it) {
                 is SelectGroupEvent.Loading -> showOrHideLoading(it.isLoading)
             }
@@ -109,14 +112,16 @@ class SelectGroupFragment : MembershipFragment() {
 
 @Composable
 private fun SelectGroupScreen(
+    uiState: SelectGroupUiState = SelectGroupUiState(),
     onContinueClicked: (GroupWalletType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
-    SelectGroupContent(onContinueClicked = onContinueClicked, onMoreClicked = onMoreClicked)
+    SelectGroupContent(uiState = uiState, onContinueClicked = onContinueClicked, onMoreClicked = onMoreClicked)
 }
 
 @Composable
 private fun SelectGroupContent(
+    uiState: SelectGroupUiState = SelectGroupUiState(),
     onContinueClicked: (GroupWalletType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
@@ -130,6 +135,7 @@ private fun SelectGroupContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    enabled = uiState.remainingByzantineProWallet > 0 || uiState.remainingByzantineWallet > 0,
                     onClick = {
                         onContinueClicked(selectedType)
                     }

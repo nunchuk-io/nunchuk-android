@@ -57,6 +57,7 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.wallet.components.upload.SharedWalletConfigurationViewModel
@@ -121,7 +122,7 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
                 }
         }
 
-        sharedViewModel.event.observe(viewLifecycleOwner) {
+        flowObserver(sharedViewModel.event) {
             if (it is UploadConfigurationEvent.ExportColdcardSuccess) {
                 if (it.filePath.isNullOrEmpty()) {
                     openNextScreen()
@@ -137,7 +138,15 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
 
     private fun openNextScreen() {
         viewModel.setRegisterColdcardSuccess(args.walletId)
-        if (args.airgapIndex > 0) {
+        if (args.index > 1) {
+            findNavController().navigate(
+                RegisterWalletToColdcardFragmentDirections.actionRegisterWalletToColdcardFragmentSelf(
+                    args.walletId,
+                    args.index - 1,
+                    args.airgapIndex,
+                ),
+            )
+        } else if (args.airgapIndex > 0) {
             findNavController().navigate(
                 RegisterWalletToColdcardFragmentDirections.actionRegisterWalletToColdcardFragmentToRegisterWalletToAirgapFragment(
                     args.airgapIndex,
@@ -157,7 +166,9 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
 @Composable
 private fun RegisterWalletToColdcardScreen(viewModel: RegisterWalletToColdcardViewModel = viewModel()) {
     val remainingTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     RegisterWalletToColdcardContent(
+        uiState = uiState,
         remainingTime = remainingTime,
         onExportToColdcardClicked = viewModel::onExportColdcardClicked
     )
@@ -165,6 +176,7 @@ private fun RegisterWalletToColdcardScreen(viewModel: RegisterWalletToColdcardVi
 
 @Composable
 private fun RegisterWalletToColdcardContent(
+    uiState: RegisterWalletToColdcardUiState = RegisterWalletToColdcardUiState(),
     remainingTime: Int = 0,
     onExportToColdcardClicked: () -> Unit = {}
 ) {
@@ -183,12 +195,12 @@ private fun RegisterWalletToColdcardContent(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_register_wallet_to_coldcard),
+                    text = stringResource(R.string.nc_register_wallet_to_coldcard, uiState.keyName),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.nc_register_wallet_to_coldcard_desc),
+                    text = stringResource(R.string.nc_register_wallet_to_coldcard_desc, uiState.keyName),
                     style = NunchukTheme.typography.body
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
