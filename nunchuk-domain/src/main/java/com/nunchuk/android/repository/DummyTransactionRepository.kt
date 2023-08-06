@@ -1,14 +1,15 @@
 package com.nunchuk.android.repository
 
-import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.DummyTransaction
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.type.TransactionStatus
 
 interface DummyTransactionRepository {
     suspend fun getDummyTransaction(
         groupId: String,
         walletId: String,
         dummyTransactionId: String
-    ): Transaction
+    ): DummyTransaction
 
     suspend fun getDummyTransactionPayload(
         groupId: String,
@@ -21,7 +22,7 @@ interface DummyTransactionRepository {
         groupId: String,
         walletId: String,
         dummyTransactionId: String
-    )
+    ): TransactionStatus
 
     suspend fun deleteDummyTransaction(
         groupId: String,

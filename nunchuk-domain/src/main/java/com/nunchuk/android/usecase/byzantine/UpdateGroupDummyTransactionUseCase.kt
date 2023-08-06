@@ -2,6 +2,7 @@ package com.nunchuk.android.usecase.byzantine
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.repository.DummyTransactionRepository
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -9,9 +10,9 @@ import javax.inject.Inject
 class UpdateGroupDummyTransactionUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val dummyTransactionRepository: DummyTransactionRepository,
-) : UseCase<UpdateGroupDummyTransactionUseCase.Param, Unit>(ioDispatcher) {
+) : UseCase<UpdateGroupDummyTransactionUseCase.Param, TransactionStatus>(ioDispatcher) {
 
-    override suspend fun execute(parameters: Param): Unit =
+    override suspend fun execute(parameters: Param): TransactionStatus =
         dummyTransactionRepository.updateDummyTransaction(
             signatures = parameters.signatures,
             groupId = parameters.groupId,

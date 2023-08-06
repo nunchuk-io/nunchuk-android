@@ -41,6 +41,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.UpdateGroupDummyTransactionUseCase
@@ -85,7 +86,8 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val _event = MutableSharedFlow<WalletAuthenticationEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(WalletAuthenticationState())
+    private val _state =
+        MutableStateFlow(WalletAuthenticationState(pendingSignature = args.requiredSignatures))
     val state = _state.asStateFlow()
 
     private val dataToSign = MutableStateFlow("")
@@ -103,43 +105,39 @@ class WalletAuthenticationViewModel @Inject constructor(
                         walletId = args.walletId,
                         transactionId = args.dummyTransactionId
                     )
-                ).onSuccess { transaction ->
+                ).onSuccess { dummyTransaction ->
+                    dataToSign.value = dummyTransaction.psbt
                     _state.update {
-                        it.copy(
-                            transaction = transaction
-                        )
+                        it.copy(pendingSignature = dummyTransaction.pendingSignature)
                     }
-                    getWalletDetails()
                 }.onFailure {
                     _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-                }
-            } else if (args.type == VerificationType.SIGN_DUMMY_TX) {
-                val txToSignResult =
-                    getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
-                if (txToSignResult.isFailure) {
-                    _event.emit(WalletAuthenticationEvent.ShowError(txToSignResult.exceptionOrNull()?.message.orUnknownError()))
                     return@launch
                 }
-                dataToSign.value = txToSignResult.getOrNull().orEmpty()
-                val result = getDummyTxFromPsbt(
-                    GetDummyTxFromPsbt.Param(
-                        walletId = args.walletId,
-                        psbt = dataToSign.value
-                    )
-                )
-                if (result.isSuccess) {
-                    // hard code isReceive false I have no idea why first time it become true from libnunchuk
-                    _state.update {
-                        it.copy(
-                            transaction = result.getOrThrow().copy(isReceive = false)
-                        )
+            } else if (args.type == VerificationType.SIGN_DUMMY_TX) {
+                getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
+                    .onSuccess { psbt ->
+                        dataToSign.value = psbt
+                    }.onFailure {
+                        _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+                        return@launch
                     }
-                    getWalletDetails()
-                } else {
-                    _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+
+            val result = getDummyTxFromPsbt(
+                GetDummyTxFromPsbt.Param(
+                    walletId = args.walletId,
+                    psbt = dataToSign.value
+                )
+            )
+            if (result.isSuccess) {
+                // hard code isReceive false I have no idea why first time it become true from libnunchuk
+                _state.update {
+                    it.copy(transaction = result.getOrThrow().copy(isReceive = false))
                 }
+                getWalletDetails()
             } else {
-                dataToSign.value = getHealthCheckMessageUseCase(args.userData).getOrThrow()
+                _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
             _event.emit(WalletAuthenticationEvent.Loading(false))
         }
@@ -279,21 +277,27 @@ class WalletAuthenticationViewModel @Inject constructor(
             }
             signatures[singleSigner.masterFingerprint] = signature
             if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
-                updateGroupDummyTransactionUseCase(UpdateGroupDummyTransactionUseCase.Param(
-                    signatures = mapOf(singleSigner.masterFingerprint to signature),
-                    walletId = args.walletId,
-                    groupId = args.groupId,
-                    transactionId = args.dummyTransactionId
-                )).onFailure {
+                updateGroupDummyTransactionUseCase(
+                    UpdateGroupDummyTransactionUseCase.Param(
+                        signatures = mapOf(singleSigner.masterFingerprint to signature),
+                        walletId = args.walletId,
+                        groupId = args.groupId,
+                        transactionId = args.dummyTransactionId
+                    )
+                ).onFailure {
                     _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-                    return
+                }.onSuccess { transactionStatus ->
+                    if (transactionStatus == TransactionStatus.CONFIRMED) {
+                        _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
+                    } else {
+                        _state.update { it.copy(signatures = signatures) }
+                    }
                 }
-            }
-            if (signatures.size == args.requiredSignatures) {
-                _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
             } else {
-                _state.update {
-                    it.copy(signatures = signatures)
+                if (signatures.size == args.requiredSignatures) {
+                    _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
+                } else {
+                    _state.update { it.copy(signatures = signatures) }
                 }
             }
         } else {

@@ -9,9 +9,6 @@ import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryEvent
-import com.nunchuk.android.main.util.ByzantineGroupUtils
-import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.ByzantineGroup
@@ -33,6 +30,7 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -75,6 +73,7 @@ class GroupDashboardViewModel @Inject constructor(
     private var timeline: Timeline? = null
 
     private val timelineListenerAdapter = TimelineListenerAdapter()
+    private var loadAlertJob: Job? = null
 
     init {
         loadActiveSession()
@@ -89,10 +88,13 @@ class GroupDashboardViewModel @Inject constructor(
         getGroupChat()
     }
 
-    private fun getAlerts() = viewModelScope.launch {
-        val result = getAlertGroupUseCase(args.groupId)
-        if (result.isSuccess) {
-            _state.value = _state.value.copy(alerts = result.getOrDefault(emptyList()))
+    fun getAlerts() {
+        if (loadAlertJob?.isActive == true) return
+        loadAlertJob = viewModelScope.launch {
+            val result = getAlertGroupUseCase(args.groupId)
+            if (result.isSuccess) {
+                _state.value = _state.value.copy(alerts = result.getOrDefault(emptyList()))
+            }
         }
     }
 

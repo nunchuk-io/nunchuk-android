@@ -166,6 +166,8 @@ class CosigningGroupPolicyViewModel @Inject constructor(
         }
     }
 
+    fun updatePoliciesSuccess() = _state.update { it.copy(isUpdateFlow = false) }
+
     fun onDiscardChangeClicked() {
         viewModelScope.launch {
             _event.emit(CosigningGroupPolicyEvent.OnDiscardChange)

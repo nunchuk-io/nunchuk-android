@@ -48,6 +48,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.MembershipStage
@@ -56,8 +57,6 @@ import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -86,11 +85,14 @@ class CosigningGroupPolicyFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val signatures =
-                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
-                        .orEmpty()
-                val token = data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                viewModel.updateServerConfig(signatures, token)
+                NCToastMessage(
+                    requireActivity()
+                ).showMessage(
+                    getString(
+                        R.string.nc_policy_updated
+                    )
+                )
+                viewModel.updatePoliciesSuccess()
             }
         }
 
@@ -108,6 +110,7 @@ class CosigningGroupPolicyFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        showLoading()
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->

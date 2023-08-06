@@ -196,6 +196,11 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.getAlerts()
+    }
+
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
         if (alert.type == AlertType.GROUP_WALLET_PENDING) {
             if (role == AssistedWalletRole.MASTER) {

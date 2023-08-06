@@ -47,5 +47,6 @@ data class WalletAuthenticationState(
     val singleSigners: List<SingleSigner> = emptyList(),
     val signatures: Map<String, String> = emptyMap(),
     val transaction: Transaction? = null,
+    val pendingSignature : Int = 0,
     val interactSingleSigner: SingleSigner? = null
 )
