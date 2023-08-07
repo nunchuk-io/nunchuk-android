@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcHintMessage
@@ -69,6 +70,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupKeyPolicy
+import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.wallet.components.cosigning.CosigningGroupPolicyFragmentArgs
@@ -126,7 +128,13 @@ class ConfigureByzantineServerKeySettingFragment : MembershipFragment() {
     }
 
     private fun handleConfigServerKeySuccess() {
-        requireActivity().finish()
+        if (args.preferenceSetup == ByzantinePreferenceSetup.DISTRIBUTED) {
+            findNavController().navigate(
+                ConfigureByzantineServerKeySettingFragmentDirections.actionConfigureByzantineServerKeySettingFragmentToByzantineSetupServerKeySuccessFragment()
+            )
+        } else {
+            requireActivity().finish()
+        }
     }
 
     private val isCreateAssistedWalletFlow: Boolean

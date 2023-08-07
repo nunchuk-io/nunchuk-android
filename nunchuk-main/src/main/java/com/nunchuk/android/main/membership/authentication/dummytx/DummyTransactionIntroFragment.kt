@@ -50,12 +50,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navArgs
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivityArgs
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.Amount
 
@@ -68,11 +70,13 @@ class DummyTransactionIntroFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            val args: WalletAuthenticationActivityArgs by requireActivity().navArgs()
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
                 val uiState by activityViewModel.state.collectAsStateWithLifecycle()
                 DummyTransactionIntroContent(
+                    isGroup = !args.groupId.isNullOrEmpty(),
                     pendingSignature = uiState.pendingSignature,
                     onContinueClicked = {
                         findNavController().navigate(
@@ -89,6 +93,7 @@ class DummyTransactionIntroFragment : Fragment() {
 
 @Composable
 fun DummyTransactionIntroContent(
+    isGroup: Boolean = false,
     pendingSignature: Int = 0,
     onContinueClicked: () -> Unit = {},
     onCancelClicked: () -> Unit = {},
@@ -111,7 +116,8 @@ fun DummyTransactionIntroContent(
                     modifier = Modifier.padding(16.dp),
                     text = stringResource(
                         R.string.nc_dummy_transaction_desc,
-                        Amount(value = 10000).getCurrencyAmount()
+                        Amount(value = 10000).getCurrencyAmount(),
+                        if (isGroup) stringResource(id = R.string.nc_dummy_transaction_key_holder_desc) else ""
                     )
                 )
                 Spacer(modifier = Modifier.weight(1.0f))

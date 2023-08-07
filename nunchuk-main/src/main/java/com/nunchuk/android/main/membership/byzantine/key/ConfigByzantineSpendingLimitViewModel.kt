@@ -32,11 +32,21 @@ import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
-import com.nunchuk.android.model.byzantine.*
+import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.AssistedMemberSpendingPolicy
+import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
+import com.nunchuk.android.model.byzantine.InputSpendingPolicy
+import com.nunchuk.android.model.byzantine.isKeyHolder
+import com.nunchuk.android.model.byzantine.toByzantinePreferenceSetup
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.DecimalFormatSymbols
 import javax.inject.Inject
@@ -98,7 +108,12 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
                 val combinePolicies = _state.value.policies.toMutableMap().apply {
                     putAll(newPolicies)
                 }
-                _state.update { state -> state.copy(policies = combinePolicies) }
+                _state.update { state ->
+                    state.copy(
+                        policies = combinePolicies,
+                        preferenceSetup = it.setupPreference.toByzantinePreferenceSetup()
+                    )
+                }
             }.onFailure {
                 _event.emit(ConfigByzantineSpendingLimitEvent.Error(it.message.orUnknownError()))
             }
@@ -192,6 +207,8 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
         }
     }
 
+    fun getPreferenceSetup() = _state.value.preferenceSetup
+
     companion object {
         const val KEY_EMAIL = "email"
     }
@@ -205,6 +222,7 @@ data class ConfigMemberSpendingLimitState(
             )
         )
     ),
+    val preferenceSetup: ByzantinePreferenceSetup = ByzantinePreferenceSetup.SINGLE_PERSON
 )
 
 sealed class ConfigByzantineSpendingLimitEvent {
