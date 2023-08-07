@@ -55,14 +55,12 @@ import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboa
 import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleFragment
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
-import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -219,8 +217,8 @@ private fun InviteMembersScreen(
             viewModel.interactingMemberIndex(index)
             onSelectRole(role)
         },
-        onInputEmailChange = { index, email, name, loginType ->
-            viewModel.updateMember(index, email = email, name = name, loginType = loginType)
+        onInputEmailChange = { index, email, name ->
+            viewModel.updateMember(index, email = email, name = name)
         },
         onRemoveMember = { viewModel.removeMember(it) },
         onContinueClick = onContinueClick,
@@ -234,15 +232,13 @@ private fun InviteMembersContent(
     members: List<InviteMemberUi> = emptyList(),
     preMembers: List<InviteMemberUi> = emptyList(),
     suggestionContacts: List<Contact> = emptyList(),
-    selectContact: HashSet<String> = hashSetOf(),
     enableContinueButton: Boolean = false,
     flow: Int = ByzantineMemberFlow.NONE,
     onRemoveMember: (Int) -> Unit = {},
     onContinueClick: () -> Unit = {},
     onAddMember: () -> Unit = {},
     onSelectRole: (Int, String) -> Unit = { _, _ -> },
-    onInputEmailChange: (Int, String, String, String) -> Unit = { _, _, _, _ -> },
-    onSelectContact: (String) -> Unit = {},
+    onInputEmailChange: (Int, String, String) -> Unit = { _, _, _ -> },
     onMoreClicked: () -> Unit = {}
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
@@ -317,19 +313,15 @@ private fun InviteMembersContent(
                             role = member.role,
                             error = member.err.orEmpty(),
                             suggestionContacts = suggestionContacts,
-                            selectContact = selectContact,
-                            isPreMember = preMembers.find { it.email == member.email } != null,
+                            isPreMember = preMembers.find { it.toString() == member.toString() } != null,
                             onSelectRoleClick = {
                                 onSelectRole(index, member.role)
                             },
                             onRemoveClick = {
                                 onRemoveMember(index)
                             },
-                            onInputEmailChange = { email, name, loginType ->
-                                onInputEmailChange(index, email, name, loginType)
-                            },
-                            onSelectContact = {
-                                onSelectContact(it)
+                            onInputEmailChange = { email, name ->
+                                onInputEmailChange(index, email, name)
                             },
                             onFocusEvent = {
                                 if (it.isFocused) {
@@ -378,12 +370,10 @@ private fun MemberView(
     error: String = "",
     isPreMember: Boolean = false,
     suggestionContacts: List<Contact> = emptyList(),
-    selectContact: HashSet<String> = hashSetOf(),
     role: String = AssistedWalletRole.NONE.name,
     onRemoveClick: () -> Unit = {},
-    onInputEmailChange: (String, String, String) -> Unit = { _, _, _ -> },
+    onInputEmailChange: (String, String) -> Unit = { _, _ -> },
     onSelectRoleClick: () -> Unit = {},
-    onSelectContact: (String) -> Unit = {},
     onFocusEvent: (FocusState) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -465,119 +455,74 @@ private fun MemberView(
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
-                        if (email in selectContact) {
-                            Column {
-                                Text(
-                                    modifier = Modifier.padding(bottom = 4.dp),
-                                    text = stringResource(id = R.string.nc_email_address),
-                                    style = NunchukTheme.typography.titleSmall
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .border(
-                                            width = 1.dp,
-                                            color = NcColor.border,
-                                            shape = RoundedCornerShape(12.dp)
-                                        )
-                                        .background(color = NcColor.greyLight)
-                                        .padding(16.dp)
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(48.dp, 48.dp)
-                                                .clip(CircleShape)
-                                                .background(color = colorResource(id = R.color.nc_beeswax_light)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = name.shorten(),
-                                                style = NunchukTheme.typography.heading
-                                            )
-                                        }
-
-                                        Column(
-                                            modifier = Modifier.padding(start = 12.dp),
-                                            verticalArrangement = Arrangement.SpaceAround
-                                        ) {
-                                            Text(text = name, style = NunchukTheme.typography.body)
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            NcTextField(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .onGloballyPositioned { coordinates ->
-                                        dropdownSize = coordinates.size.toSize()
-                                    },
-                                value = email,
-                                onValueChange = {
-                                    onInputEmailChange(it.trim(), "", "")
-                                    expanded = true
+                        NcTextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onGloballyPositioned { coordinates ->
+                                    dropdownSize = coordinates.size.toSize()
                                 },
-                                title = stringResource(id = R.string.nc_email_address),
-                                error = error,
-                                onFocusEvent = onFocusEvent,
-                                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(onDone = {
-                                    keyboardController?.hide()
-                                })
-                            )
+                            value = email,
+                            onValueChange = {
+                                if (it.trim() != email) onInputEmailChange(it.trim(), "")
+                                expanded = true
+                            },
+                            title = stringResource(id = R.string.nc_email_address),
+                            error = error,
+                            onFocusEvent = onFocusEvent,
+                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = {
+                                keyboardController?.hide()
+                            })
+                        )
 
-                            if (email.isNotEmpty() && suggestionContacts.isNotEmpty()) {
-                                DropdownMenu(
-                                    modifier = Modifier
-                                        .width(with(LocalDensity.current) { dropdownSize.width.toDp() }),
-                                    expanded = expanded,
-                                    properties = PopupProperties(
-                                        focusable = false,
-                                        dismissOnBackPress = true,
-                                        dismissOnClickOutside = true
-                                    ),
-                                    onDismissRequest = { onDropdownDismissRequest() }
-                                ) {
-                                    suggestionContacts.forEach { contact ->
-                                        DropdownMenuItem(
-                                            modifier = Modifier.padding(top = 8.dp),
-                                            onClick = {
-                                                onInputEmailChange(contact.email, contact.name, contact.loginType)
-                                                onSelectContact(contact.email)
-                                                onDropdownDismissRequest()
-                                            }, text = {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .size(48.dp, 48.dp)
-                                                            .clip(CircleShape)
-                                                            .background(color = colorResource(id = R.color.nc_beeswax_light)),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Text(
-                                                            text = contact.name.shorten(),
-                                                            style = NunchukTheme.typography.heading
-                                                        )
-                                                    }
-
-                                                    Column(
-                                                        modifier = Modifier.padding(start = 12.dp),
-                                                        verticalArrangement = Arrangement.SpaceAround
-                                                    ) {
-                                                        Text(
-                                                            text = contact.name,
-                                                            style = NunchukTheme.typography.body
-                                                        )
-                                                        Text(
-                                                            text = contact.email,
-                                                            style = NunchukTheme.typography.bodySmall
-                                                        )
-                                                    }
+                        if (email.isNotEmpty() && suggestionContacts.isNotEmpty()) {
+                            DropdownMenu(
+                                modifier = Modifier
+                                    .width(with(LocalDensity.current) { dropdownSize.width.toDp() }),
+                                expanded = expanded,
+                                properties = PopupProperties(
+                                    focusable = false,
+                                    dismissOnBackPress = true,
+                                    dismissOnClickOutside = true
+                                ),
+                                onDismissRequest = { onDropdownDismissRequest() }
+                            ) {
+                                suggestionContacts.forEach { contact ->
+                                    DropdownMenuItem(
+                                        modifier = Modifier.padding(top = 8.dp),
+                                        onClick = {
+                                            onInputEmailChange(contact.email, contact.name)
+                                            onDropdownDismissRequest()
+                                        }, text = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(48.dp, 48.dp)
+                                                        .clip(CircleShape)
+                                                        .background(color = colorResource(id = R.color.nc_beeswax_light)),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = contact.name.shorten(),
+                                                        style = NunchukTheme.typography.heading
+                                                    )
                                                 }
-                                            })
-                                    }
+
+                                                Column(
+                                                    modifier = Modifier.padding(start = 12.dp),
+                                                    verticalArrangement = Arrangement.SpaceAround
+                                                ) {
+                                                    Text(
+                                                        text = contact.name,
+                                                        style = NunchukTheme.typography.body
+                                                    )
+                                                    Text(
+                                                        text = contact.email,
+                                                        style = NunchukTheme.typography.bodySmall
+                                                    )
+                                                }
+                                            }
+                                        })
                                 }
                             }
                         }

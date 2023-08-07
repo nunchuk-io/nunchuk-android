@@ -66,6 +66,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -568,8 +569,7 @@ private fun LazyListScope.MemberListView(
                 email = it.user?.email.orEmpty(),
                 name = it.user?.name.orEmpty(),
                 role = it.role,
-                avatarUrl = it.user?.avatar.orEmpty(),
-                loginType = it.user?.loginType.orEmpty(),
+                avatarUrl = it.user?.avatar.orEmpty()
             )
         }
     }
@@ -585,12 +585,11 @@ private fun LazyListScope.MemberListView(
 
     itemsIndexed(group.members.filter { it.role != AssistedWalletRole.MASTER.name }) { _, member ->
         ContactMemberView(
-            email = member.user?.email.orEmpty(),
+            email = member.user?.email ?: member.emailOrUsername,
             name = member.user?.name.orEmpty(),
             role = member.role,
             avatarUrl = member.user?.avatar.orEmpty(),
             isPendingMember = member.isContact().not(),
-            loginType = member.user?.loginType.orEmpty(),
         )
     }
 }
@@ -654,7 +653,6 @@ private fun ContactMemberView(
     email: String = "",
     name: String = "",
     role: String = AssistedWalletRole.NONE.name,
-    loginType: String = SignInMode.UNKNOWN.name,
     avatarUrl: String = "",
     isPendingMember: Boolean = false,
 ) {
@@ -745,8 +743,10 @@ private fun ContactMemberView(
                             verticalArrangement = Arrangement.SpaceAround
                         ) {
                             Text(
-                                text = if (loginType == SignInMode.PRIMARY_KEY.name) name else email,
-                                style = NunchukTheme.typography.body
+                                text = email,
+                                style = NunchukTheme.typography.body,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
                             )
                             NcTag(
                                 modifier = Modifier.padding(top = 4.dp),

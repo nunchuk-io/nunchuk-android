@@ -133,7 +133,6 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         name: String? = null,
         email: String? = null,
         role: String? = null,
-        loginType: String? = null
     ) {
         if (email != null) {
             viewModelScope.launch(ioDispatcher) {
