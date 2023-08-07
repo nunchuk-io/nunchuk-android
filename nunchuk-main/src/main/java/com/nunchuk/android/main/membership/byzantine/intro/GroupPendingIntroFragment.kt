@@ -46,7 +46,8 @@ class GroupPendingIntroFragment : Fragment() {
                 GroupPendingIntroScreen(viewModel = viewModel) {
                     findNavController().navigate(
                         GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
-                            args.groupId
+                            groupId = args.groupId,
+                            isAddOnly = true
                         )
                     )
                 }

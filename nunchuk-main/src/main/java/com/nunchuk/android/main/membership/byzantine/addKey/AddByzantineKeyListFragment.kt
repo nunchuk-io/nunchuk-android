@@ -75,7 +75,12 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                AddKeyListScreen(viewModel, membershipStepManager, ::handleShowMore)
+                AddKeyListScreen(
+                    viewModel = viewModel,
+                    isAddOnly = args.isAddOnly,
+                    membershipStepManager = membershipStepManager,
+                    onMoreClicked = ::handleShowMore
+                )
             }
         }
     }
@@ -138,6 +143,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 fromMembershipFlow = true,
                 groupId = args.groupId
             )
+
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 activity = requireActivity(),
                 fromMembershipFlow = true,
@@ -150,6 +156,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
+
             SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
             SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
@@ -256,7 +263,11 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_SEVER_KEY -> {
-                navigator.openConfigGroupServerKeyActivity(activityContext = requireActivity(), groupStep = MembershipStage.NONE, groupId = args.groupId)
+                navigator.openConfigGroupServerKeyActivity(
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.NONE,
+                    groupId = args.groupId
+                )
             }
 
             MembershipStep.BYZANTINE_ADD_TAP_SIGNER -> {
@@ -354,6 +365,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 @Composable
 fun AddKeyListScreen(
     viewModel: AddByzantineKeyListViewModel = viewModel(),
+    isAddOnly: Boolean = false,
     membershipStepManager: MembershipStepManager,
     onMoreClicked: () -> Unit = {}
 ) {
@@ -368,6 +380,7 @@ fun AddKeyListScreen(
         remainingTime = remainingTime,
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
-        isRefreshing = state.isRefreshing
+        isRefreshing = state.isRefreshing,
+        isAddOnly = isAddOnly
     )
 }

@@ -52,7 +52,6 @@ import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -82,7 +81,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
     private val syncGroupDraftWalletUseCase: SyncGroupDraftWalletUseCase,
-    private val applicationScope: CoroutineScope
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()

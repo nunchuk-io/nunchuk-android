@@ -52,6 +52,7 @@ fun AddByzantineKeyListContent(
     keys: List<AddKeyData> = emptyList(),
     remainingTime: Int,
     isRefreshing: Boolean = false,
+    isAddOnly: Boolean = false,
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
     NunchukTheme {
@@ -70,14 +71,16 @@ fun AddByzantineKeyListContent(
                     }
                 })
         }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                onClick = onContinueClicked,
-                enabled = keys.all { it.isVerifyOrAddKey }
-            ) {
-                Text(text = stringResource(id = R.string.nc_text_continue))
+            if (isAddOnly.not()) {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                    enabled = keys.all { it.isVerifyOrAddKey }
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
+                }
             }
         }) { innerPadding ->
             Box(Modifier.pullRefresh(state)) {
