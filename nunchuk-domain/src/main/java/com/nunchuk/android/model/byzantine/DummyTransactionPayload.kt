@@ -4,8 +4,11 @@ import androidx.annotation.Keep
 
 data class DummyTransactionPayload(
     val payload: String,
+    val walletId: String,
     val type: DummyTransactionType,
     val requiredSignatures: Int = 0,
+    val pendingSignatures: Int = 0,
+    val requestByUserId: String = "",
 )
 
 @Keep

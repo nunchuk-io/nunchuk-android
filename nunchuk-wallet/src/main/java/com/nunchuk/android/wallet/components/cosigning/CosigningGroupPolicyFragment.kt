@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -25,7 +26,9 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -143,11 +146,19 @@ class CosigningGroupPolicyFragment : Fragment() {
                             xfp = args.xfp
                         )
 
-                        CosigningGroupPolicyEvent.OnDiscardChange -> NCWarningDialog(requireActivity()).showDialog(
+                        is CosigningGroupPolicyEvent.OnDiscardChange -> NCWarningDialog(
+                            requireActivity()
+                        ).showDialog(
                             title = getString(R.string.nc_confirmation),
-                            message = getString(R.string.nc_are_you_sure_discard_the_change),
+                            message = if (event.isCancel) getString(R.string.nc_are_you_sure_cancel_the_change) else getString(
+                                R.string.nc_are_you_sure_discard_the_change
+                            ),
                             onYesClick = {
-                                requireActivity().finish()
+                                if (args.dummyTransactionId.isNotEmpty()) {
+                                    viewModel.cancelChange()
+                                } else {
+                                    requireActivity().finish()
+                                }
                             }
                         )
 
@@ -161,6 +172,7 @@ class CosigningGroupPolicyFragment : Fragment() {
                                 R.string.nc_policy_updated
                             )
                         )
+                        CosigningGroupPolicyEvent.CancelChangeSuccess -> requireActivity().finish()
                     }
                 }
         }
@@ -209,6 +221,11 @@ private fun CosigningGroupPolicyContent(
     onSaveChangeClicked: () -> Unit = {},
     onDiscardChangeClicked: () -> Unit = {},
 ) {
+    val requester by remember(uiState.members, uiState.requestByUserId) {
+        derivedStateOf {
+            uiState.members.find { it.userId == uiState.requestByUserId }
+        }
+    }
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
@@ -220,11 +237,31 @@ private fun CosigningGroupPolicyContent(
                     .verticalScroll(rememberScrollState())
             ) {
                 NcTopAppBar(title = "", elevation = 0.dp)
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.nc_cosigning_policies),
-                    style = NunchukTheme.typography.heading
-                )
+                if (uiState.dummyTransactionId.isNotEmpty() && uiState.walletName.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = stringResource(
+                            R.string.nc_cosigning_policies_change,
+                            uiState.walletName
+                        ),
+                        style = NunchukTheme.typography.heading
+                    )
+
+                    Text(
+                        text = stringResource(
+                            R.string.nc_request_cosigning_policies_change_by,
+                            requester?.name ?: "Someone"
+                        ),
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = stringResource(R.string.nc_cosigning_policies),
+                        style = NunchukTheme.typography.heading
+                    )
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -254,7 +291,11 @@ private fun CosigningGroupPolicyContent(
                         val keyPolicy = uiState.keyPolicy.spendingPolicies[member.membershipId]
                         if (keyPolicy != null) {
                             SpendingLimitAccountView(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                                modifier = Modifier.padding(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    top = 16.dp
+                                ),
                                 member = member,
                                 policy = keyPolicy
                             )
@@ -352,13 +393,20 @@ private fun CosigningGroupPolicyContent(
                     ) {
                         Text(text = stringResource(R.string.nc_continue_save_changes))
                     }
-                    TextButton(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        onClick = onDiscardChangeClicked,
-                    ) {
-                        Text(text = stringResource(R.string.nc_discard_changes))
+                    if (uiState.myRole == AssistedWalletRole.MASTER || uiState.myRole == AssistedWalletRole.ADMIN) {
+                        TextButton(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            onClick = onDiscardChangeClicked,
+                        ) {
+                            Text(
+                                text = if (uiState.dummyTransactionId.isNotEmpty()) stringResource(R.string.nc_cancel_change)
+                                else stringResource(R.string.nc_discard_changes)
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
@@ -374,12 +422,13 @@ private fun CosigningGroupPolicyContentPreview() {
         uiState = CosigningGroupPolicyState(
             members = listOf(
                 AssistedMember(
-                    AssistedWalletRole.MASTER.name,
+                    role = AssistedWalletRole.MASTER.name,
                     name = "Bob Lee",
-                    email = "khoapham@gmail.com"
+                    email = "khoapham@gmail.com",
+                    membershipId = "1"
                 ),
                 AssistedMember(
-                    AssistedWalletRole.MASTER.name,
+                    role = AssistedWalletRole.ADMIN.name,
                     name = "Bob Lee",
                     email = "khoapham@gmail.com"
                 ),
@@ -394,8 +443,9 @@ private fun CosigningGroupPolicyContentPreview() {
                         SpendingTimeUnit.DAILY,
                         currencyUnit = "USD"
                     )
-                )
-            )
+                ),
+            ),
+            requestByUserId = "1"
         ),
         isUpdateFlow = true,
     )

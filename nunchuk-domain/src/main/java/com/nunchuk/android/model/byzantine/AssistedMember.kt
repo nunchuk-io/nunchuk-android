@@ -9,5 +9,6 @@ data class AssistedMember(
     val name: String?,
     val email: String,
     val membershipId: String = "",
+    val userId: String = "",
     val loginType: String = "",
 ) : Parcelable

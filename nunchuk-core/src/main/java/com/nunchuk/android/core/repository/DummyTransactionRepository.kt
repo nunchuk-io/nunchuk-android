@@ -45,8 +45,11 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         val dummyTransaction = response.data.dummyTransaction ?: throw NullPointerException("dummyTransaction null")
         return DummyTransactionPayload(
             payload = dummyTransaction.payload?.toString().orEmpty(),
+            walletId = dummyTransaction.walletLocalId.orEmpty(),
             type = dummyTransaction.type.toDummyTransactionType,
-            requiredSignatures = dummyTransaction.requiredSignatures
+            requiredSignatures = dummyTransaction.requiredSignatures,
+            pendingSignatures = dummyTransaction.pendingSignatures,
+            requestByUserId = dummyTransaction.requesterUserId.orEmpty()
         )
     }
 

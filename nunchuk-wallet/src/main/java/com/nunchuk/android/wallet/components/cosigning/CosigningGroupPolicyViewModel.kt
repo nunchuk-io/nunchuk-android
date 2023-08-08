@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.components.cosigning
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.byzantine.ParseUpdateGroupKeyPayloadUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase
 import com.nunchuk.android.core.domain.membership.GetGroupKeyPolicyUserDataUseCase
@@ -31,12 +32,15 @@ import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupServerKeysUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,8 +60,10 @@ class CosigningGroupPolicyViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
     private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
     private val parseUpdateGroupKeyPayloadUseCase: ParseUpdateGroupKeyPayloadUseCase,
-
-    ) : ViewModel() {
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
+    private val accountManager: AccountManager
+) : ViewModel() {
     private val args: CosigningGroupPolicyFragmentArgs =
         CosigningGroupPolicyFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<CosigningGroupPolicyEvent>()
@@ -88,9 +94,14 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                                     requiredSignature = CalculateRequiredSignatures(
                                         VerificationType.SIGN_DUMMY_TX,
                                         payload.requiredSignatures
-                                    )
+                                    ),
+                                    requestByUserId = payload.requestByUserId
                                 )
                             }
+                        }
+
+                        getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
+                            _state.update { it.copy(walletName = wallet.name) }
                         }
                     }
                 }
@@ -111,19 +122,22 @@ class CosigningGroupPolicyViewModel @Inject constructor(
     private fun loadMembers() {
         viewModelScope.launch {
             val group = getGroupUseCase(args.groupId).getOrNull()
+            val myEmail = accountManager.getAccount().email
             val members = group?.members.orEmpty().mapNotNull { member ->
                 if (member.role.toRole.isKeyHolder) {
                     AssistedMember(
                         role = member.role,
                         email = member.emailOrUsername,
                         name = member.user?.name,
-                        membershipId = member.membershipId
+                        membershipId = member.membershipId,
+                        userId = member.user?.id.orEmpty(),
                     )
                 } else null
             }
             _state.update { state ->
                 state.copy(
                     members = members,
+                    myRole = members.find { it.email == myEmail }?.role?.toRole ?: AssistedWalletRole.NONE
                 )
             }
         }
@@ -170,7 +184,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
 
     fun onDiscardChangeClicked() {
         viewModelScope.launch {
-            _event.emit(CosigningGroupPolicyEvent.OnDiscardChange)
+            _event.emit(CosigningGroupPolicyEvent.OnDiscardChange(args.dummyTransactionId.isNotEmpty()))
         }
     }
 
@@ -259,6 +273,20 @@ class CosigningGroupPolicyViewModel @Inject constructor(
             _event.emit(CosigningGroupPolicyEvent.OnEditSingingDelayClicked)
         }
     }
+
+    fun cancelChange() {
+        viewModelScope.launch {
+            _event.emit(CosigningGroupPolicyEvent.Loading(true))
+            deleteGroupDummyTransactionUseCase(
+                DeleteGroupDummyTransactionUseCase.Param(
+                    groupId = args.groupId,
+                    walletId = args.walletId,
+                    transactionId = args.dummyTransactionId
+                )
+            ).onSuccess { _event.emit(CosigningGroupPolicyEvent.CancelChangeSuccess) }
+                .onFailure { _event.emit(CosigningGroupPolicyEvent.ShowError(it.message.orUnknownError())) }
+        }
+    }
 }
 
 data class CosigningGroupPolicyState(
@@ -268,13 +296,16 @@ data class CosigningGroupPolicyState(
     val userData: String = "",
     val signingDelayText: String = "",
     val dummyTransactionId: String = "",
+    val walletName: String = "",
+    val requestByUserId: String = "",
     val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
+    val myRole: AssistedWalletRole = AssistedWalletRole.NONE
 )
 
 sealed class CosigningGroupPolicyEvent {
-    class Loading(val isLoading: Boolean) : CosigningGroupPolicyEvent()
-    class ShowError(val error: String) : CosigningGroupPolicyEvent()
-    class OnSaveChange(
+    data class Loading(val isLoading: Boolean) : CosigningGroupPolicyEvent()
+    data class ShowError(val error: String) : CosigningGroupPolicyEvent()
+    data class OnSaveChange(
         val required: CalculateRequiredSignatures,
         val data: String,
         val dummyTransactionId: String
@@ -282,6 +313,7 @@ sealed class CosigningGroupPolicyEvent {
 
     object OnEditSpendingLimitClicked : CosigningGroupPolicyEvent()
     object OnEditSingingDelayClicked : CosigningGroupPolicyEvent()
-    object OnDiscardChange : CosigningGroupPolicyEvent()
+    data class OnDiscardChange(val isCancel: Boolean) : CosigningGroupPolicyEvent()
     object UpdateKeyPolicySuccess : CosigningGroupPolicyEvent()
+    object CancelChangeSuccess : CosigningGroupPolicyEvent()
 }

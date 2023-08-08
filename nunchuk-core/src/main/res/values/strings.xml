@@ -247,6 +247,8 @@
     <string name="nc_create_wallet_success_distribute_setup_desc">Since you will need all keys to sign off on the inheritance plan, [B]we recommend that you set up the inheritance plan first before distributing the keys to the keyholders.[/B]</string>
     <string name="nc_create_my_own_question">Create my own question</string>
     <string name="nc_cosigning_policies">Platform key co-signing policies</string>
+    <string name="nc_cosigning_policies_change">%1$s: platform key policies change</string>
+    <string name="nc_request_cosigning_policies_change_by">%1$s is requesting to make the following changes to the platform key co-signing policies.</string>
     <string name="nc_co_signing_delay">Broadcast and delay</string>
     <string name="nc_edit">Edit</string>
     <string name="nc_automation_broadcast_transaction">Automatically broadcast transaction after co-signing</string>
@@ -301,6 +303,7 @@
     <string name="nc_update_cosigning_delay">Update policies</string>
     <string name="nc_update_spending_limit">Update spending limit</string>
     <string name="nc_are_you_sure_discard_the_change">Are you sure want to discard the changes?</string>
+    <string name="nc_are_you_sure_cancel_the_change">Are you sure want to cancel the changes?</string>
     <string name="nc_backup_uploaded_successfully">The backup was uploaded successfully</string>
     <string name="nc_services_tab">Services</string>
     <string name="nc_emergency">Emergency</string>
