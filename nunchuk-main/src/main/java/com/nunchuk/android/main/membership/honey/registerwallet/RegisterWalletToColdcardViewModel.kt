@@ -60,6 +60,7 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
                 .onSuccess {
                     val keyName =
                         it.signers.filter { signer -> signer.type == SignerType.COLDCARD_NFC }
+                            .reversed()
                             .getOrNull(args.index.dec())?.name ?: COLDCARD_DEFAULT_KEY_NAME
                     _state.update { state -> state.copy(keyName = keyName) }
                 }

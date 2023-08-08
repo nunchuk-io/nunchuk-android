@@ -123,7 +123,6 @@ class AddGroupKeyStepFragment : MembershipFragment() {
     private fun handleOpenRegisterAirgap(walletId: String) {
         findNavController().navigate(
             AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToRegisterWalletToAirgapFragment(
-                viewModel.getRegisterAirgapIndex(),
                 walletId,
             )
         )

@@ -149,7 +149,6 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
         } else if (args.airgapIndex > 0) {
             findNavController().navigate(
                 RegisterWalletToColdcardFragmentDirections.actionRegisterWalletToColdcardFragmentToRegisterWalletToAirgapFragment(
-                    args.airgapIndex,
                     args.walletId,
                 ),
             )

@@ -115,7 +115,6 @@ class AddKeyStepFragment : MembershipFragment() {
     private fun handleOpenRegisterAirgap(walletId: String) {
         findNavController().navigate(
             AddKeyStepFragmentDirections.actionAddKeyStepFragmentToRegisterWalletToAirgapFragment(
-                viewModel.getRegisterAirgapIndex(),
                 walletId
             )
         )

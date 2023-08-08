@@ -116,7 +116,6 @@ class CreateWalletFragment : MembershipFragment() {
         } else if (event.airgapCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
-                    event.airgapCount,
                     event.walletId,
                 )
             )

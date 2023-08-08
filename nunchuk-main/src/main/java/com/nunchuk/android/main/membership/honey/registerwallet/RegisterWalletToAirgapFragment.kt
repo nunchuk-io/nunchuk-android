@@ -90,27 +90,20 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect {
-                    (requireActivity() as BaseWalletConfigActivity<*>).openDynamicQRScreen(sharedViewModel.walletId)
+                    (requireActivity() as BaseWalletConfigActivity<*>).openDynamicQRScreen(
+                        sharedViewModel.walletId
+                    )
                 }
         }
 
         flowObserver(sharedViewModel.event) {
             if (it == UploadConfigurationEvent.DoneScanQr) {
                 viewModel.setRegisterAirgapSuccess(args.walletId)
-                if (args.index > 1) {
-                    findNavController().navigate(
-                        RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
-                            args.walletId
-                        )
+                findNavController().navigate(
+                    RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
+                        args.walletId
                     )
-                } else {
-                    findNavController().navigate(
-                        RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentSelf(
-                            args.index - 1,
-                            args.walletId,
-                        )
-                    )
-                }
+                )
             }
         }
     }
@@ -132,11 +125,12 @@ private fun RegisterWalletToAirgapContent(
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
-            Column(modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_register_to_air_gapped,

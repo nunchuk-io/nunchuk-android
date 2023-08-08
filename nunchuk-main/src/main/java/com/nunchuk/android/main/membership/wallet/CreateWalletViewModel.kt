@@ -261,9 +261,9 @@ class CreateWalletViewModel @Inject constructor(
                         if (totalColdcard > 0) {
                             setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, totalColdcard))
                         }
-                        val totalAirgap = signers.count { signer -> signer.value.signerType == SignerType.AIRGAP }
+                        val totalAirgap = if(signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }) 1 else 0
                         if (totalAirgap > 0) {
-                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
+                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, 1))
                         }
                         _event.emit(
                             CreateWalletEvent.OnCreateWalletSuccess(

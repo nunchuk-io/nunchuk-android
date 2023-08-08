@@ -247,10 +247,6 @@
         android:label="RegisterWalletToAirgapFragment">
 
         <argument
-            android:name="index"
-            app:argType="integer" />
-
-        <argument
             android:name="wallet_id"
             app:argType="string" />
         <action
