@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,26 +16,38 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
+import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
@@ -124,17 +138,31 @@ fun ConfirmChangeScreenContent(
                     .padding(innerPadding)
                     .fillMaxHeight()
             ) {
-                NcHintMessage(
+                Card(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
-                    messages = listOf(
-                        ClickAbleText(
-                            content = stringResource(
+                    backgroundColor = colorResource(id = R.color.nc_whisper_color),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            modifier = Modifier.size(36.dp),
+                            contentScale = ContentScale.Crop,
+                            painter = painterResource(id = R.drawable.ic_info),
+                            contentDescription = "Info icon"
+                        )
+                        NcSpannedText(
+                            modifier = Modifier.padding(start = 18.dp),
+                            text = stringResource(
                                 R.string.nc_confirm_changes_msg,
                                 email
-                            )
+                            ),
+                            baseStyle = NunchukTheme.typography.titleSmall,
+                            styles = mapOf(SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold))
                         )
-                    )
-                )
+                    }
+                }
                 NcTextField(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     title = stringResource(id = R.string.nc_code),

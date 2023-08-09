@@ -143,7 +143,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 GroupDashboardScreen(viewModel, onEditClick = {
                     findNavController().navigate(
                         GroupDashboardFragmentDirections.actionGroupDashboardFragmentToByzantineInviteMembersFragment(
-                            members = viewModel.getAssistedMembers().toTypedArray(),
+                            members = viewModel.getMembers().toTypedArray(),
                             groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
                             flow = ByzantineMemberFlow.EDIT,
                             groupType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()?.name.orEmpty(),

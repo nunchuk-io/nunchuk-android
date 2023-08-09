@@ -1,5 +1,9 @@
 package com.nunchuk.android.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class ByzantineMember(
     val emailOrUsername: String,
     val membershipId: String,
@@ -8,7 +12,7 @@ data class ByzantineMember(
     val status: String,
     val inviterUserId: String,
     val user: User?
-) {
+) : Parcelable {
     fun isContact() = status == "ACTIVE"
     fun isPendingRequest() = status == "PENDING"
 }

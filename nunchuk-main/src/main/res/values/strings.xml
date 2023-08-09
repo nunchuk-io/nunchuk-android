@@ -81,6 +81,7 @@
     <string name="nc_member_data">Member %1$s</string>
     <string name="nc_email_address">Email address</string>
     <string name="nc_add_more_members">Add more members</string>
+    <string name="nc_add_member">Add member</string>
     <string name="nc_role">Role</string>
     <string name="nc_keyholder_admin">Keyholder (admin)</string>
     <string name="nc_keyholder_admin_desc">Can make changes to inheritance planning and wallet policies.\nCan add or remove group members.\nCan edit transaction notes, create coin tags or collections.\nCan create and sign transactions.\nCan view wallet transactions.\nCan participate in group chat.</string>
@@ -112,7 +113,7 @@
     <string name="nc_group_wallet_creation_pending">Group wallet creation pending</string>
     <string name="nc_group_wallet_creation_pending_desc">%s initiated a group wallet. If you’re part of this wallet, please add your key.</string>
     <string name="nc_confirm_changes">Confirm changes</string>
-    <string name="nc_confirm_changes_msg">We’ve sent a code to %1$s. Please enter it below.</string>
+    <string name="nc_confirm_changes_msg">We’ve sent a code to [B]%1$s[/B]. Please enter it below.</string>
     <string name="nc_code">Code</string>
     <string name="nc_hint_keyholder_limited">Only applicable for members who own a TAPSIGNER, Ledger or Trezor device.</string>
     <string name="nc_a_note_on_security">A note on security</string>

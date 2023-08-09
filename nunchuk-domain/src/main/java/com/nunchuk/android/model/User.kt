@@ -1,5 +1,9 @@
 package com.nunchuk.android.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class User(
     val id: String,
     val name: String,
@@ -10,4 +14,4 @@ data class User(
     val chatId: String,
     val loginType: String,
     val username: String?
-)
+) : Parcelable

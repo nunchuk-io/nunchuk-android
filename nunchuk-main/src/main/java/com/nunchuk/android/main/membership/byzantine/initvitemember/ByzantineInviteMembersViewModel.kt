@@ -19,12 +19,16 @@ import com.nunchuk.android.main.membership.model.GroupWalletType
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isKeyHolder
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.usecase.GetWalletConstraintsUseCase
 import com.nunchuk.android.usecase.membership.CreateGroupWalletUseCase
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -46,6 +50,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     private val calculateRequiredSignaturesEditGroupMemberUseCase: CalculateRequiredSignaturesEditGroupMemberUseCase,
     private val editGroupMemberUserDataUseCase: EditGroupMemberUserDataUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val getWalletConstraintsUseCase: GetWalletConstraintsUseCase
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ByzantineInviteMembersEvent>()
@@ -61,18 +66,28 @@ class ByzantineInviteMembersViewModel @Inject constructor(
 
     init {
         getContacts()
+        getWalletConstraints()
         if (args.flow == ByzantineMemberFlow.EDIT) {
+            // call api get members
             val members = args.members.toList().map {
-                InviteMemberUi(
-                    role = it.role,
-                    name = it.name,
-                    email = it.email
-                )
+                it.toInviteMemberUi()
             }
-            _state.update { it.copy(members = members, preMembers = members) }
+            _state.update { it.copy(members = members) }
             existingData = members.toString()
         } else {
             addMasterMember()
+        }
+    }
+
+    private fun getWalletConstraints() {
+        viewModelScope.launch {
+            val result = getWalletConstraintsUseCase(Unit)
+            val groupWalletType = args.groupType.toGroupWalletType()
+            result.getOrDefault(emptyList())
+                .find { it.walletConfig.m == groupWalletType.m && it.walletConfig.n == groupWalletType.n }
+                ?.let { walletConstraints ->
+                    _state.update { it.copy(walletConstraints = walletConstraints) }
+                }
         }
     }
 
@@ -106,25 +121,19 @@ class ByzantineInviteMembersViewModel @Inject constructor(
                 members = _state.value.members + InviteMemberUi(
                     role = AssistedWalletRole.NONE.name,
                     name = "",
-                    email = ""
+                    email = "",
+                    isNewAdded = true
                 )
             )
         }
     }
 
     fun removeMember(index: Int) {
-        val email = _state.value.members[index].email
+        _state.value.members[index].email
         _state.update {
             it.copy(
                 members = _state.value.members.filterIndexed { i, _ -> i != index },
             )
-        }
-        if (args.flow == ByzantineMemberFlow.EDIT) {
-            _state.update {
-                it.copy(
-                    preMembers = _state.value.preMembers.filter { it.email != email }
-                )
-            }
         }
     }
 
@@ -147,6 +156,12 @@ class ByzantineInviteMembersViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            if (role != null) {
+                if (countKeyholderRole() == _state.value.walletConstraints?.maximumKeyholder) {
+                    emitWithDelay(ByzantineInviteMembersEvent.LimitKeyholderRoleWarning)
+                    return@launch
+                }
+            }
             _state.update {
                 it.copy(
                     members = _state.value.members.mapIndexed { i, member ->
@@ -164,6 +179,17 @@ class ByzantineInviteMembersViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun emitWithDelay(event: ByzantineInviteMembersEvent) {
+        viewModelScope.launch {
+            delay(50)
+            _event.emit(event)
+        }
+    }
+
+    private fun countKeyholderRole(): Int {
+        return _state.value.members.count { it.role.toRole.isKeyHolder }
     }
 
     private fun getError(email: String?): String {
@@ -320,18 +346,13 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         )
         _event.emit(ByzantineInviteMembersEvent.Loading(false))
         if (result.isSuccess) {
-            val preMembers = result.getOrThrow().members.map {
-                InviteMemberUi(
-                    email = it.user?.email.orEmpty(),
-                    role = it.role,
-                    name = it.user?.name.orEmpty()
-                )
+            val members = result.getOrThrow().members.map {
+                it.toInviteMemberUi()
             }
-            existingData = preMembers.toString()
+            existingData = members.toString()
             _state.update {
                 it.copy(
-                    preMembers = preMembers,
-                    members = preMembers
+                    members = members
                 )
             }
             _event.emit(ByzantineInviteMembersEvent.EditGroupMemberSuccess(result.getOrThrow().members))

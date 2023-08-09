@@ -29,12 +29,14 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -53,6 +55,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
 import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleFragment
+import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleViewModel
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -61,6 +64,7 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -142,6 +146,7 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
             when (event) {
                 is ByzantineInviteMembersEvent.Error -> showError(message = event.message)
                 is ByzantineInviteMembersEvent.Loading -> showOrHideLoading(event.loading)
+                ByzantineInviteMembersEvent.LimitKeyholderRoleWarning -> showLimitKeyholderDialog()
                 is ByzantineInviteMembersEvent.CreateGroupWalletSuccess -> {
                     navigator.openMembershipActivity(
                         activityContext = requireActivity(),
@@ -169,6 +174,10 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 }
             }
         }
+    }
+
+    private fun showLimitKeyholderDialog() {
+        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_limit_keyholder_message_dialog))
     }
 
     private fun enterPasswordDialog() {
@@ -209,7 +218,6 @@ private fun InviteMembersScreen(
     InviteMembersContent(
         flow = flow,
         members = state.members,
-        preMembers = state.preMembers,
         suggestionContacts = state.suggestionContacts,
         enableContinueButton = viewModel.enableContinueButton(),
         onAddMember = { viewModel.addMember() },
@@ -230,7 +238,6 @@ private fun InviteMembersScreen(
 @Composable
 private fun InviteMembersContent(
     members: List<InviteMemberUi> = emptyList(),
-    preMembers: List<InviteMemberUi> = emptyList(),
     suggestionContacts: List<Contact> = emptyList(),
     enableContinueButton: Boolean = false,
     flow: Int = ByzantineMemberFlow.NONE,
@@ -274,10 +281,18 @@ private fun InviteMembersContent(
                     isBack = flow != ByzantineMemberFlow.EDIT,
                     elevation = 0.dp,
                     actions = {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                        if (flow != ByzantineMemberFlow.EDIT) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        } else {
+                            Spacer(
+                                modifier = Modifier.size(
+                                    LocalViewConfiguration.current.minimumTouchTargetSize
+                                )
                             )
                         }
                     })
@@ -313,7 +328,8 @@ private fun InviteMembersContent(
                             role = member.role,
                             error = member.err.orEmpty(),
                             suggestionContacts = suggestionContacts,
-                            isPreMember = preMembers.find { it.toString() == member.toString() } != null,
+                            isContact = member.isContact,
+                            isNewAdded = member.isNewAdded,
                             onSelectRoleClick = {
                                 onSelectRole(index, member.role)
                             },
@@ -349,7 +365,7 @@ private fun InviteMembersContent(
 
                                 Text(
                                     modifier = Modifier.padding(start = 6.dp),
-                                    text = stringResource(id = R.string.nc_add_more_members)
+                                    text = stringResource(id = R.string.nc_add_member)
                                 )
                             }
                         }
@@ -368,7 +384,8 @@ private fun MemberView(
     email: String = "",
     name: String = "",
     error: String = "",
-    isPreMember: Boolean = false,
+    isContact: Boolean = false,
+    isNewAdded: Boolean = false,
     suggestionContacts: List<Contact> = emptyList(),
     role: String = AssistedWalletRole.NONE.name,
     onRemoveClick: () -> Unit = {},
@@ -424,7 +441,7 @@ private fun MemberView(
                 .padding(16.dp)
         ) {
             Column {
-                if (isMaster || isPreMember) {
+                if (isMaster || isContact) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
@@ -449,6 +466,46 @@ private fun MemberView(
                                 style = NunchukTheme.typography.bodySmall
                             )
                         }
+                    }
+                } else if (isContact.not() && isNewAdded.not()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .weight(1f, false)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp, 48.dp)
+                                    .clip(CircleShape)
+                                    .background(color = colorResource(id = R.color.nc_whisper_color)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_account_member),
+                                    contentDescription = ""
+                                )
+                            }
+
+                            Text(
+                                modifier = Modifier
+                                    .padding(start = 12.dp),
+                                text = email,
+                                style = NunchukTheme.typography.body,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
+                            )
+
+                        }
+                        Text(
+                            text = "Pending",
+                            style = NunchukTheme.typography.title
+                        )
                     }
                 } else {
                     Box(
@@ -491,7 +548,9 @@ private fun MemberView(
                                     DropdownMenuItem(
                                         modifier = Modifier.padding(top = 8.dp),
                                         onClick = {
-                                            onInputEmailChange(contact.email, contact.name)
+                                            if (contact.email != email) {
+                                                onInputEmailChange(contact.email, contact.name)
+                                            }
                                             onDropdownDismissRequest()
                                         }, text = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {

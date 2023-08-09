@@ -165,15 +165,8 @@ class GroupDashboardViewModel @Inject constructor(
         events.findLast(TimelineEvent::isGroupMembershipRequestEvent)?.let { getGroup() }
     }
 
-    fun getAssistedMembers(): List<AssistedMember> {
-        return state.value.group?.members?.map {
-            AssistedMember(
-                email = it.user?.email ?: "",
-                role = it.role,
-                name = it.user?.name ?: "",
-                membershipId = it.membershipId
-            )
-        } ?: emptyList()
+    fun getMembers(): List<ByzantineMember> {
+        return state.value.group?.members ?: emptyList()
     }
 
     fun setByzantineMembers(members: List<ByzantineMember>) {
