@@ -2,6 +2,7 @@ package com.nunchuk.android.main.membership.byzantine.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -48,11 +51,13 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.ByzantineMember
+import com.nunchuk.android.model.ByzantineMemberBrief
 import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.User
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.Utils
@@ -65,6 +70,7 @@ fun PendingWalletView(
     walletsExtended: WalletExtended? = null,
     hideWalletDetail: Boolean = false,
     isAssistedWallet: Boolean = false,
+    role: String = AssistedWalletRole.OBSERVER.name,
     badgeCount: Int = 0,
     inviterName: String = "",
     onAccept: () -> Unit = {},
@@ -117,18 +123,47 @@ fun PendingWalletView(
             Row(
                 modifier = Modifier
                     .clickable(
+                        enabled = role != AssistedWalletRole.OBSERVER.name,
                         onClick = onGroupClick,
                     )
                     .padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                if (inviterName.isEmpty()) {
-                    WalletAvatar(group = group, badgeCount = badgeCount)
-                } else {
+                if (inviterName.isNotEmpty()) {
                     PendingWalletInviteMember(
                         inviterName = inviterName,
                         onAccept = onAccept,
                         onDeny = onDeny
                     )
+                } else if (role == AssistedWalletRole.OBSERVER.name) {
+                    Row(
+                        modifier = Modifier
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = NcColor.whisper,
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_show_pass),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(16.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.nc_observing),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colors.onSurface,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
+                } else {
+                    WalletAvatar(group = group, badgeCount = badgeCount)
                 }
             }
         }
@@ -344,7 +379,11 @@ fun AvatarView(
                 }
             }
         }
-        GlideImage(imageModel = { if (isContact) { avatarUrl.fromMxcUriToMatrixDownloadUrl() } else "" },
+        GlideImage(imageModel = {
+            if (isContact) {
+                avatarUrl.fromMxcUriToMatrixDownloadUrl()
+            } else ""
+        },
             imageOptions = ImageOptions(
                 contentScale = ContentScale.Crop, alignment = Alignment.Center
             ),
@@ -465,12 +504,31 @@ fun PendingWalletViewPreview() {
             allowInheritance = true
         )
     )
+    val members = group.members.map {
+        ByzantineMemberBrief(
+            emailOrUsername = it.emailOrUsername,
+            role = it.role,
+            status = it.status,
+            inviterUserId = it.inviterUserId,
+            userId = it.user?.id,
+            avatar = it.user?.avatar,
+            name = it.user?.name,
+            email = it.user?.email,
+        )
+    }
     NunchukTheme {
-//        Column {
-//            PendingWalletView(
-//                walletsExtended = walletsExtended,
-//                group = group
-//            )
-//        }
+        Column {
+            PendingWalletView(
+                walletsExtended = walletsExtended,
+                group = ByzantineGroupBrief(
+                    groupId = group.id,
+                    status = group.status,
+                    createdTimeMillis = group.createdTimeMillis,
+                    members = members,
+                    isViewPendingWallet = true,
+                    walletConfig = group.walletConfig
+                ),
+            )
+        }
     }
 }

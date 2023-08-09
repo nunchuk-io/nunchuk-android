@@ -11,6 +11,7 @@ import com.nunchuk.android.core.domain.membership.EditGroupMemberUserDataUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.R
@@ -157,7 +158,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         }
         viewModelScope.launch {
             if (role != null) {
-                if (countKeyholderRole() == _state.value.walletConstraints?.maximumKeyholder) {
+                if (countKeyholderRole(index, role) > _state.value.walletConstraints?.maximumKeyholder.orDefault(3)) {
                     emitWithDelay(ByzantineInviteMembersEvent.LimitKeyholderRoleWarning)
                     return@launch
                 }
@@ -188,8 +189,22 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         }
     }
 
-    private fun countKeyholderRole(): Int {
-        return _state.value.members.count { it.role.toRole.isKeyHolder }
+    private fun countKeyholderRole(index: Int, newRole: String): Int {
+        val member = _state.value.members[index]
+        val countRole = _state.value.members.count { it.role.toRole.isKeyHolder }
+        return if (member.role.toRole.isKeyHolder) {
+            if (newRole.toRole.isKeyHolder) {
+                countRole
+            } else {
+                countRole - 1
+            }
+        } else {
+            if (newRole.toRole.isKeyHolder) {
+                countRole + 1
+            } else {
+                countRole
+            }
+        }
     }
 
     private fun getError(email: String?): String {

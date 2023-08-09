@@ -1,11 +1,14 @@
 package com.nunchuk.android.main.util
 
+import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import javax.inject.Inject
 
 class ByzantineGroupUtils @Inject constructor(private val accountManager: AccountManager) {
+
+    private val accountInfo: AccountInfo by lazy { accountManager.getAccount() }
 
     fun getCurrentUserRole(group: ByzantineGroupBrief?): String {
         if (group == null) return AssistedWalletRole.NONE.name
@@ -15,8 +18,8 @@ class ByzantineGroupUtils @Inject constructor(private val accountManager: Accoun
     }
 
     private fun isMatchingEmailOrUserName(emailOrUsername: String) =
-        emailOrUsername == accountManager.getAccount().email
-                || emailOrUsername == accountManager.getAccount().username
+        emailOrUsername == accountInfo.email
+                || emailOrUsername == accountInfo.username
 
     fun getInviterName(group: ByzantineGroupBrief): String {
         val invitee =

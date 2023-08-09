@@ -16,6 +16,7 @@ val String?.toRole : AssistedWalletRole
         AssistedWalletRole.KEYHOLDER.name -> AssistedWalletRole.KEYHOLDER
         AssistedWalletRole.OBSERVER.name -> AssistedWalletRole.OBSERVER
         AssistedWalletRole.ADMIN.name -> AssistedWalletRole.ADMIN
+        AssistedWalletRole.KEYHOLDER_LIMITED.name -> AssistedWalletRole.KEYHOLDER_LIMITED
         else -> AssistedWalletRole.NONE
     }
 
