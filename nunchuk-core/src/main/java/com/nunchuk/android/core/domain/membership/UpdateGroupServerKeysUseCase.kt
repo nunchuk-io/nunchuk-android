@@ -32,17 +32,19 @@ class UpdateGroupServerKeysUseCase @Inject constructor(
     override suspend fun execute(parameters: Param) : String {
         return userWalletsRepository.updateGroupServerKeys(
             signatures = parameters.signatures,
+            groupId = parameters.groupId,
             keyIdOrXfp = parameters.keyIdOrXfp,
             token = parameters.token,
+            securityQuestionToken = parameters.securityQuestionToken,
             body = parameters.body,
-            groupId = parameters.groupId,
-            securityQuestionToken = parameters.securityQuestionToken
+            derivationPath = parameters.derivationPath
         )
     }
 
     data class Param(
         val body: String,
         val keyIdOrXfp: String,
+        val derivationPath: String,
         val groupId: String,
         val signatures: Map<String, String> = emptyMap(),
         val token: String,

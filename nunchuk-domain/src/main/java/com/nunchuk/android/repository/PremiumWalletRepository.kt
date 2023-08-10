@@ -61,11 +61,12 @@ interface PremiumWalletRepository {
         name: String, keyPolicy: KeyPolicy, plan: MembershipPlan
     ): KeyPolicy
 
-    suspend fun getServerKey(xfp: String): KeyPolicy
-    suspend fun getGroupServerKey(groupId: String, xfp: String): GroupKeyPolicy
+    suspend fun getServerKey(xfp: String, derivationPath: String): KeyPolicy
+    suspend fun getGroupServerKey(groupId: String, xfp: String, derivationPath: String): GroupKeyPolicy
     suspend fun updateServerKeys(
         signatures: Map<String, String>,
         keyIdOrXfp: String,
+        derivationPath: String,
         token: String,
         securityQuestionToken: String,
         body: String,
@@ -75,6 +76,7 @@ interface PremiumWalletRepository {
         signatures: Map<String, String>,
         groupId: String,
         keyIdOrXfp: String,
+        derivationPath: String,
         token: String,
         securityQuestionToken: String,
         body: String,
@@ -113,12 +115,14 @@ interface PremiumWalletRepository {
 
     suspend fun calculateRequiredSignaturesUpdateKeyPolicy(
         xfp: String,
+        derivationPath: String,
         walletId: String,
         keyPolicy: KeyPolicy
     ): CalculateRequiredSignatures
 
     suspend fun calculateRequiredSignaturesUpdateGroupKeyPolicy(
         xfp: String,
+        derivationPath: String,
         walletId: String,
         groupId: String,
         keyPolicy: GroupKeyPolicy

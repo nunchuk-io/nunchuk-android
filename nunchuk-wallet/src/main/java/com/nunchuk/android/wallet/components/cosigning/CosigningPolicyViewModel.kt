@@ -30,7 +30,11 @@ import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.usecase.membership.GetServerKeysUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -54,7 +58,8 @@ class CosigningPolicyViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val result = getServerKeysUseCase(args.xfp)
+            val signer = args.signer ?: return@launch
+            val result = getServerKeysUseCase(GetServerKeysUseCase.Param(signer.fingerPrint, signer.derivationPath))
             if (result.isSuccess) {
                 updateState(keyPolicy = result.getOrThrow())
             }
@@ -76,14 +81,16 @@ class CosigningPolicyViewModel @Inject constructor(
         securityQuestionToken: String = "",
     ) {
         viewModelScope.launch {
+            val signer = args.signer ?: return@launch
             _event.emit(CosigningPolicyEvent.Loading(true))
             val result = updateServerKeysUseCase(
                 UpdateServerKeysUseCase.Param(
                     body = state.value.userData,
-                    keyIdOrXfp = args.xfp,
+                    keyIdOrXfp = signer.fingerPrint,
                     signatures = signatures,
                     securityQuestionToken = securityQuestionToken,
-                    token = args.token
+                    token = args.token,
+                    derivationPath = signer.derivationPath
                 )
             )
             _event.emit(CosigningPolicyEvent.Loading(false))
@@ -104,12 +111,14 @@ class CosigningPolicyViewModel @Inject constructor(
 
     fun onSaveChangeClicked() {
         viewModelScope.launch {
+            val signer = args.signer ?: return@launch
             _event.emit(CosigningPolicyEvent.Loading(true))
             val result = calculateRequiredSignaturesUpdateKeyPolicyUseCase(
                 CalculateRequiredSignaturesUpdateKeyPolicyUseCase.Param(
                     walletId = args.walletId,
                     keyPolicy = state.value.keyPolicy,
-                    xfp = args.xfp
+                    xfp = signer.fingerPrint,
+                    derivationPath = signer.derivationPath
                 )
             )
             _event.emit(CosigningPolicyEvent.Loading(false))

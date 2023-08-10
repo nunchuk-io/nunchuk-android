@@ -41,13 +41,15 @@ internal interface GroupWalletApi {
         @HeaderMap headers: Map<String, String>,
         @Path("key_id_or_xfp") keyId: String,
         @Path("group_id") groupId: String,
-        @Body body: KeyPolicyUpdateRequest
+        @Query("derivation_path") derivationPath: String,
+        @Body body: KeyPolicyUpdateRequest,
     ): Data<CreateServerKeyResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesUpdateGroupServerKey(
         @Path("group_id") groupId: String,
         @Path("key_id_or_xfp") id: String,
+        @Query("derivation_path") derivationPath: String,
         @Body payload: CreateServerKeysPayload
     ): Data<CalculateRequiredSignaturesResponse>
 
@@ -88,7 +90,9 @@ internal interface GroupWalletApi {
 
     @GET("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}")
     suspend fun getGroupServerKey(
-        @Path("group_id") groupId: String, @Path("key_id_or_xfp") id: String,
+        @Path("group_id") groupId: String,
+        @Path("key_id_or_xfp") id: String,
+        @Query("derivation_path") derivationPath: String,
     ): Data<CreateServerKeyResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")

@@ -134,7 +134,7 @@ class CosigningGroupPolicyFragment : Fragment() {
                             groupStep = MembershipStage.CONFIG_SERVER_KEY,
                             keyPolicy = viewModel.state.value.keyPolicy,
                             groupId = args.groupId,
-                            xfp = args.xfp,
+                            xfp = args.signer?.fingerPrint.orEmpty(),
                         )
 
                         CosigningGroupPolicyEvent.OnEditSpendingLimitClicked -> navigator.openConfigGroupServerKeyActivity(
@@ -143,7 +143,7 @@ class CosigningGroupPolicyFragment : Fragment() {
                             groupStep = MembershipStage.CONFIG_SPENDING_LIMIT,
                             keyPolicy = viewModel.state.value.keyPolicy,
                             groupId = args.groupId,
-                            xfp = args.xfp
+                            xfp = args.signer?.fingerPrint.orEmpty(),
                         )
 
                         is CosigningGroupPolicyEvent.OnDiscardChange -> NCWarningDialog(

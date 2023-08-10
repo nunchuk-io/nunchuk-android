@@ -106,10 +106,12 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                     }
                 }
             } else {
+                val signer = args.signer ?: return@launch
                 getGroupServerKeysUseCase(
                     GetGroupServerKeysUseCase.Param(
                         args.groupId,
-                        args.xfp
+                        signer.fingerPrint,
+                        signer.derivationPath
                     )
                 ).onSuccess {
                     _state.update { state -> state.copy(keyPolicy = it) }
@@ -137,7 +139,8 @@ class CosigningGroupPolicyViewModel @Inject constructor(
             _state.update { state ->
                 state.copy(
                     members = members,
-                    myRole = members.find { it.email == myEmail }?.role?.toRole ?: AssistedWalletRole.NONE
+                    myRole = members.find { it.email == myEmail }?.role?.toRole
+                        ?: AssistedWalletRole.NONE
                 )
             }
         }
@@ -159,11 +162,13 @@ class CosigningGroupPolicyViewModel @Inject constructor(
         securityQuestionToken: String = "",
     ) {
         viewModelScope.launch {
+            val signer = args.signer ?: return@launch
             _event.emit(CosigningGroupPolicyEvent.Loading(true))
             val result = updateGroupServerKeysUseCase(
                 UpdateGroupServerKeysUseCase.Param(
                     body = state.value.userData,
-                    keyIdOrXfp = args.xfp,
+                    keyIdOrXfp = signer.fingerPrint,
+                    derivationPath = signer.derivationPath,
                     signatures = signatures,
                     securityQuestionToken = securityQuestionToken,
                     token = args.token,
@@ -200,12 +205,14 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                 )
                 return@launch
             }
+            val signer = args.signer ?: return@launch
             _event.emit(CosigningGroupPolicyEvent.Loading(true))
             val result = calculateRequiredSignaturesUpdateGroupKeyPolicyUseCase(
                 CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase.Param(
                     walletId = args.walletId,
                     keyPolicy = state.value.keyPolicy,
-                    xfp = args.xfp,
+                    xfp = signer.fingerPrint,
+                    derivationPath = signer.derivationPath,
                     groupId = args.groupId
                 )
             )
@@ -223,11 +230,12 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                         updateGroupServerKeysUseCase(
                             UpdateGroupServerKeysUseCase.Param(
                                 body = data,
-                                keyIdOrXfp = args.xfp,
+                                keyIdOrXfp = signer.fingerPrint,
                                 signatures = emptyMap(),
                                 securityQuestionToken = "",
                                 token = args.token,
                                 groupId = args.groupId,
+                                derivationPath = signer.derivationPath
                             )
                         ).onSuccess { transactionId ->
                             _state.update {

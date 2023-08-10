@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.main.MainActivity
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.messages.components.detail.RoomDetailActivity
 import com.nunchuk.android.messages.components.detail.RoomDetailFragmentArgs
 import com.nunchuk.android.notifications.PushNotificationIntentProvider
@@ -46,5 +47,19 @@ class PushNotificationIntentProviderImpl @Inject constructor(
         errorMessage: String
     ): Intent {
         return TransactionDetailsActivity.buildIntent(context, walletId = walletId, txId = txId, isCancelBroadcast = isCancelBroadcast, errorMessage = errorMessage)
+    }
+
+    override fun getGeneralIntent(
+        walletId: String?,
+        groupId: String?,
+        transactionId: String?
+    ): Intent {
+        return if (!transactionId.isNullOrEmpty() && !walletId.isNullOrEmpty()) {
+            getTransactionDetailIntent(walletId, transactionId, false, "")
+        } else if (!groupId.isNullOrEmpty()) {
+            GroupDashboardActivity.buildIntent(context, groupId, walletId)
+        } else {
+            getMainIntent()
+        }
     }
 }

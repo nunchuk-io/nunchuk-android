@@ -298,12 +298,6 @@ fun ConfigureServerKeySettingScreenContent(
 
 @Preview
 @Composable
-fun CoSigningDelayInput(isVisible: Boolean = true) {
-
-}
-
-@Preview
-@Composable
 private fun ConfigureServerKeySettingScreenPreview() {
     ConfigureServerKeySettingScreenContent()
 }

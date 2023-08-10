@@ -33,9 +33,10 @@ class GetGroupServerKeysUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): GroupKeyPolicy {
         return userWalletsRepository.getGroupServerKey(
             groupId = parameters.groupId,
-            xfp = parameters.xfp
+            xfp = parameters.xfp,
+            derivationPath = parameters.derivationPath
         )
     }
 
-    data class Param(val groupId: String, val xfp: String)
+    data class Param(val groupId: String, val xfp: String, val derivationPath: String)
 }

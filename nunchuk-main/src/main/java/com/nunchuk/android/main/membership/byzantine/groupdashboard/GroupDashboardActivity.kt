@@ -36,10 +36,18 @@ class GroupDashboardActivity : BaseActivity<ActivityNavigationBinding>() {
             groupId: String,
             walletId: String?
         ) {
-            val intent = Intent(activity, GroupDashboardActivity::class.java)
+            val intent = buildIntent(activity, groupId, walletId)
+            activity.startActivity(intent)
+        }
+
+        fun buildIntent(
+            activity: Context,
+            groupId: String,
+            walletId: String?
+        ): Intent {
+            return Intent(activity, GroupDashboardActivity::class.java)
                 .putExtra(GROUP_ID, groupId)
                 .putExtra(WALLET_ID, walletId)
-            activity.startActivity(intent)
         }
     }
 }

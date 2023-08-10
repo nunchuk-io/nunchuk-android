@@ -35,12 +35,19 @@ class CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase @Inject constructor
 ) {
     override suspend fun execute(parameters: Param): CalculateRequiredSignatures {
         return userWalletsRepository.calculateRequiredSignaturesUpdateGroupKeyPolicy(
-            walletId = parameters.walletId,
             xfp = parameters.xfp,
+            walletId = parameters.walletId,
+            groupId = parameters.groupId,
             keyPolicy = parameters.keyPolicy,
-            groupId = parameters.groupId
+            derivationPath = parameters.derivationPath
         )
     }
 
-    class Param(val groupId: String, val walletId: String, val xfp: String, val keyPolicy: GroupKeyPolicy)
+    class Param(
+        val groupId: String,
+        val walletId: String,
+        val xfp: String,
+        val derivationPath: String,
+        val keyPolicy: GroupKeyPolicy
+    )
 }

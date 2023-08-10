@@ -25,6 +25,7 @@ import android.os.Bundle
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
@@ -59,12 +60,12 @@ class CosigningPolicyActivity : BaseActivity<ActivityNavigationBinding>() {
     }
 
     companion object {
-        fun start(activity: Activity, walletId: String, token: String, keyPolicy: KeyPolicy?, xfp: String) {
+        fun start(activity: Activity, walletId: String, token: String, keyPolicy: KeyPolicy?, signer: SignerModel) {
             activity.startActivity(Intent(activity, CosigningPolicyActivity::class.java).apply {
                 putExtras(
                     CosigningPolicyFragmentArgs(
                         keyPolicy = keyPolicy,
-                        xfp = xfp,
+                        signer = signer,
                         token = token,
                         walletId = walletId
                     ).toBundle()
@@ -72,11 +73,11 @@ class CosigningPolicyActivity : BaseActivity<ActivityNavigationBinding>() {
             })
         }
 
-        fun start(activity: Activity, walletId: String, token: String, xfp: String, groupId: String) {
+        fun start(activity: Activity, walletId: String, token: String, signer: SignerModel, groupId: String) {
             activity.startActivity(Intent(activity, CosigningPolicyActivity::class.java).apply {
                 putExtras(
                     CosigningGroupPolicyFragmentArgs(
-                        xfp = xfp,
+                        signer = signer,
                         token = token,
                         walletId = walletId,
                         groupId = groupId

@@ -245,8 +245,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return keyPolicy
     }
 
-    override suspend fun getServerKey(xfp: String): KeyPolicy {
-        val response = userWalletApiManager.walletApi.getServerKey(xfp)
+    override suspend fun getServerKey(xfp: String, derivationPath: String): KeyPolicy {
+        val response = userWalletApiManager.walletApi.getServerKey(xfp, derivationPath)
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
         val spendingLimit = policy.spendingLimit?.let {
@@ -261,8 +261,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getGroupServerKey(groupId: String, xfp: String): GroupKeyPolicy {
-        val response = userWalletApiManager.groupWalletApi.getGroupServerKey(groupId, xfp)
+    override suspend fun getGroupServerKey(
+        groupId: String,
+        xfp: String,
+        derivationPath: String
+    ): GroupKeyPolicy {
+        val response =
+            userWalletApiManager.groupWalletApi.getGroupServerKey(groupId, xfp, derivationPath)
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
         return policy.toExternalModel()
@@ -271,9 +276,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun updateServerKeys(
         signatures: Map<String, String>,
         keyIdOrXfp: String,
+        derivationPath: String,
         token: String,
         securityQuestionToken: String,
-        body: String,
+        body: String
     ): KeyPolicy {
         val headers = mutableMapOf(VERIFY_TOKEN to token)
         if (securityQuestionToken.isNotEmpty()) {
@@ -285,7 +291,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
         }
         val response = userWalletApiManager.walletApi.updateServerKeys(
-            headers, keyIdOrXfp, gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
+            headers = headers,
+            keyId = keyIdOrXfp,
+            derivationPath = derivationPath,
+            body = gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
         )
         val serverPolicy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
@@ -299,6 +308,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         signatures: Map<String, String>,
         groupId: String,
         keyIdOrXfp: String,
+        derivationPath: String,
         token: String,
         securityQuestionToken: String,
         body: String
@@ -315,6 +325,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.groupWalletApi.updateGroupServerKeys(
             headers = headers,
             keyId = keyIdOrXfp,
+            derivationPath = derivationPath,
             groupId = groupId,
             body = gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
         )
@@ -624,18 +635,24 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun calculateRequiredSignaturesUpdateKeyPolicy(
-        xfp: String, walletId: String, keyPolicy: KeyPolicy
+        xfp: String,
+        derivationPath: String,
+        walletId: String,
+        keyPolicy: KeyPolicy
     ): CalculateRequiredSignatures {
         val response = userWalletApiManager.walletApi.calculateRequiredSignaturesUpdateServerKey(
-            xfp, CreateServerKeysPayload(
+            id = xfp,
+            derivationPath = derivationPath,
+            CreateServerKeysPayload(
                 walletId = walletId, keyPoliciesDtoPayload = keyPolicy.toDto(), name = null
-            )
+            ),
         )
         return response.data.result.toCalculateRequiredSignatures()
     }
 
     override suspend fun calculateRequiredSignaturesUpdateGroupKeyPolicy(
         xfp: String,
+        derivationPath: String,
         walletId: String,
         groupId: String,
         keyPolicy: GroupKeyPolicy
@@ -644,6 +661,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             userWalletApiManager.groupWalletApi.calculateRequiredSignaturesUpdateGroupServerKey(
                 groupId = groupId,
                 id = xfp,
+                derivationPath = derivationPath,
                 payload = CreateServerKeysPayload(
                     walletId = walletId, keyPoliciesDtoPayload = keyPolicy.toDto(), name = null
                 ),
@@ -1157,8 +1175,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 headers = headers,
                 payload = request
             )
-        }
-        else {
+        } else {
             userWalletApiManager.groupWalletApi.deleteAssistedWallet(
                 groupId = groupId,
                 walletId = walletId,
@@ -1214,10 +1231,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun reuseKeyWallet(walletId: String, plan: MembershipPlan) {
         val wallet = nunchukNativeSdk.getWallet(walletId)
         val verifyMap = coroutineScope {
-            wallet.signers.filter { it.type == SignerType.NFC }.map { it.masterFingerprint }
+            wallet.signers.filter { it.type == SignerType.NFC }
                 .map { key ->
                     async {
-                        userWalletApiManager.walletApi.getKey(key)
+                        userWalletApiManager.walletApi.getKey(
+                            key.masterFingerprint,
+                            key.derivationPath
+                        )
                     }
                 }.awaitAll().associateBy { it.data.keyXfp }
                 .mapValues { it.value.data.verificationType }

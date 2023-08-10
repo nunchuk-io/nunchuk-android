@@ -27,7 +27,15 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -60,7 +68,11 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.LOCAL_CURRENCY
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SpendingPolicy
@@ -127,14 +139,14 @@ class CosigningPolicyFragment : Fragment() {
                             activityContext = requireActivity(),
                             groupStep = MembershipStage.CONFIG_SERVER_KEY,
                             keyPolicy = viewModel.state.value.keyPolicy,
-                            xfp = args.xfp
+                            xfp = args.signer?.fingerPrint.orEmpty(),
                         )
                         CosigningPolicyEvent.OnEditSpendingLimitClicked -> navigator.openConfigServerKeyActivity(
                             launcher = launcher,
                             activityContext = requireActivity(),
                             groupStep = MembershipStage.CONFIG_SPENDING_LIMIT,
                             keyPolicy = viewModel.state.value.keyPolicy,
-                            xfp = args.xfp
+                            xfp = args.signer?.fingerPrint.orEmpty(),
                         )
                         CosigningPolicyEvent.OnDiscardChange -> NCWarningDialog(requireActivity()).showDialog(
                             title = getString(R.string.nc_confirmation),

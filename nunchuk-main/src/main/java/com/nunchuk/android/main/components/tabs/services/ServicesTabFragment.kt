@@ -26,7 +26,13 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
@@ -292,7 +298,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         CosigningPolicyActivity.start(
             activity = requireActivity(),
             keyPolicy = null,
-            xfp = event.signer.masterFingerprint,
+            signer = event.signer.toModel(),
             token = event.token,
             walletId = event.walletId,
         )

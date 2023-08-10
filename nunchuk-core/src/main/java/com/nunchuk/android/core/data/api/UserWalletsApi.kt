@@ -34,7 +34,10 @@ internal const val TRANSACTION_PAGE_COUNT: Int = 20
 
 internal interface UserWalletsApi {
     @GET("/v1.1/user-wallets/server-keys/{key_id_or_xfp}")
-    suspend fun getServerKey(@Path("key_id_or_xfp") keyIdOrXfp: String): Data<CreateServerKeyResponse>
+    suspend fun getServerKey(
+        @Path("key_id_or_xfp") keyIdOrXfp: String,
+        @Query("derivation_path") derivationPath: String,
+    ): Data<CreateServerKeyResponse>
 
     @POST("/v1.1/user-wallets/server-keys")
     suspend fun createServerKey(@Body payload: CreateServerKeysPayload): Data<CreateServerKeyResponse>
@@ -43,6 +46,7 @@ internal interface UserWalletsApi {
     suspend fun updateServerKeys(
         @HeaderMap headers: Map<String, String>,
         @Path("key_id_or_xfp") keyId: String,
+        @Query("derivation_path") derivationPath: String,
         @Body body: KeyPolicyUpdateRequest
     ): Data<CreateServerKeyResponse>
 
@@ -102,7 +106,10 @@ internal interface UserWalletsApi {
     ): Data<TransactionResponse>
 
     @GET("/v1.1/user-wallets/inheritance")
-    suspend fun getInheritance(@Query("wallet") wallet: String, @Query("groupId") groupId: String? = null): Data<InheritanceResponse>
+    suspend fun getInheritance(
+        @Query("wallet") wallet: String,
+        @Query("groupId") groupId: String? = null
+    ): Data<InheritanceResponse>
 
     @POST("/v1.1/user-wallets/inheritance")
     suspend fun createInheritance(
@@ -129,6 +136,7 @@ internal interface UserWalletsApi {
     @GET("/v1.1/user-wallets/user-keys/{key_id_or_xfp}")
     suspend fun getKey(
         @Path("key_id_or_xfp") id: String,
+        @Query("derivation_path") derivationPath: String,
     ): Data<KeyResponse>
 
     @POST("/v1.1/user-wallets/security-questions/calculate-required-signatures")
@@ -138,7 +146,9 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/server-keys/{key_id_or_xfp}/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesUpdateServerKey(
-        @Path("key_id_or_xfp") id: String, @Body payload: CreateServerKeysPayload
+        @Path("key_id_or_xfp") id: String,
+        @Query("derivation_path") derivationPath: String,
+        @Body payload: CreateServerKeysPayload
     ): Data<CalculateRequiredSignaturesResponse>
 
     @PUT("/v1.1/user-wallets/security-questions/update")

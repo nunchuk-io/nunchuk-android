@@ -141,7 +141,7 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
-    fun verifyPassword(password: String, xfp: String) {
+    fun verifyPassword(password: String, signer: SignerModel) {
         viewModelScope.launch {
             setEvent(WalletConfigEvent.Loading(true))
             val result = verifiedPasswordTokenUseCase(
@@ -155,7 +155,7 @@ internal class WalletConfigViewModel @Inject constructor(
                 setEvent(
                     WalletConfigEvent.VerifyPasswordSuccess(
                         result.getOrThrow().orEmpty(),
-                        xfp,
+                        signer,
                         assistedWalletManager.getGroupId(walletId)
                     )
                 )

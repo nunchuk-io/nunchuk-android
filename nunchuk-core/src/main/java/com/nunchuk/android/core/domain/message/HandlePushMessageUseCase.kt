@@ -38,8 +38,8 @@ class HandlePushMessageUseCase @Inject constructor(
                 }
                 pushEventManager.push(
                     PushEvent.ServerTransactionEvent(
-                        parameters.getWalletId(),
-                        parameters.getTransactionId()
+                        parameters.getWalletId().orEmpty(),
+                        parameters.getTransactionId().orEmpty()
                     )
                 )
             }
@@ -53,13 +53,13 @@ class HandlePushMessageUseCase @Inject constructor(
             val result = isHandledEventUseCase.invoke(parameters.eventId)
             if (result.getOrDefault(false).not()) {
                 saveHandledEventUseCase.invoke(parameters.eventId)
-                pushEventManager.push(PushEvent.WalletCreate(parameters.getWalletId()))
+                pushEventManager.push(PushEvent.WalletCreate(parameters.getWalletId().orEmpty()))
             }
         } else if (parameters.isTransactionCancelled()) {
             val result = isHandledEventUseCase.invoke(parameters.eventId)
             if (result.getOrDefault(false).not()) {
                 saveHandledEventUseCase.invoke(parameters.eventId)
-                pushEventManager.push(PushEvent.TransactionCancelled(parameters.getWalletId(), parameters.getTransactionId()))
+                pushEventManager.push(PushEvent.TransactionCancelled(parameters.getWalletId().orEmpty(), parameters.getTransactionId().orEmpty()))
             }
         }
     }

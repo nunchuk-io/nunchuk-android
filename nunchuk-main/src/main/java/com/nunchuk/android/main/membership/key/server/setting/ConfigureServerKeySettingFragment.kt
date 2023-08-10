@@ -118,7 +118,6 @@ class ConfigureServerKeySettingFragment : MembershipFragment() {
                     putExtras(
                         CosigningPolicyFragmentArgs(
                             keyPolicy,
-                            xfp = args.xfp.orEmpty()
                         ).toBundle()
                     )
                 })
