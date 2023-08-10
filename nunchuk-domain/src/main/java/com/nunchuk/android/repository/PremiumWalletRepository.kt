@@ -62,7 +62,12 @@ interface PremiumWalletRepository {
     ): KeyPolicy
 
     suspend fun getServerKey(xfp: String, derivationPath: String): KeyPolicy
-    suspend fun getGroupServerKey(groupId: String, xfp: String, derivationPath: String): GroupKeyPolicy
+    suspend fun getGroupServerKey(
+        groupId: String,
+        xfp: String,
+        derivationPath: String
+    ): GroupKeyPolicy
+
     suspend fun updateServerKeys(
         signatures: Map<String, String>,
         keyIdOrXfp: String,
@@ -89,7 +94,13 @@ interface PremiumWalletRepository {
 
     suspend fun getServerWallet(): WalletServerSync
     suspend fun updateServerKey(xfp: String, name: String): Boolean
-    suspend fun createServerTransaction(walletId: String, psbt: String, note: String?)
+    suspend fun createServerTransaction(
+        groupId: String?,
+        walletId: String,
+        psbt: String,
+        note: String?
+    )
+
     suspend fun updateServerTransaction(walletId: String, txId: String, note: String?)
     suspend fun signServerTransaction(
         walletId: String,
@@ -326,7 +337,11 @@ interface PremiumWalletRepository {
     suspend fun createGroupWallet(groupId: String, name: String): Wallet
     suspend fun groupMemberAcceptRequest(groupId: String)
     suspend fun groupMemberDenyRequest(groupId: String)
-    suspend fun syncGroupWallet(groupId: String, groupAssistedKeys: MutableSet<String> = mutableSetOf()): Boolean
+    suspend fun syncGroupWallet(
+        groupId: String,
+        groupAssistedKeys: MutableSet<String> = mutableSetOf()
+    ): Boolean
+
     suspend fun getAlerts(groupId: String): List<Alert>
     suspend fun markAlertAsRead(groupId: String, alertId: String)
     suspend fun dismissAlert(groupId: String, alertId: String)
@@ -337,5 +352,9 @@ interface PremiumWalletRepository {
     suspend fun getHistoryPeriod(): List<HistoryPeriod>
     suspend fun requestConfirmationCode(action: String, userData: String): Pair<String, String>
     suspend fun verifyConfirmationCode(codeId: String, code: String): String
-    suspend fun updateServerWallet(walletLocalId: String, name: String, groupId: String?): SeverWallet
+    suspend fun updateServerWallet(
+        walletLocalId: String,
+        name: String,
+        groupId: String?
+    ): SeverWallet
 }

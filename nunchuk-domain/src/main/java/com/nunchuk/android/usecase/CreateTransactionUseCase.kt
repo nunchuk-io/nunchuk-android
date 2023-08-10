@@ -45,6 +45,7 @@ class CreateTransactionUseCase @Inject constructor(
         if (parameters.isAssistedWallet) {
             try {
                 repository.createServerTransaction(
+                    parameters.groupId,
                     parameters.walletId,
                     transaction.psbt,
                     transaction.memo,
@@ -57,6 +58,7 @@ class CreateTransactionUseCase @Inject constructor(
     }
 
     data class Param(
+        val groupId: String?,
         val walletId: String,
         val outputs: Map<String, Amount>,
         val memo: String = "",

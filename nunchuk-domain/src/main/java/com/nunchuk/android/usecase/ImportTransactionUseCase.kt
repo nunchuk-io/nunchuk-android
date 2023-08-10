@@ -33,6 +33,7 @@ class ImportTransactionUseCase @Inject constructor(
 ) : UseCase<ImportTransactionUseCase.Param, Transaction>(ioDispatcher) {
 
     data class Param(
+        val groupId: String?,
         val walletId: String,
         val filePath: String,
         val isAssistedWallet: Boolean,
@@ -48,6 +49,7 @@ class ImportTransactionUseCase @Inject constructor(
         if (parameters.isAssistedWallet) {
             runCatching {
                 userWalletRepository.createServerTransaction(
+                    parameters.groupId,
                     walletId = parameters.walletId,
                     psbt = result.psbt,
                     note = result.memo

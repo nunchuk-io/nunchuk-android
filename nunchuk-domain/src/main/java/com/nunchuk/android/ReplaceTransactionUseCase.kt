@@ -39,6 +39,7 @@ class ReplaceTransactionUseCase @Inject constructor(
         if (parameters.isAssistedWallet) {
             try {
                 repository.createServerTransaction(
+                    parameters.groupId,
                     parameters.walletId,
                     transaction.psbt,
                     transaction.memo,
@@ -50,5 +51,5 @@ class ReplaceTransactionUseCase @Inject constructor(
         return transaction
     }
 
-    data class Data(val walletId: String, val txId: String, val newFee: Int, val isAssistedWallet: Boolean)
+    data class Data(val groupId: String?, val walletId: String, val txId: String, val newFee: Int, val isAssistedWallet: Boolean)
 }

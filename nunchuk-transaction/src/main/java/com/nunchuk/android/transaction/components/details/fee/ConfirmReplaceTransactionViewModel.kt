@@ -29,7 +29,11 @@ import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeR
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -68,6 +72,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(ReplaceFeeEvent.Loading(true))
             val result = replaceTransactionUseCase(ReplaceTransactionUseCase.Data(
+                groupId = assistedWalletManager.getGroupId(walletId),
                 walletId = walletId,
                 txId = txId,
                 newFee = newFee,

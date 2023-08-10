@@ -17,6 +17,7 @@ import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
+import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
@@ -241,5 +242,34 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @HeaderMap headers: Map<String, String>,
         @Body payload: DeleteAssistedWalletRequest
+    ): Data<TransactionResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}")
+    suspend fun getTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+    ): Data<TransactionResponse>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}")
+    suspend fun deleteTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+    ): Data<TransactionResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}")
+    suspend fun updateTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: CreateOrUpdateServerTransactionRequest
+    ): Data<TransactionResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions")
+    suspend fun createTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: CreateOrUpdateServerTransactionRequest
     ): Data<TransactionResponse>
 }

@@ -133,7 +133,8 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
                 if ((event is PushEvent.TransactionCancelled && event.walletId == args.walletId)
-                    || (event is PushEvent.ServerTransactionEvent && event.walletId == args.walletId)) {
+                    || (event is PushEvent.ServerTransactionEvent && event.walletId == args.walletId)
+                ) {
                     syncTransactionFromServer()
                 }
             }
@@ -272,6 +273,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             importTransactionUseCase(
                 ImportTransactionUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(args.walletId),
                     walletId = args.walletId,
                     filePath = filePath,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)

@@ -239,6 +239,7 @@ class TransactionConfirmViewModel @Inject constructor(
             event(LoadingEvent)
             val result = createTransactionUseCase(
                 CreateTransactionUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
                     outputs = getOutputs(),
                     inputs = inputs.map { TxInput(it.txid, it.vout) },

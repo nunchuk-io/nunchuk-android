@@ -196,7 +196,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            pushEventManager.event.collect {event ->
+            pushEventManager.event.collect { event ->
                 if (event is PushEvent.ServerTransactionEvent) {
                     if (event.transactionId == txId) {
                         Timber.d("ServerTransactionEvent")
@@ -556,7 +556,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val fingerPrint = signer.fingerPrint
             val device =
-                masterSigners.firstOrNull { it.device.masterFingerprint == fingerPrint }?.device ?: return@launch
+                masterSigners.firstOrNull { it.device.masterFingerprint == fingerPrint }?.device
+                    ?: return@launch
             if (device.needPassPhraseSent) {
                 setEvent(PromptInputPassphrase {
                     viewModelScope.launch {
@@ -742,13 +743,19 @@ internal class TransactionDetailsViewModel @Inject constructor(
             val file = withContext(dispatcher) {
                 getFileFromUri(application.contentResolver, uri, application.cacheDir)
             } ?: return@launch
-            importTransactionUseCase(ImportTransactionUseCase.Param(walletId = walletId, filePath = file.absolutePath, isAssistedWallet = isAssistedWallet()))
-                .onSuccess {
-                    getTransactionInfo()
-                    event(ImportTransactionSuccess)
-                }.onFailure {
-                    event(TransactionError(it.readableMessage()))
-                }
+            importTransactionUseCase(
+                ImportTransactionUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(walletId),
+                    walletId = walletId,
+                    filePath = file.absolutePath,
+                    isAssistedWallet = isAssistedWallet()
+                )
+            ).onSuccess {
+                getTransactionInfo()
+                event(ImportTransactionSuccess)
+            }.onFailure {
+                event(TransactionError(it.readableMessage()))
+            }
         }
     }
 

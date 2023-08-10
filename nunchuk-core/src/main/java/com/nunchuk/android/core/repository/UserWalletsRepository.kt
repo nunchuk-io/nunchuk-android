@@ -952,13 +952,22 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createServerTransaction(
-        walletId: String, psbt: String, note: String?
+        groupId: String?, walletId: String, psbt: String, note: String?
     ) {
-        val response = userWalletApiManager.walletApi.createTransaction(
-            walletId, CreateOrUpdateServerTransactionRequest(
-                note = note, psbt = psbt
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.createTransaction(
+                groupId,
+                walletId, CreateOrUpdateServerTransactionRequest(
+                    note = note, psbt = psbt
+                )
             )
-        )
+        } else {
+            userWalletApiManager.walletApi.createTransaction(
+                walletId, CreateOrUpdateServerTransactionRequest(
+                    note = note, psbt = psbt
+                )
+            )
+        }
         if (response.isSuccess.not()) {
             throw response.error
         }
