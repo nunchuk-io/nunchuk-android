@@ -404,6 +404,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             setEvent(LoadingEvent)
             val result = updateTransactionMemo(
                 UpdateTransactionMemo.Data(
+                    assistedWalletManager.getGroupId(walletId),
                     walletId,
                     isAssistedWallet(),
                     txId,

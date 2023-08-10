@@ -26,9 +26,20 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.usecase.coin.*
+import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
+import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
+import com.nunchuk.android.usecase.coin.LockCoinUseCase
+import com.nunchuk.android.usecase.coin.RemoveCoinFromCollectionUseCase
+import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
+import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -108,10 +119,11 @@ class CoinListViewModel @Inject constructor(
             selectedCoins.asSequence().filter { it.isLocked.not() }.forEach {
                 lockCoinUseCase(
                     LockCoinUseCase.Params(
-                        walletId,
-                        it.txid,
-                        it.vout,
-                        assistedWalletManager.isActiveAssistedWallet(walletId)
+                        groupId = assistedWalletManager.getGroupId(walletId),
+                        walletId = walletId,
+                        txId = it.txid,
+                        vout = it.vout,
+                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
                     )
                 )
             }
@@ -125,10 +137,11 @@ class CoinListViewModel @Inject constructor(
             selectedCoins.asSequence().filter { it.isLocked }.forEach {
                 unLockCoinUseCase(
                     UnLockCoinUseCase.Params(
-                        walletId,
-                        it.txid,
-                        it.vout,
-                        assistedWalletManager.isActiveAssistedWallet(walletId)
+                        groupId = assistedWalletManager.getGroupId(walletId),
+                        walletId = walletId,
+                        txId = it.txid,
+                        vout = it.vout,
+                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
                     )
                 )
             }
@@ -140,6 +153,7 @@ class CoinListViewModel @Inject constructor(
     fun removeCoinFromTag(walletId: String, tagId: Int) = viewModelScope.launch {
         val result = removeCoinFromTagUseCase(
             RemoveCoinFromTagUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(walletId),
                 walletId = walletId,
                 tagIds = listOf(tagId),
                 coins = _state.value.selectedCoins.toList(),
@@ -156,6 +170,7 @@ class CoinListViewModel @Inject constructor(
     fun removeCoinFromCollection(walletId: String, collectionId: Int) = viewModelScope.launch {
         val result = removeCoinFromCollectionUseCase(
             RemoveCoinFromCollectionUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(walletId),
                 walletId = walletId,
                 collectionIds = listOf(collectionId),
                 coins = _state.value.selectedCoins.toList(),

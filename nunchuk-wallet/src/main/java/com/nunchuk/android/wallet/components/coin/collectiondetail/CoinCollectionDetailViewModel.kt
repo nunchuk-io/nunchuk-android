@@ -75,6 +75,7 @@ class CoinCollectionDetailViewModel @Inject constructor(
     fun deleteCoinCollection() = viewModelScope.launch {
         val result = deleteCoinCollectionUseCase(
             DeleteCoinCollectionUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(args.walletId),
                 walletId = args.walletId,
                 collectionId = args.coinCollection.id,
                 isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
@@ -94,6 +95,7 @@ class CoinCollectionDetailViewModel @Inject constructor(
     fun removeCoin(coins: List<UnspentOutput>) = viewModelScope.launch {
         val result = removeCoinFromCollectionUseCase(
             RemoveCoinFromCollectionUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(args.walletId),
                 walletId = args.walletId,
                 collectionIds = listOf(args.coinCollection.id),
                 coins = coins,

@@ -1302,12 +1302,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun getCoinControlData(walletId: String): String {
-        return userWalletApiManager.walletApi.getCoinControlData(walletId).data.data.orEmpty()
+    override suspend fun getCoinControlData(groupId: String?, walletId: String): String {
+        return if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.getCoinControlData(groupId, walletId).data.data.orEmpty()
+        } else {
+            userWalletApiManager.walletApi.getCoinControlData(walletId).data.data.orEmpty()
+        }
     }
 
-    override suspend fun uploadCoinControlData(walletId: String, data: String) {
-        userWalletApiManager.walletApi.uploadCoinControlData(walletId, CoinDataContent(data))
+    override suspend fun uploadCoinControlData(groupId: String?, walletId: String, data: String) {
+        if (!groupId.isNullOrEmpty())
+            userWalletApiManager.groupWalletApi.uploadCoinControlData(groupId, walletId, CoinDataContent(data))
+        else
+            userWalletApiManager.walletApi.uploadCoinControlData(walletId, CoinDataContent(data))
     }
 
     override suspend fun clearTransactionEmergencyLockdown(walletId: String) {

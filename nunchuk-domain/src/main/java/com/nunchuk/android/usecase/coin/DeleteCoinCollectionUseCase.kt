@@ -38,8 +38,9 @@ class DeleteCoinCollectionUseCase @Inject constructor(
     }
 
     class Param(
+        override val groupId: String?,
         override val walletId: String,
         val collectionId: Int,
         override val isAssistedWallet: Boolean
-    ) : BaseSyncCoinUseCase.Param(walletId, isAssistedWallet)
+    ) : BaseSyncCoinUseCase.Param(groupId, walletId, isAssistedWallet)
 }

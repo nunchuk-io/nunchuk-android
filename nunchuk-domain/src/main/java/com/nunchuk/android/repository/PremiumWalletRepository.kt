@@ -283,9 +283,9 @@ interface PremiumWalletRepository {
 
     fun assistedKeys(): Flow<Set<String>>
 
-    suspend fun getCoinControlData(walletId: String): String
+    suspend fun getCoinControlData(groupId: String?, walletId: String): String
 
-    suspend fun uploadCoinControlData(walletId: String, data: String)
+    suspend fun uploadCoinControlData(groupId: String?, walletId: String, data: String)
 
     suspend fun clearTransactionEmergencyLockdown(walletId: String)
 

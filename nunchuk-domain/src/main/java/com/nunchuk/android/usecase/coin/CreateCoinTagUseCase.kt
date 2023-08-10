@@ -40,9 +40,10 @@ class CreateCoinTagUseCase @Inject constructor(
     }
 
     class Param(
+        override val groupId: String?,
         override val walletId: String,
         val name: String,
         val color: String,
         override val isAssistedWallet: Boolean
-    ) : BaseSyncCoinUseCase.Param(walletId, isAssistedWallet)
+    ) : BaseSyncCoinUseCase.Param(groupId, walletId, isAssistedWallet)
 }

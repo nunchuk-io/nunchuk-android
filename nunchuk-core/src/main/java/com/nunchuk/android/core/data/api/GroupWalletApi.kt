@@ -16,6 +16,7 @@ import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
+import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
@@ -243,6 +244,19 @@ internal interface GroupWalletApi {
         @HeaderMap headers: Map<String, String>,
         @Body payload: DeleteAssistedWalletRequest
     ): Data<TransactionResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/coin-control")
+    suspend fun uploadCoinControlData(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: CoinDataContent
+    ): Data<Unit>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/coin-control")
+    suspend fun getCoinControlData(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<CoinDataContent>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}")
     suspend fun getTransaction(
