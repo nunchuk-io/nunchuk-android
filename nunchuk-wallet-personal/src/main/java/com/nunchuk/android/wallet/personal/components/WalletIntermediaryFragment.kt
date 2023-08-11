@@ -38,10 +38,10 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
@@ -104,7 +104,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         flowObserver(viewModel.state) {
-            if (it.plan != MembershipPlan.BYZANTINE) {
+            if (!it.plan.isByzantine()) {
                 val isCreateAssistedWalletVisible = it.remainWalletCount > 0
                 binding.btnCreateAssistedWallet.apply {
                     isVisible = isCreateAssistedWalletVisible

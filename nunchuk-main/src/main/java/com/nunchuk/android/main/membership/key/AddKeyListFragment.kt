@@ -87,10 +87,10 @@ import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -112,7 +112,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (membershipStepManager.assistedWallets.any { it.plan != MembershipPlan.BYZANTINE } && membershipStepManager.isNotConfig()) {
+        if (membershipStepManager.assistedWallets.any { !it.plan.isByzantine() } && membershipStepManager.isNotConfig()) {
             NCWarningDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_key_resuse),
                 message = getString(R.string.nc_key_reuse_desc),

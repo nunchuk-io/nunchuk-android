@@ -66,16 +66,22 @@ class MembershipRepositoryImpl @Inject constructor(
 
     override fun getSteps(plan: MembershipPlan, groupId: String): Flow<List<MembershipStepInfo>> {
         return ncDataStore.chain.flatMapLatest { chain ->
-            membershipStepDao.getSteps(
-                accountManager.getAccount().chatId,
-                chain,
-                plan,
-                groupId
-            )
-        }
-            .map {
-                it.map { entity -> entity.toModel() }
+            if (groupId.isNotEmpty()) {
+                membershipStepDao.getSteps(
+                    accountManager.getAccount().chatId,
+                    chain,
+                    groupId
+                )
+            } else {
+                membershipStepDao.getSteps(
+                    accountManager.getAccount().chatId,
+                    chain,
+                    plan
+                )
             }
+        }.map {
+            it.map { entity -> entity.toModel() }
+        }
     }
 
     override suspend fun saveStepInfo(info: MembershipStepInfo) {

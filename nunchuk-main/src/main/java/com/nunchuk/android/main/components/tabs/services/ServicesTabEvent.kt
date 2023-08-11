@@ -21,7 +21,6 @@ package com.nunchuk.android.main.components.tabs.services
 
 import android.os.Parcelable
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceCheck
 import com.nunchuk.android.model.MembershipPlan
@@ -119,7 +118,7 @@ data class ServicesTabState(
                 }
             }
 
-            MembershipPlan.BYZANTINE -> {
+            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
                 if (userRole == AssistedWalletRole.KEYHOLDER_LIMITED.name ||
                     userRole == AssistedWalletRole.KEYHOLDER.name && isHasGroupTowOfFourMultisig.not()) {
                     items.apply {

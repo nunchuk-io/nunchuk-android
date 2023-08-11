@@ -31,8 +31,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MembershipStepDao : BaseDao<MembershipStepEntity> {
-    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND `plan` = :plan AND group_id = :groupId")
-    fun getSteps(chatId: String, chain: Chain, plan: MembershipPlan, groupId: String): Flow<List<MembershipStepEntity>>
+    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND `plan` = :plan")
+    fun getSteps(chatId: String, chain: Chain, plan: MembershipPlan): Flow<List<MembershipStepEntity>>
+
+    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND group_id = :groupId")
+    fun getSteps(chatId: String, chain: Chain, groupId: String): Flow<List<MembershipStepEntity>>
 
     @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND step = :step AND group_id = :groupId")
     suspend fun getStep(chatId: String, chain: Chain, step: MembershipStep, groupId: String = ""): MembershipStepEntity?

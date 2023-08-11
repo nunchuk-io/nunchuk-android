@@ -476,7 +476,7 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
 
-            MembershipPlan.BYZANTINE -> {
+            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
                 val allGroups = getState().allGroups
                 return if (allGroups.isEmpty()) MembershipStage.NONE else MembershipStage.DONE
             }

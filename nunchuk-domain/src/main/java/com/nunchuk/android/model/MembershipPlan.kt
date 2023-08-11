@@ -23,8 +23,10 @@ import androidx.annotation.Keep
 
 @Keep
 enum class MembershipPlan {
-    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE
+    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE, BYZANTINE_PRO
 }
+
+fun MembershipPlan.isByzantine() = this == MembershipPlan.BYZANTINE || this == MembershipPlan.BYZANTINE_PRO
 
 fun String?.toMembershipPlan() = when (this) {
     IRON_HAND_PLAN, IRON_HAND_PLAN_TESTNET -> {
@@ -36,6 +38,9 @@ fun String?.toMembershipPlan() = when (this) {
     BYZANTINE_PLAN_TESTNET, BYZANTINE_PLAN_ -> {
         MembershipPlan.BYZANTINE
     }
+    BYZANTINE_PRO_PLAN_TESTNET, BYZANTINE_PRO_PLAN -> {
+        MembershipPlan.BYZANTINE_PRO
+    }
     else -> {
         MembershipPlan.NONE
     }
@@ -45,5 +50,7 @@ private const val IRON_HAND_PLAN = "iron_hand"
 private const val IRON_HAND_PLAN_TESTNET = "iron_hand_testnet"
 private const val HONEY_BADGER_PLAN_TESTNET = "honey_badger_testnet"
 private const val BYZANTINE_PLAN_TESTNET = "byzantine_testnet"
+private const val BYZANTINE_PRO_PLAN_TESTNET = "byzantine_pro_testnet"
+private const val BYZANTINE_PRO_PLAN = "byzantine_pro"
 private const val BYZANTINE_PLAN_ = "byzantine"
 private const val HONEY_BADGER_PLAN = "honey_badger"

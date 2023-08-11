@@ -28,6 +28,7 @@ import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
@@ -91,7 +92,7 @@ class WalletIntermediaryViewModel @Inject constructor(
     fun getAssistedWalletConfig() {
         if (getWalletConfigJob?.isActive == true || _state.value.plan == MembershipPlan.NONE) return
         getWalletConfigJob = viewModelScope.launch {
-            if (_state.value.plan == MembershipPlan.BYZANTINE) {
+            if (_state.value.plan.isByzantine()) {
                 getGroupAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
                     _state.update {
                         it.copy(

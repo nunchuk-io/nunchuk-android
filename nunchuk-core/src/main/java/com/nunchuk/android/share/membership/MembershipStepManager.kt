@@ -122,7 +122,7 @@ class MembershipStepManager @Inject constructor(
                     steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
                 }
 
-                MembershipPlan.BYZANTINE -> {
+                MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
                     steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
                         MembershipStepFlow(totalStep = 8)
                     steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
