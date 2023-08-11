@@ -109,6 +109,7 @@ interface PremiumWalletRepository {
     )
 
     suspend fun signServerTransaction(
+        groupId: String?,
         walletId: String,
         txId: String,
         psbt: String
@@ -167,12 +168,14 @@ interface PremiumWalletRepository {
     suspend fun generateUpdateGroupServerKey(walletId: String, keyPolicy: GroupKeyPolicy): String
 
     suspend fun scheduleTransaction(
+        groupId: String?,
         walletId: String,
         transactionId: String,
         scheduleTime: Long
     ): ServerTransaction
 
     suspend fun deleteScheduleTransaction(
+        groupId: String?,
         walletId: String,
         transactionId: String,
     ): ServerTransaction

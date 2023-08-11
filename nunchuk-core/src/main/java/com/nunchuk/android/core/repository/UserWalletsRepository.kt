@@ -586,7 +586,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         updateScheduleTransactionIfNeed(walletId, transactionId, transaction)
         return ExtendedTransaction(
             transaction = handleServerTransaction(
-                walletId, transactionId, transaction
+                groupId, walletId, transactionId, transaction
             ),
             serverTransaction = response.data.transaction?.toServerTransaction(),
         )
@@ -1003,16 +1003,27 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun signServerTransaction(
-        walletId: String, txId: String, psbt: String
+        groupId: String?, walletId: String, txId: String, psbt: String
     ): ExtendedTransaction {
-        val response = userWalletApiManager.walletApi.signServerTransaction(
-            walletId, txId, SignServerTransactionRequest(psbt = psbt)
-        )
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.signServerTransaction(
+                groupId = groupId,
+                walletId = walletId,
+                transactionId = txId,
+                payload = SignServerTransactionRequest(psbt = psbt)
+            )
+        } else {
+            userWalletApiManager.walletApi.signServerTransaction(
+                walletId = walletId,
+                transactionId = txId,
+                payload = SignServerTransactionRequest(psbt = psbt)
+            )
+        }
         val transaction =
             response.data.transaction ?: throw NullPointerException("transaction from server null")
         return ExtendedTransaction(
             transaction = handleServerTransaction(
-                walletId, txId, transaction
+                groupId, walletId, txId, transaction
             ),
             serverTransaction = response.data.transaction?.toServerTransaction(),
         )
@@ -1049,7 +1060,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     private suspend fun handleServerTransaction(
-        walletId: String, transactionId: String, transaction: TransactionServerDto
+        groupId: String?,
+        walletId: String,
+        transactionId: String,
+        transaction: TransactionServerDto
     ): Transaction {
         return if (transaction.status == TransactionStatus.PENDING_CONFIRMATION.name || transaction.status == TransactionStatus.CONFIRMED.name || transaction.status == TransactionStatus.NETWORK_REJECTED.name) {
             nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
@@ -1063,9 +1077,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } else {
             val libTx = nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
             if (libTx.psbt != transaction.psbt) {
-                userWalletApiManager.walletApi.syncTransaction(
-                    walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt)
-                )
+                if (!groupId.isNullOrEmpty()) {
+                    userWalletApiManager.groupWalletApi.syncTransaction(
+                        groupId, walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt)
+                    )
+                } else {
+                    userWalletApiManager.walletApi.syncTransaction(
+                        walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt)
+                    )
+                }
             }
             libTx
         }
@@ -1097,12 +1117,29 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun scheduleTransaction(
-        walletId: String, transactionId: String, scheduleTime: Long
+        groupId: String?, walletId: String, transactionId: String, scheduleTime: Long
     ): ServerTransaction {
         val transaction = nunchukNativeSdk.getTransaction(walletId, transactionId)
-        val response = userWalletApiManager.walletApi.scheduleTransaction(
-            walletId, transactionId, ScheduleTransactionRequest(scheduleTime, transaction.psbt)
-        )
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.scheduleTransaction(
+                groupId = groupId,
+                walletId = walletId,
+                transactionId = transactionId,
+                payload = ScheduleTransactionRequest(
+                    scheduleTime = scheduleTime,
+                    psbt = transaction.psbt
+                )
+            )
+        } else {
+            userWalletApiManager.walletApi.scheduleTransaction(
+                walletId = walletId,
+                transactionId = transactionId,
+                payload = ScheduleTransactionRequest(
+                    scheduleTime = scheduleTime,
+                    psbt = transaction.psbt
+                )
+            )
+        }
         val serverTransaction = response.data.transaction
             ?: throw NullPointerException("Schedule transaction does not return server transaction")
         updateScheduleTransactionIfNeed(walletId, transactionId, serverTransaction)
@@ -1110,11 +1147,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteScheduleTransaction(
-        walletId: String, transactionId: String
+        groupId: String?, walletId: String, transactionId: String
     ): ServerTransaction {
-        val response = userWalletApiManager.walletApi.deleteScheduleTransaction(
-            walletId, transactionId,
-        )
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.deleteScheduleTransaction(
+                groupId = groupId,
+                walletId = walletId,
+                transactionId = transactionId
+            )
+        } else {
+            userWalletApiManager.walletApi.deleteScheduleTransaction(
+                walletId = walletId,
+                transactionId = transactionId
+            )
+        }
         if (response.isSuccess) {
             nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, 0)
         }
@@ -1326,7 +1372,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getCoinControlData(groupId: String?, walletId: String): String {
         return if (!groupId.isNullOrEmpty()) {
-            userWalletApiManager.groupWalletApi.getCoinControlData(groupId, walletId).data.data.orEmpty()
+            userWalletApiManager.groupWalletApi.getCoinControlData(
+                groupId,
+                walletId
+            ).data.data.orEmpty()
         } else {
             userWalletApiManager.walletApi.getCoinControlData(walletId).data.data.orEmpty()
         }
@@ -1334,7 +1383,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun uploadCoinControlData(groupId: String?, walletId: String, data: String) {
         if (!groupId.isNullOrEmpty())
-            userWalletApiManager.groupWalletApi.uploadCoinControlData(groupId, walletId, CoinDataContent(data))
+            userWalletApiManager.groupWalletApi.uploadCoinControlData(
+                groupId,
+                walletId,
+                CoinDataContent(data)
+            )
         else
             userWalletApiManager.walletApi.uploadCoinControlData(walletId, CoinDataContent(data))
     }

@@ -32,10 +32,15 @@ class CancelScheduleBroadcastTransactionUseCase @Inject constructor(
 ) : UseCase<CancelScheduleBroadcastTransactionUseCase.Param, ServerTransaction>(dispatcher) {
     override suspend fun execute(parameters: Param): ServerTransaction {
         return userWalletRepository.deleteScheduleTransaction(
+            parameters.groupId,
             parameters.walletId,
             parameters.transactionId,
         )
     }
 
-    class Param(val walletId: String, val transactionId: String)
+    class Param(
+        val groupId: String?,
+        val walletId: String,
+        val transactionId: String
+    )
 }

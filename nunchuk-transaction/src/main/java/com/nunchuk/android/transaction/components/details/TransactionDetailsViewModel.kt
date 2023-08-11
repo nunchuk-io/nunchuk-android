@@ -297,7 +297,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             signServerTransactionUseCase(
                 SignServerTransactionUseCase.Param(
-                    walletId, txId, psbt
+                    groupId = assistedWalletManager.getGroupId(walletId),
+                    walletId = walletId,
+                    txId = txId,
+                    psbt = psbt
                 )
             ).onSuccess { extendedTransaction ->
                 setEvent(
@@ -545,7 +548,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = cancelScheduleBroadcastTransactionUseCase(
                 CancelScheduleBroadcastTransactionUseCase.Param(
-                    walletId, txId
+                    groupId = assistedWalletManager.getGroupId(walletId),
+                    walletId = walletId,
+                    transactionId = txId,
                 )
             )
             if (result.isSuccess) {

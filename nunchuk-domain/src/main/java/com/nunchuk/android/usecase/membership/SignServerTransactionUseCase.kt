@@ -33,6 +33,7 @@ class SignServerTransactionUseCase @Inject constructor(
 
     override suspend fun execute(parameters: Param): ExtendedTransaction {
         return repository.signServerTransaction(
+            parameters.groupId,
             walletId = parameters.walletId,
             txId = parameters.txId,
             psbt = parameters.psbt
@@ -40,6 +41,7 @@ class SignServerTransactionUseCase @Inject constructor(
     }
 
     data class Param(
+        val groupId: String?,
         val walletId: String,
         val txId: String,
         val psbt: String,
