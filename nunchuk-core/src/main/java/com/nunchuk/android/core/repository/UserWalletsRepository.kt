@@ -574,9 +574,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getServerTransaction(
-        walletId: String, transactionId: String
+        groupId: String?, walletId: String, transactionId: String
     ): ExtendedTransaction {
-        val response = userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.getTransaction(groupId, walletId, transactionId)
+        } else {
+            userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
+        }
         val transaction =
             response.data.transaction ?: throw NullPointerException("Transaction from server null")
         updateScheduleTransactionIfNeed(walletId, transactionId, transaction)
@@ -974,15 +978,25 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateServerTransaction(
+        groupId: String?,
         walletId: String,
         txId: String,
         note: String?,
     ) {
-        val response = userWalletApiManager.walletApi.updateTransaction(
-            walletId, txId, CreateOrUpdateServerTransactionRequest(
-                note = note,
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.updateTransaction(
+                groupId,
+                walletId, txId, CreateOrUpdateServerTransactionRequest(
+                    note = note
+                )
             )
-        )
+        } else {
+            userWalletApiManager.walletApi.updateTransaction(
+                walletId, txId, CreateOrUpdateServerTransactionRequest(
+                    note = note
+                )
+            )
+        }
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -1004,8 +1018,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun deleteServerTransaction(walletId: String, transactionId: String) {
-        val response = userWalletApiManager.walletApi.deleteTransaction(walletId, transactionId)
+    override suspend fun deleteServerTransaction(
+        groupId: String?,
+        walletId: String,
+        transactionId: String
+    ) {
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.deleteTransaction(groupId, walletId, transactionId)
+        } else {
+            userWalletApiManager.walletApi.deleteTransaction(walletId, transactionId)
+        }
         if (response.isSuccess.not()) {
             throw response.error
         }

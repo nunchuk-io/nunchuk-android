@@ -101,15 +101,26 @@ interface PremiumWalletRepository {
         note: String?
     )
 
-    suspend fun updateServerTransaction(walletId: String, txId: String, note: String?)
+    suspend fun updateServerTransaction(
+        groupId: String?,
+        walletId: String,
+        txId: String,
+        note: String?
+    )
+
     suspend fun signServerTransaction(
         walletId: String,
         txId: String,
         psbt: String
     ): ExtendedTransaction
 
-    suspend fun getServerTransaction(walletId: String, transactionId: String): ExtendedTransaction
-    suspend fun deleteServerTransaction(walletId: String, transactionId: String)
+    suspend fun getServerTransaction(
+        groupId: String?,
+        walletId: String,
+        transactionId: String
+    ): ExtendedTransaction
+
+    suspend fun deleteServerTransaction(groupId: String?, walletId: String, transactionId: String)
     suspend fun getInheritance(walletId: String, groupId: String?): Inheritance
     suspend fun downloadBackup(
         id: String,

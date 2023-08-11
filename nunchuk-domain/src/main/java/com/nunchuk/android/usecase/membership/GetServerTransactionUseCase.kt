@@ -31,8 +31,12 @@ class GetServerTransactionUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
 ) : UseCase<GetServerTransactionUseCase.Param, ExtendedTransaction>(ioDispatcher) {
     override suspend fun execute(parameters: Param): ExtendedTransaction {
-        return repository.getServerTransaction(parameters.walletId, parameters.txId)
+        return repository.getServerTransaction(parameters.groupId, parameters.walletId, parameters.txId)
     }
 
-    data class Param(val walletId: String, val txId: String)
+    data class Param(
+        val groupId: String?,
+        val walletId: String,
+        val txId: String
+    )
 }

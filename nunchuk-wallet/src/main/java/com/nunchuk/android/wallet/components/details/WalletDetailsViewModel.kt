@@ -226,7 +226,8 @@ internal class WalletDetailsViewModel @Inject constructor(
                     getServerTransactionUseCase = getServerTransactionUseCase,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
                     walletId = args.walletId,
-                    serverTransactions = serverTransactions
+                    groupId = assistedWalletManager.getGroupId(args.walletId),
+                    serverTransactions = serverTransactions,
                 )
             }).flow.cachedIn(
             viewModelScope

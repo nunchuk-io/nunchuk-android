@@ -27,17 +27,17 @@ import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
-import javax.inject.Inject
 
 internal const val STARTING_PAGE = 1
 internal const val PAGE_SIZE = 100
 
-class TransactionPagingSource @Inject constructor(
+class TransactionPagingSource constructor(
     private val transactions: List<Transaction>,
     private val getServerTransactionUseCase: GetServerTransactionUseCase,
     private val walletId: String,
+    private val groupId: String?,
     private val isAssistedWallet: Boolean,
-    private val serverTransactions: MutableMap<String, ServerTransaction?>
+    private val serverTransactions: MutableMap<String, ServerTransaction?>,
 ) : PagingSource<Int, ExtendedTransaction>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ExtendedTransaction> {
@@ -50,6 +50,7 @@ class TransactionPagingSource @Inject constructor(
                     if (serverTransactions.contains(transaction.txId).not()) {
                         serverTransactions[transaction.txId] = getServerTransactionUseCase(
                             GetServerTransactionUseCase.Param(
+                                groupId,
                                 walletId,
                                 transaction.txId
                             )

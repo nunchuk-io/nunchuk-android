@@ -40,6 +40,7 @@ class UpdateTransactionMemo @Inject constructor(
             if (parameters.isAssistedWallet) {
                 runCatching {
                     repository.updateServerTransaction(
+                        parameters.groupId,
                         parameters.walletId,
                         parameters.txId,
                         parameters.newMemo

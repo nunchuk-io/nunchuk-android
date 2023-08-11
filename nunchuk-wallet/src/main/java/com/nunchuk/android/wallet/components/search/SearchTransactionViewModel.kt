@@ -121,8 +121,9 @@ internal class SearchTransactionViewModel @Inject constructor(
             if (serverTransactions.contains(this.txId).not()) {
                 serverTransactions[this.txId] = getServerTransactionUseCase(
                     GetServerTransactionUseCase.Param(
-                        args.walletId,
-                        this.txId
+                        groupId = assistedWalletManager.getGroupId(args.walletId),
+                        walletId = args.walletId,
+                        txId = this.txId
                     )
                 ).getOrNull()?.serverTransaction
             }

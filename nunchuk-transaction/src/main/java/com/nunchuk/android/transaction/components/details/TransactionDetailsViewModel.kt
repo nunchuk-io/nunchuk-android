@@ -434,7 +434,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         if (getTransactionJob?.isActive == true) return
         getTransactionJob = viewModelScope.launch {
             getTransactionUseCase.execute(
-                walletId, txId, assistedWalletManager.isActiveAssistedWallet(walletId)
+                groupId = assistedWalletManager.getGroupId(walletId),
+                walletId = walletId,
+                txId = txId,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
             ).flowOn(IO).onException {
                 if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
                     handleDeleteTransactionEvent(isCancel = true, onlyLocal = true)
@@ -524,6 +527,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             setEvent(LoadingEvent)
             val result = deleteTransactionUseCase(
                 DeleteTransactionUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
                     txId = txId,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId) && !onlyLocal

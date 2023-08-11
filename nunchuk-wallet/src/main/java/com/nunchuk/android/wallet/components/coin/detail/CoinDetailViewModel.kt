@@ -58,11 +58,14 @@ class CoinDetailViewModel @Inject constructor(
     }
 
     fun getTransactionDetail() {
-        getTransactionUseCase.execute(args.walletId, args.output.txid, false)
-            .onEach { transition ->
-                _state.update { it.copy(transaction = transition.transaction) }
-            }
-            .launchIn(viewModelScope)
+        getTransactionUseCase.execute(
+            groupId = assistedWalletManager.getGroupId(args.walletId),
+            walletId = args.walletId,
+            txId = args.output.txid,
+            isAssistedWallet = false
+        ).onEach { transition ->
+            _state.update { it.copy(transaction = transition.transaction) }
+        }.launchIn(viewModelScope)
     }
 
     fun lockCoin(isLocked: Boolean) {
