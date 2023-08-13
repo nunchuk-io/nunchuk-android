@@ -27,7 +27,9 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -46,8 +48,10 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val groupId = intent.getStringExtra(EXTRA_GROUP_ID).orEmpty()
-        membershipStepManager.initStep(groupId)
+        val groupId = intent.getStringExtra(MembershipActivity.EXTRA_GROUP_ID).orEmpty()
+        if (groupId.isEmpty()) {
+            membershipStepManager.initStep(groupId)
+        }
         membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -103,6 +107,15 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 else -> WindowCompat.setDecorFitsSystemWindows(window, false)
             }
         }
+        observer()
+    }
+
+    private fun observer() {
+        flowObserver(viewModel.state) {
+            if (it.groupWalletType != null) {
+                membershipStepManager.initStep(it.groupId, it.groupWalletType)
+            }
+        }
     }
 
     override fun initializeBinding(): ActivityNavigationBinding {
@@ -116,7 +129,6 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_INHERITANCE = "extra_inheritance"
         private const val EXTRA_IS_OPEN_FROM_WIZARD = "extra_is_open_from_wizard"
         private const val EXTRA_WALLET_ID = "wallet_id"
-        private const val EXTRA_GROUP_ID = "group_id"
 
         fun navigate(
             walletId: String,
@@ -133,7 +145,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 .putExtra(EXTRA_INHERITANCE, inheritance)
                 .putExtra(EXTRA_IS_OPEN_FROM_WIZARD, isOpenFromWizard)
                 .putExtra(EXTRA_WALLET_ID, walletId)
-                .putExtra(EXTRA_GROUP_ID, groupId)
+                .putExtra(MembershipActivity.EXTRA_GROUP_ID, groupId)
             activity.startActivity(intent)
         }
     }

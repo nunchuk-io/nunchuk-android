@@ -27,6 +27,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
@@ -95,7 +96,7 @@ class MembershipStepManager @Inject constructor(
     }
 
     // Special case when set up wallet done and login in another device to setup inheritance we should mark all created wallet step to done
-    fun initStep(groupId: String) =
+    fun initStep(groupId: String, groupWalletType: GroupWalletType? = null) =
         synchronized(this) {
             steps.clear()
             val currentPlan = plan
@@ -123,16 +124,42 @@ class MembershipStepManager @Inject constructor(
                 }
 
                 MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
-                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
-                        MembershipStepFlow(totalStep = 8)
-                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
-                        MembershipStepFlow(totalStep = 8)
-                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
-                        MembershipStepFlow(totalStep = 8)
-                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                    when (groupWalletType) {
+                        GroupWalletType.TWO_OF_THREE -> {
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                                MembershipStepFlow(totalStep = 8)
+                        }
+
+                        GroupWalletType.THREE_OF_FIVE -> {
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4] =
+                                MembershipStepFlow(totalStep = 8)
+                        }
+
+                        else -> {
+                            steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                            steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
+                        }
+                    }
                     steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
                     steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-                    steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
                 }
 
                 MembershipPlan.NONE -> Unit
@@ -215,6 +242,7 @@ class MembershipStepManager @Inject constructor(
                     )
                 )
             }
+
             else -> {
                 _stepDone.value.containsAll(
                     listOf(
@@ -242,6 +270,9 @@ class MembershipStepManager @Inject constructor(
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.toMap().filter { it.key in querySteps }.values)
+
+    fun getRemainTimeByOtherSteps(querySteps: List<MembershipStep>) =
+        calculateRemainTime(steps.toMap().filter { it.key !in querySteps }.values)
 
     fun getTapSignerName() =
         if (currentStep == MembershipStep.HONEY_ADD_TAP_SIGNER) TAPSIGNER_INHERITANCE_NAME else "TAPSIGNER${

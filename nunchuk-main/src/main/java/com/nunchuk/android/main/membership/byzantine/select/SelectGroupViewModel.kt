@@ -2,7 +2,7 @@ package com.nunchuk.android.main.membership.byzantine.select
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.main.membership.model.GroupWalletType
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow

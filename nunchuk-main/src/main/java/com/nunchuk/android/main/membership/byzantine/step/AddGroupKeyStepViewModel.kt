@@ -92,17 +92,16 @@ class AddGroupKeyStepViewModel @Inject constructor(
         membershipStepManager.stepDone.map { membershipStepManager.isSetupInheritanceDone() }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    // TODO Hai 2/3, 3/5
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
-            val setupKeySteps = listOf(
-                MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
-                MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-                MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
-                MembershipStep.ADD_SEVER_KEY
-            )
             intArrayOf(
-                membershipStepManager.getRemainTimeBySteps(setupKeySteps),
+                membershipStepManager.getRemainTimeByOtherSteps(
+                    listOf(
+                        MembershipStep.SETUP_KEY_RECOVERY,
+                        MembershipStep.CREATE_WALLET,
+                        MembershipStep.SETUP_INHERITANCE
+                    )
+                ),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_KEY_RECOVERY)),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.CREATE_WALLET)),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_INHERITANCE)),

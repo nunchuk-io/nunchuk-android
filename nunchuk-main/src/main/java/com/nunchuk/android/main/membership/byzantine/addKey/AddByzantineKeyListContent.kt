@@ -35,9 +35,9 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.AddKeyCard
 import com.nunchuk.android.main.membership.model.AddKeyData
-import com.nunchuk.android.main.membership.model.GroupWalletType
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.type.SignerType
 import java.util.Collections.emptyList
 

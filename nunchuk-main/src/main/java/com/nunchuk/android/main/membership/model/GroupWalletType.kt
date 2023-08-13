@@ -1,15 +1,11 @@
 package com.nunchuk.android.main.membership.model
 
-import androidx.annotation.Keep
 import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.byzantine.GroupWalletType
 
-@Keep
-enum class GroupWalletType(val m: Int, val n: Int, val isPro: Boolean) {
-    TWO_OF_FOUR_MULTISIG(2, 4, true), TWO_OF_THREE(2, 3, false), THREE_OF_FIVE(3, 5, false)
-}
 
 @get:StringRes
 val GroupWalletType.title: Int
@@ -31,12 +27,12 @@ val GroupWalletType.desc: Int
         }
     }
 
-fun String.toGroupWalletType(): GroupWalletType {
-    return GroupWalletType.values().first { this == it.name }
+fun String.toGroupWalletType(): GroupWalletType? {
+    return GroupWalletType.values().find { this == it.name }
 }
 
-fun ByzantineWalletConfig.toGroupWalletType(): GroupWalletType {
-    return GroupWalletType.values().first { this.m == m && this.n == n }
+fun ByzantineWalletConfig.toGroupWalletType(): GroupWalletType? {
+    return GroupWalletType.values().find { this.m == it.m && this.n == it.n }
 }
 
 fun GroupWalletType.toSteps() : List<MembershipStep> = when(this) {

@@ -50,9 +50,9 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.model.GroupWalletType
 import com.nunchuk.android.main.membership.model.desc
 import com.nunchuk.android.main.membership.model.title
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint

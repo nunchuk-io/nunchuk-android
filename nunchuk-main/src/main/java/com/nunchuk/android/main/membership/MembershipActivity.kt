@@ -22,8 +22,10 @@ package com.nunchuk.android.main.membership
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.isByzantine
@@ -40,10 +42,14 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     @Inject
     lateinit var membershipStepManager: MembershipStepManager
 
+    private val viewModel: MembershipViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        membershipStepManager.initStep(groupId)
+        if (groupId.isEmpty()) {
+            membershipStepManager.initStep(groupId)
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val navHostFragment =
@@ -73,7 +79,15 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             else -> Unit
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
+        observer()
+    }
 
+    private fun observer() {
+        flowObserver(viewModel.state) {
+            if (it.groupWalletType != null) {
+                membershipStepManager.initStep(it.groupId, it.groupWalletType)
+            }
+        }
     }
 
     val groupId: String

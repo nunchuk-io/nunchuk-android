@@ -27,13 +27,13 @@ import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseC
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.main.membership.model.GroupWalletType
 import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType

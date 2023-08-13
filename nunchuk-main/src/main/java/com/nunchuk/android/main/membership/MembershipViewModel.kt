@@ -1,11 +1,9 @@
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
+package com.nunchuk.android.main.membership
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
-import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupBriefByIdFlowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,20 +16,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class InheritancePlanningViewModel @Inject constructor(
+class MembershipViewModel @Inject constructor(
     private val getGroupBriefByIdFlowUseCase: GetGroupBriefByIdFlowUseCase,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : ViewModel(){
     private val groupId = savedStateHandle.get<String>(MembershipActivity.EXTRA_GROUP_ID).orEmpty()
 
-    private val _state = MutableStateFlow(
-        InheritancePlanningState(groupId = savedStateHandle.get<String>(
-            MembershipActivity.EXTRA_GROUP_ID).orEmpty())
-    )
+    private val _state = MutableStateFlow(MembershipState(groupId = savedStateHandle.get<String>(MembershipActivity.EXTRA_GROUP_ID).orEmpty()))
     val state = _state.asStateFlow()
 
-    lateinit var setupOrReviewParam: InheritancePlanningParam.SetupOrReview
-        private set
     init {
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
@@ -44,32 +37,9 @@ class InheritancePlanningViewModel @Inject constructor(
             }
         }
     }
-
-    fun setOrUpdate(param: InheritancePlanningParam) {
-        if (param is InheritancePlanningParam.SetupOrReview) {
-            setupOrReviewParam = param
-        }
-    }
 }
 
-data class InheritancePlanningState(
+data class MembershipState(
     val groupId: String = "",
     val groupWalletType: GroupWalletType? = null,
 )
-
-sealed class InheritancePlanningParam {
-    data class SetupOrReview(
-        val activationDate: Long = 0L,
-        val walletId: String,
-        val emails: List<String> = emptyList(),
-        val isNotify: Boolean = false,
-        val magicalPhrase: String = "",
-        val bufferPeriod: Period? = null,
-        val note: String = "",
-        val verifyToken: String = "",
-        val planFlow: Int = 0,
-        val isOpenFromWizard: Boolean = false,
-        val groupId: String = ""
-    ) : InheritancePlanningParam()
-}
-
