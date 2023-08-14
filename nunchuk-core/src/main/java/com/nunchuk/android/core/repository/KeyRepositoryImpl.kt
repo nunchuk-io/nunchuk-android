@@ -154,7 +154,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                                 version = status.version.orEmpty(),
                                 birthHeight = status.birthHeight,
                                 isTestnet = status.isTestNet,
-                                isInheritance = step == MembershipStep.HONEY_ADD_TAP_SIGNER
+                                isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
                             ),
                             tags = if (isInheritance) listOf(
                                 SignerTag.INHERITANCE.name
