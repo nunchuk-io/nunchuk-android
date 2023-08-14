@@ -132,7 +132,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                     groupId = groupId
                 )
                 if (groupId.isNotEmpty()) {
-                    val isInheritance = step == MembershipStep.HONEY_ADD_TAP_SIGNER
+                    val isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
                     val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
                     val signer =
                         nativeSdk.getDefaultSignerFromMasterSigner(
