@@ -44,7 +44,6 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
-import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
@@ -309,7 +308,6 @@ interface PremiumWalletRepository {
     suspend fun deleteDraftWallet()
     suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep)
     suspend fun getPermissionGroupWallet(): DefaultPermissions
-    suspend fun syncGroupDraftWallet(groupId: String): DraftWallet
     suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)
     suspend fun syncKeyToGroup(groupId: String, step: MembershipStep, signer: SingleSigner)
     suspend fun createGroup(

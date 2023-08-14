@@ -15,6 +15,8 @@ import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupChatDataResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
+import com.nunchuk.android.core.data.model.byzantine.ReuseFromGroupRequest
+import com.nunchuk.android.core.data.model.byzantine.SimilarGroupResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
@@ -320,4 +322,15 @@ internal interface GroupWalletApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: SignServerTransactionRequest
     ): Data<TransactionResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/find-similar")
+    suspend fun findSimilar(
+        @Path("group_id") groupId: String,
+    ): Data<SimilarGroupResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current/reuse-from-group")
+    suspend fun reuseFromGroup(
+        @Path("group_id") groupId: String,
+        @Body request: ReuseFromGroupRequest,
+    ): Data<DraftWalletResponse>
 }

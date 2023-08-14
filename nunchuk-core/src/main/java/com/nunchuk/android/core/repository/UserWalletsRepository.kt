@@ -64,7 +64,6 @@ import com.nunchuk.android.core.data.model.membership.TransactionServerDto
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toExternalModel
-import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
@@ -83,7 +82,6 @@ import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
-import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.BufferPeriodCountdown
@@ -122,7 +120,6 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
-import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
@@ -140,6 +137,7 @@ import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
 import com.nunchuk.android.persistence.entity.GroupEntity
 import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
+import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.Chain
@@ -173,6 +171,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val assistedWalletDao: AssistedWalletDao,
     private val requestAddKeyDao: RequestAddKeyDao,
     private val groupDao: GroupDao,
+    private val groupWalletRepository: GroupWalletRepository,
     applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
     private val chain =
@@ -1439,76 +1438,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun syncGroupDraftWallet(groupId: String): DraftWallet {
-        val response = userWalletApiManager.groupWalletApi.getDraftWallet(groupId)
-        val draftWallet =
-            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
-        val chatId = accountManager.getAccount().chatId
-        draftWallet.signers.forEach { key ->
-            val signerType = key.type.toSignerType()
-            saveServerSignerIfNeed(key)
-            if (signerType == SignerType.SERVER) {
-                if (membershipStepDao.getStep(
-                        chatId, chain.value, MembershipStep.ADD_SEVER_KEY, groupId
-                    ) == null
-                ) {
-                    membershipRepository.saveStepInfo(
-                        MembershipStepInfo(
-                            step = MembershipStep.ADD_SEVER_KEY,
-                            verifyType = VerifyType.APP_VERIFIED,
-                            extraData = gson.toJson(
-                                ServerKeyExtra(
-                                    name = key.name.orEmpty(),
-                                    xfp = key.xfp.orEmpty(),
-                                    derivationPath = key.derivationPath.orEmpty(),
-                                    xpub = key.xpub.orEmpty()
-                                )
-                            ),
-                            plan = MembershipPlan.BYZANTINE,
-                            keyIdInServer = draftWallet.serverKeyId.orEmpty(),
-                            groupId = groupId
-                        )
-                    )
-                }
-            } else {
-                val step = when (key.index) {
-                    0 -> if (draftWallet.walletConfig?.n == 4) MembershipStep.BYZANTINE_ADD_TAP_SIGNER else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
-                    1 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
-                    2 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
-                    3 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
-                    4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4
-                    else -> throw IllegalArgumentException()
-                }
-                val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
-                val verifyType =
-                    if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
-                if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
-                    membershipRepository.saveStepInfo(
-                        MembershipStepInfo(
-                            step = step,
-                            masterSignerId = key.xfp.orEmpty(),
-                            plan = MembershipPlan.BYZANTINE,
-                            verifyType = verifyType,
-                            extraData = gson.toJson(
-                                SignerExtra(
-                                    derivationPath = key.derivationPath.orEmpty(),
-                                    isAddNew = false,
-                                    signerType = signerType
-                                )
-                            ),
-                            groupId = groupId
-                        )
-                    )
-                }
-            }
-        }
-        // TODO Hai should remove local key if sync failed
-        return DraftWallet(
-            draftWallet.walletConfig.toModel(),
-            draftWallet.signers.map { it.toModel() }
-        )
-    }
-
     override suspend fun createGroupServerKey(
         groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy
     ) {
@@ -1772,7 +1701,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (groups.isNotEmpty()) {
             groups.forEach {
                 if (it.status == "PENDING_WALLET") {
-                    syncGroupDraftWallet(it.id.orEmpty())
+                    groupWalletRepository.syncGroupDraftWallet(it.id.orEmpty())
                 } else if (it.status == "ACTIVE") {
                     syncGroupWallet(it.id.orEmpty(), groupAssistedKeys)
                 }

@@ -56,6 +56,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -256,6 +257,16 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
+                is AddKeyListEvent.LoadSimilarGroup -> NCWarningDialog(requireActivity()).showDialog(
+                    title = getString(R.string.nc_key_resuse),
+                    message = getString(R.string.nc_key_reuse_desc),
+                    onYesClick = {
+                        AssistedWalletBottomSheet.show(
+                            childFragmentManager,
+                            event.similarWalletIds,
+                        )
+                    }
+                )
             }
         }
     }

@@ -48,6 +48,10 @@ internal interface DataModule {
 
     @Binds
     @Singleton
+    fun bindGroupWalletRepository(repository: GroupWalletRepositoryImpl): GroupWalletRepository
+
+    @Binds
+    @Singleton
     fun bindBannerRepository(repository: BannerRepositoryImpl): BannerRepository
 
     @Binds
