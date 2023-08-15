@@ -1771,8 +1771,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getGroup(groupId: String): ByzantineGroup {
         val response = userWalletApiManager.groupWalletApi.getGroup(groupId)
-        return response.data.data?.toByzantineGroup()
-            ?: throw NullPointerException("Can not get group")
+        val groupResponse = response.data.data ?: throw NullPointerException("Can not get group")
+        groupDao.updateOrInsert(
+            groupResponse.toGroupEntity(accountManager.getAccount().chatId)
+        )
+        return groupResponse.toByzantineGroup()
     }
 
     override suspend fun deleteGroupWallet(groupId: String) {

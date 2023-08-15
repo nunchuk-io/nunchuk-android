@@ -125,4 +125,5 @@
     <string name="nc_duplicate_email_addresses">Duplicate email addresses</string>
     <string name="nc_co_signing_activation">Co-signing activation</string>
     <string name="nc_co_signing_activation_desc">The Nunchuk platform key will be activated and start co-signing transactions once all keyholders have approved the spending limit(s).</string>
+    <string name="nc_security_question_set_by_master_warning">The security questions must be set up by the Master account.</string>
 </resources>

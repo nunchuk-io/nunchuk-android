@@ -22,11 +22,13 @@ package com.nunchuk.android.main.membership.byzantine.step
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
-import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.usecase.byzantine.GetGroupBriefByIdFlowUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +43,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -48,10 +51,11 @@ import javax.inject.Inject
 class AddGroupKeyStepViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val savedStateHandle: SavedStateHandle,
-    private val getSecurityQuestionUseCase: GetSecurityQuestionUseCase,
     private val syncGroupDraftWalletUseCase: SyncGroupDraftWalletUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
+    private val getGroupBriefByIdFlowUseCase: GetGroupBriefByIdFlowUseCase,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val accountManager: AccountManager,
 ) : ViewModel() {
     private val currentStep =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
@@ -80,13 +84,16 @@ class AddGroupKeyStepViewModel @Inject constructor(
     private val _isConfigKeyDone = MutableStateFlow(false)
     val isConfigKeyDone = _isConfigKeyDone.asStateFlow()
 
-    val isSetupRecoverKeyDone = membershipStepManager.isConfigRecoverKeyDone
+    private val _isSetupRecoverKeyDone = MutableStateFlow(false)
+    val isSetupRecoverKeyDone = _isSetupRecoverKeyDone.asStateFlow()
 
     private val _isCreateWalletDone = MutableStateFlow(false)
     val isCreateWalletDone = _isCreateWalletDone.asStateFlow()
 
     private val _isRequireInheritance = MutableStateFlow(false)
     val isRequireInheritance = _isRequireInheritance.asStateFlow()
+
+    private val _uiState = MutableStateFlow(AddGroupUiState())
 
     val isSetupInheritanceDone =
         membershipStepManager.stepDone.map { membershipStepManager.isSetupInheritanceDone() }
@@ -117,7 +124,15 @@ class AddGroupKeyStepViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getSecurityQuestionUseCase(GetSecurityQuestionUseCase.Param(isFilterAnswer = false))
+            getGroupBriefByIdFlowUseCase(groupId.value).collect {
+                if (it.isSuccess) {
+                    val email = accountManager.getAccount().email
+                    _uiState.update { state ->
+                        state.copy(isMaster = it.getOrThrow().members
+                            .any { member -> member.emailOrUsername == email && member.role == AssistedWalletRole.MASTER.name })
+                    }
+                }
+            }
         }
         refresh()
     }
@@ -135,6 +150,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
             val draftWallet = draftWalletDeferred.await().getOrNull() ?: return@launch
 
             _isCreateWalletDone.value = isCreateWallet
+            _isSetupRecoverKeyDone.value = draftWallet.isMasterSecurityQuestionSet
             val isConfigDone = draftWallet.config.n == draftWallet.signers.size
             _isConfigKeyDone.value = isCreateWallet || isConfigDone
             _isRequireInheritance.value = draftWallet.config.allowInheritance
@@ -195,10 +211,14 @@ class AddGroupKeyStepViewModel @Inject constructor(
     fun getRegisterAirgapIndex() =
         assistedWallets.value.find { it.localId == walletId.value }?.registerAirgapCount ?: 0
 
+    fun isMaster(): Boolean = _uiState.value.isMaster
+
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
     }
 }
+
+data class AddGroupUiState(val isMaster: Boolean = false)
 
 sealed class AddKeyStepEvent {
     data class OpenContactUs(val email: String) : AddKeyStepEvent()

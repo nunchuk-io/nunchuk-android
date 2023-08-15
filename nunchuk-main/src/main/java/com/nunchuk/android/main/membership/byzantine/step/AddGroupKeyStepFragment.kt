@@ -66,6 +66,7 @@ import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -154,7 +155,13 @@ class AddGroupKeyStepFragment : MembershipFragment() {
     }
 
     private fun handleOpenRecoveryQuestion() {
-        findNavController().navigate(AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToRecoveryQuestionFragment())
+        if (viewModel.isMaster()) {
+            findNavController().navigate(AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToRecoveryQuestionFragment())
+        } else {
+            NCInfoDialog(requireActivity())
+                .init(message = getString(R.string.nc_security_question_set_by_master_warning))
+                .show()
+        }
     }
 }
 

@@ -5,5 +5,6 @@ import com.nunchuk.android.model.signer.SignerServer
 
 data class DraftWallet(
     val config: ByzantineWalletConfig,
+    val isMasterSecurityQuestionSet: Boolean,
     val signers: List<SignerServer>
 )

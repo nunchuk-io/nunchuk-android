@@ -9,11 +9,12 @@ internal data class DraftWalletResponse(
 )
 
 internal data class DraftWalletDto(
-    @SerializedName("finalized") var finalized: Boolean? = null,
-    @SerializedName("group_id") var groupId: String? = null,
-    @SerializedName("wallet_config") var walletConfig: WalletConfigDto? = null,
-    @SerializedName("server_key_id") var serverKeyId: String? = null,
-    @SerializedName("signers") var signers: ArrayList<SignerServerDto> = arrayListOf()
+    @SerializedName("finalized") val finalized: Boolean? = null,
+    @SerializedName("group_id") val groupId: String? = null,
+    @SerializedName("wallet_config") val walletConfig: WalletConfigDto? = null,
+    @SerializedName("is_master_security_question_set") val isMasterSecurityQuestionSet: Boolean = false,
+    @SerializedName("server_key_id") val serverKeyId: String? = null,
+    @SerializedName("signers") val signers: ArrayList<SignerServerDto> = arrayListOf()
 )
 
 internal data class WalletConfigDto(
@@ -23,7 +24,7 @@ internal data class WalletConfigDto(
     @SerializedName("allow_inheritance") val allowInheritance: Boolean = false,
 )
 
-internal fun WalletConfigDto?.toModel() : ByzantineWalletConfig = ByzantineWalletConfig(
+internal fun WalletConfigDto?.toModel(): ByzantineWalletConfig = ByzantineWalletConfig(
     allowInheritance = this?.allowInheritance ?: false,
     m = this?.m ?: 0,
     n = this?.n ?: 0,

@@ -131,8 +131,9 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         }
         // TODO Hai should remove local key if sync failed
         return DraftWallet(
-            draftWallet.walletConfig.toModel(),
-            draftWallet.signers.map { it.toModel() }
+            config = draftWallet.walletConfig.toModel(),
+            isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
+            signers = draftWallet.signers.map { it.toModel() }
         )
     }
 
