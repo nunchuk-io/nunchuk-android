@@ -29,8 +29,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -82,7 +84,6 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -446,6 +447,7 @@ private fun GroupDashboardContent(
                         onAlertClick = onAlertClick,
                         onDismissClick = onDismissClick
                     )
+                    HealthCheckStatusView()
                     MemberListView(
                         group = group,
                         currentUserRole = currentUserRole,
@@ -764,11 +766,62 @@ private fun ContactMemberView(
     }
 }
 
-@Preview
-@Composable
-private fun AlertViewPreview() {
-    NunchukTheme {
-        AlertView()
+private fun LazyListScope.HealthCheckStatusView() {
+    item {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Row {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_health_check),
+                    contentDescription = "image description",
+                    contentScale = ContentScale.None
+                )
+                Text(
+                    modifier = Modifier.padding(start = 8.dp),
+                    text = "Key health status",
+                    style = NunchukTheme.typography.title
+                )
+            }
+            LazyRow(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFFDEDEDE),
+                        shape = RoundedCornerShape(size = 8.dp)
+                    )
+                    .fillMaxWidth()
+                    .background(color = Color.White, shape = RoundedCornerShape(size = 8.dp))
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items(3) {
+                    Row(
+                        modifier = Modifier
+                            .width(36.dp)
+                            .height(36.dp)
+                            .background(
+                                color = Color(0xFFA7F0BA),
+                                shape = RoundedCornerShape(size = 24.dp)
+                            )
+                            .padding(start = 9.dp, top = 9.dp, end = 9.dp, bottom = 9.dp),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            10.dp,
+                            Alignment.CenterHorizontally
+                        ),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_unknown_key),
+                            contentDescription = "image description",
+                            contentScale = ContentScale.None
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

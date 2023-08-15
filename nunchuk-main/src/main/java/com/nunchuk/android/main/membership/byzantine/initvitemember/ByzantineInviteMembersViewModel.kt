@@ -69,7 +69,6 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         getContacts()
         getWalletConstraints()
         if (args.flow == ByzantineMemberFlow.EDIT) {
-            // call api get members
             val members = args.members.toList().map {
                 it.toInviteMemberUi()
             }
