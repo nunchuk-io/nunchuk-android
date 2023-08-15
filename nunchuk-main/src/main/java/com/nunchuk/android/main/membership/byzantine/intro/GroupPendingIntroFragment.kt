@@ -44,14 +44,25 @@ class GroupPendingIntroFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 GroupPendingIntroScreen(viewModel = viewModel) {
-                    findNavController().navigate(
-                        GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
-                            groupId = args.groupId,
-                            isAddOnly = true
-                        )
-                    )
+                    openGroupIntro()
                 }
             }
+        }
+    }
+
+    private fun openGroupIntro() {
+        val isMasterOrAdmin = viewModel.isMasterOrAdmin()
+        if (isMasterOrAdmin) {
+            findNavController().navigate(
+                GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddGroupKeyStepFragment()
+            )
+        } else {
+            findNavController().navigate(
+                GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
+                    groupId = args.groupId,
+                    isAddOnly = true
+                )
+            )
         }
     }
 
@@ -59,11 +70,7 @@ class GroupPendingIntroFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.state) { state ->
             if (state.isViewPendingWallet) {
-                findNavController().navigate(
-                    GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
-                        args.groupId
-                    )
-                )
+                openGroupIntro()
                 viewModel.markHandleViewPendingWallet()
             }
         }

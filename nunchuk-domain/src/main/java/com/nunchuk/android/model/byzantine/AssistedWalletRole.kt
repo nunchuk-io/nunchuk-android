@@ -7,6 +7,9 @@ enum class AssistedWalletRole {
     NONE, MASTER, ADMIN, KEYHOLDER, KEYHOLDER_LIMITED, OBSERVER
 }
 
+val AssistedWalletRole.isMasterOrAdmin: Boolean
+    get() = this == AssistedWalletRole.MASTER || this == AssistedWalletRole.ADMIN
+
 val AssistedWalletRole.isKeyHolder: Boolean
     get() = this == AssistedWalletRole.MASTER || this == AssistedWalletRole.KEYHOLDER || this == AssistedWalletRole.ADMIN || this == AssistedWalletRole.KEYHOLDER_LIMITED
 

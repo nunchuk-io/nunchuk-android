@@ -237,8 +237,7 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"
             app:popUpTo="@+id/registerWalletToColdcardFragment"
-            app:popUpToInclusive="true"
-            />
+            app:popUpToInclusive="true" />
 
     </fragment>
     <fragment
@@ -436,8 +435,8 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
             android:name="is_add_only"
-            app:argType="boolean"
-            android:defaultValue="false" />
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />
@@ -501,6 +500,15 @@
         <action
             android:id="@+id/action_groupPendingIntroFragment_to_addByzantineKeyListFragment"
             app:destination="@id/addByzantineKeyListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/groupPendingIntroFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_groupPendingIntroFragment_to_addGroupKeyStepFragment"
+            app:destination="@id/addGroupKeyStepFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
