@@ -20,10 +20,13 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
 
 class InheritanceResponse(
     @SerializedName("inheritance")
-    val inheritance: InheritanceDto? = null
+    val inheritance: InheritanceDto? = null,
+    @SerializedName("dummy_transaction")
+    val dummyTransaction: DummyTransactionDto? = null
 )
 
 class InheritanceDto(

@@ -230,7 +230,8 @@ interface PremiumWalletRepository {
     ): TransactionAdditional
 
     suspend fun generateCancelInheritanceUserData(
-        walletId: String
+        walletId: String,
+        groupId: String?
     ): String
 
     suspend fun calculateRequiredSignaturesInheritance(
@@ -240,7 +241,8 @@ interface PremiumWalletRepository {
         activationTimeMilis: Long,
         walletId: String,
         bufferPeriodId: String?,
-        isCancelInheritance: Boolean
+        isCancelInheritance: Boolean,
+        groupId: String?
     ): CalculateRequiredSignatures
 
     suspend fun createOrUpdateInheritance(
@@ -250,7 +252,7 @@ interface PremiumWalletRepository {
         securityQuestionToken: String,
         isUpdate: Boolean,
         plan: MembershipPlan
-    ): Inheritance
+    ): String
 
     suspend fun cancelInheritance(
         authorizations: List<String>,
@@ -258,7 +260,7 @@ interface PremiumWalletRepository {
         userData: String,
         securityQuestionToken: String,
         walletId: String
-    )
+    ): String
 
     suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey
 

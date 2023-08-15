@@ -54,7 +54,8 @@ sealed class ServicesTabEvent {
     data class GetInheritanceSuccess(
         val walletId: String,
         val inheritance: Inheritance,
-        val token: String
+        val token: String,
+        val groupId: String?
     ) : ServicesTabEvent()
 
     data class OpenSetupInheritancePlan(val walletId: String, val groupId: String?) :

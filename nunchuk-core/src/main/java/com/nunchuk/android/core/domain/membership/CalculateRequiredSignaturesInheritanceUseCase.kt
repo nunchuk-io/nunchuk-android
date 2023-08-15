@@ -40,7 +40,8 @@ class CalculateRequiredSignaturesInheritanceUseCase @Inject constructor(
             notifyToday = parameters.notifyToday,
             activationTimeMilis = parameters.activationTimeMilis,
             bufferPeriodId = parameters.bufferPeriodId,
-            isCancelInheritance = parameters.isCancelInheritance
+            isCancelInheritance = parameters.isCancelInheritance,
+            groupId = parameters.groupId
         )
     }
 
@@ -51,6 +52,7 @@ class CalculateRequiredSignaturesInheritanceUseCase @Inject constructor(
         val activationTimeMilis: Long,
         val walletId: String,
         val bufferPeriodId: String?,
-        val isCancelInheritance: Boolean
+        val isCancelInheritance: Boolean,
+        val groupId: String
     )
 }

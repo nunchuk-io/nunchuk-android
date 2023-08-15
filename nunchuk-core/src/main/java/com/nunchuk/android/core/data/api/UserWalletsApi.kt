@@ -108,7 +108,7 @@ internal interface UserWalletsApi {
     @GET("/v1.1/user-wallets/inheritance")
     suspend fun getInheritance(
         @Query("wallet") wallet: String,
-        @Query("groupId") groupId: String? = null
+        @Query("group_id") groupId: String? = null
     ): Data<InheritanceResponse>
 
     @POST("/v1.1/user-wallets/inheritance")
@@ -236,7 +236,7 @@ internal interface UserWalletsApi {
     @HTTP(method = "DELETE", path = "/v1.1/user-wallets/inheritance", hasBody = true)
     suspend fun inheritanceCancel(
         @HeaderMap headers: Map<String, String>, @Body payload: InheritanceCancelRequest
-    ): Data<TransactionResponse>
+    ): Data<DummyTransactionResponse>
 
     @POST("/v1.1/user-wallets/inheritance/check")
     suspend fun inheritanceCheck(

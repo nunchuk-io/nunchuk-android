@@ -141,7 +141,7 @@ data class CreateUpdateInheritancePlanRequest(
         val walletId: String? = null,
         @SerializedName("buffer_period_id")
         val bufferPeriodId: String? = null,
-        @SerializedName("groupId")
+        @SerializedName("group_id")
         val groupId: String? = null
     )
 }
@@ -189,7 +189,9 @@ data class InheritanceCancelRequest(
 ) {
     data class Body(
         @SerializedName("wallet")
-        val walletId: String? = null
+        val walletId: String? = null,
+        @SerializedName("group_id")
+        val groupId: String? = null
     )
 }
 

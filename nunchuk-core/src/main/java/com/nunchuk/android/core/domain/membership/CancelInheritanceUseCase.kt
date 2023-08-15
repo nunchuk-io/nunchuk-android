@@ -31,14 +31,14 @@ class CancelInheritanceUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
     private val nunchukNativeSdk: NunchukNativeSdk
-) : UseCase<CancelInheritanceUseCase.Param, Unit>(dispatcher) {
-    override suspend fun execute(parameters: Param) {
+) : UseCase<CancelInheritanceUseCase.Param, String>(dispatcher) {
+    override suspend fun execute(parameters: Param): String {
         val authorizations = mutableListOf<String>()
         parameters.signatures.forEach { (masterFingerprint, signature) ->
             val requestToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
             authorizations.add(requestToken)
         }
-        userWalletRepository.cancelInheritance(
+        return userWalletRepository.cancelInheritance(
             authorizations = authorizations,
             verifyToken = parameters.verifyToken,
             userData = parameters.userData,

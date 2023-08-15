@@ -26,6 +26,7 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.utils.onException
@@ -89,11 +90,12 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 notifyToday = stateValue.isNotifyToday,
                 activationTimeMilis = stateValue.activationDate,
                 bufferPeriodId = stateValue.bufferPeriod?.id,
-                isCancelInheritance = isCreateOrUpdateFlow.not()
+                isCancelInheritance = isCreateOrUpdateFlow.not(),
+                groupId = param.groupId
             )
         )
         val resultUserData = if (isCreateOrUpdateFlow.not()) {
-            cancelInheritanceUserDataUseCase(CancelInheritanceUserDataUseCase.Param(walletId = walletId))
+            cancelInheritanceUserDataUseCase(CancelInheritanceUserDataUseCase.Param(walletId = walletId, groupId = param.groupId))
         } else {
             getInheritanceUserDataUseCase(
                 GetInheritanceUserDataUseCase.Param(
@@ -117,14 +119,74 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         }
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
         if (resultCalculate.isSuccess) {
-            _event.emit(
-                InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess(
-                    type = resultCalculate.getOrThrow().type,
-                    walletId = walletId,
-                    userData = userData,
-                    requiredSignatures = resultCalculate.getOrThrow().requiredSignatures
+            if (param.groupId.isEmpty()) {
+                _event.emit(
+                    InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess(
+                        type = resultCalculate.getOrThrow().type,
+                        walletId = walletId,
+                        userData = userData,
+                        requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
+                        dummyTransactionId = ""
+                    )
                 )
-            )
+            } else {
+                if (resultCalculate.getOrThrow().type == VerificationType.SIGN_DUMMY_TX) {
+                    if (isCreateOrUpdateFlow) {
+                        createOrUpdateInheritanceUseCase(
+                            CreateOrUpdateInheritanceUseCase.Param(
+                                signatures = hashMapOf(),
+                                verifyToken = param.verifyToken,
+                                userData = userData,
+                                securityQuestionToken = "",
+                                isUpdate = param.planFlow == InheritancePlanFlow.VIEW,
+                                plan = membershipStepManager.plan
+                            )
+                        ).onSuccess { transactionId ->
+                            _state.update {
+                                it.copy(
+                                    dummyTransactionId = transactionId,
+                                    requiredSignature = resultCalculate.getOrThrow()
+                                )
+                            }
+                            _event.emit(
+                                InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess(
+                                    type = resultCalculate.getOrThrow().type,
+                                    walletId = walletId,
+                                    userData = userData,
+                                    requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
+                                    dummyTransactionId = transactionId
+                                )
+                            )
+                        }
+                    } else {
+                        cancelInheritanceUseCase(
+                            CancelInheritanceUseCase.Param(
+                                signatures = hashMapOf(),
+                                verifyToken = param.verifyToken,
+                                userData = userData,
+                                securityQuestionToken = "",
+                                walletId = walletId
+                            )
+                        ).onSuccess {transactionId ->
+                            _state.update {
+                                it.copy(
+                                    dummyTransactionId = transactionId,
+                                    requiredSignature = resultCalculate.getOrThrow()
+                                )
+                            }
+                            _event.emit(
+                                InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess(
+                                    type = resultCalculate.getOrThrow().type,
+                                    walletId = walletId,
+                                    userData = userData,
+                                    requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
+                                    dummyTransactionId = transactionId
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
         }
@@ -166,6 +228,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             cancelInheritance(signatures, securityQuestionToken)
         }
     }
+
+    fun isCreateOrUpdateFlow() = _state.value.isCreateOrUpdateFlow
 
     private fun createOrUpdateInheritance(
         signatures: HashMap<String, String>,

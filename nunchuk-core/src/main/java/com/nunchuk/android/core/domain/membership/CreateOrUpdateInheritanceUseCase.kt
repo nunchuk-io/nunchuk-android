@@ -32,8 +32,8 @@ class CreateOrUpdateInheritanceUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
     private val nunchukNativeSdk: NunchukNativeSdk
-) : UseCase<CreateOrUpdateInheritanceUseCase.Param, Inheritance>(dispatcher) {
-    override suspend fun execute(parameters: Param): Inheritance {
+) : UseCase<CreateOrUpdateInheritanceUseCase.Param, String>(dispatcher) {
+    override suspend fun execute(parameters: Param): String {
         val authorizations = mutableListOf<String>()
         parameters.signatures.forEach { (masterFingerprint, signature) ->
             val requestToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)

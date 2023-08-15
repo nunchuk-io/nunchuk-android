@@ -79,6 +79,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 viewModel.setOrUpdate(InheritancePlanningParam.SetupOrReview(
                     planFlow = planFlow,
                     walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                    groupId = groupId,
                     isOpenFromWizard = intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false)
                 ))
             }

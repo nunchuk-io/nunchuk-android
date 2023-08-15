@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
+import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.Period
 
 sealed class InheritanceReviewPlanEvent {
@@ -27,7 +28,8 @@ sealed class InheritanceReviewPlanEvent {
         val type: String,
         val walletId: String,
         val userData: String,
-        val requiredSignatures: Int
+        val requiredSignatures: Int,
+        val dummyTransactionId: String
     ) : InheritanceReviewPlanEvent()
 
     data class ProcessFailure(val message: String) : InheritanceReviewPlanEvent()
@@ -45,5 +47,7 @@ data class InheritanceReviewPlanState(
     val walletName: String? = null,
     val isCreateOrUpdateFlow: Boolean = true,
     val isDataChanged: Boolean = false,
-    val bufferPeriod: Period? = null
+    val bufferPeriod: Period? = null,
+    val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
+    val dummyTransactionId: String = "",
 )

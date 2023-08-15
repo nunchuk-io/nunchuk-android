@@ -32,8 +32,8 @@ class CancelInheritanceUserDataUseCase @Inject constructor(
     dispatcher
 ) {
     override suspend fun execute(parameters: Param): String {
-        return userWalletRepository.generateCancelInheritanceUserData(walletId = parameters.walletId)
+        return userWalletRepository.generateCancelInheritanceUserData(walletId = parameters.walletId, groupId = parameters.groupId)
     }
 
-    class Param(val walletId: String)
+    class Param(val walletId: String, val groupId: String?)
 }

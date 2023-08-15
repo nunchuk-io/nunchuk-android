@@ -147,7 +147,7 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getInheritance(walletId: String, token: String, groupId: String?) = viewModelScope.launch {
         getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId)).onSuccess {
-            _event.emit(ServicesTabEvent.GetInheritanceSuccess(walletId, it, token))
+            _event.emit(ServicesTabEvent.GetInheritanceSuccess(walletId, it, token, groupId))
         }.onFailure {
             _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
         }

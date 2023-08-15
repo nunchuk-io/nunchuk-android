@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,10 +30,24 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -54,13 +69,21 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
@@ -77,7 +100,7 @@ import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.*
+import java.util.Date
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -98,7 +121,15 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         ?: return@registerForActivityResult
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                viewModel.handleFlow(signatureMap, securityQuestionToken)
+                Log.e(
+                    "inheritance-plan",
+                    "CalculateRequiredSignaturesSuccess - signatureMap: $signatureMap - securityQuestionToken: $securityQuestionToken"
+                )
+                if (signatureMap.isNotEmpty() || securityQuestionToken.isNotEmpty()) {
+                    viewModel.handleFlow(signatureMap, securityQuestionToken)
+                } else {
+                    handleFlow()
+                }
             }
         }
 
@@ -109,49 +140,59 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceReviewPlanScreen(viewModel, inheritanceViewModel, onEditActivationDateClick = {
-                    findNavController().navigate(
-                        InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceActivationDateFragment(
-                            isUpdateRequest = true,
+                InheritanceReviewPlanScreen(
+                    viewModel,
+                    inheritanceViewModel,
+                    onEditActivationDateClick = {
+                        findNavController().navigate(
+                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceActivationDateFragment(
+                                isUpdateRequest = true,
+                            )
                         )
-                    )
-                }, onEditNoteClick = {
-                    findNavController().navigate(
-                        InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNoteFragment(
-                            isUpdateRequest = true,
+                    },
+                    onEditNoteClick = {
+                        findNavController().navigate(
+                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNoteFragment(
+                                isUpdateRequest = true,
+                            )
                         )
-                    )
-                }, onNotifyPrefClick = { isNotify, emails ->
-                    findNavController().navigate(
-                        InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNotifyPrefFragment(
-                            isUpdateRequest = true,
+                    },
+                    onNotifyPrefClick = { isNotify, emails ->
+                        findNavController().navigate(
+                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNotifyPrefFragment(
+                                isUpdateRequest = true,
+                            )
                         )
-                    )
-                }, onDiscardChange = {
-                    showDiscardDialog()
-                }, onShareSecretClicked = {
-                    findNavController().navigate(
-                        InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
-                            magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
-                            planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-                            walletId = inheritanceViewModel.setupOrReviewParam.walletId
+                    },
+                    onDiscardChange = {
+                        showDiscardDialog()
+                    },
+                    onShareSecretClicked = {
+                        findNavController().navigate(
+                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
+                                magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
+                                planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
+                                walletId = inheritanceViewModel.setupOrReviewParam.walletId
+                            )
                         )
-                    )
-                }, onActionTopBarClick = {
-                    if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                        showActionOptions()
-                    }
-                }, onViewClaimingInstruction = {
-                    val link =
-                        if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/howtoclaim" else "https://www.nunchuk.io/howtoclaim"
-                    requireActivity().openExternalLink(link)
-                }, onEditBufferPeriodClick = {
-                    findNavController().navigate(
-                        InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBufferPeriodFragment(
-                            isUpdateRequest = true,
+                    },
+                    onActionTopBarClick = {
+                        if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
+                            showActionOptions()
+                        }
+                    },
+                    onViewClaimingInstruction = {
+                        val link =
+                            if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/howtoclaim" else "https://www.nunchuk.io/howtoclaim"
+                        requireActivity().openExternalLink(link)
+                    },
+                    onEditBufferPeriodClick = {
+                        findNavController().navigate(
+                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBufferPeriodFragment(
+                                isUpdateRequest = true,
+                            )
                         )
-                    )
-                })
+                    })
             }
         }
     }
@@ -190,36 +231,45 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess -> {
+                    Log.e(
+                        "inheritance-plan",
+                        "CalculateRequiredSignaturesSuccess - dummyTransactionId: ${event.dummyTransactionId} - groupId: ${inheritanceViewModel.setupOrReviewParam.groupId}"
+                    )
                     navigator.openWalletAuthentication(
                         walletId = event.walletId,
                         userData = event.userData,
                         requiredSignatures = event.requiredSignatures,
                         type = event.type,
+                        groupId = inheritanceViewModel.setupOrReviewParam.groupId,
+                        dummyTransactionId = event.dummyTransactionId,
                         launcher = launcher,
                         activityContext = requireActivity()
                     )
                 }
-                is InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess -> {
-                    if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.SETUP) {
-                        findNavController().navigate(
-                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
-                                magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
-                                planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-                                walletId = inheritanceViewModel.setupOrReviewParam.walletId
-                            )
-                        )
-                    } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                        NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_updated_notify))
-                        handleResult()
-                    }
-                }
+
+                is InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess -> handleFlow()
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
-                is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> {
-                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
-                    handleResult()
-                }
+                is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> handleFlow()
             }
+        }
+    }
+
+    private fun handleFlow() {
+        if (viewModel.isCreateOrUpdateFlow().not()) {
+            NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
+            handleResult()
+        } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.SETUP) {
+            findNavController().navigate(
+                InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
+                    magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
+                    planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
+                    walletId = inheritanceViewModel.setupOrReviewParam.walletId
+                )
+            )
+        } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
+            NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_updated_notify))
+            handleResult()
         }
     }
 
@@ -546,7 +596,8 @@ fun InheritanceReviewPlanScreenContent(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = bufferPeriod?.displayName.orEmpty().ifBlank { stringResource(id = R.string.nc_no_buffer) },
+                                    text = bufferPeriod?.displayName.orEmpty()
+                                        .ifBlank { stringResource(id = R.string.nc_no_buffer) },
                                     style = NunchukTheme.typography.body,
                                     modifier = Modifier
                                         .fillMaxWidth()
