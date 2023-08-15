@@ -1706,8 +1706,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     syncGroupWallet(it.id.orEmpty(), groupAssistedKeys)
                 }
             }
-            syncGroup(groups)
         }
+        syncGroup(groups)
 
         return groups.isNotEmpty()
     }

@@ -200,14 +200,37 @@ internal class WalletsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
-                if (event is PushEvent.WalletCreate) {
-                    if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                        getServerWalletUseCase(Unit).onSuccess {
-                            if (it.isNeedReload) {
-                                retrieveData()
+                when (event) {
+                    is PushEvent.WalletCreate -> {
+                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
+                            getServerWalletUseCase(Unit).onSuccess {
+                                if (it.isNeedReload) {
+                                    retrieveData()
+                                }
                             }
                         }
                     }
+                    is PushEvent.DraftResetWallet -> {
+                        syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                            if (shouldReload) retrieveData()
+                        }
+                    }
+                    is PushEvent.GroupMembershipRequestCreated -> {
+                        if (!getState().allGroups.any { it.groupId == event.groupId }) {
+                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                                if (shouldReload) retrieveData()
+                            }
+                        }
+                    }
+                    is PushEvent.GroupWalletCreated -> {
+                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
+                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                                if (shouldReload) retrieveData()
+                            }
+                        }
+                    }
+
+                    else -> {}
                 }
             }
         }
@@ -222,8 +245,8 @@ internal class WalletsViewModel @Inject constructor(
                 updateState { copy(allGroups = groups) }
                 if (groups.isNotEmpty()) {
                     updateBadge()
-                    mapGroupWalletUi()
                 }
+                mapGroupWalletUi()
             }
         }
         getAppSettings()

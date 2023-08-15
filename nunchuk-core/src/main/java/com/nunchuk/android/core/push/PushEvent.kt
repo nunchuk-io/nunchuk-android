@@ -26,4 +26,7 @@ sealed class PushEvent {
     object AddDesktopKeyCompleted : PushEvent()
     data class WalletCreate(val walletId: String) : PushEvent()
     data class TransactionCancelled(val walletId: String, val transactionId: String) : PushEvent()
+    data class DraftResetWallet(val walletId: String) : PushEvent()
+    data class GroupMembershipRequestCreated(val groupId: String) : PushEvent()
+    data class GroupWalletCreated(val walletId: String) : PushEvent()
 }
