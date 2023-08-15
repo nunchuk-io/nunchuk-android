@@ -83,4 +83,17 @@
 
     </dialog>
 
+    <fragment
+        android:id="@+id/healthCheckFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.healthcheck.HealthCheckFragment"
+        android:label="HealthCheckFragment" >
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+    </fragment>
+
 </navigation>

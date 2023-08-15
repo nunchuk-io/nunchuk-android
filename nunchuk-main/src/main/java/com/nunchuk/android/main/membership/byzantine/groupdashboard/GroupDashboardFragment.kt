@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -79,11 +78,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.border
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -105,6 +106,7 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toTitle
@@ -141,33 +143,43 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                GroupDashboardScreen(viewModel, onEditClick = {
-                    findNavController().navigate(
-                        GroupDashboardFragmentDirections.actionGroupDashboardFragmentToByzantineInviteMembersFragment(
-                            members = viewModel.getMembers().toTypedArray(),
-                            groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
-                            flow = ByzantineMemberFlow.EDIT,
-                            groupType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()?.name.orEmpty(),
+                GroupDashboardScreen(
+                    viewModel,
+                    onEditClick = {
+                        findNavController().navigate(
+                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToByzantineInviteMembersFragment(
+                                members = viewModel.getMembers().toTypedArray(),
+                                groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
+                                flow = ByzantineMemberFlow.EDIT,
+                                groupType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()?.name.orEmpty(),
+                            )
                         )
-                    )
-                }, onAlertClick = { alert, role ->
-                    alertClick(alert, role)
-                }, onWalletClick = {
-                    args.walletId?.let {
-                        navigator.openWalletDetailsScreen(
-                            activityContext = requireActivity(),
-                            walletId = it
-                        )
-                    }
-                }, onGroupChatClick = {
-                    if (viewModel.groupChat() != null) {
-                        openRoomChat()
-                    } else {
-                        viewModel.createGroupChat()
-                    }
-                }, onMoreClick = {
-                    showMoreOptions()
-                })
+                    },
+                    onAlertClick = { alert, role ->
+                        alertClick(alert, role)
+                    },
+                    onWalletClick = {
+                        args.walletId?.let {
+                            navigator.openWalletDetailsScreen(
+                                activityContext = requireActivity(),
+                                walletId = it
+                            )
+                        }
+                    },
+                    onGroupChatClick = {
+                        if (viewModel.groupChat() != null) {
+                            openRoomChat()
+                        } else {
+                            viewModel.createGroupChat()
+                        }
+                    },
+                    onMoreClick = {
+                        showMoreOptions()
+                    },
+                    onOpenHealthCheckScreen = {
+
+                    },
+                )
             }
         }
     }
@@ -306,13 +318,14 @@ private fun GroupDashboardScreen(
     onWalletClick: () -> Unit = {},
     onAlertClick: (alert: Alert, role: AssistedWalletRole) -> Unit = { _, _ -> },
     onGroupChatClick: () -> Unit = {},
-    onMoreClick: () -> Unit = {}
+    onMoreClick: () -> Unit = {},
+    onOpenHealthCheckScreen: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     GroupDashboardContent(
         group = state.group,
         currentUserRole = state.myRole,
-        walletName = state.walletExtended.wallet.name,
+        wallet = state.walletExtended.wallet,
         alerts = state.alerts,
         groupChat = state.groupChat,
         onDismissClick = viewModel::dismissAlert,
@@ -324,7 +337,8 @@ private fun GroupDashboardScreen(
             viewModel.markAsReadAlert(alert.id)
         },
         onGroupChatClick = onGroupChatClick,
-        onMoreClick = onMoreClick
+        onMoreClick = onMoreClick,
+        onOpenHealthCheckScreen = onOpenHealthCheckScreen
     )
 }
 
@@ -333,7 +347,7 @@ private fun GroupDashboardScreen(
 private fun GroupDashboardContent(
     group: ByzantineGroup? = null,
     alerts: List<Alert> = emptyList(),
-    walletName: String = "",
+    wallet: Wallet = Wallet(),
     currentUserRole: AssistedWalletRole = AssistedWalletRole.NONE,
     isEnableStartGroupChat: Boolean = false,
     groupChat: GroupChat? = null,
@@ -342,9 +356,9 @@ private fun GroupDashboardContent(
     onAlertClick: (alert: Alert, role: AssistedWalletRole) -> Unit = { _, _ -> },
     onMoreClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
-    onDismissClick: (String) -> Unit = {}
+    onDismissClick: (String) -> Unit = {},
+    onOpenHealthCheckScreen: () -> Unit = {},
 ) {
-
     val master = group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
     val listState = rememberLazyListState()
     val fabVisibility by remember {
@@ -361,12 +375,12 @@ private fun GroupDashboardContent(
             topBar = {
                 NcTopAppBar(
                     backgroundColor = colorResource(id = R.color.nc_grey_light),
-                    title = walletName,
+                    title = wallet.name,
                     textStyle = NunchukTheme.typography.titleLarge,
                     elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                        if (walletName.isNotEmpty()) {
+                        if (wallet.name.isNotEmpty()) {
                             IconButton(onClick = onWalletClick) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_wallets),
@@ -439,7 +453,8 @@ private fun GroupDashboardContent(
                 LazyColumn(
                     modifier = Modifier
                         .background(colorResource(id = R.color.nc_grey_light))
-                        .padding(top = 16.dp)
+                        .padding(top = 16.dp),
+                    state = listState
                 ) {
                     AlertListView(
                         alerts = alerts,
@@ -447,7 +462,9 @@ private fun GroupDashboardContent(
                         onAlertClick = onAlertClick,
                         onDismissClick = onDismissClick
                     )
-                    HealthCheckStatusView()
+                    if (wallet.id.isNotEmpty()) {
+                        HealthCheckStatusView(onOpenHealthCheckScreen = onOpenHealthCheckScreen)
+                    }
                     MemberListView(
                         group = group,
                         currentUserRole = currentUserRole,
@@ -483,7 +500,7 @@ private fun LazyListScope.AlertListView(
     onDismissClick: (String) -> Unit = {}
 ) {
     if (alerts.isNotEmpty()) {
-        item {
+        item(key = "alert title") {
             Row(
                 modifier = Modifier.padding(
                     bottom = 12.dp,
@@ -503,7 +520,7 @@ private fun LazyListScope.AlertListView(
             }
         }
     }
-    items(alerts) {
+    items(alerts, key = { "${it.id}${it.body}" }) {
         AlertView(
             isDismissible = it.viewable.not(),
             title = it.title,
@@ -766,11 +783,13 @@ private fun ContactMemberView(
     }
 }
 
-private fun LazyListScope.HealthCheckStatusView() {
+private fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}) {
     item {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
             Row {
                 Image(
                     painter = painterResource(id = R.drawable.ic_health_check),
@@ -788,37 +807,20 @@ private fun LazyListScope.HealthCheckStatusView() {
                     .padding(top = 12.dp)
                     .border(
                         width = 1.dp,
-                        color = Color(0xFFDEDEDE),
+                        color = MaterialTheme.colors.border,
                         shape = RoundedCornerShape(size = 8.dp)
                     )
                     .fillMaxWidth()
-                    .background(color = Color.White, shape = RoundedCornerShape(size = 8.dp))
+                    .background(
+                        color = MaterialTheme.colors.surface,
+                        shape = RoundedCornerShape(size = 8.dp)
+                    )
+                    .clickable(onClick = onOpenHealthCheckScreen)
                     .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 items(3) {
-                    Row(
-                        modifier = Modifier
-                            .width(36.dp)
-                            .height(36.dp)
-                            .background(
-                                color = Color(0xFFA7F0BA),
-                                shape = RoundedCornerShape(size = 24.dp)
-                            )
-                            .padding(start = 9.dp, top = 9.dp, end = 9.dp, bottom = 9.dp),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            10.dp,
-                            Alignment.CenterHorizontally
-                        ),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_unknown_key),
-                            contentDescription = "image description",
-                            contentScale = ContentScale.None
-                        )
-                    }
+                    NcCircleImage(resId = R.drawable.ic_unknown_key, size = 36.dp, iconSize = 18.dp)
                 }
             }
         }
