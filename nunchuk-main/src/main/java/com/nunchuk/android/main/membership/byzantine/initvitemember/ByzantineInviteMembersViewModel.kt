@@ -29,7 +29,6 @@ import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -156,12 +155,6 @@ class ByzantineInviteMembersViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            if (role != null) {
-                if (countKeyholderRole(index, role) > _state.value.walletConstraints?.maximumKeyholder.orDefault(3)) {
-                    emitWithDelay(ByzantineInviteMembersEvent.LimitKeyholderRoleWarning)
-                    return@launch
-                }
-            }
             _state.update {
                 it.copy(
                     members = _state.value.members.mapIndexed { i, member ->
@@ -181,29 +174,12 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         }
     }
 
-    private fun emitWithDelay(event: ByzantineInviteMembersEvent) {
-        viewModelScope.launch {
-            delay(50)
-            _event.emit(event)
-        }
+    fun getMaximumKeyholderRole(): Int {
+        return _state.value.walletConstraints?.maximumKeyholder.orDefault(3)
     }
 
-    private fun countKeyholderRole(index: Int, newRole: String): Int {
-        val member = _state.value.members[index]
-        val countRole = _state.value.members.count { it.role.toRole.isKeyHolder }
-        return if (member.role.toRole.isKeyHolder) {
-            if (newRole.toRole.isKeyHolder) {
-                countRole
-            } else {
-                countRole - 1
-            }
-        } else {
-            if (newRole.toRole.isKeyHolder) {
-                countRole + 1
-            } else {
-                countRole
-            }
-        }
+    fun isExcessKeyholderLimit(): Boolean {
+        return _state.value.members.count { it.role.toRole.isKeyHolder } > getMaximumKeyholderRole()
     }
 
     private fun getError(email: String?): String {

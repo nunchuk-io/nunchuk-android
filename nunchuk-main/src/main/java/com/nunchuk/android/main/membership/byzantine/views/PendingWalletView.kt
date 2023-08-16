@@ -206,8 +206,8 @@ fun RowScope.PendingWalletInviteMember(
 @Composable
 fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
-        val sortedList = group.members.sortedWith(compareBy { it.isPendingRequest() })
-        sortedList.take(3).forEachIndexed { index, byzantineMember ->
+        val sortedList = group.members.filter { it.role != AssistedWalletRole.OBSERVER.name }.sortedWith(compareBy { it.isPendingRequest() })
+        sortedList.take(5).forEachIndexed { index, byzantineMember ->
             val padStart = if (index == 0) 0.dp else 4.dp
             AvatarView(
                 modifier = Modifier.padding(start = padStart),

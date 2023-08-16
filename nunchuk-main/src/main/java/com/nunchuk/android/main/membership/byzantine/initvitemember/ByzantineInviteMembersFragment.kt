@@ -119,6 +119,10 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                         )
                     )
                 }, onContinueClick = {
+                    if (viewModel.isExcessKeyholderLimit()) {
+                        showLimitKeyholderDialog()
+                        return@InviteMembersScreen
+                    }
                     if (args.flow == ByzantineMemberFlow.SETUP) {
                         val onCreateGroupWallet: () -> Unit = {
                             viewModel.createGroup()
@@ -177,7 +181,7 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
     }
 
     private fun showLimitKeyholderDialog() {
-        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_limit_keyholder_message_dialog))
+        NCInfoDialog(requireActivity()).showDialog(message = String.format(getString(R.string.nc_limit_keyholder_message_dialog), viewModel.getMaximumKeyholderRole()))
     }
 
     private fun enterPasswordDialog() {
