@@ -2,7 +2,9 @@ package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletDto
+import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.ReuseFromGroupRequest
+import com.nunchuk.android.core.data.model.byzantine.toDomainModel
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.toModel
@@ -19,6 +21,8 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.DraftWallet
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.SimilarGroup
 import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
@@ -169,5 +173,42 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
             }
         }
+    }
+
+    override suspend fun getWalletHealthStatus(groupId: String, walletId: String): List<KeyHealthStatus> {
+        return userWalletApiManager.groupWalletApi.getWalletHealthStatus(
+            groupId = groupId,
+            walletId = walletId
+        ).data.statuses.map {
+            it.toDomainModel()
+        }
+    }
+
+    override suspend fun requestHealthCheck(groupId: String, walletId: String, xfp: String) {
+        val response = userWalletApiManager.groupWalletApi.requestHealthCheck(
+            groupId = groupId,
+            walletId = walletId,
+            xfp = xfp
+        )
+
+        if (response.isSuccess.not()) throw response.error
+    }
+
+    override suspend fun healthCheck(
+        groupId: String,
+        walletId: String,
+        xfp: String
+    ): DummyTransactionPayload {
+        val response = userWalletApiManager.groupWalletApi.healthCheck(
+            groupId = groupId,
+            walletId = walletId,
+            xfp = xfp,
+            HealthCheckRequest(nonce = getNonce())
+        )
+        return response.data.dummyTransaction?.toDomainModel() ?: throw NullPointerException("dummyTransaction null")
+    }
+
+    private suspend fun getNonce(): String {
+        return userWalletApiManager.walletApi.getNonce().data.nonce?.nonce.orEmpty()
     }
 }

@@ -14,11 +14,13 @@ import com.nunchuk.android.core.data.model.byzantine.GetGroupsResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupChatDataResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
+import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.ReuseFromGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.SimilarGroupResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
+import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
@@ -333,4 +335,25 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Body request: ReuseFromGroupRequest,
     ): Data<DraftWalletResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/health")
+    suspend fun getWalletHealthStatus(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<WalletHealthStatusResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/health/{xfp}/request-health-check")
+    suspend fun requestHealthCheck(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+    ): Data<Unit>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/health/{xfp}/health-check")
+    suspend fun healthCheck(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+        @Body request: HealthCheckRequest
+    ): Data<DummyTransactionResponse>
 }

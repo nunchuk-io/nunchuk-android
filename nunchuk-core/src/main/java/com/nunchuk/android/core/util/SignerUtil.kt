@@ -93,3 +93,5 @@ fun SingleSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = fa
     context,
     toReadableDrawableResId(type, tags, isPrimaryKey)
 ) ?: throw NullPointerException("Nunchuk can not get drawable")
+
+fun SingleSigner.toReadableDrawableId(isPrimaryKey: Boolean = false) = toReadableDrawableResId(type, tags, isPrimaryKey)

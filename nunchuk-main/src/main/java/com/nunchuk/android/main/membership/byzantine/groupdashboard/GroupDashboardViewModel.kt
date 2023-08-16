@@ -19,6 +19,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
 import com.nunchuk.android.usecase.membership.DismissAlertUseCase
 import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
@@ -58,6 +59,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val dismissAlertUseCase: DismissAlertUseCase,
     private val markAlertAsReadUseCase: MarkAlertAsReadUseCase,
     private val getHistoryPeriodUseCase: GetHistoryPeriodUseCase,
+    private val getGroupWalletKeyHealthStatusUseCase: GetGroupWalletKeyHealthStatusUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -80,11 +82,23 @@ class GroupDashboardViewModel @Inject constructor(
             timelineListenerAdapter.data.collect(::handleTimelineEvents)
         }
         getGroup()
-        if (!args.walletId.isNullOrEmpty()) {
-            getWallet(args.walletId)
+        val walletId = args.walletId
+        if (!walletId.isNullOrEmpty()) {
+            getWallet(walletId)
+            getKeysStatus(walletId)
         }
         getAlerts()
         getGroupChat()
+    }
+
+    private fun getKeysStatus(walletId: String) {
+        viewModelScope.launch {
+            getGroupWalletKeyHealthStatusUseCase(GetGroupWalletKeyHealthStatusUseCase.Params(args.groupId, walletId))
+                .onSuccess { status ->
+                    _state.update { state ->
+                        state.copy(keyStatus = status.associateBy { it.xfp }) }
+                }
+        }
     }
 
     fun getAlerts() {

@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -78,13 +77,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.border
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -103,10 +100,8 @@ import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toTitle
@@ -323,11 +318,7 @@ private fun GroupDashboardScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     GroupDashboardContent(
-        group = state.group,
-        currentUserRole = state.myRole,
-        wallet = state.walletExtended.wallet,
-        alerts = state.alerts,
-        groupChat = state.groupChat,
+        uiState = state,
         onDismissClick = viewModel::dismissAlert,
         isEnableStartGroupChat = viewModel.isEnableStartGroupChat(),
         onEditClick = onEditClick,
@@ -345,12 +336,8 @@ private fun GroupDashboardScreen(
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun GroupDashboardContent(
-    group: ByzantineGroup? = null,
-    alerts: List<Alert> = emptyList(),
-    wallet: Wallet = Wallet(),
-    currentUserRole: AssistedWalletRole = AssistedWalletRole.NONE,
+    uiState: GroupDashboardState = GroupDashboardState(),
     isEnableStartGroupChat: Boolean = false,
-    groupChat: GroupChat? = null,
     onGroupChatClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onAlertClick: (alert: Alert, role: AssistedWalletRole) -> Unit = { _, _ -> },
@@ -359,7 +346,7 @@ private fun GroupDashboardContent(
     onDismissClick: (String) -> Unit = {},
     onOpenHealthCheckScreen: () -> Unit = {},
 ) {
-    val master = group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
+    val master = uiState.group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
     val listState = rememberLazyListState()
     val fabVisibility by remember {
         derivedStateOf {
@@ -375,12 +362,12 @@ private fun GroupDashboardContent(
             topBar = {
                 NcTopAppBar(
                     backgroundColor = colorResource(id = R.color.nc_grey_light),
-                    title = wallet.name,
+                    title = uiState.walletExtended.wallet.name,
                     textStyle = NunchukTheme.typography.titleLarge,
                     elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                        if (wallet.name.isNotEmpty()) {
+                        if (uiState.walletExtended.wallet.name.isNotEmpty()) {
                             IconButton(onClick = onWalletClick) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_wallets),
@@ -406,7 +393,7 @@ private fun GroupDashboardContent(
                         LocalRippleTheme provides
                                 if (isEnableStartGroupChat) LocalRippleTheme.current else NoRippleTheme
                     ) {
-                        if (groupChat != null) {
+                        if (uiState.groupChat != null) {
                             FloatingActionButton(onClick = onGroupChatClick) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_messages),
@@ -444,7 +431,7 @@ private fun GroupDashboardContent(
                 }
             }
         ) { innerPadding ->
-            if (group == null) return@Scaffold
+            if (uiState.group == null) return@Scaffold
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -457,19 +444,19 @@ private fun GroupDashboardContent(
                     state = listState
                 ) {
                     AlertListView(
-                        alerts = alerts,
-                        currentUserRole = currentUserRole,
+                        alerts = uiState.alerts,
+                        currentUserRole = uiState.myRole,
                         onAlertClick = onAlertClick,
                         onDismissClick = onDismissClick
                     )
-                    if (wallet.id.isNotEmpty()) {
-                        HealthCheckStatusView(onOpenHealthCheckScreen = onOpenHealthCheckScreen)
+                    if (uiState.keyStatus.isNotEmpty()) {
+                        HealthCheckStatusView(onOpenHealthCheckScreen = onOpenHealthCheckScreen, uiState.walletExtended.wallet.signers, uiState.keyStatus)
                     }
                     MemberListView(
-                        group = group,
-                        currentUserRole = currentUserRole,
+                        group = uiState.group,
+                        currentUserRole = uiState.myRole,
                         master = master,
-                        padTop = if (alerts.isNotEmpty()) 24.dp else 0.dp,
+                        padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
                         onEditClick = onEditClick
                     )
                 }
@@ -777,50 +764,6 @@ private fun ContactMemberView(
                         text = "Pending",
                         style = NunchukTheme.typography.title
                     )
-                }
-            }
-        }
-    }
-}
-
-private fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}) {
-    item {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Row {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_health_check),
-                    contentDescription = "image description",
-                    contentScale = ContentScale.None
-                )
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = "Key health status",
-                    style = NunchukTheme.typography.title
-                )
-            }
-            LazyRow(
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colors.border,
-                        shape = RoundedCornerShape(size = 8.dp)
-                    )
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colors.surface,
-                        shape = RoundedCornerShape(size = 8.dp)
-                    )
-                    .clickable(onClick = onOpenHealthCheckScreen)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                items(3) {
-                    NcCircleImage(resId = R.drawable.ic_unknown_key, size = 36.dp, iconSize = 18.dp)
                 }
             }
         }

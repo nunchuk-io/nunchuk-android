@@ -240,7 +240,7 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getGroupBriefsFlowUseCase(Unit).collect {
+            getGroupBriefsFlowUseCase(Unit).distinctUntilChanged().collect {
                 val groups = it.getOrDefault(emptyList())
                 updateState { copy(allGroups = groups) }
                 if (groups.isNotEmpty()) {
