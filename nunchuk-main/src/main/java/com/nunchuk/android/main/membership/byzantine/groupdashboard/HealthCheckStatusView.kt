@@ -23,14 +23,14 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
-import com.nunchuk.android.core.util.toReadableDrawableId
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.healthCheckTimeColor
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.type.SignerType
 
-fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}, signers: List<SingleSigner>, status: Map<String, KeyHealthStatus>) {
+fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}, signers: List<SignerModel>, status: Map<String, KeyHealthStatus>) {
     item {
         Column(
             modifier = Modifier
@@ -67,7 +67,7 @@ fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 items(signers.filter { it.type != SignerType.SERVER }) {
-                    NcCircleImage(resId = it.toReadableDrawableId(), size = 36.dp, iconSize = 18.dp, color = status[it.masterFingerprint]?.lastHealthCheckTimeMillis.healthCheckTimeColor())
+                    NcCircleImage(resId = it.toReadableDrawableResId(), size = 36.dp, iconSize = 18.dp, color = status[it.fingerPrint]?.lastHealthCheckTimeMillis.healthCheckTimeColor())
                 }
             }
         }

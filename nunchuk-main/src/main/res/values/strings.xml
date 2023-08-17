@@ -127,4 +127,10 @@
     <string name="nc_co_signing_activation_desc">The Nunchuk platform key will be activated and start co-signing transactions once all keyholders have approved the spending limit(s).</string>
     <string name="nc_security_question_set_by_master_warning">The security questions must be set up by the Master account.</string>
     <string name="nc_key_health_status">Key health status</string>
+    <string name="nc_savings_account">Savings account</string>
+    <string name="nc_health_check">Health check</string>
+    <string name="nc_request_health_check">Request health check</string>
+    <string name="nc_last_checked_more_than_1_year_ago">Last checked: More than 1 year ago</string>
+    <string name="nc_last_checked_less_than_6_months_ago">Last checked: Less than 6 months ago</string>
+    <string name="nc_last_checked_more_than_6_months_ago">Last checked: More than 6 months ago</string>
 </resources>

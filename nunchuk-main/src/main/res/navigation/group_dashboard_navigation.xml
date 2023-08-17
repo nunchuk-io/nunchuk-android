@@ -16,7 +16,7 @@
         <argument
             android:name="wallet_id"
             app:argType="string"
-            app:nullable="true"/>
+            app:nullable="true" />
 
         <action
             android:id="@+id/action_groupDashboardFragment_to_groupChatHistoryFragment"
@@ -34,7 +34,8 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim">
 
-            <argument android:name="group_id"
+            <argument
+                android:name="group_id"
                 android:defaultValue=""
                 app:argType="string" />
 
@@ -58,6 +59,13 @@
                 app:argType="string" />
 
         </action>
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_healthCheckFragment"
+            app:destination="@id/healthCheckFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
     </fragment>
 
@@ -77,7 +85,8 @@
             android:defaultValue=""
             app:argType="string" />
 
-        <argument android:name="group_id"
+        <argument
+            android:name="group_id"
             android:defaultValue=""
             app:argType="string" />
 
@@ -86,7 +95,7 @@
     <fragment
         android:id="@+id/healthCheckFragment"
         android:name="com.nunchuk.android.main.membership.byzantine.healthcheck.HealthCheckFragment"
-        android:label="HealthCheckFragment" >
+        android:label="HealthCheckFragment">
         <argument
             android:name="group_id"
             app:argType="string" />

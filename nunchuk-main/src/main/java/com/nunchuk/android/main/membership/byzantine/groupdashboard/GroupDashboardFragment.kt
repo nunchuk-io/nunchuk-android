@@ -172,7 +172,15 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         showMoreOptions()
                     },
                     onOpenHealthCheckScreen = {
-
+                        val walletId = args.walletId.orEmpty()
+                        if (walletId.isNotEmpty()) {
+                            findNavController().navigate(
+                                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToHealthCheckFragment(
+                                    groupId = args.groupId,
+                                    walletId = args.walletId.orEmpty()
+                                )
+                            )
+                        }
                     },
                 )
             }
@@ -201,6 +209,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         )
                     )
                 }
+
+                GroupDashboardEvent.RequestHealthCheckSuccess -> TODO()
             }
         }
     }
@@ -362,12 +372,12 @@ private fun GroupDashboardContent(
             topBar = {
                 NcTopAppBar(
                     backgroundColor = colorResource(id = R.color.nc_grey_light),
-                    title = uiState.walletExtended.wallet.name,
+                    title = uiState.wallet.name,
                     textStyle = NunchukTheme.typography.titleLarge,
                     elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                        if (uiState.walletExtended.wallet.name.isNotEmpty()) {
+                        if (uiState.wallet.name.isNotEmpty()) {
                             IconButton(onClick = onWalletClick) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_wallets),
@@ -450,7 +460,7 @@ private fun GroupDashboardContent(
                         onDismissClick = onDismissClick
                     )
                     if (uiState.keyStatus.isNotEmpty()) {
-                        HealthCheckStatusView(onOpenHealthCheckScreen = onOpenHealthCheckScreen, uiState.walletExtended.wallet.signers, uiState.keyStatus)
+                        HealthCheckStatusView(onOpenHealthCheckScreen = onOpenHealthCheckScreen, uiState.signers, uiState.keyStatus)
                     }
                     MemberListView(
                         group = uiState.group,

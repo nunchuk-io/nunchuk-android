@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orUnknownError
@@ -17,25 +20,25 @@ import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusUseCase
+import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
+import com.nunchuk.android.usecase.byzantine.RequestHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
 import com.nunchuk.android.usecase.membership.DismissAlertUseCase
 import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
 import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
-import com.nunchuk.android.utils.onException
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
@@ -49,7 +52,7 @@ import javax.inject.Inject
 @HiltViewModel
 class GroupDashboardViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getWalletUseCase: GetWalletUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val accountManager: AccountManager,
     private val sessionHolder: SessionHolder,
     private val getGroupUseCase: GetGroupUseCase,
@@ -61,6 +64,9 @@ class GroupDashboardViewModel @Inject constructor(
     private val getHistoryPeriodUseCase: GetHistoryPeriodUseCase,
     private val getGroupWalletKeyHealthStatusUseCase: GetGroupWalletKeyHealthStatusUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val cardIdManager: CardIdManager,
+    private val requestHealthCheckUseCase: RequestHealthCheckUseCase,
+    private val keyHealthCheckUseCase: KeyHealthCheckUseCase
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -93,10 +99,16 @@ class GroupDashboardViewModel @Inject constructor(
 
     private fun getKeysStatus(walletId: String) {
         viewModelScope.launch {
-            getGroupWalletKeyHealthStatusUseCase(GetGroupWalletKeyHealthStatusUseCase.Params(args.groupId, walletId))
+            getGroupWalletKeyHealthStatusUseCase(
+                GetGroupWalletKeyHealthStatusUseCase.Params(
+                    args.groupId,
+                    walletId
+                )
+            )
                 .onSuccess { status ->
                     _state.update { state ->
-                        state.copy(keyStatus = status.associateBy { it.xfp }) }
+                        state.copy(keyStatus = status.associateBy { it.xfp })
+                    }
                 }
         }
     }
@@ -120,15 +132,21 @@ class GroupDashboardViewModel @Inject constructor(
 
     private fun getWallet(walletId: String) {
         viewModelScope.launch {
-            getWalletUseCase.execute(walletId)
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    _state.value = _state.value.copy(
-                        walletExtended = it
-                    )
-                }
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                val signers = wallet.signers
+                    .filter { signer -> signer.type != SignerType.SERVER }
+                    .map { signer -> signer.toModel() }
+                    .map { signer ->
+                        if (signer.type == SignerType.NFC) signer.copy(
+                            cardId = cardIdManager.getCardId(
+                                signer.id
+                            )
+                        ) else signer
+                    }
+                    .toList()
+
+                _state.update { state -> state.copy(wallet = wallet, signers = signers) }
+            }
         }
     }
 
@@ -195,8 +213,10 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     private fun currentUserRole(members: List<ByzantineMember>): AssistedWalletRole {
-        return members.firstOrNull { it.emailOrUsername == accountManager.getAccount().email
-                || it.emailOrUsername == accountManager.getAccount().username }?.role.toRole
+        return members.firstOrNull {
+            it.emailOrUsername == accountManager.getAccount().email
+                    || it.emailOrUsername == accountManager.getAccount().username
+        }?.role.toRole
     }
 
     fun groupChat(): GroupChat? {
@@ -246,7 +266,7 @@ class GroupDashboardViewModel @Inject constructor(
             val result = dismissAlertUseCase(DismissAlertUseCase.Param(alertId, args.groupId))
             if (result.isSuccess) {
                 _state.update {
-                    it.copy(alerts = it.alerts.filterNot { it.id == alertId })
+                    it.copy(alerts = it.alerts.filterNot { alert -> alert.id == alertId })
                 }
             } else {
                 _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
@@ -258,6 +278,26 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             markAlertAsReadUseCase(MarkAlertAsReadUseCase.Param(alertId, args.groupId))
         }
+    }
+
+    fun onRequestHealthCheck(signerModel: SignerModel) {
+        viewModelScope.launch {
+            _event.emit(GroupDashboardEvent.Loading(true))
+            requestHealthCheckUseCase(
+                RequestHealthCheckUseCase.Params(
+                    args.groupId,
+                    args.walletId.orEmpty(),
+                    signerModel.fingerPrint,
+                )
+            ).onSuccess {
+                _event.emit(GroupDashboardEvent.RequestHealthCheckSuccess)
+            }
+            _event.emit(GroupDashboardEvent.Loading(false))
+        }
+    }
+
+    fun onHealthCheck(signerModel: SignerModel) {
+        TODO("Not yet implemented")
     }
 
 }
