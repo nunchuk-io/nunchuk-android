@@ -49,7 +49,8 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             type = dummyTransaction.type.toDummyTransactionType,
             requiredSignatures = dummyTransaction.requiredSignatures,
             pendingSignatures = dummyTransaction.pendingSignatures,
-            requestByUserId = dummyTransaction.requesterUserId.orEmpty()
+            requestByUserId = dummyTransaction.requesterUserId.orEmpty(),
+            dummyTransactionId = dummyTransaction.id.orEmpty(),
         )
     }
 

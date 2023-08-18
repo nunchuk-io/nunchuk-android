@@ -297,6 +297,18 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun onHealthCheck(signerModel: SignerModel) {
-        TODO("Not yet implemented")
+        viewModelScope.launch { 
+            _event.emit(GroupDashboardEvent.Loading(true))
+            keyHealthCheckUseCase(
+                KeyHealthCheckUseCase.Params(
+                    args.groupId,
+                    args.walletId.orEmpty(),
+                    signerModel.fingerPrint,
+                )
+            ).onSuccess {
+                _event.emit(GroupDashboardEvent.GetHealthCheckPayload(it))
+            }
+            _event.emit(GroupDashboardEvent.Loading(false))
+        }
     }
 }

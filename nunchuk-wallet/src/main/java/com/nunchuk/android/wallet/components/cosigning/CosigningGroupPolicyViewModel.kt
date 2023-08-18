@@ -246,9 +246,9 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                             }
                             _event.emit(
                                 CosigningGroupPolicyEvent.OnSaveChange(
-                                    requiredSignature,
-                                    data,
-                                    transactionId
+                                    required = requiredSignature,
+                                    data = data,
+                                    dummyTransactionId = transactionId
                                 )
                             )
                         }.onFailure { exception ->

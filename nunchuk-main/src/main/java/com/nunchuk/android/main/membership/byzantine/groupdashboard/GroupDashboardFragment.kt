@@ -132,7 +132,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -210,7 +210,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     )
                 }
 
-                GroupDashboardEvent.RequestHealthCheckSuccess -> TODO()
+                else -> Unit
             }
         }
     }
@@ -460,7 +460,11 @@ private fun GroupDashboardContent(
                         onDismissClick = onDismissClick
                     )
                     if (uiState.keyStatus.isNotEmpty()) {
-                        HealthCheckStatusView(onOpenHealthCheckScreen = onOpenHealthCheckScreen, uiState.signers, uiState.keyStatus)
+                        HealthCheckStatusView(
+                            onOpenHealthCheckScreen = onOpenHealthCheckScreen,
+                            uiState.signers,
+                            uiState.keyStatus
+                        )
                     }
                     MemberListView(
                         group = uiState.group,
@@ -494,7 +498,7 @@ private fun LazyListScope.AlertListView(
     alerts: List<Alert>,
     currentUserRole: AssistedWalletRole = AssistedWalletRole.NONE,
     onAlertClick: (Alert, AssistedWalletRole) -> Unit,
-    onDismissClick: (String) -> Unit = {}
+    onDismissClick: (String) -> Unit = {},
 ) {
     if (alerts.isNotEmpty()) {
         item(key = "alert title") {
@@ -538,7 +542,7 @@ private fun LazyListScope.MemberListView(
     master: ByzantineMember? = null,
     group: ByzantineGroup,
     padTop: Dp = 0.dp,
-    onEditClick: () -> Unit = {}
+    onEditClick: () -> Unit = {},
 ) {
     item {
         Row(
@@ -617,7 +621,7 @@ private fun AlertView(
     keyText: String = "",
     timeText: String = "",
     onViewClick: () -> Unit = {},
-    onDismissClick: () -> Unit = {}
+    onDismissClick: () -> Unit = {},
 ) {
     Box(
         modifier = Modifier

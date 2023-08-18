@@ -7,12 +7,14 @@ import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 
 sealed class GroupDashboardEvent {
     data class Loading(val loading: Boolean) : GroupDashboardEvent()
     data class Error(val message: String) : GroupDashboardEvent()
     data class GetHistoryPeriodSuccess(val periods: List<HistoryPeriod>) : GroupDashboardEvent()
+    class GetHealthCheckPayload(val payload: DummyTransactionPayload) : GroupDashboardEvent()
     object NavigateToGroupChat : GroupDashboardEvent()
     object RequestHealthCheckSuccess : GroupDashboardEvent()
 }

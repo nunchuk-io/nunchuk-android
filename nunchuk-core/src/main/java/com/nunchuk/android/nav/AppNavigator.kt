@@ -85,7 +85,7 @@ interface AppNavigator {
 
     fun openWalletAuthentication(
         walletId: String,
-        userData: String,
+        userData: String = "",
         requiredSignatures: Int,
         type: String,
         launcher: ActivityResultLauncher<Intent>,

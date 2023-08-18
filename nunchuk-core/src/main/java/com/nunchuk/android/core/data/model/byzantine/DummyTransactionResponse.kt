@@ -37,5 +37,6 @@ fun DummyTransactionDto.toDomainModel() = DummyTransactionPayload(
     type = type.toDummyTransactionType,
     requiredSignatures = requiredSignatures,
     pendingSignatures = pendingSignatures,
-    requestByUserId = requesterUserId.orEmpty()
+    requestByUserId = requesterUserId.orEmpty(),
+    dummyTransactionId = id.orEmpty(),
 )

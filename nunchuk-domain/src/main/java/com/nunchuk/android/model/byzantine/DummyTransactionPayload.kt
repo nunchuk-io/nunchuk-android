@@ -3,6 +3,7 @@ package com.nunchuk.android.model.byzantine
 import androidx.annotation.Keep
 
 data class DummyTransactionPayload(
+    val dummyTransactionId: String,
     val payload: String,
     val walletId: String,
     val type: DummyTransactionType,
