@@ -44,6 +44,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardState
 import com.nunchuk.android.main.membership.byzantine.healthCheckLabel
 import com.nunchuk.android.main.membership.byzantine.healthCheckTimeColor
+import com.nunchuk.android.model.byzantine.KeyHealthStatus
 
 @Composable
 fun HealthCheckContent(
@@ -81,7 +82,7 @@ fun HealthCheckContent(
                     items(state.signers) {
                         HealthCheckItem(
                             signer = it,
-                            lastHealthCheckTime = state.keyStatus[it.fingerPrint]?.lastHealthCheckTimeMillis,
+                            status = state.keyStatus[it.fingerPrint],
                             onHealthCheck = onHealthCheck,
                             onRequestHealthCheck = onRequestHealthCheck
                         )
@@ -95,17 +96,17 @@ fun HealthCheckContent(
 @Composable
 private fun HealthCheckItem(
     signer: SignerModel,
-    lastHealthCheckTime: Long?,
+    status: KeyHealthStatus?,
     onHealthCheck: (SignerModel) -> Unit = {},
     onRequestHealthCheck: (SignerModel) -> Unit = {},
 ) {
     val context = LocalContext.current
-    val label by remember(lastHealthCheckTime) {
+    val label by remember(status?.lastHealthCheckTimeMillis) {
         derivedStateOf {
-            lastHealthCheckTime.healthCheckLabel(context)
+            status?.lastHealthCheckTimeMillis.healthCheckLabel(context)
         }
     }
-    val color = lastHealthCheckTime.healthCheckTimeColor()
+    val color = status?.lastHealthCheckTimeMillis.healthCheckTimeColor()
     Column(
         modifier = Modifier
             .border(
@@ -178,17 +179,24 @@ private fun HealthCheckItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start),
             verticalAlignment = Alignment.Top,
         ) {
-            NcOutlineButton(modifier = Modifier
-                .weight(1f)
-                .height(36.dp), onClick = { onHealthCheck(signer) }) {
+            NcOutlineButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(36.dp),
+                onClick = { onHealthCheck(signer) },
+            ) {
                 Text(
                     text = stringResource(R.string.nc_health_check),
                     style = NunchukTheme.typography.caption
                 )
             }
-            NcOutlineButton(modifier = Modifier
-                .weight(1f)
-                .height(36.dp), onClick = { onRequestHealthCheck(signer) }) {
+            NcOutlineButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(36.dp),
+                onClick = { onRequestHealthCheck(signer) },
+                enabled = status?.canRequestHealthCheck == true
+            ) {
                 Text(
                     text = stringResource(R.string.nc_request_health_check),
                     style = NunchukTheme.typography.caption

@@ -299,5 +299,4 @@ class GroupDashboardViewModel @Inject constructor(
     fun onHealthCheck(signerModel: SignerModel) {
         TODO("Not yet implemented")
     }
-
 }

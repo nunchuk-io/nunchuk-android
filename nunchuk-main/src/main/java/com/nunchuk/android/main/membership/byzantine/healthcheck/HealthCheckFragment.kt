@@ -9,6 +9,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardEvent
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -34,6 +37,17 @@ class HealthCheckFragment : MembershipFragment() {
                     state = state,
                     onRequestHealthCheck = viewModel::onRequestHealthCheck,
                     onHealthCheck = viewModel::onHealthCheck
+                )
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewModel.event) {
+            if (it is GroupDashboardEvent.RequestHealthCheckSuccess) {
+                findNavController().navigate(
+                    HealthCheckFragmentDirections.actionHealthCheckFragmentToRequestHealthCheckSentFragment()
                 )
             }
         }
