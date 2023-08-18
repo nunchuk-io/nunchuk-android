@@ -21,6 +21,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.byzantine.ParseUpdateGroupKeyPayloadUseCase
 import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
@@ -29,6 +30,7 @@ import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +46,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private val createOrUpdateInheritanceUseCase: CreateOrUpdateInheritanceUseCase,
     private val cancelInheritanceUseCase: CancelInheritanceUseCase,
     private val getWalletUseCase: GetWalletUseCase,
-    private val membershipStepManager: MembershipStepManager,
+    private val membershipStepManager: MembershipStepManager
 ) : ViewModel() {
 
     private lateinit var param: InheritancePlanningParam.SetupOrReview

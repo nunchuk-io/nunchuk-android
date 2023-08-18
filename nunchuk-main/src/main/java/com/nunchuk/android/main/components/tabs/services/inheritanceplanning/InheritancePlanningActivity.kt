@@ -62,43 +62,54 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
         val planFlow = intent.getIntExtra(EXTRA_INHERITANCE_PLAN_FLOW, InheritancePlanFlow.NONE)
         when (planFlow) {
-            InheritancePlanFlow.SETUP -> {
-                graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
-            }
-
-            InheritancePlanFlow.VIEW -> {
-                graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
-            }
-
-            InheritancePlanFlow.CLAIM -> {
-                graph.setStartDestination(R.id.inheritanceClaimInputFragment)
-            }
+            InheritancePlanFlow.SETUP -> graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
+            InheritancePlanFlow.VIEW -> graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
+            InheritancePlanFlow.CLAIM -> graph.setStartDestination(R.id.inheritanceClaimInputFragment)
+            InheritancePlanFlow.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.inheritanceReviewPlanGroupGroupFragment)
         }
         when (planFlow) {
             InheritancePlanFlow.SETUP -> {
-                viewModel.setOrUpdate(InheritancePlanningParam.SetupOrReview(
-                    planFlow = planFlow,
-                    walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
-                    groupId = groupId,
-                    isOpenFromWizard = intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false)
-                ))
+                viewModel.setOrUpdate(
+                    InheritancePlanningParam.SetupOrReview(
+                        planFlow = planFlow,
+                        walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                        groupId = groupId,
+                        isOpenFromWizard = intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false)
+                    )
+                )
             }
 
             InheritancePlanFlow.VIEW -> {
                 val inheritance = intent.parcelable<Inheritance>(EXTRA_INHERITANCE) ?: return
-                viewModel.setOrUpdate(InheritancePlanningParam.SetupOrReview(
-                    activationDate = inheritance.activationTimeMilis,
-                    emails = inheritance.notificationEmails,
-                    isNotify = inheritance.notificationEmails.isNotEmpty(),
-                    magicalPhrase = inheritance.magic,
-                    note = inheritance.note,
-                    verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
-                    planFlow = planFlow,
-                    bufferPeriod = inheritance.bufferPeriod,
-                    walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
-                    isOpenFromWizard = intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false),
-                    groupId = groupId
-                ))
+                viewModel.setOrUpdate(
+                    InheritancePlanningParam.SetupOrReview(
+                        activationDate = inheritance.activationTimeMilis,
+                        emails = inheritance.notificationEmails,
+                        isNotify = inheritance.notificationEmails.isNotEmpty(),
+                        magicalPhrase = inheritance.magic,
+                        note = inheritance.note,
+                        verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
+                        planFlow = planFlow,
+                        bufferPeriod = inheritance.bufferPeriod,
+                        walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                        isOpenFromWizard = intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false),
+                        groupId = groupId,
+                        dummyTransactionId = intent.getStringExtra(EXTRA_DUMMY_TRANSACTION_ID)
+                            .orEmpty()
+                    )
+                )
+            }
+            InheritancePlanFlow.SIGN_DUMMY_TX -> {
+                viewModel.setOrUpdate(
+                    InheritancePlanningParam.SetupOrReview(
+                        verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
+                        planFlow = planFlow,
+                        walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                        groupId = groupId,
+                        dummyTransactionId = intent.getStringExtra(EXTRA_DUMMY_TRANSACTION_ID)
+                            .orEmpty()
+                    )
+                )
             }
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
@@ -130,6 +141,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_INHERITANCE = "extra_inheritance"
         private const val EXTRA_IS_OPEN_FROM_WIZARD = "extra_is_open_from_wizard"
         private const val EXTRA_WALLET_ID = "wallet_id"
+        private const val EXTRA_DUMMY_TRANSACTION_ID = "dummy_transaction_id"
 
         fun navigate(
             walletId: String,
@@ -138,7 +150,8 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
             inheritance: Inheritance?,
             @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
             isOpenFromWizard: Boolean,
-            groupId: String?
+            groupId: String?,
+            dummyTransactionId: String?
         ) {
             val intent = Intent(activity, InheritancePlanningActivity::class.java)
                 .putExtra(EXTRA_INHERITANCE_PLAN_FLOW, flowInfo)
@@ -147,6 +160,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 .putExtra(EXTRA_IS_OPEN_FROM_WIZARD, isOpenFromWizard)
                 .putExtra(EXTRA_WALLET_ID, walletId)
                 .putExtra(MembershipActivity.EXTRA_GROUP_ID, groupId)
+                .putExtra(EXTRA_DUMMY_TRANSACTION_ID, dummyTransactionId)
             activity.startActivity(intent)
         }
     }

@@ -121,10 +121,6 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         ?: return@registerForActivityResult
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                Log.e(
-                    "inheritance-plan",
-                    "CalculateRequiredSignaturesSuccess - signatureMap: $signatureMap - securityQuestionToken: $securityQuestionToken"
-                )
                 if (signatureMap.isNotEmpty() || securityQuestionToken.isNotEmpty()) {
                     viewModel.handleFlow(signatureMap, securityQuestionToken)
                 } else {
@@ -231,10 +227,6 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess -> {
-                    Log.e(
-                        "inheritance-plan",
-                        "CalculateRequiredSignaturesSuccess - dummyTransactionId: ${event.dummyTransactionId} - groupId: ${inheritanceViewModel.setupOrReviewParam.groupId}"
-                    )
                     navigator.openWalletAuthentication(
                         walletId = event.walletId,
                         userData = event.userData,

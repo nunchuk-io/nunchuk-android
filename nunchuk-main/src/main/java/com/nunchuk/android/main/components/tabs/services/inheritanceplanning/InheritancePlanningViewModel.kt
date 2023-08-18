@@ -25,13 +25,17 @@ class InheritancePlanningViewModel @Inject constructor(
     private val groupId = savedStateHandle.get<String>(MembershipActivity.EXTRA_GROUP_ID).orEmpty()
 
     private val _state = MutableStateFlow(
-        InheritancePlanningState(groupId = savedStateHandle.get<String>(
-            MembershipActivity.EXTRA_GROUP_ID).orEmpty())
+        InheritancePlanningState(
+            groupId = savedStateHandle.get<String>(
+                MembershipActivity.EXTRA_GROUP_ID
+            ).orEmpty()
+        )
     )
     val state = _state.asStateFlow()
 
     lateinit var setupOrReviewParam: InheritancePlanningParam.SetupOrReview
         private set
+
     init {
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
@@ -69,7 +73,8 @@ sealed class InheritancePlanningParam {
         val verifyToken: String = "",
         val planFlow: Int = 0,
         val isOpenFromWizard: Boolean = false,
-        val groupId: String = ""
+        val groupId: String = "",
+        val dummyTransactionId: String = ""
     ) : InheritancePlanningParam()
 }
 

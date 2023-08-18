@@ -251,7 +251,8 @@ interface AppNavigatorDelegate : AppNavigator {
         inheritance: Inheritance?,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
         isOpenFromWizard: Boolean,
-        groupId: String?
+        groupId: String?,
+        dummyTransactionId: String?
     ) {
         InheritancePlanningActivity.navigate(
             activity = activityContext,
@@ -260,7 +261,8 @@ interface AppNavigatorDelegate : AppNavigator {
             inheritance = inheritance,
             isOpenFromWizard = isOpenFromWizard,
             walletId = walletId,
-            groupId = groupId
+            groupId = groupId,
+            dummyTransactionId = dummyTransactionId
         )
     }
 

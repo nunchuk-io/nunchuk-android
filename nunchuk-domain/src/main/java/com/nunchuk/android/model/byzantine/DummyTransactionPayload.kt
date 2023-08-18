@@ -14,8 +14,11 @@ data class DummyTransactionPayload(
 
 @Keep
 enum class DummyTransactionType {
-    NONE, UPDATE_SERVER_KEY, CREATE_INHERITANCE, UPDATE_INHERITANCE, CANCEL_INHERITANCE
+    NONE, UPDATE_SERVER_KEY, CREATE_INHERITANCE_PLAN, UPDATE_INHERITANCE_PLAN, CANCEL_INHERITANCE_PLAN
 }
+
+fun DummyTransactionType.isInheritanceFlow() =
+    this == DummyTransactionType.CREATE_INHERITANCE_PLAN || this == DummyTransactionType.UPDATE_INHERITANCE_PLAN || this == DummyTransactionType.CANCEL_INHERITANCE_PLAN
 
 val String?.toDummyTransactionType: DummyTransactionType
     get() = DummyTransactionType.values().find { it.name == this } ?: DummyTransactionType.NONE

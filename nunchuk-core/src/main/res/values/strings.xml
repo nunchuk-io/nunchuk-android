@@ -663,4 +663,10 @@
     <string name="nc_use_desktop_app_to_sign">Please use the desktop app to sign with this key</string>
     <string name="nc_master">Master</string>
     <string name="nc_member">Member</string>
+    <string name="nc_text_continue_signature_pending">Continue (%1$s signature pending)</string>
+    <string name="nc_inheritance_plan_group_create">%1$s: inheritance plan creation</string>
+    <string name="nc_inheritance_plan_group_change">%1$s: inheritance plan change</string>
+    <string name="nc_create_inheritance_plan_group_change_by">%1$s is requesting to create the inheritance plan for %1$s:</string>
+    <string name="nc_update_inheritance_plan_group_change_by">%1$s is requesting to make the following changes to the inheritance plan for %1$s:</string>
+    <string name="nc_cancel_inheritance_plan_group_change_by">%1$s is requesting to cancel the inheritance plan for %1$s.</string>
 </resources>

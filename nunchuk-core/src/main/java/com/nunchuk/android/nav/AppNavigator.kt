@@ -80,7 +80,8 @@ interface AppNavigator {
         inheritance: Inheritance? = null,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
         isOpenFromWizard: Boolean = false,
-        groupId: String? = null
+        groupId: String? = null,
+        dummyTransactionId: String? = null
     )
 
     fun openWalletAuthentication(

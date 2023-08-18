@@ -339,6 +339,13 @@
             app:argType="string" />
     </fragment>
 
+    <fragment
+        android:id="@+id/inheritanceReviewPlanGroupGroupFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupGroupFragment"
+        android:label="InheritanceReviewPlanGroupGroupFragment">
+    </fragment>
+
+
     <include app:graph="@navigation/select_wallet_navigation" />
 
 </navigation>

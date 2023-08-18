@@ -18,3 +18,7 @@ enum class AlertType {
 }
 
 fun String?.toAlertType() = AlertType.values().find { it.name == this } ?: AlertType.NONE
+
+fun AlertType.isInheritanceType() = this == AlertType.CREATE_INHERITANCE_PLAN ||
+        this == AlertType.UPDATE_INHERITANCE_PLAN ||
+        this == AlertType.CANCEL_INHERITANCE_PLAN

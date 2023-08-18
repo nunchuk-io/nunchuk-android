@@ -86,6 +86,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
@@ -104,6 +105,7 @@ import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -248,6 +250,15 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     dummyTransactionId = alert.payload.dummyTransactionId,
                 )
             }
+        } else if (alert.type.isInheritanceType()) {
+            navigator.openInheritancePlanningScreen(
+                walletId = args.walletId.orEmpty(),
+                activityContext = requireActivity(),
+                flowInfo = InheritancePlanFlow.SIGN_DUMMY_TX,
+                isOpenFromWizard = false,
+                groupId = args.groupId,
+                dummyTransactionId = alert.payload.dummyTransactionId
+            )
         }
     }
 
