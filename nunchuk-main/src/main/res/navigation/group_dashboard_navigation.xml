@@ -66,6 +66,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_alertActionIntroFragment"
+            app:destination="@id/alertActionIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
     </fragment>
 
@@ -109,12 +116,31 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
         android:id="@+id/requestHealthCheckSentFragment"
         android:name="com.nunchuk.android.main.membership.byzantine.healthcheck.RequestHealthCheckSentFragment"
         android:label="RequestHealthCheckSentFragment" />
+    <fragment
+        android:id="@+id/alertActionIntroFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment"
+        android:label="AlertActionIntroFragment">
+
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="alert"
+            app:argType="com.nunchuk.android.model.Alert" />
+
+    </fragment>
+
 
 </navigation>

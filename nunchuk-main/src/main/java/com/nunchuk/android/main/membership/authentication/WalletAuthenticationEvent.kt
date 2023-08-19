@@ -22,6 +22,7 @@ package com.nunchuk.android.main.membership.authentication
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.byzantine.DummyTransactionType
 
 sealed class WalletAuthenticationEvent {
     data class Loading(val isLoading: Boolean) : WalletAuthenticationEvent()
@@ -48,5 +49,7 @@ data class WalletAuthenticationState(
     val signatures: Map<String, String> = emptyMap(),
     val transaction: Transaction? = null,
     val pendingSignature : Int = 0,
-    val interactSingleSigner: SingleSigner? = null
+    val interactSingleSigner: SingleSigner? = null,
+    val dummyTransactionType: DummyTransactionType = DummyTransactionType.NONE,
+    val enabledSigners : Set<String> = emptySet(),
 )

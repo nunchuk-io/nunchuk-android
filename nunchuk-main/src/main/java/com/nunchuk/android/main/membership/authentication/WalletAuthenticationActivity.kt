@@ -23,17 +23,21 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.viewModels
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     private val args: WalletAuthenticationActivityArgs by navArgs()
+    private val viewModel: WalletAuthenticationViewModel by viewModels()
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }
@@ -41,6 +45,7 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initStartDestination()
+        observer()
     }
 
     private fun initStartDestination() {
@@ -56,6 +61,17 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
             VerificationType.CONFIRMATION_CODE -> graph.setStartDestination(R.id.confirmationCodeFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
+    }
+
+    private fun observer() {
+        flowObserver(viewModel.event) {
+            if (it is WalletAuthenticationEvent.Loading) {
+                showOrHideLoading(it.isLoading)
+            } else if (it is WalletAuthenticationEvent.ShowError) {
+                hideLoading()
+                NCToastMessage(this).showError(it.message)
+            }
+        }
     }
 
     companion object {

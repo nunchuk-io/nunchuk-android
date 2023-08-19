@@ -49,7 +49,6 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showSuccess
@@ -100,7 +99,6 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        showLoading()
         setupViews()
         observeEvent()
     }
@@ -149,7 +147,6 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                             requireActivity().finish()
                         }
 
-                        is WalletAuthenticationEvent.Loading -> showOrHideLoading(event.isLoading)
                         is WalletAuthenticationEvent.ScanTapSigner -> (requireActivity() as NfcActionListener).startNfcFlow(
                             BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION
                         )
@@ -167,12 +164,12 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                             event.isLoading,
                             event.isColdCard
                         )
-
-                        is WalletAuthenticationEvent.ShowError -> showError(event.message)
                         WalletAuthenticationEvent.ShowAirgapOption -> handleMenuMore()
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+                        is WalletAuthenticationEvent.Loading,
+                        is WalletAuthenticationEvent.ShowError -> Unit
                     }
                 }
         }
@@ -252,9 +249,10 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         val transaction = state.transaction ?: return
         bindTransaction(transaction, state.pendingSignature)
         bindSigners(
-            state.signatures.mapValues { true },
-            state.walletSigner.sortedByDescending(SignerModel::localKey),
-            transaction.status
+            signerMap = state.signatures.mapValues { true },
+            signers = state.walletSigner.sortedByDescending(SignerModel::localKey),
+            status = transaction.status,
+            enabledSigners = state.enabledSigners,
         )
         hideLoading()
     }
@@ -281,7 +279,8 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     private fun bindSigners(
         signerMap: Map<String, Boolean>,
         signers: List<SignerModel>,
-        status: TransactionStatus
+        status: TransactionStatus,
+        enabledSigners: Set<String>
     ) {
         TransactionSignersViewBinder(
             container = binding.signerListView,
@@ -290,7 +289,8 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
             txStatus = status,
             listener = { signer ->
                 walletAuthenticationViewModel.onSignerSelect(signer)
-            }
+            },
+            enabledSigners = enabledSigners
         ).bindItems()
     }
 

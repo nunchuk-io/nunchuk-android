@@ -27,10 +27,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GenerateColdCardHealthCheckMessageUseCase
 import com.nunchuk.android.core.domain.HealthCheckColdCardUseCase
+import com.nunchuk.android.core.domain.byzantine.ParsePendingHealthCheckPayloadUseCase
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerUseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageUseCase
-import com.nunchuk.android.core.domain.membership.GetHealthCheckMessageUseCase
 import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
@@ -40,6 +40,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -67,7 +68,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val checkSignMessageUseCase: CheckSignMessageUseCase,
     private val checkSignMessageTapsignerUseCase: CheckSignMessageTapsignerUseCase,
-    private val getHealthCheckMessageUseCase: GetHealthCheckMessageUseCase,
+    private val parsePendingHealthCheckPayloadUseCase: ParsePendingHealthCheckPayloadUseCase,
     private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
     private val generateColdCardHealthCheckMessageUseCase: GenerateColdCardHealthCheckMessageUseCase,
     private val cardIdManager: CardIdManager,
@@ -101,14 +102,22 @@ class WalletAuthenticationViewModel @Inject constructor(
             if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
                 getGroupDummyTransactionUseCase(
                     GetGroupDummyTransactionUseCase.Param(
-                        groupId = args.groupId,
+                        groupId = args.groupId.orEmpty(),
                         walletId = args.walletId,
-                        transactionId = args.dummyTransactionId
+                        transactionId = args.dummyTransactionId.orEmpty()
                     )
                 ).onSuccess { dummyTransaction ->
                     dataToSign.value = dummyTransaction.psbt
                     _state.update {
-                        it.copy(pendingSignature = dummyTransaction.pendingSignature)
+                        it.copy(pendingSignature = dummyTransaction.pendingSignature, dummyTransactionType = dummyTransaction.dummyTransactionType)
+                    }
+                    if (dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING) {
+                        parsePendingHealthCheckPayloadUseCase(dummyTransaction)
+                            .onSuccess { payload ->
+                                _state.update {
+                                    it.copy(enabledSigners = setOf(payload.keyXfp.orEmpty()))
+                                }
+                            }
                     }
                 }.onFailure {
                     _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
@@ -281,8 +290,8 @@ class WalletAuthenticationViewModel @Inject constructor(
                     UpdateGroupDummyTransactionUseCase.Param(
                         signatures = mapOf(singleSigner.masterFingerprint to signature),
                         walletId = args.walletId,
-                        groupId = args.groupId,
-                        transactionId = args.dummyTransactionId
+                        groupId = args.groupId.orEmpty(),
+                        transactionId = args.dummyTransactionId.orEmpty()
                     )
                 ).onFailure {
                     _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))

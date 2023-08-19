@@ -71,6 +71,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -86,7 +87,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
@@ -97,15 +97,16 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -130,6 +131,13 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
                 requireActivity().finish()
+            }
+        }
+
+    private val healthCheckLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+
             }
         }
 
@@ -196,6 +204,23 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD)
             viewModel.updateGroupChatHistoryPeriod(historyPeriod)
             showSuccess(message = getString(R.string.nc_chat_setting_updated))
+            clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
+        }
+        setFragmentResultListener(AlertActionIntroFragment.REQUEST_KEY) { _, bundle ->
+            val dummyTransactionId = bundle.getString(AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID).orEmpty()
+            val requiredSignatures = bundle.getInt(AlertActionIntroFragment.EXTRA_REQUIRE_KEY)
+            if (dummyTransactionId.isNotEmpty()) {
+                navigator.openWalletAuthentication(
+                    activityContext = requireActivity(),
+                    walletId = args.walletId.orEmpty(),
+                    requiredSignatures = requiredSignatures,
+                    type = VerificationType.SIGN_DUMMY_TX,
+                    groupId = args.groupId,
+                    dummyTransactionId = dummyTransactionId,
+                    launcher = healthCheckLauncher
+                )
+            }
+            clearFragmentResult(AlertActionIntroFragment.REQUEST_KEY)
         }
         flowObserver(viewModel.event) { event ->
             when (event) {
@@ -258,6 +283,10 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 isOpenFromWizard = false,
                 groupId = args.groupId,
                 dummyTransactionId = alert.payload.dummyTransactionId
+            )
+        } else if (alert.type == AlertType.HEALTH_CHECK_REQUEST || alert.type == AlertType.HEALTH_CHECK_PENDING) {
+            findNavController().navigate(
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(args.groupId, args.walletId.orEmpty(), alert)
             )
         }
     }
