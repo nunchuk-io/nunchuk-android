@@ -2,7 +2,9 @@ package com.nunchuk.android.main.membership.byzantine.select
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -15,9 +17,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SelectGroupViewModel @Inject constructor(
-    private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase
+    private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
+    membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(SelectGroupUiState())
+    private val _state = MutableStateFlow(SelectGroupUiState(plan = membershipStepManager.plan))
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<SelectGroupEvent>()
@@ -50,5 +53,6 @@ sealed class SelectGroupEvent {
 
 data class SelectGroupUiState(
     val remainingByzantineWallet: Int = 0,
-    val remainingByzantineProWallet: Int = 0
+    val remainingByzantineProWallet: Int = 0,
+    val plan : MembershipPlan = MembershipPlan.NONE,
 )

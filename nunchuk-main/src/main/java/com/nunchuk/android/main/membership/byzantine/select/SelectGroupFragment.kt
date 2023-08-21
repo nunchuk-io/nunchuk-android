@@ -25,6 +25,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,6 +53,7 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.desc
 import com.nunchuk.android.main.membership.model.title
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
@@ -62,7 +64,7 @@ class SelectGroupFragment : MembershipFragment() {
     private val viewModel: SelectGroupViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -116,7 +118,11 @@ private fun SelectGroupScreen(
     onContinueClicked: (GroupWalletType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
-    SelectGroupContent(uiState = uiState, onContinueClicked = onContinueClicked, onMoreClicked = onMoreClicked)
+    SelectGroupContent(
+        uiState = uiState,
+        onContinueClicked = onContinueClicked,
+        onMoreClicked = onMoreClicked
+    )
 }
 
 @Composable
@@ -126,6 +132,12 @@ private fun SelectGroupContent(
     onMoreClicked: () -> Unit = {},
 ) {
     var selectedType by rememberSaveable { mutableStateOf(GroupWalletType.TWO_OF_FOUR_MULTISIG) }
+    val options = remember(uiState.plan) {
+        when (uiState.plan) {
+            MembershipPlan.BYZANTINE_PRO -> GroupWalletType.values()
+            else -> arrayOf(GroupWalletType.TWO_OF_THREE, GroupWalletType.THREE_OF_FIVE)
+        }
+    }
     NunchukTheme {
         Scaffold(modifier = Modifier
             .navigationBarsPadding()
@@ -167,7 +179,7 @@ private fun SelectGroupContent(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(GroupWalletType.values()) {
+                    items(options) {
                         GroupWalletTypeOptionView(type = it, isSelected = selectedType == it) {
                             selectedType = it
                         }
@@ -183,7 +195,7 @@ fun GroupWalletTypeOptionView(
     modifier: Modifier = Modifier,
     isSelected: Boolean,
     type: GroupWalletType,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
     NcRadioOption(modifier = modifier.fillMaxWidth(), isSelected = isSelected, onClick = onClick) {
         Row {
