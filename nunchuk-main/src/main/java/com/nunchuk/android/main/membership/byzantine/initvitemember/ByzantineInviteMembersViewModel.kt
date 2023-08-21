@@ -74,7 +74,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
             _state.update { it.copy(members = members) }
             existingData = members.toString()
         } else {
-            addMasterMember()
+            addDefaultMembers()
         }
     }
 
@@ -100,7 +100,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         }
     }
 
-    private fun addMasterMember() {
+    private fun addDefaultMembers() {
         val account = accountManager.getAccount()
         val masterMember = InviteMemberUi(
             role = AssistedWalletRole.MASTER.name,
@@ -109,7 +109,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         )
         _state.update {
             it.copy(
-                members = _state.value.members + masterMember
+                members = _state.value.members + masterMember + InviteMemberUi.DEFAULT
             )
         }
     }
@@ -117,12 +117,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     fun addMember() {
         _state.update {
             it.copy(
-                members = _state.value.members + InviteMemberUi(
-                    role = AssistedWalletRole.NONE.name,
-                    name = "",
-                    email = "",
-                    isNewAdded = true
-                )
+                members = _state.value.members + InviteMemberUi.DEFAULT
             )
         }
     }

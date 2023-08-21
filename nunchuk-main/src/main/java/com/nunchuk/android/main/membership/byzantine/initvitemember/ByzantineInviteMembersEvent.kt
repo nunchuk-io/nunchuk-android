@@ -4,6 +4,7 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 
 sealed class ByzantineInviteMembersEvent {
     data class Loading(val loading: Boolean) : ByzantineInviteMembersEvent()
@@ -35,7 +36,16 @@ data class InviteMemberUi(
     val isContact: Boolean = false,
     val err: String? = null,
     val isNewAdded: Boolean = false
-)
+) {
+    companion object {
+        val DEFAULT = InviteMemberUi(
+            role = AssistedWalletRole.NONE.name,
+            name = "",
+            email = "",
+            isNewAdded = true
+        )
+    }
+}
 
 internal fun InviteMemberUi.toAssistedMember(): AssistedMember {
     return AssistedMember(

@@ -37,7 +37,13 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     private val args: WalletAuthenticationActivityArgs by navArgs()
-    private val viewModel: WalletAuthenticationViewModel by viewModels()
+    private val viewModel: WalletAuthenticationViewModel? by lazy {
+        if (args.type != VerificationType.CONFIRMATION_CODE) {
+            viewModels<WalletAuthenticationViewModel>().value
+        } else {
+            null
+        }
+    }
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }
@@ -64,12 +70,14 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
     }
 
     private fun observer() {
-        flowObserver(viewModel.event) {
-            if (it is WalletAuthenticationEvent.Loading) {
-                showOrHideLoading(it.isLoading)
-            } else if (it is WalletAuthenticationEvent.ShowError) {
-                hideLoading()
-                NCToastMessage(this).showError(it.message)
+        viewModel?.let { viewModel ->
+            flowObserver(viewModel.event) {
+                if (it is WalletAuthenticationEvent.Loading) {
+                    showOrHideLoading(it.isLoading)
+                } else if (it is WalletAuthenticationEvent.ShowError) {
+                    hideLoading()
+                    NCToastMessage(this).showError(it.message)
+                }
             }
         }
     }
