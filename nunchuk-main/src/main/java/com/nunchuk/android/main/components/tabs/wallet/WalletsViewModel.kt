@@ -101,7 +101,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -351,7 +350,6 @@ internal class WalletsViewModel @Inject constructor(
             val results = arrayListOf<GroupWalletUi>()
             val wallets = getState().wallets
             val groups = getState().allGroups
-            Timber.d("CongHai - $groups")
             val assistedWallets = getState().assistedWallets
             val alerts = getState().alerts
             val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()

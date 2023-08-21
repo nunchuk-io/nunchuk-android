@@ -131,12 +131,12 @@ private fun SelectGroupContent(
     onContinueClicked: (GroupWalletType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
-    var selectedType by rememberSaveable { mutableStateOf(GroupWalletType.TWO_OF_FOUR_MULTISIG) }
+    var selectedType by rememberSaveable(uiState.plan) {
+        mutableStateOf(if (uiState.plan == MembershipPlan.BYZANTINE_PRO) GroupWalletType.TWO_OF_FOUR_MULTISIG else GroupWalletType.TWO_OF_THREE)
+    }
     val options = remember(uiState.plan) {
-        when (uiState.plan) {
-            MembershipPlan.BYZANTINE_PRO -> GroupWalletType.values()
-            else -> arrayOf(GroupWalletType.TWO_OF_THREE, GroupWalletType.THREE_OF_FIVE)
-        }
+        if (uiState.plan == MembershipPlan.BYZANTINE_PRO) GroupWalletType.values()
+        else arrayOf(GroupWalletType.TWO_OF_THREE, GroupWalletType.THREE_OF_FIVE)
     }
     NunchukTheme {
         Scaffold(modifier = Modifier
