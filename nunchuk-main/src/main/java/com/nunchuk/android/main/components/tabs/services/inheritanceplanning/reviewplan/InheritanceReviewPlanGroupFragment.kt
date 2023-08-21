@@ -41,6 +41,7 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orDefault
@@ -78,8 +79,16 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                         ?: return@registerForActivityResult
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                if (signatureMap.isNotEmpty() || securityQuestionToken.isNotEmpty()) {
-                    // TODO: handle logic show toast 
+                if (signatureMap.isEmpty() && securityQuestionToken.isEmpty()) {
+                    if (viewModel.getDummyTransactionType() == DummyTransactionType.CREATE_INHERITANCE_PLAN) {
+                        NcToastManager.scheduleShowMessage(
+                           message = getString(R.string.nc_inheritance_has_been_created)
+                        )
+                    } else {
+                        NcToastManager.scheduleShowMessage(
+                            message = getString(R.string.nc_inheritance_has_been_updated)
+                        )
+                    }
                 }
             }
         }

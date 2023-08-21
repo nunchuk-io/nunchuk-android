@@ -259,10 +259,10 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private suspend fun checkInheritance(wallets: List<AssistedWalletBrief>) {
-        val honeyWalletsUnSetupInheritance =
-            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER }
+        val walletsUnSetupInheritance =
+            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO }
         supervisorScope {
-            honeyWalletsUnSetupInheritance.map {
+            walletsUnSetupInheritance.map {
                 async {
                     getInheritanceUseCase(
                         GetInheritanceUseCase.Param(

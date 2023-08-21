@@ -114,6 +114,7 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
+import com.nunchuk.android.widget.NCInputDialog
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
@@ -209,7 +210,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
         }
         setFragmentResultListener(AlertActionIntroFragment.REQUEST_KEY) { _, bundle ->
-            val dummyTransactionId = bundle.getString(AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID).orEmpty()
+            val dummyTransactionId =
+                bundle.getString(AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID).orEmpty()
             val requiredSignatures = bundle.getInt(AlertActionIntroFragment.EXTRA_REQUIRE_KEY)
             if (dummyTransactionId.isNotEmpty()) {
                 navigator.openWalletAuthentication(
@@ -239,7 +241,18 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     )
                 }
 
-                else -> Unit
+                is GroupDashboardEvent.GetHealthCheckPayload -> {}
+                GroupDashboardEvent.RequestHealthCheckSuccess -> {}
+                is GroupDashboardEvent.GetInheritanceSuccess -> {
+                    navigator.openInheritancePlanningScreen(
+                        walletId = args.walletId.orEmpty(),
+                        requireContext(),
+                        verifyToken = event.token,
+                        inheritance = event.inheritance,
+                        flowInfo = InheritancePlanFlow.VIEW,
+                        groupId = args.groupId
+                    )
+                }
             }
         }
     }
@@ -247,6 +260,16 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onResume() {
         super.onResume()
         viewModel.getAlerts()
+    }
+
+    private fun enterPasswordDialog() {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(R.string.nc_re_enter_your_password),
+            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
+            onConfirmed = {
+                viewModel.confirmPassword(it)
+            }
+        )
     }
 
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
@@ -288,7 +311,11 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             )
         } else if (alert.type == AlertType.HEALTH_CHECK_REQUEST || alert.type == AlertType.HEALTH_CHECK_PENDING) {
             findNavController().navigate(
-                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(args.groupId, args.walletId.orEmpty(), alert)
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
+                    args.groupId,
+                    args.walletId.orEmpty(),
+                    alert
+                )
             )
         }
     }
@@ -305,7 +332,16 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         super.onOptionClicked(option)
         when (option.type) {
             SheetOptionType.SET_UP_INHERITANCE -> {
-
+                if (viewModel.isSetupInheritance()) {
+                    enterPasswordDialog()
+                } else {
+                    navigator.openInheritancePlanningScreen(
+                        walletId = args.walletId.orEmpty(),
+                        activityContext = requireContext(),
+                        flowInfo = InheritancePlanFlow.SETUP,
+                        groupId = args.groupId
+                    )
+                }
             }
 
             SheetOptionType.TYPE_PLATFORM_KEY_POLICY -> {
@@ -330,7 +366,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         val options = mutableListOf(
             SheetOption(
                 type = SheetOptionType.SET_UP_INHERITANCE,
-                stringId = R.string.nc_view_inheritance_plan
+                stringId = if (viewModel.isSetupInheritance()) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
             ),
             SheetOption(
                 type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,

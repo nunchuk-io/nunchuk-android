@@ -153,7 +153,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                             )
                         )
                     },
-                    onNotifyPrefClick = { isNotify, emails ->
+                    onNotifyPrefClick = { _, _ ->
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNotifyPrefFragment(
                                 isUpdateRequest = true,

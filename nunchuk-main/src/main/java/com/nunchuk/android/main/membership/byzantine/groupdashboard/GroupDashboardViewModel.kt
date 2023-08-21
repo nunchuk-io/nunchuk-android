@@ -4,14 +4,21 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.main.components.tabs.services.ServiceTabRowItem
+import com.nunchuk.android.main.components.tabs.services.ServicesTabEvent
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.ByzantineGroup
@@ -30,6 +37,7 @@ import com.nunchuk.android.usecase.membership.DismissAlertUseCase
 import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
 import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
+import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,6 +47,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
@@ -66,8 +76,11 @@ class GroupDashboardViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val cardIdManager: CardIdManager,
     private val requestHealthCheckUseCase: RequestHealthCheckUseCase,
-    private val keyHealthCheckUseCase: KeyHealthCheckUseCase
-) : ViewModel() {
+    private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
+    private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val getInheritanceUseCase: GetInheritanceUseCase,
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -95,6 +108,14 @@ class GroupDashboardViewModel @Inject constructor(
         }
         getAlerts()
         getGroupChat()
+        viewModelScope.launch {
+            getAssistedWalletIdsFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .distinctUntilChanged()
+                .collect { wallets ->
+                    _state.update { it.copy(isSetupInheritance = wallets.find { it.localId == args.walletId }?.isSetupInheritance.orFalse()) }
+                }
+        }
     }
 
     private fun getKeysStatus(walletId: String) {
@@ -280,6 +301,36 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
+    fun confirmPassword(
+        password: String
+    ) = viewModelScope.launch {
+        if (password.isBlank()) {
+            return@launch
+        }
+        _event.emit(GroupDashboardEvent.Loading(true))
+        val result = verifiedPasswordTokenUseCase(
+            VerifiedPasswordTokenUseCase.Param(
+                targetAction = TargetAction.UPDATE_INHERITANCE_PLAN.name,
+                password = password
+            )
+        )
+        _event.emit(GroupDashboardEvent.Loading(false))
+        if (result.isSuccess) {
+            val token = result.getOrNull().orEmpty()
+            getInheritanceUseCase(GetInheritanceUseCase.Param(args.walletId.orEmpty(), args.groupId)).onSuccess {
+                _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it, token))
+            }.onFailure {
+                _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
+            }
+        } else {
+            _event.emit(GroupDashboardEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    fun isSetupInheritance(): Boolean {
+        return state.value.isSetupInheritance
+    }
+
     fun onRequestHealthCheck(signerModel: SignerModel) {
         viewModelScope.launch {
             _event.emit(GroupDashboardEvent.Loading(true))
@@ -297,7 +348,7 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun onHealthCheck(signerModel: SignerModel) {
-        viewModelScope.launch { 
+        viewModelScope.launch {
             _event.emit(GroupDashboardEvent.Loading(true))
             keyHealthCheckUseCase(
                 KeyHealthCheckUseCase.Params(

@@ -136,4 +136,6 @@
     <string name="nc_health_check_request_sent">Health check request sent</string>
     <string name="nc_health_check_request_sent_description">The keyholders have been notified of the health check request. Once the request is completed, the health status will be updated in the group dashboard.</string>
     <string name="nc_cancel_request">Cancel request</string>
+    <string name="nc_inheritance_has_been_created">The inheritance plan has been created</string>
+    <string name="nc_inheritance_has_been_updated">The inheritance plan has been updated</string>
 </resources>

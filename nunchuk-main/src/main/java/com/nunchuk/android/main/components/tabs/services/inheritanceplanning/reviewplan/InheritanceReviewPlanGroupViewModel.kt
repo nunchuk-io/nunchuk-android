@@ -152,6 +152,8 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
 
     private fun isCreateOrUpdateFlow() =
         state.value.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN
+
+    fun getDummyTransactionType() = state.value.type
 }
 
 sealed class InheritanceReviewPlanGroupEvent {

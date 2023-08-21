@@ -197,6 +197,7 @@ private fun MagicalPhraseIntroContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    enabled = magicalPhrase.isNotEmpty(),
                     onClick = onContinueClicked,
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
