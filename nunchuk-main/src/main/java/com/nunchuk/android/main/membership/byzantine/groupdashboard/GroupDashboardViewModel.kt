@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
-import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -17,8 +16,6 @@ import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.main.components.tabs.services.ServiceTabRowItem
-import com.nunchuk.android.main.components.tabs.services.ServicesTabEvent
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.ByzantineGroup
@@ -118,15 +115,15 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    private fun getKeysStatus(walletId: String) {
+    fun getKeysStatus(walletId: String) {
+        if (walletId.isEmpty()) return
         viewModelScope.launch {
             getGroupWalletKeyHealthStatusUseCase(
                 GetGroupWalletKeyHealthStatusUseCase.Params(
                     args.groupId,
                     walletId
                 )
-            )
-                .onSuccess { status ->
+            ).onSuccess { status ->
                     _state.update { state ->
                         state.copy(keyStatus = status.associateBy { it.xfp })
                     }
@@ -362,4 +359,6 @@ class GroupDashboardViewModel @Inject constructor(
             _event.emit(GroupDashboardEvent.Loading(false))
         }
     }
+
+    fun getSignerName(xfp: String)  = state.value.signers.find { it.fingerPrint == xfp }?.name
 }

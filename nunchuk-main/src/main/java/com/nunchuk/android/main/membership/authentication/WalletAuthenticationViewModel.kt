@@ -22,6 +22,8 @@ package com.nunchuk.android.main.membership.authentication
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
+import android.os.Bundle
+import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -41,6 +43,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -119,6 +122,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                                 }
                             }
                     }
+                    loadPsbt()
                 }.onFailure {
                     _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
                     return@launch
@@ -127,26 +131,30 @@ class WalletAuthenticationViewModel @Inject constructor(
                 getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
                     .onSuccess { psbt ->
                         dataToSign.value = psbt
-                        val result = getDummyTxFromPsbt(
-                            GetDummyTxFromPsbt.Param(
-                                walletId = args.walletId,
-                                psbt = dataToSign.value
-                            )
-                        )
-                        if (result.isSuccess) {
-                            // hard code isReceive false I have no idea why first time it become true from libnunchuk
-                            _state.update {
-                                it.copy(transaction = result.getOrThrow().copy(isReceive = false))
-                            }
-                            getWalletDetails()
-                        } else {
-                            _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-                        }
+                        loadPsbt()
                     }.onFailure {
                         _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
                     }
             }
             _event.emit(WalletAuthenticationEvent.Loading(false))
+        }
+    }
+
+    private suspend fun loadPsbt() {
+        val result = getDummyTxFromPsbt(
+            GetDummyTxFromPsbt.Param(
+                walletId = args.walletId,
+                psbt = dataToSign.value
+            )
+        )
+        if (result.isSuccess) {
+            // hard code isReceive false I have no idea why first time it become true from libnunchuk
+            _state.update {
+                it.copy(transaction = result.getOrThrow().copy(isReceive = false))
+            }
+            getWalletDetails()
+        } else {
+            _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
@@ -343,6 +351,11 @@ class WalletAuthenticationViewModel @Inject constructor(
                 }
         }
     }
+
+    fun getDummyTransactionExtra(): Bundle = bundleOf(
+        GlobalResultKey.EXTRA_DUMMY_TX_TYPE to _state.value.dummyTransactionType,
+        GlobalResultKey.EXTRA_HEALTH_CHECK_XFP to _state.value.enabledSigners.firstOrNull()
+    )
 
     private fun isValidSigner(type: SignerType, authenticationType: String): Boolean {
         if (authenticationType == VerificationType.SIGN_DUMMY_TX && type == SignerType.AIRGAP) return true

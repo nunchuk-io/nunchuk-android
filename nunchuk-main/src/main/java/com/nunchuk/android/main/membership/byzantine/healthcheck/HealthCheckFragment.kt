@@ -14,11 +14,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardEvent
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.serializable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -34,12 +40,26 @@ class HealthCheckFragment : MembershipFragment() {
     private val signLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-
+                viewModel.getKeysStatus(args.walletId)
+                val type =
+                    it.data?.serializable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
+                if (type == DummyTransactionType.HEALTH_CHECK_PENDING || type == DummyTransactionType.HEALTH_CHECK_REQUEST) {
+                    val xfp =
+                        it.data?.getStringExtra(GlobalResultKey.EXTRA_HEALTH_CHECK_XFP).orEmpty()
+                    viewModel.getSignerName(xfp)?.let { name ->
+                        showSuccess(
+                            message = getString(
+                                R.string.nc_txt_run_health_check_success_event,
+                                name
+                            )
+                        )
+                    }
+                }
             }
         }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -58,20 +78,30 @@ class HealthCheckFragment : MembershipFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
-            if (it is GroupDashboardEvent.RequestHealthCheckSuccess) {
-                findNavController().navigate(
-                    HealthCheckFragmentDirections.actionHealthCheckFragmentToRequestHealthCheckSentFragment()
-                )
-            } else if (it is GroupDashboardEvent.GetHealthCheckPayload) {
-                navigator.openWalletAuthentication(
-                    activityContext = requireActivity(),
-                    walletId = args.walletId,
-                    requiredSignatures = it.payload.requiredSignatures,
-                    type = VerificationType.SIGN_DUMMY_TX,
-                    groupId = args.groupId,
-                    dummyTransactionId = it.payload.dummyTransactionId,
-                    launcher = signLauncher
-                )
+            when (it) {
+                is GroupDashboardEvent.RequestHealthCheckSuccess -> {
+                    findNavController().navigate(
+                        HealthCheckFragmentDirections.actionHealthCheckFragmentToRequestHealthCheckSentFragment()
+                    )
+                }
+
+                is GroupDashboardEvent.GetHealthCheckPayload -> {
+                    navigator.openWalletAuthentication(
+                        activityContext = requireActivity(),
+                        walletId = args.walletId,
+                        requiredSignatures = it.payload.requiredSignatures,
+                        type = VerificationType.SIGN_DUMMY_TX,
+                        groupId = args.groupId,
+                        dummyTransactionId = it.payload.dummyTransactionId,
+                        launcher = signLauncher
+                    )
+                }
+
+                is GroupDashboardEvent.Loading -> {
+                    showOrHideLoading(it.loading)
+                }
+
+                else -> Unit
             }
         }
     }

@@ -143,6 +143,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                                     GlobalResultKey.SIGNATURE_EXTRA,
                                     HashMap(event.signatures)
                                 )
+                                putExtras(walletAuthenticationViewModel.getDummyTransactionExtra())
                             })
                             requireActivity().finish()
                         }

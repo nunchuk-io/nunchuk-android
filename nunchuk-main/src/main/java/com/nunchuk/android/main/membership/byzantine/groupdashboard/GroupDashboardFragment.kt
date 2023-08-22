@@ -108,11 +108,14 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInputDialog
 import com.skydoves.landscapist.ImageOptions
@@ -140,7 +143,13 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     private val healthCheckLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-
+                val type = it.data?.serializable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
+                if (type == DummyTransactionType.HEALTH_CHECK_PENDING || type == DummyTransactionType.HEALTH_CHECK_REQUEST) {
+                    val xfp = it.data?.getStringExtra(GlobalResultKey.EXTRA_HEALTH_CHECK_XFP).orEmpty()
+                    viewModel.getSignerName(xfp)?.let { name ->
+                        showSuccess(message = getString(R.string.nc_txt_run_health_check_success_event, name))
+                    }
+                }
             }
         }
 
@@ -260,6 +269,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onResume() {
         super.onResume()
         viewModel.getAlerts()
+        viewModel.getKeysStatus(args.walletId.orEmpty())
     }
 
     private fun enterPasswordDialog() {

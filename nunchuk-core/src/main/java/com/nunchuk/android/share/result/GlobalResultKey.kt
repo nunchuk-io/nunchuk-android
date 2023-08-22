@@ -22,6 +22,8 @@ package com.nunchuk.android.share.result
 object GlobalResultKey {
     const val SIGNATURE_EXTRA = "SIGNATURE_EXTRA"
     const val TRANSACTION_EXTRA = "TRANSACTION_EXTRA"
+    const val EXTRA_HEALTH_CHECK_XFP = "EXTRA_HEALTH_CHECK_XFP"
+    const val EXTRA_DUMMY_TX_TYPE = "EXTRA_DUMMY_TX_TYPE"
     const val SECURITY_QUESTION_TOKEN = "SECURITY_QUESTION_TOKEN"
     const val CONFIRM_CODE_TOKEN = "CONFIRM_CODE_TOKEN"
     const val CONFIRM_CODE_NONCE = "CONFIRM_CODE_NONCE"
