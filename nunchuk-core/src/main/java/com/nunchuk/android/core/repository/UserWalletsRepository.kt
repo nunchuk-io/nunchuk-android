@@ -845,6 +845,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = if (isUpdate) userWalletApiManager.walletApi.updateInheritance(
             headers, request
         ) else userWalletApiManager.walletApi.createInheritance(headers, request)
+        if (response.isSuccess.not()) throw response.error
+        response.data.inheritance?.walletLocalId?.also {
+            markSetupInheritance(it, true)
+        }
         return response.data.dummyTransaction?.id.orEmpty()
     }
 

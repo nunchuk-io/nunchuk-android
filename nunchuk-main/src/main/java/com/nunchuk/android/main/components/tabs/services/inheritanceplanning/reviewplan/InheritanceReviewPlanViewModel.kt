@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
+import androidx.core.app.NotificationCompat.getGroup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.byzantine.ParseUpdateGroupKeyPayloadUseCase
@@ -26,11 +27,13 @@ import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
+import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +49,9 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private val createOrUpdateInheritanceUseCase: CreateOrUpdateInheritanceUseCase,
     private val cancelInheritanceUseCase: CancelInheritanceUseCase,
     private val getWalletUseCase: GetWalletUseCase,
-    private val membershipStepManager: MembershipStepManager
+    private val membershipStepManager: MembershipStepManager,
+    private val getGroupUseCase: GetGroupUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils
 ) : ViewModel() {
 
     private lateinit var param: InheritancePlanningParam.SetupOrReview
@@ -63,6 +68,22 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         this.param = param
         updateDataState()
         getWalletName()
+        if (param.groupId.isNotEmpty()) {
+            getGroup()
+        }
+    }
+
+    private fun getGroup() {
+        viewModelScope.launch {
+            val result = getGroupUseCase(param.groupId)
+            if (result.isSuccess) {
+                val group = result.getOrThrow()
+                val currentUserRole = byzantineGroupUtils.getCurrentUserRole(group)
+                _state.update {
+                    it.copy(currentUserRole = currentUserRole)
+                }
+            }
+        }
     }
 
     private fun getWalletName() = viewModelScope.launch {

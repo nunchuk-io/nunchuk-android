@@ -22,7 +22,6 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -92,6 +91,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.buf
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -314,14 +314,9 @@ fun InheritanceReviewPlanScreen(
 
     InheritanceReviewPlanScreenContent(
         remainTime = remainTime,
-        note = state.note,
-        emails = state.emails,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-        isNotifyToday = state.isNotifyToday,
         magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
-        activationDate = state.activationDate,
-        walletName = state.walletName.orEmpty(),
-        bufferPeriod = state.bufferPeriod,
+        state = state,
         onContinueClicked = {
             viewModel.calculateRequiredSignatures(isCreateOrUpdateFlow = true)
         },
@@ -345,14 +340,10 @@ fun InheritanceReviewPlanScreen(
 @Composable
 fun InheritanceReviewPlanScreenContent(
     remainTime: Int = 0,
-    note: String = "",
     planFlow: Int = InheritancePlanFlow.VIEW,
     magicalPhrase: String = "",
-    isNotifyToday: Boolean = false,
-    emails: List<String> = emptyList(),
-    activationDate: Long = 0,
-    walletName: String = "",
-    bufferPeriod: Period? = null,
+    groupId: String = "",
+    state: InheritanceReviewPlanState = InheritanceReviewPlanState(),
     onContinueClicked: () -> Unit = {},
     onShareSecretClicked: () -> Unit = {},
     onDiscardChange: () -> Unit = {},
@@ -388,7 +379,9 @@ fun InheritanceReviewPlanScreenContent(
                             IconButton(onClick = {
                                 onActionTopBarClick()
                             }) {
-                                if (planFlow != InheritancePlanFlow.SETUP) {
+                                if (planFlow != InheritancePlanFlow.SETUP ||
+                                    groupId.isNotEmpty() && (state.currentUserRole == AssistedWalletRole.MASTER.name || state.currentUserRole == AssistedWalletRole.ADMIN.name)
+                                ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_more_horizontal),
                                         contentDescription = "More"
@@ -452,7 +445,7 @@ fun InheritanceReviewPlanScreenContent(
                                             Text(
                                                 modifier = Modifier.padding(top = 4.dp),
                                                 color = colorResource(id = R.color.nc_white_color),
-                                                text = walletName,
+                                                text = state.walletName.orEmpty(),
                                                 style = NunchukTheme.typography.body
                                             )
                                         }
@@ -462,7 +455,7 @@ fun InheritanceReviewPlanScreenContent(
                                     DetailPlanItem(
                                         iconId = R.drawable.ic_calendar_light,
                                         titleId = R.string.nc_activation_date,
-                                        content = Date(activationDate).simpleGlobalDateFormat(),
+                                        content = Date(state.activationDate).simpleGlobalDateFormat(),
                                         editable = true,
                                         onClick = {
                                             onEditActivationDateClick()
@@ -544,7 +537,7 @@ fun InheritanceReviewPlanScreenContent(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = note.ifBlank { stringResource(id = R.string.nc_no_note) },
+                                    text = state.note.ifBlank { stringResource(id = R.string.nc_no_note) },
                                     style = NunchukTheme.typography.body,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -574,7 +567,7 @@ fun InheritanceReviewPlanScreenContent(
                                     style = NunchukTheme.typography.title,
                                     textDecoration = TextDecoration.Underline,
                                     modifier = Modifier.clickable {
-                                        onEditBufferPeriodClick(bufferPeriod)
+                                        onEditBufferPeriodClick(state.bufferPeriod)
                                     }
                                 )
                             }
@@ -588,7 +581,7 @@ fun InheritanceReviewPlanScreenContent(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = bufferPeriod?.displayName.orEmpty()
+                                    text = state.bufferPeriod?.displayName.orEmpty()
                                         .ifBlank { stringResource(id = R.string.nc_no_buffer) },
                                     style = NunchukTheme.typography.body,
                                     modifier = Modifier
@@ -643,7 +636,7 @@ fun InheritanceReviewPlanScreenContent(
                                         )
                                         Spacer(modifier = Modifier.weight(1f))
                                         Text(
-                                            text = emails.joinToString("\n")
+                                            text = state.emails.joinToString("\n")
                                                 .ifEmpty { "(${stringResource(id = R.string.nc_none)})" },
                                             style = NunchukTheme.typography.title
                                         )
@@ -668,7 +661,7 @@ fun InheritanceReviewPlanScreenContent(
                                         )
                                         Spacer(modifier = Modifier.weight(1f))
                                         Text(
-                                            text = if (isNotifyToday) stringResource(id = R.string.nc_text_yes) else stringResource(
+                                            text = if (state.isNotifyToday) stringResource(id = R.string.nc_text_yes) else stringResource(
                                                 id = R.string.nc_text_no
                                             ), style = NunchukTheme.typography.title
                                         )

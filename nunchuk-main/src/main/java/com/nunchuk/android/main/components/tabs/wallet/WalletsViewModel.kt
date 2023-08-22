@@ -260,7 +260,8 @@ internal class WalletsViewModel @Inject constructor(
 
     private suspend fun checkInheritance(wallets: List<AssistedWalletBrief>) {
         val walletsUnSetupInheritance =
-            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO }
+            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO || it.plan == MembershipPlan.BYZANTINE }
+        // TODO: remove MemberShipPlan.BYZANTINE
         supervisorScope {
             walletsUnSetupInheritance.map {
                 async {

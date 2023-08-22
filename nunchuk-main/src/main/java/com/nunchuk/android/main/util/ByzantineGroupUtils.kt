@@ -2,6 +2,7 @@ package com.nunchuk.android.main.util
 
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import javax.inject.Inject
@@ -11,6 +12,13 @@ class ByzantineGroupUtils @Inject constructor(private val accountManager: Accoun
     private val accountInfo: AccountInfo by lazy { accountManager.getAccount() }
 
     fun getCurrentUserRole(group: ByzantineGroupBrief?): String {
+        if (group == null) return AssistedWalletRole.NONE.name
+        return group.members.firstOrNull {
+            isMatchingEmailOrUserName(it.emailOrUsername)
+        }?.role ?: AssistedWalletRole.NONE.name
+    }
+
+    fun getCurrentUserRole(group: ByzantineGroup?): String {
         if (group == null) return AssistedWalletRole.NONE.name
         return group.members.firstOrNull {
             isMatchingEmailOrUserName(it.emailOrUsername)

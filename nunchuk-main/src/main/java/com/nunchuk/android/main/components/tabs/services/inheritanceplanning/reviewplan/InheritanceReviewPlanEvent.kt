@@ -21,6 +21,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 
 sealed class InheritanceReviewPlanEvent {
     data class Loading(val loading: Boolean) : InheritanceReviewPlanEvent()
@@ -50,4 +51,5 @@ data class InheritanceReviewPlanState(
     val bufferPeriod: Period? = null,
     val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
     val dummyTransactionId: String = "",
+    val currentUserRole: String = AssistedWalletRole.NONE.name,
 )
