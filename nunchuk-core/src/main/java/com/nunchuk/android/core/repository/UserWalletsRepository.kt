@@ -78,6 +78,8 @@ import com.nunchuk.android.core.mapper.toInheritance
 import com.nunchuk.android.core.mapper.toMemberRequest
 import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.core.util.orDefault
@@ -172,6 +174,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val requestAddKeyDao: RequestAddKeyDao,
     private val groupDao: GroupDao,
     private val groupWalletRepository: GroupWalletRepository,
+    private val pushEventManager: PushEventManager,
     applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
     private val chain =
@@ -1485,6 +1488,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+        pushEventManager.push(PushEvent.KeyAddedToGroup)
     }
 
     override suspend fun requestAddKey(
@@ -1601,7 +1605,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteDraftWallet() {
-        userWalletApiManager.walletApi.deleteDraftWallet()
+        val response = userWalletApiManager.walletApi.deleteDraftWallet()
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
         requestAddKeyDao.deleteRequests(accountManager.getAccount().chatId, chain.value)
     }
 
@@ -1780,7 +1787,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteGroupWallet(groupId: String) {
-        userWalletApiManager.groupWalletApi.deleteDraftWallet(groupId)
+        val response = userWalletApiManager.groupWalletApi.deleteDraftWallet(groupId)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
         requestAddKeyDao.deleteRequests(groupId)
     }
 

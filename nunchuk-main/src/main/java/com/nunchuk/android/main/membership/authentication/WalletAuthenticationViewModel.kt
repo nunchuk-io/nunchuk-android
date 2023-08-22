@@ -127,26 +127,24 @@ class WalletAuthenticationViewModel @Inject constructor(
                 getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
                     .onSuccess { psbt ->
                         dataToSign.value = psbt
+                        val result = getDummyTxFromPsbt(
+                            GetDummyTxFromPsbt.Param(
+                                walletId = args.walletId,
+                                psbt = dataToSign.value
+                            )
+                        )
+                        if (result.isSuccess) {
+                            // hard code isReceive false I have no idea why first time it become true from libnunchuk
+                            _state.update {
+                                it.copy(transaction = result.getOrThrow().copy(isReceive = false))
+                            }
+                            getWalletDetails()
+                        } else {
+                            _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+                        }
                     }.onFailure {
                         _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-                        return@launch
                     }
-            }
-
-            val result = getDummyTxFromPsbt(
-                GetDummyTxFromPsbt.Param(
-                    walletId = args.walletId,
-                    psbt = dataToSign.value
-                )
-            )
-            if (result.isSuccess) {
-                // hard code isReceive false I have no idea why first time it become true from libnunchuk
-                _state.update {
-                    it.copy(transaction = result.getOrThrow().copy(isReceive = false))
-                }
-                getWalletDetails()
-            } else {
-                _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
             _event.emit(WalletAuthenticationEvent.Loading(false))
         }

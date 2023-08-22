@@ -437,6 +437,13 @@
             android:name="is_add_only"
             android:defaultValue="false"
             app:argType="boolean" />
+        <action
+            android:id="@+id/action_addByzantineKeyListFragment_to_keyAddedToGroupWalletFragment"
+            app:destination="@id/keyAddedToGroupWalletFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />
@@ -549,4 +556,8 @@
             android:defaultValue=""
             app:argType="string" />
     </action>
+    <fragment
+        android:id="@+id/keyAddedToGroupWalletFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.addKey.KeyAddedToGroupWalletFragment"
+        android:label="KeyAddedToGroupWalletFragment" />
 </navigation>

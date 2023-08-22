@@ -259,14 +259,23 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
                 is AddKeyListEvent.LoadSimilarGroup -> NCWarningDialog(requireActivity()).showDialog(
                     title = getString(R.string.nc_key_resuse),
-                    message = getString(R.string.nc_key_reuse_desc),
+                    message = getString(R.string.nc_group_key_reuse_desc),
                     onYesClick = {
                         AssistedWalletBottomSheet.show(
-                            childFragmentManager,
-                            event.similarWalletIds,
+                            fragmentManager = childFragmentManager,
+                            assistedWalletIds = event.similarWalletIds,
+                            title = getString(R.string.nc_select_a_group_wallet)
                         )
                     }
                 )
+            }
+        }
+        flowObserver(viewModel.state) {
+            if (it.shouldShowKeyAdded) {
+                findNavController().navigate(
+                    AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToKeyAddedToGroupWalletFragment()
+                )
+                viewModel.markHandledShowKeyAdded()
             }
         }
     }

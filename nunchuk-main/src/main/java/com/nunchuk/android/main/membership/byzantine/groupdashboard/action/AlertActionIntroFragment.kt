@@ -32,12 +32,14 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.transaction.AlertPayload
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -52,15 +54,26 @@ class AlertActionIntroFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                AlertActionIntroScreen(alert = args.alert, viewModel = viewModel) {
-                    setFragmentResult(
-                        REQUEST_KEY, bundleOf(
-                            EXTRA_DUMMY_TRANSACTION_ID to it.dummyTransactionId,
-                            EXTRA_REQUIRE_KEY to it.requiredSignatures
+                AlertActionIntroScreen(
+                    alert = args.alert, viewModel = viewModel,
+                    onContinue = {
+                        setFragmentResult(
+                            REQUEST_KEY, bundleOf(
+                                EXTRA_DUMMY_TRANSACTION_ID to it.dummyTransactionId,
+                                EXTRA_REQUIRE_KEY to it.requiredSignatures
+                            )
                         )
-                    )
-                    goBack()
-                }
+                        goBack()
+                    },
+                    onCancel = {
+                        NCWarningDialog(requireActivity())
+                            .showDialog(
+                                title = getString(R.string.nc_confirmation),
+                                message = getString(R.string.nc_cancel_health_check_request),
+                                onYesClick = { viewModel.deleteDummyTransaction() },
+                            )
+                    },
+                )
             }
         }
     }
@@ -71,7 +84,10 @@ class AlertActionIntroFragment : Fragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        is AlertActionIntroEvent.DeleteDummyTransactionSuccess -> goBack()
+                        is AlertActionIntroEvent.DeleteDummyTransactionSuccess -> {
+                            hideLoading()
+                            goBack()
+                        }
 
                         is AlertActionIntroEvent.Loading -> showOrHideLoading(event.isLoading)
                     }
@@ -79,7 +95,7 @@ class AlertActionIntroFragment : Fragment() {
         }
     }
 
-    fun goBack() {
+    private fun goBack() {
         requireActivity().onBackPressedDispatcher.onBackPressed()
     }
 
@@ -95,12 +111,13 @@ private fun AlertActionIntroScreen(
     alert: Alert,
     viewModel: AlertActionIntroViewModel = viewModel(),
     onContinue: (DummyTransactionPayload) -> Unit,
+    onCancel: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     AlertActionIntroContent(
         state = state,
         alert = alert,
-        onCancelRequest = viewModel::deleteDummyTransaction,
+        onCancelRequest = onCancel,
         onContinue = onContinue
     )
 }

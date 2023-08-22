@@ -108,7 +108,7 @@ internal interface GroupWalletApi {
     suspend fun getDraftWallet(@Path("group_id") groupId: String): Data<DraftWalletResponse>
 
     @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")
-    suspend fun deleteDraftWallet(@Path("group_id") groupId: String)
+    suspend fun deleteDraftWallet(@Path("group_id") groupId: String): Data<Unit>
 
     @GET("/v1.1/group-wallets/permissions/default")
     suspend fun getPermissionGroupWallet(): Data<PermissionResponse>

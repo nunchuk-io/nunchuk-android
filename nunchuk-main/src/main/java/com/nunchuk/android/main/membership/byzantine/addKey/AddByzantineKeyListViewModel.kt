@@ -25,6 +25,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
@@ -59,6 +61,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -83,6 +86,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val syncGroupDraftWalletUseCase: SyncGroupDraftWalletUseCase,
     private val findSimilarGroupWalletUseCase: FindSimilarGroupWalletUseCase,
     private val reuseGroupWalletUseCase: ReuseGroupWalletUseCase,
+    private val pushEventManager: PushEventManager,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -116,6 +120,13 @@ class AddByzantineKeyListViewModel @Inject constructor(
                     if (similar.isNotEmpty()) {
                         _event.emit(AddKeyListEvent.LoadSimilarGroup(similar.map { it.walletLocalId }))
                     }
+                }
+            }
+        }
+        if (args.isAddOnly) {
+            viewModelScope.launch {
+                pushEventManager.event.filterIsInstance<PushEvent.KeyAddedToGroup>().collect {
+                    _state.update { it.copy(shouldShowKeyAdded = true) }
                 }
             }
         }
@@ -325,6 +336,10 @@ class AddByzantineKeyListViewModel @Inject constructor(
         }
     }
 
+    fun markHandledShowKeyAdded() {
+        _state.update { it.copy(shouldShowKeyAdded = false) }
+    }
+
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
         private const val KEY_CURRENT_SIGNER = "current_signer"
@@ -343,5 +358,6 @@ sealed class AddKeyListEvent {
 data class AddKeyListState(
     val isRefreshing: Boolean = false,
     val signers: List<SignerModel> = emptyList(),
-    val similarGroups: Map<String, String> = emptyMap()
+    val similarGroups: Map<String, String> = emptyMap(),
+    val shouldShowKeyAdded: Boolean = false,
 )

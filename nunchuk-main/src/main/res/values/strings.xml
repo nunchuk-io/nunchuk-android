@@ -43,6 +43,7 @@
     <string name="nc_try_assisted_wallet_hint">The testnet is an alternative Bitcoin blockchain used for testing. Testnet coins are separate and distinct from actual bitcoins and they do not hold any value.</string>
     <string name="nc_hint_config_spending_limit">You can bypass the spending limit by signing transactions using two of your own keys.</string>
     <string name="nc_key_reuse_desc">Do you want to reuse the keys from one of the existing assisted wallets?</string>
+    <string name="nc_group_key_reuse_desc">Do you want to reuse the keys from one of the existing group wallets?</string>
     <string name="nc_seedsigner">SeedSigner</string>
     <string name="nc_main_add_ledger_desc">To use Ledger with your assisted wallet, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
     <string name="nc_main_add_trezor_desc">To use Trezor with your assisted wallet, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
@@ -138,4 +139,7 @@
     <string name="nc_cancel_request">Cancel request</string>
     <string name="nc_inheritance_has_been_created">The inheritance plan has been created</string>
     <string name="nc_inheritance_has_been_updated">The inheritance plan has been updated</string>
+    <string name="nc_cancel_health_check_request">Are you sure you want to cancel this health check request?</string>
+    <string name="nc_key_added_to_group_wallet">Key added to group wallet</string>
+    <string name="add_key_to_group_desc">Once enough keys have been added, the master or admin account can finish the setup.</string>
 </resources>

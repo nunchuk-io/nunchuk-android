@@ -47,7 +47,12 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val binding = BottomSheetAssistedWalletBinding.bind(view)
         val assistedWalletIds = requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty()
+        val title = requireArguments().getString(EXTRA_TITLE)
+        if (!title.isNullOrEmpty()) {
+            binding.tvTitle.text = title
+        }
         viewModel.loadWallets(assistedWalletIds)
         flowObserver(viewModel.state) { wallets ->
             WalletsViewBinder(
@@ -67,10 +72,12 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
     companion object {
         const val TAG = "AddContactsBottomSheet"
         private const val EXTRA_WALLET_IDS = "wallet_ids"
+        private const val EXTRA_TITLE = "title"
 
-        fun show(fragmentManager: FragmentManager, assistedWalletIds: List<String>) = AssistedWalletBottomSheet().apply {
+        fun show(fragmentManager: FragmentManager, assistedWalletIds: List<String>, title: String? = null) = AssistedWalletBottomSheet().apply {
             arguments = Bundle().apply {
                 putStringArrayList(EXTRA_WALLET_IDS, ArrayList(assistedWalletIds))
+                putString(EXTRA_TITLE, title)
             }
             show(fragmentManager, TAG)
         }

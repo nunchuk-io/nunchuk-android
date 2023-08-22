@@ -274,7 +274,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
         if (alert.type == AlertType.GROUP_WALLET_PENDING) {
-            if (role == AssistedWalletRole.MASTER) {
+            if (role == AssistedWalletRole.MASTER || role == AssistedWalletRole.ADMIN) {
                 navigator.openMembershipActivity(
                     launcher = launcher,
                     activityContext = requireActivity(),

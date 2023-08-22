@@ -521,6 +521,7 @@
     <string name="nc_high">High</string>
     <string name="nc_density">Density</string>
     <string name="nc_select_an_assisted_wallet">Select an assisted wallet</string>
+    <string name="nc_select_a_group_wallet">Select a group wallet</string>
     <string name="nc_key_resuse">Key reuse</string>
     <string name="nc_keystone">Keystone</string>
     <string name="nc_blockstream_jade">Blockstream Jade</string>

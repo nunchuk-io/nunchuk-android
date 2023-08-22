@@ -31,6 +31,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCInfoDialog
@@ -66,6 +67,8 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
                 )
                 requireActivity().setResult(Activity.RESULT_OK)
                 requireActivity().finish()
+            } else if (it is MembershipEvent.Error) {
+                showError(it.message)
             }
         }
     }
