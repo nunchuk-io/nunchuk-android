@@ -17,11 +17,20 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/title"
-        style="@style/NCText.Title.Large"
+        style="@style/NCText.Title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_12"
+        tools:text="Title" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/desc"
+        style="@style/NCText.Body.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_12"
         tools:text="Title" />
 
     <androidx.recyclerview.widget.RecyclerView

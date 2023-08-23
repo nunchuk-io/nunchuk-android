@@ -142,4 +142,5 @@
     <string name="nc_cancel_health_check_request">Are you sure you want to cancel this health check request?</string>
     <string name="nc_key_added_to_group_wallet">Key added to group wallet</string>
     <string name="add_key_to_group_desc">Once enough keys have been added, the master or admin account can finish the setup.</string>
+    <string name="nc_key_limit_desc">Currently, TAPSIGNER, Ledger and Trezor are compatible with the Keyholder (limited) role.</string>
 </resources>

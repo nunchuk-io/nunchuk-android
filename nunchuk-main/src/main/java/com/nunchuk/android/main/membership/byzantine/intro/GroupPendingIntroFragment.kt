@@ -38,7 +38,7 @@ class GroupPendingIntroFragment : Fragment() {
     private val viewModel: GroupPendingIntroViewModel by viewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -51,19 +51,13 @@ class GroupPendingIntroFragment : Fragment() {
     }
 
     private fun openGroupIntro() {
-        val isMasterOrAdmin = viewModel.isMasterOrAdmin()
-        if (isMasterOrAdmin) {
-            findNavController().navigate(
-                GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddGroupKeyStepFragment()
+        findNavController().navigate(
+            GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
+                groupId = args.groupId,
+                isAddOnly = true,
+                isKeyHolderLimited = viewModel.isKeyHolderLimit(),
             )
-        } else {
-            findNavController().navigate(
-                GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
-                    groupId = args.groupId,
-                    isAddOnly = true
-                )
-            )
-        }
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

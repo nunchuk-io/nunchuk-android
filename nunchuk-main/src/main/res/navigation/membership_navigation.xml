@@ -437,6 +437,10 @@
             android:name="is_add_only"
             android:defaultValue="false"
             app:argType="boolean" />
+        <argument
+            android:name="is_key_holder_limited"
+            android:defaultValue="false"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_addByzantineKeyListFragment_to_keyAddedToGroupWalletFragment"
             app:destination="@id/keyAddedToGroupWalletFragment"

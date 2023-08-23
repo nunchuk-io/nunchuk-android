@@ -305,7 +305,22 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     }
 
     private fun openSelectHardwareOption() {
-        BottomSheetOption.newInstance(
+        val options = if (args.isKeyHolderLimited) {
+            listOf(
+                SheetOption(
+                    type = SignerType.NFC.ordinal,
+                    label = getString(R.string.nc_tapsigner)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_LEDGER,
+                    label = getString(R.string.nc_ledger)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_TREZOR,
+                    label = getString(R.string.nc_trezor)
+                ),
+            )
+        } else {
             listOf(
                 SheetOption(
                     type = SignerType.NFC.ordinal,
@@ -331,9 +346,12 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     type = SheetOptionType.TYPE_ADD_BITBOX,
                     label = getString(R.string.nc_bitbox)
                 ),
-            ),
+            )
+        }
+        BottomSheetOption.newInstance(
+            options = options,
+            desc = getString(R.string.nc_key_limit_desc).takeIf { args.isKeyHolderLimited },
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),
-            showClosedIcon = true,
         ).show(childFragmentManager, "BottomSheetOption")
     }
 

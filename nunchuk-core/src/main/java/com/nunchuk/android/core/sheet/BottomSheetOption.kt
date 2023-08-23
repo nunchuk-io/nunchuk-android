@@ -26,13 +26,14 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.databinding.FragmentSheetOptionBinding
+import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
 
     override fun initializeBinding(
         inflater: LayoutInflater,
-        container: ViewGroup?
+        container: ViewGroup?,
     ): FragmentSheetOptionBinding {
         return FragmentSheetOptionBinding.inflate(inflater, container, false)
     }
@@ -42,7 +43,11 @@ class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
         val title = requireArguments().getString(EXTRA_TITLE).orEmpty()
         binding.title.text = title
         binding.title.isVisible = title.isNotEmpty()
-        val options = requireArguments().getParcelableArrayList<SheetOption>(EXTRA_OPTIONS).orEmpty()
+        val desc = requireArguments().getString(EXTRA_DESC).orEmpty()
+        binding.desc.text = desc
+        binding.desc.isVisible = desc.isNotEmpty()
+        val options =
+            requireArguments().parcelableArrayList<SheetOption>(EXTRA_OPTIONS).orEmpty()
         binding.recyclerView.adapter = SheetOptionAdapter(options) {
             if (parentFragment is BottomSheetOptionListener) {
                 (parentFragment as BottomSheetOptionListener).onOptionClicked(it)
@@ -60,13 +65,20 @@ class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
 
     companion object {
         private const val EXTRA_TITLE = "extra_title"
+        private const val EXTRA_DESC = "extra_desc"
         private const val EXTRA_OPTIONS = "extra_options"
         private const val EXTRA_SHOW_CLOSE_ICON = "show_close_icon"
 
-        fun newInstance(options: List<SheetOption>, title: String? = null, showClosedIcon: Boolean = false): BottomSheetOption {
+        fun newInstance(
+            options: List<SheetOption>,
+            title: String? = null,
+            desc: String? = null,
+            showClosedIcon: Boolean = false,
+        ): BottomSheetOption {
             return BottomSheetOption().apply {
                 arguments = Bundle().apply {
                     putString(EXTRA_TITLE, title)
+                    putString(EXTRA_DESC, desc)
                     putBoolean(EXTRA_SHOW_CLOSE_ICON, showClosedIcon)
                     putParcelableArrayList(EXTRA_OPTIONS, ArrayList(options))
                 }

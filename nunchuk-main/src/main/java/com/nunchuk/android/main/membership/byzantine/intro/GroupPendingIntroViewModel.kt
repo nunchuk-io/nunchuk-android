@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.byzantine.GetGroupBriefByIdFlowUseCase
 import com.nunchuk.android.usecase.user.IsViewPendingGroupUseCase
@@ -56,7 +55,7 @@ class GroupPendingIntroViewModel @Inject constructor(
         _state.update { it.copy(isViewPendingWallet = false) }
     }
 
-    fun isMasterOrAdmin() = state.value.role.isMasterOrAdmin
+    fun isKeyHolderLimit() = state.value.role == AssistedWalletRole.KEYHOLDER_LIMITED
 }
 
 data class GroupPendingIntroUiState(
