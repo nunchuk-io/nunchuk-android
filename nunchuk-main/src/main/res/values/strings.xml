@@ -35,7 +35,7 @@
     <string name="nc_set_up_inheritance_hint">[B]Beneficiary[/B]: an individual who will inherit your bitcoin.\n\n[B]Trustee[/B]: an individual who will help manage and distribute your bitcoin to the Beneficiary.</string>
     <string name="nc_here_is_plan_magical_phrase">Here is your plan’s Magic Phrase</string>
     <string name="nc_inheritance_key_tip">Inheritance key tip</string>
-    <string name="nc_dummy_transaction_desc">To authorize these changes, two signatures are required. You will be asked to sign a dummy transaction that sends 10,000 sats (%1$s) to your own wallet%2$s.\n\n[B]The dummy transaction uses a fake input and does not move any of your real bitcoins. It will not be broadcast and will be immediately removed afterwards.[/B]</string>
+    <string name="nc_dummy_transaction_desc">To authorize these changes, two signatures are required. You will be asked to sign a dummy transaction that sends 10,000 sat (%1$s) to your own wallet%2$s.\n\n[B]The dummy transaction uses a fake input and does not move any of your real bitcoins. It will not be broadcast and will be immediately removed afterwards.[/B]</string>
     <string name="nc_dummy_transaction_key_holder_desc">. Since more than one signature is required, other keyholders in the group will also be notified</string>
     <string name="nc_tell_me_more">Tell me more</string>
     <string name="nc_try_on_testnet">Try on testnet</string>
