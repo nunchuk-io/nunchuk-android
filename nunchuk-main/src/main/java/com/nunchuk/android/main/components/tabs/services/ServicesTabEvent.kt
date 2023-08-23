@@ -21,6 +21,7 @@ package com.nunchuk.android.main.components.tabs.services
 
 import android.os.Parcelable
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceCheck
 import com.nunchuk.android.model.MembershipPlan
@@ -68,8 +69,8 @@ data class ServicesTabState(
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null,
-    val isHasGroupTowOfFourMultisig: Boolean = false,
-    val userRole: String = AssistedWalletRole.NONE.name
+    val groupTowOfFourMultisig: ByzantineGroupBrief? = null,
+    val userRoleOfGroupTowOfFourMultisig: String = AssistedWalletRole.NONE.name,
 ) {
     fun initRowItems(): List<Any> {
         val items = mutableListOf<Any>()
@@ -120,51 +121,53 @@ data class ServicesTabState(
             }
 
             MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
-                if (userRole == AssistedWalletRole.KEYHOLDER_LIMITED.name ||
-                    userRole == AssistedWalletRole.KEYHOLDER.name && isHasGroupTowOfFourMultisig.not()) {
+                if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER_LIMITED.name ||
+                    userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER.name && groupTowOfFourMultisig == null
+                ) {
                     items.apply {
                         add(ServiceTabRowCategory.Emergency)
                         add(ServiceTabRowItem.KeyRecovery)
                         add(ServiceTabRowCategory.Subscription)
                         add(ServiceTabRowItem.OrderNewHardware)
                     }
-                } else if (isHasGroupTowOfFourMultisig) {
-                    if (userRole == AssistedWalletRole.KEYHOLDER.name) {
+                } else if (groupTowOfFourMultisig != null) {
+                    if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER.name) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
-                           add(ServiceTabRowItem.KeyRecovery)
+                            add(ServiceTabRowItem.KeyRecovery)
                             add(ServiceTabRowCategory.Inheritance)
                             add(ServiceTabRowItem.ViewInheritancePlan)
                             add(ServiceTabRowCategory.Subscription)
                             add(ServiceTabRowItem.CoSigningPolicies)
                             add(ServiceTabRowItem.OrderNewHardware)
                         }
-                    } else if (userRole == AssistedWalletRole.ADMIN.name || userRole == AssistedWalletRole.MASTER.name) {
-                       items.apply {
-                           add(ServiceTabRowCategory.Emergency)
-                           add(ServiceTabRowItem.EmergencyLockdown)
-                           add(ServiceTabRowItem.KeyRecovery)
-                           add(ServiceTabRowCategory.Inheritance)
-                           if (assistedWallets.isEmpty() || assistedWallets.all { it.isSetupInheritance.not() }) {
-                               add(ServiceTabRowItem.SetUpInheritancePlan)
-                           } else {
-                               add(ServiceTabRowItem.ViewInheritancePlan)
-                           }
-                           add(ServiceTabRowItem.ClaimInheritance)
-                           add(ServiceTabRowCategory.Subscription)
-                           add(ServiceTabRowItem.CoSigningPolicies)
-                           if (userRole == AssistedWalletRole.ADMIN.name) {
-                               add(ServiceTabRowItem.OrderNewHardware)
-                           } else if (userRole == AssistedWalletRole.MASTER.name) {
-                               add(ServiceTabRowItem.GetAdditionalWallets)
-                               add(ServiceTabRowItem.OrderNewHardware)
-                               add(ServiceTabRowItem.RollOverAssistedWallet)
-                               add(ServiceTabRowItem.ManageSubscription)
-                           }
-                       }
+                    } else if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.ADMIN.name
+                        || userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.MASTER.name) {
+                        items.apply {
+                            add(ServiceTabRowCategory.Emergency)
+                            add(ServiceTabRowItem.EmergencyLockdown)
+                            add(ServiceTabRowItem.KeyRecovery)
+                            add(ServiceTabRowCategory.Inheritance)
+                            if (assistedWallets.isEmpty() || assistedWallets.all { it.isSetupInheritance.not() && groupTowOfFourMultisig.groupId == it.groupId}) {
+                                add(ServiceTabRowItem.SetUpInheritancePlan)
+                            } else {
+                                add(ServiceTabRowItem.ViewInheritancePlan)
+                            }
+                            add(ServiceTabRowItem.ClaimInheritance)
+                            add(ServiceTabRowCategory.Subscription)
+                            add(ServiceTabRowItem.CoSigningPolicies)
+                            if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.ADMIN.name) {
+                                add(ServiceTabRowItem.OrderNewHardware)
+                            } else if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.MASTER.name) {
+                                add(ServiceTabRowItem.GetAdditionalWallets)
+                                add(ServiceTabRowItem.OrderNewHardware)
+                                add(ServiceTabRowItem.RollOverAssistedWallet)
+                                add(ServiceTabRowItem.ManageSubscription)
+                            }
+                        }
                     }
                 } else {
-                    if (userRole == AssistedWalletRole.ADMIN.name) {
+                    if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.ADMIN.name) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
                             add(ServiceTabRowItem.EmergencyLockdown)
@@ -172,7 +175,7 @@ data class ServicesTabState(
                             add(ServiceTabRowCategory.Subscription)
                             add(ServiceTabRowItem.OrderNewHardware)
                         }
-                    } else if (userRole == AssistedWalletRole.MASTER.name) {
+                    } else if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.MASTER.name) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
                             add(ServiceTabRowItem.EmergencyLockdown)
@@ -201,19 +204,32 @@ internal data class NonSubHeader(val title: String, val desc: String)
 
 sealed class ServiceTabRowCategory(val title: Int, val drawableId: Int) {
     object Emergency : ServiceTabRowCategory(R.string.nc_emergency, R.drawable.ic_emergency)
-    object Inheritance : ServiceTabRowCategory(R.string.nc_inheritance_planning, R.drawable.ic_inheritance_planning)
-    object Subscription : ServiceTabRowCategory(R.string.nc_your_subscription, R.drawable.ic_subscription)
+    object Inheritance :
+        ServiceTabRowCategory(R.string.nc_inheritance_planning, R.drawable.ic_inheritance_planning)
+
+    object Subscription :
+        ServiceTabRowCategory(R.string.nc_your_subscription, R.drawable.ic_subscription)
 }
 
 sealed class ServiceTabRowItem(val title: Int) : Parcelable {
-    @Parcelize object EmergencyLockdown : ServiceTabRowItem(R.string.nc_emergency_lockdown)
-    @Parcelize object KeyRecovery : ServiceTabRowItem(R.string.nc_key_recovery)
-    @Parcelize object SetUpInheritancePlan : ServiceTabRowItem(R.string.nc_set_up_inheritance_plan)
-    @Parcelize object ViewInheritancePlan : ServiceTabRowItem(R.string.nc_view_inheritance_plan)
-    @Parcelize object ClaimInheritance : ServiceTabRowItem(R.string.nc_claim_an_inheritance)
-    @Parcelize object CoSigningPolicies : ServiceTabRowItem(R.string.nc_cosigning_policies)
-    @Parcelize object OrderNewHardware : ServiceTabRowItem(R.string.nc_order_new_hardware)
-    @Parcelize object ManageSubscription : ServiceTabRowItem(R.string.nc_manage_subscription)
-    @Parcelize object RollOverAssistedWallet : ServiceTabRowItem(R.string.nc_roll_over_assisted_wallet)
-    @Parcelize object GetAdditionalWallets : ServiceTabRowItem(R.string.nc_get_additional_wallet)
+    @Parcelize
+    object EmergencyLockdown : ServiceTabRowItem(R.string.nc_emergency_lockdown)
+    @Parcelize
+    object KeyRecovery : ServiceTabRowItem(R.string.nc_key_recovery)
+    @Parcelize
+    object SetUpInheritancePlan : ServiceTabRowItem(R.string.nc_set_up_inheritance_plan)
+    @Parcelize
+    object ViewInheritancePlan : ServiceTabRowItem(R.string.nc_view_inheritance_plan)
+    @Parcelize
+    object ClaimInheritance : ServiceTabRowItem(R.string.nc_claim_an_inheritance)
+    @Parcelize
+    object CoSigningPolicies : ServiceTabRowItem(R.string.nc_cosigning_policies)
+    @Parcelize
+    object OrderNewHardware : ServiceTabRowItem(R.string.nc_order_new_hardware)
+    @Parcelize
+    object ManageSubscription : ServiceTabRowItem(R.string.nc_manage_subscription)
+    @Parcelize
+    object RollOverAssistedWallet : ServiceTabRowItem(R.string.nc_roll_over_assisted_wallet)
+    @Parcelize
+    object GetAdditionalWallets : ServiceTabRowItem(R.string.nc_get_additional_wallet)
 }

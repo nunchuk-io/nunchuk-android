@@ -33,6 +33,7 @@ import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCas
 import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -113,8 +114,10 @@ class ServicesTabViewModel @Inject constructor(
             groups.find { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
         _state.update {
             it.copy(
-                isHasGroupTowOfFourMultisig = groupTowOfFourMultisig != null,
-                userRole = byzantineGroupUtils.getCurrentUserRole(groupTowOfFourMultisig)
+                groupTowOfFourMultisig = groupTowOfFourMultisig,
+                userRoleOfGroupTowOfFourMultisig = byzantineGroupUtils.getCurrentUserRole(
+                    groupTowOfFourMultisig
+                ),
             )
         }
     }
@@ -292,11 +295,25 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getEmail() = accountManager.getAccount().email
 
-    fun getUnSetupInheritanceWallets() =
-        state.value.assistedWallets.filter { it.isSetupInheritance.not() }
+    fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
+        val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() }
+        return if (state.value.groupTowOfFourMultisig != null) {
+            wallets.filter {
+                it.groupId == state.value.groupTowOfFourMultisig?.groupId
+            }
+        } else {
+            wallets
+        }
+    }
 
     fun getWallet(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
-        if (ignoreSetupInheritance.not()) return state.value.assistedWallets.filter { it.isSetupInheritance }
-        return state.value.assistedWallets
+        val wallets = if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
+        return if (state.value.groupTowOfFourMultisig != null) {
+            wallets.filter {
+                it.groupId == state.value.groupTowOfFourMultisig?.groupId
+            }
+        } else {
+            wallets
+        }
     }
 }
