@@ -241,6 +241,10 @@ class GroupDashboardViewModel @Inject constructor(
         return state.value.groupChat
     }
 
+    fun isPendingCreateWallet(): Boolean {
+        return state.value.group?.isPendingWallet() == true
+    }
+
     fun createGroupChat() {
         viewModelScope.launch {
             _event.emit(GroupDashboardEvent.Loading(true))

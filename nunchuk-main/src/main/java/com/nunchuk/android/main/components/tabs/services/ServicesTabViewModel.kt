@@ -118,6 +118,7 @@ class ServicesTabViewModel @Inject constructor(
                 userRoleOfGroupTowOfFourMultisig = byzantineGroupUtils.getCurrentUserRole(
                     groupTowOfFourMultisig
                 ),
+                groups = groups.associateBy { it.groupId }
             )
         }
     }
@@ -297,23 +298,35 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
         val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() }
-        return if (state.value.groupTowOfFourMultisig != null) {
+        return if (state.value.plan == MembershipPlan.BYZANTINE_PRO && state.value.groupTowOfFourMultisig != null) {
             wallets.filter {
                 it.groupId == state.value.groupTowOfFourMultisig?.groupId
             }
         } else {
-            wallets
+            wallets.filter {
+                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]) in listOf(
+                    AssistedWalletRole.ADMIN.name,
+                    AssistedWalletRole.MASTER.name
+                )
+            }
         }
     }
 
     fun getWallet(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
-        val wallets = if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
-        return if (state.value.groupTowOfFourMultisig != null) {
+        val wallets =
+            if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
+        return if (state.value.plan == MembershipPlan.BYZANTINE_PRO && state.value.groupTowOfFourMultisig != null) {
             wallets.filter {
                 it.groupId == state.value.groupTowOfFourMultisig?.groupId
             }
         } else {
-            wallets
+            wallets.filter {
+                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]) in listOf(
+                    AssistedWalletRole.ADMIN.name,
+                    AssistedWalletRole.MASTER.name,
+                    AssistedWalletRole.KEYHOLDER.name
+                )
+            }
         }
     }
 }

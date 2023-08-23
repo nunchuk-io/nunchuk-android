@@ -69,6 +69,7 @@ data class ServicesTabState(
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null,
+    val groups: Map<String, ByzantineGroupBrief> = mutableMapOf(),
     val groupTowOfFourMultisig: ByzantineGroupBrief? = null,
     val userRoleOfGroupTowOfFourMultisig: String = AssistedWalletRole.NONE.name,
 ) {

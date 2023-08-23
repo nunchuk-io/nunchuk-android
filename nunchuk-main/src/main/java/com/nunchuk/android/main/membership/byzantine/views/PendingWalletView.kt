@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -85,7 +84,9 @@ fun PendingWalletView(
             .clickable(onClick = onWalletClick, enabled = walletsExtended != null)
             .fillMaxWidth(),
     ) {
-        val colors = if (group != null || isAssistedWallet) {
+        val colors = if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
+            listOf(NcColor.greyDark, NcColor.greyDark)
+        } else if (group != null || isAssistedWallet) {
             listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
         } else {
             listOf(
@@ -115,7 +116,8 @@ fun PendingWalletView(
                 ActiveWallet(
                     walletsExtended = walletsExtended,
                     hideWalletDetail = hideWalletDetail,
-                    isAssistedWallet = isAssistedWallet
+                    isAssistedWallet = isAssistedWallet,
+                    role = role
                 )
             }
         }
@@ -162,6 +164,44 @@ fun PendingWalletView(
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
+                } else if (role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_dashboard),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colors.onSurface,
+                            modifier = Modifier.padding(start = 4.dp).weight(1f, fill = true)
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (badgeCount != 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp, 24.dp)
+                                        .clip(CircleShape)
+                                        .background(color = colorResource(id = R.color.nc_orange_color)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = badgeCount.toString(),
+                                        style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
+                                    )
+                                }
+                            }
+
+                            Icon(
+                                modifier = Modifier.padding(start = 12.dp),
+                                painter = painterResource(id = R.drawable.ic_arrow_expand),
+                                contentDescription = "Arrow"
+                            )
+                        }
+                    }
                 } else {
                     WalletAvatar(group = group, badgeCount = badgeCount)
                 }
@@ -206,7 +246,8 @@ fun RowScope.PendingWalletInviteMember(
 @Composable
 fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
-        val sortedList = group.members.filter { it.role != AssistedWalletRole.OBSERVER.name }.sortedWith(compareBy { it.isPendingRequest() })
+        val sortedList = group.members.filter { it.role != AssistedWalletRole.OBSERVER.name }
+            .sortedWith(compareBy { it.isPendingRequest() })
         sortedList.take(5).forEachIndexed { index, byzantineMember ->
             val padStart = if (index == 0) 0.dp else 4.dp
             AvatarView(
@@ -249,7 +290,8 @@ fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
 internal fun ActiveWallet(
     walletsExtended: WalletExtended,
     hideWalletDetail: Boolean,
-    isAssistedWallet: Boolean
+    isAssistedWallet: Boolean,
+    role: String = AssistedWalletRole.NONE.name
 ) {
     val wallet = walletsExtended.wallet
     val balance = "(${wallet.getCurrencyAmount()})"
@@ -261,12 +303,12 @@ internal fun ActiveWallet(
                 color = Color.White
             )
             Text(
-                text = Utils.maskValue(wallet.getBTCAmount(), hideWalletDetail),
+                text = Utils.maskValue(wallet.getBTCAmount(), role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail),
                 style = NunchukTheme.typography.titleSmall,
                 color = Color.White
             )
             Text(
-                text = Utils.maskValue(balance, hideWalletDetail),
+                text = Utils.maskValue(balance, role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail),
                 style = NunchukTheme.typography.bodySmall,
                 color = Color.White
             )

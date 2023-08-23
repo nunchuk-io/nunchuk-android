@@ -83,6 +83,7 @@ import com.nunchuk.android.messages.util.getMsgType
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.banner.Banner
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
@@ -505,9 +506,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 }
                             },
                             onWalletClick = {
-                                it.wallet?.wallet?.id?.let {
-                                    checkWalletSecurity(it)
-                                }
+                                if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name) return@PendingWalletView
+                                val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
+                                checkWalletSecurity(walletId)
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))

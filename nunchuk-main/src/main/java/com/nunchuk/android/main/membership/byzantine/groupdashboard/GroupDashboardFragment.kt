@@ -143,11 +143,18 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     private val healthCheckLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                val type = it.data?.serializable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
+                val type =
+                    it.data?.serializable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
                 if (type == DummyTransactionType.HEALTH_CHECK_PENDING || type == DummyTransactionType.HEALTH_CHECK_REQUEST) {
-                    val xfp = it.data?.getStringExtra(GlobalResultKey.EXTRA_HEALTH_CHECK_XFP).orEmpty()
+                    val xfp =
+                        it.data?.getStringExtra(GlobalResultKey.EXTRA_HEALTH_CHECK_XFP).orEmpty()
                     viewModel.getSignerName(xfp)?.let { name ->
-                        showSuccess(message = getString(R.string.nc_txt_run_health_check_success_event, name))
+                        showSuccess(
+                            message = getString(
+                                R.string.nc_txt_run_health_check_success_event,
+                                name
+                            )
+                        )
                     }
                 }
             }
@@ -373,24 +380,37 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun showMoreOptions() {
-        val options = mutableListOf(
-            SheetOption(
-                type = SheetOptionType.SET_UP_INHERITANCE,
-                stringId = if (viewModel.isSetupInheritance()) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
-            ),
-            SheetOption(
-                type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
-                stringId = R.string.nc_cosigning_policies
-            ),
-            SheetOption(
-                type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
-                stringId = R.string.nc_emergency_lockdown
-            ),
-            SheetOption(
-                type = SheetOptionType.TYPE_RECURRING_PAYMENT,
-                stringId = R.string.nc_view_recurring_payments
+        val options = mutableListOf<SheetOption>()
+        if (viewModel.isPendingCreateWallet().not()) {
+            if (viewModel.state.value.myRole in listOf(
+                    AssistedWalletRole.MASTER,
+                    AssistedWalletRole.ADMIN
+                )
+            ) {
+                options.add(
+                    SheetOption(
+                        type = SheetOptionType.SET_UP_INHERITANCE,
+                        stringId = if (viewModel.isSetupInheritance()) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
+                    )
+                )
+            }
+            options.addAll(
+                mutableListOf(
+                    SheetOption(
+                        type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
+                        stringId = R.string.nc_cosigning_policies
+                    ),
+                    SheetOption(
+                        type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
+                        stringId = R.string.nc_emergency_lockdown
+                    ),
+                    SheetOption(
+                        type = SheetOptionType.TYPE_RECURRING_PAYMENT,
+                        stringId = R.string.nc_view_recurring_payments
+                    )
+                )
             )
-        )
+        }
         if (viewModel.groupChat() != null) {
             options.add(
                 SheetOption(
@@ -399,6 +419,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             )
         }
+        if (options.isEmpty()) return
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
@@ -446,6 +467,7 @@ private fun GroupDashboardContent(
 ) {
     val master = uiState.group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
     val listState = rememberLazyListState()
+    val isKeyholderLimited = uiState.myRole == AssistedWalletRole.KEYHOLDER_LIMITED
     val fabVisibility by remember {
         derivedStateOf {
             listState.isScrollInProgress.not()
@@ -460,70 +482,78 @@ private fun GroupDashboardContent(
             topBar = {
                 NcTopAppBar(
                     backgroundColor = colorResource(id = R.color.nc_grey_light),
-                    title = uiState.wallet.name,
+                    title = uiState.wallet.name.ifEmpty {
+                        stringResource(
+                            R.string.nc_pending_wallet
+                        )
+                    },
                     textStyle = NunchukTheme.typography.titleLarge,
                     elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                        if (uiState.wallet.name.isNotEmpty()) {
-                            IconButton(onClick = onWalletClick) {
+                        if (isKeyholderLimited.not()) {
+                            if (uiState.wallet.name.isNotEmpty()) {
+                                IconButton(onClick = onWalletClick) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_wallets),
+                                        contentDescription = "Wallet icon"
+                                    )
+                                }
+                            }
+                            IconButton(onClick = onMoreClick) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.ic_wallets),
-                                    contentDescription = "Wallet icon"
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
                                 )
                             }
-                        }
-                        IconButton(onClick = onMoreClick) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
                         }
                     })
             },
             floatingActionButton = {
-                AnimatedVisibility(
-                    visible = fabVisibility,
-                    enter = scaleIn() + fadeIn(),
-                    exit = scaleOut() + fadeOut()
-                ) {
-                    CompositionLocalProvider(
-                        LocalRippleTheme provides
-                                if (isEnableStartGroupChat) LocalRippleTheme.current else NoRippleTheme
+                if (isKeyholderLimited.not()) {
+                    AnimatedVisibility(
+                        visible = fabVisibility,
+                        enter = scaleIn() + fadeIn(),
+                        exit = scaleOut() + fadeOut()
                     ) {
-                        if (uiState.groupChat != null) {
-                            FloatingActionButton(onClick = onGroupChatClick) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_messages),
-                                    contentDescription = "Search"
-                                )
-                            }
-                        } else {
-                            ExtendedFloatingActionButton(onClick = {
-                                if (isEnableStartGroupChat) onGroupChatClick()
-                            },
-                                backgroundColor = if (isEnableStartGroupChat) MaterialTheme.colors.secondary else colorResource(
-                                    id = R.color.nc_whisper_color
-                                ),
-                                text = {
-                                    Text(
-                                        text = "Start group chat",
-                                        color = if (isEnableStartGroupChat) Color.White else colorResource(
-                                            id = R.color.nc_grey_dark_color
-                                        )
-                                    )
-                                },
-                                icon = {
+                        CompositionLocalProvider(
+                            LocalRippleTheme provides
+                                    if (isEnableStartGroupChat) LocalRippleTheme.current else NoRippleTheme
+                        ) {
+                            if (uiState.groupChat != null) {
+                                FloatingActionButton(onClick = onGroupChatClick) {
                                     Icon(
-                                        painter = painterResource(id = R.drawable.ic_create_message),
-                                        contentDescription = "Search",
-                                        tint = if (isEnableStartGroupChat) LocalContentColor.current.copy(
-                                            alpha = LocalContentAlpha.current
-                                        ) else colorResource(
-                                            id = R.color.nc_grey_dark_color
-                                        )
+                                        painter = painterResource(id = R.drawable.ic_messages),
+                                        contentDescription = "Search"
                                     )
-                                })
+                                }
+                            } else {
+                                ExtendedFloatingActionButton(onClick = {
+                                    if (isEnableStartGroupChat) onGroupChatClick()
+                                },
+                                    backgroundColor = if (isEnableStartGroupChat) MaterialTheme.colors.secondary else colorResource(
+                                        id = R.color.nc_whisper_color
+                                    ),
+                                    text = {
+                                        Text(
+                                            text = "Start group chat",
+                                            color = if (isEnableStartGroupChat) Color.White else colorResource(
+                                                id = R.color.nc_grey_dark_color
+                                            )
+                                        )
+                                    },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_create_message),
+                                            contentDescription = "Search",
+                                            tint = if (isEnableStartGroupChat) LocalContentColor.current.copy(
+                                                alpha = LocalContentAlpha.current
+                                            ) else colorResource(
+                                                id = R.color.nc_grey_dark_color
+                                            )
+                                        )
+                                    })
+                            }
                         }
                     }
                 }
@@ -554,13 +584,15 @@ private fun GroupDashboardContent(
                             uiState.keyStatus
                         )
                     }
-                    MemberListView(
-                        group = uiState.group,
-                        currentUserRole = uiState.myRole,
-                        master = master,
-                        padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
-                        onEditClick = onEditClick
-                    )
+                    if (isKeyholderLimited.not()) {
+                        MemberListView(
+                            group = uiState.group,
+                            currentUserRole = uiState.myRole,
+                            master = master,
+                            padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
+                            onEditClick = onEditClick
+                        )
+                    }
                 }
 
                 Box(
