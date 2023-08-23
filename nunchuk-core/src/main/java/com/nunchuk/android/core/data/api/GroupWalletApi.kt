@@ -26,6 +26,7 @@ import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignature
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
+import com.nunchuk.android.core.data.model.membership.GetWalletsResponse
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.PermissionResponse
 import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
@@ -356,4 +357,11 @@ internal interface GroupWalletApi {
         @Path("xfp") xfp: String,
         @Body request: HealthCheckRequest
     ): Data<DummyTransactionResponse>
+
+    @GET("/v1.1/group-wallets/wallets")
+    suspend fun getWallets(
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int,
+        @Query("statuses") statuses: List<String> = listOf("DELETED"),
+    ): Data<GetWalletsResponse>
 }

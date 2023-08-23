@@ -17,29 +17,16 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.persistence.dao
+package com.nunchuk.android.core.data.model.membership
 
-import androidx.room.Dao
-import androidx.room.Query
-import com.nunchuk.android.persistence.BaseDao
-import com.nunchuk.android.persistence.TABLE_ASSISTED_WALLET
-import com.nunchuk.android.persistence.entity.AssistedWalletEntity
-import kotlinx.coroutines.flow.Flow
+import com.google.gson.annotations.SerializedName
 
-@Dao
-interface AssistedWalletDao : BaseDao<AssistedWalletEntity> {
-    @Query("SELECT * FROM $TABLE_ASSISTED_WALLET ORDER BY id")
-    fun getAssistedWallets(): Flow<List<AssistedWalletEntity>>
+internal class GetWalletsResponse(
+    @SerializedName("wallets")
+    val wallets: List<DeletedWalletDto> = emptyList()
+)
 
-    @Query("DELETE FROM $TABLE_ASSISTED_WALLET where local_id in (:ids)")
-    suspend fun deleteBatch(ids: List<String>) : Int
-
-    @Query("DELETE FROM $TABLE_ASSISTED_WALLET")
-    suspend fun deleteAll()
-
-    @Query("SELECT * FROM $TABLE_ASSISTED_WALLET WHERE local_id =:id ")
-    suspend fun getById(id: String): AssistedWalletEntity?
-
-    @Query("SELECT * FROM $TABLE_ASSISTED_WALLET WHERE group_id =:id ")
-    suspend fun getByGroupId(id: String): AssistedWalletEntity?
-}
+internal data class DeletedWalletDto(
+    @SerializedName("id") val id: String? = null,
+    @SerializedName("local_id") val localId: String? = null,
+)

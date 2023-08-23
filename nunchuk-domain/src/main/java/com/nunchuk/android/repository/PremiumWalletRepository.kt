@@ -371,4 +371,6 @@ interface PremiumWalletRepository {
         name: String,
         groupId: String?
     ): SeverWallet
+
+    suspend fun syncDeletedWallet(): Boolean
 }
