@@ -1594,7 +1594,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                                 signerType = type
                             )
                         ),
-                        groupId = ""
+                        groupId = groupId
                     )
                 )
                 requestAddKeyDao.delete(localRequest)
