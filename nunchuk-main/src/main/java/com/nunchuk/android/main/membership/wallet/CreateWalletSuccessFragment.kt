@@ -113,7 +113,6 @@ class CreateWalletSuccessFragment : MembershipFragment() {
 @Composable
 private fun CreateWalletSuccessScreen(
     viewModel: CreateWalletSuccessViewModel = viewModel(),
-    isShowDistributionSetup: Boolean = false,
 ) {
     val uiState : CreateWalletSuccessUiState by viewModel.state.collectAsStateWithLifecycle()
     CreateWalletSuccessScreenContent(

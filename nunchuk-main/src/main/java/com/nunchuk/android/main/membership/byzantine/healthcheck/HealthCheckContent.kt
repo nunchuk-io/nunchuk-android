@@ -40,6 +40,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
+import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardState
 import com.nunchuk.android.main.membership.byzantine.healthCheckLabel
@@ -166,7 +167,7 @@ private fun HealthCheckItem(
                     text = signer.name,
                     style = NunchukTheme.typography.body
                 )
-                NcTag(label = "NFC")
+                NcTag(label = signer.toReadableSignerType(context))
                 Text(
                     text = signer.getXfpOrCardIdLabel(),
                     style = NunchukTheme.typography.bodySmall

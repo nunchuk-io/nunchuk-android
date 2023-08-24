@@ -24,6 +24,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.core.domain.membership.CreateServerWalletUseCase
+import com.nunchuk.android.core.util.isRemoteSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.ServerKeyExtra
@@ -199,7 +200,7 @@ class CreateWalletViewModel @Inject constructor(
                 return@launch
             }
             val remoteSignerResults =
-                signers.filter { it.value.signerType == SignerType.COLDCARD_NFC || it.value.signerType == SignerType.AIRGAP || it.value.signerType == SignerType.HARDWARE }
+                signers.filter { it.value.signerType.isRemoteSigner }
                     .map {
                         async {
                             getRemoteSignerUseCase(

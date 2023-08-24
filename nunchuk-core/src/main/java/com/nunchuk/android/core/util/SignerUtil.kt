@@ -64,6 +64,9 @@ private fun toReadableDrawableResId(type: SignerType, tags: List<SignerTag>, isP
         type == AIRGAP && tags.contains(SignerTag.SEEDSIGNER) -> R.drawable.ic_air_gapped_seedsigner
         type == AIRGAP && tags.contains(SignerTag.PASSPORT) -> R.drawable.ic_air_gapped_passport
         type == AIRGAP && tags.contains(SignerTag.KEYSTONE) -> R.drawable.ic_air_gapped_keystone
+        type == HARDWARE && tags.contains(SignerTag.TREZOR) -> R.drawable.ic_trezor_hardware
+        type == HARDWARE && tags.contains(SignerTag.LEDGER) -> R.drawable.ic_ledger_hardware
+        type == HARDWARE && tags.contains(SignerTag.BITBOX) -> R.drawable.ic_bitbox_hardware
         type == AIRGAP -> R.drawable.ic_air_gapped_other
         type == COLDCARD_NFC -> R.drawable.ic_coldcard_small
         type == SOFTWARE -> R.drawable.ic_logo_dark_small

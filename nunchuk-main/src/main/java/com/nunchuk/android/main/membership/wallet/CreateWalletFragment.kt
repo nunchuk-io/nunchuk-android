@@ -111,13 +111,19 @@ class CreateWalletFragment : MembershipFragment() {
                     event.walletId,
                     event.coldcardCount,
                     event.airgapCount
-                )
+                ),
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                    .build()
             )
         } else if (event.airgapCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
                     event.walletId,
-                )
+                ),
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                    .build()
             )
         } else {
             findNavController().navigate(
