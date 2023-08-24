@@ -328,10 +328,6 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun isSetupInheritance(): Boolean {
-        return state.value.isSetupInheritance
-    }
-
     fun onRequestHealthCheck(signerModel: SignerModel) {
         viewModelScope.launch {
             _event.emit(GroupDashboardEvent.Loading(true))

@@ -70,7 +70,7 @@ data class ServicesTabState(
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null,
     val groups: Map<String, ByzantineGroupBrief> = mutableMapOf(),
-    val groupTowOfFourMultisig: ByzantineGroupBrief? = null,
+    val groupsTowOfFourMultisig: List<ByzantineGroupBrief> = emptyList(),
     val userRoleOfGroupTowOfFourMultisig: String = AssistedWalletRole.NONE.name,
 ) {
     fun initRowItems(): List<Any> {
@@ -123,7 +123,7 @@ data class ServicesTabState(
 
             MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
                 if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER_LIMITED.name ||
-                    userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER.name && groupTowOfFourMultisig == null
+                    userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER.name && groupsTowOfFourMultisig.isEmpty()
                 ) {
                     items.apply {
                         add(ServiceTabRowCategory.Emergency)
@@ -131,7 +131,7 @@ data class ServicesTabState(
                         add(ServiceTabRowCategory.Subscription)
                         add(ServiceTabRowItem.OrderNewHardware)
                     }
-                } else if (groupTowOfFourMultisig != null) {
+                } else if (groupsTowOfFourMultisig.isNotEmpty()) {
                     if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER.name) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
@@ -143,13 +143,17 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.OrderNewHardware)
                         }
                     } else if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.ADMIN.name
-                        || userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.MASTER.name) {
+                        || userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.MASTER.name
+                    ) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
                             add(ServiceTabRowItem.EmergencyLockdown)
                             add(ServiceTabRowItem.KeyRecovery)
                             add(ServiceTabRowCategory.Inheritance)
-                            if (assistedWallets.isEmpty() || assistedWallets.all { it.isSetupInheritance.not() && groupTowOfFourMultisig.groupId == it.groupId}) {
+                            if (assistedWallets.isEmpty() ||
+                                assistedWallets.filter { wallet -> groupsTowOfFourMultisig.find { wallet.groupId == it.groupId } != null }
+                                    .all { wallet -> wallet.isSetupInheritance.not() }
+                            ) {
                                 add(ServiceTabRowItem.SetUpInheritancePlan)
                             } else {
                                 add(ServiceTabRowItem.ViewInheritancePlan)
@@ -215,22 +219,31 @@ sealed class ServiceTabRowCategory(val title: Int, val drawableId: Int) {
 sealed class ServiceTabRowItem(val title: Int) : Parcelable {
     @Parcelize
     object EmergencyLockdown : ServiceTabRowItem(R.string.nc_emergency_lockdown)
+
     @Parcelize
     object KeyRecovery : ServiceTabRowItem(R.string.nc_key_recovery)
+
     @Parcelize
     object SetUpInheritancePlan : ServiceTabRowItem(R.string.nc_set_up_inheritance_plan)
+
     @Parcelize
     object ViewInheritancePlan : ServiceTabRowItem(R.string.nc_view_inheritance_plan)
+
     @Parcelize
     object ClaimInheritance : ServiceTabRowItem(R.string.nc_claim_an_inheritance)
+
     @Parcelize
     object CoSigningPolicies : ServiceTabRowItem(R.string.nc_cosigning_policies)
+
     @Parcelize
     object OrderNewHardware : ServiceTabRowItem(R.string.nc_order_new_hardware)
+
     @Parcelize
     object ManageSubscription : ServiceTabRowItem(R.string.nc_manage_subscription)
+
     @Parcelize
     object RollOverAssistedWallet : ServiceTabRowItem(R.string.nc_roll_over_assisted_wallet)
+
     @Parcelize
     object GetAdditionalWallets : ServiceTabRowItem(R.string.nc_get_additional_wallet)
 }

@@ -349,7 +349,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         super.onOptionClicked(option)
         when (option.type) {
             SheetOptionType.SET_UP_INHERITANCE -> {
-                if (viewModel.isSetupInheritance()) {
+                if (viewModel.state.value.isSetupInheritance) {
                     enterPasswordDialog()
                 } else {
                     navigator.openInheritancePlanningScreen(
@@ -390,7 +390,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 options.add(
                     SheetOption(
                         type = SheetOptionType.SET_UP_INHERITANCE,
-                        stringId = if (viewModel.isSetupInheritance()) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
+                        stringId = if (viewModel.state.value.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
                     )
                 )
             }

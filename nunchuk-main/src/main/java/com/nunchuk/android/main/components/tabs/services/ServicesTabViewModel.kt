@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services
 
+import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
@@ -35,6 +36,10 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
@@ -110,17 +115,25 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     private fun updateGroupInfo(groups: List<ByzantineGroupBrief>) {
-        val groupTowOfFourMultisig =
-            groups.find { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
+        val groupTowOfFourMultisigs =
+            groups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
+        val sortedGroups = groupTowOfFourMultisigs.sortedWith(compareBy { group ->
+            AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
+        })
         _state.update {
             it.copy(
-                groupTowOfFourMultisig = groupTowOfFourMultisig,
+                groupsTowOfFourMultisig = sortedGroups,
                 userRoleOfGroupTowOfFourMultisig = byzantineGroupUtils.getCurrentUserRole(
-                    groupTowOfFourMultisig
+                    sortedGroups.firstOrNull()
                 ),
                 groups = groups.associateBy { it.groupId }
             )
         }
+    }
+
+    @Keep
+    private enum class AssistedWalletRoleByOrder {
+        MASTER, ADMIN, KEYHOLDER, KEYHOLDER_LIMITED, OBSERVER
     }
 
     private fun handleAssistedWallet(
@@ -298,16 +311,15 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
         val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() }
-        return if (state.value.plan == MembershipPlan.BYZANTINE_PRO && state.value.groupTowOfFourMultisig != null) {
+        return if (state.value.plan.isByzantine()) {
             wallets.filter {
-                it.groupId == state.value.groupTowOfFourMultisig?.groupId
+                state.value.groupsTowOfFourMultisig.find { group ->
+                    group.groupId == it.groupId
+                } != null && byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isMasterOrAdmin
             }
         } else {
             wallets.filter {
-                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]) in listOf(
-                    AssistedWalletRole.ADMIN.name,
-                    AssistedWalletRole.MASTER.name
-                )
+                it.groupId.isEmpty() && byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isMasterOrAdmin
             }
         }
     }
@@ -315,17 +327,15 @@ class ServicesTabViewModel @Inject constructor(
     fun getWallet(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
         val wallets =
             if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
-        return if (state.value.plan == MembershipPlan.BYZANTINE_PRO && state.value.groupTowOfFourMultisig != null) {
+        return if (state.value.plan.isByzantine()) {
             wallets.filter {
-                it.groupId == state.value.groupTowOfFourMultisig?.groupId
+                state.value.groupsTowOfFourMultisig.find { group ->
+                    group.groupId == it.groupId
+                } != null && byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
             }
         } else {
             wallets.filter {
-                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]) in listOf(
-                    AssistedWalletRole.ADMIN.name,
-                    AssistedWalletRole.MASTER.name,
-                    AssistedWalletRole.KEYHOLDER.name
-                )
+                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
             }
         }
     }

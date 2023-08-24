@@ -44,6 +44,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.orDefault
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
@@ -87,8 +88,8 @@ import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -102,6 +103,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -136,7 +138,8 @@ internal class WalletsViewModel @Inject constructor(
     private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase,
     private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
-    private val syncDeletedWalletUseCase: SyncDeletedWalletUseCase
+    private val syncDeletedWalletUseCase: SyncDeletedWalletUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
@@ -149,9 +152,9 @@ internal class WalletsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private var isRetrievingData = AtomicBoolean(false)
+    private var isRetrievingAlert = AtomicBoolean(false)
 
     override val initialState = WalletsState()
-    private var badgeJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -354,7 +357,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun mapGroupWalletUi() {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher) {
             val results = arrayListOf<GroupWalletUi>()
             val wallets = getState().wallets
             val groups = getState().allGroups
@@ -405,15 +408,20 @@ internal class WalletsViewModel @Inject constructor(
                         ?: 0
                 walletNullOrder + groupTimeCreatedOrder
             }
-            updateState { copy(groupWalletUis = sortedList) }
+            withContext(Dispatchers.Main) {
+                updateState { copy(groupWalletUis = sortedList) }
+            }
         }
     }
 
-    private fun updateBadge() {
-        if (badgeJob?.isActive == true) return
-        badgeJob = viewModelScope.launch {
+    fun updateBadge() {
+        if (isRetrievingAlert.get()) return
+        viewModelScope.launch {
             val groupIds = getState().allGroups.map { it.groupId }
+            if (groupIds.isEmpty()) return@launch
+            isRetrievingAlert.set(true)
             val result = getPendingWalletNotifyCountUseCase(groupIds)
+            isRetrievingAlert.set(false)
             if (result.isSuccess) {
                 val alerts = result.getOrDefault(hashMapOf())
                 updateState { copy(alerts = alerts) }

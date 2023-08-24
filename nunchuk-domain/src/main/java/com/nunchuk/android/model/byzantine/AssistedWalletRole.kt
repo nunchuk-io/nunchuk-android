@@ -13,6 +13,9 @@ val AssistedWalletRole.isMasterOrAdmin: Boolean
 val AssistedWalletRole.isKeyHolder: Boolean
     get() = this == AssistedWalletRole.MASTER || this == AssistedWalletRole.KEYHOLDER || this == AssistedWalletRole.ADMIN || this == AssistedWalletRole.KEYHOLDER_LIMITED
 
+val AssistedWalletRole.isKeyHolderWithoutKeyHolderLimited: Boolean
+    get() = this == AssistedWalletRole.MASTER || this == AssistedWalletRole.KEYHOLDER || this == AssistedWalletRole.ADMIN
+
 val String?.toRole : AssistedWalletRole
     get() = when(this) {
         AssistedWalletRole.MASTER.name -> AssistedWalletRole.MASTER

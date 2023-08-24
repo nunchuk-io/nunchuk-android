@@ -580,5 +580,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     override fun onResume() {
         super.onResume()
         walletsViewModel.retrieveData()
+        walletsViewModel.updateBadge()
     }
 }
