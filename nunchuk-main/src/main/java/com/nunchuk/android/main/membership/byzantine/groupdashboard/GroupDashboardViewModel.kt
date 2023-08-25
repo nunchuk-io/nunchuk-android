@@ -77,9 +77,11 @@ class GroupDashboardViewModel @Inject constructor(
     private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-    ) : ViewModel() {
+) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
+
+    private val walletId = savedStateHandle.getStateFlow(EXTRA_WALLET_ID, args.walletId.orEmpty())
 
     private val _event = MutableSharedFlow<GroupDashboardEvent>()
     val event = _event.asSharedFlow()
@@ -93,16 +95,17 @@ class GroupDashboardViewModel @Inject constructor(
     private var loadAlertJob: Job? = null
 
     init {
+        viewModelScope.launch {
+            walletId.collect { walletId ->
+                getWallet(walletId)
+                getKeysStatus()
+            }
+        }
         loadActiveSession()
         viewModelScope.launch {
             timelineListenerAdapter.data.collect(::handleTimelineEvents)
         }
         getGroup()
-        val walletId = args.walletId
-        if (!walletId.isNullOrEmpty()) {
-            getWallet(walletId)
-            getKeysStatus(walletId)
-        }
         getAlerts()
         getGroupChat()
         viewModelScope.launch {
@@ -110,24 +113,28 @@ class GroupDashboardViewModel @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { wallets ->
-                    _state.update { it.copy(isSetupInheritance = wallets.find { it.localId == args.walletId }?.isSetupInheritance.orFalse()) }
+                    wallets.find { wallet -> wallet.groupId == args.groupId }?.let { wallet ->
+                        _state.update { state -> state.copy(isSetupInheritance = wallet.isSetupInheritance) }
+                        savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
+                    }
+                    _state.update { it.copy(isSetupInheritance = wallets.find { wallet -> wallet.groupId == args.groupId }?.isSetupInheritance.orFalse()) }
                 }
         }
     }
 
-    fun getKeysStatus(walletId: String) {
-        if (walletId.isEmpty()) return
+    fun getKeysStatus() {
+        if (walletId.value.isEmpty()) return
         viewModelScope.launch {
             getGroupWalletKeyHealthStatusUseCase(
                 GetGroupWalletKeyHealthStatusUseCase.Params(
                     args.groupId,
-                    walletId
+                    walletId.value
                 )
             ).onSuccess { status ->
-                    _state.update { state ->
-                        state.copy(keyStatus = status.associateBy { it.xfp })
-                    }
+                _state.update { state ->
+                    state.copy(keyStatus = status.associateBy { it.xfp })
                 }
+            }
         }
     }
 
@@ -303,7 +310,7 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun confirmPassword(
-        password: String
+        password: String,
     ) = viewModelScope.launch {
         if (password.isBlank()) {
             return@launch
@@ -318,7 +325,12 @@ class GroupDashboardViewModel @Inject constructor(
         _event.emit(GroupDashboardEvent.Loading(false))
         if (result.isSuccess) {
             val token = result.getOrNull().orEmpty()
-            getInheritanceUseCase(GetInheritanceUseCase.Param(args.walletId.orEmpty(), args.groupId)).onSuccess {
+            getInheritanceUseCase(
+                GetInheritanceUseCase.Param(
+                    walletId.value,
+                    args.groupId
+                )
+            ).onSuccess {
                 _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it, token))
             }.onFailure {
                 _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
@@ -334,7 +346,7 @@ class GroupDashboardViewModel @Inject constructor(
             requestHealthCheckUseCase(
                 RequestHealthCheckUseCase.Params(
                     args.groupId,
-                    args.walletId.orEmpty(),
+                    walletId.value,
                     signerModel.fingerPrint,
                 )
             ).onSuccess {
@@ -350,7 +362,7 @@ class GroupDashboardViewModel @Inject constructor(
             keyHealthCheckUseCase(
                 KeyHealthCheckUseCase.Params(
                     args.groupId,
-                    args.walletId.orEmpty(),
+                    walletId.value,
                     signerModel.fingerPrint,
                 )
             ).onSuccess {
@@ -360,5 +372,9 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun getSignerName(xfp: String)  = state.value.signers.find { it.fingerPrint == xfp }?.name
+    fun getSignerName(xfp: String) = state.value.signers.find { it.fingerPrint == xfp }?.name
+
+    companion object {
+        private const val EXTRA_WALLET_ID = "wallet_id"
+    }
 }

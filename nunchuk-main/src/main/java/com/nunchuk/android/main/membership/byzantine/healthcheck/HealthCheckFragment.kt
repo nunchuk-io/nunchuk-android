@@ -41,7 +41,7 @@ class HealthCheckFragment : MembershipFragment() {
     private val signLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                viewModel.getKeysStatus(args.walletId)
+                viewModel.getKeysStatus()
                 val type =
                     it.data?.serializable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
                 if (type == DummyTransactionType.HEALTH_CHECK_PENDING || type == DummyTransactionType.HEALTH_CHECK_REQUEST) {
