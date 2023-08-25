@@ -86,6 +86,7 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingTimeUnit
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.InputSpendingPolicy
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.wallet.components.cosigning.CosigningGroupPolicyFragmentArgs
@@ -236,12 +237,12 @@ private fun ConfigSpendingLimitContent(
     isEditMode: Boolean = false,
 ) {
     var isApplyToAllMember by rememberSaveable {
-        mutableStateOf(true)
+        mutableStateOf(false)
     }
     val isEnable = if (isApplyToAllMember)
         (state.policies[null]?.spendingPolicy?.limit?.toDoubleOrNull() ?: 0.0) > 0.0
     else
-        state.policies.filter { it.key != null }.values.all {
+        state.policies.filter { it.key != null && it.value.member?.role != AssistedWalletRole.KEYHOLDER_LIMITED.name }.values.all {
             (it.spendingPolicy.limit.toDoubleOrNull() ?: 0.0) > 0.0
         }
     NunchukTheme {

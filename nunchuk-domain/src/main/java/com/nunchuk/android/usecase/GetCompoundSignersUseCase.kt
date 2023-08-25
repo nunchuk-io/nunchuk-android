@@ -38,7 +38,7 @@ internal class GetCompoundSignersUseCaseImpl @Inject constructor(
 ) : GetCompoundSignersUseCase {
 
     override fun execute() = getMasterSignersUseCase.execute().zip(getRemoteSignersUseCase.execute()) { masters, remotes ->
-        masters to remotes.filter { it.type != SignerType.SERVER }
+        masters.filter { it.isVisible } to remotes.filter { it.type != SignerType.SERVER && it.isVisible }
     }.flowOn(Dispatchers.IO)
 
 }

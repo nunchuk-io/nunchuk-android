@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +36,7 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NumberCommaTransformation
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingTimeUnit
@@ -42,6 +44,7 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedMemberSpendingPolicy
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.InputSpendingPolicy
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.byzantine.toTitle
 
 @Composable
@@ -56,6 +59,7 @@ fun SpendingLimitAccountView(
     val name = member.member?.name ?: return
     val email = member.member?.email ?: return
     val role = member.member?.role ?: return
+    val isNotKeyHolderLimited = role.toRole != AssistedWalletRole.KEYHOLDER_LIMITED
     Column(modifier = modifier) {
         if (index == 0) {
             Text(text = stringResource(R.string.nc_master))
@@ -96,6 +100,14 @@ fun SpendingLimitAccountView(
                         style = NunchukTheme.typography.bodySmall
                     )
                 }
+
+                if (!member.isJoinGroup) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = stringResource(R.string.nc_contact_pending),
+                        style = NunchukTheme.typography.caption,
+                    )
+                }
             }
             Text(
                 modifier = Modifier.padding(top = 16.dp),
@@ -120,13 +132,16 @@ fun SpendingLimitAccountView(
                             CurrencyFormatter.format(it, 2).take(15)
                         )
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    enabled = isNotKeyHolderLimited,
+                    readOnly = !isNotKeyHolderLimited,
+                    disableBackgroundColor = MaterialTheme.colors.whisper,
                 )
                 Row(
                     modifier = Modifier
                         .fillMaxHeight()
                         .background(
-                            color = MaterialTheme.colors.background,
+                            color = if (isNotKeyHolderLimited) MaterialTheme.colors.background else MaterialTheme.colors.whisper,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .border(
@@ -134,7 +149,11 @@ fun SpendingLimitAccountView(
                             color = Color(0xFFDEDEDE),
                             shape = RoundedCornerShape(8.dp),
                         )
-                        .clickable { onShowCurrencyUnitOption(member.member?.email) }
+                        .clickable(enabled = isNotKeyHolderLimited) {
+                            onShowCurrencyUnitOption(
+                                member.member?.email
+                            )
+                        }
                         .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -152,10 +171,10 @@ fun SpendingLimitAccountView(
                 modifier = Modifier
                     .padding(top = 16.dp)
                     .height(52.dp)
-                    .clickable { onShowTimeUnitOption(member.member?.email) }
+                    .clickable(enabled = isNotKeyHolderLimited) { onShowTimeUnitOption(member.member?.email) }
                     .fillMaxWidth()
                     .background(
-                        color = MaterialTheme.colors.background,
+                        color = if (isNotKeyHolderLimited) MaterialTheme.colors.background else MaterialTheme.colors.whisper,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .border(

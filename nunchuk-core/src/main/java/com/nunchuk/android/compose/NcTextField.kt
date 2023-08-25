@@ -29,7 +29,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -60,6 +59,7 @@ fun NcTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions(),
     enabled: Boolean = true,
+    readOnly: Boolean = false,
     disableBackgroundColor: Color = MaterialTheme.colors.surface,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
@@ -114,6 +114,7 @@ fun NcTextField(
             keyboardActions = keyboardActions,
             maxLines = maxLines,
             enabled = enabled,
+            readOnly = readOnly,
             minLines = minLines,
             onValueChange = onValueChange,
             visualTransformation = visualTransformation,
@@ -183,6 +184,7 @@ fun NcTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions(),
     enabled: Boolean = true,
+    readOnly: Boolean = false,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
@@ -218,6 +220,7 @@ fun NcTextField(
                 keyboardActions = keyboardActions,
                 maxLines = maxLines,
                 enabled = enabled,
+                readOnly = readOnly,
                 minLines = minLines,
                 onValueChange = onValueChange,
                 visualTransformation = visualTransformation,

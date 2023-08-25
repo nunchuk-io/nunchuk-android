@@ -110,6 +110,7 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceType
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -133,7 +134,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val viewModel: GroupDashboardViewModel by activityViewModels()
 
-    private val launcher =
+    private val createWalletLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
                 requireActivity().finish()
@@ -291,9 +292,9 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
         if (alert.type == AlertType.GROUP_WALLET_PENDING) {
-            if (role == AssistedWalletRole.MASTER || role == AssistedWalletRole.ADMIN) {
+            if (role.isMasterOrAdmin) {
                 navigator.openMembershipActivity(
-                    launcher = launcher,
+                    launcher = createWalletLauncher,
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
                     groupId = args.groupId,
@@ -301,7 +302,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             } else {
                 navigator.openMembershipActivity(
-                    launcher = launcher,
+                    launcher = createWalletLauncher,
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.ADD_KEY_ONLY,
                     groupId = args.groupId

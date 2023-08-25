@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
@@ -86,6 +87,7 @@ class HealthCheckFragment : MembershipFragment() {
                 }
 
                 is GroupDashboardEvent.GetHealthCheckPayload -> {
+                    hideLoading()
                     navigator.openWalletAuthentication(
                         activityContext = requireActivity(),
                         walletId = args.walletId,
@@ -97,9 +99,7 @@ class HealthCheckFragment : MembershipFragment() {
                     )
                 }
 
-                is GroupDashboardEvent.Loading -> {
-                    showOrHideLoading(it.loading)
-                }
+                is GroupDashboardEvent.Loading -> showOrHideLoading(it.loading)
 
                 else -> Unit
             }

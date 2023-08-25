@@ -31,6 +31,7 @@ import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.isServerMasterSigner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -133,12 +134,50 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
-        // TODO Hai should remove local key if sync failed
+        handleUpdateServerSigners(draftWallet.signers)
         return DraftWallet(
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() }
         )
+    }
+
+    private fun handleUpdateServerSigners(signers: List<SignerServerDto>) {
+        signers.forEach { signer ->
+            val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
+            val tags = signer.tags.orEmpty().mapNotNull { it.toSignerTag() }
+            if (type != SignerType.SERVER) {
+                if (type.isServerMasterSigner) {
+                    val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
+                    val isVisible = masterSigner.isVisible || signer.isVisible
+                    val isChange = masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
+                    if (isChange) {
+                        nunchukNativeSdk.updateMasterSigner(
+                            masterSigner.copy(
+                                name = signer.name.orEmpty(),
+                                tags = tags,
+                                isVisible = isVisible
+                            )
+                        )
+                    }
+                } else {
+                    val remoteSigner = nunchukNativeSdk.getRemoteSigner(
+                        signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
+                    )
+                    val isVisible = remoteSigner.isVisible || signer.isVisible
+                    val isChange = remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
+                    if (isChange) {
+                        nunchukNativeSdk.updateRemoteSigner(
+                            remoteSigner.copy(
+                                name = signer.name.orEmpty(),
+                                tags = tags,
+                                isVisible = isVisible
+                            )
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun saveServerSignerIfNeed(signer: SignerServerDto) {

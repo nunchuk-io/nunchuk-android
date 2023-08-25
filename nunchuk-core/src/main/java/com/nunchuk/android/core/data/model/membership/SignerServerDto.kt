@@ -38,6 +38,7 @@ internal data class SignerServerDto(
     @SerializedName("tags") val tags: List<String>? = null,
     @SerializedName("tapsigner_key") val tapsignerKey: KeyResponse? = null,
     @SerializedName("key_index") val index: Int = 0,
+    @SerializedName("is_visible") val isVisible: Boolean = true,
 )
 
 internal fun SignerServerDto.toModel() : SignerServer{

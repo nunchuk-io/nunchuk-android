@@ -478,12 +478,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 assistedKeys.add(signer.xfp.orEmpty())
                 if (type.isServerMasterSigner) {
                     val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
-                    val isChange = masterSigner.name != signer.name || masterSigner.tags != tags
+                    val isVisible = masterSigner.isVisible || signer.isVisible
+                    val isChange = masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
                     if (isChange) {
                         isNeedReload = true
                         nunchukNativeSdk.updateMasterSigner(
                             masterSigner.copy(
-                                name = signer.name.orEmpty(), tags = tags
+                                name = signer.name.orEmpty(),
+                                tags = tags,
+                                isVisible = isVisible
                             )
                         )
                     }
@@ -491,12 +494,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     val remoteSigner = nunchukNativeSdk.getRemoteSigner(
                         signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
                     )
-                    val isChange = remoteSigner.name != signer.name || remoteSigner.tags != tags
+                    val isVisible = remoteSigner.isVisible || signer.isVisible
+                    val isChange = remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
                     if (isChange) {
                         isNeedReload = true
                         nunchukNativeSdk.updateRemoteSigner(
                             remoteSigner.copy(
-                                name = signer.name.orEmpty(), tags = tags
+                                name = signer.name.orEmpty(),
+                                tags = tags,
+                                isVisible = isVisible
                             )
                         )
                     }
