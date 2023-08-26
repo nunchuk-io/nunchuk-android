@@ -74,14 +74,14 @@ class GroupDashboardViewModel @Inject constructor(
     private val cardIdManager: CardIdManager,
     private val requestHealthCheckUseCase: RequestHealthCheckUseCase,
     private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
-    private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private val walletId = savedStateHandle.getStateFlow(EXTRA_WALLET_ID, args.walletId.orEmpty())
+    private val walletId = savedStateHandle.getStateFlow<String?>(EXTRA_WALLET_ID, args.walletId.orEmpty())
 
     private val _event = MutableSharedFlow<GroupDashboardEvent>()
     val event = _event.asSharedFlow()
@@ -97,8 +97,10 @@ class GroupDashboardViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             walletId.collect { walletId ->
-                getWallet(walletId)
-                getKeysStatus()
+                if (!walletId.isNullOrEmpty()) {
+                    getWallet(walletId)
+                    getKeysStatus()
+                }
             }
         }
         loadActiveSession()
@@ -109,7 +111,7 @@ class GroupDashboardViewModel @Inject constructor(
         getAlerts()
         getGroupChat()
         viewModelScope.launch {
-            getAssistedWalletIdsFlowUseCase(Unit)
+            getAssistedWalletsFlowUseCase(Unit)
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { wallets ->
@@ -123,12 +125,12 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun getKeysStatus() {
-        if (walletId.value.isEmpty()) return
+        if (walletId.value.isNullOrEmpty()) return
         viewModelScope.launch {
             getGroupWalletKeyHealthStatusUseCase(
                 GetGroupWalletKeyHealthStatusUseCase.Params(
                     args.groupId,
-                    walletId.value
+                    walletId.value.orEmpty()
                 )
             ).onSuccess { status ->
                 _state.update { state ->
@@ -327,7 +329,7 @@ class GroupDashboardViewModel @Inject constructor(
             val token = result.getOrNull().orEmpty()
             getInheritanceUseCase(
                 GetInheritanceUseCase.Param(
-                    walletId.value,
+                    walletId.value.orEmpty(),
                     args.groupId
                 )
             ).onSuccess {
@@ -346,7 +348,7 @@ class GroupDashboardViewModel @Inject constructor(
             requestHealthCheckUseCase(
                 RequestHealthCheckUseCase.Params(
                     args.groupId,
-                    walletId.value,
+                    walletId.value.orEmpty(),
                     signerModel.fingerPrint,
                 )
             ).onSuccess {
@@ -362,7 +364,7 @@ class GroupDashboardViewModel @Inject constructor(
             keyHealthCheckUseCase(
                 KeyHealthCheckUseCase.Params(
                     args.groupId,
-                    walletId.value,
+                    walletId.value.orEmpty(),
                     signerModel.fingerPrint,
                 )
             ).onSuccess {
@@ -373,6 +375,8 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun getSignerName(xfp: String) = state.value.signers.find { it.fingerPrint == xfp }?.name
+
+    fun getWalletId() = walletId.value.orEmpty()
 
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"

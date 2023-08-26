@@ -87,6 +87,10 @@ fun SignerModel.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
     return toReadableDrawableResId(type, tags, isPrimaryKey)
 }
 
+fun SingleSigner.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
+    return toReadableDrawableResId(type, tags, isPrimaryKey)
+}
+
 fun MasterSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) = ContextCompat.getDrawable(
     context,
     toReadableDrawableResId(type, tags, isPrimaryKey)

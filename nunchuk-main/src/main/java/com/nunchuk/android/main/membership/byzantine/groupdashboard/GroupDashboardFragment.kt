@@ -130,12 +130,12 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         showMoreOptions()
                     },
                     onOpenHealthCheckScreen = {
-                        val walletId = args.walletId.orEmpty()
+                        val walletId = viewModel.getWalletId()
                         if (walletId.isNotEmpty()) {
                             findNavController().navigate(
                                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToHealthCheckFragment(
                                     groupId = args.groupId,
-                                    walletId = args.walletId.orEmpty()
+                                    walletId = viewModel.getWalletId()
                                 )
                             )
                         }
@@ -161,7 +161,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             if (dummyTransactionId.isNotEmpty()) {
                 navigator.openWalletAuthentication(
                     activityContext = requireActivity(),
-                    walletId = args.walletId.orEmpty(),
+                    walletId = viewModel.getWalletId(),
                     requiredSignatures = requiredSignatures,
                     type = VerificationType.SIGN_DUMMY_TX,
                     groupId = args.groupId,
@@ -190,7 +190,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 GroupDashboardEvent.RequestHealthCheckSuccess -> {}
                 is GroupDashboardEvent.GetInheritanceSuccess -> {
                     navigator.openInheritancePlanningScreen(
-                        walletId = args.walletId.orEmpty(),
+                        walletId = viewModel.getWalletId(),
                         requireContext(),
                         verifyToken = event.token,
                         inheritance = event.inheritance,
@@ -241,14 +241,14 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             if (dummyTransactionId.isNotEmpty()) {
                 CosigningPolicyActivity.start(
                     activity = requireActivity(),
-                    walletId = args.walletId.orEmpty(),
+                    walletId = viewModel.getWalletId(),
                     groupId = args.groupId,
                     dummyTransactionId = alert.payload.dummyTransactionId,
                 )
             }
         } else if (alert.type.isInheritanceType()) {
             navigator.openInheritancePlanningScreen(
-                walletId = args.walletId.orEmpty(),
+                walletId = viewModel.getWalletId(),
                 activityContext = requireActivity(),
                 flowInfo = InheritancePlanFlow.SIGN_DUMMY_TX,
                 isOpenFromWizard = false,
@@ -259,7 +259,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
                     args.groupId,
-                    args.walletId.orEmpty(),
+                    viewModel.getWalletId(),
                     alert
                 )
             )
@@ -282,7 +282,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     enterPasswordDialog()
                 } else {
                     navigator.openInheritancePlanningScreen(
-                        walletId = args.walletId.orEmpty(),
+                        walletId = viewModel.getWalletId(),
                         activityContext = requireContext(),
                         flowInfo = InheritancePlanFlow.SETUP,
                         groupId = args.groupId

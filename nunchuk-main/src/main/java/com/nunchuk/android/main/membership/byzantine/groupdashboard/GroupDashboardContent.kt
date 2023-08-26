@@ -101,7 +101,7 @@ fun GroupDashboardContent(
         }
     }
 
-    val signers by remember(uiState.myRole) {
+    val signers by remember(uiState.myRole, uiState.signers) {
         derivedStateOf {
             if (uiState.myRole.isKeyHolderLimited) uiState.signers.filter { it.isVisible } else uiState.signers
         }

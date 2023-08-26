@@ -144,4 +144,6 @@
     <string name="add_key_to_group_desc">Once enough keys have been added, the master or admin account can finish the setup.</string>
     <string name="nc_key_limit_desc">Currently, TAPSIGNER, Ledger and Trezor are compatible with the Keyholder (limited) role.</string>
     <string name="nc_dashboard">Dashboard</string>
+    <string name="nc_claim_your_key">Claim your key</string>
+    <string name="nc_claim_your_key_desc">Please claim your key by performing a key health check. Select your key and continue.</string>
 </resources>
