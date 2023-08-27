@@ -445,6 +445,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.introContainer.isVisible = state.plan != null && state.plan != MembershipPlan.NONE
         binding.containerNonSubscriber.isVisible =
             state.plan != null && state.plan == MembershipPlan.NONE
+                    && state.isHideUpsellBanner.not() && state.banner != null
+                    && state.allGroups.isEmpty()
         if (state.plan != null) {
             val walletName = state.assistedWallets.firstOrNull()
                 ?.let { wallet -> state.wallets.find { wallet.localId == it.wallet.id }?.wallet?.name.orEmpty() }
@@ -453,13 +455,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     state.remainingTime,
                     walletName
                 )
-                else -> showNonSubscriberIntro(state.banner, state.isHideUpsellBanner)
+                else -> showNonSubscriberIntro(state.banner)
             }
         }
     }
 
-    private fun showNonSubscriberIntro(banner: Banner?, isHideUpsellBanner: Boolean) {
-        binding.containerNonSubscriber.isVisible = banner != null && isHideUpsellBanner.not()
+    private fun showNonSubscriberIntro(banner: Banner?) {
         if (banner != null) {
             binding.containerNonSubscriber.tag = banner.id
             Glide.with(binding.ivNonSubscriber)
