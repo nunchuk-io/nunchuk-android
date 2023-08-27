@@ -158,7 +158,6 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            delay(1000)
             getWalletSecuritySettingUseCase(Unit)
                 .collect {
                     updateState {
@@ -388,8 +387,7 @@ internal class WalletsViewModel @Inject constructor(
     fun clearEvent() = event(None)
 
     fun isWalletPinEnable() =
-        getState().walletSecuritySetting.protectWalletPin && getState().currentWalletPin.isBlank()
-            .not()
+        getState().walletSecuritySetting.protectWalletPin
 
     fun isWalletPasswordEnable() =
         accountManager.loginType() == SignInMode.EMAIL.value && getState().walletSecuritySetting.protectWalletPassword
