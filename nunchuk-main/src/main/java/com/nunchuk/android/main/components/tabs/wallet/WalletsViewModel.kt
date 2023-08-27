@@ -191,7 +191,6 @@ internal class WalletsViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            delay(1000)
             getWalletPinUseCase(Unit).collect {
                 updateState { copy(currentWalletPin = it.getOrDefault("")) }
             }
