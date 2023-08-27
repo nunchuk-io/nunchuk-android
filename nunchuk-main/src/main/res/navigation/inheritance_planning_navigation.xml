@@ -111,11 +111,24 @@
 
         <action
             android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceCreateSuccessFragment"
-            app:destination="@id/inheritanceCreateSuccessFragment"
+            app:destination="@id/inheritance_planning_success_navigation"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+
+            <argument
+                android:name="magical_phrase"
+                app:argType="string" />
+            <argument
+                android:name="plan_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
+            <argument
+                android:name="wallet_id"
+                app:argType="string" />
+
+        </action>
 
         <action
             android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceNotifyPrefFragment"
@@ -127,11 +140,22 @@
 
         <action
             android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceShareSecretFragment"
-            app:destination="@id/inheritanceShareSecretFragment"
+            app:destination="@id/inheritance_planning_secret_navigation"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="magical_phrase"
+                app:argType="string" />
+            <argument
+                android:name="plan_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
+            <argument
+                android:name="wallet_id"
+                app:argType="string" />
+        </action>
 
         <action
             android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceBufferPeriodFragment"
@@ -274,70 +298,6 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
-    <fragment
-        android:id="@+id/inheritanceCreateSuccessFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.InheritanceCreateSuccessFragment"
-        android:label="InheritanceCreateSuccessFragment">
-        <action
-            android:id="@+id/action_inheritanceCreateSuccessFragment_to_inheritanceShareSecretFragment"
-            app:destination="@id/inheritanceShareSecretFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <argument
-            android:name="magical_phrase"
-            app:argType="string" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/inheritanceShareSecretFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretFragment"
-        android:label="InheritanceShareSecretFragment">
-        <action
-            android:id="@+id/action_inheritanceShareSecretFragment_to_inheritanceShareSecretInfoFragment"
-            app:destination="@id/inheritanceShareSecretInfoFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <argument
-            android:name="magical_phrase"
-            app:argType="string" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/inheritanceShareSecretInfoFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.InheritanceShareSecretInfoFragment"
-        android:label="InheritanceShareSecretInfoFragment">
-        <argument
-            android:name="magical_phrase"
-            app:argType="string" />
-        <argument
-            android:name="type"
-            app:argType="integer" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
-        <argument
-            android:name="wallet_id"
-            app:argType="string" />
-    </fragment>
 
     <fragment
         android:id="@+id/inheritanceReviewPlanGroupGroupFragment"
@@ -345,7 +305,9 @@
         android:label="InheritanceReviewPlanGroupGroupFragment">
     </fragment>
 
-
     <include app:graph="@navigation/select_wallet_navigation" />
+
+    <include app:graph="@navigation/inheritance_planning_success_navigation" />
+    <include app:graph="@navigation/inheritance_planning_secret_navigation" />
 
 </navigation>

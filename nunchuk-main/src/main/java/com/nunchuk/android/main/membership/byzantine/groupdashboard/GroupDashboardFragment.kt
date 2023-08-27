@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragmentDirections
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
@@ -42,6 +43,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -189,14 +191,24 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 is GroupDashboardEvent.GetHealthCheckPayload -> {}
                 GroupDashboardEvent.RequestHealthCheckSuccess -> {}
                 is GroupDashboardEvent.GetInheritanceSuccess -> {
-                    navigator.openInheritancePlanningScreen(
-                        walletId = viewModel.getWalletId(),
-                        requireContext(),
-                        verifyToken = event.token,
-                        inheritance = event.inheritance,
-                        flowInfo = InheritancePlanFlow.VIEW,
-                        groupId = args.groupId
-                    )
+                    if (event.isOpenReviewInheritance) {
+                        navigator.openInheritancePlanningScreen(
+                            walletId = viewModel.getWalletId(),
+                            requireContext(),
+                            verifyToken = event.token,
+                            inheritance = event.inheritance,
+                            flowInfo = InheritancePlanFlow.VIEW,
+                            groupId = args.groupId
+                        )
+                    } else {
+                        findNavController().navigate(
+                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToInheritanceCreateSuccessFragment(
+                                magicalPhrase = event.inheritance.magic,
+                                planFlow = InheritancePlanFlow.VIEW,
+                                walletId = args.walletId.orEmpty(),
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -263,6 +275,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     alert
                 )
             )
+        } else if (alert.type == AlertType.UPDATE_INHERITANCE_PLAN_SUCCESS) {
+           viewModel.getInheritance(args.walletId.orEmpty(), args.groupId)
         }
     }
 
@@ -311,11 +325,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun showMoreOptions() {
         val options = mutableListOf<SheetOption>()
         if (viewModel.isPendingCreateWallet().not()) {
-            if (viewModel.state.value.myRole in listOf(
-                    AssistedWalletRole.MASTER,
-                    AssistedWalletRole.ADMIN
-                )
-            ) {
+            if (viewModel.state.value.myRole.isMasterOrAdmin) {
                 options.add(
                     SheetOption(
                         type = SheetOptionType.SET_UP_INHERITANCE,

@@ -16,6 +16,8 @@ import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.main.components.tabs.services.ServicesTabEvent
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanEvent
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.ByzantineGroup
@@ -36,6 +38,7 @@ import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
+import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -76,7 +79,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -327,13 +330,8 @@ class GroupDashboardViewModel @Inject constructor(
         _event.emit(GroupDashboardEvent.Loading(false))
         if (result.isSuccess) {
             val token = result.getOrNull().orEmpty()
-            getInheritanceUseCase(
-                GetInheritanceUseCase.Param(
-                    walletId.value.orEmpty(),
-                    args.groupId
-                )
-            ).onSuccess {
-                _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it, token))
+            getInheritanceUseCase(GetInheritanceUseCase.Param(walletId.value.orEmpty(), args.groupId)).onSuccess {
+                _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it, token, true))
             }.onFailure {
                 _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
             }
@@ -371,6 +369,14 @@ class GroupDashboardViewModel @Inject constructor(
                 _event.emit(GroupDashboardEvent.GetHealthCheckPayload(it))
             }
             _event.emit(GroupDashboardEvent.Loading(false))
+        }
+    }
+
+    fun getInheritance(walletId: String, groupId: String) = viewModelScope.launch {
+        getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId)).onSuccess {
+            _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it))
+        }.onFailure {
+            _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
         }
     }
 

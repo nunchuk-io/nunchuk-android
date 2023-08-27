@@ -36,6 +36,7 @@ sealed class InheritanceReviewPlanEvent {
     data class ProcessFailure(val message: String) : InheritanceReviewPlanEvent()
     object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanEvent()
     object CancelInheritanceSuccess : InheritanceReviewPlanEvent()
+    object MarkSetupInheritance : InheritanceReviewPlanEvent()
 }
 
 data class InheritanceReviewPlanState(

@@ -80,7 +80,24 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
-
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_inheritanceCreateSuccessFragment"
+            app:destination="@id/inheritance_planning_success_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="magical_phrase"
+                app:argType="string" />
+            <argument
+                android:name="plan_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
+            <argument
+                android:name="wallet_id"
+                app:argType="string" />
+        </action>
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />
@@ -161,5 +178,6 @@
             app:argType="string" />
     </fragment>
 
+    <include app:graph="@navigation/inheritance_planning_success_navigation" />
 
 </navigation>

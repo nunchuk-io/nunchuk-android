@@ -34,6 +34,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +52,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getGroupUseCase: GetGroupUseCase,
-    private val byzantineGroupUtils: ByzantineGroupUtils
+    private val byzantineGroupUtils: ByzantineGroupUtils,
+    private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase
 ) : ViewModel() {
 
     private lateinit var param: InheritancePlanningParam.SetupOrReview
@@ -304,6 +306,11 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
         }
+    }
+
+    fun markSetupInheritance() = viewModelScope.launch {
+        markSetupInheritanceUseCase(MarkSetupInheritanceUseCase.Param(walletId = param.walletId, isSetupInheritance = isCreateOrUpdateFlow()))
+        _event.emit(InheritanceReviewPlanEvent.MarkSetupInheritance)
     }
 
 }

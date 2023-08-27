@@ -22,7 +22,8 @@ sealed class GroupDashboardEvent {
     object RequestHealthCheckSuccess : GroupDashboardEvent()
     data class GetInheritanceSuccess(
         val inheritance: Inheritance,
-        val token: String,
+        val token: String = "",
+        val isOpenReviewInheritance: Boolean = false
     ) : GroupDashboardEvent()
 }
 

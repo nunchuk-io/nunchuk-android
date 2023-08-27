@@ -123,8 +123,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
                 if (signatureMap.isNotEmpty() || securityQuestionToken.isNotEmpty()) {
                     viewModel.handleFlow(signatureMap, securityQuestionToken)
-                } else {
-                    handleFlow()
+                } else if (inheritanceViewModel.setupOrReviewParam.groupId.isNotEmpty()) {
+                    viewModel.markSetupInheritance()
                 }
             }
         }
@@ -242,7 +242,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                 is InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess -> handleFlow()
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
-                is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> handleFlow()
+                is InheritanceReviewPlanEvent.CancelInheritanceSuccess, InheritanceReviewPlanEvent.MarkSetupInheritance  -> handleFlow()
             }
         }
     }

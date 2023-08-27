@@ -37,6 +37,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -56,7 +57,6 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.simpleGlobalDateFormat
-import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
 import javax.inject.Inject
@@ -80,15 +80,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
                 if (signatureMap.isEmpty() && securityQuestionToken.isEmpty()) {
-                    if (viewModel.getDummyTransactionType() == DummyTransactionType.CREATE_INHERITANCE_PLAN) {
-                        NcToastManager.scheduleShowMessage(
-                           message = getString(R.string.nc_inheritance_has_been_created)
-                        )
-                    } else {
-                        NcToastManager.scheduleShowMessage(
-                            message = getString(R.string.nc_inheritance_has_been_updated)
-                        )
-                    }
+                    viewModel.markSetupInheritance()
                 }
             }
         }
@@ -130,6 +122,18 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                 is InheritanceReviewPlanGroupEvent.ProcessFailure -> showError(message = event.message)
                 InheritanceReviewPlanGroupEvent.CancelInheritanceSuccess -> {}
                 InheritanceReviewPlanGroupEvent.CreateOrUpdateInheritanceSuccess -> {}
+                InheritanceReviewPlanGroupEvent.MarkSetupInheritance -> {
+                    if (viewModel.getDummyTransactionType() == DummyTransactionType.CREATE_INHERITANCE_PLAN) {
+                        NcToastManager.scheduleShowMessage(
+                            message = getString(R.string.nc_inheritance_has_been_created)
+                        )
+                    } else {
+                        NcToastManager.scheduleShowMessage(
+                            message = getString(R.string.nc_inheritance_has_been_updated)
+                        )
+                    }
+                    findNavController().popBackStack()
+                }
             }
         }
     }
@@ -171,15 +175,38 @@ fun InheritanceReviewPlanGroupScreenContent(
 
     val title =
         when (uiState.type) {
-        DummyTransactionType.CREATE_INHERITANCE_PLAN -> stringResource(id = R.string.nc_inheritance_plan_group_create, uiState.walletName)
-        DummyTransactionType.UPDATE_INHERITANCE_PLAN, DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(id = R.string.nc_inheritance_plan_group_change, uiState.walletName)
-        else -> ""
-    }
+            DummyTransactionType.CREATE_INHERITANCE_PLAN -> stringResource(
+                id = R.string.nc_inheritance_plan_group_create,
+                uiState.walletName
+            )
+
+            DummyTransactionType.UPDATE_INHERITANCE_PLAN, DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(
+                id = R.string.nc_inheritance_plan_group_change,
+                uiState.walletName
+            )
+
+            else -> ""
+        }
 
     val desc = when (uiState.type) {
-        DummyTransactionType.CREATE_INHERITANCE_PLAN -> stringResource(id = R.string.nc_create_inheritance_plan_group_change_by, requester?.name ?: "Someone", uiState.walletName)
-        DummyTransactionType.UPDATE_INHERITANCE_PLAN -> stringResource(id = R.string.nc_update_inheritance_plan_group_change_by, requester?.name ?: "Someone", uiState.walletName)
-        DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(id = R.string.nc_cancel_inheritance_plan_group_change_by, requester?.name ?: "Someone", uiState.walletName)
+        DummyTransactionType.CREATE_INHERITANCE_PLAN -> stringResource(
+            id = R.string.nc_create_inheritance_plan_group_change_by,
+            requester?.name ?: "Someone",
+            uiState.walletName
+        )
+
+        DummyTransactionType.UPDATE_INHERITANCE_PLAN -> stringResource(
+            id = R.string.nc_update_inheritance_plan_group_change_by,
+            requester?.name ?: "Someone",
+            uiState.walletName
+        )
+
+        DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(
+            id = R.string.nc_cancel_inheritance_plan_group_change_by,
+            requester?.name ?: "Someone",
+            uiState.walletName
+        )
+
         else -> ""
     }
 
@@ -266,7 +293,8 @@ fun InheritanceReviewPlanGroupScreenContent(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(16.dp),
-                                        text = newData?.note.orEmpty().ifBlank { stringResource(id = R.string.nc_no_note) },
+                                        text = newData?.note.orEmpty()
+                                            .ifBlank { stringResource(id = R.string.nc_no_note) },
                                         style = NunchukTheme.typography.body.copy(
                                             color = onTextColor(
                                                 newData?.note != oldData?.note
@@ -389,7 +417,12 @@ fun InheritanceReviewPlanGroupScreenContent(
                         .fillMaxWidth()
                         .padding(16.dp), onContinueClicked
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue_signature_pending, uiState.pendingSignatures))
+                    Text(
+                        text = stringResource(
+                            id = R.string.nc_text_continue_signature_pending,
+                            uiState.pendingSignatures
+                        )
+                    )
                 }
             }
         }

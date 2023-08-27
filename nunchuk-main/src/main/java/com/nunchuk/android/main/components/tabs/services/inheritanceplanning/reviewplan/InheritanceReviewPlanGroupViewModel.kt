@@ -19,6 +19,7 @@ import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -37,7 +38,8 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
     private val getInheritanceUserDataUseCase: GetInheritanceUserDataUseCase,
     private val cancelInheritanceUserDataUseCase: CancelInheritanceUserDataUseCase,
     private val getGroupUseCase: GetGroupUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase
 ) : ViewModel() {
 
     private lateinit var param: InheritancePlanningParam.SetupOrReview
@@ -82,6 +84,8 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
                             _state.update { it.copy(walletName = wallet.name) }
                         }
                     }
+                }.onFailure {
+                    _event.emit(InheritanceReviewPlanGroupEvent.ProcessFailure(it.message.orEmpty()))
                 }
             }
             _event.emit(InheritanceReviewPlanGroupEvent.Loading(false))
@@ -154,6 +158,11 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
         state.value.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN
 
     fun getDummyTransactionType() = state.value.type
+
+    fun markSetupInheritance() = viewModelScope.launch {
+        markSetupInheritanceUseCase(MarkSetupInheritanceUseCase.Param(walletId = param.walletId, isSetupInheritance = isCreateOrUpdateFlow()))
+        _event.emit(InheritanceReviewPlanGroupEvent.MarkSetupInheritance)
+    }
 }
 
 sealed class InheritanceReviewPlanGroupEvent {
@@ -167,6 +176,7 @@ sealed class InheritanceReviewPlanGroupEvent {
     data class ProcessFailure(val message: String) : InheritanceReviewPlanGroupEvent()
     object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanGroupEvent()
     object CancelInheritanceSuccess : InheritanceReviewPlanGroupEvent()
+    object MarkSetupInheritance : InheritanceReviewPlanGroupEvent()
 }
 
 data class InheritanceReviewPlanGroupState(

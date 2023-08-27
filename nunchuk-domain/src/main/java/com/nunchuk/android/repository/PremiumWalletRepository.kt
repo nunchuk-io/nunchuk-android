@@ -122,6 +122,7 @@ interface PremiumWalletRepository {
 
     suspend fun deleteServerTransaction(groupId: String?, walletId: String, transactionId: String)
     suspend fun getInheritance(walletId: String, groupId: String?): Inheritance
+    suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean)
     suspend fun downloadBackup(
         id: String,
         questions: List<QuestionsAndAnswer>,

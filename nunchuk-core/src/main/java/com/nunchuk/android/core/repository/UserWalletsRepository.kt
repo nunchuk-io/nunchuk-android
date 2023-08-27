@@ -851,8 +851,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             headers, request
         ) else userWalletApiManager.walletApi.createInheritance(headers, request)
         if (response.isSuccess.not()) throw response.error
-        response.data.inheritance?.walletLocalId?.also {
-            markSetupInheritance(it, true)
+        if (request.body?.groupId == null) {
+            response.data.inheritance?.walletLocalId?.also {
+                markSetupInheritance(it, true)
+            }
         }
         return response.data.dummyTransaction?.id.orEmpty()
     }
@@ -872,7 +874,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
         val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request)
-        if (response.isSuccess) {
+        if (response.isSuccess && request.body?.groupId == null) {
             markSetupInheritance(walletId, false)
         }
         return response.data.dummyTransaction?.id.orEmpty()
@@ -1062,7 +1064,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean) {
+    override suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean) {
         val entity = assistedWalletDao.getById(walletId) ?: return
         if (entity.isSetupInheritance != isSetupInheritance) {
             assistedWalletDao.updateOrInsert(entity.copy(isSetupInheritance = isSetupInheritance))
