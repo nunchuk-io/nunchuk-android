@@ -106,7 +106,13 @@ fun PendingWalletView(
                 .padding(12.dp)
                 .fillMaxWidth()
         ) {
-            if (walletsExtended == null) {
+            if (inviterName.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.nc_group_invite),
+                    style = NunchukTheme.typography.title,
+                    color = Color.White
+                )
+            } else if (walletsExtended == null) {
                 Text(
                     text = stringResource(R.string.nc_pending_wallet),
                     style = NunchukTheme.typography.title,

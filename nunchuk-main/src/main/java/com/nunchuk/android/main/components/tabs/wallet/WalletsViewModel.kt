@@ -379,6 +379,7 @@ internal class WalletsViewModel @Inject constructor(
                         inviterName = byzantineGroupUtils.getInviterName(group)
                     }
                     groupWalletUi = groupWalletUi.copy(
+                        wallet = if (inviterName.isNotEmpty()) null else wallet,
                         group = group,
                         role = role,
                         inviterName = inviterName
@@ -400,15 +401,14 @@ internal class WalletsViewModel @Inject constructor(
                 )
                 results.add(groupWalletUi)
             }
-            val sortedList = results.sortedWith { o1, o2 ->
-                val walletNullOrder = if (o1.wallet == null) -1 else 1
-                val groupTimeCreatedOrder =
-                    o1.group?.createdTimeMillis?.compareTo(o2.group?.createdTimeMillis.orDefault(0L))
-                        ?: 0
-                walletNullOrder + groupTimeCreatedOrder
-            }
+
+            val (groupsWithNullWallet, groupsWithNonNullWallet) = results.partition { it.wallet == null }
+            val sortedGroupsWithNullWallet = groupsWithNullWallet.sortedByDescending { it.group?.createdTimeMillis }
+            val sortedGroupsWithNonNullWallet = groupsWithNonNullWallet.sortedByDescending { it.wallet?.wallet?.createDate }
+            val mergedSortedGroups = sortedGroupsWithNullWallet + sortedGroupsWithNonNullWallet
+
             withContext(Dispatchers.Main) {
-                updateState { copy(groupWalletUis = sortedList) }
+                updateState { copy(groupWalletUis = mergedSortedGroups) }
             }
         }
     }
