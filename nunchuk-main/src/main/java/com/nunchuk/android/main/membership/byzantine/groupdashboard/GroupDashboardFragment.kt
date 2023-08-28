@@ -29,7 +29,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragmentDirections
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
@@ -43,7 +43,6 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
-import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -63,6 +62,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     private val args: GroupDashboardFragmentArgs by navArgs()
 
     private val viewModel: GroupDashboardViewModel by activityViewModels()
+
+    private var selectedAlert: Alert? = null
 
     private val createWalletLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -91,9 +92,22 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             }
         }
 
+    private val registerWalletLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                findNavController().navigate(
+                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToWalletConfigIntroFragment()
+                )
+                selectedAlert?.let {
+                    viewModel.markAsReadAlert(it.id)
+                }
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
+        selectedAlert = savedInstanceState?.parcelable(EXTRA_SELECTED_ALERT)
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
@@ -210,6 +224,18 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         )
                     }
                 }
+
+                is GroupDashboardEvent.RegisterSignersSuccess -> {
+                    registerWalletLauncher.launch(
+                        MembershipActivity.openRegisterWalletIntent(
+                            activity = requireActivity(),
+                            groupId = args.groupId,
+                            walletId = viewModel.getWalletId(),
+                            index = event.totalColdcard,
+                            airgapIndex = event.totalAirgap
+                        )
+                    )
+                }
             }
         }
     }
@@ -218,6 +244,11 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         super.onResume()
         viewModel.getAlerts()
         viewModel.getKeysStatus()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putParcelable(EXTRA_SELECTED_ALERT, selectedAlert)
+        super.onSaveInstanceState(outState)
     }
 
     private fun enterPasswordDialog() {
@@ -231,6 +262,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
+        selectedAlert = alert
         if (alert.type == AlertType.GROUP_WALLET_PENDING) {
             if (role.isMasterOrAdmin) {
                 navigator.openMembershipActivity(
@@ -276,7 +308,13 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             )
         } else if (alert.type == AlertType.UPDATE_INHERITANCE_PLAN_SUCCESS) {
-           viewModel.getInheritance(args.walletId.orEmpty(), args.groupId)
+            viewModel.getInheritance(args.walletId.orEmpty(), args.groupId)
+        } else if (alert.type == AlertType.GROUP_WALLET_SETUP) {
+            if (alert.payload.claimKey) {
+
+            } else {
+                viewModel.handleRegisterSigners(alert.payload.xfps)
+            }
         }
     }
 
@@ -361,6 +399,10 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         if (options.isEmpty()) return
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
+    }
+
+    companion object {
+        private const val EXTRA_SELECTED_ALERT = "alert"
     }
 }
 

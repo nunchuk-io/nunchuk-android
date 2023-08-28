@@ -16,8 +16,6 @@ import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.main.components.tabs.services.ServicesTabEvent
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanEvent
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.ByzantineGroup
@@ -38,7 +36,8 @@ import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
-import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
+import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
+import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -79,12 +78,15 @@ class GroupDashboardViewModel @Inject constructor(
     private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
+    private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private val walletId = savedStateHandle.getStateFlow<String?>(EXTRA_WALLET_ID, args.walletId.orEmpty())
+    private val walletId =
+        savedStateHandle.getStateFlow<String?>(EXTRA_WALLET_ID, args.walletId.orEmpty())
 
     private val _event = MutableSharedFlow<GroupDashboardEvent>()
     val event = _event.asSharedFlow()
@@ -330,7 +332,12 @@ class GroupDashboardViewModel @Inject constructor(
         _event.emit(GroupDashboardEvent.Loading(false))
         if (result.isSuccess) {
             val token = result.getOrNull().orEmpty()
-            getInheritanceUseCase(GetInheritanceUseCase.Param(walletId.value.orEmpty(), args.groupId)).onSuccess {
+            getInheritanceUseCase(
+                GetInheritanceUseCase.Param(
+                    walletId.value.orEmpty(),
+                    args.groupId
+                )
+            ).onSuccess {
                 _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it, token, true))
             }.onFailure {
                 _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
@@ -383,6 +390,32 @@ class GroupDashboardViewModel @Inject constructor(
     fun getSignerName(xfp: String) = state.value.signers.find { it.fingerPrint == xfp }?.name
 
     fun getWalletId() = walletId.value.orEmpty()
+    fun handleRegisterSigners(xfps: List<String>) {
+        viewModelScope.launch {
+            val signers = _state.value.wallet.signers.filter { it.masterFingerprint in xfps }
+            val totalColdcard = signers.count { it.type == SignerType.COLDCARD_NFC }
+            val totalAirgap = signers.count { it.type == SignerType.AIRGAP }
+            if (totalColdcard > 0) {
+                setRegisterColdcardUseCase(
+                    SetRegisterColdcardUseCase.Params(
+                        walletId.value.orEmpty(),
+                        totalColdcard
+                    )
+                )
+            }
+            if (totalAirgap > 0) {
+                setRegisterAirgapUseCase(
+                    SetRegisterAirgapUseCase.Params(
+                        walletId.value.orEmpty(),
+                        1
+                    )
+                )
+            }
+            if (totalColdcard > 0 || totalAirgap > 0) {
+                _event.emit(GroupDashboardEvent.RegisterSignersSuccess(totalColdcard, totalAirgap))
+            }
+        }
+    }
 
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"

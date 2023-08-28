@@ -146,4 +146,6 @@
     <string name="nc_dashboard">Dashboard</string>
     <string name="nc_claim_your_key">Claim your key</string>
     <string name="nc_claim_your_key_desc">Please claim your key by performing a key health check. Select your key and continue.</string>
+    <string name="nc_accessing_the_wallet_configuration">Accessing the wallet configuration</string>
+    <string name="nc_access_wallet_configuration_desc">To access the wallet configuration file or export it to your device later, navigate to the wallet → View wallet config → More menu → Export wallet configuration.</string>
 </resources>

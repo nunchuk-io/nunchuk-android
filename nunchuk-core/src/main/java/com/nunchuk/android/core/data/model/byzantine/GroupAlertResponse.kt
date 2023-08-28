@@ -38,4 +38,8 @@ data class PayloadResponse(
     val pendingKeysCount: Int? = null,
     @SerializedName("dummy_transaction_id")
     val dummyTransactionId: String? = null,
+    @SerializedName("register_key_xfps")
+    val xfps: List<String> = emptyList(),
+    @SerializedName("claim_key")
+    val claimKey: Boolean = false,
 )

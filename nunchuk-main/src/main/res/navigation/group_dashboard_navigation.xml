@@ -79,7 +79,7 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
             android:id="@+id/action_groupDashboardFragment_to_inheritanceCreateSuccessFragment"
             app:destination="@id/inheritance_planning_success_navigation"
@@ -98,6 +98,13 @@
                 android:name="wallet_id"
                 app:argType="string" />
         </action>
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_walletConfigIntroFragment"
+            app:destination="@id/walletConfigIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />
@@ -179,5 +186,9 @@
     </fragment>
 
     <include app:graph="@navigation/inheritance_planning_success_navigation" />
+    <fragment
+        android:id="@+id/walletConfigIntroFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.wallet.WalletConfigIntroFragment"
+        android:label="WalletConfigIntroFragment" />
 
 </navigation>

@@ -1,8 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.main.components.tabs.services.ServiceTabRowItem
-import com.nunchuk.android.main.components.tabs.services.ServicesTabEvent
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupChat
@@ -25,6 +23,7 @@ sealed class GroupDashboardEvent {
         val token: String = "",
         val isOpenReviewInheritance: Boolean = false
     ) : GroupDashboardEvent()
+    data class RegisterSignersSuccess(val totalColdcard: Int, val totalAirgap: Int) : GroupDashboardEvent()
 }
 
 data class GroupDashboardState(

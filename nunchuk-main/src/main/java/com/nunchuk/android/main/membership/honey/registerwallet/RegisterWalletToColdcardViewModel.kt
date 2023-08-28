@@ -28,12 +28,14 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -75,7 +77,9 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
 
     fun setRegisterColdcardSuccess(walletId: String) {
         viewModelScope.launch {
-            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(walletId, -1))
+            withContext(NonCancellable) {
+                setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(walletId, -1))
+            }
         }
     }
 }

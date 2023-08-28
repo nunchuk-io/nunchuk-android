@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.membership.honey.registerwallet
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -59,7 +60,10 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.upload.SharedWalletConfigurationViewModel
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -153,11 +157,19 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
                 ),
             )
         } else {
-            findNavController().navigate(
-                RegisterWalletToColdcardFragmentDirections.actionRegisterWalletFragmentToCreateWalletSuccessFragment(
-                    args.walletId
-                ),
-            )
+            val stage = requireActivity().intent.serializable<MembershipStage>(MembershipActivity.EXTRA_GROUP_STEP)
+            if (stage == MembershipStage.REGISTER_WALLET) {
+                requireActivity().apply {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
+            } else {
+                findNavController().navigate(
+                    RegisterWalletToColdcardFragmentDirections.actionRegisterWalletFragmentToCreateWalletSuccessFragment(
+                        args.walletId
+                    ),
+                )
+            }
         }
     }
 }

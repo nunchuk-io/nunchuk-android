@@ -123,7 +123,9 @@ internal fun AlertResponse.toAlert(): Alert {
         payload = AlertPayload(
             masterName = payload?.masterName.orEmpty(),
             pendingKeysCount = payload?.pendingKeysCount.orDefault(0),
-            dummyTransactionId = payload?.dummyTransactionId.orEmpty()
+            dummyTransactionId = payload?.dummyTransactionId.orEmpty(),
+            xfps = payload?.xfps.orEmpty(),
+            claimKey = payload?.claimKey.orFalse()
         )
     )
 }

@@ -188,7 +188,9 @@ private fun AlertActionIntroScreenPreview() {
             payload = AlertPayload(
                 dummyTransactionId = "dummyTransactionId",
                 pendingKeysCount = 1,
-                masterName = "masterName"
+                masterName = "masterName",
+                xfps = listOf("xfps"),
+                claimKey = false
             ),
             body = "There is a health check request for [key name].",
             createdTimeMillis = 0,

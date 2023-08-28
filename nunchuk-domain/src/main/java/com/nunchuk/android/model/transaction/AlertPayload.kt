@@ -7,5 +7,7 @@ import kotlinx.parcelize.Parcelize
 data class AlertPayload(
     val masterName: String,
     val pendingKeysCount: Int,
-    val dummyTransactionId: String
+    val dummyTransactionId: String,
+    val xfps: List<String>,
+    val claimKey: Boolean
 ): Parcelable
