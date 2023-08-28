@@ -99,7 +99,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     GroupDashboardFragmentDirections.actionGroupDashboardFragmentToWalletConfigIntroFragment()
                 )
                 selectedAlert?.let { alert ->
-                    viewModel.markAsReadAlert(alert.id)
+                    viewModel.dismissAlert(alert.id)
                 }
             }
         }
