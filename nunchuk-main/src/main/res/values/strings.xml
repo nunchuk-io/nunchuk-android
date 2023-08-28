@@ -151,4 +151,6 @@
     <string name="nc_claim_another_key">Claim another key</string>
     <string name="nc_the_key_has_been_claimed">The key has been claimed</string>
     <string name="nc_confirm_claim_done_msg">Are you sure you are done claiming? To claim a key later, you can manually perform a health check on that key.</string>
+    <string name="nc_select_hardware_signer_desc">This is a wired key, please claim this key using the desktop app.</string>
+    <string name="nc_get_the_desktop_app">Get the desktop app</string>
 </resources>

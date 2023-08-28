@@ -18,6 +18,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
+import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.GroupChat
@@ -60,7 +61,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GroupDashboardViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val accountManager: AccountManager,
     private val sessionHolder: SessionHolder,
@@ -297,6 +298,12 @@ class GroupDashboardViewModel @Inject constructor(
         _state.value = _state.value.copy(groupChat = groupChat.copy(historyPeriod = historyPeriod))
     }
 
+    fun dismissCurrentAlert() {
+        currentSelectedAlert?.let { alert ->
+            dismissAlert(alert.id)
+        }
+    }
+
     fun dismissAlert(alertId: String) {
         viewModelScope.launch {
             val result = dismissAlertUseCase(DismissAlertUseCase.Param(alertId, args.groupId))
@@ -417,7 +424,16 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
+
+    fun setCurrentSelectedAlert(alert: Alert) {
+        savedStateHandle[EXTRA_SELECTED_ALERT] = alert
+    }
+
+    private val currentSelectedAlert: Alert?
+        get() = savedStateHandle.get<Alert>(EXTRA_SELECTED_ALERT)
+
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"
+        private const val EXTRA_SELECTED_ALERT = "alert"
     }
 }

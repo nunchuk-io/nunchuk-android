@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -34,11 +35,13 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCWarningDialog
 
 class WalletConfigIntroFragment : MembershipFragment() {
     private val args: WalletConfigIntroFragmentArgs by navArgs()
+    private val activityViewModel: GroupDashboardViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -67,6 +70,7 @@ class WalletConfigIntroFragment : MembershipFragment() {
             title = getString(R.string.nc_confirmation),
             message = getString(R.string.nc_confirm_claim_done_msg),
             onYesClick = {
+                activityViewModel.dismissCurrentAlert()
                 findNavController().popBackStack(R.id.groupDashboardFragment, false)
             },
         )
@@ -85,28 +89,33 @@ private fun WalletConfigIntroContent(
                 .navigationBarsPadding()
                 .statusBarsPadding(),
             bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onDoneClick
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.nc_text_done)
-                    )
-                }
-
-                if (isClaimFlow) {
-                    NcOutlineButton(
-                        modifier = Modifier.padding(
-                            start = 16.dp,
-                            end = 16.dp,
-                            bottom = 16.dp
-                        ), onClick = onClaimAnotherKeyClick
+                Column {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onDoneClick
                     ) {
-                        Text(text = stringResource(R.string.nc_claim_another_key))
+                        Text(
+                            text = stringResource(id = R.string.nc_text_done)
+                        )
+                    }
+                    if (isClaimFlow) {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .padding(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    bottom = 16.dp
+                                )
+                                .fillMaxWidth(),
+                            onClick = onClaimAnotherKeyClick
+                        ) {
+                            Text(text = stringResource(R.string.nc_claim_another_key))
+                        }
                     }
                 }
+
             },
             topBar = {
                 NcTopAppBar(title = "", isBack = false)

@@ -48,12 +48,15 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -84,7 +87,18 @@ class ClaimKeyFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                ClaimKeyScreen(viewModel)
+                ClaimKeyScreen(
+                    viewModel = viewModel,
+                    onSelectHardwareSigner = {
+                        NCInfoDialog(requireActivity()).showDialog(
+                            message = getString(R.string.nc_select_hardware_signer_desc),
+                            btnInfo = getString(R.string.nc_get_the_desktop_app),
+                            onInfoClick = {
+                                requireActivity().openExternalLink("https://nunchuk.io")
+                            }
+                        )
+                    },
+                )
             }
         }
     }
@@ -116,15 +130,23 @@ class ClaimKeyFragment : Fragment() {
 }
 
 @Composable
-private fun ClaimKeyScreen(viewModel: ClaimKeyViewModel = viewModel()) {
+private fun ClaimKeyScreen(
+    viewModel: ClaimKeyViewModel = viewModel(),
+    onSelectHardwareSigner: () -> Unit = {},
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    ClaimKeyContent(signers = state.signers, onClaimKey = viewModel::onHealthCheck)
+    ClaimKeyContent(
+        signers = state.signers,
+        onClaimKey = viewModel::onHealthCheck,
+        onSelectHardwareSigner = onSelectHardwareSigner
+    )
 }
 
 @Composable
 private fun ClaimKeyContent(
     signers: List<SignerModel> = emptyList(),
     onClaimKey: (signer: SignerModel) -> Unit = {},
+    onSelectHardwareSigner: () -> Unit = {},
 ) = NunchukTheme {
     var selectedSigner by rememberSaveable {
         mutableStateOf<SignerModel?>(null)
@@ -169,7 +191,11 @@ private fun ClaimKeyContent(
                         signer = signer,
                         isSelected = selectedSigner == signer,
                         onSignerSelected = {
-                            selectedSigner = signer
+                            if (signer.type == SignerType.HARDWARE) {
+                                onSelectHardwareSigner()
+                            } else {
+                                selectedSigner = signer
+                            }
                         },
                     )
                 }

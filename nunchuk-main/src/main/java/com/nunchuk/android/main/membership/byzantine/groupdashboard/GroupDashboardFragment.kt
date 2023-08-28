@@ -63,8 +63,6 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val viewModel: GroupDashboardViewModel by activityViewModels()
 
-    private var selectedAlert: Alert? = null
-
     private val createWalletLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
@@ -98,16 +96,13 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 findNavController().navigate(
                     GroupDashboardFragmentDirections.actionGroupDashboardFragmentToWalletConfigIntroFragment()
                 )
-                selectedAlert?.let { alert ->
-                    viewModel.dismissAlert(alert.id)
-                }
+                viewModel.dismissCurrentAlert()
             }
         }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
-        selectedAlert = savedInstanceState?.parcelable(EXTRA_SELECTED_ALERT)
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
@@ -246,11 +241,6 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         viewModel.getKeysStatus()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelable(EXTRA_SELECTED_ALERT, selectedAlert)
-        super.onSaveInstanceState(outState)
-    }
-
     private fun enterPasswordDialog() {
         NCInputDialog(requireContext()).showDialog(
             title = getString(R.string.nc_re_enter_your_password),
@@ -262,7 +252,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
-        selectedAlert = alert
+        viewModel.setCurrentSelectedAlert(alert)
         if (alert.type == AlertType.GROUP_WALLET_PENDING) {
             if (role.isMasterOrAdmin) {
                 navigator.openMembershipActivity(
@@ -404,10 +394,6 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         if (options.isEmpty()) return
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
-    }
-
-    companion object {
-        private const val EXTRA_SELECTED_ALERT = "alert"
     }
 }
 

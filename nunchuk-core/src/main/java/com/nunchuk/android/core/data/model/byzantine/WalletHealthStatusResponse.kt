@@ -9,7 +9,6 @@ internal data class WalletHealthStatusResponse(
 
 internal data class KeyHealthStatusDto(
     @SerializedName("xfp") val xfp: String = "",
-    @SerializedName("is_pending_health_check") val isPendingHealthCheck: Boolean = false,
     @SerializedName("can_request_health_check") val canRequestHealthCheck: Boolean = false,
     @SerializedName("last_health_check_time_millis") val lastHealthCheckTimeMillis: Long? = null
 )
@@ -17,7 +16,6 @@ internal data class KeyHealthStatusDto(
 internal fun KeyHealthStatusDto.toDomainModel(): KeyHealthStatus {
     return KeyHealthStatus(
         xfp = xfp,
-        isPendingHealthCheck = isPendingHealthCheck,
         canRequestHealthCheck = canRequestHealthCheck,
         lastHealthCheckTimeMillis = lastHealthCheckTimeMillis ?: 0L
     )
