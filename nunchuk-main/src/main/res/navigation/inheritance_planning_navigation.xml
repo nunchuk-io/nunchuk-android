@@ -116,7 +116,8 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim">
-
+            <argument android:name="isOpenFromWizard"
+                app:argType="boolean" />
             <argument
                 android:name="magical_phrase"
                 app:argType="string" />
@@ -145,6 +146,8 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument android:name="isOpenFromWizard"
+                app:argType="boolean" />
             <argument
                 android:name="magical_phrase"
                 app:argType="string" />

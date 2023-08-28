@@ -215,6 +215,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                                 magicalPhrase = event.inheritance.magic,
                                 planFlow = InheritancePlanFlow.VIEW,
                                 walletId = args.walletId.orEmpty(),
+                                isOpenFromWizard = false
                             )
                         )
                     }
@@ -297,7 +298,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     alert
                 )
             )
-        } else if (alert.type == AlertType.UPDATE_INHERITANCE_PLAN_SUCCESS) {
+        } else if (alert.type == AlertType.CREATE_INHERITANCE_PLAN_SUCCESS) {
             viewModel.getInheritance(args.walletId.orEmpty(), args.groupId)
         } else if (alert.type == AlertType.GROUP_WALLET_SETUP) {
             if (alert.payload.claimKey) {

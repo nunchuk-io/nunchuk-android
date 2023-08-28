@@ -168,7 +168,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
                                 magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
                                 planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-                                walletId = inheritanceViewModel.setupOrReviewParam.walletId
+                                walletId = inheritanceViewModel.setupOrReviewParam.walletId,
+                                isOpenFromWizard = inheritanceViewModel.setupOrReviewParam.isOpenFromWizard
                             )
                         )
                     },
@@ -256,7 +257,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                 InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
                     magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
                     planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-                    walletId = inheritanceViewModel.setupOrReviewParam.walletId
+                    walletId = inheritanceViewModel.setupOrReviewParam.walletId,
+                    isOpenFromWizard = inheritanceViewModel.setupOrReviewParam.isOpenFromWizard
                 )
             )
         } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {

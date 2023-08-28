@@ -16,6 +16,9 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim">
             <argument
+                android:name="isOpenFromWizard"
+                app:argType="boolean" />
+            <argument
                 android:name="magical_phrase"
                 app:argType="string" />
             <argument
@@ -26,6 +29,9 @@
                 android:name="wallet_id"
                 app:argType="string" />
         </action>
+        <argument
+            android:name="isOpenFromWizard"
+            app:argType="boolean" />
         <argument
             android:name="magical_phrase"
             app:argType="string" />

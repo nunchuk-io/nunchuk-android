@@ -67,7 +67,6 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
     private val args: InheritanceShareSecretInfoFragmentArgs by navArgs()
     private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -77,8 +76,7 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
             setContent {
                 InheritanceShareSecretInfoScreen(viewModel, args) {
-                    val isOpenFromWizard = inheritanceViewModel.setupOrReviewParam.isOpenFromWizard
-                    showDialogInfo(isOpenFromWizard)
+                    showDialogInfo(args.isOpenFromWizard)
                 }
             }
         }

@@ -64,7 +64,8 @@ class InheritanceCreateSuccessFragment : Fragment() {
                         InheritanceCreateSuccessFragmentDirections.actionInheritanceCreateSuccessFragmentToInheritanceShareSecretFragment(
                             magicalPhrase = args.magicalPhrase,
                             planFlow = args.planFlow,
-                            walletId = args.walletId
+                            walletId = args.walletId,
+                            isOpenFromWizard = args.isOpenFromWizard
                         )
                     )
                 }
