@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard.claim
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,23 +35,48 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ClaimKeyFragment : Fragment() {
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val viewModel: ClaimKeyViewModel by viewModels()
+    private val args: ClaimKeyFragmentArgs by navArgs()
+
+    private val signLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                showSuccess(getString(R.string.nc_the_key_has_been_claimed))
+                findNavController().navigate(
+                    ClaimKeyFragmentDirections.actionClaimKeyFragmentToWalletConfigIntroFragment(
+                        true
+                    )
+                )
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -67,7 +94,22 @@ class ClaimKeyFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
+                    when (event) {
+                        is ClaimKeyEvent.GetHealthCheckPayload -> {
+                            hideLoading()
+                            navigator.openWalletAuthentication(
+                                activityContext = requireActivity(),
+                                walletId = args.walletId,
+                                requiredSignatures = event.payload.requiredSignatures,
+                                type = VerificationType.SIGN_DUMMY_TX,
+                                groupId = args.groupId,
+                                dummyTransactionId = event.payload.dummyTransactionId,
+                                launcher = signLauncher
+                            )
+                        }
 
+                        is ClaimKeyEvent.Loading -> showOrHideLoading(event.isLoading)
+                    }
                 }
         }
     }
@@ -75,7 +117,8 @@ class ClaimKeyFragment : Fragment() {
 
 @Composable
 private fun ClaimKeyScreen(viewModel: ClaimKeyViewModel = viewModel()) {
-    ClaimKeyContent()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ClaimKeyContent(signers = state.signers, onClaimKey = viewModel::onHealthCheck)
 }
 
 @Composable
@@ -122,9 +165,13 @@ private fun ClaimKeyContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(signers) { signer ->
-                    SignerCard(signer = signer, onSignerSelected = {
-                        selectedSigner = signer
-                    })
+                    SignerCard(
+                        signer = signer,
+                        isSelected = selectedSigner == signer,
+                        onSignerSelected = {
+                            selectedSigner = signer
+                        },
+                    )
                 }
             }
         }

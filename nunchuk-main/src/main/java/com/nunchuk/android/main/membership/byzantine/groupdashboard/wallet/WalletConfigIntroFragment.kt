@@ -24,16 +24,21 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.widget.NCWarningDialog
 
 class WalletConfigIntroFragment : MembershipFragment() {
+    private val args: WalletConfigIntroFragmentArgs by navArgs()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -41,18 +46,38 @@ class WalletConfigIntroFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 WalletConfigIntroContent(
-                    onContinueClick = {
+                    onDoneClick = {
+                        if (args.isClaimFlow) {
+                            showConfirmDialog()
+                        } else {
+                            findNavController().popBackStack()
+                        }
+                    },
+                    onClaimAnotherKeyClick = {
                         findNavController().popBackStack()
                     },
+                    isClaimFlow = args.isClaimFlow
                 )
             }
         }
+    }
+
+    private fun showConfirmDialog() {
+        NCWarningDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_confirmation),
+            message = getString(R.string.nc_confirm_claim_done_msg),
+            onYesClick = {
+                findNavController().popBackStack(R.id.groupDashboardFragment, false)
+            },
+        )
     }
 }
 
 @Composable
 private fun WalletConfigIntroContent(
-    onContinueClick: () -> Unit = {},
+    onDoneClick: () -> Unit = {},
+    onClaimAnotherKeyClick: () -> Unit = {},
+    isClaimFlow: Boolean = false
 ) {
     NunchukTheme {
         Scaffold(
@@ -64,11 +89,23 @@ private fun WalletConfigIntroContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = onContinueClick
+                    onClick = onDoneClick
                 ) {
                     Text(
                         text = stringResource(id = R.string.nc_text_done)
                     )
+                }
+
+                if (isClaimFlow) {
+                    NcOutlineButton(
+                        modifier = Modifier.padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = 16.dp
+                        ), onClick = onClaimAnotherKeyClick
+                    ) {
+                        Text(text = stringResource(R.string.nc_claim_another_key))
+                    }
                 }
             },
             topBar = {

@@ -183,12 +183,25 @@
         <argument
             android:name="group_id"
             app:argType="string" />
+        <action
+            android:id="@+id/action_claimKeyFragment_to_walletConfigIntroFragment"
+            app:destination="@id/walletConfigIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <include app:graph="@navigation/inheritance_planning_success_navigation" />
     <fragment
         android:id="@+id/walletConfigIntroFragment"
         android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.wallet.WalletConfigIntroFragment"
-        android:label="WalletConfigIntroFragment" />
+        android:label="WalletConfigIntroFragment" >
+
+        <argument
+            android:name="is_claim_flow"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
 
 </navigation>

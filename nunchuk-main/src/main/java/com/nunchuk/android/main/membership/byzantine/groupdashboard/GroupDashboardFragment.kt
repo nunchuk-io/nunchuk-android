@@ -98,8 +98,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 findNavController().navigate(
                     GroupDashboardFragmentDirections.actionGroupDashboardFragmentToWalletConfigIntroFragment()
                 )
-                selectedAlert?.let {
-                    viewModel.markAsReadAlert(it.id)
+                selectedAlert?.let { alert ->
+                    viewModel.markAsReadAlert(alert.id)
                 }
             }
         }
@@ -311,7 +311,12 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             viewModel.getInheritance(args.walletId.orEmpty(), args.groupId)
         } else if (alert.type == AlertType.GROUP_WALLET_SETUP) {
             if (alert.payload.claimKey) {
-
+                findNavController().navigate(
+                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToClaimKeyFragment(
+                        groupId = args.groupId,
+                        walletId = viewModel.getWalletId()
+                    )
+                )
             } else {
                 viewModel.handleRegisterSigners(alert.payload.xfps)
             }
