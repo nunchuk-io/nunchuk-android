@@ -136,7 +136,9 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                             openRoomChat()
                         } else {
                             findNavController().navigate(
-                                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(args.groupId)
+                                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(
+                                    args.groupId
+                                )
                             )
                         }
                     },
@@ -170,8 +172,9 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         }
         setFragmentResultListener(GroupChatHistoryIntroFragment.REQUEST_KEY) { _, bundle ->
             val groupChat =
-                bundle.parcelable<GroupChat>(GroupChatHistoryIntroFragment.EXTRA_GROUP_CHAT) ?: return@setFragmentResultListener
-                viewModel.updateGroupChat(groupChat)
+                bundle.parcelable<GroupChat>(GroupChatHistoryIntroFragment.EXTRA_GROUP_CHAT)
+                    ?: return@setFragmentResultListener
+            viewModel.updateGroupChat(groupChat)
             clearFragmentResult(GroupChatHistoryIntroFragment.REQUEST_KEY)
         }
         setFragmentResultListener(AlertActionIntroFragment.REQUEST_KEY) { _, bundle ->
@@ -367,20 +370,24 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun showMoreOptions() {
         val options = mutableListOf<SheetOption>()
         if (viewModel.isPendingCreateWallet().not()) {
-            if (viewModel.state.value.myRole.isMasterOrAdmin) {
-                options.add(
-                    SheetOption(
-                        type = SheetOptionType.SET_UP_INHERITANCE,
-                        stringId = if (viewModel.state.value.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
+            if (viewModel.state.value.myRole.isMasterOrAdmin &&
+                viewModel.state.value.group?.walletConfig?.toGroupWalletType()?.isPro == true
+            ) {
+                options.addAll(
+                    mutableListOf(
+                        SheetOption(
+                            type = SheetOptionType.SET_UP_INHERITANCE,
+                            stringId = if (viewModel.state.value.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
+                        ),
+                        SheetOption(
+                            type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
+                            stringId = R.string.nc_cosigning_policies
+                        )
                     )
                 )
             }
             options.addAll(
                 mutableListOf(
-                    SheetOption(
-                        type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
-                        stringId = R.string.nc_cosigning_policies
-                    ),
                     SheetOption(
                         type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
                         stringId = R.string.nc_emergency_lockdown
