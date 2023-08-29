@@ -68,7 +68,6 @@ class GroupDashboardViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
     private val getAlertGroupUseCase: GetAlertGroupUseCase,
     private val getGroupChatUseCase: GetGroupChatUseCase,
-    private val createOrUpdateGroupChatUseCase: CreateOrUpdateGroupChatUseCase,
     private val dismissAlertUseCase: DismissAlertUseCase,
     private val markAlertAsReadUseCase: MarkAlertAsReadUseCase,
     private val getHistoryPeriodUseCase: GetHistoryPeriodUseCase,
@@ -195,7 +194,7 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun isEnableStartGroupChat(): Boolean {
         val members = state.value.group?.members ?: emptyList()
-        return members.count { it.isContact() } == 2
+        return members.count { it.isContact() } >= 2
     }
 
     private fun loadActiveSession() {
@@ -260,22 +259,6 @@ class GroupDashboardViewModel @Inject constructor(
         return state.value.group?.isPendingWallet() == true
     }
 
-    fun createGroupChat() {
-        viewModelScope.launch {
-            _event.emit(GroupDashboardEvent.Loading(true))
-            val result = createOrUpdateGroupChatUseCase(
-                CreateOrUpdateGroupChatUseCase.Param(args.groupId)
-            )
-            _event.emit(GroupDashboardEvent.Loading(false))
-            if (result.isSuccess) {
-                _state.value = _state.value.copy(groupChat = result.getOrNull())
-                _event.emit(GroupDashboardEvent.NavigateToGroupChat)
-            } else {
-                _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
-    }
-
     fun getGroupChatHistoryPeriod() {
         viewModelScope.launch {
             _event.emit(GroupDashboardEvent.Loading(true))
@@ -295,7 +278,15 @@ class GroupDashboardViewModel @Inject constructor(
     fun updateGroupChatHistoryPeriod(historyPeriod: HistoryPeriod?) {
         historyPeriod ?: return
         val groupChat = _state.value.groupChat ?: return
-        _state.value = _state.value.copy(groupChat = groupChat.copy(historyPeriod = historyPeriod))
+        _state.update {
+            it.copy(groupChat = groupChat.copy(historyPeriod = historyPeriod))
+        }
+    }
+
+    fun updateGroupChat(groupChat: GroupChat) {
+        _state.update {
+            it.copy(groupChat = groupChat)
+        }
     }
 
     fun dismissCurrentAlert() {

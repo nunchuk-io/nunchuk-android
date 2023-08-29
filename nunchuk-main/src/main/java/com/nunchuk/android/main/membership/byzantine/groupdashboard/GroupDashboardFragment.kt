@@ -35,6 +35,7 @@ import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatH
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
+import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.VerificationType
@@ -134,7 +135,9 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         if (viewModel.groupChat() != null) {
                             openRoomChat()
                         } else {
-                            viewModel.createGroupChat()
+                            findNavController().navigate(
+                                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(args.groupId)
+                            )
                         }
                     },
                     onMoreClick = {
@@ -165,6 +168,12 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             showSuccess(message = getString(R.string.nc_chat_setting_updated))
             clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
         }
+        setFragmentResultListener(GroupChatHistoryIntroFragment.REQUEST_KEY) { _, bundle ->
+            val groupChat =
+                bundle.parcelable<GroupChat>(GroupChatHistoryIntroFragment.EXTRA_GROUP_CHAT) ?: return@setFragmentResultListener
+                viewModel.updateGroupChat(groupChat)
+            clearFragmentResult(GroupChatHistoryIntroFragment.REQUEST_KEY)
+        }
         setFragmentResultListener(AlertActionIntroFragment.REQUEST_KEY) { _, bundle ->
             val dummyTransactionId =
                 bundle.getString(AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID).orEmpty()
@@ -186,7 +195,6 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             when (event) {
                 is GroupDashboardEvent.Error -> showError(message = event.message)
                 is GroupDashboardEvent.Loading -> showOrHideLoading(event.loading)
-                is GroupDashboardEvent.NavigateToGroupChat -> openRoomChat()
                 is GroupDashboardEvent.GetHistoryPeriodSuccess -> {
                     findNavController().navigate(
                         GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(

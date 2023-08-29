@@ -154,4 +154,6 @@
     <string name="nc_confirm_claim_done_msg">Are you sure you are done claiming? To claim a key later, you can manually perform a health check on that key.</string>
     <string name="nc_select_hardware_signer_desc">This is a wired key, please claim this key using the desktop app.</string>
     <string name="nc_get_the_desktop_app">Get the desktop app</string>
+    <string name="nc_group_chat_history">Group chat history</string>
+    <string name="nc_group_chat_history_desc">By default, group chat messages are kept for 30 days.\n\nTo change how long messages are kept, please navigate to the wallet dashboard → More menu → Manage group chat history (admin privileges required).</string>
 </resources>
