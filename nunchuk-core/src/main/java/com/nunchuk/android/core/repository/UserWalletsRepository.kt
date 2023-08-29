@@ -913,14 +913,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         verifyToken: String,
         userData: String,
         securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String
     ) {
-        val request = gson.fromJson(userData, SecurityQuestionsUpdateRequest::class.java)
+        var request = gson.fromJson(userData, SecurityQuestionsUpdateRequest::class.java)
+        if (confirmCodeNonce.isNotEmpty()) {
+            request = request.copy(nonce = confirmCodeNonce)
+        }
         val headers = mutableMapOf<String, String>()
         authorizations.forEachIndexed { index, value ->
             headers["$AUTHORIZATION_X-${index + 1}"] = value
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
+        headers[CONFIRMATION_TOKEN] = confirmCodeToken
         return userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request)
     }
 
@@ -1948,10 +1954,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         userData: String,
     ): Pair<String, String> {
         val nonce = getNonce()
-        val body = if (action == TargetAction.EDIT_GROUP_MEMBERS.name) {
-            gson.fromJson(userData, EditGroupMemberRequest.Body::class.java)
-        } else {
-            throw IllegalArgumentException("Unsupported action")
+        val body = when (action) {
+            TargetAction.EDIT_GROUP_MEMBERS.name -> gson.fromJson(userData, EditGroupMemberRequest.Body::class.java)
+            TargetAction.UPDATE_SECURITY_QUESTIONS.name -> gson.fromJson(userData, QuestionsAndAnswerRequestBody::class.java)
+            else -> throw IllegalArgumentException("Unsupported action")
         }
         val request = ConfirmationCodeRequest(nonce = nonce, body = body)
         val response = userWalletApiManager.walletApi.requestConfirmationCode(

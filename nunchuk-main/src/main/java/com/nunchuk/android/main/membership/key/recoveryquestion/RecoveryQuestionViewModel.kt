@@ -225,7 +225,12 @@ class RecoveryQuestionViewModel @Inject constructor(
         }
     }
 
-    fun securityQuestionUpdate(signatures: HashMap<String, String>, securityQuestionToken: String) =
+    fun securityQuestionUpdate(
+        signatures: HashMap<String, String>,
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String
+    ) =
         viewModelScope.launch {
             val state = _state.value
             _event.emit(RecoveryQuestionEvent.Loading(true))
@@ -234,7 +239,9 @@ class RecoveryQuestionViewModel @Inject constructor(
                     signatures = signatures,
                     verifyToken = args.verifyToken,
                     userData = state.userData.orEmpty(),
-                    securityQuestionToken = securityQuestionToken
+                    securityQuestionToken = securityQuestionToken,
+                    confirmCodeNonce = confirmCodeNonce,
+                    confirmCodeToken = confirmCodeToken,
                 )
             )
             _event.emit(RecoveryQuestionEvent.Loading(false))

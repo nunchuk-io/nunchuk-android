@@ -108,7 +108,7 @@ fun PendingWalletView(
         ) {
             if (inviterName.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.nc_group_invite),
+                    text = stringResource(R.string.nc_group_invitation),
                     style = NunchukTheme.typography.title,
                     color = Color.White
                 )

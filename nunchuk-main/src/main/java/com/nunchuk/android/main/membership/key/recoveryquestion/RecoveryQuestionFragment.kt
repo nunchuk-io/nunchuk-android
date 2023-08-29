@@ -62,6 +62,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -95,7 +96,15 @@ class RecoveryQuestionFragment : MembershipFragment() {
                         ?: return@registerForActivityResult
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                viewModel.securityQuestionUpdate(signatureMap, securityQuestionToken)
+                val confirmCodeMap =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.CONFIRM_CODE)
+                        .orEmpty()
+                viewModel.securityQuestionUpdate(
+                    signatureMap,
+                    securityQuestionToken,
+                    confirmCodeMap[GlobalResultKey.CONFIRM_CODE_TOKEN].orEmpty(),
+                    confirmCodeMap[GlobalResultKey.CONFIRM_CODE_NONCE].orEmpty()
+                )
             }
         }
 
@@ -126,6 +135,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
                         userData = it.userData,
                         requiredSignatures = it.requiredSignatures,
                         type = it.type,
+                        action = TargetAction.UPDATE_SECURITY_QUESTIONS.name,
                         launcher = launcher,
                         activityContext = requireActivity()
                     )

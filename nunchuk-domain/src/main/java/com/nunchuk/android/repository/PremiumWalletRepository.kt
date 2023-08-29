@@ -155,7 +155,9 @@ interface PremiumWalletRepository {
         authorizations: List<String>,
         verifyToken: String,
         userData: String,
-        securityQuestionToken: String
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String
     )
 
     suspend fun getNonce(): String

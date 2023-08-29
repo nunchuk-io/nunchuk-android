@@ -101,7 +101,7 @@
     <string name="nc_byzantine_add_key_2_of_3_desc">Your new wallet will be a 2-of-3 multisig wallet. [B]Two keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_3_of_5_desc">Your new wallet will be a 3-of-5 multisig wallet. [B]Three keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_pending_wallet">Pending wallet</string>
-    <string name="nc_group_invite">Group invite</string>
+    <string name="nc_group_invitation">Group invitation</string>
     <string name="nc_accept">Accept</string>
     <string name="nc_deny">Deny</string>
     <string name="nc_alert">Alert</string>
