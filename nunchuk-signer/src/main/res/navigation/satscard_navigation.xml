@@ -68,7 +68,10 @@
             android:defaultValue=""
             app:argType="string" />
 
-
+        <argument
+            android:name="derivation_path"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/satsCardSlotQrFragment"
