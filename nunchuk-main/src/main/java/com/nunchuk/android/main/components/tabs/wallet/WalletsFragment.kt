@@ -176,9 +176,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         walletName: String?,
     ) {
         val stage = walletsViewModel.getGroupStage()
-        val isGone = stage == MembershipStage.DONE
-        binding.introContainer.isGone = isGone
-        if (isVisible.not()) return
+        if (binding.introContainer.isVisible.not()) return
         if (stage == MembershipStage.NONE) {
             binding.tvIntroTitle.text = getString(R.string.nc_let_s_get_you_started)
             binding.tvIntroDesc.text =
@@ -442,7 +440,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showIntro(state: WalletsState) {
-        binding.introContainer.isVisible = state.plan != null && state.plan != MembershipPlan.NONE
+        binding.introContainer.isGone = walletsViewModel.getGroupStage() == MembershipStage.DONE
+                || state.allGroups.isNotEmpty()
         binding.containerNonSubscriber.isVisible =
             state.plan != null && state.plan == MembershipPlan.NONE
                     && state.isHideUpsellBanner.not() && state.banner != null
