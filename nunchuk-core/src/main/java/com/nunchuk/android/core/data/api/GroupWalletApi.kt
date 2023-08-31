@@ -34,6 +34,7 @@ import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TransactionResponse
+import com.nunchuk.android.core.data.model.membership.TransactionsResponse
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -364,4 +365,18 @@ internal interface GroupWalletApi {
         @Query("limit") limit: Int,
         @Query("statuses") statuses: List<String> = listOf("DELETED"),
     ): Data<GetWalletsResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=PENDING_SIGNATURES,READY_TO_BROADCAST&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
+    suspend fun getTransactionsToSync(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int
+    ): Data<TransactionsResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
+    suspend fun getTransactionsToDelete(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int
+    ): Data<TransactionsResponse>
 }

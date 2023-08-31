@@ -1195,9 +1195,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }.orEmpty()
     }
 
-    override suspend fun syncTransaction(walletId: String) {
+    override suspend fun syncTransaction(groupId: String?, walletId: String) {
         (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
-            val response = userWalletApiManager.walletApi.getTransactionsToSync(walletId, index)
+            val response = if (!groupId.isNullOrEmpty()) {
+                userWalletApiManager.groupWalletApi.getTransactionsToSync(groupId, walletId, index)
+            } else {
+                userWalletApiManager.walletApi.getTransactionsToSync(walletId, index)
+            }
             if (response.isSuccess.not()) throw response.error
             response.data.transactions.forEach { transition ->
                 if (transition.psbt.isNullOrEmpty().not()) {
@@ -1394,9 +1398,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         else userWalletApiManager.walletApi.uploadCoinControlData(walletId, CoinDataContent(data))
     }
 
-    override suspend fun clearTransactionEmergencyLockdown(walletId: String) {
+    override suspend fun clearTransactionEmergencyLockdown(groupId: String?, walletId: String) {
         (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
-            val response = userWalletApiManager.walletApi.getTransactionsToDelete(walletId, index)
+            val response = if (!groupId.isNullOrEmpty()) {
+                userWalletApiManager.groupWalletApi.getTransactionsToDelete(groupId, walletId, index)
+            } else {
+                userWalletApiManager.walletApi.getTransactionsToDelete(walletId, index)
+            }
             if (response.isSuccess.not()) throw response.error
             response.data.transactions.forEach { transition ->
                 transition.transactionId?.let {

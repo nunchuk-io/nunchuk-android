@@ -271,7 +271,7 @@ interface PremiumWalletRepository {
 
     suspend fun inheritanceCheck(): InheritanceCheck
 
-    suspend fun syncTransaction(walletId: String)
+    suspend fun syncTransaction(groupId: String?, walletId: String)
 
     suspend fun getInheritanceBufferPeriod(): List<Period>
 
@@ -305,7 +305,7 @@ interface PremiumWalletRepository {
 
     suspend fun uploadCoinControlData(groupId: String?, walletId: String, data: String)
 
-    suspend fun clearTransactionEmergencyLockdown(walletId: String)
+    suspend fun clearTransactionEmergencyLockdown(groupId: String?, walletId: String)
 
     suspend fun requestAddKey(groupId: String, step: MembershipStep, tags: List<SignerTag>): String
 

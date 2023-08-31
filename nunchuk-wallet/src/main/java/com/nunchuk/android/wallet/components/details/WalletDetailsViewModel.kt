@@ -142,7 +142,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     }
 
     private suspend fun syncTransactionFromServer() {
-        val result = syncTransactionUseCase(args.walletId)
+        val result = syncTransactionUseCase(SyncTransactionUseCase.Params(assistedWalletManager.getGroupId(args.walletId), args.walletId))
         if (result.isSuccess) {
             getTransactionHistory()
         }

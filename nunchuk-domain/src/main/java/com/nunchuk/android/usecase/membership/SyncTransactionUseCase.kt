@@ -28,10 +28,15 @@ import javax.inject.Inject
 class SyncTransactionUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<String, Unit>(ioDispatcher) {
+) : UseCase<SyncTransactionUseCase.Params, Unit>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String) {
-        repository.syncTransaction(parameters)
-        repository.clearTransactionEmergencyLockdown(parameters)
+    override suspend fun execute(parameters: Params) {
+        repository.syncTransaction(parameters.groupId, parameters.walletId)
+        repository.clearTransactionEmergencyLockdown(parameters.groupId, parameters.walletId)
     }
+
+    data class Params(
+        val groupId: String?,
+        val walletId: String,
+    )
 }
