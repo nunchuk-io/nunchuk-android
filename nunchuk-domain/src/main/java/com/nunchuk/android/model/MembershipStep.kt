@@ -40,8 +40,8 @@ enum class MembershipStep {
 }
 
 fun MembershipStep.toIndex() = when (this) {
-    MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 0
-    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> 1
+    MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 0
+    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> 1
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> 2
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> 3
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> 4
