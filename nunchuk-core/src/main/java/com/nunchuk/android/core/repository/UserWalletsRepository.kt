@@ -479,7 +479,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 if (type.isServerMasterSigner) {
                     val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
                     val isVisible = masterSigner.isVisible || signer.isVisible
-                    val isChange = masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
+                    val isChange =
+                        masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
                     if (isChange) {
                         isNeedReload = true
                         nunchukNativeSdk.updateMasterSigner(
@@ -495,7 +496,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
                     )
                     val isVisible = remoteSigner.isVisible || signer.isVisible
-                    val isChange = remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
+                    val isChange =
+                        remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
                     if (isChange) {
                         isNeedReload = true
                         nunchukNativeSdk.updateRemoteSigner(
@@ -582,19 +584,21 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getServerTransaction(
         groupId: String?, walletId: String, transactionId: String,
     ): ExtendedTransaction {
-        val response = if (!groupId.isNullOrEmpty()) {
-            userWalletApiManager.groupWalletApi.getTransaction(groupId, walletId, transactionId)
-        } else {
-            userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
+        val transaction = runCatching {
+            val response = if (!groupId.isNullOrEmpty()) {
+                userWalletApiManager.groupWalletApi.getTransaction(groupId, walletId, transactionId)
+            } else {
+                userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
+            }
+            response.data.transaction
+        }.getOrNull()
+        transaction?.let {
+            updateScheduleTransactionIfNeed(walletId, transactionId, transaction)
         }
-        val transaction =
-            response.data.transaction ?: throw NullPointerException("Transaction from server null")
-        updateScheduleTransactionIfNeed(walletId, transactionId, transaction)
+        val result = handleServerTransaction(groupId, walletId, transactionId, transaction)
         return ExtendedTransaction(
-            transaction = handleServerTransaction(
-                groupId, walletId, transactionId, transaction
-            ),
-            serverTransaction = response.data.transaction?.toServerTransaction(),
+            transaction = result.first,
+            serverTransaction = result.second?.toServerTransaction(),
         )
     }
 
@@ -914,7 +918,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         userData: String,
         securityQuestionToken: String,
         confirmCodeToken: String,
-        confirmCodeNonce: String
+        confirmCodeNonce: String,
     ) {
         var request = gson.fromJson(userData, SecurityQuestionsUpdateRequest::class.java)
         if (confirmCodeNonce.isNotEmpty()) {
@@ -1023,27 +1027,27 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun signServerTransaction(
         groupId: String?, walletId: String, txId: String, psbt: String,
     ): ExtendedTransaction {
-        val response = if (!groupId.isNullOrEmpty()) {
-            userWalletApiManager.groupWalletApi.signServerTransaction(
-                groupId = groupId,
-                walletId = walletId,
-                transactionId = txId,
-                payload = SignServerTransactionRequest(psbt = psbt)
-            )
-        } else {
-            userWalletApiManager.walletApi.signServerTransaction(
-                walletId = walletId,
-                transactionId = txId,
-                payload = SignServerTransactionRequest(psbt = psbt)
-            )
-        }
-        val transaction =
-            response.data.transaction ?: throw NullPointerException("transaction from server null")
+        val transaction = runCatching {
+            val response = if (!groupId.isNullOrEmpty()) {
+                userWalletApiManager.groupWalletApi.signServerTransaction(
+                    groupId = groupId,
+                    walletId = walletId,
+                    transactionId = txId,
+                    payload = SignServerTransactionRequest(psbt = psbt)
+                )
+            } else {
+                userWalletApiManager.walletApi.signServerTransaction(
+                    walletId = walletId,
+                    transactionId = txId,
+                    payload = SignServerTransactionRequest(psbt = psbt)
+                )
+            }
+            response.data.transaction
+        }.getOrNull()
+        val result = handleServerTransaction(groupId, walletId, txId, transaction)
         return ExtendedTransaction(
-            transaction = handleServerTransaction(
-                groupId, walletId, txId, transaction
-            ),
-            serverTransaction = response.data.transaction?.toServerTransaction(),
+            transaction = result.first,
+            serverTransaction = result.second?.toServerTransaction(),
         )
     }
 
@@ -1081,21 +1085,24 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String?,
         walletId: String,
         transactionId: String,
-        transaction: TransactionServerDto,
-    ): Transaction {
-        return if (transaction.status == TransactionStatus.PENDING_CONFIRMATION.name || transaction.status == TransactionStatus.CONFIRMED.name || transaction.status == TransactionStatus.NETWORK_REJECTED.name) {
-            nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
+        serverTransaction: TransactionServerDto?,
+    ): Pair<Transaction, TransactionServerDto?> {
+        return if (serverTransaction?.status == TransactionStatus.PENDING_CONFIRMATION.name
+            || serverTransaction?.status == TransactionStatus.CONFIRMED.name
+            || serverTransaction?.status == TransactionStatus.NETWORK_REJECTED.name
+        ) {
+            nunchukNativeSdk.importPsbt(walletId, serverTransaction.psbt.orEmpty())
             nunchukNativeSdk.updateTransaction(
                 walletId,
                 transactionId,
-                transaction.transactionId.orEmpty(),
-                transaction.hex.orEmpty(),
-                transaction.rejectMsg.orEmpty()
-            )
-        } else {
-            val libTx = nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
-            if (libTx.psbt != transaction.psbt) {
-                if (!groupId.isNullOrEmpty()) {
+                serverTransaction.transactionId.orEmpty(),
+                serverTransaction.hex.orEmpty(),
+                serverTransaction.rejectMsg.orEmpty()
+            ) to serverTransaction
+        } else if (serverTransaction != null) {
+            val libTx = nunchukNativeSdk.importPsbt(walletId, serverTransaction.psbt.orEmpty())
+            if (libTx.psbt != serverTransaction.psbt) {
+                val response = if (!groupId.isNullOrEmpty()) {
                     userWalletApiManager.groupWalletApi.syncTransaction(
                         groupId, walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt)
                     )
@@ -1104,8 +1111,23 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt)
                     )
                 }
+                libTx to response.data.transaction
+            } else {
+                libTx to serverTransaction
             }
-            libTx
+        } else {
+            // sync local transaction to server
+            val libTx = nunchukNativeSdk.getTransaction(walletId, transactionId)
+            val response = if (!groupId.isNullOrEmpty()) {
+                userWalletApiManager.groupWalletApi.syncTransaction(
+                    groupId, walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt)
+                )
+            } else {
+                userWalletApiManager.walletApi.syncTransaction(
+                    walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt)
+                )
+            }
+            libTx to response.data.transaction
         }
     }
 
@@ -1322,12 +1344,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val wallet = nunchukNativeSdk.getWallet(walletId)
         val verifyMap = coroutineScope {
             wallet.signers.filter { it.type == SignerType.NFC }.map { key ->
-                    async {
-                        userWalletApiManager.walletApi.getKey(
-                            key.masterFingerprint, key.derivationPath
-                        )
-                    }
-                }.awaitAll().associateBy { it.data.keyXfp }
+                async {
+                    userWalletApiManager.walletApi.getKey(
+                        key.masterFingerprint, key.derivationPath
+                    )
+                }
+            }.awaitAll().associateBy { it.data.keyXfp }
                 .mapValues { it.value.data.verificationType }
         }
         var inheritanceKey: SingleSigner? = null
@@ -1401,7 +1423,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun clearTransactionEmergencyLockdown(groupId: String?, walletId: String) {
         (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
             val response = if (!groupId.isNullOrEmpty()) {
-                userWalletApiManager.groupWalletApi.getTransactionsToDelete(groupId, walletId, index)
+                userWalletApiManager.groupWalletApi.getTransactionsToDelete(
+                    groupId,
+                    walletId,
+                    index
+                )
             } else {
                 userWalletApiManager.walletApi.getTransactionsToDelete(walletId, index)
             }
@@ -1963,8 +1989,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): Pair<String, String> {
         val nonce = getNonce()
         val body = when (action) {
-            TargetAction.EDIT_GROUP_MEMBERS.name -> gson.fromJson(userData, EditGroupMemberRequest.Body::class.java)
-            TargetAction.UPDATE_SECURITY_QUESTIONS.name -> gson.fromJson(userData, QuestionsAndAnswerRequestBody::class.java)
+            TargetAction.EDIT_GROUP_MEMBERS.name -> gson.fromJson(
+                userData,
+                EditGroupMemberRequest.Body::class.java
+            )
+
+            TargetAction.UPDATE_SECURITY_QUESTIONS.name -> gson.fromJson(
+                userData,
+                QuestionsAndAnswerRequestBody::class.java
+            )
+
             else -> throw IllegalArgumentException("Unsupported action")
         }
         val request = ConfirmationCodeRequest(nonce = nonce, body = body)
