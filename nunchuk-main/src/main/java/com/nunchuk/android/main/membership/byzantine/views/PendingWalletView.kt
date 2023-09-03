@@ -84,16 +84,19 @@ fun PendingWalletView(
             .clickable(onClick = onWalletClick, enabled = walletsExtended != null)
             .fillMaxWidth(),
     ) {
-        val colors = if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
-            listOf(NcColor.greyDark, NcColor.greyDark)
-        } else if (group != null || isAssistedWallet) {
-            listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
-        } else {
-            listOf(
-                colorResource(id = R.color.nc_primary_light_color),
-                colorResource(id = R.color.nc_primary_color)
-            )
-        }
+        val colors =
+            if (inviterName.isNotEmpty()) {
+                listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
+            } else if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
+                listOf(NcColor.greyDark, NcColor.greyDark)
+            } else if (group != null || isAssistedWallet) {
+                listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
+            } else {
+                listOf(
+                    colorResource(id = R.color.nc_primary_light_color),
+                    colorResource(id = R.color.nc_primary_color)
+                )
+            }
         Box(
             modifier = Modifier
                 .background(
@@ -131,7 +134,7 @@ fun PendingWalletView(
             Row(
                 modifier = Modifier
                     .clickable(
-                        enabled = role != AssistedWalletRole.OBSERVER.name,
+                        enabled = role != AssistedWalletRole.OBSERVER.name && inviterName.isEmpty(),
                         onClick = onGroupClick,
                     )
                     .padding(12.dp), verticalAlignment = Alignment.CenterVertically
@@ -179,7 +182,9 @@ fun PendingWalletView(
                             text = stringResource(R.string.nc_dashboard),
                             style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colors.onSurface,
-                            modifier = Modifier.padding(start = 4.dp).weight(1f, fill = true)
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .weight(1f, fill = true)
                         )
 
                         Row(
@@ -309,12 +314,18 @@ internal fun ActiveWallet(
                 color = Color.White
             )
             Text(
-                text = Utils.maskValue(wallet.getBTCAmount(), role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail),
+                text = Utils.maskValue(
+                    wallet.getBTCAmount(),
+                    role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
+                ),
                 style = NunchukTheme.typography.titleSmall,
                 color = Color.White
             )
             Text(
-                text = Utils.maskValue(balance, role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail),
+                text = Utils.maskValue(
+                    balance,
+                    role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
+                ),
                 style = NunchukTheme.typography.bodySmall,
                 color = Color.White
             )
