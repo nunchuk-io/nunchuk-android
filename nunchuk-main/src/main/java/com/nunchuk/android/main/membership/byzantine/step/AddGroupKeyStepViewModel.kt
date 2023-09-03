@@ -90,14 +90,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
     private val _isCreateWalletDone = MutableStateFlow(false)
     val isCreateWalletDone = _isCreateWalletDone.asStateFlow()
 
-    private val _isRequireInheritance = MutableStateFlow(false)
-    val isRequireInheritance = _isRequireInheritance.asStateFlow()
-
     private val _uiState = MutableStateFlow(AddGroupUiState())
-
-    val isSetupInheritanceDone =
-        membershipStepManager.stepDone.map { membershipStepManager.isSetupInheritanceDone() }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
@@ -105,15 +98,13 @@ class AddGroupKeyStepViewModel @Inject constructor(
                 membershipStepManager.getRemainTimeByOtherSteps(
                     listOf(
                         MembershipStep.SETUP_KEY_RECOVERY,
-                        MembershipStep.CREATE_WALLET,
-                        MembershipStep.SETUP_INHERITANCE
+                        MembershipStep.CREATE_WALLET
                     )
                 ),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_KEY_RECOVERY)),
-                membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.CREATE_WALLET)),
-                membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_INHERITANCE)),
+                membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.CREATE_WALLET))
             )
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(4))
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(3))
 
     private var refreshJob: Job? = null
 
@@ -153,7 +144,6 @@ class AddGroupKeyStepViewModel @Inject constructor(
             _isSetupRecoverKeyDone.value = draftWallet.isMasterSecurityQuestionSet
             val isConfigDone = draftWallet.config.n == draftWallet.signers.size
             _isConfigKeyDone.value = isCreateWallet || isConfigDone
-            _isRequireInheritance.value = draftWallet.config.allowInheritance
         }
     }
 
@@ -165,12 +155,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            if (isSetupInheritanceDone.value) {
-                _event.emit(AddKeyStepEvent.SetupInheritanceSetupDone)
-            } else if (isCreateWalletDone.value && isRegisterWalletDone()) {
-                savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_INHERITANCE
-                _event.emit(AddKeyStepEvent.OpenInheritanceSetup)
-            } else if (isSetupRecoverKeyDone.value && isConfigKeyDone.value) {
+            if (isSetupRecoverKeyDone.value && isConfigKeyDone.value) {
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.CREATE_WALLET
                 if (isCreateWalletDone.value && isRegisterColdcard.value.not()) {
                     val walletId = assistedWallets.value.lastOrNull()?.localId ?: return@launch
@@ -231,6 +216,4 @@ sealed class AddKeyStepEvent {
 
     data class OpenRegisterAirgap(val walletId: String) : AddKeyStepEvent()
     object OnMoreClicked : AddKeyStepEvent()
-    object OpenInheritanceSetup : AddKeyStepEvent()
-    object SetupInheritanceSetupDone : AddKeyStepEvent()
 }

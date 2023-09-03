@@ -155,7 +155,6 @@ class MembershipStepManager @Inject constructor(
                             steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
                                 MembershipStepFlow(totalStep = 8)
                             steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-                            steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
                         }
                     }
                     steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)

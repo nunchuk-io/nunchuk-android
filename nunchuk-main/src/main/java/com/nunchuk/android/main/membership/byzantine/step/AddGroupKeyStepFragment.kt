@@ -95,13 +95,10 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                 AddKeyStepEvent.OpenRecoveryQuestion -> handleOpenRecoveryQuestion()
                 AddKeyStepEvent.OpenCreateWallet -> handleOpenCreateWallet()
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
-                AddKeyStepEvent.OpenInheritanceSetup -> handleOpenInheritanceSetup()
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
                 is AddKeyStepEvent.OpenRegisterColdCard -> handleOpenRegisterColdcard(
                     event.walletId,
                 )
-
-                AddKeyStepEvent.SetupInheritanceSetupDone -> requireActivity().finish()
             }
         }
     }
@@ -127,18 +124,6 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                 walletId,
             )
         )
-    }
-
-    private fun handleOpenInheritanceSetup() {
-        val walletId = viewModel.activeWalletId()
-        if (walletId.isNotEmpty()) {
-            nunchukNavigator.openInheritancePlanningScreen(
-                walletId = walletId,
-                activityContext = requireContext(),
-                flowInfo = InheritancePlanFlow.SETUP,
-                isOpenFromWizard = true
-            )
-        }
     }
 
     private fun handleOpenCreateWallet() {
@@ -172,17 +157,13 @@ fun AddKeyStepScreen(viewModel: AddGroupKeyStepViewModel) {
     val isCreateWalletDone by viewModel.isCreateWalletDone.collectAsStateWithLifecycle()
     val isRegisterAirgap by viewModel.isRegisterAirgap.collectAsStateWithLifecycle()
     val isRegisterColdcard by viewModel.isRegisterColdcard.collectAsStateWithLifecycle()
-    val isSetupInheritanceDone by viewModel.isSetupInheritanceDone.collectAsStateWithLifecycle()
     val groupRemainTime by viewModel.groupRemainTime.collectAsStateWithLifecycle()
-    val isRequireInheritance by viewModel.isRequireInheritance.collectAsStateWithLifecycle()
 
     AddKeyStepContent(
         isConfigKeyDone = isConfigKeyDone,
         isSetupRecoverKeyDone = isSetupRecoverKeyDone,
         isCreateWalletDone = isCreateWalletDone && isRegisterAirgap && isRegisterColdcard,
         isShowMoreOption = isCreateWalletDone.not(),
-        isSetupInheritanceDone = isSetupInheritanceDone,
-        isRequireInheritance = isRequireInheritance,
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
         onContinueClicked = viewModel::onContinueClicked,
@@ -195,9 +176,7 @@ fun AddKeyStepContent(
     isConfigKeyDone: Boolean = false,
     isSetupRecoverKeyDone: Boolean = false,
     isCreateWalletDone: Boolean = false,
-    isSetupInheritanceDone: Boolean = false,
     isShowMoreOption: Boolean = false,
-    isRequireInheritance: Boolean = true,
     groupRemainTime: IntArray = IntArray(4),
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
@@ -263,15 +242,6 @@ fun AddKeyStepContent(
                 isCreateWalletDone,
                 isConfigKeyDone && isSetupRecoverKeyDone && isCreateWalletDone.not()
             )
-            if (isRequireInheritance) {
-                StepWithEstTime(
-                    4,
-                    stringResource(R.string.nc_set_up_inheritance_plan),
-                    groupRemainTime[3],
-                    isSetupInheritanceDone,
-                    isCreateWalletDone
-                )
-            }
             Spacer(modifier = Modifier.weight(1.0f))
             NcPrimaryDarkButton(
                 modifier = Modifier
