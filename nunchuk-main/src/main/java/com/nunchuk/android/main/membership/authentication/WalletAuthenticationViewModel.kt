@@ -47,6 +47,7 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.byzantine.FinalizeDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.UpdateGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
@@ -82,6 +83,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getDummyTransactionSignatureUseCase: GetDummyTransactionSignatureUseCase,
     private val getGroupDummyTransactionUseCase: GetGroupDummyTransactionUseCase,
     private val updateGroupDummyTransactionUseCase: UpdateGroupDummyTransactionUseCase,
+    private val finalizeDummyTransactionUseCase: FinalizeDummyTransactionUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -356,6 +358,25 @@ class WalletAuthenticationViewModel @Inject constructor(
         GlobalResultKey.EXTRA_DUMMY_TX_TYPE to _state.value.dummyTransactionType,
         GlobalResultKey.EXTRA_HEALTH_CHECK_XFP to _state.value.enabledSigners.firstOrNull()
     )
+
+    fun finalizeDummyTransaction() {
+        viewModelScope.launch {
+            _event.emit(WalletAuthenticationEvent.Loading(true))
+            finalizeDummyTransactionUseCase(
+                FinalizeDummyTransactionUseCase.Params(
+                    groupId = args.groupId.orEmpty(),
+                    walletId = args.walletId,
+                    dummyTransactionId = args.dummyTransactionId.orEmpty()
+                )
+            ).onSuccess {
+                _event.emit(WalletAuthenticationEvent.Loading(false))
+                _event.emit(WalletAuthenticationEvent.FinalizeDummyTxSuccess)
+            }.onFailure {
+                _event.emit(WalletAuthenticationEvent.Loading(false))
+                _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
 
     private fun isValidSigner(type: SignerType, authenticationType: String): Boolean {
         if (authenticationType == VerificationType.SIGN_DUMMY_TX && type == SignerType.AIRGAP) return true

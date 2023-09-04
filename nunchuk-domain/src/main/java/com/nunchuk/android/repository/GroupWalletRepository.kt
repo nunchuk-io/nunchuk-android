@@ -11,5 +11,5 @@ interface GroupWalletRepository {
     suspend fun syncGroupDraftWallet(groupId: String): DraftWallet
     suspend fun getWalletHealthStatus(groupId: String, walletId: String): List<KeyHealthStatus>
     suspend fun requestHealthCheck(groupId: String, walletId: String, xfp: String)
-    suspend fun healthCheck(groupId: String, walletId: String, xfp: String): DummyTransactionPayload
+    suspend fun healthCheck(groupId: String, walletId: String, xfp: String, draft: Boolean): DummyTransactionPayload
 }

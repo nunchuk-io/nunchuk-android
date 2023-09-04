@@ -30,7 +30,6 @@ import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.byzantine.RequestHealthCheckUseCase
-import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
 import com.nunchuk.android.usecase.membership.DismissAlertUseCase
 import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
 import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
@@ -366,9 +365,10 @@ class GroupDashboardViewModel @Inject constructor(
             _event.emit(GroupDashboardEvent.Loading(true))
             keyHealthCheckUseCase(
                 KeyHealthCheckUseCase.Params(
-                    args.groupId,
-                    walletId.value.orEmpty(),
-                    signerModel.fingerPrint,
+                    groupId = args.groupId,
+                    walletId = walletId.value.orEmpty(),
+                    xfp = signerModel.fingerPrint,
+                    draft = true
                 )
             ).onSuccess {
                 _event.emit(GroupDashboardEvent.GetHealthCheckPayload(it))

@@ -55,9 +55,11 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivityArgs
+import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.Amount
 
@@ -75,17 +77,33 @@ class DummyTransactionIntroFragment : Fragment() {
 
             setContent {
                 val uiState by activityViewModel.state.collectAsStateWithLifecycle()
+                val isGroup = !args.groupId.isNullOrEmpty()
                 DummyTransactionIntroContent(
-                    isGroup = !args.groupId.isNullOrEmpty(),
+                    isGroup = isGroup,
                     pendingSignature = uiState.pendingSignature,
                     onContinueClicked = {
-                        findNavController().navigate(
-                            DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
-                        )
+                        if (isGroup) {
+                            activityViewModel.finalizeDummyTransaction()
+                        } else {
+                            findNavController().navigate(
+                                DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
+                            )
+                        }
                     }
                 ) {
                     requireActivity().finish()
                 }
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(activityViewModel.event) {
+            if (it is WalletAuthenticationEvent.FinalizeDummyTxSuccess) {
+                findNavController().navigate(
+                    DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
+                )
             }
         }
     }

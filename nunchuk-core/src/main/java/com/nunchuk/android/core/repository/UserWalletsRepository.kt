@@ -315,6 +315,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         token: String,
         securityQuestionToken: String,
         body: String,
+        draft: Boolean,
     ): String {
         val headers = mutableMapOf(VERIFY_TOKEN to token)
         if (securityQuestionToken.isNotEmpty()) {
@@ -330,7 +331,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             keyId = keyIdOrXfp,
             derivationPath = derivationPath,
             groupId = groupId,
-            body = gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
+            body = gson.fromJson(body, KeyPolicyUpdateRequest::class.java),
+            draft = draft
         )
         return response.data.dummyTransaction?.id.orEmpty()
     }
@@ -2024,6 +2026,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
         }
         return results.any { it.isSuccess }
+    }
+
+    override suspend fun finalizeDummyTransaction(
+        groupId: String,
+        walletId: String,
+        dummyTransactionId: String
+    ) {
+        val response = userWalletApiManager.groupWalletApi.finalizeDummyTransaction(
+            groupId, walletId, dummyTransactionId
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
     }
 
     companion object {

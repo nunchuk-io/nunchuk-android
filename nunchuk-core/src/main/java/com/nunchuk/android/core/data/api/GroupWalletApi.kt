@@ -53,6 +53,7 @@ internal interface GroupWalletApi {
         @Path("key_id_or_xfp") keyId: String,
         @Path("group_id") groupId: String,
         @Query("derivation_path") derivationPath: String,
+        @Query("draft") draft: Boolean = false,
         @Body body: KeyPolicyUpdateRequest,
     ): Data<CreateServerKeyResponse>
 
@@ -356,6 +357,7 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
+        @Query("draft") draft: Boolean,
         @Body request: HealthCheckRequest
     ): Data<DummyTransactionResponse>
 
@@ -379,4 +381,11 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Query("offset") offset: Int
     ): Data<TransactionsResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}/finalize")
+    suspend fun finalizeDummyTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<DummyTransactionResponse>
 }

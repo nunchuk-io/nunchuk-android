@@ -235,7 +235,8 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                                 securityQuestionToken = "",
                                 token = args.token,
                                 groupId = args.groupId,
-                                derivationPath = signer.derivationPath
+                                derivationPath = signer.derivationPath,
+                                draft = true
                             )
                         ).onSuccess { transactionId ->
                             _state.update {

@@ -86,7 +86,7 @@ class CheckSignMessageFragment : Fragment() {
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -135,8 +135,10 @@ class CheckSignMessageFragment : Fragment() {
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> Unit
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError("Please use the desktop app to sign with this key")
-                        is WalletAuthenticationEvent.Loading -> Unit
-                        is WalletAuthenticationEvent.ShowError -> Unit
+                        is WalletAuthenticationEvent.Loading,
+                        is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
+                        is WalletAuthenticationEvent.ShowError,
+                        -> Unit
                     }
                 }
         }
@@ -174,7 +176,7 @@ class CheckSignMessageFragment : Fragment() {
 
 @Composable
 private fun CheckSignMessageScreen(
-    viewModel: WalletAuthenticationViewModel = viewModel()
+    viewModel: WalletAuthenticationViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 

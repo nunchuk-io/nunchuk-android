@@ -37,7 +37,8 @@ class UpdateGroupServerKeysUseCase @Inject constructor(
             token = parameters.token,
             securityQuestionToken = parameters.securityQuestionToken,
             body = parameters.body,
-            derivationPath = parameters.derivationPath
+            derivationPath = parameters.derivationPath,
+            draft = parameters.draft
         )
     }
 
@@ -49,5 +50,6 @@ class UpdateGroupServerKeysUseCase @Inject constructor(
         val signatures: Map<String, String> = emptyMap(),
         val token: String,
         val securityQuestionToken: String = "",
+        val draft: Boolean = false,
     )
 }

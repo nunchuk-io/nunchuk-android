@@ -16,7 +16,8 @@ class KeyHealthCheckUseCase @Inject constructor(
         return repository.healthCheck(
             groupId = parameters.groupId,
             walletId = parameters.walletId,
-            xfp = parameters.xfp
+            xfp = parameters.xfp,
+            draft = parameters.draft
         )
     }
 
@@ -24,5 +25,6 @@ class KeyHealthCheckUseCase @Inject constructor(
         val groupId: String,
         val walletId: String,
         val xfp: String,
+        val draft: Boolean = false
     )
 }

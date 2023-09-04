@@ -84,6 +84,7 @@ interface PremiumWalletRepository {
         token: String,
         securityQuestionToken: String,
         body: String,
+        draft: Boolean
     ): String
 
     suspend fun createSecurityQuestion(question: String): SecurityQuestion
@@ -376,4 +377,10 @@ interface PremiumWalletRepository {
     ): SeverWallet
 
     suspend fun syncDeletedWallet(): Boolean
+
+    suspend fun finalizeDummyTransaction(
+        groupId: String,
+        walletId: String,
+        dummyTransactionId: String,
+    )
 }

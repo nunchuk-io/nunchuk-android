@@ -41,6 +41,7 @@ sealed class WalletAuthenticationEvent {
     object ShowAirgapOption : WalletAuthenticationEvent()
     object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
     object CanNotSignDummyTx : WalletAuthenticationEvent()
+    object FinalizeDummyTxSuccess : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(

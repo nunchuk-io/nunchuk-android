@@ -236,13 +236,15 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     override suspend fun healthCheck(
         groupId: String,
         walletId: String,
-        xfp: String
+        xfp: String,
+        draft: Boolean
     ): DummyTransactionPayload {
         val response = userWalletApiManager.groupWalletApi.healthCheck(
             groupId = groupId,
             walletId = walletId,
             xfp = xfp,
-            HealthCheckRequest(nonce = getNonce())
+            draft = draft,
+            request = HealthCheckRequest(nonce = getNonce())
         )
         return response.data.dummyTransaction?.toDomainModel() ?: throw NullPointerException("dummyTransaction null")
     }

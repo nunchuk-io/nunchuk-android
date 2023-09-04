@@ -48,9 +48,10 @@ class ClaimKeyViewModel @Inject constructor(
             _event.emit(ClaimKeyEvent.Loading(true))
             keyHealthCheckUseCase(
                 KeyHealthCheckUseCase.Params(
-                    args.groupId,
-                    args.walletId,
-                    signerModel.fingerPrint,
+                    groupId = args.groupId,
+                    walletId = args.walletId,
+                    xfp = signerModel.fingerPrint,
+                    draft = true
                 )
             ).onSuccess {
                 _event.emit(ClaimKeyEvent.GetHealthCheckPayload(it))

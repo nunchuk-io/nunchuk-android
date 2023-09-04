@@ -170,6 +170,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                         is WalletAuthenticationEvent.Loading,
+                        is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
                         is WalletAuthenticationEvent.ShowError -> Unit
                     }
                 }
