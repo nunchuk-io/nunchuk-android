@@ -19,11 +19,13 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
-import androidx.core.app.NotificationCompat.getGroup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.byzantine.ParseUpdateGroupKeyPayloadUseCase
-import com.nunchuk.android.core.domain.membership.*
+import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
+import com.nunchuk.android.core.domain.membership.CancelInheritanceUseCase
+import com.nunchuk.android.core.domain.membership.CancelInheritanceUserDataUseCase
+import com.nunchuk.android.core.domain.membership.CreateOrUpdateInheritanceUseCase
+import com.nunchuk.android.core.domain.membership.GetInheritanceUserDataUseCase
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
@@ -32,13 +34,17 @@ import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -120,7 +126,12 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             )
         )
         val resultUserData = if (isCreateOrUpdateFlow.not()) {
-            cancelInheritanceUserDataUseCase(CancelInheritanceUserDataUseCase.Param(walletId = walletId, groupId = param.groupId))
+            cancelInheritanceUserDataUseCase(
+                CancelInheritanceUserDataUseCase.Param(
+                    walletId = walletId,
+                    groupId = param.groupId
+                )
+            )
         } else {
             getInheritanceUserDataUseCase(
                 GetInheritanceUserDataUseCase.Param(
@@ -164,7 +175,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                                 userData = userData,
                                 securityQuestionToken = "",
                                 isUpdate = param.planFlow == InheritancePlanFlow.VIEW,
-                                plan = membershipStepManager.plan
+                                plan = membershipStepManager.plan,
+                                draft = true
                             )
                         ).onSuccess { transactionId ->
                             _state.update {
@@ -182,6 +194,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                                     dummyTransactionId = transactionId
                                 )
                             )
+                        }.onFailure {
+                            _event.emit(InheritanceReviewPlanEvent.ProcessFailure(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
                         }
                     } else {
                         cancelInheritanceUseCase(
@@ -190,9 +204,10 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                                 verifyToken = param.verifyToken,
                                 userData = userData,
                                 securityQuestionToken = "",
-                                walletId = walletId
+                                walletId = walletId,
+                                draft = true
                             )
-                        ).onSuccess {transactionId ->
+                        ).onSuccess { transactionId ->
                             _state.update {
                                 it.copy(
                                     dummyTransactionId = transactionId,
@@ -208,6 +223,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                                     dummyTransactionId = transactionId
                                 )
                             )
+                        }.onFailure {
+                            _event.emit(InheritanceReviewPlanEvent.ProcessFailure(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
                         }
                     }
                 }
@@ -270,7 +287,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 userData = state.userData.orEmpty(),
                 securityQuestionToken = securityQuestionToken,
                 isUpdate = isUpdate,
-                plan = membershipStepManager.plan
+                plan = membershipStepManager.plan,
+                draft = false
             )
         )
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
@@ -296,7 +314,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 verifyToken = param.verifyToken,
                 userData = state.userData.orEmpty(),
                 securityQuestionToken = securityQuestionToken,
-                walletId = state.walletId.orEmpty()
+                walletId = state.walletId.orEmpty(),
+                draft = false
             )
         )
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
@@ -309,7 +328,12 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     }
 
     fun markSetupInheritance() = viewModelScope.launch {
-        markSetupInheritanceUseCase(MarkSetupInheritanceUseCase.Param(walletId = param.walletId, isSetupInheritance = isCreateOrUpdateFlow()))
+        markSetupInheritanceUseCase(
+            MarkSetupInheritanceUseCase.Param(
+                walletId = param.walletId,
+                isSetupInheritance = isCreateOrUpdateFlow()
+            )
+        )
         _event.emit(InheritanceReviewPlanEvent.MarkSetupInheritance)
     }
 

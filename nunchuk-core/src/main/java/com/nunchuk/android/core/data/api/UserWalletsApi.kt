@@ -108,17 +108,21 @@ internal interface UserWalletsApi {
     @GET("/v1.1/user-wallets/inheritance")
     suspend fun getInheritance(
         @Query("wallet") wallet: String,
-        @Query("group_id") groupId: String? = null
+        @Query("group_id") groupId: String? = null,
     ): Data<InheritanceResponse>
 
     @POST("/v1.1/user-wallets/inheritance")
     suspend fun createInheritance(
-        @HeaderMap headers: Map<String, String>, @Body payload: CreateUpdateInheritancePlanRequest
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: CreateUpdateInheritancePlanRequest,
+        @Query("draft") draft: Boolean = false
     ): Data<InheritanceResponse>
 
     @PUT("/v1.1/user-wallets/inheritance")
     suspend fun updateInheritance(
-        @HeaderMap headers: Map<String, String>, @Body payload: CreateUpdateInheritancePlanRequest
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: CreateUpdateInheritancePlanRequest,
+        @Query("draft") draft: Boolean = false
     ): Data<InheritanceResponse>
 
     @POST("/v1.1/user-wallets/inheritance/calculate-required-signatures")
@@ -235,7 +239,9 @@ internal interface UserWalletsApi {
 
     @HTTP(method = "DELETE", path = "/v1.1/user-wallets/inheritance", hasBody = true)
     suspend fun inheritanceCancel(
-        @HeaderMap headers: Map<String, String>, @Body payload: InheritanceCancelRequest
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: InheritanceCancelRequest,
+        @Query("draft") draft: Boolean = false
     ): Data<DummyTransactionResponse>
 
     @POST("/v1.1/user-wallets/inheritance/check")

@@ -845,6 +845,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         securityQuestionToken: String,
         isUpdate: Boolean,
         plan: MembershipPlan,
+        draft: Boolean,
     ): String {
         val request = gson.fromJson(userData, CreateUpdateInheritancePlanRequest::class.java)
         val headers = mutableMapOf<String, String>()
@@ -854,8 +855,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
         val response = if (isUpdate) userWalletApiManager.walletApi.updateInheritance(
-            headers, request
-        ) else userWalletApiManager.walletApi.createInheritance(headers, request)
+            headers, request, draft
+        ) else userWalletApiManager.walletApi.createInheritance(headers, request, draft)
         if (response.isSuccess.not()) throw response.error
         if (request.body?.groupId == null) {
             response.data.inheritance?.walletLocalId?.also {
@@ -871,6 +872,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         userData: String,
         securityQuestionToken: String,
         walletId: String,
+        draft: Boolean,
     ): String {
         val request = gson.fromJson(userData, InheritanceCancelRequest::class.java)
         val headers = mutableMapOf<String, String>()
@@ -879,7 +881,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request)
+        val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request, draft)
         if (response.isSuccess && request.body?.groupId == null) {
             markSetupInheritance(walletId, false)
         }

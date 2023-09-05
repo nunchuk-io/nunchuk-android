@@ -255,7 +255,8 @@ interface PremiumWalletRepository {
         userData: String,
         securityQuestionToken: String,
         isUpdate: Boolean,
-        plan: MembershipPlan
+        plan: MembershipPlan,
+        draft: Boolean
     ): String
 
     suspend fun cancelInheritance(
@@ -263,7 +264,8 @@ interface PremiumWalletRepository {
         verifyToken: String,
         userData: String,
         securityQuestionToken: String,
-        walletId: String
+        walletId: String,
+        draft: Boolean
     ): String
 
     suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey

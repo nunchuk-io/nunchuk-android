@@ -43,7 +43,8 @@ class CancelInheritanceUseCase @Inject constructor(
             verifyToken = parameters.verifyToken,
             userData = parameters.userData,
             securityQuestionToken = parameters.securityQuestionToken,
-            walletId = parameters.walletId
+            walletId = parameters.walletId,
+            draft = parameters.draft
         )
     }
 
@@ -52,6 +53,7 @@ class CancelInheritanceUseCase @Inject constructor(
         val userData: String,
         val verifyToken: String,
         val securityQuestionToken: String,
-        val walletId: String
+        val walletId: String,
+        val draft: Boolean,
     )
 }
