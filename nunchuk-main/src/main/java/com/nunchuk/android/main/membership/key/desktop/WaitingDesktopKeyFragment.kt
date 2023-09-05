@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.key.desktop
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,8 +27,10 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
     private val args: WaitingDesktopKeyFragmentArgs by navArgs()
     private val viewModel: WaitingDesktopKeyViewModel by viewModels()
 
+    private var noDeviceDialog: Dialog? = null
+
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -65,13 +68,14 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                     val isCompleted = state.isCompleted
                     if (isCompleted != null) {
                         if (isCompleted) {
+                            noDeviceDialog?.dismiss()
                             findNavController().navigate(
                                 WaitingDesktopKeyFragmentDirections.actionWaitingDesktopKeyFragmentToRequestAddKeySuccessFragment(
                                     args.signerTag
                                 )
                             )
                         } else {
-                            NCInfoDialog(requireActivity()).showDialog(
+                            noDeviceDialog = NCInfoDialog(requireActivity()).showDialog(
                                 message = getString(
                                     R.string.nc_no_device_have_been_detected,
                                     args.signerTag.toString(requireContext())
