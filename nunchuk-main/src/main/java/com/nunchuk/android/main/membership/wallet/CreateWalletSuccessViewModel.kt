@@ -46,7 +46,7 @@ class CreateWalletSuccessViewModel @Inject constructor(
     fun loadGroup(id: String) {
         viewModelScope.launch {
             getGroupUseCase(id).onSuccess { group ->
-                _state.update { it.copy(isSingleSetup = group.isSinglePersonSetup()) }
+                _state.update { it.copy(isSingleSetup = group.isSinglePersonSetup(), allowInheritance = group.walletConfig.allowInheritance) }
             }
         }
     }
@@ -60,7 +60,7 @@ class CreateWalletSuccessViewModel @Inject constructor(
     val plan = membershipStepManager.plan
 }
 
-data class CreateWalletSuccessUiState(val isSingleSetup: Boolean = false)
+data class CreateWalletSuccessUiState(val isSingleSetup: Boolean = false, val allowInheritance: Boolean = false)
 
 sealed class CreateWalletSuccessEvent {
     object ContinueStepEvent : CreateWalletSuccessEvent()

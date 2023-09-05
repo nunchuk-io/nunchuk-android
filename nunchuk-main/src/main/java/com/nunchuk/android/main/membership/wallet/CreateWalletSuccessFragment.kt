@@ -51,6 +51,7 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
@@ -97,6 +98,16 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                 .setPopUpTo(findNavController().graph.startDestinationId, true)
                                 .build()
                         )
+                    } else if (viewModel.state.value.allowInheritance) {
+                        if (args.walletId.isNotEmpty()) {
+                            nunchukNavigator.openInheritancePlanningScreen(
+                                walletId = args.walletId,
+                                activityContext = requireContext(),
+                                flowInfo = InheritancePlanFlow.SETUP,
+                                isOpenFromWizard = true
+                            )
+                        }
+                        requireActivity().finish()
                     } else {
                         navigator.openWalletDetailsScreen(
                             requireActivity(),
@@ -168,6 +179,8 @@ fun CreateWalletSuccessScreenContent(
                     Text(
                         text = if (plan == MembershipPlan.IRON_HAND)
                             stringResource(id = R.string.nc_take_me_my_wallet)
+                        else if (uiState.allowInheritance)
+                            stringResource(id = R.string.nc_text_done)
                         else stringResource(id = R.string.nc_text_continue)
                     )
                 }
