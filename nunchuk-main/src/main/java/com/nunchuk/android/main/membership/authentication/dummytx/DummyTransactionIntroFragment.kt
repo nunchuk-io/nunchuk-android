@@ -135,7 +135,7 @@ fun DummyTransactionIntroContent(
                     text = stringResource(
                         R.string.nc_dummy_transaction_desc,
                         Amount(value = 10000).getCurrencyAmount(),
-                        if (isGroup) stringResource(id = R.string.nc_dummy_transaction_key_holder_desc) else ""
+                        if (isGroup && pendingSignature > 1) stringResource(id = R.string.nc_dummy_transaction_key_holder_desc) else ""
                     )
                 )
                 Spacer(modifier = Modifier.weight(1.0f))

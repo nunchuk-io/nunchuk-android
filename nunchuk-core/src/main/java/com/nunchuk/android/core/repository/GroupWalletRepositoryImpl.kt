@@ -117,6 +117,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
                     membershipRepository.saveStepInfo(
                         MembershipStepInfo(
+                            id = info?.id ?: 0L,
                             step = step,
                             masterSignerId = key.xfp.orEmpty(),
                             plan = MembershipPlan.BYZANTINE,
