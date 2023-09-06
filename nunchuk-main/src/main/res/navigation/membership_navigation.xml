@@ -225,6 +225,11 @@
         <argument
             android:name="airgap_index"
             app:argType="integer" />
+
+        <argument
+            android:name="is_single_register"
+            android:defaultValue="false"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_registerWalletToColdcardFragment_self"
             app:destination="@id/registerWalletToColdcardFragment"

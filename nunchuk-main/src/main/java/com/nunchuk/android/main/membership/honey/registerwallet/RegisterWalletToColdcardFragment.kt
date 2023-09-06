@@ -142,7 +142,7 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
 
     private fun openNextScreen() {
         viewModel.setRegisterColdcardSuccess(args.walletId)
-        if (args.index > 1) {
+        if (args.index > 1 && !args.isSingleRegister) {
             findNavController().navigate(
                 RegisterWalletToColdcardFragmentDirections.actionRegisterWalletToColdcardFragmentSelf(
                     args.walletId,

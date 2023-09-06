@@ -42,6 +42,7 @@ sealed class WalletAuthenticationEvent {
     object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
     object CanNotSignDummyTx : WalletAuthenticationEvent()
     object FinalizeDummyTxSuccess : WalletAuthenticationEvent()
+    data class SignFailed(val singleSigner: SingleSigner,) : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(

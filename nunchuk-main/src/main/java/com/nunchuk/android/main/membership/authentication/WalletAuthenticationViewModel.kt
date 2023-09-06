@@ -318,6 +318,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 }
             }
         } else {
+            _event.emit(WalletAuthenticationEvent.SignFailed(singleSigner))
             _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }

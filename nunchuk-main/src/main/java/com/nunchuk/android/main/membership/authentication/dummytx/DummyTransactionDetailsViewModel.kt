@@ -33,7 +33,11 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -104,6 +108,8 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
                 }
         }
     }
+
+
 
     fun handleViewMoreEvent() {
         _state.update { it.copy(viewMore = it.viewMore.not()) }

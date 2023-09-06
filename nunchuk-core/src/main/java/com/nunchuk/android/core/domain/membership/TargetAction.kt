@@ -11,5 +11,6 @@ enum class TargetAction {
     UPDATE_SERVER_KEY,
     DELETE_WALLET,
     PROTECT_WALLET,
-    EDIT_GROUP_MEMBERS
+    EDIT_GROUP_MEMBERS,
+    CLAIM_KEY
 }

@@ -46,6 +46,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.openExternalLink
@@ -118,7 +119,8 @@ class ClaimKeyFragment : Fragment() {
                                 type = VerificationType.SIGN_DUMMY_TX,
                                 groupId = args.groupId,
                                 dummyTransactionId = event.payload.dummyTransactionId,
-                                launcher = signLauncher
+                                launcher = signLauncher,
+                                action = TargetAction.CLAIM_KEY.name
                             )
                         }
 

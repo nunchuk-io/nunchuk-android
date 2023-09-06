@@ -111,6 +111,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         const val EXTRA_ADD_ON_HONEY_BADGER = "add_on_honey_badger"
         private const val EXTRA_INDEX = "index"
         private const val EXTRA_AIRGAP_INDEX = "airgap_index"
+        private const val EXTRA_IS_SINGLE_REGISTER = "is_single_register"
 
         fun buildIntent(
             activity: Activity,
@@ -131,6 +132,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             groupId: String,
             index: Int,
             airgapIndex: Int,
+            singleRegister: Boolean = false,
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, MembershipStage.REGISTER_WALLET)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
@@ -138,6 +140,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             putExtra(EXTRA_ADD_ON_HONEY_BADGER, true)
             putExtra(EXTRA_INDEX, index)
             putExtra(EXTRA_AIRGAP_INDEX, airgapIndex)
+            putExtra(EXTRA_IS_SINGLE_REGISTER, singleRegister)
         }
     }
 }

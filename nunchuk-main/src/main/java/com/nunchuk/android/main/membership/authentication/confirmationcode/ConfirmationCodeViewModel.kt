@@ -43,7 +43,7 @@ class ConfirmationCodeViewModel @Inject constructor(
             _event.emit(ConfirmChangeEvent.Loading(true))
             val result = requestConfirmationCodeUseCase(
                 RequestConfirmationCodeUseCase.Param(
-                    action = args.action,
+                    action = args.action.orEmpty(),
                     userData = args.userData
                 )
             )

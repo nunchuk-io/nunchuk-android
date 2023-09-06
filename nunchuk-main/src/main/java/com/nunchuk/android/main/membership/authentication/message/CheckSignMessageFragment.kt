@@ -138,6 +138,7 @@ class CheckSignMessageFragment : Fragment() {
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
                         is WalletAuthenticationEvent.ShowError,
+                        is WalletAuthenticationEvent.SignFailed,
                         -> Unit
                     }
                 }
