@@ -19,22 +19,31 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.repository.PremiumWalletRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface DeleteRemoteSignerUseCase {
-    suspend fun execute(masterFingerprint: String, derivationPath: String): Result<Unit>
-}
-
-internal class DeleteRemoteSignerUseCaseImpl @Inject constructor(
+class DeleteRemoteSignerUseCase @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk,
     private val membershipRepository: MembershipRepository,
-) : BaseUseCase(), DeleteRemoteSignerUseCase {
+    private val premiumWalletRepository: PremiumWalletRepository,
+) : UseCase<DeleteRemoteSignerUseCase.Params, Unit>(ioDispatcher) {
 
-    override suspend fun execute(masterFingerprint: String, derivationPath: String) = exe {
-        nativeSdk.deleteRemoteSigner(masterFingerprint = masterFingerprint, derivationPath = derivationPath)
-        membershipRepository.deleteStepBySignerId(masterFingerprint)
+    override suspend fun execute(parameters: Params) {
+        nativeSdk.deleteRemoteSigner(
+            masterFingerprint = parameters.masterFingerprint,
+            derivationPath = parameters.masterFingerprint
+        )
+        membershipRepository.deleteStepBySignerId(parameters.masterFingerprint)
+        premiumWalletRepository.deleteKey(parameters.masterFingerprint)
     }
+
+    data class Params(
+        val masterFingerprint: String,
+        val derivationPath: String,
+    )
 }

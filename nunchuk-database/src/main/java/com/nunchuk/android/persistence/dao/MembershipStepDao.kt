@@ -48,8 +48,8 @@ interface MembershipStepDao : BaseDao<MembershipStepEntity> {
         groupId: String = ""
     ): MembershipStepEntity?
 
-    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND master_signer_id = :masterSignerId AND group_id = :groupId")
-    suspend fun deleteByMasterSignerId(chatId: String, chain: Chain, masterSignerId: String, groupId: String = "")
+    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND master_signer_id = :masterSignerId")
+    suspend fun deleteByMasterSignerId(chatId: String, chain: Chain, masterSignerId: String)
 
     @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND group_id = :groupId")
     suspend fun deleteStepByChatId(chain: Chain, chatId: String, groupId: String = "")

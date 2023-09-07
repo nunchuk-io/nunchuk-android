@@ -90,7 +90,7 @@ internal class SignerInfoViewModel @Inject constructor(
     private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
     private val updateServerKeyNameUseCase: UpdateServerKeyNameUseCase,
     savedStateHandle: SavedStateHandle,
-    getAssistedKeysUseCase: GetAssistedKeysUseCase
+    getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
@@ -99,7 +99,8 @@ internal class SignerInfoViewModel @Inject constructor(
         .map { it.getOrDefault(emptySet()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
-    private val args: SignerInfoFragmentArgs = SignerInfoFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: SignerInfoFragmentArgs =
+        SignerInfoFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     init {
         viewModelScope.launch {
@@ -146,13 +147,14 @@ internal class SignerInfoViewModel @Inject constructor(
                         }
                 }
             } else {
-                state.remoteSigner?.let {signer ->
+                state.remoteSigner?.let { signer ->
                     when (val result =
                         updateRemoteSignerUseCase.execute(signer = signer.copy(name = updateSignerName))) {
                         is Success -> {
                             event(UpdateNameSuccessEvent(updateSignerName))
                             updateServerKeyName(signer.masterFingerprint, updateSignerName)
                         }
+
                         is Error -> event(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
                     }
                 }
@@ -173,21 +175,22 @@ internal class SignerInfoViewModel @Inject constructor(
             val state = getState()
             if (shouldLoadMasterSigner(args.signerType)) {
                 state.masterSigner?.let {
-                    when (val result = deleteMasterSignerUseCase.execute(
-                        masterSignerId = it.id
-                    )) {
-                        is Success -> event(RemoveSignerCompletedEvent)
-                        is Error -> event(RemoveSignerErrorEvent(result.exception.message.orUnknownError()))
-                    }
+                    deleteMasterSignerUseCase(it.id)
+                        .onSuccess {
+                            event(RemoveSignerCompletedEvent)
+                        }.onFailure { exception ->
+                            event(RemoveSignerErrorEvent(exception.message.orUnknownError()))
+                        }
                 }
             } else {
                 state.remoteSigner?.let {
-                    when (val result = deleteRemoteSignerUseCase.execute(
+                    deleteRemoteSignerUseCase(DeleteRemoteSignerUseCase.Params(
                         masterFingerprint = it.masterFingerprint,
                         derivationPath = it.derivationPath
-                    )) {
-                        is Success -> event(RemoveSignerCompletedEvent)
-                        is Error -> event(RemoveSignerErrorEvent(result.exception.message.orUnknownError()))
+                    )).onSuccess {
+                        event(RemoveSignerCompletedEvent)
+                    }.onFailure { exception ->
+                        event(RemoveSignerErrorEvent(exception.message.orUnknownError()))
                     }
                 }
             }

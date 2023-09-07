@@ -385,4 +385,6 @@ interface PremiumWalletRepository {
         walletId: String,
         dummyTransactionId: String,
     )
+
+    suspend fun deleteKey(xfp: String)
 }

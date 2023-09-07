@@ -333,4 +333,9 @@ internal interface UserWalletsApi {
         @Path("code_id") codeId: String,
         @Body payload: ConfirmationCodeVerifyRequest
     ): Data<ConfirmationCodeVerifyResponse>
+
+    @DELETE("/v1.1/user-wallets/wallet-keys/{xfp}")
+    suspend fun deleteKey(
+        @Path("xfp") xfp: String,
+    ): Data<Unit>
 }

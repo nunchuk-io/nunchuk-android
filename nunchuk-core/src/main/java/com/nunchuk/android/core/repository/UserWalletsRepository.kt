@@ -1908,7 +1908,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 groupId = groupId
             )
         )
-        membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
+        membershipStepDao.deleteStepByGroupId(groupId)
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 
@@ -2038,6 +2038,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.groupWalletApi.finalizeDummyTransaction(
             groupId, walletId, dummyTransactionId
         )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun deleteKey(xfp: String) {
+        val response = userWalletApiManager.walletApi.deleteKey(xfp)
         if (response.isSuccess.not()) {
             throw response.error
         }

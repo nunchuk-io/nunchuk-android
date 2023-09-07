@@ -213,6 +213,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     }
 
     private fun handleSignedFailed(singleSigner: SingleSigner) {
+        // TODO Hai
         val activityArgs: WalletAuthenticationActivityArgs by requireActivity().navArgs()
         if (activityArgs.action == TargetAction.CLAIM_KEY.name
             && (singleSigner.type == SignerType.COLDCARD_NFC
