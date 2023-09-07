@@ -81,7 +81,6 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     private val viewModel: DummyTransactionDetailsViewModel by viewModels()
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
-    private val activityArgs: WalletAuthenticationActivityArgs by requireActivity().navArgs()
     private val controller: IntentSharingController by lazy {
         IntentSharingController.from(
             requireActivity()
@@ -214,7 +213,11 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     }
 
     private fun handleSignedFailed(singleSigner: SingleSigner) {
-        if (activityArgs.action == TargetAction.CLAIM_KEY.name) {
+        val activityArgs: WalletAuthenticationActivityArgs by requireActivity().navArgs()
+        if (activityArgs.action == TargetAction.CLAIM_KEY.name
+            && (singleSigner.type == SignerType.COLDCARD_NFC
+                    || singleSigner.type == SignerType.AIRGAP)
+        ) {
             NCWarningDialog(requireActivity())
                 .showDialog(
                     title = getString(R.string.nc_text_info),

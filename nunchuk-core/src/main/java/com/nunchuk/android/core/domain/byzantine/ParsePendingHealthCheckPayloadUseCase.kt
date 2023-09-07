@@ -15,7 +15,7 @@ class ParsePendingHealthCheckPayloadUseCase @Inject constructor(
     private val gson: Gson,
 ) : UseCase<DummyTransaction, PendingHealthCheck>(dispatcher) {
     override suspend fun execute(parameters: DummyTransaction): PendingHealthCheck {
-        if (parameters.dummyTransactionType != DummyTransactionType.HEALTH_CHECK_PENDING) throw IllegalArgumentException(
+        if (parameters.dummyTransactionType != DummyTransactionType.HEALTH_CHECK_PENDING && parameters.dummyTransactionType != DummyTransactionType.HEALTH_CHECK_REQUEST) throw IllegalArgumentException(
             "Can not parse ${parameters.dummyTransactionType}"
         )
         val payload = gson.fromJson(parameters.payload, PendingHealthCheckPayload::class.java)

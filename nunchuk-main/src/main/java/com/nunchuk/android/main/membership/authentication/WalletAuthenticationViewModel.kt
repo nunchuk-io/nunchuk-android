@@ -84,7 +84,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getGroupDummyTransactionUseCase: GetGroupDummyTransactionUseCase,
     private val updateGroupDummyTransactionUseCase: UpdateGroupDummyTransactionUseCase,
     private val finalizeDummyTransactionUseCase: FinalizeDummyTransactionUseCase,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -114,9 +114,14 @@ class WalletAuthenticationViewModel @Inject constructor(
                 ).onSuccess { dummyTransaction ->
                     dataToSign.value = dummyTransaction.psbt
                     _state.update {
-                        it.copy(pendingSignature = dummyTransaction.pendingSignature, dummyTransactionType = dummyTransaction.dummyTransactionType)
+                        it.copy(
+                            pendingSignature = dummyTransaction.pendingSignature,
+                            dummyTransactionType = dummyTransaction.dummyTransactionType
+                        )
                     }
-                    if (dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING) {
+                    if (dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING
+                        || dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_REQUEST
+                    ) {
                         parsePendingHealthCheckPayloadUseCase(dummyTransaction)
                             .onSuccess { payload ->
                                 _state.update {
@@ -234,7 +239,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun handleTapSignerSignCheckMessage(
         singleSigner: SingleSigner,
         ncfScanInfo: NfcScanInfo?,
-        cvc: String
+        cvc: String,
     ) = viewModelScope.launch {
         _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = false))
         val result = checkSignMessageTapsignerUseCase(
@@ -283,7 +288,7 @@ class WalletAuthenticationViewModel @Inject constructor(
 
     private suspend fun handleSignatureResult(
         result: Result<String>,
-        singleSigner: SingleSigner
+        singleSigner: SingleSigner,
     ) {
         if (result.isSuccess) {
             val signatures = _state.value.signatures.toMutableMap()

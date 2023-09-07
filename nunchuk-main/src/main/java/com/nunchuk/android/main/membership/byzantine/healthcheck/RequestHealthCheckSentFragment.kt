@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -53,22 +55,33 @@ private fun RequestHealthCheckSentContent(
     onGotItClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(title = "")
-        }, bottomBar = {
-            NcPrimaryDarkButton(
+        Scaffold(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .statusBarsPadding(),
+            topBar = {
+                NcTopAppBar(title = "")
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onGotItClicked
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_got_it))
+                }
+            },
+        ) { innerPadding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                onClick = onGotItClicked) {
-                Text(text = stringResource(id = R.string.nc_text_got_it))
-            }
-        }) { innerPadding ->
-            Column(modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)) {
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+            ) {
                 NcCircleImage(
-                    modifier = Modifier.padding(top = 8.dp).align(Alignment.CenterHorizontally),
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .align(Alignment.CenterHorizontally),
                     resId = R.drawable.ic_notifications,
                     iconSize = 60.dp,
                     size = 96.dp,
