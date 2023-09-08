@@ -2050,6 +2050,29 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun syncConfirmedTransactionNotes(groupId: String?, walletId: String) {
+        (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
+            val response = if (!groupId.isNullOrEmpty()) {
+                userWalletApiManager.groupWalletApi.getConfirmedAndRejectedTransactions(
+                    groupId,
+                    walletId,
+                    index
+                )
+            } else {
+                userWalletApiManager.walletApi.getConfirmedAndRejectedTransactions(walletId, index)
+            }
+            if (response.isSuccess.not()) throw response.error
+            response.data.notes.forEach { transition ->
+                if (!transition.note.isNullOrEmpty()) {
+                    nunchukNativeSdk.updateTransactionMemo(
+                        walletId, transition.transactionId.orEmpty(), transition.note
+                    )
+                }
+            }
+            if (response.data.notes.size < TRANSACTION_PAGE_COUNT) return
+        }
+    }
+
     companion object {
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"
         private const val WALLET_DELETED_STATUS = "DELETED"

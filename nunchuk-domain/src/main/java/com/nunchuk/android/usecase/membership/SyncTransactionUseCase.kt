@@ -33,6 +33,7 @@ class SyncTransactionUseCase @Inject constructor(
     override suspend fun execute(parameters: Params) {
         repository.syncTransaction(parameters.groupId, parameters.walletId)
         repository.clearTransactionEmergencyLockdown(parameters.groupId, parameters.walletId)
+        repository.syncConfirmedTransactionNotes(parameters.groupId, parameters.walletId)
     }
 
     data class Params(

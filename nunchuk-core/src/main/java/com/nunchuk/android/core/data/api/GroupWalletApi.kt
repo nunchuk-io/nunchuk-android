@@ -33,6 +33,7 @@ import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
+import com.nunchuk.android.core.data.model.membership.TransactionNoteResponse
 import com.nunchuk.android.core.data.model.membership.TransactionResponse
 import com.nunchuk.android.core.data.model.membership.TransactionsResponse
 import com.nunchuk.android.core.network.Data
@@ -388,4 +389,11 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("dummy_transaction_id") transactionId: String,
     ): Data<DummyTransactionResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/notes?limit=${TRANSACTION_PAGE_COUNT}&statuses=CONFIRMED,NETWORK_REJECTED")
+    suspend fun getConfirmedAndRejectedTransactions(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int
+    ): Data<TransactionNoteResponse>
 }

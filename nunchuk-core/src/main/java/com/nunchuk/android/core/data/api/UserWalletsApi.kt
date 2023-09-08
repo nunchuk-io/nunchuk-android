@@ -338,4 +338,10 @@ internal interface UserWalletsApi {
     suspend fun deleteKey(
         @Path("xfp") xfp: String,
     ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/notes?limit=${TRANSACTION_PAGE_COUNT}&statuses=CONFIRMED,NETWORK_REJECTED")
+    suspend fun getConfirmedAndRejectedTransactions(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int
+    ): Data<TransactionNoteResponse>
 }

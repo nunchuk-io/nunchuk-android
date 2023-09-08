@@ -239,7 +239,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                     },
                     onNeutralClick = {
                         requireActivity().finish()
-                    }
+                    },
                 )
         }
     }

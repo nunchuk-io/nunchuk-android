@@ -387,4 +387,6 @@ interface PremiumWalletRepository {
     )
 
     suspend fun deleteKey(xfp: String)
+
+    suspend fun syncConfirmedTransactionNotes(groupId: String?, walletId: String)
 }
