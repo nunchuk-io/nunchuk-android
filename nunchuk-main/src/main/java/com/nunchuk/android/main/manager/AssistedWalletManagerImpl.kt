@@ -25,7 +25,7 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MembershipPlan
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -40,9 +40,10 @@ internal class AssistedWalletManagerImpl @Inject constructor(
         MembershipPlan.NONE
     )
 
-    private val _assistedWalletId = getAssistedWalletsFlowUseCase(Unit)
-        .map { if (plan.value != MembershipPlan.NONE) it.getOrElse { emptyList() } else emptyList() }
-        .stateIn(applicationScope, SharingStarted.Eagerly, emptyList())
+    private val _assistedWalletId =
+        getAssistedWalletsFlowUseCase(Unit).combine(plan) { wallets, plan ->
+            if (plan != MembershipPlan.NONE) wallets.getOrElse { emptyList() } else emptyList()
+        }.stateIn(applicationScope, SharingStarted.Eagerly, emptyList())
 
     override fun isActiveAssistedWallet(walletId: String): Boolean {
         return _assistedWalletId.value.any { it.localId == walletId } && plan.value != MembershipPlan.NONE

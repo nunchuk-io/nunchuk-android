@@ -272,11 +272,13 @@ private fun CosigningGroupPolicyContent(
                         text = stringResource(R.string.nc_spending_limit),
                         style = NunchukTheme.typography.title
                     )
-                    Text(
-                        modifier = Modifier.clickable(onClick = onEditSpendingLimitClicked),
-                        text = stringResource(R.string.nc_edit),
-                        style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-                    )
+                    if (uiState.dummyTransactionId.isEmpty()) {
+                        Text(
+                            modifier = Modifier.clickable(onClick = onEditSpendingLimitClicked),
+                            text = stringResource(R.string.nc_edit),
+                            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                        )
+                    }
                 }
                 if (uiState.keyPolicy.isApplyAll && uiState.keyPolicy.spendingPolicies.isNotEmpty()) {
                     uiState.members.forEach {
@@ -319,11 +321,13 @@ private fun CosigningGroupPolicyContent(
                         text = stringResource(R.string.nc_co_signing_delay),
                         style = NunchukTheme.typography.title
                     )
-                    Text(
-                        modifier = Modifier.clickable(onClick = onEditSingingDelayClicked),
-                        text = stringResource(R.string.nc_edit),
-                        style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-                    )
+                    if (uiState.dummyTransactionId.isEmpty()) {
+                        Text(
+                            modifier = Modifier.clickable(onClick = onEditSingingDelayClicked),
+                            text = stringResource(R.string.nc_edit),
+                            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                        )
+                    }
                 }
                 Column(
                     modifier = Modifier
