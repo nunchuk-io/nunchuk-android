@@ -24,6 +24,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ServerTransaction(
+    val transactionId: String,
     val type: String = "",
     val broadcastTimeInMilis: Long = 0L,
     val spendingLimitMessage: String = "",

@@ -53,6 +53,7 @@ data class SpendingLimitReach(
 )
 
 internal fun TransactionServerDto.toServerTransaction() = ServerTransaction(
+    transactionId = transactionId.orEmpty(),
     type = type.orEmpty(),
     broadcastTimeInMilis = broadCastTimeMillis,
     spendingLimitMessage = spendingLimitReach?.message.orEmpty(),

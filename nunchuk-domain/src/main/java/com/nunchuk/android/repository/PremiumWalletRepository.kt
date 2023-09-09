@@ -121,6 +121,12 @@ interface PremiumWalletRepository {
         transactionId: String
     ): ExtendedTransaction
 
+    suspend fun getOnlyServerTransaction(
+        groupId: String?,
+        walletId: String,
+        transactionId: String
+    ): ServerTransaction
+
     suspend fun deleteServerTransaction(groupId: String?, walletId: String, transactionId: String)
     suspend fun getInheritance(walletId: String, groupId: String?): Inheritance
     suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean)

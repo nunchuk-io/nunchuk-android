@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.repository
 
+import android.util.LruCache
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.nunchuk.android.api.key.MembershipApi
@@ -176,6 +177,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val groupDao: GroupDao,
     private val groupWalletRepository: GroupWalletRepository,
     private val pushEventManager: PushEventManager,
+    private val serverTransactionCache: LruCache<String, ServerTransaction>,
     applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
     private val chain =
@@ -602,6 +604,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             transaction = result.first,
             serverTransaction = result.second?.toServerTransaction(),
         )
+    }
+
+    override suspend fun getOnlyServerTransaction(
+        groupId: String?,
+        walletId: String,
+        transactionId: String,
+    ): ServerTransaction {
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.getTransaction(groupId, walletId, transactionId)
+        } else {
+            userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
+        }
+        return response.data.transaction?.toServerTransaction() ?: throw NullPointerException("Transaction empty")
     }
 
     override suspend fun downloadBackup(
@@ -1240,6 +1255,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     updateScheduleTransactionIfNeed(
                         walletId, transition.transactionId.orEmpty(), transition
                     )
+                    if (transition.type == ServerTransactionType.SCHEDULED) {
+                        serverTransactionCache.put(transition.transactionId.orEmpty(), transition.toServerTransaction())
+                    }
                 }
             }
             if (response.data.transactions.size < TRANSACTION_PAGE_COUNT) return
@@ -2033,7 +2051,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun finalizeDummyTransaction(
         groupId: String,
         walletId: String,
-        dummyTransactionId: String
+        dummyTransactionId: String,
     ) {
         val response = userWalletApiManager.groupWalletApi.finalizeDummyTransaction(
             groupId, walletId, dummyTransactionId

@@ -19,11 +19,11 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.util.LruCache
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.cachedIn
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -46,7 +46,6 @@ import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.usecase.SetSelectedWalletUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
-import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
@@ -81,11 +80,11 @@ internal class WalletDetailsViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val selectedWalletUseCase: SetSelectedWalletUseCase,
     private val assistedWalletManager: AssistedWalletManager,
-    private val getServerTransactionUseCase: GetServerTransactionUseCase,
     private val syncTransactionUseCase: SyncTransactionUseCase,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val pushEventManager: PushEventManager,
+    private val serverTransactionCache: LruCache<String, ServerTransaction>
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -93,8 +92,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val transactions = mutableListOf<Transaction>()
 
     override val initialState = WalletDetailsState()
-
-    private val serverTransactions = hashMapOf<String, ServerTransaction?>()
 
     private var syncWalletJob: Job? = null
 
@@ -223,15 +220,10 @@ internal class WalletDetailsViewModel @Inject constructor(
             pagingSourceFactory = {
                 TransactionPagingSource(
                     transactions = transactions.toList(),
-                    getServerTransactionUseCase = getServerTransactionUseCase,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
-                    walletId = args.walletId,
-                    groupId = assistedWalletManager.getGroupId(args.walletId),
-                    serverTransactions = serverTransactions,
+                    serverTransactionCache = serverTransactionCache,
                 )
-            }).flow.cachedIn(
-            viewModelScope
-        ).flowOn(IO)
+            }).flow.flowOn(ioDispatcher)
 
     private fun onRetrievedTransactionHistory() {
         if (transactions.isEmpty()) {

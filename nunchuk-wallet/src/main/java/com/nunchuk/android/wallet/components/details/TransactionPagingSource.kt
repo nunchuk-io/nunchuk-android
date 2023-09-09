@@ -19,13 +19,12 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.util.LruCache
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
-import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 
 internal const val STARTING_PAGE = 1
@@ -33,11 +32,8 @@ internal const val PAGE_SIZE = 100
 
 class TransactionPagingSource constructor(
     private val transactions: List<Transaction>,
-    private val getServerTransactionUseCase: GetServerTransactionUseCase,
-    private val walletId: String,
-    private val groupId: String?,
     private val isAssistedWallet: Boolean,
-    private val serverTransactions: MutableMap<String, ServerTransaction?>,
+    private val serverTransactionCache: LruCache<String, ServerTransaction>,
 ) : PagingSource<Int, ExtendedTransaction>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ExtendedTransaction> {
@@ -45,20 +41,12 @@ class TransactionPagingSource constructor(
             val position = params.key ?: STARTING_PAGE
             val fromIndex = (position - 1) * PAGE_SIZE
             val toIndex = (position * PAGE_SIZE).coerceAtMost(transactions.size)
-            val data = transactions.subList(fromIndex, toIndex).map { transaction ->
-                if (isAssistedWallet && transaction.signers.any { it.value } && transaction.status.isPending()) {
-                    if (serverTransactions.contains(transaction.txId).not()) {
-                        serverTransactions[transaction.txId] = getServerTransactionUseCase(
-                            GetServerTransactionUseCase.Param(
-                                groupId,
-                                walletId,
-                                transaction.txId
-                            )
-                        ).getOrNull()?.serverTransaction
-                    }
+            val subTransactions = transactions.subList(fromIndex, toIndex)
+            val data = subTransactions.map { transaction ->
+                if (isAssistedWallet) {
                     return@map ExtendedTransaction(
                         transaction = transaction,
-                        serverTransaction = serverTransactions[transaction.txId]
+                        serverTransaction = serverTransactionCache[transaction.txId]
                     )
                 }
                 return@map ExtendedTransaction(transaction = transaction)
