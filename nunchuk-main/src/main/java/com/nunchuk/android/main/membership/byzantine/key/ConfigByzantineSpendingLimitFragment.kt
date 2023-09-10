@@ -151,9 +151,9 @@ class ConfigByzantineSpendingLimitFragment : MembershipFragment(), BottomSheetOp
             // create mode
             findNavController().navigate(
                 ConfigByzantineSpendingLimitFragmentDirections.actionConfigByzantineSpendingLimitFragmentToConfigureByzantineServerKeySettingFragment(
-                    event.keyPolicy,
-                    args.groupId,
-                    viewModel.getPreferenceSetup()
+                    keyPolicy = event.keyPolicy,
+                    groupId = args.groupId,
+                    preferenceSetup = viewModel.getPreferenceSetup()
                 )
             )
         }

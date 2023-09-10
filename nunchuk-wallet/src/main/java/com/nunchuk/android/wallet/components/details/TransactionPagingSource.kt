@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.components.details
 import android.util.LruCache
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
@@ -43,7 +44,7 @@ class TransactionPagingSource constructor(
             val toIndex = (position * PAGE_SIZE).coerceAtMost(transactions.size)
             val subTransactions = transactions.subList(fromIndex, toIndex)
             val data = subTransactions.map { transaction ->
-                if (isAssistedWallet) {
+                if (isAssistedWallet && transaction.status.canBroadCast()) {
                     return@map ExtendedTransaction(
                         transaction = transaction,
                         serverTransaction = serverTransactionCache[transaction.txId]

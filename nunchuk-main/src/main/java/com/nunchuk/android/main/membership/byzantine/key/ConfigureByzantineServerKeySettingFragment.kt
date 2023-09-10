@@ -128,7 +128,7 @@ class ConfigureByzantineServerKeySettingFragment : MembershipFragment() {
     }
 
     private fun handleConfigServerKeySuccess() {
-        if (args.preferenceSetup == ByzantinePreferenceSetup.DISTRIBUTED) {
+        if (args.preferenceSetup == ByzantinePreferenceSetup.DISTRIBUTED && args.xfp.isNullOrEmpty()) {
             findNavController().navigate(
                 ConfigureByzantineServerKeySettingFragmentDirections.actionConfigureByzantineServerKeySettingFragmentToByzantineSetupServerKeySuccessFragment()
             )

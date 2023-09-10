@@ -122,8 +122,10 @@
         <argument
             android:name="group_id"
             app:argType="string" />
+
         <argument
             android:name="preference_setup"
+            android:defaultValue="SINGLE_PERSON"
             app:argType="com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup" />
         <action
             android:id="@+id/action_configureByzantineServerKeySettingFragment_to_byzantineSetupServerKeySuccessFragment"
