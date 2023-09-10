@@ -23,6 +23,7 @@ sealed class GroupDashboardEvent {
         val isOpenReviewInheritance: Boolean = false
     ) : GroupDashboardEvent()
     data class RegisterSignersSuccess(val totalColdcard: Int, val totalAirgap: Int) : GroupDashboardEvent()
+    data class UpdateServerKey(val token: String, val signer: SignerModel, val groupId: String) : GroupDashboardEvent()
 }
 
 data class GroupDashboardState(

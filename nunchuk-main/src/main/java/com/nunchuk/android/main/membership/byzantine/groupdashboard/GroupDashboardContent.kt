@@ -76,6 +76,7 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toTitle
+import com.nunchuk.android.type.SignerType
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 
@@ -103,7 +104,11 @@ fun GroupDashboardContent(
 
     val signers by remember(uiState.myRole, uiState.signers) {
         derivedStateOf {
-            if (uiState.myRole.isKeyHolderLimited) uiState.signers.filter { it.isVisible } else uiState.signers
+            if (uiState.myRole.isKeyHolderLimited) {
+                uiState.signers.filter { it.isVisible }.filter { it.type != SignerType.SERVER }
+            } else {
+                uiState.signers.filter { it.type != SignerType.SERVER }
+            }
         }
     }
 

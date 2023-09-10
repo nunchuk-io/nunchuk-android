@@ -165,7 +165,6 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
                 val signers = wallet.signers
-                    .filter { signer -> signer.type != SignerType.SERVER }
                     .map { signer -> signer.toModel() }
                     .map { signer ->
                         if (signer.type == SignerType.NFC) signer.copy(
@@ -315,6 +314,7 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun confirmPassword(
         password: String,
+        targetAction: TargetAction
     ) = viewModelScope.launch {
         if (password.isBlank()) {
             return@launch
@@ -328,19 +328,29 @@ class GroupDashboardViewModel @Inject constructor(
         )
         _event.emit(GroupDashboardEvent.Loading(false))
         if (result.isSuccess) {
-            val token = result.getOrNull().orEmpty()
-            getInheritanceUseCase(
-                GetInheritanceUseCase.Param(
-                    walletId.value.orEmpty(),
-                    args.groupId
-                )
-            ).onSuccess {
-                _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it, token, true))
-            }.onFailure {
-                _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
+            val token = result.getOrThrow().orEmpty()
+            if (targetAction == TargetAction.UPDATE_INHERITANCE_PLAN) {
+                getInheritance(token)
+            } else if (targetAction == TargetAction.UPDATE_SERVER_KEY) {
+                state.value.signers.find { it.type == SignerType.SERVER }?.let { signer ->
+                    _event.emit(GroupDashboardEvent.UpdateServerKey(token, signer, args.groupId))
+                }
             }
         } else {
             _event.emit(GroupDashboardEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    private suspend fun getInheritance(token: String) {
+        getInheritanceUseCase(
+            GetInheritanceUseCase.Param(
+                walletId.value.orEmpty(),
+                args.groupId
+            )
+        ).onSuccess {
+            _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it, token, true))
+        }.onFailure {
+            _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
         }
     }
 

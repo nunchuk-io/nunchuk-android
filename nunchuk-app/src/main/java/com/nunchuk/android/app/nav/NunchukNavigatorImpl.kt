@@ -218,7 +218,7 @@ interface AppNavigatorDelegate : AppNavigator {
         groupId: String?
     ) {
         launcher?.launch(
-            ConfigServerKeyActivity.buildIntent(
+            ConfigServerKeyActivity.buildGroupIntent(
                 activity = activityContext,
                 keyPolicy = keyPolicy,
                 groupId = groupId,
@@ -226,7 +226,7 @@ interface AppNavigatorDelegate : AppNavigator {
                 groupStep = groupStep
             )
         ) ?: activityContext.startActivity(
-            ConfigServerKeyActivity.buildIntent(
+            ConfigServerKeyActivity.buildGroupIntent(
                 activity = activityContext,
                 keyPolicy = keyPolicy,
                 groupId = groupId,

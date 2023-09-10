@@ -68,7 +68,7 @@ class ConfigServerKeyActivity : BaseActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_GROUP_STEP, groupStep)
         }
 
-        fun buildIntent(
+        fun buildGroupIntent(
             activity: Activity,
             groupStep: MembershipStage,
             groupId: String?,

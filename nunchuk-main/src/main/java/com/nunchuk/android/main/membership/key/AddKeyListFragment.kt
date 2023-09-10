@@ -127,7 +127,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -147,7 +147,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 when (data.type) {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
                     SignerType.AIRGAP,
-                    SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
+                    SignerType.COLDCARD_NFC,
+                    -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -202,7 +203,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
+            SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
+            -> handleSelectAddAirgapType(option.type)
 
             SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
             SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
@@ -308,18 +310,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_SEVER_KEY -> {
-                if (groupId.isNotEmpty()) {
-                    navigator.openConfigGroupServerKeyActivity(
-                        activityContext = requireActivity(),
-                        groupStep = MembershipStage.NONE,
-                        groupId = groupId,
-                    )
-                } else {
-                    navigator.openConfigServerKeyActivity(
-                        activityContext = requireActivity(),
-                        groupStep = MembershipStage.NONE
-                    )
-                }
+                navigator.openConfigServerKeyActivity(
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.NONE
+                )
             }
 
             MembershipStep.HONEY_ADD_TAP_SIGNER -> {
@@ -329,12 +323,13 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+            -> openSelectHardwareOption()
 
             else -> Unit
         }
     }
-    
+
     private val groupId: String
         get() = (activity as MembershipActivity).groupId
 
@@ -374,7 +369,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun handleShowKeysOrCreate(
         signer: List<SignerModel>,
         type: SignerType,
-        onEmptySigner: () -> Unit
+        onEmptySigner: () -> Unit,
     ) {
         if (signer.isNotEmpty()) {
             findNavController().navigate(
@@ -417,7 +412,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 fun AddKeyListScreen(
     viewModel: AddKeyListViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
-    onMoreClicked: () -> Unit = {}
+    onMoreClicked: () -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
@@ -617,7 +612,7 @@ fun AddKeyCard(
 @Composable
 private fun ConfigItem(
     item: AddKeyData,
-    onAddClicked: ((data: AddKeyData) -> Unit)? = null
+    onAddClicked: ((data: AddKeyData) -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier.padding(12.dp),

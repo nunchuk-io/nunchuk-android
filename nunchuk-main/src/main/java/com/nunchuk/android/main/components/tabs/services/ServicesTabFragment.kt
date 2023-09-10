@@ -296,13 +296,24 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     }
 
     private fun openServerKeyDetail(event: ServicesTabEvent.GetServerKeySuccess) {
-        CosigningPolicyActivity.start(
-            activity = requireActivity(),
-            keyPolicy = null,
-            signer = event.signer.toModel(),
-            token = event.token,
-            walletId = event.walletId,
-        )
+        val groupId = viewModel.getGroupId(event.walletId)
+        if (!groupId.isNullOrEmpty()) {
+            CosigningPolicyActivity.start(
+                activity = requireActivity(),
+                signer = event.signer.toModel(),
+                token = event.token,
+                walletId = event.walletId,
+                groupId = groupId,
+            )
+        } else {
+            CosigningPolicyActivity.start(
+                activity = requireActivity(),
+                keyPolicy = null,
+                signer = event.signer.toModel(),
+                token = event.token,
+                walletId = event.walletId,
+            )
+        }
     }
 
     private fun showManageSubscriptionDialog() {

@@ -34,7 +34,6 @@ import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCas
 import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
@@ -339,4 +338,6 @@ class ServicesTabViewModel @Inject constructor(
             }
         }
     }
+
+    fun getGroupId(walletId: String): String? = assistedWalletManager.getGroupId(walletId)
 }

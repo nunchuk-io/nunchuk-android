@@ -19,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -243,6 +244,14 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         )
                     )
                 }
+
+                is GroupDashboardEvent.UpdateServerKey -> CosigningPolicyActivity.start(
+                    activity = requireActivity(),
+                    signer = event.signer,
+                    token = event.token,
+                    walletId = args.walletId.orEmpty(),
+                    groupId = event.groupId,
+                )
             }
         }
     }
@@ -253,12 +262,12 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         viewModel.getKeysStatus()
     }
 
-    private fun enterPasswordDialog() {
+    private fun enterPasswordDialog(targetAction: TargetAction) {
         NCInputDialog(requireContext()).showDialog(
             title = getString(R.string.nc_re_enter_your_password),
             descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
             onConfirmed = {
-                viewModel.confirmPassword(it)
+                viewModel.confirmPassword(it, targetAction)
             }
         )
     }
@@ -338,7 +347,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         when (option.type) {
             SheetOptionType.SET_UP_INHERITANCE -> {
                 if (viewModel.state.value.isSetupInheritance) {
-                    enterPasswordDialog()
+                    enterPasswordDialog(TargetAction.UPDATE_INHERITANCE_PLAN)
                 } else {
                     navigator.openInheritancePlanningScreen(
                         walletId = viewModel.getWalletId(),
@@ -350,7 +359,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             }
 
             SheetOptionType.TYPE_PLATFORM_KEY_POLICY -> {
-
+                enterPasswordDialog(TargetAction.UPDATE_SERVER_KEY)
             }
 
             SheetOptionType.TYPE_EMERGENCY_LOCKDOWN -> {
@@ -373,18 +382,18 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             if (viewModel.state.value.myRole.isMasterOrAdmin &&
                 viewModel.state.value.group?.walletConfig?.toGroupWalletType()?.isPro == true
             ) {
-                options.addAll(
-                    mutableListOf(
-                        SheetOption(
-                            type = SheetOptionType.SET_UP_INHERITANCE,
-                            stringId = if (viewModel.state.value.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
-                        ),
-                        SheetOption(
-                            type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
-                            stringId = R.string.nc_cosigning_policies
-                        )
-                    )
+                options.add(
+                    SheetOption(
+                        type = SheetOptionType.SET_UP_INHERITANCE,
+                        stringId = if (viewModel.state.value.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
+                    ),
                 )
+                if (!args.walletId.isNullOrEmpty()) {
+                    options.add(SheetOption(
+                        type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
+                        stringId = R.string.nc_cosigning_policies
+                    ))
+                }
             }
             options.addAll(
                 mutableListOf(
