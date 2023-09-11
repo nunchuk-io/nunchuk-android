@@ -385,7 +385,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 options.add(
                     SheetOption(
                         type = SheetOptionType.SET_UP_INHERITANCE,
-                        stringId = if (viewModel.state.value.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan
+                        stringId = if (viewModel.state.value.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan_wallet
                     ),
                 )
                 if (!args.walletId.isNullOrEmpty()) {

@@ -98,16 +98,6 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                 .setPopUpTo(findNavController().graph.startDestinationId, true)
                                 .build()
                         )
-                    } else if (viewModel.state.value.allowInheritance) {
-                        if (args.walletId.isNotEmpty()) {
-                            nunchukNavigator.openInheritancePlanningScreen(
-                                walletId = args.walletId,
-                                activityContext = requireContext(),
-                                flowInfo = InheritancePlanFlow.SETUP,
-                                isOpenFromWizard = true
-                            )
-                        }
-                        requireActivity().finish()
                     } else {
                         navigator.openWalletDetailsScreen(
                             requireActivity(),
