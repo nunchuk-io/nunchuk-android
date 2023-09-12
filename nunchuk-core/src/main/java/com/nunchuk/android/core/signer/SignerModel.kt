@@ -68,7 +68,7 @@ data class SignerModel(
     fun getXfpOrCardIdLabel() = if (type == SignerType.NFC && cardId.isNotEmpty()) {
         "Card ID: ••${cardIdShorten()}"
     } else if (fingerPrint.isNotEmpty()) {
-        "XFP: $fingerPrint"
+        "XFP: ${fingerPrint.uppercase()}"
     } else ""
 
     private fun cardIdShorten() = cardId.takeLast(5)
