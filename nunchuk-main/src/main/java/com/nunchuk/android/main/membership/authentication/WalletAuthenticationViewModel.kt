@@ -47,6 +47,7 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.FinalizeDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.UpdateGroupDummyTransactionUseCase
@@ -56,6 +57,7 @@ import com.nunchuk.android.usecase.membership.GetTxToSignMessage
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -85,6 +87,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val updateGroupDummyTransactionUseCase: UpdateGroupDummyTransactionUseCase,
     private val finalizeDummyTransactionUseCase: FinalizeDummyTransactionUseCase,
     private val savedStateHandle: SavedStateHandle,
+    private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -380,6 +383,20 @@ class WalletAuthenticationViewModel @Inject constructor(
             }.onFailure {
                 _event.emit(WalletAuthenticationEvent.Loading(false))
                 _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun deleteDummyTransaction() {
+        viewModelScope.launch(NonCancellable) {
+            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
+                deleteGroupDummyTransactionUseCase(
+                    DeleteGroupDummyTransactionUseCase.Param(
+                        groupId = args.groupId.orEmpty(),
+                        walletId = args.walletId,
+                        transactionId = args.dummyTransactionId.orEmpty()
+                    )
+                )
             }
         }
     }

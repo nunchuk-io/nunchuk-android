@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,6 +63,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationAc
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.byzantine.DummyTransactionType
 
 class DummyTransactionIntroFragment : Fragment() {
     private val activityViewModel by activityViewModels<WalletAuthenticationViewModel>()
@@ -81,8 +83,9 @@ class DummyTransactionIntroFragment : Fragment() {
                 DummyTransactionIntroContent(
                     isGroup = isGroup,
                     pendingSignature = uiState.pendingSignature,
+                    dummyTransactionType = uiState.dummyTransactionType,
                     onContinueClicked = {
-                        if (isGroup) {
+                        if (isGroup && !args.dummyTransactionId.isNullOrEmpty()) {
                             activityViewModel.finalizeDummyTransaction()
                         } else {
                             findNavController().navigate(
@@ -91,6 +94,7 @@ class DummyTransactionIntroFragment : Fragment() {
                         }
                     }
                 ) {
+                    activityViewModel.deleteDummyTransaction()
                     requireActivity().finish()
                 }
             }
@@ -113,9 +117,23 @@ class DummyTransactionIntroFragment : Fragment() {
 fun DummyTransactionIntroContent(
     isGroup: Boolean = false,
     pendingSignature: Int = 0,
+    dummyTransactionType: DummyTransactionType = DummyTransactionType.NONE,
     onContinueClicked: () -> Unit = {},
     onCancelClicked: () -> Unit = {},
 ) {
+    val title = when(dummyTransactionType) {
+        DummyTransactionType.HEALTH_CHECK_REQUEST,
+        DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_health_check_procedure)
+        else -> stringResource(R.string.nc_signatures_required)
+    }
+    val firstSentence = when(dummyTransactionType) {
+        DummyTransactionType.HEALTH_CHECK_REQUEST,
+        DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_complete_a_health_check)
+        else -> stringResource(R.string.nc_authorize_these_change)
+    }
+    BackHandler {
+        onCancelClicked()
+    }
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
@@ -127,13 +145,14 @@ fun DummyTransactionIntroContent(
                 NcTopAppBar(title = "", elevation = 0.dp)
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_signatures_required),
+                    text = title,
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
                     text = stringResource(
                         R.string.nc_dummy_transaction_desc,
+                        firstSentence,
                         Amount(value = 10000).getCurrencyAmount(),
                         if (isGroup && pendingSignature > 1) stringResource(id = R.string.nc_dummy_transaction_key_holder_desc) else ""
                     )

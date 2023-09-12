@@ -46,6 +46,8 @@ import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboa
 import com.nunchuk.android.main.membership.byzantine.healthCheckLabel
 import com.nunchuk.android.main.membership.byzantine.healthCheckTimeColor
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
+import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.type.SignerType
 
 @Composable
 fun HealthCheckContent(
@@ -53,6 +55,16 @@ fun HealthCheckContent(
     onRequestHealthCheck: (SignerModel) -> Unit = {},
     onHealthCheck: (SignerModel) -> Unit = {},
 ) {
+    val signers by remember(state.myRole, state.signers) {
+        derivedStateOf {
+            if (state.myRole.isKeyHolderLimited) {
+                state.signers.filter { it.isVisible }.filter { it.type != SignerType.SERVER }
+            } else {
+                state.signers.filter { it.type != SignerType.SERVER }
+            }
+        }
+    }
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -80,7 +92,7 @@ fun HealthCheckContent(
                         .padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
                 ) {
-                    items(state.signers) {
+                    items(signers) {
                         HealthCheckItem(
                             signer = it,
                             status = state.keyStatus[it.fingerPrint],
