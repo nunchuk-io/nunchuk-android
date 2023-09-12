@@ -41,6 +41,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.everglade
 import com.nunchuk.android.compose.ming
+import com.nunchuk.android.compose.yellowishOrange
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
@@ -83,8 +84,8 @@ fun PendingWalletView(
             .fillMaxWidth(),
     ) {
         val colors =
-            if (inviterName.isNotEmpty()) {
-                listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
+            if (inviterName.isNotEmpty() || walletsExtended == null) {
+                listOf(MaterialTheme.colors.yellowishOrange, MaterialTheme.colors.yellowishOrange)
             } else if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
                 listOf(NcColor.greyDark, NcColor.greyDark)
             } else if (group != null || isAssistedWallet) {
@@ -109,15 +110,15 @@ fun PendingWalletView(
         ) {
             if (inviterName.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.nc_group_invitation),
+                    text = stringResource(R.string.nc_wallet_invitation),
                     style = NunchukTheme.typography.title,
-                    color = Color.White
+                    color = MaterialTheme.colors.primary
                 )
             } else if (walletsExtended == null) {
                 Text(
                     text = stringResource(R.string.nc_pending_wallet),
                     style = NunchukTheme.typography.title,
-                    color = Color.White
+                    color = MaterialTheme.colors.primary
                 )
             } else {
                 ActiveWallet(

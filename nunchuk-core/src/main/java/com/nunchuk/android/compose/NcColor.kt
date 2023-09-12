@@ -52,3 +52,6 @@ val Colors.everglade: Color
 val Colors.ming: Color
     get() = Color(0xFF2F766D)
 
+val Colors.yellowishOrange: Color
+    get() = Color(0xFFFDEBD2)
+
