@@ -70,6 +70,7 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
 
     init {
         val keyPolicy = args.keyPolicy
+        _state.update { it.copy(isApplyToAllMember = keyPolicy?.isApplyAll ?: false) }
         if (keyPolicy != null && keyPolicy.isApplyAll && keyPolicy.spendingPolicies.isNotEmpty()) {
             val spendingLimit = keyPolicy.spendingPolicies.values.first()
             _state.update {
@@ -78,7 +79,7 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
                         null to AssistedMemberSpendingPolicy(
                             spendingPolicy = map(spendingLimit)
                         )
-                    )
+                    ),
                 )
             }
         }
@@ -223,7 +224,8 @@ data class ConfigMemberSpendingLimitState(
             )
         )
     ),
-    val preferenceSetup: ByzantinePreferenceSetup = ByzantinePreferenceSetup.SINGLE_PERSON
+    val preferenceSetup: ByzantinePreferenceSetup = ByzantinePreferenceSetup.SINGLE_PERSON,
+    val isApplyToAllMember: Boolean = false,
 )
 
 sealed class ConfigByzantineSpendingLimitEvent {

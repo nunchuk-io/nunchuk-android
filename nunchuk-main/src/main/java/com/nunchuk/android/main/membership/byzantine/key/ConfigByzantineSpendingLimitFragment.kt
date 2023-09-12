@@ -236,8 +236,8 @@ private fun ConfigSpendingLimitContent(
     onLimitChange: (email: String?, limit: String) -> Unit = { _, _ -> },
     isEditMode: Boolean = false,
 ) {
-    var isApplyToAllMember by rememberSaveable {
-        mutableStateOf(false)
+    var isApplyToAllMember by rememberSaveable(state.isApplyToAllMember) {
+        mutableStateOf(state.isApplyToAllMember)
     }
     val isEnable = if (isApplyToAllMember)
         (state.policies[null]?.spendingPolicy?.limit?.toDoubleOrNull() ?: 0.0) > 0.0
