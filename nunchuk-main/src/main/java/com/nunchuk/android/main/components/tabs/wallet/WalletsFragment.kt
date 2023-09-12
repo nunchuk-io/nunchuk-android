@@ -485,21 +485,21 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             badgeCount = it.badgeCount,
                             role = it.role,
                             onAccept = {
-                                it.group?.groupId?.let {
+                                it.group?.id?.let {
                                     walletsViewModel.acceptInviteMember(it)
                                 }
                             },
                             onDeny = {
                                 showDenyWalletDialog {
-                                    it.group?.groupId?.let {
+                                    it.group?.id?.let {
                                         walletsViewModel.denyInviteMember(it)
                                     }
                                 }
                             },
                             onGroupClick = {
-                                if (it.group?.groupId != null) {
+                                if (it.group?.id != null) {
                                     navigator.openGroupDashboardScreen(
-                                        groupId = it.group.groupId,
+                                        groupId = it.group.id,
                                         walletId = it.wallet?.wallet?.id,
                                         activityContext = requireActivity()
                                     )

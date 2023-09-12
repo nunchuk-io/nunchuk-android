@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.mapper
 
+import com.google.gson.reflect.TypeToken
 import com.nunchuk.android.core.data.model.byzantine.AlertResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupChatDto
 import com.nunchuk.android.core.data.model.byzantine.GroupResponse
@@ -10,12 +11,14 @@ import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignature
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
+import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
@@ -24,9 +27,17 @@ import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.User
+import com.nunchuk.android.model.UserResponse
+import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.toAlertType
 import com.nunchuk.android.model.transaction.AlertPayload
+import com.nunchuk.android.persistence.dao.GroupDao
+import com.nunchuk.android.persistence.entity.AlertEntity
+import com.nunchuk.android.persistence.entity.GroupEntity
+import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
+import com.nunchuk.android.type.Chain
 
 internal fun KeyResponse.toBackupKey(): BackupKey {
     return BackupKey(
@@ -87,6 +98,7 @@ internal fun GroupResponse.toByzantineGroup(): ByzantineGroup {
         setupPreference = setupPreference.orEmpty(),
         walletConfig = walletConfig.toModel(),
         status = status.orEmpty(),
+        isViewPendingWallet = false,
         members = members?.map {
             ByzantineMember(emailOrUsername = it.emailOrUsername.orEmpty(),
                 membershipId = it.membershipId.orEmpty(),
@@ -152,5 +164,94 @@ internal fun HistoryPeriodResponseOrRequest?.toHistoryPeriod(): HistoryPeriod {
 internal fun AssistedMember.toMemberRequest(): MemberRequest {
     return MemberRequest(
         emailOrUsername = if (loginType == SignInMode.PRIMARY_KEY.name) name.orEmpty() else email, permissions = emptyList(), role = role
+    )
+}
+
+internal fun AlertEntity.toAlert(): Alert {
+    return Alert(
+        id = id,
+        viewable = viewable,
+        body = body,
+        createdTimeMillis = createdTimeMillis,
+        status = status,
+        title = title,
+        type = AlertType.valueOf(type),
+        payload = gson.fromJson(payload, AlertPayload::class.java)
+    )
+}
+
+internal fun KeyHealthStatusEntity.toKeyHealthStatus(): KeyHealthStatus {
+    return KeyHealthStatus(
+        xfp = xfp,
+        canRequestHealthCheck = canRequestHealthCheck,
+        lastHealthCheckTimeMillis = lastHealthCheckTimeMillis
+    )
+}
+
+internal fun UserResponse.toUser() = User(
+    id = id,
+    name = name,
+    email = email,
+    gender = gender.orEmpty(),
+    avatar = avatar.orEmpty(),
+    status = status.orEmpty(),
+    chatId = chatId,
+    loginType = loginType.orEmpty(),
+    username = username.orEmpty()
+)
+
+internal fun GroupResponse.toGroupEntity(chatId: String, chain: Chain, groupDao: GroupDao): GroupEntity {
+    val memberBrief = members.orEmpty().map {
+        ByzantineMember(
+            emailOrUsername = it.emailOrUsername.orEmpty(),
+            role = it.role.orEmpty(),
+            inviterUserId = it.inviterUserId.orEmpty(),
+            status = it.status.orEmpty(),
+            membershipId = it.membershipId.orEmpty(),
+            permissions = it.permissions.orEmpty(),
+            user = it.user?.toUser()
+        )
+    }
+    val walletConfig = ByzantineWalletConfig(
+        allowInheritance = walletConfig?.allowInheritance.orFalse(),
+        m = walletConfig?.m.orDefault(0),
+        n = walletConfig?.n.orDefault(0),
+        requiredServerKey = walletConfig?.requiredServerKey.orFalse()
+    )
+    groupDao.getGroupById(id.orEmpty(), chatId, chain)?.let {
+        return it.copy(
+            groupId = id.orEmpty(),
+            chatId = chatId,
+            status = status.orEmpty(),
+            createdTimeMillis = createdTimeMillis ?: 0,
+            members = gson.toJson(memberBrief),
+            walletConfig = gson.toJson(walletConfig)
+        )
+    }
+    return GroupEntity(
+        groupId = id.orEmpty(),
+        chatId = chatId,
+        status = status.orEmpty(),
+        createdTimeMillis = createdTimeMillis ?: 0,
+        members = gson.toJson(memberBrief),
+        chain = chain,
+        setupPreference = setupPreference.orEmpty(),
+        walletConfig = gson.toJson(walletConfig)
+    )
+}
+
+internal fun GroupEntity.toByzantineGroup(): ByzantineGroup {
+    val members = gson.fromJson<List<ByzantineMember>>(
+        members, object : TypeToken<List<ByzantineMember>>() {}.type
+    )
+    val walletConfig = gson.fromJson(walletConfig, ByzantineWalletConfig::class.java)
+    return ByzantineGroup(
+        id = groupId,
+        status = status,
+        members = members,
+        createdTimeMillis = createdTimeMillis,
+        isViewPendingWallet = isViewPendingWallet,
+        setupPreference = setupPreference,
+        walletConfig = walletConfig
     )
 }

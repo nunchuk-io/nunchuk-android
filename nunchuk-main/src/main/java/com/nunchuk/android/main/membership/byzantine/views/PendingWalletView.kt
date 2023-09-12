@@ -48,9 +48,7 @@ import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
-import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.ByzantineMemberBrief
 import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.User
@@ -65,7 +63,7 @@ import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
 fun PendingWalletView(
-    group: ByzantineGroupBrief? = null,
+    group: ByzantineGroup? = null,
     walletsExtended: WalletExtended? = null,
     hideWalletDetail: Boolean = false,
     isAssistedWallet: Boolean = false,
@@ -255,7 +253,7 @@ fun RowScope.PendingWalletInviteMember(
 }
 
 @Composable
-fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
+fun RowScope.WalletAvatar(group: ByzantineGroup, badgeCount: Int = 0) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
         val sortedList = group.members.filter { it.role != AssistedWalletRole.OBSERVER.name }
             .sortedWith(compareBy { it.isPendingRequest() })
@@ -263,8 +261,8 @@ fun RowScope.WalletAvatar(group: ByzantineGroupBrief, badgeCount: Int = 0) {
             val padStart = if (index == 0) 0.dp else 4.dp
             AvatarView(
                 modifier = Modifier.padding(start = padStart),
-                avatarUrl = byzantineMember.avatar.orEmpty(),
-                name = byzantineMember.name.orEmpty(),
+                avatarUrl = byzantineMember.user?.avatar.orEmpty(),
+                name = byzantineMember.user?.name.orEmpty(),
                 isContact = byzantineMember.isPendingRequest().not()
             )
         }
@@ -556,6 +554,7 @@ fun PendingWalletViewPreview() {
         ),
         setupPreference = "SINGLE_PERSON",
         status = "PENDING_WALLET",
+        isViewPendingWallet = false,
         walletConfig = ByzantineWalletConfig(
             m = 2,
             n = 4,
@@ -564,28 +563,28 @@ fun PendingWalletViewPreview() {
         )
     )
     val members = group.members.map {
-        ByzantineMemberBrief(
+        ByzantineMember(
             emailOrUsername = it.emailOrUsername,
             role = it.role,
             status = it.status,
             inviterUserId = it.inviterUserId,
-            userId = it.user?.id,
-            avatar = it.user?.avatar,
-            name = it.user?.name,
-            email = it.user?.email,
+            user = it.user,
+            membershipId = it.membershipId,
+            permissions = it.permissions,
         )
     }
     NunchukTheme {
         Column {
             PendingWalletView(
                 walletsExtended = walletsExtended,
-                group = ByzantineGroupBrief(
-                    groupId = group.id,
+                group = ByzantineGroup(
+                    id = group.id,
                     status = group.status,
                     createdTimeMillis = group.createdTimeMillis,
                     members = members,
                     isViewPendingWallet = true,
-                    walletConfig = group.walletConfig
+                    walletConfig = group.walletConfig,
+                    setupPreference = group.setupPreference
                 ),
             )
         }

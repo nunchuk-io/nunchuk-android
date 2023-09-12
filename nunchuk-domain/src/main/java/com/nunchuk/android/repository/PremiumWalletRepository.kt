@@ -22,7 +22,6 @@ package com.nunchuk.android.repository
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
-import com.nunchuk.android.model.ByzantineGroupBrief
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
@@ -50,6 +49,7 @@ import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.util.LoadingOptions
 import kotlinx.coroutines.flow.Flow
 
 interface PremiumWalletRepository {
@@ -334,10 +334,9 @@ interface PremiumWalletRepository {
     ): ByzantineGroup
 
     suspend fun getWalletConstraints(): List<WalletConstraints>
-    fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>>
-    fun getGroupBriefById(groupId: String): Flow<ByzantineGroupBrief>
+    fun getGroups(loadingOptions: LoadingOptions): Flow<List<ByzantineGroup>>
     suspend fun syncGroupWallets(): Boolean
-    suspend fun getGroup(groupId: String): ByzantineGroup
+    fun getGroup(groupId: String, loadingOption: LoadingOptions): Flow<ByzantineGroup>
     suspend fun deleteGroupWallet(groupId: String)
     suspend fun deleteGroup(groupId: String)
     suspend fun updateGroupStatus(groupId: String, status: String)
@@ -368,7 +367,7 @@ interface PremiumWalletRepository {
         groupAssistedKeys: MutableSet<String> = mutableSetOf()
     ): Boolean
 
-    suspend fun getAlerts(groupId: String): List<Alert>
+    fun getAlerts(groupId: String, loadingOption: LoadingOptions): Flow<List<Alert>>
     suspend fun markAlertAsRead(groupId: String, alertId: String)
     suspend fun dismissAlert(groupId: String, alertId: String)
     suspend fun getAlertTotal(groupId: String): Int

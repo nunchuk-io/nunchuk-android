@@ -42,6 +42,7 @@ import com.nunchuk.android.model.byzantine.toByzantinePreferenceSetup
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,9 +86,15 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _event.emit(ConfigByzantineSpendingLimitEvent.Loading(true))
-            getGroupUseCase(args.groupId).onSuccess {
+            getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.REMOTE_ONLY)).collect {
+                _event.emit(ConfigByzantineSpendingLimitEvent.Loading(false))
+                if (it.isFailure) {
+                    _event.emit(ConfigByzantineSpendingLimitEvent.Error(it.exceptionOrNull()?.message.orEmpty()))
+                    return@collect
+                }
+                val group = it.getOrThrow()
                 val spendingLimits = keyPolicy?.spendingPolicies.orEmpty()
-                val newPolicies = it.members.mapNotNull { member ->
+                val newPolicies = group.members.mapNotNull { member ->
                     val role = member.role.toRole
                     val policy = spendingLimits[member.membershipId]?.let { spendingLimit ->
                         map(spendingLimit)
@@ -113,13 +120,10 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
                 _state.update { state ->
                     state.copy(
                         policies = combinePolicies,
-                        preferenceSetup = it.setupPreference.toByzantinePreferenceSetup()
+                        preferenceSetup = group.setupPreference.toByzantinePreferenceSetup()
                     )
                 }
-            }.onFailure {
-                _event.emit(ConfigByzantineSpendingLimitEvent.Error(it.message.orUnknownError()))
             }
-            _event.emit(ConfigByzantineSpendingLimitEvent.Loading(false))
         }
     }
 

@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,8 +46,8 @@ class CreateWalletSuccessViewModel @Inject constructor(
 
     fun loadGroup(id: String) {
         viewModelScope.launch {
-            getGroupUseCase(id).onSuccess { group ->
-                _state.update { it.copy(isSingleSetup = group.isSinglePersonSetup(), allowInheritance = group.walletConfig.allowInheritance) }
+            getGroupUseCase(GetGroupUseCase.Params(id, LoadingOptions.REMOTE_ONLY)).collect { result ->
+                _state.update { it.copy(isSingleSetup = result.getOrThrow().isSinglePersonSetup(), allowInheritance = result.getOrThrow().walletConfig.allowInheritance) }
             }
         }
     }

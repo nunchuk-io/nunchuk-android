@@ -24,10 +24,12 @@ import androidx.room.Room
 import com.nunchuk.android.persistence.DATABASE_NAME
 import com.nunchuk.android.persistence.DBMigrations
 import com.nunchuk.android.persistence.NunchukDatabase
+import com.nunchuk.android.persistence.dao.AlertDao
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.HandledEventDao
+import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.dao.SyncEventDao
@@ -87,4 +89,12 @@ internal object NunchukPersistenceModule {
     @Singleton
     @Provides
     fun provideGroupDao(database: NunchukDatabase): GroupDao = database.groupDao()
+
+    @Singleton
+    @Provides
+    fun provideAlertDao(database: NunchukDatabase): AlertDao = database.alertDao()
+
+    @Singleton
+    @Provides
+    fun provideKeyHealthStatusDao(database: NunchukDatabase): KeyHealthStatusDao = database.keyHealthStatusDao()
 }

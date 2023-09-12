@@ -9,6 +9,7 @@ import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.manager.UserWalletApiManager
+import com.nunchuk.android.core.mapper.toKeyHealthStatus
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.gson
@@ -22,18 +23,20 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
-import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.SimilarGroup
 import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.isServerMasterSigner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -42,12 +45,15 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     private val accountManager: AccountManager,
     private val membershipRepository: MembershipRepository,
     private val membershipStepDao: MembershipStepDao,
-    private val ncDataStore: NcDataStore,
+    private val keyHealthStatusDao: KeyHealthStatusDao,
+    ncDataStore: NcDataStore,
     private val nunchukNativeSdk: NunchukNativeSdk,
+    private val byzantineSyncer: ByzantineSyncer,
     applicationScope: CoroutineScope,
-): GroupWalletRepository {
+) : GroupWalletRepository {
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
+
     override suspend fun findSimilarGroup(groupId: String): List<SimilarGroup> {
         return userWalletApiManager.groupWalletApi.findSimilar(groupId).data.similar.map {
             SimilarGroup(
@@ -58,7 +64,10 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun reuseGroupWallet(groupId: String, fromGroupId: String): DraftWallet {
-        val response = userWalletApiManager.groupWalletApi.reuseFromGroup(groupId, ReuseFromGroupRequest(fromGroupId))
+        val response = userWalletApiManager.groupWalletApi.reuseFromGroup(
+            groupId,
+            ReuseFromGroupRequest(fromGroupId)
+        )
         val draftWallet =
             response.data.draftWallet ?: throw NullPointerException("draftWallet null")
         return handleDraftWallet(draftWallet, groupId)
@@ -151,7 +160,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 if (type.isServerMasterSigner) {
                     val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
                     val isVisible = masterSigner.isVisible || signer.isVisible
-                    val isChange = masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
+                    val isChange =
+                        masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
                     if (isChange) {
                         nunchukNativeSdk.updateMasterSigner(
                             masterSigner.copy(
@@ -166,7 +176,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
                     )
                     val isVisible = remoteSigner.isVisible || signer.isVisible
-                    val isChange = remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
+                    val isChange =
+                        remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
                     if (isChange) {
                         nunchukNativeSdk.updateRemoteSigner(
                             remoteSigner.copy(
@@ -215,14 +226,48 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getWalletHealthStatus(groupId: String, walletId: String): List<KeyHealthStatus> {
-        return userWalletApiManager.groupWalletApi.getWalletHealthStatus(
-            groupId = groupId,
-            walletId = walletId
-        ).data.statuses.map {
-            it.toDomainModel()
+    override fun getWalletHealthStatus(
+        groupId: String,
+        walletId: String,
+        loadingOptions: LoadingOptions
+    ) = flow {
+        when (loadingOptions) {
+            LoadingOptions.OFFLINE_ONLY -> keyHealthStatusDao.getKeys(
+                groupId,
+                walletId,
+                accountManager.getAccount().chatId,
+                chain.value
+            ).map {
+                it.toKeyHealthStatus()
+            }
+
+            LoadingOptions.REMOTE_ONLY -> {
+                emit(userWalletApiManager.groupWalletApi.getWalletHealthStatus(
+                    groupId = groupId,
+                    walletId = walletId
+                ).data.statuses.map {
+                    it.toDomainModel()
+                })
+            }
+
+            LoadingOptions.FORCE_REFRESH -> {
+                val localList = keyHealthStatusDao.getKeys(
+                    groupId,
+                    walletId,
+                    accountManager.getAccount().chatId,
+                    chain.value
+                ).map {
+                    it.toKeyHealthStatus()
+                }
+                emit(localList)
+                val remoteList = byzantineSyncer.syncKeyHealthStatus(groupId, walletId)
+                remoteList?.let {
+                    emit(it)
+                }
+            }
         }
     }
+
 
     override suspend fun requestHealthCheck(groupId: String, walletId: String, xfp: String) {
         val response = userWalletApiManager.groupWalletApi.requestHealthCheck(
@@ -247,7 +292,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             draft = draft,
             request = HealthCheckRequest(nonce = getNonce())
         )
-        return response.data.dummyTransaction?.toDomainModel() ?: throw NullPointerException("dummyTransaction null")
+        return response.data.dummyTransaction?.toDomainModel()
+            ?: throw NullPointerException("dummyTransaction null")
     }
 
     private suspend fun getNonce(): String {

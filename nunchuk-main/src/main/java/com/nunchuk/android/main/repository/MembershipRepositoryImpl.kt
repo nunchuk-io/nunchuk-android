@@ -180,14 +180,16 @@ class MembershipRepositoryImpl @Inject constructor(
     override suspend fun isViewPendingWallet(groupId: String): Boolean {
         return groupDao.getGroupById(
             groupId,
-            accountManager.getAccount().chatId
+            accountManager.getAccount().chatId,
+            chain.value
         )?.isViewPendingWallet ?: false
     }
 
     override suspend fun setViewPendingWallet(groupId: String) {
         groupDao.getGroupById(
             groupId,
-            accountManager.getAccount().chatId
+            accountManager.getAccount().chatId,
+            chain.value
         )?.let {
             groupDao.updateOrInsert(it.copy(isViewPendingWallet = true))
         }

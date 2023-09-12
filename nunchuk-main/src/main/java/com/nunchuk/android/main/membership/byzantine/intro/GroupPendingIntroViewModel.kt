@@ -6,9 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.usecase.byzantine.GetGroupBriefByIdFlowUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.user.IsViewPendingGroupUseCase
 import com.nunchuk.android.usecase.user.SetViewPendingGroupUseCase
+import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GroupPendingIntroViewModel @Inject constructor(
-    private val getGroupBriefByIdFlowUseCase: GetGroupBriefByIdFlowUseCase,
+    private val getGroupUseCase: GetGroupUseCase,
     private val isViewPendingGroupUseCase: IsViewPendingGroupUseCase,
     private val setViewPendingGroupUseCase: SetViewPendingGroupUseCase,
     private val accountManager: AccountManager,
@@ -34,14 +35,14 @@ class GroupPendingIntroViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             isViewPendingGroupUseCase(args.groupId).onSuccess { isView ->
-                val groupBrief =
-                    getGroupBriefByIdFlowUseCase(args.groupId).map { it.getOrNull() }.firstOrNull()
+                val group =
+                    getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.OFFLINE_ONLY)).map { it.getOrNull() }.firstOrNull()
                 val email = accountManager.getAccount().email
                 _state.update {
                     it.copy(
                         isViewPendingWallet = isView,
-                        masterName = groupBrief?.getMasterName().orEmpty(),
-                        role = groupBrief?.members?.find { member -> member.emailOrUsername == email }?.role.toRole
+                        masterName = group?.getMasterName().orEmpty(),
+                        role = group?.members?.find { member -> member.emailOrUsername == email }?.role.toRole
                     )
                 }
                 if (!isView) {

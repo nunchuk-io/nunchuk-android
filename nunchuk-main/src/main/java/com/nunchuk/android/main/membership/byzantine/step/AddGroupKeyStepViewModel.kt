@@ -28,9 +28,10 @@ import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.usecase.byzantine.GetGroupBriefByIdFlowUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
+import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -53,7 +54,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val syncGroupDraftWalletUseCase: SyncGroupDraftWalletUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
-    private val getGroupBriefByIdFlowUseCase: GetGroupBriefByIdFlowUseCase,
+    private val getGroupUseCase: GetGroupUseCase,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val accountManager: AccountManager,
 ) : ViewModel() {
@@ -115,7 +116,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getGroupBriefByIdFlowUseCase(groupId.value).collect {
+            getGroupUseCase(GetGroupUseCase.Params(groupId.value, loadingOptions = LoadingOptions.OFFLINE_ONLY)).collect {
                 if (it.isSuccess) {
                     val email = accountManager.getAccount().email
                     _uiState.update { state ->

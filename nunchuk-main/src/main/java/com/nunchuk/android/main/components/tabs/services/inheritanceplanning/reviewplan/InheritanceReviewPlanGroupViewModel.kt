@@ -21,11 +21,13 @@ import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseC
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
+import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -94,25 +96,27 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
 
     private fun loadMembers() {
         viewModelScope.launch {
-            val group = getGroupUseCase(param.groupId).getOrNull()
-            val myEmail = accountManager.getAccount().email
-            val members = group?.members.orEmpty().mapNotNull { member ->
-                if (member.role.toRole.isKeyHolder) {
-                    AssistedMember(
-                        role = member.role,
-                        email = member.emailOrUsername,
-                        name = member.user?.name,
-                        membershipId = member.membershipId,
-                        userId = member.user?.id.orEmpty(),
+            getGroupUseCase(GetGroupUseCase.Params(param.groupId, loadingOptions = LoadingOptions.REMOTE_ONLY)).collect {
+                val group = it.getOrNull()
+                val myEmail = accountManager.getAccount().email
+                val members = group?.members.orEmpty().mapNotNull { member ->
+                    if (member.role.toRole.isKeyHolder) {
+                        AssistedMember(
+                            role = member.role,
+                            email = member.emailOrUsername,
+                            name = member.user?.name,
+                            membershipId = member.membershipId,
+                            userId = member.user?.id.orEmpty(),
+                        )
+                    } else null
+                }
+                _state.update { state ->
+                    state.copy(
+                        members = members,
+                        myRole = members.find { it.email == myEmail }?.role?.toRole
+                            ?: AssistedWalletRole.NONE
                     )
-                } else null
-            }
-            _state.update { state ->
-                state.copy(
-                    members = members,
-                    myRole = members.find { it.email == myEmail }?.role?.toRole
-                        ?: AssistedWalletRole.NONE
-                )
+                }
             }
         }
     }

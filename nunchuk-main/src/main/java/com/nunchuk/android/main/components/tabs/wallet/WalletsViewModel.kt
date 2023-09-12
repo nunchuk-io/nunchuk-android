@@ -43,7 +43,6 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
-import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
@@ -72,7 +71,7 @@ import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
-import com.nunchuk.android.usecase.GetGroupBriefsFlowUseCase
+import com.nunchuk.android.usecase.GetGroupsFlowUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -86,6 +85,7 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
+import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -133,7 +133,7 @@ internal class WalletsViewModel @Inject constructor(
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
-    private val getGroupBriefsFlowUseCase: GetGroupBriefsFlowUseCase,
+    private val getGroupsFlowUseCase: GetGroupsFlowUseCase,
     private val groupMemberAcceptRequestUseCase: GroupMemberAcceptRequestUseCase,
     private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase,
     private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
@@ -219,7 +219,7 @@ internal class WalletsViewModel @Inject constructor(
                         }
                     }
                     is PushEvent.GroupMembershipRequestCreated -> {
-                        if (!getState().allGroups.any { it.groupId == event.groupId }) {
+                        if (!getState().allGroups.any { it.id == event.groupId }) {
                             syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
                                 if (shouldReload) retrieveData()
                             }
@@ -248,7 +248,7 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getGroupBriefsFlowUseCase(Unit).distinctUntilChanged().collect {
+            getGroupsFlowUseCase(LoadingOptions.OFFLINE_ONLY).distinctUntilChanged().collect {
                 val groups = it.getOrDefault(emptyList())
                 updateState { copy(allGroups = groups) }
                 if (groups.isNotEmpty()) {
@@ -366,7 +366,7 @@ internal class WalletsViewModel @Inject constructor(
             val pendingGroup = groups.filter { it.isPendingWallet() }
             wallets.forEach { wallet ->
                 val groupId = assistedWallets.find { it.localId == wallet.wallet.id }?.groupId
-                val group = groups.firstOrNull { it.groupId == groupId }
+                val group = groups.firstOrNull { it.id == groupId }
                 var groupWalletUi = GroupWalletUi(
                     wallet = wallet,
                     isAssistedWallet = wallet.wallet.id in assistedWalletIds,
@@ -416,7 +416,7 @@ internal class WalletsViewModel @Inject constructor(
     fun updateBadge() {
         if (isRetrievingAlert.get()) return
         viewModelScope.launch {
-            val groupIds = getState().allGroups.map { it.groupId }
+            val groupIds = getState().allGroups.map { it.id }
             if (groupIds.isEmpty()) return@launch
             isRetrievingAlert.set(true)
             val result = getPendingWalletNotifyCountUseCase(groupIds)

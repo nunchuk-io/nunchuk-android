@@ -21,6 +21,7 @@ package com.nunchuk.android.core.network
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,10 +32,10 @@ internal class NetworkVerifierImpl @Inject constructor(@ApplicationContext priva
     override fun isConnected(): Boolean {
         val cm =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-        if (cm != null) {
-            val activeNetwork = cm.activeNetworkInfo
-            return activeNetwork != null && activeNetwork.isConnectedOrConnecting
-        }
-        return false
+        val network = cm?.activeNetwork
+        val networkCapabilities = cm?.getNetworkCapabilities(network)
+        return networkCapabilities != null &&
+                (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))
     }
 }

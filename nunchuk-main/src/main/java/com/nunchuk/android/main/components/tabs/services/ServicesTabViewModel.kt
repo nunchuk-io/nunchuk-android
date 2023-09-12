@@ -31,7 +31,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
-import com.nunchuk.android.model.ByzantineGroupBrief
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -42,13 +42,14 @@ import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.GetGroupBriefsFlowUseCase
+import com.nunchuk.android.usecase.GetGroupsFlowUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.banner.GetAssistedWalletPageContentUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.banner.SubmitEmailUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
+import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -80,7 +81,7 @@ class ServicesTabViewModel @Inject constructor(
     private val getBannerUseCase: GetBannerUseCase,
     private val submitEmailUseCase: SubmitEmailUseCase,
     private val assistedWalletManager: AssistedWalletManager,
-    private val getGroupBriefsFlowUseCase: GetGroupBriefsFlowUseCase,
+    private val getGroupsFlowUseCase: GetGroupsFlowUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils
 ) : ViewModel() {
 
@@ -106,14 +107,14 @@ class ServicesTabViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getGroupBriefsFlowUseCase(Unit)
+            getGroupsFlowUseCase(LoadingOptions.OFFLINE_ONLY)
                 .collect {
                     updateGroupInfo(it.getOrDefault(emptyList()))
                 }
         }
     }
 
-    private fun updateGroupInfo(groups: List<ByzantineGroupBrief>) {
+    private fun updateGroupInfo(groups: List<ByzantineGroup>) {
         val groupTowOfFourMultisigs =
             groups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
         val sortedGroups = groupTowOfFourMultisigs.sortedWith(compareBy { group ->
@@ -125,7 +126,7 @@ class ServicesTabViewModel @Inject constructor(
                 userRoleOfGroupTowOfFourMultisig = byzantineGroupUtils.getCurrentUserRole(
                     sortedGroups.firstOrNull()
                 ),
-                groups = groups.associateBy { it.groupId }
+                groups = groups.associateBy { it.id }
             )
         }
     }
@@ -313,7 +314,7 @@ class ServicesTabViewModel @Inject constructor(
         return if (state.value.plan.isByzantine()) {
             wallets.filter {
                 state.value.groupsTowOfFourMultisig.find { group ->
-                    group.groupId == it.groupId
+                    group.id == it.groupId
                 } != null && byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isMasterOrAdmin
             }
         } else {
@@ -329,7 +330,7 @@ class ServicesTabViewModel @Inject constructor(
         return if (state.value.plan.isByzantine()) {
             wallets.filter {
                 state.value.groupsTowOfFourMultisig.find { group ->
-                    group.groupId == it.groupId
+                    group.id == it.groupId
                 } != null && byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
             }
         } else {

@@ -21,7 +21,7 @@ package com.nunchuk.android.main.components.tabs.services
 
 import android.os.Parcelable
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.ByzantineGroupBrief
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceCheck
 import com.nunchuk.android.model.MembershipPlan
@@ -69,8 +69,8 @@ data class ServicesTabState(
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null,
-    val groups: Map<String, ByzantineGroupBrief> = mutableMapOf(),
-    val groupsTowOfFourMultisig: List<ByzantineGroupBrief> = emptyList(),
+    val groups: Map<String, ByzantineGroup> = mutableMapOf(),
+    val groupsTowOfFourMultisig: List<ByzantineGroup> = emptyList(),
     val userRoleOfGroupTowOfFourMultisig: String = AssistedWalletRole.NONE.name,
 ) {
     fun initRowItems(): List<Any> {
@@ -151,7 +151,7 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.KeyRecovery)
                             add(ServiceTabRowCategory.Inheritance)
                             if (assistedWallets.isEmpty() ||
-                                assistedWallets.filter { wallet -> groupsTowOfFourMultisig.find { wallet.groupId == it.groupId } != null }
+                                assistedWallets.filter { wallet -> groupsTowOfFourMultisig.find { wallet.groupId == it.id } != null }
                                     .all { wallet -> wallet.isSetupInheritance.not() }
                             ) {
                                 add(ServiceTabRowItem.SetUpInheritancePlan)

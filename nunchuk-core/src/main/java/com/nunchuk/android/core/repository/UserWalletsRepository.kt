@@ -47,7 +47,6 @@ import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
-import com.nunchuk.android.core.data.model.byzantine.GroupResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
@@ -74,6 +73,7 @@ import com.nunchuk.android.core.mapper.toBackupKey
 import com.nunchuk.android.core.mapper.toByzantineGroup
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
 import com.nunchuk.android.core.mapper.toGroupChat
+import com.nunchuk.android.core.mapper.toGroupEntity
 import com.nunchuk.android.core.mapper.toHistoryPeriod
 import com.nunchuk.android.core.mapper.toInheritance
 import com.nunchuk.android.core.mapper.toMemberRequest
@@ -89,8 +89,7 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
-import com.nunchuk.android.model.ByzantineGroupBrief
-import com.nunchuk.android.model.ByzantineMemberBrief
+import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
@@ -134,12 +133,12 @@ import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.persistence.dao.AlertDao
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
-import com.nunchuk.android.persistence.entity.GroupEntity
 import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
 import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
@@ -148,6 +147,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import com.nunchuk.android.utils.isServerMasterSigner
 import kotlinx.coroutines.CoroutineScope
@@ -157,8 +157,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -175,9 +177,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val assistedWalletDao: AssistedWalletDao,
     private val requestAddKeyDao: RequestAddKeyDao,
     private val groupDao: GroupDao,
+    private val alertDao: AlertDao,
     private val groupWalletRepository: GroupWalletRepository,
     private val pushEventManager: PushEventManager,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
+    private val syncer: ByzantineSyncer,
     applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
     private val chain =
@@ -616,7 +620,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } else {
             userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
         }
-        return response.data.transaction?.toServerTransaction() ?: throw NullPointerException("Transaction empty")
+        return response.data.transaction?.toServerTransaction()
+            ?: throw NullPointerException("Transaction empty")
     }
 
     override suspend fun downloadBackup(
@@ -1256,7 +1261,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         walletId, transition.transactionId.orEmpty(), transition
                     )
                     if (transition.type == ServerTransactionType.SCHEDULED) {
-                        serverTransactionCache.put(transition.transactionId.orEmpty(), transition.toServerTransaction())
+                        serverTransactionCache.put(
+                            transition.transactionId.orEmpty(),
+                            transition.toServerTransaction()
+                        )
                     }
                 }
             }
@@ -1692,7 +1700,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val groupResponse = response.data.data ?: throw NullPointerException("Can not create group")
         val group = groupResponse.toByzantineGroup()
         groupDao.updateOrInsert(
-            groupResponse.toGroupEntity(accountManager.getAccount().chatId)
+            groupResponse.toGroupEntity(accountManager.getAccount().chatId, chain.value, groupDao)
         )
         return group
     }
@@ -1710,43 +1718,42 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } ?: emptyList()
     }
 
-    override fun getGroupBriefs(): Flow<List<ByzantineGroupBrief>> = chain.flatMapLatest {
-        groupDao.getGroups(chatId = accountManager.getAccount().chatId, it).map { group ->
-            val groupBriefs = group.map { group ->
-                val members = gson.fromJson<List<ByzantineMemberBrief>>(
-                    group.members, object : TypeToken<List<ByzantineMemberBrief>>() {}.type
-                )
-                val walletConfig =
-                    gson.fromJson(group.walletConfig, ByzantineWalletConfig::class.java)
-                ByzantineGroupBrief(
-                    groupId = group.groupId,
-                    status = group.status,
-                    members = members,
-                    createdTimeMillis = group.createdTimeMillis,
-                    isViewPendingWallet = group.isViewPendingWallet,
-                    walletConfig = walletConfig
-                )
-            }
-            groupBriefs
-        }
-    }
+    override fun getGroups(loadingOptions: LoadingOptions): Flow<List<ByzantineGroup>> =
+        chain.flatMapLatest {
+            when (loadingOptions) {
+                LoadingOptions.OFFLINE_ONLY -> {
+                    groupDao.getGroups(chatId = accountManager.getAccount().chatId, it)
+                        .map { group ->
+                            val groups = group.map { group ->
+                                group.toByzantineGroup()
+                            }
+                            groups
+                        }
+                }
 
-    override fun getGroupBriefById(groupId: String): Flow<ByzantineGroupBrief> {
-        return groupDao.getById(groupId, chatId = accountManager.getAccount().chatId).map { group ->
-            val members = gson.fromJson<List<ByzantineMemberBrief>>(
-                group.members, object : TypeToken<List<ByzantineMemberBrief>>() {}.type
-            )
-            val walletConfig = gson.fromJson(group.walletConfig, ByzantineWalletConfig::class.java)
-            ByzantineGroupBrief(
-                groupId = group.groupId,
-                status = group.status,
-                members = members,
-                createdTimeMillis = group.createdTimeMillis,
-                isViewPendingWallet = group.isViewPendingWallet,
-                walletConfig = walletConfig
-            )
+                LoadingOptions.REMOTE_ONLY -> {
+                    val response = userWalletApiManager.groupWalletApi.getGroups()
+                    val groups = response.data.groups.orEmpty()
+                    return@flatMapLatest flow {
+                        groups.map { it.toByzantineGroup() }
+                    }
+                }
+                LoadingOptions.FORCE_REFRESH -> {
+                    return@flatMapLatest flow {
+                        emit(groupDao.getGroups(chatId = accountManager.getAccount().chatId, it)
+                            .map { group ->
+                                val groups = group.map { group ->
+                                    group.toByzantineGroup()
+                                }
+                                groups
+                            }.firstOrNull().orEmpty())
+                       syncer.syncGroups()?.let {
+                            emit(it)
+                       }
+                    }
+                }
+            }
         }
-    }
 
     override suspend fun syncGroupWallets(): Boolean {
         val response = userWalletApiManager.groupWalletApi.getGroups()
@@ -1766,77 +1773,51 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
         }
         ncDataStore.setGroupAssistedKey(groupAssistedKeys)
-        syncGroup(groups)
+        syncer.syncGroups()
 
         return groups.isNotEmpty()
     }
 
-    private suspend fun syncGroup(groups: List<GroupResponse>) {
-        val groupLocals =
-            groupDao.getGroups(accountManager.getAccount().chatId, chain.value).firstOrNull()
-                ?: emptyList()
-        val allGroupIds = groupLocals.map { it.groupId }.toHashSet()
-        val addGroupIds = HashSet<String>()
-        val chatId = accountManager.getAccount().chatId
-        groupDao.updateOrInsert(groups.filter {
-            it.status != GroupStatus.DELETED.name && it.id.isNullOrEmpty().not()
-        }.map { group ->
-            addGroupIds.add(group.id.orEmpty())
-            group.toGroupEntity(chatId)
-        }.toList())
-        allGroupIds.removeAll(addGroupIds)
-        if (allGroupIds.isNotEmpty()) {
-            groupDao.deleteGroups(allGroupIds.toList(), chatId = chatId)
-        }
-    }
+    override fun getGroup(groupId: String, loadingOption: LoadingOptions) = flow {
+        when (loadingOption) {
+            LoadingOptions.OFFLINE_ONLY -> {
+                groupDao.getById(
+                    groupId,
+                    chatId = accountManager.getAccount().chatId,
+                    chain = chain.value
+                ).map { group ->
+                    group.toByzantineGroup()
+                }
+            }
 
-    private fun GroupResponse.toGroupEntity(chatId: String): GroupEntity {
-        val memberBrief = members.orEmpty().map {
-            ByzantineMemberBrief(
-                emailOrUsername = it.emailOrUsername.orEmpty(),
-                role = it.role.orEmpty(),
-                inviterUserId = it.inviterUserId.orEmpty(),
-                status = it.status.orEmpty(),
-                avatar = it.user?.avatar,
-                name = it.user?.name,
-                email = it.user?.email,
-                userId = it.user?.id
-            )
-        }
-        val walletConfig = ByzantineWalletConfig(
-            allowInheritance = walletConfig?.allowInheritance.orFalse(),
-            m = walletConfig?.m.orDefault(0),
-            n = walletConfig?.n.orDefault(0),
-            requiredServerKey = walletConfig?.requiredServerKey.orFalse()
-        )
-        groupDao.getGroupById(id.orEmpty(), chatId)?.let {
-            return it.copy(
-                groupId = id.orEmpty(),
-                chatId = chatId,
-                status = status.orEmpty(),
-                createdTimeMillis = createdTimeMillis ?: 0,
-                members = gson.toJson(memberBrief),
-                walletConfig = gson.toJson(walletConfig)
-            )
-        }
-        return GroupEntity(
-            groupId = id.orEmpty(),
-            chatId = chatId,
-            status = status.orEmpty(),
-            createdTimeMillis = createdTimeMillis ?: 0,
-            members = gson.toJson(memberBrief),
-            chain = chain.value,
-            walletConfig = gson.toJson(walletConfig)
-        )
-    }
+            LoadingOptions.REMOTE_ONLY -> {
+                val response = userWalletApiManager.groupWalletApi.getGroup(groupId)
+                val groupResponse =
+                    response.data.data ?: throw NullPointerException("Can not get group")
+                groupDao.updateOrInsert(
+                    groupResponse.toGroupEntity(
+                        accountManager.getAccount().chatId,
+                        chain.value,
+                        groupDao
+                    )
+                )
+                emit(groupResponse.toByzantineGroup())
+            }
 
-    override suspend fun getGroup(groupId: String): ByzantineGroup {
-        val response = userWalletApiManager.groupWalletApi.getGroup(groupId)
-        val groupResponse = response.data.data ?: throw NullPointerException("Can not get group")
-        groupDao.updateOrInsert(
-            groupResponse.toGroupEntity(accountManager.getAccount().chatId)
-        )
-        return groupResponse.toByzantineGroup()
+            LoadingOptions.FORCE_REFRESH -> {
+                val local = groupDao.getById(
+                    groupId,
+                    chatId = accountManager.getAccount().chatId,
+                    chain = chain.value
+                ).map { group ->
+                    group.toByzantineGroup()
+                }.first()
+                emit(local)
+                syncer.syncGroup(groupId)?.let {
+                    emit(it)
+                }
+            }
+        }
     }
 
     override suspend fun deleteGroupWallet(groupId: String) {
@@ -1853,7 +1834,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun updateGroupStatus(groupId: String, status: String) {
         val group =
-            groupDao.getGroupById(groupId, chatId = accountManager.getAccount().chatId) ?: return
+            groupDao.getGroupById(groupId, chatId = accountManager.getAccount().chatId, chain.value)
+                ?: return
         groupDao.update(group.copy(status = status))
     }
 
@@ -1949,16 +1931,41 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return saveWalletToLib(wallet, groupAssistedKeys)
     }
 
-    override suspend fun getAlerts(groupId: String): List<Alert> {
-        val alerts = arrayListOf<Alert>()
-        (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
-            val response = userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
-            if (response.isSuccess.not()) throw response.error
-            val alertList = response.data.alerts.orEmpty().map { it.toAlert() }
-            alerts.addAll(alertList)
-            if (response.data.alerts.orEmpty().size < TRANSACTION_PAGE_COUNT) return alerts
+    override fun getAlerts(groupId: String, loadingOption: LoadingOptions) = flow {
+
+        when(loadingOption) {
+            LoadingOptions.OFFLINE_ONLY -> {
+                val chatId = accountManager.getAccount().chatId
+                val localList = alertDao.getAlerts(groupId, chatId = chatId, chain.value)
+                emit(localList.map { it.toAlert() })
+            }
+
+            LoadingOptions.REMOTE_ONLY -> {
+                val alerts = arrayListOf<Alert>()
+                var index = 0
+                while (true) {
+                    val response = userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
+                    if (response.isSuccess.not()) {
+                        emit(alerts)
+                        return@flow
+                    }
+                    val alertList = response.data.alerts.orEmpty().map { it.toAlert() }
+                    alerts.addAll(alertList)
+                    if (response.data.alerts.orEmpty().size < TRANSACTION_PAGE_COUNT) break
+                    index += TRANSACTION_PAGE_COUNT
+                }
+                emit(alerts)
+            }
+
+            LoadingOptions.FORCE_REFRESH -> {
+                val localList = alertDao.getAlerts(groupId, accountManager.getAccount().chatId, chain.value)
+                emit(localList.map { it.toAlert() })
+                val syncerList = syncer.syncAlerts(groupId)
+                if (syncerList != null) {
+                    emit(syncerList)
+                }
+            }
         }
-        return alerts
     }
 
     override suspend fun markAlertAsRead(groupId: String, alertId: String) {

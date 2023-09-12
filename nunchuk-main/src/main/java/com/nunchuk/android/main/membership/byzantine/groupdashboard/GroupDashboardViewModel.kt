@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -39,6 +40,7 @@ import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
+import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
@@ -46,6 +48,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -134,22 +137,26 @@ class GroupDashboardViewModel @Inject constructor(
             getGroupWalletKeyHealthStatusUseCase(
                 GetGroupWalletKeyHealthStatusUseCase.Params(
                     args.groupId,
-                    walletId.value.orEmpty()
+                    walletId.value.orEmpty(),
+                    LoadingOptions.FORCE_REFRESH
                 )
-            ).onSuccess { status ->
+            ).collect{ result ->
                 _state.update { state ->
-                    state.copy(keyStatus = status.associateBy { it.xfp })
+                    state.copy(keyStatus = result.getOrDefault(emptyList()).associateBy { it.xfp })
                 }
             }
         }
     }
 
     fun getAlerts() {
-        if (loadAlertJob?.isActive == true) return
-        loadAlertJob = viewModelScope.launch {
-            val result = getAlertGroupUseCase(args.groupId)
-            if (result.isSuccess) {
-                _state.value = _state.value.copy(alerts = result.getOrDefault(emptyList()))
+        viewModelScope.launch {
+            getAlertGroupUseCase(GetAlertGroupUseCase.Params(groupId = args.groupId, loadingOptions = LoadingOptions.FORCE_REFRESH)).collect { result ->
+                val alerts = result.getOrDefault(emptyList())
+                if (alerts.isNotEmpty()) {
+                    _state.update { state ->
+                        state.copy(alerts = alerts)
+                    }
+                }
             }
         }
     }
@@ -183,10 +190,12 @@ class GroupDashboardViewModel @Inject constructor(
     private fun getGroup() {
         viewModelScope.launch {
             _event.emit(GroupDashboardEvent.Loading(true))
-            val group = getGroupUseCase(args.groupId).getOrNull()
-            _event.emit(GroupDashboardEvent.Loading(false))
-            val members = group?.members.orEmpty()
-            _state.update { it.copy(group = group, myRole = currentUserRole(members)) }
+            getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.FORCE_REFRESH)).collect { result ->
+                val group = result.getOrNull()
+                _event.emit(GroupDashboardEvent.Loading(false))
+                val members = group?.members.orEmpty()
+                _state.update { it.copy(group = group, myRole = currentUserRole(members)) }
+            }
         }
     }
 

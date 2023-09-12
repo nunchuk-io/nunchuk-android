@@ -20,6 +20,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.network.NetworkVerifier
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -60,6 +61,9 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
 
     @Inject
     lateinit var navigator: NunchukNavigator
+
+    @Inject
+    lateinit var networkVerifier: NetworkVerifier
 
     private val args: GroupDashboardFragmentArgs by navArgs()
 
@@ -112,14 +116,16 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 GroupDashboardScreen(
                     viewModel,
                     onEditClick = {
-                        findNavController().navigate(
-                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToByzantineInviteMembersFragment(
-                                members = viewModel.getMembers().toTypedArray(),
-                                groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
-                                flow = ByzantineMemberFlow.EDIT,
-                                groupType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()?.name.orEmpty(),
+                        networkCheck {
+                            findNavController().navigate(
+                                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToByzantineInviteMembersFragment(
+                                    members = viewModel.getMembers().toTypedArray(),
+                                    groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
+                                    flow = ByzantineMemberFlow.EDIT,
+                                    groupType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()?.name.orEmpty(),
+                                )
                             )
-                        )
+                        }
                     },
                     onAlertClick = { alert, role ->
                         alertClick(alert, role)
@@ -133,14 +139,16 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         }
                     },
                     onGroupChatClick = {
-                        if (viewModel.groupChat() != null) {
-                            openRoomChat()
-                        } else {
-                            findNavController().navigate(
-                                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(
-                                    args.groupId
+                        networkCheck {
+                            if (viewModel.groupChat() != null) {
+                                openRoomChat()
+                            } else {
+                                findNavController().navigate(
+                                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(
+                                        args.groupId
+                                    )
                                 )
-                            )
+                            }
                         }
                     },
                     onMoreClick = {
@@ -159,6 +167,14 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     },
                 )
             }
+        }
+    }
+
+    fun networkCheck(block: () -> Unit) {
+        if (networkVerifier.isConnected().not()) {
+            showError(message = getString(R.string.nc_no_internet_connection_try_again_later))
+        } else {
+            block()
         }
     }
 
@@ -389,10 +405,12 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     ),
                 )
                 if (!args.walletId.isNullOrEmpty()) {
-                    options.add(SheetOption(
-                        type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
-                        stringId = R.string.nc_cosigning_policies
-                    ))
+                    options.add(
+                        SheetOption(
+                            type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
+                            stringId = R.string.nc_cosigning_policies
+                        )
+                    )
                 }
             }
             options.addAll(

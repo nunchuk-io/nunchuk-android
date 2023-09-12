@@ -17,12 +17,14 @@ data class GroupEntity(
     val status: String,
     @ColumnInfo(name = "createdTimeMillis")
     val createdTimeMillis: Long,
-    @ColumnInfo(name = "members") // ByzantineMemberBrief
+    @ColumnInfo(name = "members") // ByzantineMember
     val members: String,
     @ColumnInfo(name = "is_view_pending_wallet", defaultValue = "false")
     val isViewPendingWallet: Boolean = false,
     @ColumnInfo(name = "chain", defaultValue = "MAIN")
     val chain: Chain = Chain.MAIN,
     @ColumnInfo(name = "walletConfig", defaultValue = "") // ByzantineWalletConfig
-    val walletConfig: String
+    val walletConfig: String,
+    @ColumnInfo("setup_preference", defaultValue = "")
+    val setupPreference: String,
 )
