@@ -6,5 +6,6 @@ data class DummyTransaction(
     val psbt: String,
     val pendingSignature: Int,
     val dummyTransactionType: DummyTransactionType,
-    val payload: String
+    val payload: String,
+    val isDraft: Boolean,
 )

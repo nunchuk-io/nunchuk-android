@@ -21,7 +21,8 @@ data class DummyTransactionDto(
     @SerializedName("type") val type: String? = null,
     @SerializedName("status") val status: String? = null,
     @SerializedName("payload") val payload: JsonObject? = null,
-    @SerializedName("created_time_millis") val createdTimeMillis: Long = 0L
+    @SerializedName("created_time_millis") val createdTimeMillis: Long = 0L,
+    @SerializedName("is_draft") val isDraft: Boolean = false,
 )
 
 data class SignatureDto(

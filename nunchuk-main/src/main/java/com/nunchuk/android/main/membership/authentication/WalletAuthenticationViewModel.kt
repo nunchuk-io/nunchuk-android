@@ -119,7 +119,8 @@ class WalletAuthenticationViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             pendingSignature = dummyTransaction.pendingSignature,
-                            dummyTransactionType = dummyTransaction.dummyTransactionType
+                            dummyTransactionType = dummyTransaction.dummyTransactionType,
+                            isDraft = dummyTransaction.isDraft
                         )
                     }
                     if (dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING
@@ -369,7 +370,12 @@ class WalletAuthenticationViewModel @Inject constructor(
     )
 
     fun finalizeDummyTransaction() {
+        val isDraft = state.value.isDraft
         viewModelScope.launch {
+            if (isDraft.not()) {
+                _event.emit(WalletAuthenticationEvent.FinalizeDummyTxSuccess)
+                return@launch
+            }
             _event.emit(WalletAuthenticationEvent.Loading(true))
             finalizeDummyTransactionUseCase(
                 FinalizeDummyTransactionUseCase.Params(
@@ -389,7 +395,8 @@ class WalletAuthenticationViewModel @Inject constructor(
 
     fun deleteDummyTransaction() {
         viewModelScope.launch(NonCancellable) {
-            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
+            val isDraft = state.value.isDraft
+            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty() && isDraft) {
                 deleteGroupDummyTransactionUseCase(
                     DeleteGroupDummyTransactionUseCase.Param(
                         groupId = args.groupId.orEmpty(),

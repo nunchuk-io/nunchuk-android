@@ -54,4 +54,5 @@ data class WalletAuthenticationState(
     val interactSingleSigner: SingleSigner? = null,
     val dummyTransactionType: DummyTransactionType = DummyTransactionType.NONE,
     val enabledSigners : Set<String> = emptySet(),
+    val isDraft: Boolean = false
 )

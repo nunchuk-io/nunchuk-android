@@ -29,7 +29,8 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             psbt = nunchukNativeSdk.getHealthCheckDummyTxMessage(walletId, requestBody),
             pendingSignature = dummyTransaction.pendingSignatures,
             dummyTransactionType = dummyTransaction.type.toDummyTransactionType,
-            payload = dummyTransaction.payload?.toString().orEmpty()
+            payload = dummyTransaction.payload?.toString().orEmpty(),
+            isDraft = dummyTransaction.isDraft,
         )
     }
 
