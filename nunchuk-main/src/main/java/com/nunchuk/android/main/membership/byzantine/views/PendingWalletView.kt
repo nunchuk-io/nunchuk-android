@@ -76,6 +76,19 @@ fun PendingWalletView(
     onGroupClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
 ) {
+    val colors =
+        if (inviterName.isNotEmpty() || walletsExtended == null) {
+            listOf(MaterialTheme.colors.yellowishOrange, MaterialTheme.colors.yellowishOrange)
+        } else if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
+            listOf(NcColor.greyDark, NcColor.greyDark)
+        } else if (group != null || isAssistedWallet) {
+            listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
+        } else {
+            listOf(
+                colorResource(id = R.color.nc_primary_light_color),
+                colorResource(id = R.color.nc_primary_color)
+            )
+        }
     Column(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -83,19 +96,6 @@ fun PendingWalletView(
             .clickable(onClick = onWalletClick, enabled = walletsExtended != null)
             .fillMaxWidth(),
     ) {
-        val colors =
-            if (inviterName.isNotEmpty() || walletsExtended == null) {
-                listOf(MaterialTheme.colors.yellowishOrange, MaterialTheme.colors.yellowishOrange)
-            } else if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
-                listOf(NcColor.greyDark, NcColor.greyDark)
-            } else if (group != null || isAssistedWallet) {
-                listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
-            } else {
-                listOf(
-                    colorResource(id = R.color.nc_primary_light_color),
-                    colorResource(id = R.color.nc_primary_color)
-                )
-            }
         Box(
             modifier = Modifier
                 .background(
