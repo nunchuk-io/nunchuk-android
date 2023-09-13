@@ -131,6 +131,12 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_complete_a_health_check)
         else -> stringResource(R.string.nc_authorize_these_change)
     }
+    val lastSentences = when {
+        dummyTransactionType == DummyTransactionType.HEALTH_CHECK_REQUEST -> stringResource(R.string.nc_use_health_check_key_to_sign)
+        dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_use_health_check_key_to_sign)
+        isGroup && pendingSignature > 1  -> stringResource(id = R.string.nc_dummy_transaction_key_holder_desc)
+        else -> ""
+    }
     BackHandler {
         onCancelClicked()
     }
@@ -154,7 +160,7 @@ fun DummyTransactionIntroContent(
                         R.string.nc_dummy_transaction_desc,
                         firstSentence,
                         Amount(value = 10000).getCurrencyAmount(),
-                        if (isGroup && pendingSignature > 1) stringResource(id = R.string.nc_dummy_transaction_key_holder_desc) else ""
+                        lastSentences
                     )
                 )
                 Spacer(modifier = Modifier.weight(1.0f))

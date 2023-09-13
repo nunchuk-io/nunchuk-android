@@ -200,7 +200,7 @@ private fun HealthCheckItem(
             ) {
                 Text(
                     text = stringResource(R.string.nc_health_check),
-                    style = NunchukTheme.typography.caption
+                    style = NunchukTheme.typography.captionTitle
                 )
             }
             NcOutlineButton(
@@ -212,7 +212,7 @@ private fun HealthCheckItem(
             ) {
                 Text(
                     text = stringResource(R.string.nc_request_health_check),
-                    style = NunchukTheme.typography.caption
+                    style = NunchukTheme.typography.captionTitle
                 )
             }
         }

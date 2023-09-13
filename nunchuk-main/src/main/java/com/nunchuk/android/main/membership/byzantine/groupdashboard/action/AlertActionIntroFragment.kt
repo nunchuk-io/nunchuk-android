@@ -129,6 +129,10 @@ private fun AlertActionIntroContent(
     onCancelRequest: () -> Unit = {},
     onContinue: (DummyTransactionPayload) -> Unit = {},
 ) {
+    val cancelButton = when(alert.type) {
+        AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
+        else -> stringResource(id = R.string.nc_cancel_request)
+    }
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -139,14 +143,16 @@ private fun AlertActionIntroContent(
             },
             bottomBar = {
                 Column {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .fillMaxWidth(),
-                        onClick = { onContinue(state.dummyTransaction!!) },
-                        enabled = state.dummyTransaction != null
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    if (alert.type != AlertType.HEALTH_CHECK_REQUEST) {
+                        NcPrimaryDarkButton(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .fillMaxWidth(),
+                            onClick = { onContinue(state.dummyTransaction!!) },
+                            enabled = state.dummyTransaction != null
+                        ) {
+                            Text(text = stringResource(id = R.string.nc_text_continue))
+                        }
                     }
 
                     TextButton(
@@ -155,7 +161,7 @@ private fun AlertActionIntroContent(
                             .fillMaxWidth(),
                         onClick = onCancelRequest
                     ) {
-                        Text(text = stringResource(R.string.nc_cancel_request))
+                        Text(text = cancelButton)
                     }
                 }
             }
