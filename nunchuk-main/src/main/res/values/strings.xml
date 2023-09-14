@@ -164,4 +164,5 @@
     <string name="nc_health_check_procedure">Health check procedure</string>
     <string name="nc_cancel_health_check">Cancel health check</string>
     <string name="nc_use_health_check_key_to_sign">. Please use the key that you want to health check to sign</string>
+    <string name="nc_not_checked_yet">Not checked yet</string>
 </resources>

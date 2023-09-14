@@ -25,7 +25,7 @@ fun Long?.healthCheckTimeColor(): Color {
 }
 
 fun Long?.healthCheckLabel(context: Context): String {
-    if (this == null) return context.getString(R.string.nc_last_checked_more_than_1_year_ago)
+    if (this == null || this == 0L) return context.getString(R.string.nc_not_checked_yet)
     val last6Month = Calendar.getInstance().apply {
         add(Calendar.MONTH, -6)
     }.timeInMillis
