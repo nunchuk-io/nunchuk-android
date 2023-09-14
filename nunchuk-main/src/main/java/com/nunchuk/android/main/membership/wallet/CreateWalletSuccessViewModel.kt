@@ -46,7 +46,7 @@ class CreateWalletSuccessViewModel @Inject constructor(
 
     fun loadGroup(id: String) {
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(id, LoadingOptions.REMOTE_ONLY)).collect { result ->
+            getGroupUseCase(GetGroupUseCase.Params(id, LoadingOptions.REMOTE)).collect { result ->
                 _state.update { it.copy(isSingleSetup = result.getOrThrow().isSinglePersonSetup(), allowInheritance = result.getOrThrow().walletConfig.allowInheritance) }
             }
         }

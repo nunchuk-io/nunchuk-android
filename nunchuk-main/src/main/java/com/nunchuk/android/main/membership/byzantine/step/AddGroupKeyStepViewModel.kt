@@ -116,7 +116,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(groupId.value, loadingOptions = LoadingOptions.OFFLINE_ONLY)).collect {
+            getGroupUseCase(GetGroupUseCase.Params(groupId.value, loadingOptions = LoadingOptions.OFFLINE)).collect {
                 if (it.isSuccess) {
                     val email = accountManager.getAccount().email
                     _uiState.update { state ->

@@ -23,6 +23,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.SimilarGroup
 import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
@@ -35,8 +36,10 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.isServerMasterSigner
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -230,39 +233,24 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         groupId: String,
         walletId: String,
         loadingOptions: LoadingOptions
-    ) = flow {
-        when (loadingOptions) {
-            LoadingOptions.OFFLINE_ONLY -> keyHealthStatusDao.getKeys(
-                groupId,
-                walletId,
-                accountManager.getAccount().chatId,
-                chain.value
-            ).map {
-                it.toKeyHealthStatus()
-            }
-
-            LoadingOptions.REMOTE_ONLY -> {
-                emit(userWalletApiManager.groupWalletApi.getWalletHealthStatus(
-                    groupId = groupId,
-                    walletId = walletId
-                ).data.statuses.map {
-                    it.toDomainModel()
-                })
-            }
-
-            LoadingOptions.FORCE_REFRESH -> {
-                val localList = keyHealthStatusDao.getKeys(
+    ): Flow<List<KeyHealthStatus>> {
+        return when (loadingOptions) {
+            LoadingOptions.OFFLINE -> {
+                keyHealthStatusDao.getKeys(
                     groupId,
                     walletId,
                     accountManager.getAccount().chatId,
                     chain.value
                 ).map {
-                    it.toKeyHealthStatus()
+                    it.map { entity -> entity.toKeyHealthStatus() }
                 }
-                emit(localList)
-                val remoteList = byzantineSyncer.syncKeyHealthStatus(groupId, walletId)
-                remoteList?.let {
-                    emit(it)
+            }
+
+            LoadingOptions.REMOTE -> {
+                return flow {
+                    byzantineSyncer.syncKeyHealthStatus(groupId, walletId)?.let {
+                        emit(it)
+                    }
                 }
             }
         }

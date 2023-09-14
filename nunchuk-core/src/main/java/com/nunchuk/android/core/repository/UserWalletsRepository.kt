@@ -21,7 +21,6 @@ package com.nunchuk.android.core.repository
 
 import android.util.LruCache
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.api.TRANSACTION_PAGE_COUNT
@@ -89,8 +88,6 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
-import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
@@ -157,8 +154,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -1721,7 +1716,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override fun getGroups(loadingOptions: LoadingOptions): Flow<List<ByzantineGroup>> =
         chain.flatMapLatest {
             when (loadingOptions) {
-                LoadingOptions.OFFLINE_ONLY -> {
+                LoadingOptions.OFFLINE -> {
                     groupDao.getGroups(chatId = accountManager.getAccount().chatId, it)
                         .map { group ->
                             val groups = group.map { group ->
@@ -1731,25 +1726,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         }
                 }
 
-                LoadingOptions.REMOTE_ONLY -> {
-                    val response = userWalletApiManager.groupWalletApi.getGroups()
-                    val groups = response.data.groups.orEmpty()
+                LoadingOptions.REMOTE -> {
                     return@flatMapLatest flow {
-                        groups.map { it.toByzantineGroup() }
-                    }
-                }
-                LoadingOptions.FORCE_REFRESH -> {
-                    return@flatMapLatest flow {
-                        emit(groupDao.getGroups(chatId = accountManager.getAccount().chatId, it)
-                            .map { group ->
-                                val groups = group.map { group ->
-                                    group.toByzantineGroup()
-                                }
-                                groups
-                            }.firstOrNull().orEmpty())
-                       syncer.syncGroups()?.let {
+                        syncer.syncGroups()?.let {
                             emit(it)
-                       }
+                        }
                     }
                 }
             }
@@ -1778,9 +1759,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return groups.isNotEmpty()
     }
 
-    override fun getGroup(groupId: String, loadingOption: LoadingOptions) = flow {
-        when (loadingOption) {
-            LoadingOptions.OFFLINE_ONLY -> {
+    override fun getGroup(groupId: String, loadingOption: LoadingOptions): Flow<ByzantineGroup> {
+        return when (loadingOption) {
+            LoadingOptions.OFFLINE -> {
                 groupDao.getById(
                     groupId,
                     chatId = accountManager.getAccount().chatId,
@@ -1790,31 +1771,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
             }
 
-            LoadingOptions.REMOTE_ONLY -> {
-                val response = userWalletApiManager.groupWalletApi.getGroup(groupId)
-                val groupResponse =
-                    response.data.data ?: throw NullPointerException("Can not get group")
-                groupDao.updateOrInsert(
-                    groupResponse.toGroupEntity(
-                        accountManager.getAccount().chatId,
-                        chain.value,
-                        groupDao
-                    )
-                )
-                emit(groupResponse.toByzantineGroup())
-            }
-
-            LoadingOptions.FORCE_REFRESH -> {
-                val local = groupDao.getById(
-                    groupId,
-                    chatId = accountManager.getAccount().chatId,
-                    chain = chain.value
-                ).map { group ->
-                    group.toByzantineGroup()
-                }.first()
-                emit(local)
-                syncer.syncGroup(groupId)?.let {
-                    emit(it)
+            LoadingOptions.REMOTE -> {
+                return flow {
+                    syncer.syncGroup(groupId)?.let {
+                        emit(it)
+                    }
                 }
             }
         }
@@ -1931,38 +1892,23 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return saveWalletToLib(wallet, groupAssistedKeys)
     }
 
-    override fun getAlerts(groupId: String, loadingOption: LoadingOptions) = flow {
-
-        when(loadingOption) {
-            LoadingOptions.OFFLINE_ONLY -> {
-                val chatId = accountManager.getAccount().chatId
-                val localList = alertDao.getAlerts(groupId, chatId = chatId, chain.value)
-                emit(localList.map { it.toAlert() })
-            }
-
-            LoadingOptions.REMOTE_ONLY -> {
-                val alerts = arrayListOf<Alert>()
-                var index = 0
-                while (true) {
-                    val response = userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
-                    if (response.isSuccess.not()) {
-                        emit(alerts)
-                        return@flow
+    override fun getAlerts(groupId: String, loadingOption: LoadingOptions): Flow<List<Alert>> {
+        return when (loadingOption) {
+            LoadingOptions.OFFLINE -> {
+                alertDao.getAlerts(groupId, chatId = accountManager.getAccount().chatId, chain.value)
+                    .map { alerts ->
+                        alerts.map { alert ->
+                            alert.toAlert()
+                        }
                     }
-                    val alertList = response.data.alerts.orEmpty().map { it.toAlert() }
-                    alerts.addAll(alertList)
-                    if (response.data.alerts.orEmpty().size < TRANSACTION_PAGE_COUNT) break
-                    index += TRANSACTION_PAGE_COUNT
-                }
-                emit(alerts)
             }
 
-            LoadingOptions.FORCE_REFRESH -> {
-                val localList = alertDao.getAlerts(groupId, accountManager.getAccount().chatId, chain.value)
-                emit(localList.map { it.toAlert() })
-                val syncerList = syncer.syncAlerts(groupId)
-                if (syncerList != null) {
-                    emit(syncerList)
+            LoadingOptions.REMOTE -> {
+                return flow {
+                    val syncerList = syncer.syncAlerts(groupId)
+                    if (syncerList != null) {
+                        emit(syncerList)
+                    }
                 }
             }
         }

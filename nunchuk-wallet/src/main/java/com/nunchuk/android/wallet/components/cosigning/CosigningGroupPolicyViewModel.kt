@@ -126,7 +126,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
 
     private fun loadMembers() {
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.REMOTE_ONLY)).collect {
+            getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.REMOTE)).collect {
                 val group = it.getOrNull()
                 val myEmail = accountManager.getAccount().email
                 val members = group?.members.orEmpty().mapNotNull { member ->

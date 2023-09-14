@@ -85,7 +85,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     private fun getGroup() {
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(param.groupId, loadingOptions = LoadingOptions.REMOTE_ONLY)).collect { result ->
+            getGroupUseCase(GetGroupUseCase.Params(param.groupId, loadingOptions = LoadingOptions.REMOTE)).collect { result ->
                 if (result.isSuccess) {
                     val group = result.getOrThrow()
                     val currentUserRole = byzantineGroupUtils.getCurrentUserRole(group)

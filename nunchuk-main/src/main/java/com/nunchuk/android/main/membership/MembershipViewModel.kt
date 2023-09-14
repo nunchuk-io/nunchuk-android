@@ -29,7 +29,7 @@ class MembershipViewModel @Inject constructor(
     init {
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
-                getGroupUseCase(GetGroupUseCase.Params(groupId, loadingOptions = LoadingOptions.OFFLINE_ONLY))
+                getGroupUseCase(GetGroupUseCase.Params(groupId, loadingOptions = LoadingOptions.OFFLINE))
                     .filter { it.isSuccess }
                     .map { it.getOrThrow() }
                     .collect { groupBrief ->

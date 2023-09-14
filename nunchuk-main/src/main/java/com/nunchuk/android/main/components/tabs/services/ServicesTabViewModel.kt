@@ -107,7 +107,7 @@ class ServicesTabViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getGroupsFlowUseCase(LoadingOptions.OFFLINE_ONLY)
+            getGroupsFlowUseCase(LoadingOptions.OFFLINE)
                 .collect {
                     updateGroupInfo(it.getOrDefault(emptyList()))
                 }

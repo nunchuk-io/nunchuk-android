@@ -36,7 +36,7 @@ class GroupPendingIntroViewModel @Inject constructor(
         viewModelScope.launch {
             isViewPendingGroupUseCase(args.groupId).onSuccess { isView ->
                 val group =
-                    getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.OFFLINE_ONLY)).map { it.getOrNull() }.firstOrNull()
+                    getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.OFFLINE)).map { it.getOrNull() }.firstOrNull()
                 val email = accountManager.getAccount().email
                 _state.update {
                     it.copy(

@@ -62,15 +62,14 @@ internal class ByzantineSyncer @Inject constructor(
             return null
         }
 
-        val newList = mutableListOf<AlertEntity>()
-        val updateList = mutableListOf<AlertEntity>()
+        val updateOrInsertList = mutableListOf<AlertEntity>()
 
-        val localMap = alertDao.getAlerts(groupId, chatId, chain.value).associateByTo(mutableMapOf()) { it.id }
+        val localMap = alertDao.getAlerts(groupId, chatId, chain.value).firstOrNull().orEmpty().associateByTo(mutableMapOf()) { it.id }
 
         remoteList.forEach { remote ->
             val local = localMap[remote.id]
             if (local != null) {
-                updateList += local.copy(
+                updateOrInsertList += local.copy(
                     viewable = remote.viewable,
                     payload = gson.toJson(remote.payload),
                     body = remote.body,
@@ -81,16 +80,16 @@ internal class ByzantineSyncer @Inject constructor(
                 )
                 localMap.remove(remote.id)
             } else {
-                newList += remote.toAlertEntity(groupId)
+                updateOrInsertList += remote.toAlertEntity(groupId)
             }
         }
 
         val deleteList = localMap.values.toList()
 
-        if (newList.isNotEmpty() || updateList.isNotEmpty() || deleteList.isNotEmpty()) {
-            alertDao.updateData(newList, updateList, deleteList)
+        if (updateOrInsertList.isNotEmpty() || deleteList.isNotEmpty()) {
+            alertDao.updateData(updateOrInsertList, deleteList)
         }
-        return (newList + updateList).map { it.toAlert() }
+        return updateOrInsertList.map { it.toAlert() }
     }
 
     suspend fun syncGroups(): List<ByzantineGroup>? {
@@ -134,33 +133,32 @@ internal class ByzantineSyncer @Inject constructor(
 
     suspend fun syncKeyHealthStatus(groupId: String, walletId: String): List<KeyHealthStatus>? {
         kotlin.runCatching {
-            val localMap = keyHealthStatusDao.getKeys(groupId, walletId, chatId, chain.value).associateByTo(mutableMapOf()) { it.xfp }
+            val localMap = keyHealthStatusDao.getKeys(groupId, walletId, chatId, chain.value).firstOrNull().orEmpty().associateByTo(mutableMapOf()) { it.xfp }
             val response = userWalletApiManager.groupWalletApi.getWalletHealthStatus(groupId, walletId)
             val remoteList = arrayListOf<KeyHealthStatusDto>()
             remoteList.addAll(response.data.statuses)
-            val newList = mutableListOf<KeyHealthStatusEntity>()
-            val updateList = mutableListOf<KeyHealthStatusEntity>()
+            val updateOrInsertList = mutableListOf<KeyHealthStatusEntity>()
 
             remoteList.forEach { remote ->
                 val local = localMap[remote.xfp]
                 if (local != null) {
-                    updateList += local.copy(
+                    updateOrInsertList += local.copy(
                         canRequestHealthCheck = remote.canRequestHealthCheck,
                         lastHealthCheckTimeMillis = remote.lastHealthCheckTimeMillis ?: 0L,
                         xfp = remote.xfp,
                     )
                     localMap.remove(remote.xfp)
                 } else {
-                    newList += remote.toKeyHealthStatusEntity(groupId, walletId)
+                    updateOrInsertList += remote.toKeyHealthStatusEntity(groupId, walletId)
                 }
             }
 
             val deleteList = localMap.values.toList()
 
-            if (newList.isNotEmpty() || updateList.isNotEmpty() || deleteList.isNotEmpty()) {
-                keyHealthStatusDao.updateData(newList, updateList, deleteList)
+            if (updateOrInsertList.isNotEmpty() || deleteList.isNotEmpty()) {
+                keyHealthStatusDao.updateData(updateOrInsertList, deleteList)
             }
-            return (newList + updateList).map { it.toKeyHealthStatus() }
+            return updateOrInsertList.map { it.toKeyHealthStatus() }
         }.onFailure { return null }
         return null
     }

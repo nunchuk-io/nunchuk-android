@@ -86,7 +86,7 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _event.emit(ConfigByzantineSpendingLimitEvent.Loading(true))
-            getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.REMOTE_ONLY)).collect {
+            getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.REMOTE)).collect {
                 _event.emit(ConfigByzantineSpendingLimitEvent.Loading(false))
                 if (it.isFailure) {
                     _event.emit(ConfigByzantineSpendingLimitEvent.Error(it.exceptionOrNull()?.message.orEmpty()))
