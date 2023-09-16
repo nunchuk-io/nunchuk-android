@@ -385,12 +385,6 @@ interface PremiumWalletRepository {
 
     suspend fun syncDeletedWallet(): Boolean
 
-    suspend fun finalizeDummyTransaction(
-        groupId: String,
-        walletId: String,
-        dummyTransactionId: String,
-    )
-
     suspend fun deleteKey(xfp: String)
 
     suspend fun syncConfirmedTransactionNotes(groupId: String?, walletId: String)

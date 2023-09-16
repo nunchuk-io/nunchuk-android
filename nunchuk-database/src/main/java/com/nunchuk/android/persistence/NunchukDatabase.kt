@@ -39,6 +39,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         GroupEntity::class,
         AlertEntity::class,
         KeyHealthStatusEntity::class,
+        DummyTransactionEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
@@ -52,6 +53,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         AutoMigration(from = 11, to = 12),
         AutoMigration(from = 12, to = 13, AutoMigrationSpec12to13::class),
         AutoMigration(from = 13, to = 14),
+        AutoMigration(from = 14, to = 15),
     ]
 )
 @TypeConverters(Converters::class)
@@ -66,4 +68,5 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun groupDao(): GroupDao
     abstract fun alertDao(): AlertDao
     abstract fun keyHealthStatusDao(): KeyHealthStatusDao
+    abstract fun dummyTransactionDao(): DummyTransactionDao
 }

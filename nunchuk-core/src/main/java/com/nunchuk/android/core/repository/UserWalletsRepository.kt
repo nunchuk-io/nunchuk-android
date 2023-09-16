@@ -2001,19 +2001,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return results.any { it.isSuccess }
     }
 
-    override suspend fun finalizeDummyTransaction(
-        groupId: String,
-        walletId: String,
-        dummyTransactionId: String,
-    ) {
-        val response = userWalletApiManager.groupWalletApi.finalizeDummyTransaction(
-            groupId, walletId, dummyTransactionId
-        )
-        if (response.isSuccess.not()) {
-            throw response.error
-        }
-    }
-
     override suspend fun deleteKey(xfp: String) {
         val response = userWalletApiManager.walletApi.deleteKey(xfp)
         if (response.isSuccess.not()) {

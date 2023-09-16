@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.repository
 
+import com.google.gson.Gson
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.model.DummyTransaction
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
@@ -12,6 +13,7 @@ import javax.inject.Inject
 internal class DummyTransactionRepositoryImpl @Inject constructor(
     private val userWalletApiManager: UserWalletApiManager,
     private val nunchukNativeSdk: NunchukNativeSdk,
+    private val gson: Gson
 ) : DummyTransactionRepository {
     override suspend fun getDummyTransaction(
         groupId: String,
@@ -75,7 +77,11 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             walletId,
             dummyTransactionId
         )
-        return TransactionStatus.values().find { it.name == response.data.dummyTransaction?.status } ?: TransactionStatus.PENDING_SIGNATURES
+        val status = TransactionStatus.values().find { it.name == response.data.dummyTransaction?.status } ?: TransactionStatus.PENDING_SIGNATURES
+        headers.values.forEach { signatureToken ->
+            nunchukNativeSdk.saveDummyTxRequestToken(walletId, dummyTransactionId, signatureToken)
+        }
+        return status
     }
 
     override suspend fun deleteDummyTransaction(
@@ -91,5 +97,17 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun finalizeDummyTransaction(
+        groupId: String,
+        walletId: String,
+        dummyTransactionId: String,
+    ) {
+        val response = userWalletApiManager.groupWalletApi.finalizeDummyTransaction(
+            groupId, walletId, dummyTransactionId
+        )
+        val transaction = response.data.dummyTransaction ?: throw NullPointerException("Can not get dummy transaction")
+        nunchukNativeSdk.importDummyTx(gson.toJson(transaction))
     }
 }

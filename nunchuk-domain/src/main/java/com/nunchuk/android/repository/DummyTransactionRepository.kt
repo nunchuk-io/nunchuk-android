@@ -29,4 +29,10 @@ interface DummyTransactionRepository {
         walletId: String,
         dummyTransactionId: String
     )
+
+    suspend fun finalizeDummyTransaction(
+        groupId: String,
+        walletId: String,
+        dummyTransactionId: String,
+    )
 }
