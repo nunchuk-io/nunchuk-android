@@ -42,7 +42,6 @@ import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -419,6 +418,8 @@ class GroupDashboardViewModel @Inject constructor(
                 )
             ).onSuccess {
                 _event.emit(GroupDashboardEvent.RequestHealthCheckSuccess)
+            }.onFailure {
+                _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
             }
             _event.emit(GroupDashboardEvent.Loading(false))
         }
@@ -436,6 +437,8 @@ class GroupDashboardViewModel @Inject constructor(
                 )
             ).onSuccess {
                 _event.emit(GroupDashboardEvent.GetHealthCheckPayload(it))
+            }.onFailure {
+                _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
             }
             _event.emit(GroupDashboardEvent.Loading(false))
         }
