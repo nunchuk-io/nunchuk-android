@@ -29,4 +29,5 @@ data class ServerTransaction(
     val broadcastTimeInMilis: Long = 0L,
     val spendingLimitMessage: String = "",
     val signedInMilis: Long = 0L,
+    val isCosigning: Boolean = false
 ) : Parcelable

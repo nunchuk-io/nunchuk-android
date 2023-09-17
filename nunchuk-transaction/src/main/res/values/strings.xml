@@ -71,4 +71,5 @@
     <string name="nc_more_address">"%1$d more address"</string>
     <string name="nc_estimated_fee_tooltip">The estimated fee is calculated using current market conditions. You can set your own fee via the fee settings below.</string>
     <string name="nc_transaction_include_unconfirmed_coins">This transaction includes unconfirmed coins.</string>
+    <string name="nc_co_signing_in_progress">Co-signing in progress…</string>
 </resources>
