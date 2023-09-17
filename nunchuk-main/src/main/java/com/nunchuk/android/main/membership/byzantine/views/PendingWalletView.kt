@@ -330,7 +330,11 @@ internal fun ActiveWallet(
             )
         }
 
-        Column(modifier = Modifier.fillMaxHeight()) {
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.End
+        ) {
             Text(
                 text = "",
                 style = NunchukTheme.typography.title,

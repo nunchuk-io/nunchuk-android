@@ -130,13 +130,15 @@ fun GroupDashboardContent(
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                         if (isKeyholderLimited.not()) {
-                            if (uiState.wallet.name.isNotEmpty()) {
-                                IconButton(onClick = onWalletClick) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_wallets),
-                                        contentDescription = "Wallet icon"
+                            val isWalletCreated = uiState.wallet.name.isNotEmpty()
+                            IconButton(onClick = onWalletClick, enabled = isWalletCreated) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_wallets),
+                                    contentDescription = "Wallet icon",
+                                    tint = if (isWalletCreated) colorResource(id = R.color.nc_primary_color) else colorResource(
+                                        id = R.color.nc_boulder_color
                                     )
-                                }
+                                )
                             }
                             IconButton(onClick = onMoreClick) {
                                 Icon(

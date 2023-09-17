@@ -170,7 +170,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         }
     }
 
-    fun networkCheck(block: () -> Unit) {
+    private fun networkCheck(block: () -> Unit) {
         if (networkVerifier.isConnected().not()) {
             showError(message = getString(R.string.nc_no_internet_connection_try_again_later))
         } else {

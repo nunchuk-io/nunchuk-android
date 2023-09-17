@@ -92,6 +92,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.not
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -382,7 +384,7 @@ fun InheritanceReviewPlanScreenContent(
                                 onActionTopBarClick()
                             }) {
                                 if (planFlow != InheritancePlanFlow.SETUP ||
-                                    groupId.isNotEmpty() && (state.currentUserRole == AssistedWalletRole.MASTER.name || state.currentUserRole == AssistedWalletRole.ADMIN.name)
+                                    groupId.isNotEmpty() && (state.currentUserRole.toRole.isMasterOrAdmin)
                                 ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_more_horizontal),
