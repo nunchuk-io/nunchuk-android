@@ -26,6 +26,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             dummyTransactionId
         )
         val dummyTransaction = response.data.dummyTransaction ?: throw NullPointerException("Dummy transaction null")
+        nunchukNativeSdk.importDummyTx(gson.toJson(dummyTransaction))
         val requestBody = dummyTransaction.requestBody.orEmpty()
         return DummyTransaction(
             psbt = nunchukNativeSdk.getHealthCheckDummyTxMessage(walletId, requestBody),
@@ -48,6 +49,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         )
 
         val dummyTransaction = response.data.dummyTransaction ?: throw NullPointerException("dummyTransaction null")
+        nunchukNativeSdk.importDummyTx(gson.toJson(dummyTransaction))
         return DummyTransactionPayload(
             payload = dummyTransaction.payload?.toString().orEmpty(),
             walletId = dummyTransaction.walletLocalId.orEmpty(),
@@ -109,5 +111,12 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         )
         val transaction = response.data.dummyTransaction ?: throw NullPointerException("Can not get dummy transaction")
         nunchukNativeSdk.importDummyTx(gson.toJson(transaction))
+    }
+
+    override suspend fun getDummyTxRequestToken(
+        walletId: String,
+        dummyTransactionId: String,
+    ): Map<String, Boolean> {
+        return nunchukNativeSdk.getDummyTxRequestToken(walletId, dummyTransactionId)
     }
 }

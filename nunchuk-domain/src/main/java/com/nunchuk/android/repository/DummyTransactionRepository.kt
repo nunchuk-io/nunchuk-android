@@ -35,4 +35,9 @@ interface DummyTransactionRepository {
         walletId: String,
         dummyTransactionId: String,
     )
+
+    suspend fun getDummyTxRequestToken(
+        walletId: String,
+        dummyTransactionId: String,
+    ): Map<String, Boolean>
 }
