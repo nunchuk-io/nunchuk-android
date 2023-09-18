@@ -3,10 +3,7 @@ package com.nunchuk.android.core.repository
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.api.TRANSACTION_PAGE_COUNT
-import com.nunchuk.android.core.data.model.byzantine.GroupResponse
 import com.nunchuk.android.core.data.model.byzantine.KeyHealthStatusDto
-import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
-import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toByzantineGroup
@@ -40,7 +37,6 @@ internal class ByzantineSyncer @Inject constructor(
     applicationScope: CoroutineScope,
 ) {
 
-    private val chatId by lazy { accountManager.getAccount().chatId }
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
 
@@ -50,8 +46,9 @@ internal class ByzantineSyncer @Inject constructor(
         val remoteList = arrayListOf<Alert>()
         var index = 0
         kotlin.runCatching {
-        while (true) {
-                val response = userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
+            while (true) {
+                val response =
+                    userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
                 if (response.isSuccess.not()) return null
                 val alertList = response.data.alerts.orEmpty().map { it.toAlert() }
                 remoteList.addAll(alertList)
@@ -64,7 +61,8 @@ internal class ByzantineSyncer @Inject constructor(
 
         val updateOrInsertList = mutableListOf<AlertEntity>()
 
-        val localMap = alertDao.getAlerts(groupId, chatId, chain.value).firstOrNull().orEmpty().associateByTo(mutableMapOf()) { it.id }
+        val localMap = alertDao.getAlerts(groupId, getChatId(), chain.value).firstOrNull().orEmpty()
+            .associateByTo(mutableMapOf()) { it.id }
 
         remoteList.forEach { remote ->
             val local = localMap[remote.id]
@@ -122,10 +120,10 @@ internal class ByzantineSyncer @Inject constructor(
             if (response.isSuccess.not()) return null
             val groupRemote = response.data.data ?: return null
             if (groupRemote.status == GroupStatus.DELETED.name) {
-                groupDao.deleteGroups(listOf(groupId), chatId = chatId)
+                groupDao.deleteGroups(listOf(groupId), chatId = getChatId())
                 return null
             }
-            groupDao.updateOrInsert(groupRemote.toGroupEntity(chatId, chain.value, groupDao))
+            groupDao.updateOrInsert(groupRemote.toGroupEntity(getChatId(), chain.value, groupDao))
             return groupRemote.toByzantineGroup()
         }.onFailure { return null }
         return null
@@ -133,8 +131,10 @@ internal class ByzantineSyncer @Inject constructor(
 
     suspend fun syncKeyHealthStatus(groupId: String, walletId: String): List<KeyHealthStatus>? {
         kotlin.runCatching {
-            val localMap = keyHealthStatusDao.getKeys(groupId, walletId, chatId, chain.value).firstOrNull().orEmpty().associateByTo(mutableMapOf()) { it.xfp }
-            val response = userWalletApiManager.groupWalletApi.getWalletHealthStatus(groupId, walletId)
+            val localMap = keyHealthStatusDao.getKeys(groupId, walletId, getChatId(), chain.value)
+                .firstOrNull().orEmpty().associateByTo(mutableMapOf()) { it.xfp }
+            val response =
+                userWalletApiManager.groupWalletApi.getWalletHealthStatus(groupId, walletId)
             val remoteList = arrayListOf<KeyHealthStatusDto>()
             remoteList.addAll(response.data.statuses)
             val updateOrInsertList = mutableListOf<KeyHealthStatusEntity>()
@@ -173,7 +173,7 @@ internal class ByzantineSyncer @Inject constructor(
             createdTimeMillis = createdTimeMillis,
             status = status,
             title = title,
-            chatId = chatId,
+            chatId = getChatId(),
             type = type.name,
             chain = chain.value,
             payload = gson.toJson(payload),
@@ -189,10 +189,14 @@ internal class ByzantineSyncer @Inject constructor(
             xfp = xfp,
             canRequestHealthCheck = canRequestHealthCheck,
             lastHealthCheckTimeMillis = lastHealthCheckTimeMillis ?: 0L,
-            chatId = chatId,
+            chatId = getChatId(),
             chain = chain.value,
             groupId = groupId,
             walletId = walletId
         )
+    }
+
+    private fun getChatId(): String {
+        return accountManager.getAccount().chatId
     }
 }
