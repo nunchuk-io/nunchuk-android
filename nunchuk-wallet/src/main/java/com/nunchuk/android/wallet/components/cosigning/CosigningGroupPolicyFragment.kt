@@ -110,7 +110,7 @@ class CosigningGroupPolicyFragment : Fragment() {
         }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -172,6 +172,7 @@ class CosigningGroupPolicyFragment : Fragment() {
                                 R.string.nc_policy_updated
                             )
                         )
+
                         CosigningGroupPolicyEvent.CancelChangeSuccess -> requireActivity().finish()
                     }
                 }
@@ -227,16 +228,16 @@ private fun CosigningGroupPolicyContent(
         }
     }
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            modifier = Modifier.statusBarsPadding()
+                .navigationBarsPadding(),
+            topBar = { NcTopAppBar(title = "", elevation = 0.dp) }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcTopAppBar(title = "", elevation = 0.dp)
                 if (uiState.dummyTransactionId.isNotEmpty() && uiState.walletName.isNotEmpty()) {
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -394,6 +395,7 @@ private fun CosigningGroupPolicyContent(
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth(),
                         onClick = onSaveChangeClicked,
+                        enabled = uiState.keyPolicy.spendingPolicies.isNotEmpty()
                     ) {
                         Text(text = stringResource(R.string.nc_continue_save_changes))
                     }
@@ -403,6 +405,7 @@ private fun CosigningGroupPolicyContent(
                                 .padding(16.dp)
                                 .fillMaxWidth(),
                             onClick = onDiscardChangeClicked,
+                            enabled = uiState.keyPolicy.spendingPolicies.isNotEmpty()
                         ) {
                             Text(
                                 text = if (uiState.dummyTransactionId.isNotEmpty()) stringResource(R.string.nc_cancel_change)
