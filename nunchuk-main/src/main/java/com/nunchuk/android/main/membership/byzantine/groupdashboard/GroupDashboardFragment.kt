@@ -143,11 +143,13 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                             if (viewModel.groupChat() != null) {
                                 openRoomChat()
                             } else {
-                                findNavController().navigate(
-                                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(
-                                        args.groupId
+                                viewModel.getByzantineGroup()?.let { group ->
+                                    findNavController().navigate(
+                                        GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(
+                                            group
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     },

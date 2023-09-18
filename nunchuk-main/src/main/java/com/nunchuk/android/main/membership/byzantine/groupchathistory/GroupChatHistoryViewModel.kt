@@ -4,10 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardFragmentArgs
-import com.nunchuk.android.model.HistoryPeriod
-import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
-import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
+import com.nunchuk.android.usecase.byzantine.CreateOrUpdateGroupChatUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

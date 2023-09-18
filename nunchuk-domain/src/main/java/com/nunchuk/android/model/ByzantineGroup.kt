@@ -1,8 +1,11 @@
 package com.nunchuk.android.model
 
+import android.os.Parcelable
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class ByzantineGroup(
     val createdTimeMillis: Long,
     val id: String,
@@ -11,7 +14,7 @@ data class ByzantineGroup(
     val status: String,
     val walletConfig: ByzantineWalletConfig,
     val isViewPendingWallet: Boolean,
-) {
+) : Parcelable {
     fun isPendingWallet() = status == GroupStatus.PENDING_WALLET.name
 
     fun isSinglePersonSetup() = setupPreference == ByzantinePreferenceSetup.SINGLE_PERSON.name

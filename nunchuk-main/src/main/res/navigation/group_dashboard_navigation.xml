@@ -219,8 +219,8 @@
         android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupChatHistoryIntroFragment"
         android:label="GroupChatHistoryIntroFragment">
         <argument
-            android:name="group_id"
-            app:argType="string" />
+            android:name="group"
+            app:argType="com.nunchuk.android.model.ByzantineGroup" />
     </fragment>
 
 </navigation>

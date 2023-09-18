@@ -4,8 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.messages.usecase.message.CreateRoomGroupChatUseCase
 import com.nunchuk.android.model.GroupChat
-import com.nunchuk.android.usecase.membership.CreateOrUpdateGroupChatUseCase
+import com.nunchuk.android.usecase.byzantine.CreateOrUpdateGroupChatUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -14,8 +15,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GroupChatHistoryIntroViewModel @Inject constructor(
+    private val createRoomGroupChatUseCase: CreateRoomGroupChatUseCase,
     private val createOrUpdateGroupChatUseCase: CreateOrUpdateGroupChatUseCase,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
 
     private val args = GroupChatHistoryIntroFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -26,15 +28,21 @@ class GroupChatHistoryIntroViewModel @Inject constructor(
     fun createGroupChat() {
         viewModelScope.launch {
             _event.emit(GroupChatHistoryIntroEvent.Loading(true))
-            val result = createOrUpdateGroupChatUseCase(
-                CreateOrUpdateGroupChatUseCase.Param(args.groupId)
-            )
-            _event.emit(GroupChatHistoryIntroEvent.Loading(false))
-            if (result.isSuccess) {
-                _event.emit(GroupChatHistoryIntroEvent.NavigateToGroupChat(result.getOrThrow()))
-            } else {
-                _event.emit(GroupChatHistoryIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+           createRoomGroupChatUseCase(
+                CreateRoomGroupChatUseCase.Param(args.group)
+            ).onSuccess {
+                createOrUpdateGroupChatUseCase(
+                    CreateOrUpdateGroupChatUseCase.Param(
+                        groupId = args.group.id,
+                        roomId = it
+                    )
+                ).onSuccess { groupChat ->
+                    _event.emit(GroupChatHistoryIntroEvent.NavigateToGroupChat(groupChat))
+                }.onFailure {
+                    _event.emit(GroupChatHistoryIntroEvent.Error(it.message.orUnknownError()))
+                }
             }
+            _event.emit(GroupChatHistoryIntroEvent.Loading(false))
         }
     }
 }

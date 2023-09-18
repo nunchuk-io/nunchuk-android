@@ -1,4 +1,4 @@
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.usecase.byzantine
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.GroupChat
@@ -14,10 +14,11 @@ class CreateOrUpdateGroupChatUseCase @Inject constructor(
 
     override suspend fun execute(parameters: Param): GroupChat {
         return repository.createOrUpdateGroupChat(
+            roomId = parameters.roomId,
             groupId = parameters.groupId,
             historyPeriodId = parameters.historyPeriodId
         )
     }
 
-    class Param(val groupId: String, val historyPeriodId: String? = null)
+    class Param(val groupId: String, val roomId: String, val historyPeriodId: String? = null)
 }

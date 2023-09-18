@@ -1929,16 +1929,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createOrUpdateGroupChat(
+        roomId: String,
         groupId: String,
         historyPeriodId: String?,
     ): GroupChat {
         val response = if (historyPeriodId == null) {
             userWalletApiManager.groupWalletApi.createGroupChat(
-                groupId = groupId, CreateOrUpdateGroupChatRequest()
+                groupId = groupId, CreateOrUpdateGroupChatRequest(roomId = roomId)
             )
         } else {
             userWalletApiManager.groupWalletApi.updateGroupChat(
-                groupId = groupId, CreateOrUpdateGroupChatRequest(historyPeriodId)
+                groupId = groupId, CreateOrUpdateGroupChatRequest(historyPeriodId = historyPeriodId, roomId = roomId)
             )
         }
         return response.data.chat.toGroupChat()

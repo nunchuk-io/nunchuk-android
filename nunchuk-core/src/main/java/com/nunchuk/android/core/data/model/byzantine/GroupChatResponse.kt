@@ -36,4 +36,7 @@ class HistoryPeriodResponse(
     val periods: List<HistoryPeriodResponseOrRequest>? = null
 )
 
-class CreateOrUpdateGroupChatRequest(@SerializedName("history_period_id") val historyPeriodId: String? = null)
+class CreateOrUpdateGroupChatRequest(
+    @SerializedName("history_period_id") val historyPeriodId: String? = null,
+    @SerializedName("room_id") val roomId: String? = null
+)
