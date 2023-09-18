@@ -158,7 +158,7 @@
     <string name="nc_get_the_desktop_app">Get the desktop app</string>
     <string name="nc_group_chat_history">Group chat history</string>
     <string name="nc_group_chat_history_desc">By default, group chat messages are kept for 30 days.\n\nTo change how long messages are kept, please navigate to the wallet dashboard → More menu → Manage group chat history (admin privileges required).</string>
-    <string name="nc_claim_key_failed">Looks like the health check has failed. Note that you might need to register the wallet with the device before it can be used to sign transactions.\\n\\n\\n  What would you like to do?</string>
+    <string name="nc_claim_key_failed">Looks like the health check has failed. Note that you might need to register the wallet with the device before it can be used to sign transactions.\n\nWhat would you like to do?</string>
     <string name="nc_try_signing_again">Try signing again</string>
     <string name="nc_register_wallet">Register wallet</string>
     <string name="nc_health_check_procedure">Health check procedure</string>

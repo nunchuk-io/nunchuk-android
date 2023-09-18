@@ -48,7 +48,7 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
     private val _event = MutableSharedFlow<RegisterWalletToColdcardEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(RegisterWalletToColdcardUiState())
+    private val _state = MutableStateFlow(RegisterWalletToColdcardUiState(keyName = COLDCARD_DEFAULT_KEY_NAME))
     val state = _state.asStateFlow()
 
     private val args: RegisterWalletToColdcardFragmentArgs =
@@ -57,15 +57,17 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
     val remainTime = membershipStepManager.remainingTime
 
     init {
-        viewModelScope.launch {
-            getWalletDetail2UseCase(args.walletId)
-                .onSuccess {
-                    val keyName =
-                        it.signers.filter { signer -> signer.type == SignerType.COLDCARD_NFC }
-                            .reversed()
-                            .getOrNull(args.index.dec())?.name ?: COLDCARD_DEFAULT_KEY_NAME
-                    _state.update { state -> state.copy(keyName = keyName) }
-                }
+        if (!args.isSingleRegister) {
+            viewModelScope.launch {
+                getWalletDetail2UseCase(args.walletId)
+                    .onSuccess {
+                        val keyName =
+                            it.signers.filter { signer -> signer.type == SignerType.COLDCARD_NFC }
+                                .reversed()
+                                .getOrNull(args.index.dec())?.name ?: COLDCARD_DEFAULT_KEY_NAME
+                        _state.update { state -> state.copy(keyName = keyName) }
+                    }
+            }
         }
     }
 
@@ -76,6 +78,7 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
     }
 
     fun setRegisterColdcardSuccess(walletId: String) {
+        if (args.isSingleRegister) return
         viewModelScope.launch {
             withContext(NonCancellable) {
                 setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(walletId, -1))

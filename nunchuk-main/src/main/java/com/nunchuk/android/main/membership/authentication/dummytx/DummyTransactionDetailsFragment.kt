@@ -213,7 +213,6 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     }
 
     private fun handleSignedFailed(singleSigner: SingleSigner) {
-        // TODO Hai
         val activityArgs: WalletAuthenticationActivityArgs by requireActivity().navArgs()
         if (activityArgs.action == TargetAction.CLAIM_KEY.name
             && (singleSigner.type == SignerType.COLDCARD_NFC
@@ -228,13 +227,15 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                     btnNeutral = getString(R.string.nc_text_do_this_later),
                     onPositiveClick = {},
                     onNegativeClick = {
-                        MembershipActivity.openRegisterWalletIntent(
-                            activity = requireActivity(),
-                            walletId = activityArgs.walletId,
-                            groupId = activityArgs.groupId.orEmpty(),
-                            index = if (singleSigner.type == SignerType.COLDCARD_NFC) 1 else 0, // TODO Hai
-                            airgapIndex = if (singleSigner.type == SignerType.AIRGAP) 1 else 0,
-                            singleRegister = true
+                        startActivity(
+                            MembershipActivity.openRegisterWalletIntent(
+                                activity = requireActivity(),
+                                walletId = activityArgs.walletId,
+                                groupId = activityArgs.groupId.orEmpty(),
+                                index = if (singleSigner.type == SignerType.COLDCARD_NFC) 1 else 0,
+                                airgapIndex = if (singleSigner.type == SignerType.AIRGAP) 1 else 0,
+                                singleRegister = true
+                            )
                         )
                     },
                     onNeutralClick = {
