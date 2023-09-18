@@ -32,11 +32,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -50,8 +52,8 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ByzantineSelectRoleFragment : MembershipFragment() {
 
-    private val viewModel: ByzantineSelectRoleViewModel by viewModels()
-
+    private val viewModel: ByzantineSelectRoleViewModel by activityViewModels()
+    private val args: ByzantineSelectRoleFragmentArgs by navArgs()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -70,6 +72,10 @@ class ByzantineSelectRoleFragment : MembershipFragment() {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.onOptionClick(args.role)
+    }
 
     companion object {
         const val REQUEST_KEY = "ByzantineSelectRoleFragment"

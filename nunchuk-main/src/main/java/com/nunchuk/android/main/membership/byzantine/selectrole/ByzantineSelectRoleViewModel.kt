@@ -22,8 +22,6 @@ class ByzantineSelectRoleViewModel @Inject constructor(
     val getPermissionGroupWalletUseCase: GetPermissionGroupWalletUseCase
 ) : ViewModel() {
 
-    private val args = ByzantineSelectRoleFragmentArgs.fromSavedStateHandle(savedStateHandle)
-
     private val _state = MutableStateFlow(AdvisorPlanSelectRoleState())
     val state = _state.asStateFlow()
 
@@ -32,7 +30,6 @@ class ByzantineSelectRoleViewModel @Inject constructor(
 
     init {
         getPermissionGroupWallet()
-        onOptionClick(args.role)
     }
 
     private fun getPermissionGroupWallet() = viewModelScope.launch {

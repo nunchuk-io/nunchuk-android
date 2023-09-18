@@ -53,7 +53,8 @@
 
         <argument
             android:name="role"
-            app:argType="string" />
+            app:argType="string"
+            android:defaultValue=""/>
 
     </fragment>
 </navigation>
