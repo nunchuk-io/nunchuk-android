@@ -38,7 +38,7 @@
     <string name="nc_authorize_these_change">To authorize these changes</string>
     <string name="nc_complete_a_health_check">To complete a health check</string>
     <string name="nc_dummy_transaction_desc">%1$s, you will be asked to sign a dummy transaction that sends 10,000 sat (%2$s) to your own wallet%3$s.\n\n[B]The dummy transaction uses a fake input and does not move any of your real bitcoins. It will not be broadcast and will be immediately removed afterwards.[/B]</string>
-    <string name="nc_dummy_transaction_key_holder_desc">. Since more than one signature is required, other keyholders in the group will also be notified</string>
+    <string name="nc_dummy_transaction_key_holder_desc">. Since more than one signature is required, other keyholders will also be notified</string>
     <string name="nc_tell_me_more">Tell me more</string>
     <string name="nc_try_on_testnet">Try on testnet</string>
     <string name="nc_try_assisted_wallet_desc">All Bitcoin features work exactly the same on testnet as they would on the real blockchain. See if an assisted wallet is a good fit for you by trying it out on testnet.</string>
