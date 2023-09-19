@@ -165,4 +165,7 @@
     <string name="nc_cancel_health_check">Cancel health check</string>
     <string name="nc_use_health_check_key_to_sign">. Please use the key that you want to health check to sign</string>
     <string name="nc_not_checked_yet">Not checked yet</string>
+    <string name="nc_transaction_updated">Transaction updated</string>
+    <string name="nc_transaction_force_sync">Force sync</string>
+    <string name="nc_transaction_not_updated">Transaction not updated</string>
 </resources>

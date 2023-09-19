@@ -130,4 +130,6 @@ object SheetOptionType {
     const val TYPE_GROUP_CHAT_HISTORY = 72
 
     const val TYPE_ADD_BITBOX = 73
+
+    const val TYPE_FORCE_SYNC_DUMMY_TX = 74
 }

@@ -55,6 +55,7 @@ import com.nunchuk.android.usecase.byzantine.UpdateGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
 import com.nunchuk.android.usecase.membership.GetTxToSignMessage
+import com.nunchuk.android.usecase.network.NetworkStatusFlowUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +65,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -89,7 +91,8 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val finalizeDummyTransactionUseCase: FinalizeDummyTransactionUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
-    private val getDummyTxRequestTokenUseCase: GetDummyTxRequestTokenUseCase
+    private val getDummyTxRequestTokenUseCase: GetDummyTxRequestTokenUseCase,
+    private val networkStatusFlowUseCase: NetworkStatusFlowUseCase,
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -125,7 +128,6 @@ class WalletAuthenticationViewModel @Inject constructor(
                             isDraft = dummyTransaction.isDraft
                         )
                     }
-                    uploadSignaturesFromLocalIfNeeded()
                     if (dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING
                         || dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_REQUEST
                     ) {
@@ -152,9 +154,18 @@ class WalletAuthenticationViewModel @Inject constructor(
             }
             _event.emit(WalletAuthenticationEvent.Loading(false))
         }
+        if (!args.dummyTransactionId.isNullOrEmpty()) {
+            viewModelScope.launch {
+                networkStatusFlowUseCase(Unit).map { it.getOrThrow() }.collect { isConnected ->
+                    if (isConnected) {
+                        uploadSignaturesFromLocalIfNeeded()
+                    }
+                }
+            }
+        }
     }
 
-    fun uploadSignaturesFromLocalIfNeeded() {
+    fun uploadSignaturesFromLocalIfNeeded(isShowMessage: Boolean = false) {
         if (!args.dummyTransactionId.isNullOrEmpty()) {
             viewModelScope.launch {
                 getDummyTxRequestTokenUseCase(
@@ -170,8 +181,12 @@ class WalletAuthenticationViewModel @Inject constructor(
                     }
                     tokens.filter { it.value.not() }.forEach {
                         val (xfp, token) = it.key.split(".")
-                        signatures[xfp] = token
-                        uploadSignature(xfp, token, signatures)
+                        if(uploadSignature(xfp, token, signatures)) {
+                            signatures[xfp] = token
+                        }
+                    }
+                    if (isShowMessage) {
+                        _event.emit(WalletAuthenticationEvent.ForceSyncSuccess(signatures.size == tokens.size))
                     }
                     _state.update { it.copy(signatures = signatures) }
                 }
@@ -349,8 +364,8 @@ class WalletAuthenticationViewModel @Inject constructor(
         masterFingerprint: String,
         signature: String,
         signatures: MutableMap<String, String>,
-    ) {
-        updateGroupDummyTransactionUseCase(
+    ) : Boolean {
+        return updateGroupDummyTransactionUseCase(
             UpdateGroupDummyTransactionUseCase.Param(
                 signatures = mapOf(masterFingerprint to signature),
                 walletId = args.walletId,
@@ -365,7 +380,7 @@ class WalletAuthenticationViewModel @Inject constructor(
             } else {
                 _state.update { it.copy(signatures = signatures) }
             }
-        }
+        }.isSuccess
     }
 
     fun getInteractSingleSigner() = _state.value.interactSingleSigner

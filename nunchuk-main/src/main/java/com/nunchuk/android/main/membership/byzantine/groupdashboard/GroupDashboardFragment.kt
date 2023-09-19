@@ -20,7 +20,6 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.network.NetworkVerifier
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -49,6 +48,7 @@ import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
@@ -63,7 +63,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     lateinit var navigator: NunchukNavigator
 
     @Inject
-    lateinit var networkVerifier: NetworkVerifier
+    lateinit var isNetworkConnectedUseCase: IsNetworkConnectedUseCase
 
     private val args: GroupDashboardFragmentArgs by navArgs()
 
@@ -173,7 +173,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun networkCheck(block: () -> Unit) {
-        if (networkVerifier.isConnected().not()) {
+        if (isNetworkConnectedUseCase().not()) {
             showError(message = getString(R.string.nc_no_internet_connection_try_again_later))
         } else {
             block()

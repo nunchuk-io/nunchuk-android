@@ -24,9 +24,9 @@ import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.network.NetworkVerifier
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.signer.software.databinding.ActivityPkeySignUpIntroBinding
+import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -37,7 +37,7 @@ import javax.inject.Inject
 class PKeySignUpIntroActivity : BaseActivity<ActivityPkeySignUpIntroBinding>() {
 
     @Inject
-    lateinit var networkVerifier: NetworkVerifier
+    lateinit var isNetworkConnectedUseCase: IsNetworkConnectedUseCase
 
     override fun initializeBinding() = ActivityPkeySignUpIntroBinding.inflate(layoutInflater)
 
@@ -50,7 +50,7 @@ class PKeySignUpIntroActivity : BaseActivity<ActivityPkeySignUpIntroBinding>() {
 
     private fun setupViews() {
         binding.btnGotIt.setOnDebounceClickListener {
-            if (networkVerifier.isConnected()) {
+            if (isNetworkConnectedUseCase()) {
                 navigator.openAddPrimaryKeyScreen(
                     this,
                     primaryKeyFlow = PrimaryKeyFlow.SIGN_UP

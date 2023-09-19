@@ -135,6 +135,7 @@ class CheckSignMessageFragment : Fragment() {
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> Unit
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError("Please use the desktop app to sign with this key")
+                        is WalletAuthenticationEvent.ForceSyncSuccess,
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
                         is WalletAuthenticationEvent.ShowError,

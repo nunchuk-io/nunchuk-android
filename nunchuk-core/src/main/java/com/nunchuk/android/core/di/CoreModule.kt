@@ -26,10 +26,10 @@ import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.core.loader.ImageLoaderImpl
 import com.nunchuk.android.core.matrix.MatrixInterceptor
 import com.nunchuk.android.core.matrix.MatrixInterceptorImpl
-import com.nunchuk.android.core.network.NetworkVerifier
-import com.nunchuk.android.core.network.NetworkVerifierImpl
+import com.nunchuk.android.core.network.NetworkRepositoryImpl
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.push.PushEventManagerImpl
+import com.nunchuk.android.repository.NetworkRepository
 import com.nunchuk.android.utils.DeviceManager
 import dagger.Binds
 import dagger.Module
@@ -59,7 +59,7 @@ internal interface CoreModule {
 
     @Binds
     @Singleton
-    fun bindNetworkVerifier(network: NetworkVerifierImpl): NetworkVerifier
+    fun bindNetworkRepository(network: NetworkRepositoryImpl): NetworkRepository
 
     @Binds
     @Singleton

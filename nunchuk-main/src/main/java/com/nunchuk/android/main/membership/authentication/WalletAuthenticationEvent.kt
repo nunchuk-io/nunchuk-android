@@ -34,14 +34,15 @@ sealed class WalletAuthenticationEvent {
     class NfcLoading(val isLoading: Boolean, val isColdCard: Boolean = false) :
         WalletAuthenticationEvent()
 
-    object ScanTapSigner : WalletAuthenticationEvent()
-    object ScanColdCard : WalletAuthenticationEvent()
-    object CanNotSignHardwareKey : WalletAuthenticationEvent()
-    object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
-    object ShowAirgapOption : WalletAuthenticationEvent()
-    object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
-    object CanNotSignDummyTx : WalletAuthenticationEvent()
-    object FinalizeDummyTxSuccess : WalletAuthenticationEvent()
+    data object ScanTapSigner : WalletAuthenticationEvent()
+    data object ScanColdCard : WalletAuthenticationEvent()
+    data object CanNotSignHardwareKey : WalletAuthenticationEvent()
+    data object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
+    data object ShowAirgapOption : WalletAuthenticationEvent()
+    data object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
+    data object CanNotSignDummyTx : WalletAuthenticationEvent()
+    data object FinalizeDummyTxSuccess : WalletAuthenticationEvent()
+    data class ForceSyncSuccess(val isSuccess: Boolean,) : WalletAuthenticationEvent()
     data class SignFailed(val singleSigner: SingleSigner,) : WalletAuthenticationEvent()
 }
 

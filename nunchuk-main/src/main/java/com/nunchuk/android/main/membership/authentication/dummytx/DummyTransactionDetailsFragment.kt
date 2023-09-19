@@ -121,6 +121,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
             SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
+            SheetOptionType.TYPE_FORCE_SYNC_DUMMY_TX -> walletAuthenticationViewModel.uploadSignaturesFromLocalIfNeeded(true)
         }
     }
 
@@ -177,6 +178,8 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+                        is WalletAuthenticationEvent.ForceSyncSuccess -> if (event.isSuccess) showSuccess(getString(R.string.nc_transaction_updated))
+                        else showError(getString(R.string.nc_transaction_not_updated))
                         is WalletAuthenticationEvent.SignFailed -> handleSignedFailed(event.singleSigner)
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
@@ -274,20 +277,28 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     }
 
     private fun handleMenuMore() {
-        BottomSheetOption.newInstance(
-            listOf(
+        val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
+        val options = mutableListOf(
+            SheetOption(
+                type = TransactionOption.IMPORT_TRANSACTION.ordinal,
+                resId = R.drawable.ic_import,
+                label = getString(R.string.nc_transaction_import_signature),
+            ),
+            SheetOption(
+                type = TransactionOption.EXPORT_TRANSACTION.ordinal,
+                resId = R.drawable.ic_export,
+                label = getString(R.string.nc_transaction_export_transaction),
+            ),
+        )
+        if (!args.dummyTransactionId.isNullOrEmpty()) {
+            options.add(
                 SheetOption(
-                    type = TransactionOption.IMPORT_TRANSACTION.ordinal,
-                    resId = R.drawable.ic_import,
-                    label = getString(R.string.nc_transaction_import_signature),
-                ),
-                SheetOption(
-                    type = TransactionOption.EXPORT_TRANSACTION.ordinal,
-                    resId = R.drawable.ic_export,
-                    label = getString(R.string.nc_transaction_export_transaction),
-                ),
-            )
-        ).show(childFragmentManager, "BottomSheetOption")
+                    type = SheetOptionType.TYPE_FORCE_SYNC_DUMMY_TX,
+                    resId = R.drawable.ic_sync,
+                    label = getString(R.string.nc_transaction_force_sync),
+            ))
+        }
+        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun handleState(state: WalletAuthenticationState) {
