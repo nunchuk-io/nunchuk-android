@@ -375,19 +375,22 @@ class GroupDashboardViewModel @Inject constructor(
         _event.emit(GroupDashboardEvent.Loading(true))
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
-                targetAction = TargetAction.UPDATE_INHERITANCE_PLAN.name,
+                targetAction = targetAction.name,
                 password = password
             )
         )
         _event.emit(GroupDashboardEvent.Loading(false))
         if (result.isSuccess) {
             val token = result.getOrThrow().orEmpty()
-            if (targetAction == TargetAction.UPDATE_INHERITANCE_PLAN) {
-                getInheritance(token)
-            } else if (targetAction == TargetAction.UPDATE_SERVER_KEY) {
-                state.value.signers.find { it.type == SignerType.SERVER }?.let { signer ->
-                    _event.emit(GroupDashboardEvent.UpdateServerKey(token, signer, args.groupId))
+            when (targetAction) {
+                TargetAction.UPDATE_INHERITANCE_PLAN -> getInheritance(token)
+                TargetAction.UPDATE_SERVER_KEY -> {
+                    state.value.signers.find { it.type == SignerType.SERVER }?.let { signer ->
+                        _event.emit(GroupDashboardEvent.UpdateServerKey(token, signer, args.groupId))
+                    }
                 }
+                TargetAction.EMERGENCY_LOCKDOWN -> _event.emit(GroupDashboardEvent.OpenEmergencyLockdown(token))
+                else -> {}
             }
         } else {
             _event.emit(GroupDashboardEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))

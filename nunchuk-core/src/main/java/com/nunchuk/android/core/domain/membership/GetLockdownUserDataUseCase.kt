@@ -34,9 +34,10 @@ class GetLockdownUserDataUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): String {
         return userWalletRepository.generateLockdownUserData(
             parameters.walletId,
-            parameters.periodId
+            parameters.periodId,
+            parameters.groupId
         )
     }
 
-    class Param(val walletId: String, val periodId: String)
+    class Param(val walletId: String, val periodId: String, val groupId: String?)
 }

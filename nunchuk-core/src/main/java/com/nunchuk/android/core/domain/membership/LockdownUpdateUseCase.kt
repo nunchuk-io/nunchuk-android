@@ -42,7 +42,9 @@ class LockdownUpdateUseCase @Inject constructor(
             authorizations = authorizations,
             verifyToken = parameters.verifyToken,
             userData =  parameters.userData,
-            securityQuestionToken = parameters.securityQuestionToken
+            securityQuestionToken = parameters.securityQuestionToken,
+            confirmCodeToken = parameters.confirmCodeToken,
+            confirmCodeNonce = parameters.confirmCodeNonce
         )
     }
 
@@ -50,6 +52,8 @@ class LockdownUpdateUseCase @Inject constructor(
         val signatures: Map<String, String>,
         val userData: String,
         val verifyToken: String,
-        val securityQuestionToken: String
+        val securityQuestionToken: String,
+        val confirmCodeToken: String,
+        val confirmCodeNonce: String
     )
 }

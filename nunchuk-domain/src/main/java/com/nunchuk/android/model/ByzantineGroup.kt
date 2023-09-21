@@ -14,6 +14,7 @@ data class ByzantineGroup(
     val status: String,
     val walletConfig: ByzantineWalletConfig,
     val isViewPendingWallet: Boolean,
+    val isLocked: Boolean
 ) : Parcelable {
     fun isPendingWallet() = status == GroupStatus.PENDING_WALLET.name
 

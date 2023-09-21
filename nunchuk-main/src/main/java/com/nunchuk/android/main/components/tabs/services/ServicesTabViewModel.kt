@@ -324,7 +324,13 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
-    fun getWallet(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
+    /**
+     * Get wallets that are able to setup inheritance or config server key policy
+     * Limit to 2 of 4 multisig group if plan is byzantine
+     * Limit to master or admin or keyholder
+     * @param ignoreSetupInheritance: ignore setup inheritance or not
+     */
+    fun getWallets(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
         val wallets =
             if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
         return if (state.value.plan.isByzantine()) {
@@ -337,6 +343,15 @@ class ServicesTabViewModel @Inject constructor(
             wallets.filter {
                 it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
             }
+        }
+    }
+
+    /**
+     * Get wallets with master or admin role
+     */
+    fun getAllowEmergencyLockdownWallets(): List<AssistedWalletBrief> {
+        return state.value.assistedWallets.filter {
+            byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isMasterOrAdmin && state.value.groups[it.groupId]?.isLocked == false
         }
     }
 

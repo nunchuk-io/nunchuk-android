@@ -50,7 +50,7 @@ sealed class ServicesTabEvent {
 
     data class CreateSupportRoomSuccess(val roomId: String) : ServicesTabEvent()
     data class CheckInheritance(val inheritanceCheck: InheritanceCheck) : ServicesTabEvent()
-    object EmailInvalid : ServicesTabEvent()
+    data object EmailInvalid : ServicesTabEvent()
     data class OnSubmitEmailSuccess(val email: String) : ServicesTabEvent()
     data class GetInheritanceSuccess(
         val walletId: String,
@@ -208,42 +208,42 @@ internal data class NonSubRow(val url: String, val title: String, val desc: Stri
 internal data class NonSubHeader(val title: String, val desc: String)
 
 sealed class ServiceTabRowCategory(val title: Int, val drawableId: Int) {
-    object Emergency : ServiceTabRowCategory(R.string.nc_emergency, R.drawable.ic_emergency)
-    object Inheritance :
+    data object Emergency : ServiceTabRowCategory(R.string.nc_emergency, R.drawable.ic_emergency)
+    data object Inheritance :
         ServiceTabRowCategory(R.string.nc_inheritance_planning, R.drawable.ic_inheritance_planning)
 
-    object Subscription :
+    data object Subscription :
         ServiceTabRowCategory(R.string.nc_your_subscription, R.drawable.ic_subscription)
 }
 
 sealed class ServiceTabRowItem(val title: Int) : Parcelable {
     @Parcelize
-    object EmergencyLockdown : ServiceTabRowItem(R.string.nc_emergency_lockdown)
+    data object EmergencyLockdown : ServiceTabRowItem(R.string.nc_emergency_lockdown)
 
     @Parcelize
-    object KeyRecovery : ServiceTabRowItem(R.string.nc_key_recovery)
+    data object KeyRecovery : ServiceTabRowItem(R.string.nc_key_recovery)
 
     @Parcelize
-    object SetUpInheritancePlan : ServiceTabRowItem(R.string.nc_set_up_inheritance_plan)
+    data object SetUpInheritancePlan : ServiceTabRowItem(R.string.nc_set_up_inheritance_plan)
 
     @Parcelize
-    object ViewInheritancePlan : ServiceTabRowItem(R.string.nc_view_inheritance_plan)
+    data object ViewInheritancePlan : ServiceTabRowItem(R.string.nc_view_inheritance_plan)
 
     @Parcelize
-    object ClaimInheritance : ServiceTabRowItem(R.string.nc_claim_an_inheritance)
+    data object ClaimInheritance : ServiceTabRowItem(R.string.nc_claim_an_inheritance)
 
     @Parcelize
-    object CoSigningPolicies : ServiceTabRowItem(R.string.nc_cosigning_policies)
+    data object CoSigningPolicies : ServiceTabRowItem(R.string.nc_cosigning_policies)
 
     @Parcelize
-    object OrderNewHardware : ServiceTabRowItem(R.string.nc_order_new_hardware)
+    data object OrderNewHardware : ServiceTabRowItem(R.string.nc_order_new_hardware)
 
     @Parcelize
-    object ManageSubscription : ServiceTabRowItem(R.string.nc_manage_subscription)
+    data object ManageSubscription : ServiceTabRowItem(R.string.nc_manage_subscription)
 
     @Parcelize
-    object RollOverAssistedWallet : ServiceTabRowItem(R.string.nc_roll_over_assisted_wallet)
+    data object RollOverAssistedWallet : ServiceTabRowItem(R.string.nc_roll_over_assisted_wallet)
 
     @Parcelize
-    object GetAdditionalWallets : ServiceTabRowItem(R.string.nc_get_additional_wallet)
+    data object GetAdditionalWallets : ServiceTabRowItem(R.string.nc_get_additional_wallet)
 }

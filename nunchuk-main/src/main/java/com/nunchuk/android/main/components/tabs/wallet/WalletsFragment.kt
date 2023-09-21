@@ -49,6 +49,7 @@ import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -483,6 +484,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             inviterName = it.inviterName,
                             isAssistedWallet = it.isAssistedWallet,
                             badgeCount = it.badgeCount,
+                            isLocked = it.group?.isLocked.orFalse(),
                             role = it.role,
                             onAccept = {
                                 it.group?.id?.let {
@@ -506,7 +508,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 }
                             },
                             onWalletClick = {
-                                if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name) return@PendingWalletView
+                                if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name || it.group?.isLocked == true) return@PendingWalletView
                                 val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
                                 checkWalletSecurity(walletId)
                             }

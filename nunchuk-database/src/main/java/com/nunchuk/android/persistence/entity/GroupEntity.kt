@@ -27,4 +27,6 @@ data class GroupEntity(
     val walletConfig: String,
     @ColumnInfo("setup_preference", defaultValue = "")
     val setupPreference: String,
+    @ColumnInfo("is_locked", defaultValue = "false")
+    val isLocked: Boolean,
 )

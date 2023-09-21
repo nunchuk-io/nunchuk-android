@@ -189,22 +189,26 @@ interface PremiumWalletRepository {
         transactionId: String,
     ): ServerTransaction
 
-    suspend fun getLockdownPeriod(): List<Period>
+    suspend fun getLockdownPeriod(groupId: String?): List<Period>
     suspend fun lockdownUpdate(
         authorizations: List<String>,
         verifyToken: String,
         userData: String,
-        securityQuestionToken: String
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String
     )
 
     suspend fun generateLockdownUserData(
         walletId: String,
-        periodId: String
+        periodId: String,
+        groupId: String?
     ): String
 
     suspend fun calculateRequiredSignaturesLockdown(
         walletId: String,
-        periodId: String
+        periodId: String,
+        groupId: String?
     ): CalculateRequiredSignatures
 
     suspend fun generateInheritanceUserData(

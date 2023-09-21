@@ -700,14 +700,33 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun calculateRequiredSignaturesLockdown(
-        walletId: String, periodId: String,
+        walletId: String, periodId: String, groupId: String?
     ): CalculateRequiredSignatures {
-        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesLockdown(
-            LockdownUpdateRequest.Body(
-                walletId = walletId, periodId = periodId
+        val response = if (groupId != null) {
+            userWalletApiManager.groupWalletApi.calculateRequiredSignaturesLockdown(
+                LockdownUpdateRequest.Body(
+                    walletId = walletId, periodId = periodId, groupId = groupId
+                )
             )
-        )
+        } else {
+            userWalletApiManager.walletApi.calculateRequiredSignaturesLockdown(
+                LockdownUpdateRequest.Body(
+                    walletId = walletId, periodId = periodId
+                )
+            )
+        }
         return response.data.result.toCalculateRequiredSignatures()
+    }
+
+    private suspend fun markGroupWalletAsLocked(isLocked: Boolean, groupId: String) {
+        val group = groupDao.getGroupById(groupId, accountManager.getAccount().chatId, chain.value)
+        group?.let {
+            groupDao.update(
+                group.copy(
+                    isLocked = isLocked
+                )
+            )
+        }
     }
 
     override suspend fun generateInheritanceUserData(
@@ -962,15 +981,34 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         verifyToken: String,
         userData: String,
         securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String,
     ) {
-        val request = gson.fromJson(userData, LockdownUpdateRequest::class.java)
-        val headers = mutableMapOf<String, String>()
-        authorizations.forEachIndexed { index, value ->
-            headers["$AUTHORIZATION_X-${index + 1}"] = value
+        var request = gson.fromJson(userData, LockdownUpdateRequest::class.java)
+        if (confirmCodeNonce.isNotEmpty()) {
+            request = request.copy(nonce = confirmCodeNonce)
         }
-        headers[VERIFY_TOKEN] = verifyToken
-        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        return userWalletApiManager.walletApi.lockdownUpdate(headers, request)
+        if (request.body?.groupId != null) {
+            userWalletApiManager.groupWalletApi.lockdownUpdate(
+                getHeaders(
+                    authorizations = authorizations,
+                    verifyToken = verifyToken,
+                    securityQuestionToken = securityQuestionToken,
+                    confirmCodeToken = confirmCodeToken
+                ), request
+            ).also {
+                if (it.isSuccess) markGroupWalletAsLocked(true, request.body?.groupId.orEmpty())
+            }
+        } else {
+             userWalletApiManager.walletApi.lockdownUpdate(
+                getHeaders(
+                    authorizations = authorizations,
+                    verifyToken = verifyToken,
+                    securityQuestionToken = securityQuestionToken,
+                    confirmCodeToken = confirmCodeToken
+                ), request
+            )
+        }
     }
 
     override suspend fun generateSecurityQuestionUserData(
@@ -989,8 +1027,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return gson.toJson(request)
     }
 
-    override suspend fun generateLockdownUserData(walletId: String, periodId: String): String {
-        val body = LockdownUpdateRequest.Body(periodId = periodId, walletId = walletId)
+    override suspend fun generateLockdownUserData(
+        walletId: String,
+        periodId: String,
+        groupId: String?
+    ): String {
+        val body = LockdownUpdateRequest.Body(periodId = periodId, walletId = walletId, groupId = groupId)
         val nonce = getNonce()
         val request = LockdownUpdateRequest(
             nonce = nonce, body = body
@@ -1222,8 +1264,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             ?: throw NullPointerException("transaction from server null")
     }
 
-    override suspend fun getLockdownPeriod(): List<Period> {
-        val response = userWalletApiManager.walletApi.getLockdownPeriod()
+    override suspend fun getLockdownPeriod(groupId: String?): List<Period> {
+        val response = if (groupId.isNullOrEmpty()) userWalletApiManager.walletApi.getLockdownPeriod() else userWalletApiManager.groupWalletApi.getLockdownPeriod()
         return response.data.periods?.map {
             Period(
                 id = it.id.orEmpty(),
@@ -1829,15 +1871,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             nonce = confirmCodeNonce,
             body = EditGroupMemberRequest.Body(members = members.map { it.toMemberRequest() })
         )
-        val headers = mutableMapOf<String, String>()
-        authorizations.forEachIndexed { index, value ->
-            headers["$AUTHORIZATION_X-${index + 1}"] = value
-        }
-        headers[VERIFY_TOKEN] = verifyToken
-        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        headers[CONFIRMATION_TOKEN] = confirmCodeToken
         val response =
-            userWalletApiManager.groupWalletApi.editGroupMember(groupId, headers, request)
+            userWalletApiManager.groupWalletApi.editGroupMember(
+                groupId,
+                getHeaders(authorizations, verifyToken, securityQuestionToken, confirmCodeToken),
+                request
+            )
         return response.data.data?.toByzantineGroup()
             ?: throw NullPointerException("Can not get group")
     }
@@ -1895,7 +1934,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override fun getAlerts(groupId: String, loadingOption: LoadingOptions): Flow<List<Alert>> {
         return when (loadingOption) {
             LoadingOptions.OFFLINE -> {
-                alertDao.getAlerts(groupId, chatId = accountManager.getAccount().chatId, chain.value)
+                alertDao.getAlerts(
+                    groupId,
+                    chatId = accountManager.getAccount().chatId,
+                    chain.value
+                )
                     .map { alerts ->
                         alerts.map { alert ->
                             alert.toAlert()
@@ -1939,7 +1982,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         } else {
             userWalletApiManager.groupWalletApi.updateGroupChat(
-                groupId = groupId, CreateOrUpdateGroupChatRequest(historyPeriodId = historyPeriodId, roomId = roomId)
+                groupId = groupId,
+                CreateOrUpdateGroupChatRequest(historyPeriodId = historyPeriodId, roomId = roomId)
             )
         }
         return response.data.chat.toGroupChat()
@@ -1973,6 +2017,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             TargetAction.UPDATE_SECURITY_QUESTIONS.name -> gson.fromJson(
                 userData,
                 QuestionsAndAnswerRequestBody::class.java
+            )
+
+            TargetAction.EMERGENCY_LOCKDOWN.name -> gson.fromJson(
+                userData,
+                LockdownUpdateRequest.Body::class.java
             )
 
             else -> throw IllegalArgumentException("Unsupported action")
@@ -2030,6 +2079,22 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
             if (response.data.notes.size < TRANSACTION_PAGE_COUNT) return
         }
+    }
+
+    private fun getHeaders(
+        authorizations: List<String>,
+        verifyToken: String,
+        securityQuestionToken: String,
+        confirmCodeToken: String
+    ): MutableMap<String, String> {
+        val headers = mutableMapOf<String, String>()
+        authorizations.forEachIndexed { index, value ->
+            headers["$AUTHORIZATION_X-${index + 1}"] = value
+        }
+        headers[VERIFY_TOKEN] = verifyToken
+        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
+        headers[CONFIRMATION_TOKEN] = confirmCodeToken
+        return headers
     }
 
     companion object {

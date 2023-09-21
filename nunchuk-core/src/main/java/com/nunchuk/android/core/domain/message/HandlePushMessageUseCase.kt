@@ -9,6 +9,7 @@ import com.nunchuk.android.messages.util.getTransactionId
 import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.isAddKeyCompleted
 import com.nunchuk.android.messages.util.isDraftWalletResetEvent
+import com.nunchuk.android.messages.util.isGroupEmergencyLockdownStarted
 import com.nunchuk.android.messages.util.isGroupMembershipRequestCreatedEvent
 import com.nunchuk.android.messages.util.isGroupWalletCreatedEvent
 import com.nunchuk.android.messages.util.isServerTransactionEvent
@@ -95,6 +96,16 @@ class HandlePushMessageUseCase @Inject constructor(
                 saveHandledEventUseCase.invoke(parameters.eventId)
                 pushEventManager.push(
                     PushEvent.GroupWalletCreated(
+                        parameters.getWalletId().orEmpty()
+                    )
+                )
+            }
+        } else if (parameters.isGroupEmergencyLockdownStarted()) {
+            val result = isHandledEventUseCase.invoke(parameters.eventId)
+            if (result.getOrDefault(false).not()) {
+                saveHandledEventUseCase.invoke(parameters.eventId)
+                pushEventManager.push(
+                    PushEvent.GroupEmergencyLockdownStarted(
                         parameters.getWalletId().orEmpty()
                     )
                 )

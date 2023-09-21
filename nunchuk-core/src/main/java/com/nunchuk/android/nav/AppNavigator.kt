@@ -67,7 +67,7 @@ interface AppNavigator {
     )
 
     fun openKeyRecoveryScreen(activityContext: Context)
-    fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String)
+    fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String, groupId: String? = null, walletId: String? = null)
 
     /**
      * @param verifyToken for view/update inheritance [InheritancePlanFlow.VIEW]

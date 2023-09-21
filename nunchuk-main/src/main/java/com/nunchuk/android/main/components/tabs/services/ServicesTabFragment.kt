@@ -39,6 +39,7 @@ import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
@@ -164,7 +165,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 viewModel.getServiceKey(event.token, event.walletId)
             }
             ServiceTabRowItem.EmergencyLockdown -> {
-                navigator.openEmergencyLockdownScreen(requireContext(), event.token)
+                navigator.openEmergencyLockdownScreen(requireContext(), event.token, event.groupId, event.walletId)
             }
             ServiceTabRowItem.ViewInheritancePlan -> viewModel.getInheritance(
                 event.walletId,
@@ -218,7 +219,19 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         }
         when (item) {
             ServiceTabRowItem.ClaimInheritance -> viewModel.checkInheritance()
-            ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(item)
+            ServiceTabRowItem.EmergencyLockdown -> {
+                if (viewModel.state.value.plan.isByzantine()) {
+                    val wallets = viewModel.getAllowEmergencyLockdownWallets()
+                    if (wallets.isEmpty()) return
+                    if (wallets.size == 1) {
+                        enterPasswordDialog(item = item, walletId = wallets.first().localId)
+                    } else {
+                        AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                    }
+                } else {
+                    enterPasswordDialog(item)
+                }
+            }
             ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
@@ -238,7 +251,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             }
             ServiceTabRowItem.CoSigningPolicies,
             ServiceTabRowItem.ViewInheritancePlan -> {
-                val wallets = viewModel.getWallet(ignoreSetupInheritance = item != ServiceTabRowItem.ViewInheritancePlan)
+                val wallets = viewModel.getWallets(ignoreSetupInheritance = item != ServiceTabRowItem.ViewInheritancePlan)
                 if (wallets.isEmpty()) return
                 if (wallets.size == 1) {
                     enterPasswordDialog(item = item, walletId = wallets.first().localId)
@@ -247,7 +260,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 }
             }
 
-            ServiceTabRowItem.GetAdditionalWallets -> TODO()
+            ServiceTabRowItem.GetAdditionalWallets -> {}
         }
     }
 

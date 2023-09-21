@@ -270,6 +270,15 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     walletId = args.walletId.orEmpty(),
                     groupId = event.groupId,
                 )
+
+                is GroupDashboardEvent.OpenEmergencyLockdown -> {
+                    navigator.openEmergencyLockdownScreen(
+                        activityContext = requireActivity(),
+                        verifyToken = event.token,
+                        groupId = args.groupId,
+                        walletId = viewModel.getWalletId()
+                    )
+                }
             }
         }
     }
@@ -381,7 +390,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             }
 
             SheetOptionType.TYPE_EMERGENCY_LOCKDOWN -> {
-
+                enterPasswordDialog(TargetAction.EMERGENCY_LOCKDOWN)
             }
 
             SheetOptionType.TYPE_RECURRING_PAYMENT -> {

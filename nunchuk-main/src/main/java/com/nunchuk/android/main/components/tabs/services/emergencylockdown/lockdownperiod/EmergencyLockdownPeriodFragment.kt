@@ -26,6 +26,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
@@ -47,10 +49,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
@@ -65,6 +70,8 @@ class EmergencyLockdownPeriodFragment : Fragment() {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel: EmergencyLockdownPeriodViewModel by viewModels()
+    private val groupId by lazy { (requireActivity() as? EmergencyLockdownActivity)?.groupId.orEmpty() }
+    private val verifyToken by lazy { (requireActivity() as? EmergencyLockdownActivity)?.verifyToken.orEmpty() }
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -75,7 +82,15 @@ class EmergencyLockdownPeriodFragment : Fragment() {
                         ?: return@registerForActivityResult
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                viewModel.lockdownUpdate(signatureMap, securityQuestionToken)
+                val confirmCodeMap =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.CONFIRM_CODE)
+                        .orEmpty()
+                viewModel.lockdownUpdate(
+                    signatureMap,
+                    securityQuestionToken,
+                    confirmCodeMap[GlobalResultKey.CONFIRM_CODE_TOKEN].orEmpty(),
+                    confirmCodeMap[GlobalResultKey.CONFIRM_CODE_NONCE].orEmpty()
+                )
             }
         }
 
@@ -93,6 +108,7 @@ class EmergencyLockdownPeriodFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.init(verifyToken, groupId)
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is LockdownPeriodEvent.Loading -> showOrHideLoading(loading = event.isLoading)
@@ -103,6 +119,7 @@ class EmergencyLockdownPeriodFragment : Fragment() {
                     requiredSignatures = event.requiredSignatures,
                     type = event.type,
                     launcher = launcher,
+                    action = TargetAction.EMERGENCY_LOCKDOWN.name,
                     activityContext = requireActivity()
                 )
 

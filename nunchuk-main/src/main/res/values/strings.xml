@@ -168,4 +168,5 @@
     <string name="nc_transaction_updated">Transaction updated</string>
     <string name="nc_transaction_force_sync">Force sync</string>
     <string name="nc_transaction_not_updated">Transaction not updated</string>
+    <string name="nc_lockdown_in_progress">Lockdown in progress</string>
 </resources>

@@ -345,6 +345,7 @@
     <string name="nc_emergency_lockdown_period_title">Select your lockdown period</string>
     <string name="nc_emergency_lockdown_period_desc">Your access will be automatically re-enabled once the lockdown period ends.</string>
     <string name="nc_emergency_lockdown_success_title">Your account is now under lockdown</string>
+    <string name="nc_emergency_lockdown_wallet_success_title">%1$s is now under lockdown</string>
     <string name="nc_emergency_lockdown_success_info">The lockdown will last [B]%1$s.[/B]</string>
     <string name="nc_emergency_lockdown_confirm_title">Confirm the lockdown</string>
     <string name="nc_emergency_lockdown_confirm_desc">For confirmation, please sign a test message using one of the keys below.</string>

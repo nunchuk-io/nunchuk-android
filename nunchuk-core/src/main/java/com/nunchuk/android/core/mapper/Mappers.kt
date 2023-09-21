@@ -99,6 +99,7 @@ internal fun GroupResponse.toByzantineGroup(): ByzantineGroup {
         walletConfig = walletConfig.toModel(),
         status = status.orEmpty(),
         isViewPendingWallet = false,
+        isLocked = isLocked.orFalse(),
         members = members?.map {
             ByzantineMember(emailOrUsername = it.emailOrUsername.orEmpty(),
                 membershipId = it.membershipId.orEmpty(),
@@ -225,7 +226,10 @@ internal fun GroupResponse.toGroupEntity(chatId: String, chain: Chain, groupDao:
             status = status.orEmpty(),
             createdTimeMillis = createdTimeMillis ?: 0,
             members = gson.toJson(memberBrief),
-            walletConfig = gson.toJson(walletConfig)
+            walletConfig = gson.toJson(walletConfig),
+            chain = chain,
+            setupPreference = setupPreference.orEmpty(),
+            isLocked = isLocked.orFalse()
         )
     }
     return GroupEntity(
@@ -236,7 +240,8 @@ internal fun GroupResponse.toGroupEntity(chatId: String, chain: Chain, groupDao:
         members = gson.toJson(memberBrief),
         chain = chain,
         setupPreference = setupPreference.orEmpty(),
-        walletConfig = gson.toJson(walletConfig)
+        walletConfig = gson.toJson(walletConfig),
+        isLocked = isLocked.orFalse()
     )
 }
 
@@ -252,6 +257,7 @@ internal fun GroupEntity.toByzantineGroup(): ByzantineGroup {
         createdTimeMillis = createdTimeMillis,
         isViewPendingWallet = isViewPendingWallet,
         setupPreference = setupPreference,
-        walletConfig = walletConfig
+        walletConfig = walletConfig,
+        isLocked = isLocked
     )
 }

@@ -3,6 +3,7 @@ package com.nunchuk.android.core.data.api
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
+import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
@@ -28,6 +29,7 @@ import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletRespon
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
 import com.nunchuk.android.core.data.model.membership.GetWalletsResponse
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
+import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.data.model.membership.PermissionResponse
 import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
@@ -396,4 +398,17 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Query("offset") offset: Int
     ): Data<TransactionNoteResponse>
+
+    @GET("/v1.1/group-wallets/lockdown/period")
+    suspend fun getLockdownPeriod(): Data<PeriodResponse>
+
+    @POST("/v1.1/group-wallets/lockdown/lock")
+    suspend fun lockdownUpdate(
+        @HeaderMap headers: Map<String, String>, @Body payload: LockdownUpdateRequest
+    ): Data<Unit>
+
+    @POST("/v1.1/group-wallets/lockdown/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesLockdown(
+        @Body payload: LockdownUpdateRequest.Body
+    ): Data<CalculateRequiredSignaturesResponse>
 }

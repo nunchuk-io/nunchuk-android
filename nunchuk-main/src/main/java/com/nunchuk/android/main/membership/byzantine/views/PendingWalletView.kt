@@ -71,24 +71,24 @@ fun PendingWalletView(
     role: String = AssistedWalletRole.OBSERVER.name,
     badgeCount: Int = 0,
     inviterName: String = "",
+    isLocked: Boolean = false,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
     onGroupClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
 ) {
-    val colors =
-        if (inviterName.isNotEmpty() || walletsExtended == null) {
-            listOf(MaterialTheme.colors.yellowishOrange, MaterialTheme.colors.yellowishOrange)
-        } else if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
-            listOf(NcColor.greyDark, NcColor.greyDark)
-        } else if (group != null || isAssistedWallet) {
-            listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
-        } else {
-            listOf(
-                colorResource(id = R.color.nc_primary_light_color),
-                colorResource(id = R.color.nc_primary_color)
-            )
-        }
+    val colors = if (inviterName.isNotEmpty() || walletsExtended == null) {
+        listOf(MaterialTheme.colors.yellowishOrange, MaterialTheme.colors.yellowishOrange)
+    } else if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name || isLocked) {
+        listOf(NcColor.greyDark, NcColor.greyDark)
+    } else if (group != null || isAssistedWallet) {
+        listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
+    } else {
+        listOf(
+            colorResource(id = R.color.nc_primary_light_color),
+            colorResource(id = R.color.nc_primary_color)
+        )
+    }
     Column(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -100,9 +100,7 @@ fun PendingWalletView(
             modifier = Modifier
                 .background(
                     brush = Brush.linearGradient(
-                        colors = colors,
-                        start = Offset.Zero,
-                        end = Offset.Infinite
+                        colors = colors, start = Offset.Zero, end = Offset.Infinite
                     )
                 )
                 .padding(12.dp)
@@ -133,88 +131,20 @@ fun PendingWalletView(
             Row(
                 modifier = Modifier
                     .clickable(
-                        enabled = role != AssistedWalletRole.OBSERVER.name && inviterName.isEmpty(),
+                        enabled = role != AssistedWalletRole.OBSERVER.name && inviterName.isEmpty() && isLocked.not(),
                         onClick = onGroupClick,
                     )
                     .padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                if (inviterName.isNotEmpty()) {
-                    PendingWalletInviteMember(
-                        inviterName = inviterName,
-                        onAccept = onAccept,
-                        onDeny = onDeny
-                    )
-                } else if (role == AssistedWalletRole.OBSERVER.name) {
-                    Row(
-                        modifier = Modifier
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = NcColor.whisper,
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_show_pass),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(16.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.nc_observing),
-                            style = NunchukTheme.typography.bodySmall,
-                            color = MaterialTheme.colors.onSurface,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                    }
-                } else if (role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.nc_dashboard),
-                            style = NunchukTheme.typography.bodySmall,
-                            color = MaterialTheme.colors.onSurface,
-                            modifier = Modifier
-                                .padding(start = 4.dp)
-                                .weight(1f, fill = true)
-                        )
-
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (badgeCount != 0) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp, 24.dp)
-                                        .clip(CircleShape)
-                                        .background(color = colorResource(id = R.color.nc_orange_color)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = badgeCount.toString(),
-                                        style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
-                                    )
-                                }
-                            }
-
-                            Icon(
-                                modifier = Modifier.padding(start = 12.dp),
-                                painter = painterResource(id = R.drawable.ic_arrow_expand),
-                                contentDescription = "Arrow"
-                            )
-                        }
-                    }
-                } else {
-                    WalletAvatar(group = group, badgeCount = badgeCount)
-                }
+                BottomContent(
+                    group = group,
+                    badgeCount = badgeCount,
+                    isLocked = isLocked,
+                    role = role,
+                    inviterName = inviterName,
+                    onAccept = onAccept,
+                    onDeny = onDeny
+                )
             }
         }
     }
@@ -222,42 +152,160 @@ fun PendingWalletView(
 
 @Composable
 fun RowScope.PendingWalletInviteMember(
-    inviterName: String,
-    onAccept: () -> Unit,
-    onDeny: () -> Unit
+    inviterName: String, onAccept: () -> Unit, onDeny: () -> Unit
 ) {
     Text(
         text = stringResource(
-            R.string.nc_pending_wallet_invite_member,
-            inviterName
-        ),
-        style = NunchukTheme.typography.bodySmall,
-        modifier = Modifier.weight(1f, fill = true)
+            R.string.nc_pending_wallet_invite_member, inviterName
+        ), style = NunchukTheme.typography.bodySmall, modifier = Modifier.weight(1f, fill = true)
     )
     NcPrimaryDarkButton(
         modifier = Modifier
             .defaultMinSize(minWidth = 72.dp)
             .height(36.dp)
-            .padding(horizontal = 12.dp),
-        onClick = onAccept
+            .padding(horizontal = 12.dp), onClick = onAccept
     ) {
         Text(text = stringResource(id = R.string.nc_accept))
     }
     NcOutlineButton(
         modifier = Modifier
             .defaultMinSize(minWidth = 72.dp)
-            .height(36.dp),
-        onClick = onDeny
+            .height(36.dp), onClick = onDeny
     ) {
         Text(text = stringResource(id = R.string.nc_deny))
     }
 }
 
 @Composable
-fun RowScope.WalletAvatar(group: ByzantineGroup, badgeCount: Int = 0) {
+fun RowScope.BottomContent(
+    group: ByzantineGroup,
+    badgeCount: Int = 0,
+    isLocked: Boolean = false,
+    role: String = AssistedWalletRole.NONE.name,
+    inviterName: String = "",
+    onAccept: () -> Unit = {},
+    onDeny: () -> Unit = {}
+) {
+    if (isLocked) {
+        AvatarView(group = group)
+        Box(
+            modifier = Modifier
+                .background(
+                    color = colorResource(id = R.color.nc_red_tint_color),
+                    shape = RoundedCornerShape(size = 20.dp)
+                )
+                .padding(start = 10.dp, top = 4.dp, end = 10.dp, bottom = 4.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.nc_lockdown_in_progress),
+                style = NunchukTheme.typography.caption
+            )
+        }
+    } else if (inviterName.isNotEmpty()) {
+        PendingWalletInviteMember(
+            inviterName = inviterName, onAccept = onAccept, onDeny = onDeny
+        )
+    } else if (role == AssistedWalletRole.OBSERVER.name) {
+        Row(
+            modifier = Modifier
+                .background(
+                    color = Color.White, shape = RoundedCornerShape(20.dp)
+                )
+                .border(
+                    width = 1.dp, color = NcColor.whisper, shape = RoundedCornerShape(20.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_show_pass),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = stringResource(R.string.nc_observing),
+                style = NunchukTheme.typography.bodySmall,
+                color = MaterialTheme.colors.onSurface,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
+    } else if (role == AssistedWalletRole.KEYHOLDER_LIMITED.name) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.nc_dashboard),
+                style = NunchukTheme.typography.bodySmall,
+                color = MaterialTheme.colors.onSurface,
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .weight(1f, fill = true)
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (badgeCount != 0) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp, 24.dp)
+                            .clip(CircleShape)
+                            .background(color = colorResource(id = R.color.nc_orange_color)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = badgeCount.toString(),
+                            style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
+                        )
+                    }
+                }
+
+                Icon(
+                    modifier = Modifier.padding(start = 12.dp),
+                    painter = painterResource(id = R.drawable.ic_arrow_expand),
+                    contentDescription = "Arrow"
+                )
+            }
+        }
+    } else {
+        AvatarView(group = group)
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (badgeCount != 0) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp, 24.dp)
+                        .clip(CircleShape)
+                        .background(color = colorResource(id = R.color.nc_orange_color)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = badgeCount.toString(),
+                        style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
+                    )
+                }
+            }
+
+            Icon(
+                modifier = Modifier.padding(start = 12.dp),
+                painter = painterResource(id = R.drawable.ic_arrow_expand),
+                contentDescription = "Arrow"
+            )
+        }
+    }
+}
+
+@Composable
+internal fun RowScope.AvatarView(group: ByzantineGroup) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
-        val sortedList = group.members.filter { it.role != AssistedWalletRole.OBSERVER.name }
-            .sortedWith(compareBy { it.isPendingRequest() })
+        val sortedList =
+            group.members.filter { it.role != AssistedWalletRole.OBSERVER.name }
+                .sortedWith(compareBy { it.isPendingRequest() })
         sortedList.take(5).forEachIndexed { index, byzantineMember ->
             val padStart = if (index == 0) 0.dp else 4.dp
             AvatarView(
@@ -267,32 +315,6 @@ fun RowScope.WalletAvatar(group: ByzantineGroup, badgeCount: Int = 0) {
                 isContact = byzantineMember.isPendingRequest().not()
             )
         }
-    }
-
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (badgeCount != 0) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp, 24.dp)
-                    .clip(CircleShape)
-                    .background(color = colorResource(id = R.color.nc_orange_color)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = badgeCount.toString(),
-                    style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
-                )
-            }
-        }
-
-        Icon(
-            modifier = Modifier.padding(start = 12.dp),
-            painter = painterResource(id = R.drawable.ic_arrow_expand),
-            contentDescription = "Arrow"
-        )
     }
 }
 
@@ -308,25 +330,18 @@ internal fun ActiveWallet(
     Row {
         Column(modifier = Modifier.weight(1f, fill = true)) {
             Text(
-                text = wallet.name,
-                style = NunchukTheme.typography.title,
-                color = Color.White
+                text = wallet.name, style = NunchukTheme.typography.title, color = Color.White
             )
             Text(
                 text = Utils.maskValue(
                     wallet.getBTCAmount(),
                     role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ),
-                style = NunchukTheme.typography.titleSmall,
-                color = Color.White
+                ), style = NunchukTheme.typography.titleSmall, color = Color.White
             )
             Text(
                 text = Utils.maskValue(
-                    balance,
-                    role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ),
-                style = NunchukTheme.typography.bodySmall,
-                color = Color.White
+                    balance, role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
+                ), style = NunchukTheme.typography.bodySmall, color = Color.White
             )
         }
 
@@ -336,9 +351,7 @@ internal fun ActiveWallet(
             horizontalAlignment = Alignment.End
         ) {
             Text(
-                text = "",
-                style = NunchukTheme.typography.title,
-                color = Color.White
+                text = "", style = NunchukTheme.typography.title, color = Color.White
             )
             Badge {
                 if (walletsExtended.isShared || isAssistedWallet) {
@@ -350,13 +363,11 @@ internal fun ActiveWallet(
                 }
                 val walletTypeName = if (isAssistedWallet) {
                     Utils.maskValue(
-                        stringResource(R.string.nc_assisted),
-                        hideWalletDetail
+                        stringResource(R.string.nc_assisted), hideWalletDetail
                     )
                 } else {
                     Utils.maskValue(
-                        stringResource(R.string.nc_text_shared),
-                        hideWalletDetail
+                        stringResource(R.string.nc_text_shared), hideWalletDetail
                     )
                 }
                 Text(
@@ -445,16 +456,13 @@ fun AvatarView(
             if (isContact) {
                 avatarUrl.fromMxcUriToMatrixDownloadUrl()
             } else ""
-        },
-            imageOptions = ImageOptions(
-                contentScale = ContentScale.Crop, alignment = Alignment.Center
-            ),
-            loading = {
-                image()
-            },
-            failure = {
-                image()
-            })
+        }, imageOptions = ImageOptions(
+            contentScale = ContentScale.Crop, alignment = Alignment.Center
+        ), loading = {
+            image()
+        }, failure = {
+            image()
+        })
     }
 }
 
@@ -517,8 +525,7 @@ fun PendingWalletViewPreview() {
                     loginType = "EMAIL",
                     username = ""
                 )
-            ),
-            ByzantineMember(
+            ), ByzantineMember(
                 emailOrUsername = "thongle+10@nunchuk.io",
                 membershipId = "328924802737770496",
                 permissions = listOf(),
@@ -536,8 +543,7 @@ fun PendingWalletViewPreview() {
                     loginType = "EMAIL",
                     username = ""
                 )
-            ),
-            ByzantineMember(
+            ), ByzantineMember(
                 emailOrUsername = "thongle+21@nunchuk.io",
                 membershipId = "328924802737770497",
                 permissions = listOf(),
@@ -560,11 +566,9 @@ fun PendingWalletViewPreview() {
         setupPreference = "SINGLE_PERSON",
         status = "PENDING_WALLET",
         isViewPendingWallet = false,
+        isLocked = false,
         walletConfig = ByzantineWalletConfig(
-            m = 2,
-            n = 4,
-            requiredServerKey = true,
-            allowInheritance = true
+            m = 2, n = 4, requiredServerKey = true, allowInheritance = true
         )
     )
     val members = group.members.map {
@@ -589,7 +593,8 @@ fun PendingWalletViewPreview() {
                     members = members,
                     isViewPendingWallet = true,
                     walletConfig = group.walletConfig,
-                    setupPreference = group.setupPreference
+                    setupPreference = group.setupPreference,
+                    isLocked = false
                 ),
             )
         }

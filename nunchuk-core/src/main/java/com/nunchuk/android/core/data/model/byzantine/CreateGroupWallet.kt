@@ -14,7 +14,9 @@ internal data class GroupResponse(
     @SerializedName("setup_preference")
     val setupPreference: String? = null,
     @SerializedName("wallet_config")
-    val walletConfig: WalletConfigDto? = null
+    val walletConfig: WalletConfigDto? = null,
+    @SerializedName("is_locked")
+    val isLocked: Boolean? = null
 )
 
 data class CreateGroupRequest(

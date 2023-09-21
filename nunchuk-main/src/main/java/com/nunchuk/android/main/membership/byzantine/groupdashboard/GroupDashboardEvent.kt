@@ -16,7 +16,8 @@ sealed class GroupDashboardEvent {
     data class Error(val message: String) : GroupDashboardEvent()
     data class GetHistoryPeriodSuccess(val periods: List<HistoryPeriod>) : GroupDashboardEvent()
     class GetHealthCheckPayload(val payload: DummyTransactionPayload) : GroupDashboardEvent()
-    object RequestHealthCheckSuccess : GroupDashboardEvent()
+    data object RequestHealthCheckSuccess : GroupDashboardEvent()
+    data class OpenEmergencyLockdown(val token: String = "") : GroupDashboardEvent()
     data class GetInheritanceSuccess(
         val inheritance: Inheritance,
         val token: String = "",

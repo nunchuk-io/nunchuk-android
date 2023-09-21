@@ -72,9 +72,7 @@ class EmergencyLockdownIntroFragment : Fragment() {
             when (it) {
                 is EmergencyLockdownIntroEvent.ContinueClick -> {
                     findNavController().navigate(
-                        EmergencyLockdownIntroFragmentDirections.actionEmergencyLockdownIntroFragmentToLockdownPeriodFragment(
-                            verifyToken = args.verifyToken
-                        )
+                        EmergencyLockdownIntroFragmentDirections.actionEmergencyLockdownIntroFragmentToLockdownPeriodFragment()
                     )
                 }
                 is EmergencyLockdownIntroEvent.Loading -> {

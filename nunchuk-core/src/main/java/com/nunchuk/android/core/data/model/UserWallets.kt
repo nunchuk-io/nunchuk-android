@@ -118,7 +118,9 @@ data class LockdownUpdateRequest(
         @SerializedName("period_id")
         val periodId: String? = null,
         @SerializedName("wallet")
-        val walletId: String? = null
+        val walletId: String? = null,
+        @SerializedName("group_id")
+        val groupId: String? = null,
     )
 }
 

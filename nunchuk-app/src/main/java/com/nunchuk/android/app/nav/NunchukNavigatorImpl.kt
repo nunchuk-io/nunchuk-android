@@ -240,8 +240,8 @@ interface AppNavigatorDelegate : AppNavigator {
         KeyRecoveryActivity.navigate(activityContext)
     }
 
-    override fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String) {
-        EmergencyLockdownActivity.navigate(activityContext, verifyToken)
+    override fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String, groupId: String?, walletId: String?) {
+        EmergencyLockdownActivity.navigate(activityContext, verifyToken, groupId, walletId)
     }
 
     override fun openInheritancePlanningScreen(

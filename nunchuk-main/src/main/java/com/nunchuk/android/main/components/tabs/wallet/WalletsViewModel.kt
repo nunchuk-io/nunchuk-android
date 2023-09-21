@@ -225,6 +225,13 @@ internal class WalletsViewModel @Inject constructor(
                             }
                         }
                     }
+                    is PushEvent.GroupEmergencyLockdownStarted -> {
+                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
+                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                                if (shouldReload) retrieveData()
+                            }
+                        }
+                    }
                     is PushEvent.GroupWalletCreated -> {
                         if (!getState().wallets.any { it.wallet.id == event.walletId }) {
                             syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
