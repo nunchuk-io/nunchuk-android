@@ -66,6 +66,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.parcelable
@@ -219,6 +220,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         val activityArgs: WalletAuthenticationActivityArgs by requireActivity().navArgs()
         if (activityArgs.action == TargetAction.CLAIM_KEY.name
             && (singleSigner.type == SignerType.COLDCARD_NFC
+                    || (singleSigner.type == SignerType.HARDWARE && singleSigner.tags.contains(SignerTag.COLDCARD))
                     || singleSigner.type == SignerType.AIRGAP)
         ) {
             NCWarningDialog(requireActivity())

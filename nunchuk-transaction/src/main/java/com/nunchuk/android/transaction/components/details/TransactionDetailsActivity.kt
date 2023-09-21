@@ -62,13 +62,13 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
+import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
 import com.nunchuk.android.share.model.TransactionOption.COPY_TRANSACTION_ID
 import com.nunchuk.android.share.model.TransactionOption.EXPORT_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.IMPORT_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
-import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
@@ -93,6 +93,7 @@ import com.nunchuk.android.transaction.components.export.ExportTransactionActivi
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -303,6 +304,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     handleMenuMore()
                     true
                 }
+
                 else -> false
             }
         }
@@ -331,6 +333,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     walletId = args.walletId,
                     viewModel.coins().first()
                 )
+
                 else -> navigator.openCoinList(
                     launcher = coinLauncher,
                     context = this,
@@ -425,9 +428,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             serverTransaction = serverTransaction,
             listener = { signer ->
                 viewModel.setCurrentSigner(signer)
-                when (signer.type) {
-                    SignerType.COLDCARD_NFC -> showSignByMk4Options()
-                    SignerType.NFC -> {
+                when {
+                    signer.type == SignerType.COLDCARD_NFC
+                            || signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.COLDCARD) -> showSignByMk4Options()
+
+                    signer.type == SignerType.NFC -> {
                         if (viewModel.isInheritanceSigner(signer.fingerPrint)) {
                             NCWarningDialog(this).showDialog(title = getString(R.string.nc_text_confirmation),
                                 message = getString(R.string.nc_inheritance_key_warning),
@@ -438,8 +443,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                             startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                         }
                     }
-                    SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
-                    SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+
+                    signer.type == SignerType.AIRGAP || signer.type == SignerType.UNKNOWN -> showSignByAirgapOptions()
+                    signer.type == SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                     else -> viewModel.handleSignSoftwareKey(signer)
                 }
             }).bindItems()
@@ -494,7 +500,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     private fun bindAddress(transaction: Transaction) {
         val coins = if (transaction.isReceive)
             transaction.receiveOutputs else
-                transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+            transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
         binding.tvMoreAddress.isVisible = coins.size > 30
         binding.tvMoreAddress.text = getString(R.string.nc_more_address, coins.size - 30)
         if (coins.isNotEmpty()) {
@@ -579,6 +585,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             CancelScheduleBroadcastTransactionSuccess -> NCToastMessage(this).show(
                 getString(R.string.nc_schedule_broadcast_has_been_canceled)
             )
+
             ImportTransactionSuccess -> NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
             NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
             is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
