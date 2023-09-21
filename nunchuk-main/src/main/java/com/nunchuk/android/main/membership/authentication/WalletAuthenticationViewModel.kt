@@ -44,6 +44,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -219,12 +220,17 @@ class WalletAuthenticationViewModel @Inject constructor(
                 ?: return@launch
         savedStateHandle[EXTRA_CURRENT_INTERACT_SIGNER] = singleSigner
         _state.update { it.copy(interactSingleSigner = singleSigner) }
-        when (signerModel.type) {
-            SignerType.NFC -> _event.emit(WalletAuthenticationEvent.ScanTapSigner)
-            SignerType.COLDCARD_NFC -> _event.emit(WalletAuthenticationEvent.ScanColdCard)
-            SignerType.SOFTWARE -> handleSignCheckSoftware(singleSigner)
-            SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
-            SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
+        when {
+            signerModel.type == SignerType.NFC -> _event.emit(WalletAuthenticationEvent.ScanTapSigner)
+            signerModel.type == SignerType.COLDCARD_NFC
+                    || (signerModel.type == SignerType.HARDWARE && signerModel.tags.contains(
+                SignerTag.COLDCARD
+            ))
+            -> _event.emit(WalletAuthenticationEvent.ScanColdCard)
+
+            signerModel.type == SignerType.SOFTWARE -> handleSignCheckSoftware(singleSigner)
+            signerModel.type == SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
+            signerModel.type == SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
             else -> {}
         }
     }
