@@ -2,7 +2,7 @@ package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.DummyTransaction
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
-import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.model.byzantine.DummyTransactionUpdate
 
 interface DummyTransactionRepository {
     suspend fun getDummyTransaction(
@@ -22,7 +22,7 @@ interface DummyTransactionRepository {
         groupId: String,
         walletId: String,
         dummyTransactionId: String
-    ): TransactionStatus
+    ): DummyTransactionUpdate
 
     suspend fun deleteDummyTransaction(
         groupId: String,

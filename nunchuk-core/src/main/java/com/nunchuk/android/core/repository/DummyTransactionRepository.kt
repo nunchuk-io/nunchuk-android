@@ -5,6 +5,7 @@ import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.model.DummyTransaction
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.byzantine.DummyTransactionUpdate
 import com.nunchuk.android.model.byzantine.toDummyTransactionType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.DummyTransactionDao
@@ -65,7 +66,8 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
                 walletId,
                 dummyTransactionId
             )
-            val dummyTransaction = response.data.dummyTransaction ?: throw NullPointerException("Can not load dummy transaction")
+            val dummyTransaction = response.data.dummyTransaction
+                ?: throw NullPointerException("Can not load dummy transaction")
             saveDummyTransactionEntity(dummyTransactionId, dummyTransaction)
             nunchukNativeSdk.importDummyTx(gson.toJson(dummyTransaction))
             DummyTransactionPayload(
@@ -96,7 +98,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         groupId: String,
         walletId: String,
         dummyTransactionId: String
-    ) : TransactionStatus {
+    ): DummyTransactionUpdate {
         val headers = mutableMapOf<String, String>()
         signatures.map { (masterFingerprint, signature) ->
             nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
@@ -112,7 +114,11 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             walletId,
             dummyTransactionId
         )
-        return TransactionStatus.values().find { it.name == response.data.dummyTransaction?.status } ?: TransactionStatus.PENDING_SIGNATURES
+        return DummyTransactionUpdate(
+            TransactionStatus.values().find { it.name == response.data.dummyTransaction?.status }
+                ?: TransactionStatus.PENDING_SIGNATURES,
+            response.data.dummyTransaction?.pendingSignatures ?: 0,
+        )
     }
 
     override suspend fun deleteDummyTransaction(
@@ -138,7 +144,8 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.groupWalletApi.finalizeDummyTransaction(
             groupId, walletId, dummyTransactionId
         )
-        val transaction = response.data.dummyTransaction ?: throw NullPointerException("Can not get dummy transaction")
+        val transaction = response.data.dummyTransaction
+            ?: throw NullPointerException("Can not get dummy transaction")
         nunchukNativeSdk.importDummyTx(gson.toJson(transaction))
         saveDummyTransactionEntity(dummyTransactionId, transaction)
     }

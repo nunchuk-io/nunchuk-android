@@ -181,7 +181,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                     }
                     tokens.filter { it.value.not() }.forEach {
                         val (xfp, token) = it.key.split(".")
-                        if(uploadSignature(xfp, token, signatures)) {
+                        if (uploadSignature(xfp, token, signatures)) {
                             signatures[xfp] = token
                         }
                     }
@@ -364,7 +364,7 @@ class WalletAuthenticationViewModel @Inject constructor(
         masterFingerprint: String,
         signature: String,
         signatures: MutableMap<String, String>,
-    ) : Boolean {
+    ): Boolean {
         return updateGroupDummyTransactionUseCase(
             UpdateGroupDummyTransactionUseCase.Param(
                 signatures = mapOf(masterFingerprint to signature),
@@ -374,11 +374,16 @@ class WalletAuthenticationViewModel @Inject constructor(
             )
         ).onFailure {
             _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-        }.onSuccess { transactionStatus ->
-            if (transactionStatus == TransactionStatus.CONFIRMED) {
+        }.onSuccess { updateInfo ->
+            if (updateInfo.status == TransactionStatus.CONFIRMED) {
                 _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess())
             } else {
-                _state.update { it.copy(signatures = signatures) }
+                _state.update {
+                    it.copy(
+                        signatures = signatures,
+                        pendingSignature = updateInfo.pendingSignatures
+                    )
+                }
             }
         }.isSuccess
     }

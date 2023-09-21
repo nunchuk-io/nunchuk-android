@@ -19,7 +19,7 @@
     <string name="nc_transaction_new">New transaction</string>
     <string name="nc_transaction_send_all">Send all</string>
     <string name="nc_transaction_switch_to_btc">Switch to BTC</string>
-    <string name="nc_transaction_enter_receipt">Enter recipient’s address or email</string>
+    <string name="nc_transaction_enter_receipt">Enter or scan the recipient\'s address</string>
     <string name="nc_transaction_customize_fee_setting">Customize fee setting</string>
     <string name="nc_transaction_subtract_fee_title">Subtract fee from send amount</string>
     <string name="nc_transaction_subtract_fee_desc">The fee will be deducted from the amount being sent. The recipient will receive less bitcoin than you entered in the amount fee.</string>
