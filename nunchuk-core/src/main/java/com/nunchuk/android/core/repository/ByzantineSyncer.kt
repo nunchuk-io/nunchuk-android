@@ -3,6 +3,7 @@ package com.nunchuk.android.core.repository
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.api.TRANSACTION_PAGE_COUNT
+import com.nunchuk.android.core.data.model.byzantine.GroupResponse
 import com.nunchuk.android.core.data.model.byzantine.KeyHealthStatusDto
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toAlert
@@ -45,7 +46,7 @@ internal class ByzantineSyncer @Inject constructor(
     ): List<Alert>? {
         val remoteList = arrayListOf<Alert>()
         var index = 0
-        kotlin.runCatching {
+        runCatching {
             while (true) {
                 val response =
                     userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
@@ -90,16 +91,16 @@ internal class ByzantineSyncer @Inject constructor(
         return updateOrInsertList.map { it.toAlert() }
     }
 
-    suspend fun syncGroups(): List<ByzantineGroup>? {
-        kotlin.runCatching {
-            val groups = userWalletApiManager.groupWalletApi.getGroups().data.groups.orEmpty()
+    suspend fun syncGroups(groups: List<GroupResponse> = emptyList()): List<ByzantineGroup>? {
+        runCatching {
+            val finalGroups = groups.ifEmpty { userWalletApiManager.groupWalletApi.getGroups().data.groups.orEmpty() }
             val groupLocals =
                 groupDao.getGroups(accountManager.getAccount().chatId, chain.value).firstOrNull()
                     ?: emptyList()
             val allGroupIds = groupLocals.map { it.groupId }.toHashSet()
             val addGroupIds = HashSet<String>()
             val chatId = accountManager.getAccount().chatId
-            groupDao.updateOrInsert(groups.filter {
+            groupDao.updateOrInsert(finalGroups.filter {
                 it.status != GroupStatus.DELETED.name && it.id.isNullOrEmpty().not()
             }.map { group ->
                 addGroupIds.add(group.id.orEmpty())
@@ -109,13 +110,13 @@ internal class ByzantineSyncer @Inject constructor(
             if (allGroupIds.isNotEmpty()) {
                 groupDao.deleteGroups(allGroupIds.toList(), chatId = chatId)
             }
-            return groups.map { it.toByzantineGroup() }
+            return finalGroups.map { it.toByzantineGroup() }
         }.onFailure { return null }
         return null
     }
 
     suspend fun syncGroup(groupId: String): ByzantineGroup? {
-        kotlin.runCatching {
+        runCatching {
             val response = userWalletApiManager.groupWalletApi.getGroup(groupId)
             if (response.isSuccess.not()) return null
             val groupRemote = response.data.data ?: return null
@@ -130,7 +131,7 @@ internal class ByzantineSyncer @Inject constructor(
     }
 
     suspend fun syncKeyHealthStatus(groupId: String, walletId: String): List<KeyHealthStatus>? {
-        kotlin.runCatching {
+        runCatching {
             val localMap = keyHealthStatusDao.getKeys(groupId, walletId, getChatId(), chain.value)
                 .firstOrNull().orEmpty().associateByTo(mutableMapOf()) { it.xfp }
             val response =

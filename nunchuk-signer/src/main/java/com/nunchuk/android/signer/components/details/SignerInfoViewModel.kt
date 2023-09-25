@@ -23,8 +23,8 @@ import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GenerateColdCardHealthCheckMessageUseCase
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.HealthCheckColdCardUseCase
@@ -64,10 +64,15 @@ import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -91,9 +96,14 @@ internal class SignerInfoViewModel @Inject constructor(
     private val updateServerKeyNameUseCase: UpdateServerKeyNameUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
-) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
+) : ViewModel() {
+    private val _state = MutableStateFlow(SignerInfoState())
+    val state = _state.asStateFlow()
 
-    override val initialState = SignerInfoState()
+    private val _event = MutableSharedFlow<SignerInfoEvent>()
+    val event = _event.asSharedFlow()
+    
+    private fun getState() = _state.value
 
     private val assistedKeys = getAssistedKeysUseCase(Unit)
         .map { it.getOrDefault(emptySet()) }
@@ -108,7 +118,7 @@ internal class SignerInfoViewModel @Inject constructor(
                 val result = getMasterSignerUseCase(args.id)
                 if (result.isSuccess) {
 
-                    updateState { copy(masterSigner = result.getOrThrow()) }
+                    _state.update { state -> state.copy(masterSigner = result.getOrThrow()) }
                 } else {
                     Timber.e("Get software signer error")
                 }
@@ -120,14 +130,14 @@ internal class SignerInfoViewModel @Inject constructor(
                     )
                 )
                 if (result.isSuccess) {
-                    updateState { copy(remoteSigner = result.getOrThrow()) }
+                    _state.update { state -> state.copy(remoteSigner = result.getOrThrow()) }
                 }
             }
         }
         if (args.signerType == SignerType.NFC) {
             viewModelScope.launch {
                 val cardId = cardIdManager.getCardId(args.id)
-                updateState { copy(nfcCardId = cardId) }
+                _state.update { state -> state.copy(nfcCardId = cardId) }
             }
         }
     }
@@ -139,11 +149,11 @@ internal class SignerInfoViewModel @Inject constructor(
                 state.masterSigner?.let { signer ->
                     updateMasterSignerUseCase(parameters = signer.copy(name = updateSignerName))
                         .onSuccess {
-                            event(UpdateNameSuccessEvent(updateSignerName))
+                            _event.emit(UpdateNameSuccessEvent(updateSignerName))
                             updateServerKeyName(signer.id, updateSignerName)
                         }
                         .onFailure { e ->
-                            event(UpdateNameErrorEvent(e.message.orUnknownError()))
+                            _event.emit(UpdateNameErrorEvent(e.message.orUnknownError()))
                         }
                 }
             } else {
@@ -151,11 +161,11 @@ internal class SignerInfoViewModel @Inject constructor(
                     when (val result =
                         updateRemoteSignerUseCase.execute(signer = signer.copy(name = updateSignerName))) {
                         is Success -> {
-                            event(UpdateNameSuccessEvent(updateSignerName))
+                            _event.emit(UpdateNameSuccessEvent(updateSignerName))
                             updateServerKeyName(signer.masterFingerprint, updateSignerName)
                         }
 
-                        is Error -> event(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
+                        is Error -> _event.emit(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
                     }
                 }
             }
@@ -177,9 +187,9 @@ internal class SignerInfoViewModel @Inject constructor(
                 state.masterSigner?.let {
                     deleteMasterSignerUseCase(it.id)
                         .onSuccess {
-                            event(RemoveSignerCompletedEvent)
+                            _event.emit(RemoveSignerCompletedEvent)
                         }.onFailure { exception ->
-                            event(RemoveSignerErrorEvent(exception.message.orUnknownError()))
+                            _event.emit(RemoveSignerErrorEvent(exception.message.orUnknownError()))
                         }
                 }
             } else {
@@ -188,9 +198,9 @@ internal class SignerInfoViewModel @Inject constructor(
                         masterFingerprint = it.masterFingerprint,
                         derivationPath = it.derivationPath
                     )).onSuccess {
-                        event(RemoveSignerCompletedEvent)
+                        _event.emit(RemoveSignerCompletedEvent)
                     }.onFailure { exception ->
-                        event(RemoveSignerErrorEvent(exception.message.orUnknownError()))
+                        _event.emit(RemoveSignerErrorEvent(exception.message.orUnknownError()))
                     }
                 }
             }
@@ -202,7 +212,7 @@ internal class SignerInfoViewModel @Inject constructor(
             viewModelScope.launch {
                 sendSignerPassphrase.execute(masterSigner.id, passPhrase)
                     .flowOn(Dispatchers.IO)
-                    .onException { event(HealthCheckErrorEvent(it.message.orEmpty())) }
+                    .onException { _event.emit(HealthCheckErrorEvent(it.message.orEmpty())) }
                     .flowOn(Dispatchers.Main)
                     .collect { healthCheck(masterSigner) }
             }
@@ -221,13 +231,13 @@ internal class SignerInfoViewModel @Inject constructor(
                 masterSignerId = if (masterSigner.device.needPassPhraseSent) masterSigner.id else null
             )
                 .flowOn(Dispatchers.IO)
-                .onException { event(HealthCheckErrorEvent(it.message)) }
+                .onException { _event.emit(HealthCheckErrorEvent(it.message)) }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     if (it == HealthStatus.SUCCESS) {
-                        event(HealthCheckSuccessEvent)
+                        _event.emit(HealthCheckSuccessEvent)
                     } else {
-                        event(HealthCheckErrorEvent())
+                        _event.emit(HealthCheckErrorEvent())
                     }
                 }
         }
@@ -235,7 +245,7 @@ internal class SignerInfoViewModel @Inject constructor(
 
     fun healthCheckTapSigner(isoDep: IsoDep, cvc: String, masterSigner: MasterSigner) {
         viewModelScope.launch {
-            event(NfcLoading)
+            _event.emit(NfcLoading)
             val result = healthCheckTapSignerUseCase(
                 HealthCheckTapSignerUseCase.Data(
                     isoDep = isoDep,
@@ -247,17 +257,17 @@ internal class SignerInfoViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess && result.getOrThrow() == HealthStatus.SUCCESS) {
-                event(HealthCheckSuccessEvent)
+                _event.emit(HealthCheckSuccessEvent)
             } else {
-                event(HealthCheckErrorEvent(e = result.exceptionOrNull()))
+                _event.emit(HealthCheckErrorEvent(e = result.exceptionOrNull()))
             }
         }
     }
 
     fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
-        val masterSignerId = state.value?.masterSigner?.id ?: return
+        val masterSignerId = state.value.masterSigner?.id ?: return
         viewModelScope.launch {
-            event(NfcLoading)
+            _event.emit(NfcLoading)
             val result = getTapSignerBackupUseCase(
                 GetTapSignerBackupUseCase.Data(
                     isoDep,
@@ -266,16 +276,16 @@ internal class SignerInfoViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                event(GetTapSignerBackupKeyEvent(result.getOrThrow()))
+                _event.emit(GetTapSignerBackupKeyEvent(result.getOrThrow()))
             } else {
-                event(NfcError(result.exceptionOrNull()))
+                _event.emit(NfcError(result.exceptionOrNull()))
             }
         }
     }
 
     fun topUpXpubTapSigner(isoDep: IsoDep, cvc: String, masterSignerId: String) {
         viewModelScope.launch {
-            event(NfcLoading)
+            _event.emit(NfcLoading)
             val result = topUpXpubTapSignerUseCase(
                 TopUpXpubTapSignerUseCase.Data(
                     isoDep,
@@ -284,9 +294,9 @@ internal class SignerInfoViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                event(TopUpXpubSuccess)
+                _event.emit(TopUpXpubSuccess)
             } else {
-                event(TopUpXpubFailed(result.exceptionOrNull()))
+                _event.emit(TopUpXpubFailed(result.exceptionOrNull()))
             }
         }
     }
@@ -296,7 +306,7 @@ internal class SignerInfoViewModel @Inject constructor(
     fun generateColdcardHealthMessages(ndef: Ndef?, derivationPath: String) {
         ndef ?: return
         viewModelScope.launch {
-            event(NfcLoading)
+            _event.emit(NfcLoading)
             val result = generateColdCardHealthCheckMessageUseCase(
                 GenerateColdCardHealthCheckMessageUseCase.Data(
                     derivationPath = derivationPath,
@@ -304,22 +314,22 @@ internal class SignerInfoViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                setEvent(GenerateColdcardHealthMessagesSuccess)
+                _event.emit(GenerateColdcardHealthMessagesSuccess)
             } else {
-                setEvent(NfcError(result.exceptionOrNull()))
+                _event.emit(NfcError(result.exceptionOrNull()))
             }
         }
     }
 
     fun healthCheckColdCard(signer: SingleSigner, records: List<NdefRecord>) {
         viewModelScope.launch {
-            event(NfcLoading)
+            _event.emit(NfcLoading)
             val result =
                 healthCheckColdCardUseCase(HealthCheckColdCardUseCase.Param(signer, records))
             if (result.isSuccess) {
-                setEvent(HealthCheckSuccessEvent)
+                _event.emit(HealthCheckSuccessEvent)
             } else {
-                setEvent(NfcError(result.exceptionOrNull()))
+                _event.emit(NfcError(result.exceptionOrNull()))
             }
         }
     }

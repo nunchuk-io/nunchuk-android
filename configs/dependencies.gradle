@@ -45,7 +45,7 @@ ext {
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
-            compileSdkVersion: 33,
+            compileSdkVersion: 34,
             targetSdkVersion : 33,
             minSdkVersion    : 24,
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
@@ -183,11 +183,11 @@ ext {
     ]
 
     composeDeps = [
-            'composeUi'              : "androidx.compose.ui:ui:1.4.1",
-            'composeUiTool'          : "androidx.compose.ui:ui-tooling:1.4.1",
-            'composeFoundation'      : "androidx.compose.foundation:foundation:1.4.1",
-            'composeMaterial'        : "androidx.compose.material:material:1.4.1",
-            'composeActivity'        : "androidx.activity:activity-compose:1.6.1",
+            'composeUi'              : "androidx.compose.ui:ui",
+            'composeUiTool'          : "androidx.compose.ui:ui-tooling",
+            'composeFoundation'      : "androidx.compose.foundation:foundation",
+            'composeMaterial'        : "androidx.compose.material:material",
+            'composeActivity'        : "androidx.activity:activity-compose",
             'composeViewModel'       : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
             'composeSystemUi'        : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",
             'composeInsets'          : "com.google.accompanist:accompanist-insets:0.25.1",

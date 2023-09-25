@@ -1796,7 +1796,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
         }
         ncDataStore.setGroupAssistedKey(groupAssistedKeys)
-        syncer.syncGroups()
+        syncer.syncGroups(groups)
 
         return groups.isNotEmpty()
     }
