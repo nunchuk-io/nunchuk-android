@@ -126,7 +126,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     override fun initializeBinding(
         inflater: LayoutInflater,
-        container: ViewGroup?
+        container: ViewGroup?,
     ) = FragmentWalletsBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -275,6 +275,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is VerifyPasswordSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
             is VerifyPassphraseSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
             WalletsEvent.DenyWalletInvitationSuccess -> showSuccess(message = getString(R.string.nc_deny_wallet_invitation_msg))
+            is WalletsEvent.AcceptWalletInvitationSuccess -> navigator.openGroupDashboardScreen(
+                groupId = event.groupId,
+                walletId = event.walletId,
+                activityContext = requireActivity(),
+            )
+
             None -> {}
         }
         walletsViewModel.clearEvent()
@@ -455,6 +461,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     state.remainingTime,
                     walletName
                 )
+
                 else -> showNonSubscriberIntro(state.banner)
             }
         }
@@ -521,9 +528,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showDenyWalletDialog(action: () -> Unit) {
-        NCWarningDialog(requireActivity()).showDialog(title = getString(R.string.nc_text_confirmation),
+        NCWarningDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_text_confirmation),
             message = getString(R.string.nc_deny_wallet_invitation_dialog),
-            onYesClick = action)
+            onYesClick = action
+        )
     }
 
     private fun checkWalletSecurity(walletId: String) {

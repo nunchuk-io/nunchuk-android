@@ -1,7 +1,6 @@
 package com.nunchuk.android.usecase.byzantine
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -13,6 +12,5 @@ class GroupMemberAcceptRequestUseCase @Inject constructor(
 ) : UseCase<String, Unit>(dispatcher) {
     override suspend fun execute(parameters: String) {
         userWalletRepository.groupMemberAcceptRequest(groupId = parameters)
-        userWalletRepository.syncGroupWallets()
     }
 }

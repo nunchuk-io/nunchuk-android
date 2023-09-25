@@ -139,7 +139,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val syncDeletedWalletUseCase: SyncDeletedWalletUseCase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
@@ -213,11 +213,13 @@ internal class WalletsViewModel @Inject constructor(
                             }
                         }
                     }
+
                     is PushEvent.DraftResetWallet -> {
                         syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
                             if (shouldReload) retrieveData()
                         }
                     }
+
                     is PushEvent.GroupMembershipRequestCreated -> {
                         if (!getState().allGroups.any { it.id == event.groupId }) {
                             syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
@@ -225,6 +227,7 @@ internal class WalletsViewModel @Inject constructor(
                             }
                         }
                     }
+
                     is PushEvent.GroupEmergencyLockdownStarted -> {
                         if (!getState().wallets.any { it.wallet.id == event.walletId }) {
                             syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
@@ -232,6 +235,7 @@ internal class WalletsViewModel @Inject constructor(
                             }
                         }
                     }
+
                     is PushEvent.GroupWalletCreated -> {
                         if (!getState().wallets.any { it.wallet.id == event.walletId }) {
                             syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
@@ -244,11 +248,7 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
-                if (shouldReload) retrieveData()
-            }
-        }
+        syncGroup()
         viewModelScope.launch {
             syncDeletedWalletUseCase(Unit).onSuccess { shouldReload ->
                 if (shouldReload) retrieveData()
@@ -265,6 +265,14 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         getAppSettings()
+    }
+
+    private fun syncGroup() {
+        viewModelScope.launch {
+            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                if (shouldReload) retrieveData()
+            }
+        }
     }
 
     fun reloadMembership() {
@@ -410,8 +418,10 @@ internal class WalletsViewModel @Inject constructor(
             }
 
             val (groupsWithNullWallet, groupsWithNonNullWallet) = results.partition { it.wallet == null }
-            val sortedGroupsWithNullWallet = groupsWithNullWallet.sortedByDescending { it.group?.createdTimeMillis }
-            val sortedGroupsWithNonNullWallet = groupsWithNonNullWallet.sortedByDescending { it.wallet?.wallet?.createDate }
+            val sortedGroupsWithNullWallet =
+                groupsWithNullWallet.sortedByDescending { it.group?.createdTimeMillis }
+            val sortedGroupsWithNonNullWallet =
+                groupsWithNonNullWallet.sortedByDescending { it.wallet?.wallet?.createDate }
             val mergedSortedGroups = sortedGroupsWithNullWallet + sortedGroupsWithNonNullWallet
 
             withContext(Dispatchers.Main) {
@@ -488,7 +498,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private suspend fun mapSigners(
-        singleSigners: List<SingleSigner>, masterSigners: List<MasterSigner>
+        singleSigners: List<SingleSigner>, masterSigners: List<MasterSigner>,
     ): List<SignerModel> {
         return masterSigners.map {
             masterSignerMapper(it)
@@ -579,10 +589,16 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun acceptInviteMember(groupId: String) = viewModelScope.launch {
-        val result = groupMemberAcceptRequestUseCase(groupId)
-        if (result.isSuccess.not()) {
-            event(ShowErrorEvent(result.exceptionOrNull()))
-        }
+        setEvent(Loading(true))
+        groupMemberAcceptRequestUseCase(groupId)
+            .onSuccess {
+                val walletId = getState().assistedWallets.find { it.groupId == groupId }?.localId
+                setEvent(WalletsEvent.AcceptWalletInvitationSuccess(walletId, groupId))
+                syncGroup()
+            }.onFailure {
+                event(ShowErrorEvent(it))
+            }
+        setEvent(Loading(false))
     }
 
     fun denyInviteMember(groupId: String) = viewModelScope.launch {

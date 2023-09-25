@@ -92,6 +92,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
     val isCreateWalletDone = _isCreateWalletDone.asStateFlow()
 
     private val _uiState = MutableStateFlow(AddGroupUiState())
+    val uiState = _uiState.asStateFlow()
 
     val groupRemainTime =
         membershipStepManager.remainingTime.map {

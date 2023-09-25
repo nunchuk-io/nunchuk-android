@@ -53,9 +53,9 @@ internal data class WalletsState(
 internal sealed class WalletsEvent {
     data class Loading(val loading: Boolean) : WalletsEvent()
     data class ShowErrorEvent(val e: Throwable?) : WalletsEvent()
-    object AddWalletEvent : WalletsEvent()
-    object ShowSignerIntroEvent : WalletsEvent()
-    object WalletEmptySignerEvent : WalletsEvent()
+    data object AddWalletEvent : WalletsEvent()
+    data object ShowSignerIntroEvent : WalletsEvent()
+    data object WalletEmptySignerEvent : WalletsEvent()
     class NeedSetupSatsCard(val status: SatsCardStatus) : WalletsEvent()
     class NfcLoading(val loading: Boolean) : WalletsEvent()
     class GoToSatsCardScreen(val status: SatsCardStatus) : WalletsEvent()
@@ -64,8 +64,9 @@ internal sealed class WalletsEvent {
     class CheckWalletPin(val match: Boolean, val walletId: String) : WalletsEvent()
     class VerifyPasswordSuccess(val walletId: String) : WalletsEvent()
     class VerifyPassphraseSuccess(val walletId: String) : WalletsEvent()
-    object DenyWalletInvitationSuccess : WalletsEvent()
-    object None : WalletsEvent()
+    data object DenyWalletInvitationSuccess : WalletsEvent()
+    data object None : WalletsEvent()
+    data class AcceptWalletInvitationSuccess(val walletId: String?, val groupId: String) : WalletsEvent()
 }
 
 internal data class GroupWalletUi(
