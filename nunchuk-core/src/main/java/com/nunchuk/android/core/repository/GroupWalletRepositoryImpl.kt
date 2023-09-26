@@ -202,7 +202,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 cardId = tapsigner.cardId,
                 name = signer.name.orEmpty(),
                 xfp = signer.xfp.orEmpty(),
-                version = tapsigner.version,
+                version = tapsigner.version.orEmpty(),
                 brithHeight = tapsigner.birthHeight,
                 isTestNet = tapsigner.isTestnet
             )

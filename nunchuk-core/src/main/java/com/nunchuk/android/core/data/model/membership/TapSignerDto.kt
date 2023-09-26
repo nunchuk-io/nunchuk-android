@@ -25,7 +25,7 @@ internal data class TapSignerDto(
     @SerializedName("card_id")
     val cardId: String = "",
     @SerializedName("version")
-    val version: String = "",
+    val version: String? = null,
     @SerializedName("is_testnet")
     val isTestnet: Boolean = false,
     @SerializedName("birth_height")
