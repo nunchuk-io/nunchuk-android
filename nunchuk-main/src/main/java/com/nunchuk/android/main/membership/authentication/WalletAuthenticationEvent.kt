@@ -41,7 +41,7 @@ sealed class WalletAuthenticationEvent {
     data object ShowAirgapOption : WalletAuthenticationEvent()
     data object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
     data object CanNotSignDummyTx : WalletAuthenticationEvent()
-    data object FinalizeDummyTxSuccess : WalletAuthenticationEvent()
+    data class FinalizeDummyTxSuccess(val isGoBack: Boolean) : WalletAuthenticationEvent()
     data class ForceSyncSuccess(val isSuccess: Boolean,) : WalletAuthenticationEvent()
     data class SignFailed(val singleSigner: SingleSigner,) : WalletAuthenticationEvent()
 }

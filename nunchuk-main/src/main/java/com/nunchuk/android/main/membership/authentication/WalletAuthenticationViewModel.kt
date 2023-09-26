@@ -431,11 +431,11 @@ class WalletAuthenticationViewModel @Inject constructor(
         GlobalResultKey.EXTRA_HEALTH_CHECK_XFP to _state.value.enabledSigners.firstOrNull()
     )
 
-    fun finalizeDummyTransaction() {
+    fun finalizeDummyTransaction(isGoBack: Boolean) {
         val isDraft = state.value.isDraft
         viewModelScope.launch {
             if (isDraft.not()) {
-                _event.emit(WalletAuthenticationEvent.FinalizeDummyTxSuccess)
+                _event.emit(WalletAuthenticationEvent.FinalizeDummyTxSuccess(isGoBack))
                 return@launch
             }
             _event.emit(WalletAuthenticationEvent.Loading(true))
@@ -447,7 +447,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 )
             ).onSuccess {
                 _event.emit(WalletAuthenticationEvent.Loading(false))
-                _event.emit(WalletAuthenticationEvent.FinalizeDummyTxSuccess)
+                _event.emit(WalletAuthenticationEvent.FinalizeDummyTxSuccess(isGoBack))
             }.onFailure {
                 _event.emit(WalletAuthenticationEvent.Loading(false))
                 _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))

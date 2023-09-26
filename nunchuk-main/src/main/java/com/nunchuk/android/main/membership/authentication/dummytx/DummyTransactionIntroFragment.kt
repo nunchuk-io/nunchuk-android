@@ -71,7 +71,7 @@ class DummyTransactionIntroFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             val args: WalletAuthenticationActivityArgs by requireActivity().navArgs()
@@ -86,17 +86,21 @@ class DummyTransactionIntroFragment : Fragment() {
                     dummyTransactionType = uiState.dummyTransactionType,
                     onContinueClicked = {
                         if (isGroup && !args.dummyTransactionId.isNullOrEmpty()) {
-                            activityViewModel.finalizeDummyTransaction()
+                            activityViewModel.finalizeDummyTransaction(false)
                         } else {
                             findNavController().navigate(
                                 DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
                             )
                         }
+                    },
+                    onCancelClicked = {
+                        activityViewModel.finalizeDummyTransaction(true)
+                    },
+                    onRemoveDummyTransaction = {
+                        activityViewModel.deleteDummyTransaction()
+                        requireActivity().finish()
                     }
-                ) {
-                    activityViewModel.deleteDummyTransaction()
-                    requireActivity().finish()
-                }
+                )
             }
         }
     }
@@ -105,9 +109,13 @@ class DummyTransactionIntroFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(activityViewModel.event) {
             if (it is WalletAuthenticationEvent.FinalizeDummyTxSuccess) {
-                findNavController().navigate(
-                    DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
-                )
+                if (it.isGoBack) {
+                    requireActivity().finish()
+                } else {
+                    findNavController().navigate(
+                        DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
+                    )
+                }
             }
         }
     }
@@ -120,25 +128,30 @@ fun DummyTransactionIntroContent(
     dummyTransactionType: DummyTransactionType = DummyTransactionType.NONE,
     onContinueClicked: () -> Unit = {},
     onCancelClicked: () -> Unit = {},
+    onRemoveDummyTransaction: () -> Unit = {},
 ) {
-    val title = when(dummyTransactionType) {
+    val title = when (dummyTransactionType) {
         DummyTransactionType.HEALTH_CHECK_REQUEST,
-        DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_health_check_procedure)
+        DummyTransactionType.HEALTH_CHECK_PENDING,
+        -> stringResource(R.string.nc_health_check_procedure)
+
         else -> stringResource(R.string.nc_signatures_required)
     }
-    val firstSentence = when(dummyTransactionType) {
+    val firstSentence = when (dummyTransactionType) {
         DummyTransactionType.HEALTH_CHECK_REQUEST,
-        DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_complete_a_health_check)
+        DummyTransactionType.HEALTH_CHECK_PENDING,
+        -> stringResource(R.string.nc_complete_a_health_check)
+
         else -> stringResource(R.string.nc_authorize_these_change)
     }
     val lastSentences = when {
         dummyTransactionType == DummyTransactionType.HEALTH_CHECK_REQUEST -> stringResource(R.string.nc_use_health_check_key_to_sign)
         dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_use_health_check_key_to_sign)
-        isGroup && pendingSignature > 1  -> stringResource(id = R.string.nc_dummy_transaction_key_holder_desc)
+        isGroup && pendingSignature > 1 -> stringResource(id = R.string.nc_dummy_transaction_key_holder_desc)
         else -> ""
     }
     BackHandler {
-        onCancelClicked()
+        onRemoveDummyTransaction()
     }
     NunchukTheme {
         Scaffold { innerPadding ->
