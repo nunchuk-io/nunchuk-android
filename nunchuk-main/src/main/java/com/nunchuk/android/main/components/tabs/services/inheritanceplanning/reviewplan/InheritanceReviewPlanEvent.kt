@@ -34,9 +34,9 @@ sealed class InheritanceReviewPlanEvent {
     ) : InheritanceReviewPlanEvent()
 
     data class ProcessFailure(val message: String) : InheritanceReviewPlanEvent()
-    object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanEvent()
-    object CancelInheritanceSuccess : InheritanceReviewPlanEvent()
-    object MarkSetupInheritance : InheritanceReviewPlanEvent()
+    data object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanEvent()
+    data object CancelInheritanceSuccess : InheritanceReviewPlanEvent()
+    data object MarkSetupInheritance : InheritanceReviewPlanEvent()
 }
 
 data class InheritanceReviewPlanState(

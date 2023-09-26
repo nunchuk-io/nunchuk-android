@@ -48,6 +48,11 @@
                 app:argType="string" />
 
             <argument
+                android:name="wallet_id"
+                android:defaultValue=""
+                app:argType="string" />
+
+            <argument
                 android:name="members"
                 app:argType="com.nunchuk.android.model.ByzantineMember[]" />
 

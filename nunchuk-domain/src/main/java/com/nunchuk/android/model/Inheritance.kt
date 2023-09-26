@@ -33,5 +33,6 @@ class Inheritance(
     val activationTimeMilis: Long,
     val createdTimeMilis: Long,
     val lastModifiedTimeMilis: Long,
-    val bufferPeriod: Period? = null
+    val bufferPeriod: Period? = null,
+    val ownerId: String,
 ) : Parcelable

@@ -178,9 +178,9 @@ sealed class InheritanceReviewPlanGroupEvent {
     ) : InheritanceReviewPlanGroupEvent()
 
     data class ProcessFailure(val message: String) : InheritanceReviewPlanGroupEvent()
-    object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanGroupEvent()
-    object CancelInheritanceSuccess : InheritanceReviewPlanGroupEvent()
-    object MarkSetupInheritance : InheritanceReviewPlanGroupEvent()
+    data object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanGroupEvent()
+    data object CancelInheritanceSuccess : InheritanceReviewPlanGroupEvent()
+    data object MarkSetupInheritance : InheritanceReviewPlanGroupEvent()
 }
 
 data class InheritanceReviewPlanGroupState(

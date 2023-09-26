@@ -176,12 +176,18 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                     groupDashboardViewModel.setByzantineMembers(event.members)
                     showSuccess(message = getString(R.string.nc_members_updated))
                 }
+
+                ByzantineInviteMembersEvent.RemoveMemberInheritanceWarning -> showRemoveMemberInheritanceDialog()
             }
         }
     }
 
     private fun showLimitKeyholderDialog() {
         NCInfoDialog(requireActivity()).showDialog(message = String.format(getString(R.string.nc_limit_keyholder_message_dialog), viewModel.getMaximumKeyholderRole()))
+    }
+
+    private fun showRemoveMemberInheritanceDialog() {
+        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_remove_member_inheritance_message_dialog))
     }
 
     private fun enterPasswordDialog() {

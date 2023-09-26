@@ -21,6 +21,7 @@ package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -40,19 +41,19 @@ class CalculateRequiredSignaturesInheritanceUseCase @Inject constructor(
             notifyToday = parameters.notifyToday,
             activationTimeMilis = parameters.activationTimeMilis,
             bufferPeriodId = parameters.bufferPeriodId,
-            isCancelInheritance = parameters.isCancelInheritance,
+            action = parameters.action,
             groupId = parameters.groupId
         )
     }
 
     class Param(
-        val note: String,
-        val notificationEmails: List<String>,
-        val notifyToday: Boolean,
-        val activationTimeMilis: Long,
+        val note: String = "",
+        val notificationEmails: List<String> = emptyList(),
+        val notifyToday: Boolean = false,
+        val activationTimeMilis: Long = 0L,
         val walletId: String,
-        val bufferPeriodId: String?,
-        val isCancelInheritance: Boolean,
-        val groupId: String
+        val bufferPeriodId: String? = null,
+        val action: CalculateRequiredSignaturesAction,
+        val groupId: String? = null
     )
 }

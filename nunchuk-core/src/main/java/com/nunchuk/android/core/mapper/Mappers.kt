@@ -66,6 +66,7 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
     val status = when (this.status) {
         "ACTIVE" -> InheritanceStatus.ACTIVE
         "CLAIMED" -> InheritanceStatus.CLAIMED
+        "PENDING_APPROVAL" -> InheritanceStatus.PENDING_APPROVAL
         else -> InheritanceStatus.PENDING_CREATION
     }
     return Inheritance(
@@ -78,7 +79,8 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         activationTimeMilis = activationTimeMilis ?: 0,
         createdTimeMilis = createdTimeMilis ?: 0,
         lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
-        bufferPeriod = bufferPeriod?.toPeriod()
+        bufferPeriod = bufferPeriod?.toPeriod(),
+        ownerId = ownerId.orEmpty()
     )
 }
 

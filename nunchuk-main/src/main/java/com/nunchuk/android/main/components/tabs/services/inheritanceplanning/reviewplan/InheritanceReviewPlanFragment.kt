@@ -91,12 +91,12 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.buf
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
 import com.nunchuk.android.model.Period
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.simpleGlobalDateFormat
@@ -245,7 +245,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                 is InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess -> handleFlow()
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
-                is InheritanceReviewPlanEvent.CancelInheritanceSuccess, InheritanceReviewPlanEvent.MarkSetupInheritance  -> handleFlow()
+                is InheritanceReviewPlanEvent.CancelInheritanceSuccess, InheritanceReviewPlanEvent.MarkSetupInheritance -> handleFlow()
             }
         }
     }
@@ -320,6 +320,7 @@ fun InheritanceReviewPlanScreen(
         remainTime = remainTime,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
+        groupId = inheritanceViewModel.setupOrReviewParam.groupId,
         state = state,
         onContinueClicked = {
             viewModel.calculateRequiredSignatures(isCreateOrUpdateFlow = true)
@@ -358,6 +359,10 @@ fun InheritanceReviewPlanScreenContent(
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
 ) {
+    val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
+        Utils.maskValue("", isMask = true)
+    } else { magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) } }
+
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
@@ -469,7 +474,7 @@ fun InheritanceReviewPlanScreenContent(
                                     DetailPlanItem(
                                         iconId = R.drawable.ic_star_light,
                                         titleId = R.string.nc_magical_phrase,
-                                        content = magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) },
+                                        content = magicalPhraseMask,
                                         editable = false
                                     )
                                     Spacer(modifier = Modifier.height(24.dp))

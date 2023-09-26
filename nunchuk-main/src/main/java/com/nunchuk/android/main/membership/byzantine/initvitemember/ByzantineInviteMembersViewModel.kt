@@ -25,6 +25,7 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.usecase.GetWalletConstraintsUseCase
 import com.nunchuk.android.usecase.membership.CreateGroupWalletUseCase
+import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -50,7 +51,8 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     private val calculateRequiredSignaturesEditGroupMemberUseCase: CalculateRequiredSignaturesEditGroupMemberUseCase,
     private val editGroupMemberUserDataUseCase: EditGroupMemberUserDataUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-    private val getWalletConstraintsUseCase: GetWalletConstraintsUseCase
+    private val getWalletConstraintsUseCase: GetWalletConstraintsUseCase,
+    private val getInheritanceUseCase: GetInheritanceUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ByzantineInviteMembersEvent>()
@@ -75,6 +77,20 @@ class ByzantineInviteMembersViewModel @Inject constructor(
             existingData = members.toString()
         } else {
             addDefaultMembers()
+        }
+        if (args.groupId.isNotEmpty() && args.walletId.isNotEmpty() && args.flow == ByzantineMemberFlow.EDIT) {
+            getInheritance()
+        }
+    }
+
+    private fun getInheritance() {
+        viewModelScope.launch {
+            val result =
+                getInheritanceUseCase(GetInheritanceUseCase.Param(args.walletId, args.groupId))
+            if (result.isSuccess) {
+                val inheritance = result.getOrNull()
+                _state.update { it.copy(inheritance = inheritance) }
+            }
         }
     }
 
@@ -105,7 +121,8 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         val masterMember = InviteMemberUi(
             role = AssistedWalletRole.MASTER.name,
             name = account.name,
-            email = account.email
+            email = account.email,
+            userId = null
         )
         _state.update {
             it.copy(
@@ -122,8 +139,14 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         }
     }
 
-    fun removeMember(index: Int) {
-        _state.value.members[index].email
+    fun removeMember(index: Int) = viewModelScope.launch {
+        if (args.flow == ByzantineMemberFlow.EDIT && state.value.inheritance?.ownerId != null) {
+            val userId = _state.value.members[index].userId
+            if (userId == state.value.inheritance?.ownerId) {
+                _event.emit(ByzantineInviteMembersEvent.RemoveMemberInheritanceWarning)
+                return@launch
+            }
+        }
         _state.update {
             it.copy(
                 members = _state.value.members.filterIndexed { i, _ -> i != index },

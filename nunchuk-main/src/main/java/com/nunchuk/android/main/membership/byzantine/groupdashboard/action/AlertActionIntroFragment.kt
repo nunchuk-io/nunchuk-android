@@ -18,8 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
@@ -30,15 +33,20 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.transaction.AlertPayload
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -66,10 +74,15 @@ class AlertActionIntroFragment : Fragment() {
                         goBack()
                     },
                     onCancel = {
+                        val message = if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
+                            getString(R.string.nc_cancel_inheritance_planning_request)
+                        } else {
+                            getString(R.string.nc_cancel_health_check_request)
+                        }
                         NCWarningDialog(requireActivity())
                             .showDialog(
                                 title = getString(R.string.nc_confirmation),
-                                message = getString(R.string.nc_cancel_health_check_request),
+                                message = message,
                                 onYesClick = { viewModel.deleteDummyTransaction() },
                             )
                     },
@@ -85,6 +98,12 @@ class AlertActionIntroFragment : Fragment() {
                 .collect { event ->
                     when (event) {
                         is AlertActionIntroEvent.DeleteDummyTransactionSuccess -> {
+                            if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
+                                NcToastManager.scheduleShowMessage(
+                                    message = getString(R.string.nc_inheritance_request_denied),
+                                    delay = 500L
+                                )
+                            }
                             hideLoading()
                             goBack()
                         }
@@ -129,9 +148,30 @@ private fun AlertActionIntroContent(
     onCancelRequest: () -> Unit = {},
     onContinue: (DummyTransactionPayload) -> Unit = {},
 ) {
-    val cancelButton = when(alert.type) {
+    val cancelButton = when (alert.type) {
         AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
+        AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_deny)
         else -> stringResource(id = R.string.nc_cancel_request)
+    }
+
+    val body = when (alert.type) {
+        AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(
+            id = R.string.nc_inheritance_planning_request_desc,
+            state.requester?.user?.name ?: "Someone",
+            state.walletName
+        )
+
+        else -> alert.body
+    }
+
+    val continueButtonText = when (alert.type) {
+        AlertType.REQUEST_INHERITANCE_PLANNING -> {
+            stringResource(
+                id = R.string.nc_approve_signature_pending,
+                state.dummyTransaction?.pendingSignatures.orDefault(0)
+            )
+        }
+        else -> stringResource(id = R.string.nc_text_continue)
     }
     NunchukTheme {
         Scaffold(
@@ -151,7 +191,7 @@ private fun AlertActionIntroContent(
                             onClick = { onContinue(state.dummyTransaction!!) },
                             enabled = state.dummyTransaction != null
                         ) {
-                            Text(text = stringResource(id = R.string.nc_text_continue))
+                            Text(text = continueButtonText)
                         }
                     }
 
@@ -175,10 +215,11 @@ private fun AlertActionIntroContent(
                     text = alert.title,
                     style = NunchukTheme.typography.heading
                 )
-                Text(
+                NcSpannedText(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = alert.body,
-                    style = NunchukTheme.typography.body
+                    text = body,
+                    baseStyle = NunchukTheme.typography.body,
+                    styles = mapOf(SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold))
                 )
             }
         }

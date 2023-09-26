@@ -38,6 +38,7 @@ import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
+import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
@@ -46,6 +47,7 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.settings.notification.TurnNotificationActivity
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
@@ -53,6 +55,7 @@ import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -76,7 +79,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             }
         }
 
-    private val healthCheckLauncher =
+    private val walletAuthLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
                 val type =
@@ -90,6 +93,16 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                                 R.string.nc_txt_run_health_check_success_event,
                                 name
                             )
+                        )
+                    }
+                } else if (type == DummyTransactionType.REQUEST_INHERITANCE_PLANNING) {
+                    val messages = arrayListOf<String>().apply {
+                        add(getString(R.string.nc_inheritance_request_approved))
+                        add(getString(R.string.nc_transaction_updated))
+                    }
+                    messages.forEachIndexed { index, message ->
+                        NCToastMessage(requireActivity()).showMessage(
+                            message = message, dismissTime = (index + 1) * 2000L
                         )
                     }
                 }
@@ -123,6 +136,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                                     groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
                                     flow = ByzantineMemberFlow.EDIT,
                                     groupType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()?.name.orEmpty(),
+                                    walletId = viewModel.getWalletId()
                                 )
                             )
                         }
@@ -208,7 +222,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     type = VerificationType.SIGN_DUMMY_TX,
                     groupId = args.groupId,
                     dummyTransactionId = dummyTransactionId,
-                    launcher = healthCheckLauncher
+                    launcher = walletAuthLauncher
                 )
             }
             clearFragmentResult(AlertActionIntroFragment.REQUEST_KEY)
@@ -230,16 +244,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 is GroupDashboardEvent.GetHealthCheckPayload -> {}
                 GroupDashboardEvent.RequestHealthCheckSuccess -> {}
                 is GroupDashboardEvent.GetInheritanceSuccess -> {
-                    if (event.isOpenReviewInheritance) {
-                        navigator.openInheritancePlanningScreen(
-                            walletId = viewModel.getWalletId(),
-                            requireContext(),
-                            verifyToken = event.token,
-                            inheritance = event.inheritance,
-                            flowInfo = InheritancePlanFlow.VIEW,
-                            groupId = args.groupId
-                        )
-                    } else {
+                    if (event.isAlertFlow) {
                         findNavController().navigate(
                             GroupDashboardFragmentDirections.actionGroupDashboardFragmentToInheritanceCreateSuccessFragment(
                                 magicalPhrase = event.inheritance.magic,
@@ -248,6 +253,26 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                                 isOpenFromWizard = false
                             )
                         )
+                    } else {
+                        if (event.token.isNotEmpty()) {
+                            navigator.openInheritancePlanningScreen(
+                                walletId = viewModel.getWalletId(),
+                                requireContext(),
+                                verifyToken = event.token,
+                                inheritance = event.inheritance,
+                                flowInfo = InheritancePlanFlow.VIEW,
+                                groupId = args.groupId
+                            )
+                        } else if (event.inheritance.status == InheritanceStatus.PENDING_APPROVAL) {
+                            viewModel.calculateRequiredSignatures()
+                        } else {
+                            navigator.openInheritancePlanningScreen(
+                                walletId = viewModel.getWalletId(),
+                                activityContext = requireContext(),
+                                flowInfo = InheritancePlanFlow.SETUP,
+                                groupId = args.groupId
+                            )
+                        }
                     }
                 }
 
@@ -277,6 +302,19 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         verifyToken = event.token,
                         groupId = args.groupId,
                         walletId = viewModel.getWalletId()
+                    )
+                }
+
+                is GroupDashboardEvent.CalculateRequiredSignaturesSuccess -> {
+                    navigator.openWalletAuthentication(
+                        walletId = viewModel.getWalletId(),
+                        userData = event.userData,
+                        requiredSignatures = event.requiredSignatures,
+                        type = event.type,
+                        groupId = args.groupId,
+                        dummyTransactionId = event.dummyTransactionId,
+                        launcher = walletAuthLauncher,
+                        activityContext = requireActivity()
                     )
                 }
             }
@@ -346,7 +384,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             )
         } else if (alert.type == AlertType.CREATE_INHERITANCE_PLAN_SUCCESS) {
-            viewModel.getInheritance(args.walletId.orEmpty(), args.groupId)
+            viewModel.getInheritance("", true)
         } else if (alert.type == AlertType.GROUP_WALLET_SETUP) {
             if (alert.payload.claimKey) {
                 findNavController().navigate(
@@ -358,6 +396,21 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             } else {
                 viewModel.handleRegisterSigners(alert.payload.xfps)
             }
+        } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
+            findNavController().navigate(
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
+                    args.groupId,
+                    viewModel.getWalletId(),
+                    alert
+                )
+            )
+        } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
+            navigator.openInheritancePlanningScreen(
+                walletId = viewModel.getWalletId(),
+                activityContext = requireContext(),
+                flowInfo = InheritancePlanFlow.SETUP,
+                groupId = args.groupId
+            )
         }
     }
 
@@ -376,12 +429,7 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 if (viewModel.state.value.isSetupInheritance) {
                     enterPasswordDialog(TargetAction.UPDATE_INHERITANCE_PLAN)
                 } else {
-                    navigator.openInheritancePlanningScreen(
-                        walletId = viewModel.getWalletId(),
-                        activityContext = requireContext(),
-                        flowInfo = InheritancePlanFlow.SETUP,
-                        groupId = args.groupId
-                    )
+                    viewModel.getInheritance("", false)
                 }
             }
 

@@ -30,6 +30,7 @@ import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
+import com.nunchuk.android.core.data.model.InheritanceByzantineRequestPlanning
 import com.nunchuk.android.core.data.model.InheritanceCancelRequest
 import com.nunchuk.android.core.data.model.InheritanceCheckRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimClaimRequest
@@ -89,6 +90,7 @@ import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -840,6 +842,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return gson.toJson(request)
     }
 
+    override suspend fun generateRequestPlanningInheritanceUserData(
+        walletId: String,
+        groupId: String
+    ): String {
+        val body = InheritanceByzantineRequestPlanning.Body(
+            walletId = walletId, groupId = groupId
+        )
+        val nonce = getNonce()
+        val request = InheritanceByzantineRequestPlanning(
+            nonce = nonce, body = body
+        )
+        return gson.toJson(request)
+    }
+
     override suspend fun calculateRequiredSignaturesInheritance(
         note: String,
         notificationEmails: List<String>,
@@ -847,10 +863,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         activationTimeMilis: Long,
         walletId: String,
         bufferPeriodId: String?,
-        isCancelInheritance: Boolean,
+        action: CalculateRequiredSignaturesAction,
         groupId: String?,
     ): CalculateRequiredSignatures {
-        val response = if (isCancelInheritance) {
+        val response = if (action == CalculateRequiredSignaturesAction.CANCEL || action == CalculateRequiredSignaturesAction.REQUEST_PLANNING) {
             userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
                 CreateUpdateInheritancePlanRequest.Body(
                     walletId = walletId, groupId = groupId
@@ -882,12 +898,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         draft: Boolean,
     ): String {
         val request = gson.fromJson(userData, CreateUpdateInheritancePlanRequest::class.java)
-        val headers = mutableMapOf<String, String>()
-        authorizations.forEachIndexed { index, value ->
-            headers["$AUTHORIZATION_X-${index + 1}"] = value
-        }
-        headers[VERIFY_TOKEN] = verifyToken
-        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
+        val headers = getHeaders(
+            authorizations = authorizations,
+            verifyToken = verifyToken,
+            securityQuestionToken = securityQuestionToken,
+            confirmCodeToken = "")
         val response = if (isUpdate) userWalletApiManager.walletApi.updateInheritance(
             headers, request, draft
         ) else userWalletApiManager.walletApi.createInheritance(headers, request, draft)
@@ -909,16 +924,31 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         draft: Boolean,
     ): String {
         val request = gson.fromJson(userData, InheritanceCancelRequest::class.java)
-        val headers = mutableMapOf<String, String>()
-        authorizations.forEachIndexed { index, value ->
-            headers["$AUTHORIZATION_X-${index + 1}"] = value
-        }
-        headers[VERIFY_TOKEN] = verifyToken
-        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
+        val headers = getHeaders(
+            authorizations = authorizations,
+            verifyToken = verifyToken,
+            securityQuestionToken = securityQuestionToken,
+            confirmCodeToken = "")
         val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request, draft)
         if (response.isSuccess && request.body?.groupId == null) {
             markSetupInheritance(walletId, false)
         }
+        return response.data.dummyTransaction?.id.orEmpty()
+    }
+
+    override suspend fun requestPlanningInheritance(
+        authorizations: List<String>,
+        userData: String,
+        walletId: String,
+        groupId: String
+    ): String {
+        val request = gson.fromJson(userData, InheritanceByzantineRequestPlanning::class.java)
+        val headers = getHeaders(
+            authorizations = authorizations,
+            verifyToken = "",
+            securityQuestionToken = "",
+            confirmCodeToken = "")
+        val response = userWalletApiManager.walletApi.inheritanceRequestPlanning(headers, request, true)
         return response.data.dummyTransaction?.id.orEmpty()
     }
 
@@ -962,13 +992,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (confirmCodeNonce.isNotEmpty()) {
             request = request.copy(nonce = confirmCodeNonce)
         }
-        val headers = mutableMapOf<String, String>()
-        authorizations.forEachIndexed { index, value ->
-            headers["$AUTHORIZATION_X-${index + 1}"] = value
-        }
-        headers[VERIFY_TOKEN] = verifyToken
-        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        headers[CONFIRMATION_TOKEN] = confirmCodeToken
+        val headers = getHeaders(
+            authorizations = authorizations,
+            verifyToken = verifyToken,
+            securityQuestionToken = securityQuestionToken,
+            confirmCodeToken = confirmCodeToken)
         return userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request)
     }
 
@@ -1131,7 +1159,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.getInheritance(walletId, groupId)
         if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
         else return response.data.inheritance!!.toInheritance().also {
-            markSetupInheritance(walletId, it.status != InheritanceStatus.PENDING_CREATION)
+            markSetupInheritance(walletId, it.status != InheritanceStatus.PENDING_CREATION && it.status != InheritanceStatus.PENDING_APPROVAL)
         }
     }
 

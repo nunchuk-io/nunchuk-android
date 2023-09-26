@@ -49,5 +49,7 @@ class InheritanceDto(
     @SerializedName("last_modified_time_milis")
     val lastModifiedTimeMilis: Long? = null,
     @SerializedName("buffer_period")
-    val bufferPeriod: PeriodResponse.Data? = null
+    val bufferPeriod: PeriodResponse.Data? = null,
+    @SerializedName("owner_id")
+    val ownerId: String? = null,
 )

@@ -3,14 +3,21 @@ package com.nunchuk.android.main.membership.byzantine.groupdashboard.action
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.model.ByzantineMember
+import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
+import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,6 +26,8 @@ import javax.inject.Inject
 class AlertActionIntroViewModel @Inject constructor(
     private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
     private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getGroupUseCase: GetGroupUseCase,
     saveStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = AlertActionIntroFragmentArgs.fromSavedStateHandle(saveStateHandle)
@@ -40,8 +49,35 @@ class AlertActionIntroViewModel @Inject constructor(
                 _state.update { state ->
                     state.copy(dummyTransaction = it)
                 }
+                if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
+                    getWallet()
+                    getGroup(it.requestByUserId)
+                }
             }
         }
+    }
+
+    private fun getWallet() {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
+                _state.update { state -> state.copy(walletName = wallet.name) }
+            }
+        }
+    }
+
+    private suspend fun getGroup(requestByUserId: String) {
+        getGroupUseCase(
+            GetGroupUseCase.Params(
+                args.groupId,
+                loadingOptions = LoadingOptions.OFFLINE
+            )
+        )
+            .map { it.getOrElse { null } }
+            .distinctUntilChanged()
+            .collect { group ->
+                val requester = group?.members.orEmpty().find { it.user?.id == requestByUserId }
+                _state.update { it.copy(requester = requester) }
+            }
     }
 
     fun deleteDummyTransaction() {
@@ -62,8 +98,12 @@ class AlertActionIntroViewModel @Inject constructor(
 }
 
 sealed class AlertActionIntroEvent {
-    object DeleteDummyTransactionSuccess : AlertActionIntroEvent()
+    data object DeleteDummyTransactionSuccess : AlertActionIntroEvent()
     data class Loading(val isLoading: Boolean) : AlertActionIntroEvent()
 }
 
-data class AlertActionIntroUiState(val dummyTransaction: DummyTransactionPayload? = null)
+data class AlertActionIntroUiState(
+    val dummyTransaction: DummyTransactionPayload? = null,
+    val walletName: String = "",
+    val requester: ByzantineMember? = null
+)

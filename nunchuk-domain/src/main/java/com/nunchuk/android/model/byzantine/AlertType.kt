@@ -23,7 +23,9 @@ enum class AlertType {
     RECURRING_PAYMENT_SUCCESS,
     HEALTH_CHECK_REQUEST,
     HEALTH_CHECK_PENDING,
-    HEALTH_CHECK_COMPLETED
+    HEALTH_CHECK_COMPLETED,
+    REQUEST_INHERITANCE_PLANNING,
+    REQUEST_INHERITANCE_PLANNING_APPROVED,
 }
 
 fun String?.toAlertType() = AlertType.values().find { it.name == this } ?: AlertType.NONE

@@ -403,10 +403,12 @@ private fun AlertView(
                     text = title,
                     style = NunchukTheme.typography.titleSmall
                 )
-                Text(
-                    text = keyText,
-                    style = NunchukTheme.typography.bodySmall
-                )
+                if (keyText.isNotEmpty()) {
+                    Text(
+                        text = keyText,
+                        style = NunchukTheme.typography.bodySmall
+                    )
+                }
                 Text(
                     text = timeText,
                     style = NunchukTheme.typography.bodySmall.copy(colorResource(id = R.color.nc_grey_dark_color))

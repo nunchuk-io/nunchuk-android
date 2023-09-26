@@ -244,6 +244,13 @@ internal interface UserWalletsApi {
         @Query("draft") draft: Boolean = false
     ): Data<DummyTransactionResponse>
 
+    @POST("/v1.1/user-wallets/inheritance/request-planning")
+    suspend fun inheritanceRequestPlanning(
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: InheritanceByzantineRequestPlanning,
+        @Query("draft") draft: Boolean = false
+    ): Data<DummyTransactionResponse>
+
     @POST("/v1.1/user-wallets/inheritance/check")
     suspend fun inheritanceCheck(
         @Body payload: InheritanceCheckRequest

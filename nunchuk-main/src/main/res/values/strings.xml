@@ -99,6 +99,7 @@
     <string name="nc_admin_role_message_dialog">The admin account will have the ability to add and remove members and to propose changes to the inheritance plan and wallet policies. Please make sure that it is someone that you can trust.</string>
     <string name="nc_primary_key_admin_role_message_dialog">An admin must have an email-based account.</string>
     <string name="nc_limit_keyholder_message_dialog">Please make sure that you have no more than %1$s keyholders.</string>
+    <string name="nc_remove_member_inheritance_message_dialog">This member is currently in charge of the inheritance plan for this wallet. Please cancel the plan first.</string>
     <string name="nc_byzantine_add_key_2_of_4_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nYour group will have possession of three keys. The fourth key will be held by Nunchuk on our secure server.\n\nAmong your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_2_of_3_desc">Your new wallet will be a 2-of-3 multisig wallet. [B]Two keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_3_of_5_desc">Your new wallet will be a 3-of-5 multisig wallet. [B]Three keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
@@ -143,6 +144,7 @@
     <string name="nc_inheritance_has_been_created">The inheritance plan has been created</string>
     <string name="nc_inheritance_has_been_updated">The inheritance plan has been updated</string>
     <string name="nc_cancel_health_check_request">Are you sure you want to cancel this health check request?</string>
+    <string name="nc_cancel_inheritance_planning_request">Are you sure you want to deny this inheritance planning request?</string>
     <string name="nc_key_added_to_group_wallet">Key added to group wallet</string>
     <string name="add_key_to_group_desc">Once enough keys have been added, the master or admin account can finish the setup.</string>
     <string name="nc_key_limit_desc">Currently, TAPSIGNER, Ledger and Trezor are compatible with the Keyholder (limited) role.</string>
@@ -169,4 +171,9 @@
     <string name="nc_transaction_force_sync">Force sync</string>
     <string name="nc_transaction_not_updated">Transaction not updated</string>
     <string name="nc_lockdown_in_progress">Lockdown in progress</string>
+    <string name="nc_inheritance_request_denied">Inheritance planning request denied</string>
+    <string name="nc_inheritance_request_approved">Inheritance planning request approved</string>
+    <string name="nc_approve_signature_pending">Approve (%1$s signature pending)</string>
+    <string name="nc_inheritance_planning_request_approved">Inheritance planning request approved</string>
+    <string name="nc_inheritance_planning_request_desc">[A]%1$s[/A] is requesting to set up the inheritance plan for [B]%1$s[/B].\n\n[C]Note that the person in charge of the plan will be able to access sensitive data that unlocks the inheritance.[/C]</string>
 </resources>

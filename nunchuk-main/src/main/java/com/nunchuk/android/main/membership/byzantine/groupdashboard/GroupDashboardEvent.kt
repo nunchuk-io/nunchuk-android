@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.byzantine.groupdashboard
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
@@ -21,10 +22,17 @@ sealed class GroupDashboardEvent {
     data class GetInheritanceSuccess(
         val inheritance: Inheritance,
         val token: String = "",
-        val isOpenReviewInheritance: Boolean = false
+        val isAlertFlow: Boolean = false
     ) : GroupDashboardEvent()
     data class RegisterSignersSuccess(val totalColdcard: Int, val totalAirgap: Int) : GroupDashboardEvent()
     data class UpdateServerKey(val token: String, val signer: SignerModel, val groupId: String) : GroupDashboardEvent()
+    data class CalculateRequiredSignaturesSuccess(
+        val type: String,
+        val walletId: String,
+        val userData: String,
+        val requiredSignatures: Int,
+        val dummyTransactionId: String
+    ) : GroupDashboardEvent()
 }
 
 data class GroupDashboardState(

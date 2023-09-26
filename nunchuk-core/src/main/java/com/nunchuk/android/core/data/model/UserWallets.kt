@@ -197,6 +197,20 @@ data class InheritanceCancelRequest(
     )
 }
 
+data class InheritanceByzantineRequestPlanning(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("wallet")
+        val walletId: String? = null,
+        @SerializedName("group_id")
+        val groupId: String? = null
+    )
+}
+
 data class InheritanceClaimCreateTransactionRequest(
     @SerializedName("nonce")
     val nonce: String? = null,

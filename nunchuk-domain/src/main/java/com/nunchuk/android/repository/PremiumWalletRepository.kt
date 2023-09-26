@@ -23,6 +23,7 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -248,6 +249,11 @@ interface PremiumWalletRepository {
         groupId: String?
     ): String
 
+    suspend fun generateRequestPlanningInheritanceUserData(
+        walletId: String,
+        groupId: String
+    ): String
+
     suspend fun calculateRequiredSignaturesInheritance(
         note: String,
         notificationEmails: List<String>,
@@ -255,7 +261,7 @@ interface PremiumWalletRepository {
         activationTimeMilis: Long,
         walletId: String,
         bufferPeriodId: String?,
-        isCancelInheritance: Boolean,
+        action: CalculateRequiredSignaturesAction,
         groupId: String?
     ): CalculateRequiredSignatures
 
@@ -276,6 +282,13 @@ interface PremiumWalletRepository {
         securityQuestionToken: String,
         walletId: String,
         draft: Boolean
+    ): String
+
+    suspend fun requestPlanningInheritance(
+        authorizations: List<String>,
+        userData: String,
+        walletId: String,
+        groupId: String
     ): String
 
     suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey
