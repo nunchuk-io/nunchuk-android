@@ -463,11 +463,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         walletServer: WalletDto, assistedKeys: MutableSet<String>,
     ): Boolean {
         var isNeedReload = false
+        walletServer.signerServerDtos.forEach { signer ->
+            saveServerSignerIfNeed(signer)
+        }
         if (nunchukNativeSdk.hasWallet(walletServer.localId.orEmpty()).not()) {
             isNeedReload = true
-            walletServer.signerServerDtos.forEach { signer ->
-                saveServerSignerIfNeed(signer)
-            }
 
             val wallet = nunchukNativeSdk.parseWalletDescriptor(walletServer.bsms.orEmpty()).apply {
                 name = walletServer.name.orEmpty()

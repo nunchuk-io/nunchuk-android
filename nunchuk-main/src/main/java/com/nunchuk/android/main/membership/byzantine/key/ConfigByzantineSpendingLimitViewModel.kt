@@ -26,7 +26,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
-import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.SpendingCurrencyUnit
@@ -128,13 +127,14 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
     }
 
     fun onContinueClicked(isApplyToAllMember: Boolean) {
+        val groupKeyPolicy = args.keyPolicy ?: GroupKeyPolicy()
         viewModelScope.launch {
             val state = state.value
             if (isApplyToAllMember) {
                 state.policies[null]?.spendingPolicy?.let { policy ->
                     _event.emit(
                         ConfigByzantineSpendingLimitEvent.ContinueClicked(
-                            GroupKeyPolicy(
+                            groupKeyPolicy.copy(
                                 isApplyAll = true,
                                 spendingPolicies = mapOf(
                                     "" to SpendingPolicy(
@@ -151,7 +151,7 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
                 val memberPolicies = state.policies.filter { it.key != null }
                 _event.emit(
                     ConfigByzantineSpendingLimitEvent.ContinueClicked(
-                        GroupKeyPolicy(
+                        groupKeyPolicy.copy(
                             isApplyAll = false,
                             spendingPolicies = memberPolicies.values.associate { memberPolicy ->
                                 memberPolicy.member?.membershipId.orEmpty() to SpendingPolicy(

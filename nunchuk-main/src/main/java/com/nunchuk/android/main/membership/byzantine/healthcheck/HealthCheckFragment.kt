@@ -82,6 +82,7 @@ class HealthCheckFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 is GroupDashboardEvent.RequestHealthCheckSuccess -> {
+                    viewModel.getKeysStatus()
                     findNavController().navigate(
                         HealthCheckFragmentDirections.actionHealthCheckFragmentToRequestHealthCheckSentFragment()
                     )
