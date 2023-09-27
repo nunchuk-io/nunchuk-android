@@ -175,5 +175,5 @@
     <string name="nc_inheritance_request_approved">Inheritance planning request approved</string>
     <string name="nc_approve_signature_pending">Approve (%1$s signature pending)</string>
     <string name="nc_inheritance_planning_request_approved">Inheritance planning request approved</string>
-    <string name="nc_inheritance_planning_request_desc">[A]%1$s[/A] is requesting to set up the inheritance plan for [B]%1$s[/B].\n\n[C]Note that the person in charge of the plan will be able to access sensitive data that unlocks the inheritance.[/C]</string>
+    <string name="nc_inheritance_planning_request_desc">[A]%1$s[/A] is requesting to set up the inheritance plan for [B]%2$s[/B].\n\n[C]Note that the person in charge of the plan will be able to access sensitive data that unlocks the inheritance.[/C]</string>
 </resources>

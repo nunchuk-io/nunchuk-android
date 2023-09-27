@@ -219,7 +219,7 @@ private fun AlertActionIntroContent(
                     modifier = Modifier.padding(top = 16.dp),
                     text = body,
                     baseStyle = NunchukTheme.typography.body,
-                    styles = mapOf(SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold))
+                    styles = mapOf(SpanIndicator('A') to SpanStyle(fontWeight = FontWeight.Bold), SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold), SpanIndicator('C') to SpanStyle(fontWeight = FontWeight.Bold))
                 )
             }
         }
