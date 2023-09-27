@@ -497,21 +497,25 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         )
                     }
                 } else {
-                    val remoteSigner = nunchukNativeSdk.getRemoteSigner(
-                        signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
-                    )
-                    val isVisible = remoteSigner.isVisible || signer.isVisible
-                    val isChange =
-                        remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
-                    if (isChange) {
-                        isNeedReload = true
-                        nunchukNativeSdk.updateRemoteSigner(
-                            remoteSigner.copy(
-                                name = signer.name.orEmpty(),
-                                tags = tags,
-                                isVisible = isVisible
-                            )
+                    val remoteSigner = runCatching {
+                        nunchukNativeSdk.getRemoteSigner(
+                            signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
                         )
+                    }.getOrNull()
+                    if (remoteSigner != null) {
+                        val isVisible = remoteSigner.isVisible || signer.isVisible
+                        val isChange =
+                            remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
+                        if (isChange) {
+                            isNeedReload = true
+                            nunchukNativeSdk.updateRemoteSigner(
+                                remoteSigner.copy(
+                                    name = signer.name.orEmpty(),
+                                    tags = tags,
+                                    isVisible = isVisible
+                                )
+                            )
+                        }
                     }
                 }
             }

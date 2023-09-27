@@ -29,8 +29,16 @@ import com.nunchuk.android.core.domain.GetMk4SingersUseCase
 import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
 import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.core.util.*
-import com.nunchuk.android.model.*
+import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
+import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
+import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
+import com.nunchuk.android.core.util.gson
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
@@ -38,7 +46,13 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -102,7 +116,8 @@ class Mk4IntroViewModel @Inject constructor(
                         )
                     )
                     if (createSignerResult.isSuccess) {
-                        val coldcardSigner = createSignerResult.getOrThrow()
+                        // force type coldcard nfc in case we import hardware key first
+                        val coldcardSigner = createSignerResult.getOrThrow().copy(type = SignerType.COLDCARD_NFC)
                         saveMembershipStepUseCase(
                             MembershipStepInfo(
                                 step = membershipStepManager.currentStep
