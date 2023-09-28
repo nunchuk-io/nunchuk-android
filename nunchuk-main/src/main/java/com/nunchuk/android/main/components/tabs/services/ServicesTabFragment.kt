@@ -232,7 +232,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     enterPasswordDialog(item)
                 }
             }
-            ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
+            ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext(), viewModel.state.value.userRole)
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
             ServiceTabRowItem.RollOverAssistedWallet -> {}

@@ -236,8 +236,8 @@ interface AppNavigatorDelegate : AppNavigator {
         )
     }
 
-    override fun openKeyRecoveryScreen(activityContext: Context) {
-        KeyRecoveryActivity.navigate(activityContext)
+    override fun openKeyRecoveryScreen(activityContext: Context, role: String?) {
+        KeyRecoveryActivity.navigate(activityContext, role.orEmpty())
     }
 
     override fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String, groupId: String?, walletId: String?) {

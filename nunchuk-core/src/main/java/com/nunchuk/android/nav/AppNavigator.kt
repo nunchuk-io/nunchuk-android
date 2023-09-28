@@ -66,7 +66,10 @@ interface AppNavigator {
         groupId: String? = null
     )
 
-    fun openKeyRecoveryScreen(activityContext: Context)
+    /**
+     * @param role for Byzantine
+     */
+    fun openKeyRecoveryScreen(activityContext: Context, role: String? = null)
     fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String, groupId: String? = null, walletId: String? = null)
 
     /**

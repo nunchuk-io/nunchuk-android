@@ -41,7 +41,7 @@ class KeyRecoveryActivity : BaseActivity<ActivityNavigationBinding>() {
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.key_recovery_navigation)
         graph.setStartDestination(R.id.keyRecoveryFragment)
-        navHostFragment.navController.graph = graph
+        navHostFragment.navController.setGraph(graph, intent.extras)
     }
 
     override fun initializeBinding(): ActivityNavigationBinding {
@@ -49,8 +49,14 @@ class KeyRecoveryActivity : BaseActivity<ActivityNavigationBinding>() {
     }
 
     companion object {
-        fun navigate(activity: Context) {
-            activity.startActivity(Intent(activity, KeyRecoveryActivity::class.java))
+        fun navigate(activity: Context, role: String = "") {
+            activity.startActivity(Intent(activity, KeyRecoveryActivity::class.java).apply {
+                putExtras(
+                    KeyRecoveryFragmentArgs(
+                        role = role
+                    ).toBundle()
+                )
+            })
         }
     }
 }
