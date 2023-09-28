@@ -70,8 +70,8 @@ data class ServicesTabState(
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null,
     val groups: Map<String, ByzantineGroup> = mutableMapOf(),
-    val groupsTowOfFourMultisig: List<ByzantineGroup> = emptyList(),
-    val userRoleOfGroupTowOfFourMultisig: String = AssistedWalletRole.NONE.name,
+    val groups2of4Multisig: List<ByzantineGroup> = emptyList(),
+    val userRole: String = AssistedWalletRole.NONE.name,
 ) {
     fun initRowItems(): List<Any> {
         val items = mutableListOf<Any>()
@@ -83,6 +83,7 @@ data class ServicesTabState(
                         items.add(NonSubRow(url = it.url, title = it.title, desc = it.desc))
                     }
                 }
+                return items
             }
 
             MembershipPlan.IRON_HAND -> {
@@ -99,6 +100,7 @@ data class ServicesTabState(
                 if (banner != null) {
                     items.add(Banner(banner.id, banner.url, banner.title))
                 }
+                return items
             }
 
             MembershipPlan.HONEY_BADGER -> {
@@ -119,11 +121,15 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.RollOverAssistedWallet)
                     add(ServiceTabRowItem.ManageSubscription)
                 }
+                return items
             }
 
             MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
-                if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER_LIMITED.name ||
-                    userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER.name && groupsTowOfFourMultisig.isEmpty()
+                if (userRole == AssistedWalletRole.OBSERVER.name) {
+                    items.add(ObserverRole)
+                    return items
+                } else if (userRole == AssistedWalletRole.KEYHOLDER_LIMITED.name ||
+                    userRole == AssistedWalletRole.KEYHOLDER.name && groups2of4Multisig.isEmpty()
                 ) {
                     items.apply {
                         add(ServiceTabRowCategory.Emergency)
@@ -131,8 +137,9 @@ data class ServicesTabState(
                         add(ServiceTabRowCategory.Subscription)
                         add(ServiceTabRowItem.OrderNewHardware)
                     }
-                } else if (groupsTowOfFourMultisig.isNotEmpty()) {
-                    if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.KEYHOLDER.name) {
+                    return items
+                } else if (groups2of4Multisig.isNotEmpty()) {
+                    if (userRole == AssistedWalletRole.KEYHOLDER.name) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
                             add(ServiceTabRowItem.KeyRecovery)
@@ -142,8 +149,9 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.CoSigningPolicies)
                             add(ServiceTabRowItem.OrderNewHardware)
                         }
-                    } else if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.ADMIN.name
-                        || userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.MASTER.name
+                        return items
+                    } else if (userRole == AssistedWalletRole.ADMIN.name
+                        || userRole == AssistedWalletRole.MASTER.name
                     ) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
@@ -151,7 +159,7 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.KeyRecovery)
                             add(ServiceTabRowCategory.Inheritance)
                             if (assistedWallets.isEmpty() ||
-                                assistedWallets.filter { wallet -> groupsTowOfFourMultisig.find { wallet.groupId == it.id } != null }
+                                assistedWallets.filter { wallet -> groups2of4Multisig.find { wallet.groupId == it.id } != null }
                                     .all { wallet -> wallet.isSetupInheritance.not() }
                             ) {
                                 add(ServiceTabRowItem.SetUpInheritancePlan)
@@ -161,18 +169,19 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.ClaimInheritance)
                             add(ServiceTabRowCategory.Subscription)
                             add(ServiceTabRowItem.CoSigningPolicies)
-                            if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.ADMIN.name) {
+                            if (userRole == AssistedWalletRole.ADMIN.name) {
                                 add(ServiceTabRowItem.OrderNewHardware)
-                            } else if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.MASTER.name) {
+                            } else if (userRole == AssistedWalletRole.MASTER.name) {
                                 add(ServiceTabRowItem.GetAdditionalWallets)
                                 add(ServiceTabRowItem.OrderNewHardware)
                                 add(ServiceTabRowItem.RollOverAssistedWallet)
                                 add(ServiceTabRowItem.ManageSubscription)
                             }
                         }
+                        return items
                     }
                 } else {
-                    if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.ADMIN.name) {
+                    if (userRole == AssistedWalletRole.ADMIN.name) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
                             add(ServiceTabRowItem.EmergencyLockdown)
@@ -180,7 +189,8 @@ data class ServicesTabState(
                             add(ServiceTabRowCategory.Subscription)
                             add(ServiceTabRowItem.OrderNewHardware)
                         }
-                    } else if (userRoleOfGroupTowOfFourMultisig == AssistedWalletRole.MASTER.name) {
+                        return items
+                    } else if (userRole == AssistedWalletRole.MASTER.name) {
                         items.apply {
                             add(ServiceTabRowCategory.Emergency)
                             add(ServiceTabRowItem.EmergencyLockdown)
@@ -191,6 +201,7 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.RollOverAssistedWallet)
                             add(ServiceTabRowItem.ManageSubscription)
                         }
+                        return items
                     }
                 }
             }
@@ -206,6 +217,8 @@ internal data class Banner(val id: String, val url: String, val title: String)
 internal data class NonSubRow(val url: String, val title: String, val desc: String)
 
 internal data class NonSubHeader(val title: String, val desc: String)
+
+internal data object ObserverRole
 
 sealed class ServiceTabRowCategory(val title: Int, val drawableId: Int) {
     data object Emergency : ServiceTabRowCategory(R.string.nc_emergency, R.drawable.ic_emergency)

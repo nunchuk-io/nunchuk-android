@@ -41,9 +41,9 @@ class ServicesTabAdapter constructor(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ServiceTabViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            R.layout.item_server_tab_category -> {
+            R.layout.item_service_tab_category -> {
                 return ServiceTabViewHolder.CategoryViewHolder(
-                    ItemServerTabCategoryBinding.inflate(inflater, parent, false)
+                    ItemServiceTabCategoryBinding.inflate(inflater, parent, false)
                 )
             }
             R.layout.item_service_tab_row -> {
@@ -80,6 +80,12 @@ class ServicesTabAdapter constructor(
                 }
                 viewHolder
             }
+            R.layout.item_service_tab_observer_role -> {
+                val viewHolder = ServiceTabViewHolder.ObserverRoleViewHolder(
+                    ItemServiceTabObserverRoleBinding.inflate(inflater, parent, false)
+                )
+                viewHolder
+            }
             else -> throw IllegalStateException("Unknown viewType $viewType")
         }
     }
@@ -106,11 +112,12 @@ class ServicesTabAdapter constructor(
 
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
-            is ServiceTabRowCategory -> R.layout.item_server_tab_category
+            is ServiceTabRowCategory -> R.layout.item_service_tab_category
             is ServiceTabRowItem -> R.layout.item_service_tab_row
             is NonSubHeader -> R.layout.item_service_tab_non_sub_header
             is NonSubRow -> R.layout.item_service_tab_non_sub_row
             is Banner -> R.layout.item_services_tab_banner
+            is ObserverRole -> R.layout.item_service_tab_observer_role
             else -> throw IllegalStateException("Unknown view type at position $position")
         }
     }
@@ -126,6 +133,7 @@ object DiffCallback : DiffUtil.ItemCallback<Any>() {
             oldItem is NonSubRow && newItem is NonSubRow -> oldItem.title == newItem.title
             oldItem is NonSubHeader && newItem is NonSubHeader -> oldItem.title == newItem.title
             oldItem is Banner && newItem is Banner -> oldItem.id == newItem.id
+            oldItem is ObserverRole && newItem is ObserverRole -> oldItem == newItem
             else -> false
         }
     }
@@ -138,6 +146,7 @@ object DiffCallback : DiffUtil.ItemCallback<Any>() {
             oldItem is NonSubRow && newItem is NonSubRow -> oldItem == newItem
             oldItem is NonSubHeader && newItem is NonSubHeader -> oldItem == newItem
             oldItem is Banner && newItem is Banner -> oldItem == newItem
+            oldItem is ObserverRole && newItem is ObserverRole -> oldItem == newItem
             else -> true
         }
     }
@@ -156,13 +165,17 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
     }
 
     class CategoryViewHolder(
-        val binding: ItemServerTabCategoryBinding
+        val binding: ItemServiceTabCategoryBinding
     ) : ServiceTabViewHolder(binding.root) {
         fun bind(item: ServiceTabRowCategory) {
             binding.tvTitle.text = getString(item.title)
             binding.ivLogo.setBackgroundResource(item.drawableId)
         }
     }
+
+    class ObserverRoleViewHolder(
+        val binding: ItemServiceTabObserverRoleBinding
+    ) : ServiceTabViewHolder(binding.root)
 
     class BannerViewHolder(val binding: ItemServicesTabBannerBinding) :
         ServiceTabViewHolder(binding.root) {

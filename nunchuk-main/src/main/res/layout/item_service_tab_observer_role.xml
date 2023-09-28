@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="@dimen/nc_padding_16">
+
+    <FrameLayout
+        android:id="@+id/fl_logo"
+        android:layout_width="@dimen/nc_height_96"
+        android:layout_height="@dimen/nc_height_96"
+        android:background="@drawable/nc_circle_white_background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="@dimen/nc_height_60"
+            android:layout_height="@dimen/nc_height_60"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_services" />
+    </FrameLayout>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_title"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_8"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:text="@string/nc_service_tab_observer_role"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fl_logo" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
