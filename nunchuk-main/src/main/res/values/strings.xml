@@ -134,7 +134,7 @@
     <string name="nc_key_health_status">Key health status</string>
     <string name="nc_savings_account">Savings account</string>
     <string name="nc_health_check">Health check</string>
-    <string name="nc_request_health_check">Request health check</string>
+    <string name="nc_request_health_check">Request check</string>
     <string name="nc_last_checked_more_than_1_year_ago">Last checked: More than 1 year ago</string>
     <string name="nc_last_checked_less_than_6_months_ago">Last checked: Less than 6 months ago</string>
     <string name="nc_last_checked_more_than_6_months_ago">Last checked: More than 6 months ago</string>
