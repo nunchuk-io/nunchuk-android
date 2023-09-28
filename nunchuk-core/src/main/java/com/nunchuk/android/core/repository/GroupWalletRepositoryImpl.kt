@@ -85,12 +85,13 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
 
     private suspend fun handleDraftWallet(
         draftWallet: DraftWalletDto,
-        groupId: String
+        groupId: String,
     ): DraftWallet {
         val chatId = accountManager.getAccount().chatId
+        val newSigner = mutableMapOf<String, Boolean>()
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
-            saveServerSignerIfNeed(key)
+            newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
             if (signerType == SignerType.SERVER) {
                 if (membershipStepDao.getStep(
                         chatId, chain.value, MembershipStep.ADD_SEVER_KEY, groupId
@@ -147,7 +148,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
-        handleUpdateServerSigners(draftWallet.signers)
+        handleUpdateServerSigners(draftWallet.signers, newSigner)
         return DraftWallet(
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
@@ -155,14 +156,18 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun handleUpdateServerSigners(signers: List<SignerServerDto>) {
+    private fun handleUpdateServerSigners(
+        signers: List<SignerServerDto>,
+        newSigner: Map<String, Boolean>,
+    ) {
         signers.forEach { signer ->
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
             val tags = signer.tags.orEmpty().mapNotNull { it.toSignerTag() }
             if (type != SignerType.SERVER) {
                 if (type.isServerMasterSigner) {
                     val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
-                    val isVisible = masterSigner.isVisible || signer.isVisible
+                    val isVisible =
+                        if (newSigner[signer.xfp.orEmpty()] == true) signer.isVisible else masterSigner.isVisible || signer.isVisible
                     val isChange =
                         masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
                     if (isChange) {
@@ -175,27 +180,42 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         )
                     }
                 } else {
-                    val remoteSigner = nunchukNativeSdk.getRemoteSigner(
-                        signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
-                    )
-                    val isVisible = remoteSigner.isVisible || signer.isVisible
-                    val isChange =
-                        remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
-                    if (isChange) {
-                        nunchukNativeSdk.updateRemoteSigner(
-                            remoteSigner.copy(
-                                name = signer.name.orEmpty(),
-                                tags = tags,
-                                isVisible = isVisible
-                            )
+                    val remoteSigner = runCatching {
+                        nunchukNativeSdk.getRemoteSigner(
+                            signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
                         )
+                    }.getOrNull()
+                    if (remoteSigner != null) {
+                        val isVisible =
+                            if (newSigner[signer.xfp.orEmpty()] == true) signer.isVisible else remoteSigner.isVisible || signer.isVisible
+                        val isChange =
+                            remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
+                        if (isChange) {
+                            nunchukNativeSdk.updateRemoteSigner(
+                                remoteSigner.copy(
+                                    name = signer.name.orEmpty(),
+                                    tags = tags,
+                                    isVisible = isVisible
+                                )
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun saveServerSignerIfNeed(signer: SignerServerDto) {
+    private fun saveServerSignerIfNeed(signer: SignerServerDto): Boolean {
+        val hasSigner = nunchukNativeSdk.hasSigner(
+            SingleSigner(
+                name = signer.name.orEmpty(),
+                xpub = signer.xpub.orEmpty(),
+                publicKey = signer.pubkey.orEmpty(),
+                derivationPath = signer.derivationPath.orEmpty(),
+                masterFingerprint = signer.xfp.orEmpty(),
+            )
+        )
+        if (hasSigner) return true
         val tapsigner = signer.tapsigner
         if (tapsigner != null) {
             nunchukNativeSdk.addTapSigner(
@@ -208,31 +228,21 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             )
         } else {
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
-            if (nunchukNativeSdk.hasSigner(
-                    SingleSigner(
-                        name = signer.name.orEmpty(),
-                        xpub = signer.xpub.orEmpty(),
-                        publicKey = signer.pubkey.orEmpty(),
-                        derivationPath = signer.derivationPath.orEmpty(),
-                        masterFingerprint = signer.xfp.orEmpty(),
-                    )
-                ).not()
-            ) {
-                nunchukNativeSdk.createSigner(name = signer.name.orEmpty(),
-                    xpub = signer.xpub.orEmpty(),
-                    publicKey = signer.pubkey.orEmpty(),
-                    derivationPath = signer.derivationPath.orEmpty(),
-                    masterFingerprint = signer.xfp.orEmpty(),
-                    type = type,
-                    tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
-            }
+            nunchukNativeSdk.createSigner(name = signer.name.orEmpty(),
+                xpub = signer.xpub.orEmpty(),
+                publicKey = signer.pubkey.orEmpty(),
+                derivationPath = signer.derivationPath.orEmpty(),
+                masterFingerprint = signer.xfp.orEmpty(),
+                type = type,
+                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
         }
+        return false
     }
 
     override fun getWalletHealthStatus(
         groupId: String,
         walletId: String,
-        loadingOptions: LoadingOptions
+        loadingOptions: LoadingOptions,
     ): Flow<List<KeyHealthStatus>> {
         return when (loadingOptions) {
             LoadingOptions.OFFLINE -> {
@@ -271,7 +281,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         groupId: String,
         walletId: String,
         xfp: String,
-        draft: Boolean
+        draft: Boolean,
     ): DummyTransactionPayload {
         val response = userWalletApiManager.groupWalletApi.healthCheck(
             groupId = groupId,

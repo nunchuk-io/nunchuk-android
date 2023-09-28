@@ -486,7 +486,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     assistedKeys.add(signer.xfp.orEmpty())
                     if (localSigner.hasMasterSigner) {
                         val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
-                        val isVisible = if (newSignerMap[signer.xfp.orEmpty()] == true) signer.isVisible else masterSigner.isVisible || signer.isVisible
+                        val isVisible =
+                            if (newSignerMap[signer.xfp.orEmpty()] == true) signer.isVisible else masterSigner.isVisible || signer.isVisible
                         val newTags = tags.ifEmpty { masterSigner.tags }
                         val isChange =
                             masterSigner.name != signer.name || masterSigner.tags != newTags || masterSigner.isVisible != isVisible
@@ -507,7 +508,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                             )
                         }.getOrNull()
                         if (remoteSigner != null) {
-                            val isVisible = if (newSignerMap[signer.xfp.orEmpty()] == true) signer.isVisible else remoteSigner.isVisible || signer.isVisible
+                            val isVisible =
+                                if (newSignerMap[signer.xfp.orEmpty()] == true) signer.isVisible else remoteSigner.isVisible || signer.isVisible
                             val newTags = tags.ifEmpty { remoteSigner.tags }
                             val isChange =
                                 remoteSigner.name != signer.name || remoteSigner.tags != newTags || remoteSigner.isVisible != isVisible
@@ -541,7 +543,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     /**
      * Return signer exist in local
      */
-    private fun saveServerSignerIfNeed(signer: SignerServerDto) : Boolean {
+    private fun saveServerSignerIfNeed(signer: SignerServerDto): Boolean {
         val hasSigner = nunchukNativeSdk.hasSigner(
             SingleSigner(
                 name = signer.name.orEmpty(),
@@ -551,6 +553,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 masterFingerprint = signer.xfp.orEmpty(),
             )
         )
+        if (hasSigner) return true
         val tapsigner = signer.tapsigner
         if (tapsigner != null) {
             nunchukNativeSdk.addTapSigner(
@@ -563,17 +566,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         } else {
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
-            if (!hasSigner) {
-                nunchukNativeSdk.createSigner(name = signer.name.orEmpty(),
-                    xpub = signer.xpub.orEmpty(),
-                    publicKey = signer.pubkey.orEmpty(),
-                    derivationPath = signer.derivationPath.orEmpty(),
-                    masterFingerprint = signer.xfp.orEmpty(),
-                    type = type,
-                    tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
-            }
+            nunchukNativeSdk.createSigner(name = signer.name.orEmpty(),
+                xpub = signer.xpub.orEmpty(),
+                publicKey = signer.pubkey.orEmpty(),
+                derivationPath = signer.derivationPath.orEmpty(),
+                masterFingerprint = signer.xfp.orEmpty(),
+                type = type,
+                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
         }
-        return hasSigner
+        return false
     }
 
 
@@ -715,7 +716,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun calculateRequiredSignaturesLockdown(
-        walletId: String, periodId: String, groupId: String?
+        walletId: String, periodId: String, groupId: String?,
     ): CalculateRequiredSignatures {
         val response = if (groupId != null) {
             userWalletApiManager.groupWalletApi.calculateRequiredSignaturesLockdown(
@@ -857,7 +858,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun generateRequestPlanningInheritanceUserData(
         walletId: String,
-        groupId: String
+        groupId: String,
     ): String {
         val body = InheritanceByzantineRequestPlanning.Body(
             walletId = walletId, groupId = groupId
@@ -879,25 +880,26 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         action: CalculateRequiredSignaturesAction,
         groupId: String?,
     ): CalculateRequiredSignatures {
-        val response = if (action == CalculateRequiredSignaturesAction.CANCEL || action == CalculateRequiredSignaturesAction.REQUEST_PLANNING) {
-            userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
-                CreateUpdateInheritancePlanRequest.Body(
-                    walletId = walletId, groupId = groupId
+        val response =
+            if (action == CalculateRequiredSignaturesAction.CANCEL || action == CalculateRequiredSignaturesAction.REQUEST_PLANNING) {
+                userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
+                    CreateUpdateInheritancePlanRequest.Body(
+                        walletId = walletId, groupId = groupId
+                    )
                 )
-            )
-        } else {
-            userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
-                CreateUpdateInheritancePlanRequest.Body(
-                    walletId = walletId,
-                    note = note,
-                    notificationEmails = notificationEmails,
-                    notifyToday = notifyToday,
-                    activationTimeMilis = activationTimeMilis,
-                    bufferPeriodId = bufferPeriodId,
-                    groupId = groupId
+            } else {
+                userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
+                    CreateUpdateInheritancePlanRequest.Body(
+                        walletId = walletId,
+                        note = note,
+                        notificationEmails = notificationEmails,
+                        notifyToday = notifyToday,
+                        activationTimeMilis = activationTimeMilis,
+                        bufferPeriodId = bufferPeriodId,
+                        groupId = groupId
+                    )
                 )
-            )
-        }
+            }
         return response.data.result.toCalculateRequiredSignatures()
     }
 
@@ -915,7 +917,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             authorizations = authorizations,
             verifyToken = verifyToken,
             securityQuestionToken = securityQuestionToken,
-            confirmCodeToken = "")
+            confirmCodeToken = ""
+        )
         val response = if (isUpdate) userWalletApiManager.walletApi.updateInheritance(
             headers, request, draft
         ) else userWalletApiManager.walletApi.createInheritance(headers, request, draft)
@@ -941,7 +944,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             authorizations = authorizations,
             verifyToken = verifyToken,
             securityQuestionToken = securityQuestionToken,
-            confirmCodeToken = "")
+            confirmCodeToken = ""
+        )
         val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request, draft)
         if (response.isSuccess && request.body?.groupId == null) {
             markSetupInheritance(walletId, false)
@@ -953,15 +957,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         authorizations: List<String>,
         userData: String,
         walletId: String,
-        groupId: String
+        groupId: String,
     ): String {
         val request = gson.fromJson(userData, InheritanceByzantineRequestPlanning::class.java)
         val headers = getHeaders(
             authorizations = authorizations,
             verifyToken = "",
             securityQuestionToken = "",
-            confirmCodeToken = "")
-        val response = userWalletApiManager.walletApi.inheritanceRequestPlanning(headers, request, true)
+            confirmCodeToken = ""
+        )
+        val response =
+            userWalletApiManager.walletApi.inheritanceRequestPlanning(headers, request, true)
         return response.data.dummyTransaction?.id.orEmpty()
     }
 
@@ -1009,7 +1015,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             authorizations = authorizations,
             verifyToken = verifyToken,
             securityQuestionToken = securityQuestionToken,
-            confirmCodeToken = confirmCodeToken)
+            confirmCodeToken = confirmCodeToken
+        )
         return userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request)
     }
 
@@ -1041,7 +1048,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 if (it.isSuccess) markGroupWalletAsLocked(true, request.body?.groupId.orEmpty())
             }
         } else {
-             userWalletApiManager.walletApi.lockdownUpdate(
+            userWalletApiManager.walletApi.lockdownUpdate(
                 getHeaders(
                     authorizations = authorizations,
                     verifyToken = verifyToken,
@@ -1071,9 +1078,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun generateLockdownUserData(
         walletId: String,
         periodId: String,
-        groupId: String?
+        groupId: String?,
     ): String {
-        val body = LockdownUpdateRequest.Body(periodId = periodId, walletId = walletId, groupId = groupId)
+        val body =
+            LockdownUpdateRequest.Body(periodId = periodId, walletId = walletId, groupId = groupId)
         val nonce = getNonce()
         val request = LockdownUpdateRequest(
             nonce = nonce, body = body
@@ -1172,7 +1180,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.getInheritance(walletId, groupId)
         if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
         else return response.data.inheritance!!.toInheritance().also {
-            markSetupInheritance(walletId, it.status != InheritanceStatus.PENDING_CREATION && it.status != InheritanceStatus.PENDING_APPROVAL)
+            markSetupInheritance(
+                walletId,
+                it.status != InheritanceStatus.PENDING_CREATION && it.status != InheritanceStatus.PENDING_APPROVAL
+            )
         }
     }
 
@@ -1306,7 +1317,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getLockdownPeriod(groupId: String?): List<Period> {
-        val response = if (groupId.isNullOrEmpty()) userWalletApiManager.walletApi.getLockdownPeriod() else userWalletApiManager.groupWalletApi.getLockdownPeriod()
+        val response =
+            if (groupId.isNullOrEmpty()) userWalletApiManager.walletApi.getLockdownPeriod() else userWalletApiManager.groupWalletApi.getLockdownPeriod()
         return response.data.periods?.map {
             Period(
                 id = it.id.orEmpty(),
@@ -2126,7 +2138,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         authorizations: List<String>,
         verifyToken: String,
         securityQuestionToken: String,
-        confirmCodeToken: String
+        confirmCodeToken: String,
     ): MutableMap<String, String> {
         val headers = mutableMapOf<String, String>()
         authorizations.forEachIndexed { index, value ->

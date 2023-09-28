@@ -41,15 +41,16 @@ internal data class SignerServerDto(
     @SerializedName("is_visible") val isVisible: Boolean = true,
 )
 
-internal fun SignerServerDto.toModel() : SignerServer{
+internal fun SignerServerDto.toModel(): SignerServer {
     val signerType = type.toSignerType()
-   return SignerServer(
+    return SignerServer(
         name = name,
         xfp = xfp,
         derivationPath = derivationPath,
         type = signerType,
         index = index,
-        verifyType = if (signerType == SignerType.NFC) tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
+        verifyType = if (signerType == SignerType.NFC) tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED,
+        isVisible = isVisible
     )
 }
 

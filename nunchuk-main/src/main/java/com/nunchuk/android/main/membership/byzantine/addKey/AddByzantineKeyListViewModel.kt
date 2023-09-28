@@ -41,6 +41,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -103,14 +104,15 @@ class AddByzantineKeyListViewModel @Inject constructor(
             membershipStepManager.plan,
             args.groupId
         )
-    )
-        .map { it.getOrElse { emptyList() } }
+    ).map { it.getOrElse { emptyList() } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _keys = MutableStateFlow(listOf<AddKeyData>())
     val key = _keys.asStateFlow()
 
     private val singleSigners = mutableListOf<SingleSigner>()
+
+    private val serverSigners = mutableMapOf<String, SignerServer>()
 
     init {
         if (args.isAddOnly.not() && membershipStepManager.isNotConfig()) {
@@ -157,7 +159,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
                             )
                             if (result.isSuccess) {
                                 return@map addKeyData.copy(
-                                    signer = result.getOrThrow().toModel(),
+                                    signer = result.getOrThrow().toModel().copy(isVisible = serverSigners[info.masterSignerId]?.isVisible == true),
                                     verifyType = info.verifyType
                                 )
                             }
@@ -166,7 +168,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
                             if (result.isSuccess) {
                                 return@map addKeyData.copy(
                                     signer = masterSignerMapper(
-                                        result.getOrThrow(),
+                                        result.getOrThrow().copy(isVisible = serverSigners[info.masterSignerId]?.isVisible == true),
                                     ),
                                     verifyType = info.verifyType
                                 )
@@ -326,6 +328,9 @@ class AddByzantineKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
             syncGroupDraftWalletUseCase(args.groupId).onSuccess { draft ->
+                draft.signers.forEach {
+                    serverSigners[it.xfp.orEmpty()] = it
+                }
                 GroupWalletType.values()
                     .find { type -> type.n == draft.config.n && type.m == draft.config.m }
                     ?.let { type ->

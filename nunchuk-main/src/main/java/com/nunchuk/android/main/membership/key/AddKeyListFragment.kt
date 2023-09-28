@@ -581,10 +581,11 @@ fun AddKeyCard(
                             R.string.nc_added
                         )
                     )
-                } else {
+                } else if (item.signer.isVisible) {
                     NcOutlineButton(
                         modifier = Modifier.height(36.dp),
-                        onClick = { onVerifyClicked(item) }) {
+                        onClick = { onVerifyClicked(item) },
+                    ) {
                         Text(text = stringResource(R.string.nc_verify_backup))
                     }
                 }

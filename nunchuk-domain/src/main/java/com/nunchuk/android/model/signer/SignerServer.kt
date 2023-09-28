@@ -29,5 +29,6 @@ data class SignerServer(
     val type: SignerType = SignerType.UNKNOWN,
     val verifyType: VerifyType = VerifyType.NONE,
     val index: Int = 0,
+    val isVisible: Boolean = true,
 )
 
