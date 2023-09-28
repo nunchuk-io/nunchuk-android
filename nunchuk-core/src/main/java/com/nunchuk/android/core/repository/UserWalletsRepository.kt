@@ -148,7 +148,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.SERVER_KEY_NAME
-import com.nunchuk.android.utils.isServerMasterSigner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -160,6 +159,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
@@ -463,11 +463,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         walletServer: WalletDto, assistedKeys: MutableSet<String>,
     ): Boolean {
         var isNeedReload = false
-        walletServer.signerServerDtos.forEach { signer ->
-            saveServerSignerIfNeed(signer)
-        }
+        val newSignerMap = hashMapOf<String, Boolean>()
         if (nunchukNativeSdk.hasWallet(walletServer.localId.orEmpty()).not()) {
             isNeedReload = true
+
+            walletServer.signerServerDtos.forEach { signer ->
+                newSignerMap[signer.xfp.orEmpty()] = !saveServerSignerIfNeed(signer)
+            }
 
             val wallet = nunchukNativeSdk.parseWalletDescriptor(walletServer.bsms.orEmpty()).apply {
                 name = walletServer.name.orEmpty()
@@ -475,53 +477,58 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
             nunchukNativeSdk.createWallet2(wallet)
         }
-
+        Timber.d("CongHai $newSignerMap")
+        val wallet = nunchukNativeSdk.getWallet(walletServer.localId.orEmpty())
         walletServer.signerServerDtos.forEach { signer ->
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
             val tags = signer.tags.orEmpty().mapNotNull { it.toSignerTag() }
             if (type != SignerType.SERVER) {
-                assistedKeys.add(signer.xfp.orEmpty())
-                if (type.isServerMasterSigner) {
-                    val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
-                    val isVisible = masterSigner.isVisible || signer.isVisible
-                    val isChange =
-                        masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
-                    if (isChange) {
-                        isNeedReload = true
-                        nunchukNativeSdk.updateMasterSigner(
-                            masterSigner.copy(
-                                name = signer.name.orEmpty(),
-                                tags = tags,
-                                isVisible = isVisible
-                            )
-                        )
-                    }
-                } else {
-                    val remoteSigner = runCatching {
-                        nunchukNativeSdk.getRemoteSigner(
-                            signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
-                        )
-                    }.getOrNull()
-                    if (remoteSigner != null) {
-                        val isVisible = remoteSigner.isVisible || signer.isVisible
+                val localSigner = wallet.signers.find { it.masterFingerprint == signer.xfp }
+                if (localSigner != null) {
+                    assistedKeys.add(signer.xfp.orEmpty())
+                    if (localSigner.hasMasterSigner) {
+                        val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
+                        val isVisible = if (newSignerMap[signer.xfp.orEmpty()] == true) signer.isVisible else masterSigner.isVisible || signer.isVisible
+                        Timber.d("CongHai xfp ${signer.xfp} isVisible $isVisible")
                         val isChange =
-                            remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
+                            masterSigner.name != signer.name || masterSigner.tags != tags || masterSigner.isVisible != isVisible
                         if (isChange) {
                             isNeedReload = true
-                            nunchukNativeSdk.updateRemoteSigner(
-                                remoteSigner.copy(
+                            nunchukNativeSdk.updateMasterSigner(
+                                masterSigner.copy(
                                     name = signer.name.orEmpty(),
                                     tags = tags,
                                     isVisible = isVisible
                                 )
                             )
                         }
+                    } else {
+                        val remoteSigner = runCatching {
+                            nunchukNativeSdk.getRemoteSigner(
+                                signer.xfp.orEmpty(), signer.derivationPath.orEmpty()
+                            )
+                        }.getOrNull()
+                        if (remoteSigner != null) {
+                            val isVisible = if (newSignerMap[signer.xfp.orEmpty()] == true) signer.isVisible else remoteSigner.isVisible || signer.isVisible
+                            Timber.d("CongHai xfp ${signer.xfp} isVisible $isVisible")
+                            val isChange =
+                                remoteSigner.name != signer.name || remoteSigner.tags != tags || remoteSigner.isVisible != isVisible
+                            if (isChange) {
+                                isNeedReload = true
+                                nunchukNativeSdk.updateRemoteSigner(
+                                    remoteSigner.copy(
+                                        name = signer.name.orEmpty(),
+                                        tags = tags,
+                                        isVisible = isVisible
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
 
-        val wallet = nunchukNativeSdk.getWallet(walletServer.localId.orEmpty())
         if (wallet.name != walletServer.name || wallet.description != walletServer.description) {
             nunchukNativeSdk.updateWallet(
                 wallet.copy(
@@ -533,7 +540,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return isNeedReload
     }
 
-    private fun saveServerSignerIfNeed(signer: SignerServerDto) {
+    /**
+     * Return signer exist in local
+     */
+    private fun saveServerSignerIfNeed(signer: SignerServerDto) : Boolean {
+        val hasSigner = nunchukNativeSdk.hasSigner(
+            SingleSigner(
+                name = signer.name.orEmpty(),
+                xpub = signer.xpub.orEmpty(),
+                publicKey = signer.pubkey.orEmpty(),
+                derivationPath = signer.derivationPath.orEmpty(),
+                masterFingerprint = signer.xfp.orEmpty(),
+            )
+        )
         val tapsigner = signer.tapsigner
         if (tapsigner != null) {
             nunchukNativeSdk.addTapSigner(
@@ -546,16 +565,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         } else {
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
-            if (nunchukNativeSdk.hasSigner(
-                    SingleSigner(
-                        name = signer.name.orEmpty(),
-                        xpub = signer.xpub.orEmpty(),
-                        publicKey = signer.pubkey.orEmpty(),
-                        derivationPath = signer.derivationPath.orEmpty(),
-                        masterFingerprint = signer.xfp.orEmpty(),
-                    )
-                ).not()
-            ) {
+            if (!hasSigner) {
                 nunchukNativeSdk.createSigner(name = signer.name.orEmpty(),
                     xpub = signer.xpub.orEmpty(),
                     publicKey = signer.pubkey.orEmpty(),
@@ -565,6 +575,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
             }
         }
+        return hasSigner
     }
 
 
