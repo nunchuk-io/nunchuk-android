@@ -41,6 +41,11 @@ class CreateRoomGroupChatUseCase @Inject constructor(
             )
         }
         val roomId = session.roomService().createRoom(params)
+        session.roomService().getRoom(roomId)?.also { room ->
+            if (room.roomSummary()?.tags?.any { tag -> tag.name == GROUP_CHAT_ROOM_TYPE } == false) {
+                room.tagsService().addTag(GROUP_CHAT_ROOM_TYPE, 1.0)
+            }
+        } ?: throw NullPointerException("Can not get room")
         delay(500L)
         return roomId
     }

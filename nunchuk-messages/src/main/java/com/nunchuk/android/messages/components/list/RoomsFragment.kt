@@ -98,7 +98,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun openRoomDetailScreen(summary: RoomSummary) {
-        openRoomDetailScreen(summary.roomId, summary.roomType == GROUP_CHAT_ROOM_TYPE)
+        openRoomDetailScreen(summary.roomId, summary.tags.any { it.name == GROUP_CHAT_ROOM_TYPE })
     }
 
     private fun openRoomDetailScreen(roomId: String, isGroupChat: Boolean = false) {
