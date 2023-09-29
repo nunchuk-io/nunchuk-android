@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
@@ -152,7 +153,7 @@ fun PendingWalletView(
 
 @Composable
 fun RowScope.PendingWalletInviteMember(
-    inviterName: String, onAccept: () -> Unit, onDeny: () -> Unit
+    inviterName: String, onAccept: () -> Unit, onDeny: () -> Unit,
 ) {
     Text(
         text = stringResource(
@@ -184,7 +185,7 @@ fun RowScope.BottomContent(
     role: String = AssistedWalletRole.NONE.name,
     inviterName: String = "",
     onAccept: () -> Unit = {},
-    onDeny: () -> Unit = {}
+    onDeny: () -> Unit = {},
 ) {
     if (isLocked) {
         AvatarView(group = group)
@@ -323,12 +324,12 @@ internal fun ActiveWallet(
     walletsExtended: WalletExtended,
     hideWalletDetail: Boolean,
     isAssistedWallet: Boolean,
-    role: String = AssistedWalletRole.NONE.name
+    role: String = AssistedWalletRole.NONE.name,
 ) {
     val wallet = walletsExtended.wallet
     val balance = "(${wallet.getCurrencyAmount()})"
-    Row {
-        Column(modifier = Modifier.weight(1f, fill = true)) {
+    Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = wallet.name, style = NunchukTheme.typography.title, color = Color.White
             )
@@ -350,33 +351,30 @@ internal fun ActiveWallet(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.End
         ) {
-            Text(
-                text = "", style = NunchukTheme.typography.title, color = Color.White
-            )
-            Badge {
-                if (walletsExtended.isShared || isAssistedWallet) {
+            if (walletsExtended.isShared || isAssistedWallet) {
+                Badge {
                     Icon(
                         modifier = Modifier.padding(start = 8.dp),
                         painter = painterResource(id = R.drawable.ic_wallet_small),
                         contentDescription = "Wallet"
                     )
-                }
-                val walletTypeName = if (isAssistedWallet) {
-                    Utils.maskValue(
-                        stringResource(R.string.nc_assisted), hideWalletDetail
+                    val walletTypeName = if (isAssistedWallet) {
+                        Utils.maskValue(
+                            stringResource(R.string.nc_assisted), hideWalletDetail
+                        )
+                    } else {
+                        Utils.maskValue(
+                            stringResource(R.string.nc_text_shared), hideWalletDetail
+                        )
+                    }
+                    Text(
+                        modifier = Modifier.padding(
+                            start = 4.dp, end = 8.dp,
+                        ),
+                        text = walletTypeName,
+                        style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
                     )
-                } else {
-                    Utils.maskValue(
-                        stringResource(R.string.nc_text_shared), hideWalletDetail
-                    )
                 }
-                Text(
-                    modifier = Modifier.padding(
-                        start = 4.dp, end = 8.dp,
-                    ),
-                    text = walletTypeName,
-                    style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
-                )
             }
 
             Badge(modifier = Modifier.padding(top = 4.dp)) {
@@ -407,7 +405,7 @@ internal fun ActiveWallet(
 internal fun Badge(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colors.background,
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit,
 ) {
     Row(
         modifier = modifier.background(
@@ -423,7 +421,7 @@ fun AvatarView(
     modifier: Modifier = Modifier,
     avatarUrl: String = "",
     name: String = "",
-    isContact: Boolean = false
+    isContact: Boolean = false,
 ) {
     Box(
         modifier = modifier
