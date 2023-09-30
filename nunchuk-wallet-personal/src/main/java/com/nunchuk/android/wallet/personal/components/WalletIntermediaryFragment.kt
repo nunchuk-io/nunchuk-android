@@ -119,7 +119,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 }
             } else {
                 binding.btnCreateGroupWallet.apply {
-                    isVisible = (it.remainGroupCount + it.remainWalletCount) > 0
+                    isVisible = true
                     text = context.getString(
                         R.string.nc_create_assisted_wallet,
                         (it.remainGroupCount + it.remainWalletCount)
