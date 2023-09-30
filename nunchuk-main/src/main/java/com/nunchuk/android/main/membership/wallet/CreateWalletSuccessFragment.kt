@@ -51,7 +51,7 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
@@ -103,7 +103,7 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                             requireActivity(),
                             args.walletId
                         )
-                        requireActivity().finish()
+                        ActivityManager.popUntilRoot()
                     }
                 }
             }

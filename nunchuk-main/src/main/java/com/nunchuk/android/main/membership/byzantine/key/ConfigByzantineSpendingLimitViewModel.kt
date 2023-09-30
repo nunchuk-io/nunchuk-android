@@ -36,7 +36,6 @@ import com.nunchuk.android.model.byzantine.AssistedMemberSpendingPolicy
 import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
 import com.nunchuk.android.model.byzantine.InputSpendingPolicy
 import com.nunchuk.android.model.byzantine.isKeyHolder
-import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toByzantinePreferenceSetup
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -98,7 +97,7 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
                     val policy = spendingLimits[member.membershipId]?.let { spendingLimit ->
                         map(spendingLimit)
                     } ?: InputSpendingPolicy(
-                        limit = if (role.isKeyHolderLimited) "0" else "5000", SpendingTimeUnit.DAILY, LOCAL_CURRENCY
+                        limit = "0", SpendingTimeUnit.DAILY, LOCAL_CURRENCY
                     )
                     if (role.isKeyHolder) {
                         AssistedMemberSpendingPolicy(
@@ -224,7 +223,7 @@ data class ConfigMemberSpendingLimitState(
     val policies: Map<String?, AssistedMemberSpendingPolicy> = mapOf(
         null to AssistedMemberSpendingPolicy(
             spendingPolicy = InputSpendingPolicy(
-                limit = "5000", SpendingTimeUnit.DAILY, LOCAL_CURRENCY
+                limit = "0", SpendingTimeUnit.DAILY, LOCAL_CURRENCY
             )
         )
     ),

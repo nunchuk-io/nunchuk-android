@@ -89,7 +89,7 @@ private fun SelectWalletSetupContent(
     onContinueClicked: (String) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
-    var isSinglePersonSetup by remember { mutableStateOf(true) }
+    var isSinglePersonSetup by remember { mutableStateOf(false) }
     NunchukTheme {
         Scaffold(modifier = Modifier
             .navigationBarsPadding()
@@ -147,7 +147,7 @@ private fun SelectWalletSetupContent(
                 ) {
                     NcTag(
                         modifier = Modifier.padding(bottom = 4.dp),
-                        label = stringResource(id = R.string.nc_advanced)
+                        label = stringResource(id = R.string.nc_recommended)
                     )
                     Text(
                         text = stringResource(R.string.nc_main_distributed_setup_desc),

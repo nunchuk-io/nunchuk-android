@@ -32,6 +32,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
@@ -102,7 +103,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             val data = it.data
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 when (data.serializable<WalletConfigAction>(WalletConfigActivity.EXTRA_WALLET_ACTION)) {
-                    WalletConfigAction.DELETE -> requireActivity().onBackPressedDispatcher.onBackPressed()
+                    WalletConfigAction.DELETE -> {
+                        if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
+                        else findNavController().popBackStack()
+                    }
                     WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
                     WalletConfigAction.FORCE_REFRESH -> viewModel.setForceRefreshWalletProcessing(
                         true

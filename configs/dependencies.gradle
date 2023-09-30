@@ -41,7 +41,7 @@ ext {
     PATCH_VERSION = 34
     TASK_LABEL = "BYZANTINE"
 
-    VERSION_CODE = 214
+    VERSION_CODE = 215
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
