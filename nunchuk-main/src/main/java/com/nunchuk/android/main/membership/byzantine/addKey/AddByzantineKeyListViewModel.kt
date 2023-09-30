@@ -159,7 +159,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
                             )
                             if (result.isSuccess) {
                                 return@map addKeyData.copy(
-                                    signer = result.getOrThrow().toModel().copy(isVisible = serverSigners[info.masterSignerId]?.isVisible == true),
+                                    signer = result.getOrThrow().toModel().copy(isVisible = serverSigners[info.masterSignerId]?.isVisible != false),
                                     verifyType = info.verifyType
                                 )
                             }
@@ -168,7 +168,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
                             if (result.isSuccess) {
                                 return@map addKeyData.copy(
                                     signer = masterSignerMapper(
-                                        result.getOrThrow().copy(isVisible = serverSigners[info.masterSignerId]?.isVisible == true),
+                                        result.getOrThrow().copy(isVisible = serverSigners[info.masterSignerId]?.isVisible != false),
                                     ),
                                     verifyType = info.verifyType
                                 )

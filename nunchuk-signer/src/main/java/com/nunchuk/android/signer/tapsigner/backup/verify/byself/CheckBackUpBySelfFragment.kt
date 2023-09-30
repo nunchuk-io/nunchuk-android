@@ -97,8 +97,7 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                 .collect { event ->
                     when (event) {
                         OnExitSelfCheck -> requireActivity().finish()
-                        OnDownloadBackUpClicked -> IntentSharingController.from(requireActivity())
-                            .shareFile(args.filePath)
+                        OnDownloadBackUpClicked -> Unit
                         OnVerifiedBackUpClicked -> NCWarningDialog(requireActivity())
                             .showDialog(
                                 title = getString(R.string.nc_confirmation),
@@ -108,6 +107,8 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                 },
                             )
                         is ShowError -> showError(event.e?.message.orUnknownError())
+                        is GetBackUpKeySuccess -> IntentSharingController.from(requireActivity())
+                            .shareFile(event.filePath)
                     }
                 }
         }
