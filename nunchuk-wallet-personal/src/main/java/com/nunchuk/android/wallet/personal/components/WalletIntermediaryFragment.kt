@@ -206,10 +206,10 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
         binding.btnCreateGroupWallet.setOnDebounceClickListener {
             if (viewModel.remainWalletCount > 0 && viewModel.remainGroupCount > 0) {
                 showOptionGroupWalletType()
-            } else if (viewModel.remainGroupCount > 0) {
-                openCreateGroupWallet()
-            } else {
+            } else if (viewModel.remainWalletCount > 0) {
                 openCreateAssistedWallet()
+            } else {
+                openCreateGroupWallet()
             }
         }
         binding.toolbar.setNavigationOnClickListener {

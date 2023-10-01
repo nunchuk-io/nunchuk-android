@@ -147,7 +147,7 @@ private fun SelectGroupContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = uiState.remainingByzantineProWallet > 0 || uiState.remainingByzantineWallet > 0,
+                    enabled = uiState.isLoaded,
                     onClick = {
                         onContinueClicked(selectedType)
                     }

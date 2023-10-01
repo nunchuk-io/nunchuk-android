@@ -34,7 +34,8 @@ class SelectGroupViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             remainingByzantineWallet = config.remainingByzantineWallet,
-                            remainingByzantineProWallet = config.remainingByzantineProWallet
+                            remainingByzantineProWallet = config.remainingByzantineProWallet,
+                            isLoaded = true
                         )
                     }
                 }
@@ -54,5 +55,6 @@ sealed class SelectGroupEvent {
 data class SelectGroupUiState(
     val remainingByzantineWallet: Int = 0,
     val remainingByzantineProWallet: Int = 0,
+    val isLoaded: Boolean = false,
     val plan : MembershipPlan = MembershipPlan.NONE,
 )
