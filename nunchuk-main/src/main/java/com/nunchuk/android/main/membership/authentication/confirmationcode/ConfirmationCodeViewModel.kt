@@ -57,6 +57,8 @@ class ConfirmationCodeViewModel @Inject constructor(
         }
     }
 
+    fun getAction() = args.action.orEmpty()
+
     fun onCodeChange(code: String) {
         _state.update {
             it.copy(code = code)

@@ -382,6 +382,7 @@
     <string name="nc_recovered_key_name">Recovered %s</string>
     <string name="nc_tapsigner_has_been_recovered">TAPSIGNER has been recovered.</string>
     <string name="nc_key_recovery_questions_updated">Key recovery questions updated</string>
+    <string name="nc_security_questions_updated">Security questions updated</string>
     <string name="nc_manage_subscription_desc">Please manage your subscription through our website. Sign in and navigate to the Plan and Invoices page.</string>
     <string name="nc_order_new_hardware_desc">You can order new hardware by using the referral links on our website. Sign in and navigate to the Hardware Replacement page</string>
     <string name="nc_take_me_to_the_website">Take me to the website</string>

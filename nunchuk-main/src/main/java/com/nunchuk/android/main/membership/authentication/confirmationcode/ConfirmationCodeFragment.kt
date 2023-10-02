@@ -46,6 +46,7 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -104,6 +105,7 @@ fun ConfirmChangeScreen(
     ConfirmChangeScreenContent(
         code = state.code,
         email = viewModel.email,
+        action = viewModel.getAction(),
         onInputChange = viewModel::onCodeChange,
         onContinueClick = viewModel::verifyCode
     )
@@ -113,9 +115,14 @@ fun ConfirmChangeScreen(
 fun ConfirmChangeScreenContent(
     code: String = "",
     email: String = "",
+    action: String = "",
     onInputChange: (String) -> Unit = {},
     onContinueClick: () -> Unit = {},
 ) {
+    val title = when (action) {
+        TargetAction.UPDATE_SECURITY_QUESTIONS.name -> stringResource(id = R.string.nc_confirm_new_security_questions)
+        else -> stringResource(id = R.string.nc_confirm_changes)
+    }
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -123,7 +130,7 @@ fun ConfirmChangeScreenContent(
                 .statusBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = R.string.nc_confirm_changes),
+                    title = title,
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))

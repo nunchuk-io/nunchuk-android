@@ -68,6 +68,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -141,7 +142,12 @@ class RecoveryQuestionFragment : MembershipFragment() {
                     )
                 }
                 RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess -> {
-                    NCToastMessage(requireActivity()).show(message = getString(R.string.nc_key_recovery_questions_updated))
+                    val message = if (viewModel.state.value.plan.isByzantine()) {
+                        getString(R.string.nc_security_questions_updated)
+                    } else {
+                        getString(R.string.nc_key_recovery_questions_updated)
+                    }
+                    NCToastMessage(requireActivity()).show(message = message)
                 }
                 RecoveryQuestionEvent.DiscardChangeClick -> findNavController().popBackStack()
             }
@@ -295,7 +301,7 @@ fun RecoveryQuestionScreenContent(
                         .padding(16.dp),
                     onClick = onContinueClicked,
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                    Text(text = if (isRecoveryFlow) stringResource(id = R.string.nc_continue_save_changes) else stringResource(id = R.string.nc_text_continue))
                 }
                 if (isRecoveryFlow) {
                     NcOutlineButton(
