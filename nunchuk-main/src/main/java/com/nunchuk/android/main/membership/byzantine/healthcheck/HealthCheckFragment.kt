@@ -1,11 +1,9 @@
 package com.nunchuk.android.main.membership.byzantine.healthcheck
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -17,16 +15,11 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.util.showSuccess
-import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardEvent
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
 import com.nunchuk.android.model.VerificationType
-import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.utils.serializable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -38,27 +31,6 @@ class HealthCheckFragment : MembershipFragment() {
     private val viewModel: GroupDashboardViewModel by activityViewModels()
 
     private val args: HealthCheckFragmentArgs by navArgs()
-
-    private val signLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                viewModel.getKeysStatus()
-                val type =
-                    it.data?.serializable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
-                if (type == DummyTransactionType.HEALTH_CHECK_PENDING || type == DummyTransactionType.HEALTH_CHECK_REQUEST) {
-                    val xfp =
-                        it.data?.getStringExtra(GlobalResultKey.EXTRA_HEALTH_CHECK_XFP).orEmpty()
-                    viewModel.getSignerName(xfp)?.let { name ->
-                        showSuccess(
-                            message = getString(
-                                R.string.nc_txt_run_health_check_success_event,
-                                name
-                            )
-                        )
-                    }
-                }
-            }
-        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -97,7 +69,6 @@ class HealthCheckFragment : MembershipFragment() {
                         type = VerificationType.SIGN_DUMMY_TX,
                         groupId = args.groupId,
                         dummyTransactionId = it.payload.dummyTransactionId,
-                        launcher = signLauncher
                     )
                 }
 

@@ -378,7 +378,7 @@
     <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magic Phrase and Backup Password with the Beneficiary or Trustee. The notification email won’t include these information.</string>
     <string name="nc_update_notification_preferences">Update notification preferences</string>
     <string name="nc_dont_want_any_notifications">I don’t want any notifications</string>
-    <string name="nc_policy_updated">Policies have been updated.</string>
+    <string name="nc_policy_updated">The platform key policies have been updated</string>
     <string name="nc_recovered_key_name">Recovered %s</string>
     <string name="nc_tapsigner_has_been_recovered">TAPSIGNER has been recovered.</string>
     <string name="nc_key_recovery_questions_updated">Key recovery questions updated</string>

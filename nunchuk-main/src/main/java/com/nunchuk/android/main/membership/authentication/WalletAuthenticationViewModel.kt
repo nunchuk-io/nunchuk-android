@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.membership.authentication
 
+import android.app.Application
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
@@ -39,6 +40,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.VerificationType
@@ -94,6 +96,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
     private val getDummyTxRequestTokenUseCase: GetDummyTxRequestTokenUseCase,
     private val networkStatusFlowUseCase: NetworkStatusFlowUseCase,
+    private val application: Application,
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -352,10 +355,12 @@ class WalletAuthenticationViewModel @Inject constructor(
             }
             signatures[singleSigner.masterFingerprint] = signature
             if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
-                uploadSignature(singleSigner.masterFingerprint, signature, signatures)
+                if (uploadSignature(singleSigner.masterFingerprint, signature, signatures)) {
+                    _event.emit(WalletAuthenticationEvent.UploadSignatureSuccess(_state.value.transactionStatus))
+                }
             } else {
                 if (signatures.size == args.requiredSignatures) {
-                    _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
+                    _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess(signatures))
                 } else {
                     _state.update { it.copy(signatures = signatures) }
                 }
@@ -382,12 +387,13 @@ class WalletAuthenticationViewModel @Inject constructor(
             _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
         }.onSuccess { updateInfo ->
             if (updateInfo.status == TransactionStatus.CONFIRMED) {
-                _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess())
+                _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess())
             } else {
                 _state.update {
                     it.copy(
                         signatures = signatures,
-                        pendingSignature = updateInfo.pendingSignatures
+                        pendingSignature = updateInfo.pendingSignatures,
+                        transactionStatus = updateInfo.status
                     )
                 }
             }
@@ -477,6 +483,20 @@ class WalletAuthenticationViewModel @Inject constructor(
                 || type == SignerType.NFC
                 || type == SignerType.COLDCARD_NFC
     }
+
+    val signedSuccessMessage: String
+        get() = if (state.value.transactionStatus != TransactionStatus.CONFIRMED) {
+            application.getString(R.string.nc_transaction_updated)
+        } else when(state.value.dummyTransactionType) {
+            DummyTransactionType.CREATE_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_created)
+            DummyTransactionType.UPDATE_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_updated)
+            DummyTransactionType.CANCEL_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_canlled)
+            DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> application.getString(R.string.nc_inheritance_has_been_created)
+            DummyTransactionType.UPDATE_SERVER_KEY -> application.getString(R.string.nc_policy_updated)
+            DummyTransactionType.HEALTH_CHECK_PENDING,
+            DummyTransactionType.HEALTH_CHECK_REQUEST -> application.getString(R.string.nc_txt_run_health_check_success_event, getInteractSingleSigner()?.name.orEmpty())
+            else -> ""
+        }
 
     companion object {
         private const val EXTRA_CURRENT_INTERACT_SIGNER = "EXTRA_CURRENT_INTERACT_SIGNER"

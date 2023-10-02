@@ -103,7 +103,7 @@ class CheckSignMessageFragment : Fragment() {
             walletAuthenticationViewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        is WalletAuthenticationEvent.WalletAuthenticationSuccess -> {
+                        is WalletAuthenticationEvent.SignDummyTxSuccess -> {
                             requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
                                 putExtra(
                                     GlobalResultKey.SIGNATURE_EXTRA,
@@ -140,6 +140,7 @@ class CheckSignMessageFragment : Fragment() {
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
                         is WalletAuthenticationEvent.ShowError,
                         is WalletAuthenticationEvent.SignFailed,
+                        is WalletAuthenticationEvent.UploadSignatureSuccess,
                         -> Unit
                     }
                 }

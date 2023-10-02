@@ -43,19 +43,14 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.settings.notification.TurnNotificationActivity
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInputDialog
-import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -76,36 +71,6 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
                 requireActivity().finish()
-            }
-        }
-
-    private val walletAuthLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                val type =
-                    it.data?.serializable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
-                if (type == DummyTransactionType.HEALTH_CHECK_PENDING || type == DummyTransactionType.HEALTH_CHECK_REQUEST) {
-                    val xfp =
-                        it.data?.getStringExtra(GlobalResultKey.EXTRA_HEALTH_CHECK_XFP).orEmpty()
-                    viewModel.getSignerName(xfp)?.let { name ->
-                        showSuccess(
-                            message = getString(
-                                R.string.nc_txt_run_health_check_success_event,
-                                name
-                            )
-                        )
-                    }
-                } else if (type == DummyTransactionType.REQUEST_INHERITANCE_PLANNING) {
-                    val messages = arrayListOf<String>().apply {
-                        add(getString(R.string.nc_inheritance_request_approved))
-                        add(getString(R.string.nc_transaction_updated))
-                    }
-                    messages.forEachIndexed { index, message ->
-                        NCToastMessage(requireActivity()).showMessage(
-                            message = message, dismissTime = (index + 1) * 2000L
-                        )
-                    }
-                }
             }
         }
 
@@ -222,7 +187,6 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                     type = VerificationType.SIGN_DUMMY_TX,
                     groupId = args.groupId,
                     dummyTransactionId = dummyTransactionId,
-                    launcher = walletAuthLauncher
                 )
             }
             clearFragmentResult(AlertActionIntroFragment.REQUEST_KEY)
@@ -313,7 +277,6 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         type = event.type,
                         groupId = args.groupId,
                         dummyTransactionId = event.dummyTransactionId,
-                        launcher = walletAuthLauncher,
                         activityContext = requireActivity()
                     )
                 }

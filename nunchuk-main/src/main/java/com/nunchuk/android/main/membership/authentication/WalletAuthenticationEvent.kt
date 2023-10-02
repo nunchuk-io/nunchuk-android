@@ -23,13 +23,16 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.type.TransactionStatus
 
 sealed class WalletAuthenticationEvent {
     data class Loading(val isLoading: Boolean) : WalletAuthenticationEvent()
     data class ProcessFailure(val message: String) : WalletAuthenticationEvent()
     data class ShowError(val message: String) : WalletAuthenticationEvent()
-    data class WalletAuthenticationSuccess(val signatures: Map<String, String> = emptyMap()) :
+    data class SignDummyTxSuccess(val signatures: Map<String, String> = emptyMap()) :
         WalletAuthenticationEvent()
+
+    data class UploadSignatureSuccess(val status: TransactionStatus) : WalletAuthenticationEvent()
 
     class NfcLoading(val isLoading: Boolean, val isColdCard: Boolean = false) :
         WalletAuthenticationEvent()
@@ -55,5 +58,6 @@ data class WalletAuthenticationState(
     val interactSingleSigner: SingleSigner? = null,
     val dummyTransactionType: DummyTransactionType = DummyTransactionType.NONE,
     val enabledSigners : Set<String> = emptySet(),
-    val isDraft: Boolean = false
+    val isDraft: Boolean = false,
+    val transactionStatus: TransactionStatus = TransactionStatus.PENDING_SIGNATURES,
 )

@@ -96,15 +96,6 @@ class CosigningGroupPolicyFragment : Fragment() {
                 val token = data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
                 if (signatures.isNotEmpty() || token.isNotEmpty()) {
                     viewModel.updateServerConfig(signatures, token)
-                } else {
-                    NCToastMessage(
-                        requireActivity()
-                    ).showMessage(
-                        getString(
-                            R.string.nc_policy_updated
-                        )
-                    )
-                    viewModel.updatePoliciesSuccess()
                 }
             }
         }

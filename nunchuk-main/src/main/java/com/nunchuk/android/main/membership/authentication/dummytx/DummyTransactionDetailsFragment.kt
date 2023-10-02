@@ -36,6 +36,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -122,7 +123,9 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
             SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
-            SheetOptionType.TYPE_FORCE_SYNC_DUMMY_TX -> walletAuthenticationViewModel.uploadSignaturesFromLocalIfNeeded(true)
+            SheetOptionType.TYPE_FORCE_SYNC_DUMMY_TX -> walletAuthenticationViewModel.uploadSignaturesFromLocalIfNeeded(
+                true
+            )
         }
     }
 
@@ -146,15 +149,20 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
             walletAuthenticationViewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        is WalletAuthenticationEvent.WalletAuthenticationSuccess -> {
-                            requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
-                                putExtra(
-                                    GlobalResultKey.SIGNATURE_EXTRA,
-                                    HashMap(event.signatures)
-                                )
-                                putExtras(walletAuthenticationViewModel.getDummyTransactionExtra())
-                            })
-                            requireActivity().finish()
+                        is WalletAuthenticationEvent.SignDummyTxSuccess -> {
+                            val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
+                            if (!args.dummyTransactionId.isNullOrEmpty() && args.action != TargetAction.CLAIM_KEY.name) {
+                                openGroupDashboard()
+                            } else {
+                                requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                                    putExtra(
+                                        GlobalResultKey.SIGNATURE_EXTRA,
+                                        HashMap(event.signatures)
+                                    )
+                                    putExtras(walletAuthenticationViewModel.getDummyTransactionExtra())
+                                })
+                                requireActivity().finish()
+                            }
                         }
 
                         is WalletAuthenticationEvent.ScanTapSigner -> (requireActivity() as NfcActionListener).startNfcFlow(
@@ -179,8 +187,13 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
-                        is WalletAuthenticationEvent.ForceSyncSuccess -> if (event.isSuccess) showSuccess(getString(R.string.nc_transaction_updated))
+                        is WalletAuthenticationEvent.UploadSignatureSuccess -> openGroupDashboard()
+
+                        is WalletAuthenticationEvent.ForceSyncSuccess -> if (event.isSuccess) showSuccess(
+                            getString(R.string.nc_transaction_updated)
+                        )
                         else showError(getString(R.string.nc_transaction_not_updated))
+
                         is WalletAuthenticationEvent.SignFailed -> handleSignedFailed(event.singleSigner)
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
@@ -216,11 +229,24 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         }
     }
 
+    private fun openGroupDashboard() {
+        val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
+        navigator.openGroupDashboardScreen(
+            activityContext = requireActivity(),
+            groupId = args.groupId.orEmpty(),
+            walletId = args.walletId,
+            message = walletAuthenticationViewModel.signedSuccessMessage
+        )
+        ActivityManager.popUntilRoot()
+    }
+
     private fun handleSignedFailed(singleSigner: SingleSigner) {
         val activityArgs: WalletAuthenticationActivityArgs by requireActivity().navArgs()
         if (activityArgs.action == TargetAction.CLAIM_KEY.name
             && (singleSigner.type == SignerType.COLDCARD_NFC
-                    || (singleSigner.type == SignerType.HARDWARE && singleSigner.tags.contains(SignerTag.COLDCARD))
+                    || (singleSigner.type == SignerType.HARDWARE && singleSigner.tags.contains(
+                SignerTag.COLDCARD
+            ))
                     || singleSigner.type == SignerType.AIRGAP)
         ) {
             NCWarningDialog(requireActivity())
@@ -298,7 +324,8 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                     type = SheetOptionType.TYPE_FORCE_SYNC_DUMMY_TX,
                     resId = R.drawable.ic_sync,
                     label = getString(R.string.nc_transaction_force_sync),
-            ))
+                )
+            )
         }
         BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }

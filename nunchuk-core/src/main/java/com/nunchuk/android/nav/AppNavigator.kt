@@ -92,7 +92,7 @@ interface AppNavigator {
         userData: String = "",
         requiredSignatures: Int,
         type: String,
-        launcher: ActivityResultLauncher<Intent>,
+        launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Activity,
         groupId: String? = null,
         dummyTransactionId: String? = null,
@@ -102,6 +102,7 @@ interface AppNavigator {
     fun openGroupDashboardScreen(
         groupId: String,
         walletId: String? = null,
+        message: String? = null,
         activityContext: Context
     )
 }

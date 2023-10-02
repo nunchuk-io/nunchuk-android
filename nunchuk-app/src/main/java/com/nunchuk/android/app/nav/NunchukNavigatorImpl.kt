@@ -271,7 +271,7 @@ interface AppNavigatorDelegate : AppNavigator {
         userData: String,
         requiredSignatures: Int,
         type: String,
-        launcher: ActivityResultLauncher<Intent>,
+        launcher: ActivityResultLauncher<Intent>?,
         activityContext: Activity,
         groupId: String?,
         dummyTransactionId: String?,
@@ -293,8 +293,9 @@ interface AppNavigatorDelegate : AppNavigator {
     override fun openGroupDashboardScreen(
         groupId: String,
         walletId: String?,
+        message: String?,
         activityContext: Context
     ) {
-        GroupDashboardActivity.navigate(activityContext, groupId = groupId, walletId = walletId)
+        GroupDashboardActivity.navigate(activityContext, groupId = groupId, walletId = walletId, message = message)
     }
 }

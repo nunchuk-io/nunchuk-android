@@ -82,27 +82,26 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
             userData: String,
             requiredSignatures: Int,
             type: String,
-            launcher: ActivityResultLauncher<Intent>,
+            launcher: ActivityResultLauncher<Intent>?,
             activityContext: Activity,
             groupId: String? = null,
             dummyTransactionId: String? = null,
             action: String? = null
         ) {
-            launcher.launch(
-                Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
-                    putExtras(
-                        WalletAuthenticationActivityArgs(
-                            walletId = walletId,
-                            userData = userData,
-                            requiredSignatures = requiredSignatures,
-                            type = type,
-                            groupId = groupId,
-                            dummyTransactionId = dummyTransactionId,
-                            action = action
-                        ).toBundle()
-                    )
-                }
-            )
+            val intent = Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
+                putExtras(
+                    WalletAuthenticationActivityArgs(
+                        walletId = walletId,
+                        userData = userData,
+                        requiredSignatures = requiredSignatures,
+                        type = type,
+                        groupId = groupId,
+                        dummyTransactionId = dummyTransactionId,
+                        action = action
+                    ).toBundle()
+                )
+            }
+            launcher?.launch(intent) ?: activityContext.startActivity(intent)
         }
     }
 }
