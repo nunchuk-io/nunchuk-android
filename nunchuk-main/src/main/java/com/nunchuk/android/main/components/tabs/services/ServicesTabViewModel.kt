@@ -108,8 +108,9 @@ class ServicesTabViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getGroupsFlowUseCase(LoadingOptions.OFFLINE)
-                .collect {
-                    updateGroupInfo(it.getOrDefault(emptyList()))
+                .collect { result ->
+                    val groups = result.getOrDefault(emptyList()).filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
+                    updateGroupInfo(groups)
                 }
         }
     }

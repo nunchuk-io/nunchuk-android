@@ -29,4 +29,8 @@ class ByzantineGroupUtils @Inject constructor(private val accountManager: Accoun
         val inviter = group.members.firstOrNull { it.user?.id == invitee.inviterUserId }
         return inviter?.user?.name.orEmpty()
     }
+
+    fun isPendingAcceptInvite(group: ByzantineGroup): Boolean {
+        return group.members.any { it.isPendingRequest() && isMatchingEmailOrUserName(it.emailOrUsername) }
+    }
 }
