@@ -47,6 +47,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
+import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
@@ -91,6 +92,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private var masterSignerId: String = ""
     private var magicalPhrase: String = ""
     private var derivationPath: String = ""
+    private var isInheritanceFlow = false
 
     override val initialState = Unit
 
@@ -122,6 +124,7 @@ class TransactionConfirmViewModel @Inject constructor(
         this.masterSignerId = masterSignerId
         this.magicalPhrase = magicalPhrase
         this.derivationPath = derivationPath
+        isInheritanceFlow = magicalPhrase.isNotEmpty() && masterSignerId.isNotEmpty()
         if (inputs.isNotEmpty()) {
             getAllTags()
         }
@@ -163,10 +166,12 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun draftTransaction() {
-        if (slots.isEmpty()) {
-            draftNormalTransaction()
-        } else {
+        if (isInheritanceFlow) {
+            draftInheritanceTransaction()
+        } else if (slots.isNotEmpty()) {
             draftSatsCardTransaction()
+        } else {
+            draftNormalTransaction()
         }
     }
 
@@ -194,6 +199,27 @@ class TransactionConfirmViewModel @Inject constructor(
                     txReceipts.first().address,
                     slots,
                     manualFeeRate
+                )
+            )
+            if (result.isSuccess) {
+                onDraftTransactionSuccess(result.getOrThrow())
+            } else {
+                event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orEmpty()))
+            }
+        }
+    }
+
+    private fun draftInheritanceTransaction() {
+        event(LoadingEvent)
+        viewModelScope.launch {
+           val result = inheritanceClaimCreateTransactionUseCase(
+                InheritanceClaimCreateTransactionUseCase.Param(
+                    masterSignerId = masterSignerId,
+                    address = txReceipts.first().address,
+                    magic = magicalPhrase,
+                    feeRate = manualFeeRate.toManualFeeRate(),
+                    derivationPath = derivationPath,
+                    isDraft = true
                 )
             )
             if (result.isSuccess) {
@@ -286,7 +312,8 @@ class TransactionConfirmViewModel @Inject constructor(
                 feeRate = manualFeeRate.toManualFeeRate(),
                 masterSignerId = masterSignerId,
                 magic = magicalPhrase,
-                derivationPath = derivationPath
+                derivationPath = derivationPath,
+                isDraft = false
             )
         )
         if (result.isSuccess) {

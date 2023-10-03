@@ -472,8 +472,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.confirmTime.text = transaction.getFormatDate()
         binding.status.bindTransactionStatus(transaction)
         binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
-        binding.signersContainer.isVisible = !transaction.isReceive
-        binding.btnBroadcast.isVisible = transaction.status.canBroadCast()
+        binding.signersContainer.isVisible = !transaction.isReceive && args.isInheritanceClaimingFlow.not()
+        binding.btnBroadcast.isVisible = transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not()
         binding.btnViewBlockChain.isVisible =
             transaction.isReceive || transaction.status.hadBroadcast()
 

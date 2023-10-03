@@ -153,7 +153,7 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
             slots = emptyList(),
             sweepType = sweepType,
             masterSignerId = args.signer.id,
-            magicalPhrase = args.magic,
+            magicalPhrase = args.magic.trim(),
             derivationPath = args.derivationPath
         )
     }
@@ -165,7 +165,7 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
                 type = SelectWalletFragment.TYPE_INHERITANCE_WALLET,
                 walletBalance = viewModel.getBalance().toFloat(),
                 masterSignerId = args.signer.id,
-                magicalPhrase = args.magic,
+                magicalPhrase = args.magic.trim(),
                 derivationPath = args.derivationPath
             )
         )

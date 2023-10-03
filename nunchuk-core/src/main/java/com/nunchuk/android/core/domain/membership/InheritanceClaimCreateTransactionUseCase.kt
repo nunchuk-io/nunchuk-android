@@ -54,13 +54,15 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             masterFingerprint = signer.masterFingerprint,
             signature = signature
         )
-        val transaction = nunchukNativeSdk.createTransaction(
+        val transaction = nunchukNativeSdk.createInheritanceClaimTransaction(
             signer = signer,
             psbt = transactionResponse.psbt,
             subAmount = transactionResponse.subAmount.toString(),
             fee = transactionResponse.fee.toString(),
-            feeRate = transactionResponse.feeRate.toString()
+            feeRate = transactionResponse.feeRate.toString(),
+            isDraft = parameters.isDraft,
         )
+        if (parameters.isDraft) return transaction
         userWalletRepository.inheritanceClaimingClaim(
             magic = parameters.magic,
             psbt = transaction.psbt
@@ -69,6 +71,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
     }
 
     data class Param(
+        val isDraft: Boolean,
         val masterSignerId: String,
         val address: String,
         val magic: String,

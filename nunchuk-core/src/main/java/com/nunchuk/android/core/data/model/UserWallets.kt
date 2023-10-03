@@ -245,8 +245,8 @@ data class InheritanceCheckResponse(
 
 data class TransactionAdditionalResponse(
     @SerializedName("transaction") val transaction: TransactionServerDto? = null,
-    @SerializedName("tx_fee") val txFee: Double? = null,
-    @SerializedName("tx_fee_rate") val txFeeRate: Double? = null,
+    @SerializedName("fee") val txFee: Double? = null,
+    @SerializedName("fee_rate") val txFeeRate: Double? = null,
     @SerializedName("sub_amount") val subAmount: Double? = null
 )
 

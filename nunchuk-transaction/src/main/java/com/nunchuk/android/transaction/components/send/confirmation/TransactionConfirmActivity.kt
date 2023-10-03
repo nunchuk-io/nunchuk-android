@@ -167,7 +167,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                 event.transaction.txId,
                 args.walletId,
                 sessionHolder.getActiveRoomIdSafe(),
-                viewModel.isInheritanceClaimingFlow()
+                viewModel.isInheritanceClaimingFlow(),
+                transaction = if (viewModel.isInheritanceClaimingFlow()) event.transaction else null
             )
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             LoadingEvent -> showLoading()
