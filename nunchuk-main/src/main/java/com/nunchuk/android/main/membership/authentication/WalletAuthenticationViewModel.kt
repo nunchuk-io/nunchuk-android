@@ -386,16 +386,15 @@ class WalletAuthenticationViewModel @Inject constructor(
         ).onFailure {
             _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
         }.onSuccess { updateInfo ->
+            _state.update {
+                it.copy(
+                    signatures = signatures,
+                    pendingSignature = updateInfo.pendingSignatures,
+                    transactionStatus = updateInfo.status
+                )
+            }
             if (updateInfo.status == TransactionStatus.CONFIRMED) {
                 _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess())
-            } else {
-                _state.update {
-                    it.copy(
-                        signatures = signatures,
-                        pendingSignature = updateInfo.pendingSignatures,
-                        transactionStatus = updateInfo.status
-                    )
-                }
             }
         }.isSuccess
     }

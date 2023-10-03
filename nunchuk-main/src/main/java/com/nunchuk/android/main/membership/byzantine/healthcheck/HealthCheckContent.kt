@@ -84,7 +84,7 @@ fun HealthCheckContent(
                     .fillMaxHeight(),
             ) {
                 Text(
-                    text = stringResource(R.string.nc_savings_account),
+                    text = state.wallet.name,
                     style = NunchukTheme.typography.title
                 )
                 LazyColumn(
