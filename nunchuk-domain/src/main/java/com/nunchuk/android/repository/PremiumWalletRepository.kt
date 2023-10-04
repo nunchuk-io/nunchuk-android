@@ -389,8 +389,10 @@ interface PremiumWalletRepository {
     suspend fun dismissAlert(groupId: String, alertId: String)
     suspend fun getAlertTotal(groupId: String): Int
     suspend fun createOrUpdateGroupChat(roomId: String, groupId: String, historyPeriodId: String?): GroupChat
-    suspend fun getGroupChat(groupId: String): GroupChat
-    suspend fun deleteGroupChat(groupId: String)
+    suspend fun getGroupChatByGroupId(groupId: String): GroupChat
+    suspend fun getGroupChatByRoomId(roomId: String): GroupChat?
+    suspend fun syncGroupChat()
+    suspend fun deleteGroupChat(roomId: String)
     suspend fun getHistoryPeriod(): List<HistoryPeriod>
     suspend fun requestConfirmationCode(action: String, userData: String): Pair<String, String>
     suspend fun verifyConfirmationCode(codeId: String, code: String): String

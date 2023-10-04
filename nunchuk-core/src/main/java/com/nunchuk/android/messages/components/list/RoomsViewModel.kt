@@ -24,6 +24,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.settings.MarkSyncRoomSuccessUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.roomSummariesFlow
+import com.nunchuk.android.core.util.GROUP_CHAT_ROOM_TYPE
 import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
 import com.nunchuk.android.core.util.SUPPORT_TEST_NET_ROOM_TYPE
 import com.nunchuk.android.core.util.orUnknownError
@@ -35,6 +36,7 @@ import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.usecase.membership.DeleteGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetLocalCurrentSubscriptionPlan
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
@@ -55,6 +57,7 @@ class RoomsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
     private val markSyncRoomSuccessUseCase: MarkSyncRoomSuccessUseCase,
+    private val deleteGroupChatUseCase: DeleteGroupChatUseCase,
     getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
@@ -148,7 +151,16 @@ class RoomsViewModel @Inject constructor(
             setEvent(RoomsEvent.LoadingEvent(true))
             val room = getRoom(roomSummary)
             if (room != null) {
-                handleRemoveRoom(room)
+                if (roomSummary.roomType == GROUP_CHAT_ROOM_TYPE) {
+                    deleteGroupChatUseCase(room.roomId)
+                        .onSuccess {
+                            handleRemoveRoom(room, roomSummary)
+                        }.onFailure { throwable ->
+                            setEvent(RoomsEvent.LoadingEvent(false))
+                            setEvent(RoomsEvent.ShowError(throwable.message.orUnknownError())) }
+                } else {
+                    handleRemoveRoom(room, roomSummary)
+                }
             } else {
                 setEvent(RoomsEvent.LoadingEvent(false))
             }
@@ -168,12 +180,13 @@ class RoomsViewModel @Inject constructor(
         }
     }
 
-    private fun handleRemoveRoom(room: Room) {
+    private fun handleRemoveRoom(room: Room, roomSummary: RoomSummary) {
         viewModelScope.launch {
             leaveRoomUseCase.execute(room.roomId)
                 .flowOn(dispatcher)
                 .onException { RoomsEvent.LoadingEvent(false) }
                 .collect {
+                    setEvent(RoomsEvent.RemoveRoomSuccess(roomSummary))
                     RoomsEvent.LoadingEvent(false)
                     listenRoomSummaries()
                 }

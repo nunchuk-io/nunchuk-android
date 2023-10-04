@@ -134,6 +134,7 @@ import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AlertDao
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
+import com.nunchuk.android.persistence.dao.GroupChatDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
@@ -174,6 +175,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val requestAddKeyDao: RequestAddKeyDao,
     private val groupDao: GroupDao,
     private val alertDao: AlertDao,
+    private val groupChatDao: GroupChatDao,
     private val groupWalletRepository: GroupWalletRepository,
     private val pushEventManager: PushEventManager,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
@@ -2042,12 +2044,23 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.chat.toGroupChat()
     }
 
-    override suspend fun getGroupChat(groupId: String): GroupChat {
+    override suspend fun getGroupChatByRoomId(roomId: String): GroupChat? {
+        val entity = groupChatDao.getByRoomId(roomId, accountManager.getAccount().chatId, chain.value)
+        return entity?.toGroupChat()
+    }
+
+    override suspend fun syncGroupChat() {
+        syncer.syncGroupChat()
+    }
+
+    override suspend fun getGroupChatByGroupId(groupId: String): GroupChat {
         val response = userWalletApiManager.groupWalletApi.getGroupChat(groupId)
         return response.data.chat.toGroupChat()
     }
 
-    override suspend fun deleteGroupChat(groupId: String) {
+    override suspend fun deleteGroupChat(roomId: String) {
+        val groupId = groupChatDao.getByRoomId(roomId, accountManager.getAccount().chatId, chain.value)?.groupId
+            ?: throw NullPointerException("Can not find group chat")
         userWalletApiManager.groupWalletApi.deleteGroupChat(groupId)
     }
 

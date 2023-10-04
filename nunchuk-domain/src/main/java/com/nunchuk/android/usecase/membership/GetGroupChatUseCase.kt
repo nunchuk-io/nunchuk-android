@@ -14,6 +14,6 @@ class GetGroupChatUseCase @Inject constructor(
 ) : UseCase<String, GroupChat>(ioDispatcher) {
 
     override suspend fun execute(parameters: String): GroupChat {
-        return repository.getGroupChat(parameters)
+        return repository.getGroupChatByGroupId(parameters)
     }
 }

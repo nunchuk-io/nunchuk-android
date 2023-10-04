@@ -7,6 +7,11 @@ class GroupChatDataResponse(
     val chat: GroupChatDto
 )
 
+class GroupChatListDataResponse(
+    @SerializedName("chats")
+    val chats: List<GroupChatDto>? = null
+)
+
 class GroupChatDto(
     @SerializedName("created_time_millis")
     val createdTimeMillis: Long? = null,

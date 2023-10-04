@@ -31,4 +31,5 @@ sealed class PushEvent {
     data class GroupWalletCreated(val walletId: String) : PushEvent()
     data class GroupEmergencyLockdownStarted(val walletId: String) : PushEvent()
     data object KeyAddedToGroup : PushEvent()
+    data object RoomChatEvent : PushEvent()
 }

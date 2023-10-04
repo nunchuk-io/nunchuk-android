@@ -139,6 +139,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             is LoadingEvent -> showOrHideLoading(event.loading)
             is RoomsEvent.CreateSupportRoomSuccess -> openRoomDetailScreen(event.roomId)
             is RoomsEvent.ShowError -> showError(event.message)
+            is RoomsEvent.RemoveRoomSuccess -> deleteRoom(event.roomSummary)
         }
     }
 
@@ -162,7 +163,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
                 )
         } else {
             viewModel.removeRoom(roomSummary)
-            deleteRoom(roomSummary)
         }
     }
 

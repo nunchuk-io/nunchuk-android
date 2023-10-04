@@ -14,6 +14,7 @@ import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
 import com.nunchuk.android.core.data.model.byzantine.GetGroupsResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupChatDataResponse
+import com.nunchuk.android.core.data.model.byzantine.GroupChatListDataResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
@@ -218,6 +219,9 @@ internal interface GroupWalletApi {
     suspend fun deleteGroupChat(
         @Path("group_id") groupId: String,
     ): Data<Unit>
+
+    @GET("/v1.1/group-wallets/chat")
+    suspend fun getGroupChats(): Data<GroupChatListDataResponse>
 
     @GET("/v1.1/group-wallets/chat/{group_id}/current")
     suspend fun getGroupChat(

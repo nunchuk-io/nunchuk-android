@@ -34,4 +34,5 @@ sealed class RoomsEvent {
     data class LoadingEvent(val loading: Boolean) : RoomsEvent()
     data class CreateSupportRoomSuccess(val roomId: String) : RoomsEvent()
     data class ShowError(val message: String) : RoomsEvent()
+    data class RemoveRoomSuccess(val roomSummary: RoomSummary) : RoomsEvent()
 }
