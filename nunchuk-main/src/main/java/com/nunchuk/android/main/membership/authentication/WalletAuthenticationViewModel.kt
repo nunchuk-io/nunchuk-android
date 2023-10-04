@@ -226,10 +226,9 @@ class WalletAuthenticationViewModel @Inject constructor(
         when {
             signerModel.type == SignerType.NFC -> _event.emit(WalletAuthenticationEvent.ScanTapSigner)
             signerModel.type == SignerType.COLDCARD_NFC
-                    || (signerModel.type == SignerType.HARDWARE && signerModel.tags.contains(
-                SignerTag.COLDCARD
-            ))
-            -> _event.emit(WalletAuthenticationEvent.ScanColdCard)
+                    || signerModel.tags.contains(SignerTag.COLDCARD) -> _event.emit(
+                WalletAuthenticationEvent.ScanColdCard
+            )
 
             signerModel.type == SignerType.SOFTWARE -> handleSignCheckSoftware(singleSigner)
             signerModel.type == SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)

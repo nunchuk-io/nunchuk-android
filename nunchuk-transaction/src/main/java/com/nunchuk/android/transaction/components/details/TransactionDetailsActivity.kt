@@ -396,7 +396,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun handleServerTransaction(
-        transaction: Transaction, serverTransaction: ServerTransaction?
+        transaction: Transaction, serverTransaction: ServerTransaction?,
     ) {
         if (serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
             binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(
@@ -419,7 +419,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         signerMap: Map<String, Boolean>,
         signers: List<SignerModel>,
         status: TransactionStatus,
-        serverTransaction: ServerTransaction?
+        serverTransaction: ServerTransaction?,
     ) {
         TransactionSignersViewBinder(container = binding.signerListView,
             signerMap = signerMap,
@@ -429,8 +429,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             listener = { signer ->
                 viewModel.setCurrentSigner(signer)
                 when {
-                    signer.type == SignerType.COLDCARD_NFC
-                            || signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.COLDCARD) -> showSignByMk4Options()
+                    signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(SignerTag.COLDCARD) -> showSignByMk4Options()
 
                     signer.type == SignerType.NFC -> {
                         if (viewModel.isInheritanceSigner(signer.fingerPrint)) {
@@ -472,8 +471,10 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.confirmTime.text = transaction.getFormatDate()
         binding.status.bindTransactionStatus(transaction)
         binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
-        binding.signersContainer.isVisible = !transaction.isReceive && args.isInheritanceClaimingFlow.not()
-        binding.btnBroadcast.isVisible = transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not()
+        binding.signersContainer.isVisible =
+            !transaction.isReceive && args.isInheritanceClaimingFlow.not()
+        binding.btnBroadcast.isVisible =
+            transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not()
         binding.btnViewBlockChain.isVisible =
             transaction.isReceive || transaction.status.hadBroadcast()
 
@@ -842,7 +843,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             transaction: Transaction? = null,
             isInheritanceClaimingFlow: Boolean = false,
             isCancelBroadcast: Boolean = false,
-            errorMessage: String = ""
+            errorMessage: String = "",
         ): Intent {
             return TransactionDetailsArgs(
                 walletId = walletId,

@@ -32,6 +32,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
@@ -79,7 +80,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                 getFileFromUri(application.contentResolver, uri, application.cacheDir)?.readText()
             }?.let { content ->
                 val parseResult = parseJsonSignerUseCase(
-                    ParseJsonSignerUseCase.Params(content, SignerType.COLDCARD_NFC)
+                    ParseJsonSignerUseCase.Params(content, SignerType.AIRGAP)
                 )
                 if (parseResult.isFailure) {
                     _event.emit(ColdcardRecoverEvent.ParseFileError)
@@ -100,7 +101,8 @@ class ColdcardRecoverViewModel @Inject constructor(
                         xpub = signer.xpub,
                         derivationPath = signer.derivationPath,
                         masterFingerprint = signer.masterFingerprint,
-                        type = SignerType.COLDCARD_NFC
+                        type = SignerType.AIRGAP,
+                        tags = listOf(SignerTag.COLDCARD)
                     )
                 )
                 if (createSignerResult.isFailure) {
