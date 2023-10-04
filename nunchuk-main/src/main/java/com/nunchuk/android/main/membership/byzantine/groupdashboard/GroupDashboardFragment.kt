@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
@@ -46,16 +47,16 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
+class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -280,6 +281,8 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                         activityContext = requireActivity()
                     )
                 }
+
+                GroupDashboardEvent.RestartWizardSuccess -> requireActivity().finish()
             }
         }
     }
@@ -386,7 +389,6 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     override fun onOptionClicked(option: SheetOption) {
-        super.onOptionClicked(option)
         when (option.type) {
             SheetOptionType.SET_UP_INHERITANCE -> {
                 if (viewModel.state.value.isSetupInheritance) {
@@ -411,19 +413,30 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_GROUP_CHAT_HISTORY -> {
                 viewModel.getGroupChatHistoryPeriod()
             }
+
+            SheetOptionType.TYPE_RESTART_WIZARD -> {
+                NCWarningDialog(requireActivity()).showDialog(
+                    title = getString(R.string.nc_confirmation),
+                    message = getString(R.string.nc_confirm_cancel_pending_wallet),
+                    onYesClick = {
+                        viewModel.restartWizard()
+                    }
+                )
+            }
         }
     }
 
     private fun showMoreOptions() {
         val options = mutableListOf<SheetOption>()
+        val uiState = viewModel.state.value
         if (viewModel.isPendingCreateWallet().not()) {
-            if (viewModel.state.value.myRole.isMasterOrAdmin &&
-                viewModel.state.value.group?.walletConfig?.toGroupWalletType()?.isPro == true
+            if (uiState.myRole.isMasterOrAdmin &&
+                uiState.group?.walletConfig?.toGroupWalletType()?.isPro == true
             ) {
                 options.add(
                     SheetOption(
                         type = SheetOptionType.SET_UP_INHERITANCE,
-                        stringId = if (viewModel.state.value.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan_wallet
+                        stringId = if (uiState.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan_wallet
                     ),
                 )
                 if (!args.walletId.isNullOrEmpty()) {
@@ -456,6 +469,15 @@ class GroupDashboardFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             )
         }
+        if (viewModel.isPendingCreateWallet() && uiState.myRole == AssistedWalletRole.MASTER) (
+                options.add(
+                    SheetOption(
+                        type = SheetOptionType.TYPE_RESTART_WIZARD,
+                        stringId = R.string.nc_cancel_pending_wallet,
+                        isDeleted = true
+                    )
+                )
+        )
         if (options.isEmpty()) return
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")

@@ -29,6 +29,7 @@ import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusUseCase
@@ -40,6 +41,7 @@ import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
+import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -88,6 +90,8 @@ class GroupDashboardViewModel @Inject constructor(
     private val requestPlanningInheritanceUserDataUseCase: RequestPlanningInheritanceUserDataUseCase,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val requestPlanningInheritanceUseCase: RequestPlanningInheritanceUseCase,
+    private val restartWizardUseCase: RestartWizardUseCase,
+    private val membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -540,6 +544,21 @@ class GroupDashboardViewModel @Inject constructor(
                 _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
             }
             _event.emit(GroupDashboardEvent.Loading(false))
+        }
+    }
+
+    fun restartWizard() {
+        viewModelScope.launch {
+            restartWizardUseCase(
+                RestartWizardUseCase.Param(
+                    plan = membershipStepManager.plan,
+                    groupId = args.groupId
+                )
+            ).onSuccess {
+                _event.emit(GroupDashboardEvent.RestartWizardSuccess)
+            }.onFailure {
+                _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
+            }
         }
     }
 

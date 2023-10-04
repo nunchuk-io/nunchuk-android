@@ -3,7 +3,6 @@ package com.nunchuk.android.main.membership.byzantine.groupdashboard
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
-import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
@@ -33,6 +32,8 @@ sealed class GroupDashboardEvent {
         val requiredSignatures: Int,
         val dummyTransactionId: String
     ) : GroupDashboardEvent()
+
+    data object RestartWizardSuccess: GroupDashboardEvent()
 }
 
 data class GroupDashboardState(
