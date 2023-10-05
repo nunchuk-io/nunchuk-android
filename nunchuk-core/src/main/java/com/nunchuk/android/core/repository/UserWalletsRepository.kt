@@ -1038,7 +1038,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (confirmCodeNonce.isNotEmpty()) {
             request = request.copy(nonce = confirmCodeNonce)
         }
-        if (request.body?.groupId != null) {
+        val groupId = request.body?.groupId
+        val response = if (groupId != null) {
             userWalletApiManager.groupWalletApi.lockdownUpdate(
                 getHeaders(
                     authorizations = authorizations,
@@ -1046,9 +1047,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     securityQuestionToken = securityQuestionToken,
                     confirmCodeToken = confirmCodeToken
                 ), request
-            ).also {
-                if (it.isSuccess) markGroupWalletAsLocked(true, request.body?.groupId.orEmpty())
-            }
+            )
         } else {
             userWalletApiManager.walletApi.lockdownUpdate(
                 getHeaders(
@@ -1059,6 +1058,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 ), request
             )
         }
+        if (response.isSuccess.not()) throw response.error
+        groupId?.let { markGroupWalletAsLocked(true, it) }
     }
 
     override suspend fun generateSecurityQuestionUserData(
@@ -2074,24 +2075,31 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         userData: String,
     ): Pair<String, String> {
         val nonce = getNonce()
-        val body = when (action) {
-            TargetAction.EDIT_GROUP_MEMBERS.name -> gson.fromJson(
-                userData,
-                EditGroupMemberRequest.Body::class.java
-            )
+        var body: Any? = null
+        runCatching {
+            body = when (action) {
+                TargetAction.EDIT_GROUP_MEMBERS.name -> gson.fromJson(
+                    userData,
+                    EditGroupMemberRequest.Body::class.java
+                )
 
-            TargetAction.UPDATE_SECURITY_QUESTIONS.name -> gson.fromJson(
-                userData,
-                QuestionsAndAnswerRequestBody::class.java
-            )
+                TargetAction.UPDATE_SECURITY_QUESTIONS.name -> gson.fromJson(
+                    userData,
+                    QuestionsAndAnswerRequestBody::class.java
+                )
 
-            TargetAction.EMERGENCY_LOCKDOWN.name -> gson.fromJson(
-                userData,
-                LockdownUpdateRequest.Body::class.java
-            )
+                TargetAction.EMERGENCY_LOCKDOWN.name -> {
+                    val request = gson.fromJson(
+                        userData,
+                        LockdownUpdateRequest::class.java
+                    )
+                    request.body
+                }
 
-            else -> throw IllegalArgumentException("Unsupported action")
+                else -> null
+            }
         }
+        if (body == null) throw IllegalStateException("Can not request confirmation code")
         val request = ConfirmationCodeRequest(nonce = nonce, body = body)
         val response = userWalletApiManager.walletApi.requestConfirmationCode(
             action = action, payload = request
@@ -2103,6 +2111,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.verifyConfirmationCode(
             codeId, ConfirmationCodeVerifyRequest(code = code)
         )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
         return response.data.token.orEmpty()
     }
 

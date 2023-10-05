@@ -189,7 +189,7 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/lockdown/lock")
     suspend fun lockdownUpdate(
         @HeaderMap headers: Map<String, String>, @Body payload: LockdownUpdateRequest
-    )
+    ): Data<Unit>
 
     @POST("/v1.1/user-wallets/lockdown/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesLockdown(
