@@ -181,4 +181,5 @@
     <string name="nc_inheritance_has_been_canlled">The inheritance plan has been canceled</string>
     <string name="nc_cancel_pending_wallet">Cancel pending wallet</string>
     <string name="nc_confirm_cancel_pending_wallet">Are you sure you want to cancel this pending wallet?</string>
+    <string name="nc_this_step_require_hardware_key">This step requires hardware keys to complete.</string>
 </resources>

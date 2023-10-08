@@ -58,7 +58,6 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.CONTACT_EMAIL
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -221,11 +220,8 @@ fun AddKeyStepContent(
             )
             if (isConfigKeyDone.not()) {
                 NcHintMessage(
-                    modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp),
-                    messages = listOf(ClickAbleText("This step requires hardware keys to complete. If you have not received your hardware after a while, please contact us at"),
-                        ClickAbleText(CONTACT_EMAIL) {
-                            openContactUs(CONTACT_EMAIL)
-                        })
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp, end = 16.dp, start = 16.dp),
+                    messages = listOf(ClickAbleText(stringResource(R.string.nc_this_step_require_hardware_key)))
                 )
             }
             StepWithEstTime(
