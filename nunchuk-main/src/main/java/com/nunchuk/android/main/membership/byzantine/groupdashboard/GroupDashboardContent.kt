@@ -1,7 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -70,17 +69,18 @@ import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.type.SignerType
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun GroupDashboardContent(
     uiState: GroupDashboardState = GroupDashboardState(),
@@ -112,6 +112,14 @@ fun GroupDashboardContent(
         }
     }
 
+    val isShowMore: Boolean = (uiState.groupChat != null && uiState.myRole.isMasterOrAdmin)
+            || if (uiState.group?.isPendingWallet() == true) {
+        uiState.myRole == AssistedWalletRole.MASTER
+    } else {
+        uiState.myRole.isMasterOrAdmin &&
+                uiState.group?.walletConfig?.toGroupWalletType()?.isPro == true
+    }
+
     NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
         Scaffold(
             modifier = Modifier
@@ -140,11 +148,13 @@ fun GroupDashboardContent(
                                     )
                                 )
                             }
-                            IconButton(onClick = onMoreClick) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_more),
-                                    contentDescription = "More icon"
-                                )
+                            if (isShowMore) {
+                                IconButton(onClick = onMoreClick) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_more),
+                                        contentDescription = "More icon"
+                                    )
+                                }
                             }
                         }
                     })

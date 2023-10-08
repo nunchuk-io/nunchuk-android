@@ -470,8 +470,6 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun getSignerName(xfp: String) = state.value.signers.find { it.fingerPrint == xfp }?.name
-
     fun getWalletId() = walletId.value.orEmpty()
     fun handleRegisterSigners(xfps: List<String>) {
         viewModelScope.launch {

@@ -461,7 +461,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
         }
-        if (viewModel.groupChat() != null) {
+        if (uiState.myRole.isMasterOrAdmin && viewModel.groupChat() != null) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
