@@ -182,4 +182,5 @@
     <string name="nc_cancel_pending_wallet">Cancel pending wallet</string>
     <string name="nc_confirm_cancel_pending_wallet">Are you sure you want to cancel this pending wallet?</string>
     <string name="nc_this_step_require_hardware_key">This step requires hardware keys to complete.</string>
+    <string name="nc_health_check_has_been_canceled">Health check request has been canceled</string>
 </resources>

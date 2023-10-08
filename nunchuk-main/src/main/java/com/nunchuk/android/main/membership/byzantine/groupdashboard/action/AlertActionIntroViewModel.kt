@@ -9,6 +9,7 @@ import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.membership.DismissAlertUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +29,7 @@ class AlertActionIntroViewModel @Inject constructor(
     private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getGroupUseCase: GetGroupUseCase,
+    private val dismissAlertUseCase: DismissAlertUseCase,
     saveStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = AlertActionIntroFragmentArgs.fromSavedStateHandle(saveStateHandle)
@@ -90,6 +92,7 @@ class AlertActionIntroViewModel @Inject constructor(
                     transactionId = args.alert.payload.dummyTransactionId
                 )
             ).onSuccess {
+                dismissAlertUseCase(DismissAlertUseCase.Param(args.alert.id, args.groupId))
                 _event.emit(AlertActionIntroEvent.DeleteDummyTransactionSuccess)
             }
             _event.emit(AlertActionIntroEvent.Loading(false))

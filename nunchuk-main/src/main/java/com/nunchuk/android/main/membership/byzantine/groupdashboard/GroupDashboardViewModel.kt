@@ -175,10 +175,8 @@ class GroupDashboardViewModel @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { alerts ->
-                    if (alerts.isNotEmpty()) {
-                        _state.update { state ->
-                            state.copy(alerts = alerts)
-                        }
+                    _state.update { state ->
+                        state.copy(alerts = alerts)
                     }
                 }
         }

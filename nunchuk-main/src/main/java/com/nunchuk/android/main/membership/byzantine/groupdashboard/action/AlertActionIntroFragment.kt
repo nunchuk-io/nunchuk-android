@@ -22,7 +22,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
@@ -41,12 +40,12 @@ import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.transaction.AlertPayload
-import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -102,6 +101,10 @@ class AlertActionIntroFragment : Fragment() {
                                 NcToastManager.scheduleShowMessage(
                                     message = getString(R.string.nc_inheritance_request_denied),
                                     delay = 500L
+                                )
+                            } else if (args.alert.type == AlertType.HEALTH_CHECK_REQUEST || args.alert.type == AlertType.HEALTH_CHECK_PENDING) {
+                                showSuccess(
+                                    message = getString(R.string.nc_health_check_has_been_canceled),
                                 )
                             }
                             hideLoading()
