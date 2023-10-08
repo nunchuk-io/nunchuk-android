@@ -47,8 +47,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -98,7 +96,8 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                                         VerificationType.SIGN_DUMMY_TX,
                                         payload.requiredSignatures
                                     ),
-                                    requestByUserId = payload.requestByUserId
+                                    requestByUserId = payload.requestByUserId,
+                                    pendingSignature = payload.pendingSignatures
                                 )
                             }
                         }
@@ -189,8 +188,6 @@ class CosigningGroupPolicyViewModel @Inject constructor(
             }
         }
     }
-
-    fun updatePoliciesSuccess() = _state.update { it.copy(isUpdateFlow = false) }
 
     fun onDiscardChangeClicked() {
         viewModelScope.launch {
@@ -313,6 +310,7 @@ data class CosigningGroupPolicyState(
     val walletName: String = "",
     val requestByUserId: String = "",
     val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
+    val pendingSignature: Int = 0,
     val myRole: AssistedWalletRole = AssistedWalletRole.NONE
 )
 

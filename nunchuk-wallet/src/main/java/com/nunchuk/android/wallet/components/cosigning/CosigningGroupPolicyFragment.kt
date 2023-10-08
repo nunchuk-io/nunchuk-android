@@ -220,7 +220,8 @@ private fun CosigningGroupPolicyContent(
     }
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.statusBarsPadding()
+            modifier = Modifier
+                .statusBarsPadding()
                 .navigationBarsPadding(),
             topBar = { NcTopAppBar(title = "", elevation = 0.dp) }) { innerPadding ->
             Column(
@@ -388,7 +389,16 @@ private fun CosigningGroupPolicyContent(
                         onClick = onSaveChangeClicked,
                         enabled = uiState.keyPolicy.spendingPolicies.isNotEmpty()
                     ) {
-                        Text(text = stringResource(R.string.nc_continue_save_changes))
+                        if (uiState.pendingSignature > 0) {
+                            Text(
+                                text = stringResource(
+                                    R.string.nc_text_continue_signature_pending,
+                                    uiState.pendingSignature
+                                )
+                            )
+                        } else {
+                            Text(text = stringResource(R.string.nc_continue_save_changes))
+                        }
                     }
                     if (uiState.myRole == AssistedWalletRole.MASTER || uiState.myRole == AssistedWalletRole.ADMIN) {
                         TextButton(
