@@ -61,6 +61,14 @@ sealed class ServicesTabEvent {
 
     data class OpenSetupInheritancePlan(val walletId: String, val groupId: String?) :
         ServicesTabEvent()
+    data class CalculateRequiredSignaturesSuccess(
+        val type: String,
+        val walletId: String,
+        val groupId: String,
+        val userData: String,
+        val requiredSignatures: Int,
+        val dummyTransactionId: String
+    ) : ServicesTabEvent()
 }
 
 data class ServicesTabState(

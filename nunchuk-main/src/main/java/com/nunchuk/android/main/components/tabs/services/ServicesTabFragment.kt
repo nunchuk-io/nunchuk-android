@@ -123,6 +123,16 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     flowInfo = InheritancePlanFlow.SETUP,
                     groupId = event.groupId
                 )
+
+                is ServicesTabEvent.CalculateRequiredSignaturesSuccess -> navigator.openWalletAuthentication(
+                    walletId = event.walletId,
+                    userData = event.userData,
+                    requiredSignatures = event.requiredSignatures,
+                    type = event.type,
+                    groupId = event.groupId,
+                    dummyTransactionId = event.dummyTransactionId,
+                    activityContext = requireActivity()
+                )
             }
         }
         flowObserver(viewModel.state) { state ->
@@ -239,12 +249,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.SetUpInheritancePlan -> {
                 val wallets = viewModel.getUnSetupInheritanceWallets()
                 if (wallets.size == 1) {
-                    navigator.openInheritancePlanningScreen(
-                        walletId = wallets.first().localId,
-                        activityContext = requireContext(),
-                        flowInfo = InheritancePlanFlow.SETUP,
-                        groupId = wallets.first().groupId
-                    )
+                    viewModel.openSetupInheritancePlan(wallets.first().localId)
                 } else {
                     AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
                 }

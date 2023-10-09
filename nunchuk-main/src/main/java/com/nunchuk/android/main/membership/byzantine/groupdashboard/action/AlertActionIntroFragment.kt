@@ -98,9 +98,8 @@ class AlertActionIntroFragment : Fragment() {
                     when (event) {
                         is AlertActionIntroEvent.DeleteDummyTransactionSuccess -> {
                             if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-                                NcToastManager.scheduleShowMessage(
+                                showSuccess(
                                     message = getString(R.string.nc_inheritance_request_denied),
-                                    delay = 500L
                                 )
                             } else if (args.alert.type == AlertType.HEALTH_CHECK_REQUEST || args.alert.type == AlertType.HEALTH_CHECK_PENDING) {
                                 showSuccess(
