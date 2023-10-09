@@ -232,7 +232,6 @@ fun InheritanceNoteScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = note.isNotBlank(),
                     onClick = onContinueClick,
                 ) {
                     Text(text = continueBtnText)

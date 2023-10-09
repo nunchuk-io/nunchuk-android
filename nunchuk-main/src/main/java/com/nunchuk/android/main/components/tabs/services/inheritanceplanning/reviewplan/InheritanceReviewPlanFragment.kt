@@ -388,9 +388,17 @@ fun InheritanceReviewPlanScreenContent(
                             IconButton(onClick = {
                                 onActionTopBarClick()
                             }) {
-                                if (planFlow != InheritancePlanFlow.SETUP ||
-                                    groupId.isNotEmpty() && (state.currentUserRole.toRole.isMasterOrAdmin)
-                                ) {
+                                var showMoreIcon = false
+                                if (planFlow == InheritancePlanFlow.SETUP) {
+                                    showMoreIcon = false
+                                } else {
+                                    if (groupId.isNotEmpty()) {
+                                        if (state.currentUserRole.toRole.isMasterOrAdmin) showMoreIcon = true
+                                    } else {
+                                        showMoreIcon = true
+                                    }
+                                }
+                                if (showMoreIcon) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_more_horizontal),
                                         contentDescription = "More"
