@@ -48,7 +48,8 @@ class MasterSignerMapper @Inject constructor(
             isPrimaryKey = isPrimaryKey,
             cardId = cardId,
             tags = from.tags,
-            isVisible = from.isVisible
+            isVisible = from.isVisible,
+            isMasterSigner = true
         )
     }
 }

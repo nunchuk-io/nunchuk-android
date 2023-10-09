@@ -56,6 +56,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
@@ -70,6 +71,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -665,29 +667,19 @@ private fun ConfigItem(
 
 @Preview
 @Composable
-fun AddKeyListScreenIronHandPreview() {
+fun AddKeyListScreenIronHandPreview(
+    @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
+) {
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
                 type = MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-                SignerModel(
-                    id = "123",
-                    type = SignerType.NFC,
-                    name = "My Key",
-                    derivationPath = "",
-                    fingerPrint = "123456"
-                ),
+                signer = signer,
                 verifyType = VerifyType.APP_VERIFIED
             ),
             AddKeyData(
                 type = MembershipStep.IRON_ADD_HARDWARE_KEY_2,
-                signer = SignerModel(
-                    id = "123",
-                    type = SignerType.NFC,
-                    name = "My Key",
-                    derivationPath = "",
-                    fingerPrint = "123456"
-                ),
+                signer = signer,
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
@@ -698,7 +690,9 @@ fun AddKeyListScreenIronHandPreview() {
 
 @Preview
 @Composable
-fun AddKeyListScreenHoneyBadgerPreview() {
+fun AddKeyListScreenHoneyBadgerPreview(
+    @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
+) {
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
@@ -707,13 +701,7 @@ fun AddKeyListScreenHoneyBadgerPreview() {
             ),
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                signer = SignerModel(
-                    id = "123",
-                    type = SignerType.COLDCARD_NFC,
-                    name = "TAPSIGNER",
-                    derivationPath = "",
-                    fingerPrint = "123456"
-                ),
+                signer = signer,
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(

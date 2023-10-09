@@ -60,6 +60,7 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
                 is AddNameMk4ViewEvent.CreateMk4SignerSuccess -> {
                     navigator.openSignerInfoScreen(
                         activityContext = requireActivity(),
+                        isMasterSigner = it.signer.hasMasterSigner,
                         id = it.signer.masterSignerId,
                         masterFingerprint = it.signer.masterFingerprint,
                         name = it.signer.name,

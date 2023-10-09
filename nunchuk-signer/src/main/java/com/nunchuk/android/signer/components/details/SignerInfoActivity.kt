@@ -46,6 +46,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
 
         fun start(
             activityContext: Context,
+            isMasterSigner: Boolean,
             id: String,
             masterFingerprint: String,
             name: String,
@@ -68,7 +69,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                     masterFingerprint = masterFingerprint,
                     isInWallet = isInWallet,
                     isReplacePrimaryKey = isReplacePrimaryKey,
-                    customMessage = customMessage
+                    customMessage = customMessage,
+                    isMasterSigner = isMasterSigner
                 ).toBundle())
             })
         }

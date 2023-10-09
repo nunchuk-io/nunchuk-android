@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -46,6 +47,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.hideLoading
@@ -244,15 +246,8 @@ private fun SignerCard(
 
 @Preview
 @Composable
-private fun ClaimKeyScreenPreview() {
-    ClaimKeyContent(
-        signers = listOf(
-            SignerModel(
-                "123", "Tom’s TAPSIGNER", fingerPrint = "79EB35F4", derivationPath = ""
-            ),
-            SignerModel(
-                "123", "Tom’s TAPSIGNER 2", fingerPrint = "79EB35F4", derivationPath = ""
-            ),
-        )
-    )
+private fun ClaimKeyScreenPreview(
+    @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
+) {
+    ClaimKeyContent(signers = signers)
 }

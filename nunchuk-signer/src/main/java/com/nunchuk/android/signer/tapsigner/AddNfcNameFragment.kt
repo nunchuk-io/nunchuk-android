@@ -69,8 +69,9 @@ class AddNfcNameFragment : BaseChangeTapSignerNameFragment() {
     override fun onUpdateNameSuccess(signer: MasterSigner) {
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
-            masterFingerprint = signer.device.masterFingerprint,
+            isMasterSigner = true,
             id = signer.id,
+            masterFingerprint = signer.device.masterFingerprint,
             name = signer.name,
             type = signer.type,
             justAdded = true

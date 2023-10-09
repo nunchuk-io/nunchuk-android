@@ -584,7 +584,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             name = signer.name,
             type = signer.type,
             derivationPath = signer.derivationPath,
-            isInWallet = isInWallet
+            isInWallet = isInWallet,
+            isMasterSigner = signer.isMasterSigner,
         )
     }
 

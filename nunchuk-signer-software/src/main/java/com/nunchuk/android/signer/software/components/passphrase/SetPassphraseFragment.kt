@@ -37,7 +37,15 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.software.R
-import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseNotMatchedEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseRequiredEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerErrorEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateWalletErrorEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateWalletSuccessEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.LoadingEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.PassPhraseRequiredEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.PassPhraseValidEvent
 import com.nunchuk.android.signer.software.databinding.FragmentSetPassphraseBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -116,6 +124,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             ActivityManager.popToLevel(2)
             navigator.openSignerInfoScreen(
                 activityContext = requireActivity(),
+                isMasterSigner = true,
                 id = masterSigner!!.id,
                 masterFingerprint = masterSigner.device.masterFingerprint,
                 name = masterSigner.name,
@@ -128,6 +137,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             navigator.returnToMainScreen()
             navigator.openSignerInfoScreen(
                 activityContext = requireActivity(),
+                isMasterSigner = true,
                 id = masterSigner!!.id,
                 masterFingerprint = masterSigner.device.masterFingerprint,
                 name = masterSigner.name,

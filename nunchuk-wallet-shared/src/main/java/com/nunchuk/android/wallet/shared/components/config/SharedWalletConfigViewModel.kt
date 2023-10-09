@@ -97,5 +97,5 @@ internal class SharedWalletConfigViewModel @Inject constructor(
 private fun List<RoomMemberSummary>.toSignerModels() = map(RoomMemberSummary::toSignerModel)
 
 private fun RoomMemberSummary.toSignerModel() = SignerModel(
-    id = userId, name = displayName ?: userId, fingerPrint = "", derivationPath = ""
+    id = userId, name = displayName ?: userId, fingerPrint = "", derivationPath = "", isMasterSigner = false
 )

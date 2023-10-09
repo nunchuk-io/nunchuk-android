@@ -26,11 +26,20 @@ import android.view.ViewGroup
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Checkbox
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -41,6 +50,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -50,6 +60,7 @@ import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
@@ -206,17 +217,12 @@ private fun SignerCard(
 
 @Preview
 @Composable
-fun RecoveryTapSignerListContentPreview() {
+fun RecoveryTapSignerListContentPreview(
+    @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
+) {
     NunchukTheme {
         RecoveryTapSignerListContent(
-            signers = listOf(
-                SignerModel(
-                    "123", "Tom’s TAPSIGNER", fingerPrint = "79EB35F4", derivationPath = ""
-                ),
-                SignerModel(
-                    "123", "Tom’s TAPSIGNER 2", fingerPrint = "79EB35F4", derivationPath = ""
-                ),
-            )
+            signers = signers
         )
     }
 }

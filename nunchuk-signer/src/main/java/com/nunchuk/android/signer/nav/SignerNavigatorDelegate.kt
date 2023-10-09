@@ -52,6 +52,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
 
     override fun openSignerInfoScreen(
         activityContext: Context,
+        isMasterSigner: Boolean,
         id: String,
         masterFingerprint: String,
         name: String,
@@ -65,6 +66,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
     ) {
         SignerInfoActivity.start(
             activityContext = activityContext,
+            isMasterSigner = isMasterSigner,
             id = id,
             name = name,
             justAdded = justAdded,

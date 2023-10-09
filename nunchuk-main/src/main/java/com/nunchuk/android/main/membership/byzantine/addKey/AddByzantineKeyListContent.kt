@@ -25,12 +25,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.AddKeyCard
@@ -38,7 +40,6 @@ import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.type.SignerType
 import java.util.Collections.emptyList
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -128,7 +129,9 @@ fun AddByzantineKeyListContent(
 
 @Preview
 @Composable
-fun AddKeyListScreenHoneyBadgerPreview() {
+fun AddKeyListScreenHoneyBadgerPreview(
+    @PreviewParameter(SignerModelProvider::class) signer: SignerModel
+) {
     AddByzantineKeyListContent(
         keys = listOf(
             AddKeyData(
@@ -137,13 +140,7 @@ fun AddKeyListScreenHoneyBadgerPreview() {
             ),
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                signer = SignerModel(
-                    id = "123",
-                    type = SignerType.COLDCARD_NFC,
-                    name = "TAPSIGNER",
-                    derivationPath = "",
-                    fingerPrint = "123456"
-                ),
+                signer = signer,
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(

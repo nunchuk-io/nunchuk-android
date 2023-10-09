@@ -40,7 +40,8 @@ data class SignerModel(
     val isPrimaryKey: Boolean = false,
     val cardId: String = "",
     val tags : List<SignerTag> = emptyList(),
-    val isVisible: Boolean = true
+    val isVisible: Boolean = true,
+    val isMasterSigner: Boolean
 ) : Parcelable {
     val isEditablePath: Boolean
         get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
@@ -84,7 +85,8 @@ fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
     fingerPrint = masterFingerprint,
     isPrimaryKey = isPrimaryKey,
     tags = tags,
-    isVisible = isVisible
+    isVisible = isVisible,
+    isMasterSigner = hasMasterSigner
 )
 
 fun JoinKey.toSignerModel() = SignerModel(
@@ -92,7 +94,8 @@ fun JoinKey.toSignerModel() = SignerModel(
     name = name,
     derivationPath = derivationPath,
     fingerPrint = masterFingerprint,
-    type = SignerType.valueOf(signerType)
+    type = SignerType.valueOf(signerType),
+    isMasterSigner = false
 )
 
 data class SignerInput(

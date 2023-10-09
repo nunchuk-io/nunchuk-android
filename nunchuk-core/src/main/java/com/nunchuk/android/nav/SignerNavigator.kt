@@ -31,6 +31,7 @@ interface SignerNavigator {
 
     fun openSignerInfoScreen(
         activityContext: Context,
+        isMasterSigner: Boolean,
         id: String,
         masterFingerprint: String,
         name: String,

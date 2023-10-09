@@ -32,7 +32,6 @@ import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
 import com.nunchuk.android.core.domain.HealthCheckTapSignerUseCase
 import com.nunchuk.android.core.domain.TopUpXpubTapSignerUseCase
 import com.nunchuk.android.core.util.CardIdManager
-import com.nunchuk.android.core.util.isRemoteSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
@@ -114,7 +113,7 @@ internal class SignerInfoViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            if (shouldLoadMasterSigner(args.signerType)) {
+            if (args.isMasterSigner) {
                 val result = getMasterSignerUseCase(args.id)
                 if (result.isSuccess) {
 
@@ -145,7 +144,7 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleEditCompletedEvent(updateSignerName: String) {
         viewModelScope.launch {
             val state = getState()
-            if (shouldLoadMasterSigner(args.signerType)) {
+            if (args.isMasterSigner) {
                 state.masterSigner?.let { signer ->
                     updateMasterSignerUseCase(parameters = signer.copy(name = updateSignerName))
                         .onSuccess {
@@ -183,7 +182,7 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleRemoveSigner() {
         viewModelScope.launch {
             val state = getState()
-            if (shouldLoadMasterSigner(args.signerType)) {
+            if (args.isMasterSigner) {
                 state.masterSigner?.let {
                     deleteMasterSignerUseCase(it.id)
                         .onSuccess {
@@ -300,8 +299,6 @@ internal class SignerInfoViewModel @Inject constructor(
             }
         }
     }
-
-    private fun shouldLoadMasterSigner(type: SignerType) = !type.isRemoteSigner
 
     fun generateColdcardHealthMessages(ndef: Ndef?, derivationPath: String) {
         ndef ?: return
