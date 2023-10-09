@@ -226,9 +226,10 @@ class WalletAuthenticationViewModel @Inject constructor(
         when {
             signerModel.type == SignerType.NFC -> _event.emit(WalletAuthenticationEvent.ScanTapSigner)
             signerModel.type == SignerType.COLDCARD_NFC
-                    || signerModel.tags.contains(SignerTag.COLDCARD) -> _event.emit(
-                WalletAuthenticationEvent.ScanColdCard
-            )
+                    || (signerModel.type == SignerType.HARDWARE
+                    && signerModel.tags.contains(SignerTag.COLDCARD)) -> {
+                _event.emit(WalletAuthenticationEvent.ScanColdCard)
+            }
 
             signerModel.type == SignerType.SOFTWARE -> handleSignCheckSoftware(singleSigner)
             signerModel.type == SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
@@ -485,14 +486,19 @@ class WalletAuthenticationViewModel @Inject constructor(
     val signedSuccessMessage: String
         get() = if (state.value.transactionStatus != TransactionStatus.CONFIRMED) {
             application.getString(R.string.nc_transaction_updated)
-        } else when(state.value.dummyTransactionType) {
+        } else when (state.value.dummyTransactionType) {
             DummyTransactionType.CREATE_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_created)
             DummyTransactionType.UPDATE_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_updated)
             DummyTransactionType.CANCEL_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_canlled)
             DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> application.getString(R.string.nc_inheritance_has_been_created)
             DummyTransactionType.UPDATE_SERVER_KEY -> application.getString(R.string.nc_policy_updated)
             DummyTransactionType.HEALTH_CHECK_PENDING,
-            DummyTransactionType.HEALTH_CHECK_REQUEST -> application.getString(R.string.nc_txt_run_health_check_success_event, getInteractSingleSigner()?.name.orEmpty())
+            DummyTransactionType.HEALTH_CHECK_REQUEST,
+            -> application.getString(
+                R.string.nc_txt_run_health_check_success_event,
+                getInteractSingleSigner()?.name.orEmpty()
+            )
+
             else -> ""
         }
 

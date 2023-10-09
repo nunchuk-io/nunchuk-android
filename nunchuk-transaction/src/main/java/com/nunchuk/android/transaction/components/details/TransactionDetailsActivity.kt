@@ -429,7 +429,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             listener = { signer ->
                 viewModel.setCurrentSigner(signer)
                 when {
-                    signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(SignerTag.COLDCARD) -> showSignByMk4Options()
+                    signer.type == SignerType.COLDCARD_NFC
+                            || signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.COLDCARD) -> showSignByMk4Options()
 
                     signer.type == SignerType.NFC -> {
                         if (viewModel.isInheritanceSigner(signer.fingerPrint)) {
