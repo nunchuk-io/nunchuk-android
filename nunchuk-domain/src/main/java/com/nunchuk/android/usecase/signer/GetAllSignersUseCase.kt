@@ -17,9 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.utils
+package com.nunchuk.android.usecase.signer
 
-import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-val SignerType.isServerMasterSigner: Boolean
-    get() = this == SignerType.NFC
+class GetAllSignersUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<Unit, Pair<List<MasterSigner>, List<SingleSigner>>>(ioDispatcher) {
+
+    override suspend fun execute(parameters: Unit): Pair<List<MasterSigner>, List<SingleSigner>> {
+        return nativeSdk.getMasterSigners() to nativeSdk.getRemoteSigners()
+    }
+}

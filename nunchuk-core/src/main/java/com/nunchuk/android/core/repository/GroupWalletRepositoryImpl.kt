@@ -34,7 +34,6 @@ import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.util.LoadingOptions
-import com.nunchuk.android.utils.isServerMasterSigner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -160,11 +159,12 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         signers: List<SignerServerDto>,
         newSigner: Map<String, Boolean>,
     ) {
+        val masterSigners = nunchukNativeSdk.getMasterSigners().associateBy { it.id }
         signers.forEach { signer ->
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
             val tags = signer.tags.orEmpty().mapNotNull { it.toSignerTag() }
             if (type != SignerType.SERVER) {
-                if (type.isServerMasterSigner) {
+                if (masterSigners.containsKey(signer.xfp.orEmpty())) {
                     val masterSigner = nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
                     val isVisible =
                         if (newSigner[signer.xfp.orEmpty()] == true) signer.isVisible else masterSigner.isVisible || signer.isVisible

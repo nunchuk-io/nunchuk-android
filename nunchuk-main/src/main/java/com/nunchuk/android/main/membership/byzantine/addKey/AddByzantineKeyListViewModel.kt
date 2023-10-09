@@ -30,7 +30,6 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
-import com.nunchuk.android.core.util.isRemoteSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.toSteps
@@ -45,9 +44,6 @@ import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.GetCompoundSignersUseCase
-import com.nunchuk.android.usecase.GetMasterSignerUseCase
-import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.FindSimilarGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.ReuseGroupWalletUseCase
@@ -55,6 +51,7 @@ import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,14 +69,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddByzantineKeyListViewModel @Inject constructor(
-    private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val savedStateHandle: SavedStateHandle,
     getMembershipStepUseCase: GetMembershipStepUseCase,
-    private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val nfcFileManager: NfcFileManager,
     private val masterSignerMapper: MasterSignerMapper,
-    private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
@@ -88,6 +82,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val findSimilarGroupWalletUseCase: FindSimilarGroupWalletUseCase,
     private val reuseGroupWalletUseCase: ReuseGroupWalletUseCase,
     private val pushEventManager: PushEventManager,
+    private val getAllSignersUseCase: GetAllSignersUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -111,7 +106,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
     val key = _keys.asStateFlow()
 
     private val singleSigners = mutableListOf<SingleSigner>()
-
     private val serverSigners = mutableMapOf<String, SignerServer>()
 
     init {
@@ -138,64 +132,36 @@ class AddByzantineKeyListViewModel @Inject constructor(
             }
         }
         refresh()
-        loadSigners()
+        viewModelScope.launch {
+            loadSigners()
+        }
         viewModelScope.launch {
             membershipStepState.combine(key) { _, key -> key }.collect { key ->
+                val signers = _state.value.signers
                 val news = key.map { addKeyData ->
                     val info = getStepInfo(addKeyData.type)
-                    if (addKeyData.signer == null && info.masterSignerId.isNotEmpty()) {
-                        val extra = runCatching {
-                            gson.fromJson(
-                                info.extraData,
-                                SignerExtra::class.java
-                            )
-                        }.getOrNull()
-                        if (extra?.signerType?.isRemoteSigner == true) {
-                            val result = getRemoteSignerUseCase(
-                                GetRemoteSignerUseCase.Data(
-                                    info.masterSignerId,
-                                    extra.derivationPath
-                                )
-                            )
-                            if (result.isSuccess) {
-                                return@map addKeyData.copy(
-                                    signer = result.getOrThrow().toModel().copy(isVisible = serverSigners[info.masterSignerId]?.isVisible != false),
-                                    verifyType = info.verifyType
-                                )
-                            }
-                        } else {
-                            val result = getMasterSignerUseCase(info.masterSignerId)
-                            if (result.isSuccess) {
-                                return@map addKeyData.copy(
-                                    signer = masterSignerMapper(
-                                        result.getOrThrow().copy(isVisible = serverSigners[info.masterSignerId]?.isVisible != false),
-                                    ),
-                                    verifyType = info.verifyType
-                                )
-                            }
-                        }
-                    }
-                    addKeyData.copy(verifyType = info.verifyType)
+                    addKeyData.copy(
+                        signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null,
+                        verifyType = info.verifyType
+                    )
                 }
                 _keys.value = news
             }
         }
     }
 
-    private fun loadSigners() {
-        viewModelScope.launch {
-            getCompoundSignersUseCase.execute().collect { pair ->
-                _state.update {
-                    singleSigners.apply {
-                        clear()
-                        addAll(pair.second)
-                    }
-                    it.copy(
-                        signers = pair.first.map { signer ->
-                            masterSignerMapper(signer)
-                        } + pair.second.map { signer -> signer.toModel() }
-                    )
+    private suspend fun loadSigners() {
+        getAllSignersUseCase(Unit).onSuccess { pair ->
+            _state.update {
+                singleSigners.apply {
+                    clear()
+                    addAll(pair.second)
                 }
+                it.copy(
+                    signers = pair.first.map { signer ->
+                        masterSignerMapper(signer)
+                    } + pair.second.map { signer -> signer.toModel() }
+                )
             }
         }
     }
@@ -331,6 +297,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 draft.signers.forEach {
                     serverSigners[it.xfp.orEmpty()] = it
                 }
+                loadSigners()
                 GroupWalletType.values()
                     .find { type -> type.n == draft.config.n && type.m == draft.config.m }
                     ?.let { type ->
