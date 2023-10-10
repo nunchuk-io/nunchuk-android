@@ -40,7 +40,6 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -106,7 +105,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
     val key = _keys.asStateFlow()
 
     private val singleSigners = mutableListOf<SingleSigner>()
-    private val serverSigners = mutableMapOf<String, SignerServer>()
 
     init {
         if (args.isAddOnly.not() && membershipStepManager.isNotConfig()) {
@@ -133,36 +131,36 @@ class AddByzantineKeyListViewModel @Inject constructor(
         }
         refresh()
         viewModelScope.launch {
-            loadSigners()
-        }
-        viewModelScope.launch {
             membershipStepState.combine(key) { _, key -> key }.collect { key ->
-                val signers = _state.value.signers
-                val news = key.map { addKeyData ->
-                    val info = getStepInfo(addKeyData.type)
-                    addKeyData.copy(
-                        signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null,
-                        verifyType = info.verifyType
-                    )
+                if (key.isNotEmpty()) {
+                    val signers = _state.value.signers
+                    val news = key.map { addKeyData ->
+                        val info = getStepInfo(addKeyData.type)
+                        addKeyData.copy(
+                            signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null,
+                            verifyType = info.verifyType
+                        )
+                    }
+                    _keys.value = news
                 }
-                _keys.value = news
             }
         }
     }
 
     private suspend fun loadSigners() {
         getAllSignersUseCase(Unit).onSuccess { pair ->
-            _state.update {
-                singleSigners.apply {
-                    clear()
-                    addAll(pair.second)
-                }
-                it.copy(
-                    signers = pair.first.map { signer ->
-                        masterSignerMapper(signer)
-                    } + pair.second.map { signer -> signer.toModel() }
-                )
+            singleSigners.apply {
+                clear()
+                addAll(pair.second)
             }
+            val signers = pair.first.map { signer ->
+                    masterSignerMapper(signer)
+                } + pair.second.map { signer -> signer.toModel() }
+            _state.update { it.copy(signers = signers) }
+            val keys = key.value.map {
+                it.copy(signer = signers.find { signer -> signer.fingerPrint == it.signer?.fingerPrint })
+            }
+            _keys.value = keys
         }
     }
 
@@ -294,14 +292,13 @@ class AddByzantineKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
             syncGroupDraftWalletUseCase(args.groupId).onSuccess { draft ->
-                draft.signers.forEach {
-                    serverSigners[it.xfp.orEmpty()] = it
-                }
                 loadSigners()
                 GroupWalletType.values()
                     .find { type -> type.n == draft.config.n && type.m == draft.config.m }
                     ?.let { type ->
-                        _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
+                        if (_keys.value.isEmpty()) {
+                            _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
+                        }
                     }
             }
             _state.update { it.copy(isRefreshing = false) }
