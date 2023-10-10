@@ -490,7 +490,7 @@ class WalletAuthenticationViewModel @Inject constructor(
             DummyTransactionType.CREATE_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_created)
             DummyTransactionType.UPDATE_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_updated)
             DummyTransactionType.CANCEL_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_canlled)
-            DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> application.getString(R.string.nc_inheritance_has_been_created)
+            DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> application.getString(R.string.nc_inheritance_planning_request_approved)
             DummyTransactionType.UPDATE_SERVER_KEY -> application.getString(R.string.nc_policy_updated)
             DummyTransactionType.HEALTH_CHECK_PENDING,
             DummyTransactionType.HEALTH_CHECK_REQUEST,
