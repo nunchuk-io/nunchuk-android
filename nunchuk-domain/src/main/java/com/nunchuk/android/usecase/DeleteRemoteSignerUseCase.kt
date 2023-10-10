@@ -36,7 +36,7 @@ class DeleteRemoteSignerUseCase @Inject constructor(
     override suspend fun execute(parameters: Params) {
         nativeSdk.deleteRemoteSigner(
             masterFingerprint = parameters.masterFingerprint,
-            derivationPath = parameters.masterFingerprint
+            derivationPath = parameters.derivationPath
         )
         membershipRepository.deleteStepBySignerId(parameters.masterFingerprint)
         premiumWalletRepository.deleteKey(parameters.masterFingerprint)
