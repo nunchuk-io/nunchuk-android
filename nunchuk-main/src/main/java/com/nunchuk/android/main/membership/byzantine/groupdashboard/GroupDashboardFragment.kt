@@ -35,6 +35,7 @@ import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
+import com.nunchuk.android.main.membership.byzantine.recurringpayment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.GroupChat
@@ -407,7 +408,11 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             }
 
             SheetOptionType.TYPE_RECURRING_PAYMENT -> {
-
+                RecurringPaymentActivity.navigate(
+                    activity = requireActivity(),
+                    groupId = args.groupId,
+                    walletId = viewModel.getWalletId()
+                )
             }
 
             SheetOptionType.TYPE_GROUP_CHAT_HISTORY -> {
