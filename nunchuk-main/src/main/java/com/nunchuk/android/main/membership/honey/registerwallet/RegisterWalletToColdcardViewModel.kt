@@ -23,8 +23,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
+import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,7 +62,7 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
                 getWalletDetail2UseCase(args.walletId)
                     .onSuccess {
                         val keyName =
-                            it.signers.filter { signer -> signer.type == SignerType.COLDCARD_NFC }
+                            it.signers.filter { signer -> signer.isColdCard }
                                 .reversed()
                                 .getOrNull(args.index.dec())?.name ?: COLDCARD_DEFAULT_KEY_NAME
                         _state.update { state -> state.copy(keyName = keyName) }

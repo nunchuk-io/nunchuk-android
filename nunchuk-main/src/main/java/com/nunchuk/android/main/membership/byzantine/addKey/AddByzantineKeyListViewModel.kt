@@ -131,18 +131,9 @@ class AddByzantineKeyListViewModel @Inject constructor(
         }
         refresh()
         viewModelScope.launch {
-            membershipStepState.combine(key) { _, key -> key }.collect { key ->
-                if (key.isNotEmpty()) {
-                    val signers = _state.value.signers
-                    val news = key.map { addKeyData ->
-                        val info = getStepInfo(addKeyData.type)
-                        addKeyData.copy(
-                            signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null,
-                            verifyType = info.verifyType
-                        )
-                    }
-                    _keys.value = news
-                }
+            membershipStepState.combine(key) { _, key -> key }.collect {
+                loadSigners()
+                updateKeyData()
             }
         }
     }
@@ -157,11 +148,21 @@ class AddByzantineKeyListViewModel @Inject constructor(
                     masterSignerMapper(signer)
                 } + pair.second.map { signer -> signer.toModel() }
             _state.update { it.copy(signers = signers) }
-            val keys = key.value.map {
-                it.copy(signer = signers.find { signer -> signer.fingerPrint == it.signer?.fingerPrint })
-            }
-            _keys.value = keys
+            updateKeyData()
         }
+    }
+
+    private fun updateKeyData() {
+        if (key.value.isEmpty()) return
+        val signers = _state.value.signers
+        val news = key.value.map { addKeyData ->
+            val info = getStepInfo(addKeyData.type)
+            addKeyData.copy(
+                signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null,
+                verifyType = info.verifyType
+            )
+        }
+        _keys.value = news
     }
 
     // COLDCARD or Airgap

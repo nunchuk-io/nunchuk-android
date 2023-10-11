@@ -39,6 +39,9 @@ import com.nunchuk.android.type.SignerType.UNKNOWN
 val SignerType.isRemoteSigner: Boolean
     get() = this == AIRGAP || this == COLDCARD_NFC || this == HARDWARE
 
+val SingleSigner.isColdCard: Boolean
+    get() = type == COLDCARD_NFC || tags.contains(SignerTag.COLDCARD)
+
 fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String {
     if (isPrimaryKey) return context.getString(R.string.nc_signer_type_primary_key)
     return when (this) {

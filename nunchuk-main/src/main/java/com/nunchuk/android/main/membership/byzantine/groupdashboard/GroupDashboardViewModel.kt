@@ -16,6 +16,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -472,8 +473,8 @@ class GroupDashboardViewModel @Inject constructor(
     fun handleRegisterSigners(xfps: List<String>) {
         viewModelScope.launch {
             val signers = _state.value.wallet.signers.filter { it.masterFingerprint in xfps }
-            val totalColdcard = signers.count { it.type == SignerType.COLDCARD_NFC }
-            val totalAirgap = signers.count { it.type == SignerType.AIRGAP }
+            val totalColdcard = signers.count { it.isColdCard }
+            val totalAirgap = signers.count { it.type == SignerType.AIRGAP && !it.isColdCard }
             if (totalColdcard > 0) {
                 setRegisterColdcardUseCase(
                     SetRegisterColdcardUseCase.Params(
