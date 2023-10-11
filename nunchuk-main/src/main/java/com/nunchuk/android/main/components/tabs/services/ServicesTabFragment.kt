@@ -231,8 +231,11 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.ClaimInheritance -> viewModel.checkInheritance()
             ServiceTabRowItem.EmergencyLockdown -> {
                 if (viewModel.state.value.plan.isByzantine()) {
-                    val wallets = viewModel.getAllowEmergencyLockdownWallets()
-                    if (wallets.isEmpty()) return
+                    val (hasLockedWallet, wallets) = viewModel.getAllowEmergencyLockdownWallets()
+                    if (wallets.isEmpty()) {
+                        if (hasLockedWallet) NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_all_wallets_under_lockdown))
+                        return
+                    }
                     if (wallets.size == 1) {
                         enterPasswordDialog(item = item, walletId = wallets.first().localId)
                     } else {
