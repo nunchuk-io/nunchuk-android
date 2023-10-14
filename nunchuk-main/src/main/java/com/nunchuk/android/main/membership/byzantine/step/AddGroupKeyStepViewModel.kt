@@ -31,7 +31,6 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
-import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -117,7 +116,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(groupId.value, loadingOptions = LoadingOptions.OFFLINE)).collect {
+            getGroupUseCase(GetGroupUseCase.Params(groupId.value)).collect {
                 if (it.isSuccess) {
                     val email = accountManager.getAccount().email
                     _uiState.update { state ->

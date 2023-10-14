@@ -32,11 +32,14 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.byzantine.RequestHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.DismissAlertUseCase
+import com.nunchuk.android.usecase.membership.GetAlertGroupRemoteUseCase
 import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
 import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
@@ -46,7 +49,6 @@ import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
-import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -73,12 +75,15 @@ class GroupDashboardViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val sessionHolder: SessionHolder,
     private val getGroupUseCase: GetGroupUseCase,
+    private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     private val getAlertGroupUseCase: GetAlertGroupUseCase,
+    private val getAlertGroupRemoteUseCase: GetAlertGroupRemoteUseCase,
     private val getGroupChatUseCase: GetGroupChatUseCase,
     private val dismissAlertUseCase: DismissAlertUseCase,
     private val markAlertAsReadUseCase: MarkAlertAsReadUseCase,
     private val getHistoryPeriodUseCase: GetHistoryPeriodUseCase,
     private val getGroupWalletKeyHealthStatusUseCase: GetGroupWalletKeyHealthStatusUseCase,
+    private val getGroupWalletKeyHealthStatusRemoteUseCase: GetGroupWalletKeyHealthStatusRemoteUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val cardIdManager: CardIdManager,
     private val requestHealthCheckUseCase: RequestHealthCheckUseCase,
@@ -114,8 +119,7 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             getGroupUseCase(
                 GetGroupUseCase.Params(
-                    args.groupId,
-                    loadingOptions = LoadingOptions.OFFLINE
+                    args.groupId
                 )
             )
                 .map { it.getOrElse { null } }
@@ -130,7 +134,6 @@ class GroupDashboardViewModel @Inject constructor(
                 GetGroupWalletKeyHealthStatusUseCase.Params(
                     args.groupId,
                     walletId.value.orEmpty(),
-                    LoadingOptions.OFFLINE
                 )
             )
                 .map { it.getOrElse { emptyList() } }
@@ -169,8 +172,7 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             getAlertGroupUseCase(
                 GetAlertGroupUseCase.Params(
-                    groupId = args.groupId,
-                    loadingOptions = LoadingOptions.OFFLINE
+                    groupId = args.groupId
                 )
             )
                 .map { it.getOrElse { emptyList() } }
@@ -188,15 +190,14 @@ class GroupDashboardViewModel @Inject constructor(
     fun getKeysStatus() {
         if (walletId.value.isNullOrEmpty()) return
         viewModelScope.launch {
-            getGroupWalletKeyHealthStatusUseCase(
-                GetGroupWalletKeyHealthStatusUseCase.Params(
+            getGroupWalletKeyHealthStatusRemoteUseCase(
+                GetGroupWalletKeyHealthStatusRemoteUseCase.Params(
                     args.groupId,
                     walletId.value.orEmpty(),
-                    LoadingOptions.REMOTE
                 )
-            ).collect { result ->
+            ).onSuccess { result ->
                 _state.update { state ->
-                    state.copy(keyStatus = result.getOrDefault(emptyList()).associateBy { it.xfp })
+                    state.copy(keyStatus = result.associateBy { it.xfp })
                 }
             }
         }
@@ -204,12 +205,11 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun getAlerts() {
         viewModelScope.launch {
-            getAlertGroupUseCase(
-                GetAlertGroupUseCase.Params(
-                    groupId = args.groupId,
-                    loadingOptions = LoadingOptions.REMOTE
+            getAlertGroupRemoteUseCase(
+                GetAlertGroupRemoteUseCase.Params(
+                    groupId = args.groupId
                 )
-            ).collect()
+            )
         }
     }
 
@@ -242,14 +242,12 @@ class GroupDashboardViewModel @Inject constructor(
     private fun getGroup() {
         viewModelScope.launch {
             _event.emit(GroupDashboardEvent.Loading(true))
-            getGroupUseCase(
-                GetGroupUseCase.Params(
-                    args.groupId,
-                    loadingOptions = LoadingOptions.REMOTE
+            getGroupRemoteUseCase(
+                GetGroupRemoteUseCase.Params(
+                    args.groupId
                 )
-            ).collect {
-                _event.emit(GroupDashboardEvent.Loading(false))
-            }
+            )
+            _event.emit(GroupDashboardEvent.Loading(false))
         }
     }
 

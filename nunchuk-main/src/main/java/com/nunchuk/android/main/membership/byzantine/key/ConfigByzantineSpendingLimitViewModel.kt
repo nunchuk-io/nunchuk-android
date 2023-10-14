@@ -39,8 +39,7 @@ import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toByzantinePreferenceSetup
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
-import com.nunchuk.android.util.LoadingOptions
+import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,7 +54,7 @@ import javax.inject.Inject
 class ConfigByzantineSpendingLimitViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
     private val savedStateHandle: SavedStateHandle,
-    private val getGroupUseCase: GetGroupUseCase,
+    private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
 ) : ViewModel() {
     private val args =
         ConfigByzantineSpendingLimitFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -84,13 +83,8 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _event.emit(ConfigByzantineSpendingLimitEvent.Loading(true))
-            getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.REMOTE)).collect {
+            getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(args.groupId)).onSuccess { group ->
                 _event.emit(ConfigByzantineSpendingLimitEvent.Loading(false))
-                if (it.isFailure) {
-                    _event.emit(ConfigByzantineSpendingLimitEvent.Error(it.exceptionOrNull()?.message.orEmpty()))
-                    return@collect
-                }
-                val group = it.getOrThrow()
                 val spendingLimits = keyPolicy?.spendingPolicies.orEmpty()
                 val newPolicies = group.members.mapNotNull { member ->
                     val role = member.role.toRole
@@ -121,6 +115,8 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
                         preferenceSetup = group.setupPreference.toByzantinePreferenceSetup()
                     )
                 }
+            }.onFailure {
+                _event.emit(ConfigByzantineSpendingLimitEvent.Error(it.message.orEmpty()))
             }
         }
     }

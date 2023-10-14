@@ -18,16 +18,14 @@ import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
-import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,7 +37,7 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getInheritanceUserDataUseCase: GetInheritanceUserDataUseCase,
     private val cancelInheritanceUserDataUseCase: CancelInheritanceUserDataUseCase,
-    private val getGroupUseCase: GetGroupUseCase,
+    private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     private val accountManager: AccountManager,
     private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase
 ) : ViewModel() {
@@ -96,8 +94,7 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
 
     private fun loadMembers() {
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(param.groupId, loadingOptions = LoadingOptions.REMOTE)).collect {
-                val group = it.getOrNull()
+            getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(param.groupId)).onSuccess { group ->
                 val myEmail = accountManager.getAccount().email
                 val members = group?.members.orEmpty().mapNotNull { member ->
                     if (member.role.toRole.isKeyHolder) {

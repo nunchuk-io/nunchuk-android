@@ -36,9 +36,9 @@ import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
-import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +60,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private val cancelInheritanceUseCase: CancelInheritanceUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
-    private val getGroupUseCase: GetGroupUseCase,
+    private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase
 ) : ViewModel() {
@@ -86,13 +86,10 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     private fun getGroup() {
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(param.groupId, loadingOptions = LoadingOptions.REMOTE)).collect { result ->
-                if (result.isSuccess) {
-                    val group = result.getOrThrow()
-                    val currentUserRole = byzantineGroupUtils.getCurrentUserRole(group)
-                    _state.update {
-                        it.copy(currentUserRole = currentUserRole)
-                    }
+            getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(param.groupId)).onSuccess { group ->
+                val currentUserRole = byzantineGroupUtils.getCurrentUserRole(group)
+                _state.update {
+                    it.copy(currentUserRole = currentUserRole)
                 }
             }
         }

@@ -10,7 +10,6 @@ import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
-import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,8 +67,7 @@ class AlertActionIntroViewModel @Inject constructor(
     private suspend fun getGroup(requestByUserId: String) {
         getGroupUseCase(
             GetGroupUseCase.Params(
-                args.groupId,
-                loadingOptions = LoadingOptions.OFFLINE
+                args.groupId
             )
         )
             .map { it.getOrElse { null } }

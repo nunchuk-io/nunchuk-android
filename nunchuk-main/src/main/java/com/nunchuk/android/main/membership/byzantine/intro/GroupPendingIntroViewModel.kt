@@ -9,7 +9,6 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.user.IsViewPendingGroupUseCase
 import com.nunchuk.android.usecase.user.SetViewPendingGroupUseCase
-import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,7 +35,7 @@ class GroupPendingIntroViewModel @Inject constructor(
         viewModelScope.launch {
             isViewPendingGroupUseCase(args.groupId).onSuccess { isView ->
                 val group =
-                    getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.OFFLINE)).map { it.getOrNull() }.firstOrNull()
+                    getGroupUseCase(GetGroupUseCase.Params(args.groupId)).map { it.getOrNull() }.firstOrNull()
                 val email = accountManager.getAccount().email
                 _state.update {
                     it.copy(

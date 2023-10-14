@@ -8,7 +8,6 @@ import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
-import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +39,7 @@ class InheritancePlanningViewModel @Inject constructor(
     init {
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
-                getGroupUseCase(GetGroupUseCase.Params(groupId, loadingOptions = LoadingOptions.OFFLINE))
+                getGroupUseCase(GetGroupUseCase.Params(groupId))
                     .filter { it.isSuccess }
                     .map { it.getOrThrow() }
                     .collect { groupBrief ->

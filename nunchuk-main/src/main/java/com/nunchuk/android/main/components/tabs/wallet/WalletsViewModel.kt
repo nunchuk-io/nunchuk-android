@@ -71,7 +71,7 @@ import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
-import com.nunchuk.android.usecase.GetGroupsFlowUseCase
+import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -86,7 +86,6 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
-import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -134,7 +133,7 @@ internal class WalletsViewModel @Inject constructor(
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
-    private val getGroupsFlowUseCase: GetGroupsFlowUseCase,
+    private val getGroupsUseCase: GetGroupsUseCase,
     private val groupMemberAcceptRequestUseCase: GroupMemberAcceptRequestUseCase,
     private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase,
     private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
@@ -260,7 +259,7 @@ internal class WalletsViewModel @Inject constructor(
             syncGroupChatUseCase(Unit)
         }
         viewModelScope.launch {
-            getGroupsFlowUseCase(LoadingOptions.OFFLINE).distinctUntilChanged().collect {
+            getGroupsUseCase(Unit).distinctUntilChanged().collect {
                 val groups = it.getOrDefault(emptyList())
                 updateState { copy(allGroups = groups) }
                 if (groups.isNotEmpty()) {

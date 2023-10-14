@@ -31,7 +31,6 @@ import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUser
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardEvent
 import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
@@ -48,14 +47,13 @@ import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.GetGroupsFlowUseCase
+import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.banner.GetAssistedWalletPageContentUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.banner.SubmitEmailUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
-import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -87,7 +85,7 @@ class ServicesTabViewModel @Inject constructor(
     private val getBannerUseCase: GetBannerUseCase,
     private val submitEmailUseCase: SubmitEmailUseCase,
     private val assistedWalletManager: AssistedWalletManager,
-    private val getGroupsFlowUseCase: GetGroupsFlowUseCase,
+    private val getGroupsUseCase: GetGroupsUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val requestPlanningInheritanceUseCase: RequestPlanningInheritanceUseCase,
@@ -116,7 +114,7 @@ class ServicesTabViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getGroupsFlowUseCase(LoadingOptions.OFFLINE)
+            getGroupsUseCase(Unit)
                 .collect { result ->
                     val groups = result.getOrDefault(emptyList()).filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
                     updateGroupInfo(groups)

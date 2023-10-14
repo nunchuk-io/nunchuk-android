@@ -50,7 +50,6 @@ import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.SignerTag
-import com.nunchuk.android.util.LoadingOptions
 import kotlinx.coroutines.flow.Flow
 
 interface PremiumWalletRepository {
@@ -351,9 +350,11 @@ interface PremiumWalletRepository {
     ): ByzantineGroup
 
     suspend fun getWalletConstraints(): List<WalletConstraints>
-    fun getGroups(loadingOptions: LoadingOptions): Flow<List<ByzantineGroup>>
+    fun getGroups(): Flow<List<ByzantineGroup>>
+    suspend fun getGroupsRemote(): List<ByzantineGroup>
     suspend fun syncGroupWallets(): Boolean
-    fun getGroup(groupId: String, loadingOption: LoadingOptions): Flow<ByzantineGroup>
+    fun getGroup(groupId: String): Flow<ByzantineGroup>
+    suspend fun getGroupRemote(groupId: String): ByzantineGroup
     suspend fun deleteGroupWallet(groupId: String)
     suspend fun deleteGroup(groupId: String)
     suspend fun updateGroupStatus(groupId: String, status: String)
@@ -384,7 +385,8 @@ interface PremiumWalletRepository {
         groupAssistedKeys: MutableSet<String> = mutableSetOf()
     ): Boolean
 
-    fun getAlerts(groupId: String, loadingOption: LoadingOptions): Flow<List<Alert>>
+    fun getAlerts(groupId: String): Flow<List<Alert>>
+    suspend fun getAlertsRemote(groupId: String): List<Alert>
     suspend fun markAlertAsRead(groupId: String, alertId: String)
     suspend fun dismissAlert(groupId: String, alertId: String)
     suspend fun getAlertTotal(groupId: String): Int

@@ -22,8 +22,7 @@ package com.nunchuk.android.main.membership.wallet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
-import com.nunchuk.android.util.LoadingOptions
+import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateWalletSuccessViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
-    private val getGroupUseCase: GetGroupUseCase
+    private val getGroupRemoteUseCase: GetGroupRemoteUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CreateWalletSuccessEvent>()
     val event = _event.asSharedFlow()
@@ -46,8 +45,8 @@ class CreateWalletSuccessViewModel @Inject constructor(
 
     fun loadGroup(id: String) {
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(id, LoadingOptions.REMOTE)).collect { result ->
-                _state.update { it.copy(isSingleSetup = result.getOrThrow().isSinglePersonSetup(), allowInheritance = result.getOrThrow().walletConfig.allowInheritance) }
+            getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(id)).onSuccess { result ->
+                _state.update { it.copy(isSingleSetup = result.isSinglePersonSetup(), allowInheritance = result.walletConfig.allowInheritance) }
             }
         }
     }

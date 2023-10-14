@@ -1,20 +1,19 @@
 package com.nunchuk.android.usecase.byzantine
 
-import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.repository.GroupWalletRepository
+import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetGroupWalletKeyHealthStatusUseCase @Inject constructor(
+class GetGroupWalletKeyHealthStatusRemoteUseCase @Inject constructor(
     private val repository: GroupWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : FlowUseCase<GetGroupWalletKeyHealthStatusUseCase.Params, List<KeyHealthStatus>>(ioDispatcher) {
+) : UseCase<GetGroupWalletKeyHealthStatusRemoteUseCase.Params, List<KeyHealthStatus>>(ioDispatcher) {
 
-    override fun execute(parameters: Params): Flow<List<KeyHealthStatus>> {
-        return repository.getWalletHealthStatus(
+    override suspend fun execute(parameters: Params): List<KeyHealthStatus> {
+        return repository.getWalletHealthStatusRemote(
             groupId = parameters.groupId,
             walletId = parameters.walletId,
         )

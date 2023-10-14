@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 class GroupChatDataResponse(
     @SerializedName("chat")
-    val chat: GroupChatDto
+    val chat: GroupChatDto? = null
 )
 
 class GroupChatListDataResponse(

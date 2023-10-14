@@ -33,11 +33,9 @@ import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.util.LoadingOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -242,28 +240,17 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     override fun getWalletHealthStatus(
         groupId: String,
         walletId: String,
-        loadingOptions: LoadingOptions,
     ): Flow<List<KeyHealthStatus>> {
-        return when (loadingOptions) {
-            LoadingOptions.OFFLINE -> {
-                keyHealthStatusDao.getKeys(
-                    groupId,
-                    walletId,
-                    accountManager.getAccount().chatId,
-                    chain.value
-                ).map {
-                    it.map { entity -> entity.toKeyHealthStatus() }
-                }
-            }
-
-            LoadingOptions.REMOTE -> {
-                return flow {
-                    byzantineSyncer.syncKeyHealthStatus(groupId, walletId)?.let {
-                        emit(it)
-                    }
-                }
-            }
+        return keyHealthStatusDao.getKeys(groupId, walletId, accountManager.getAccount().chatId, chain.value).map {
+            it.map { entity -> entity.toKeyHealthStatus() }
         }
+    }
+
+    override suspend fun getWalletHealthStatusRemote(
+        groupId: String,
+        walletId: String
+    ): List<KeyHealthStatus> {
+        return byzantineSyncer.syncKeyHealthStatus(groupId, walletId) ?: emptyList()
     }
 
 

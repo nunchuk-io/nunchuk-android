@@ -83,6 +83,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
+import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.Alert
@@ -143,11 +144,11 @@ import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
 import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.share.result.GlobalResultKey.SECURITY_QUESTION_TOKEN
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
-import com.nunchuk.android.util.LoadingOptions
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -158,6 +159,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -1811,28 +1813,18 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } ?: emptyList()
     }
 
-    override fun getGroups(loadingOptions: LoadingOptions): Flow<List<ByzantineGroup>> =
-        chain.flatMapLatest {
-            when (loadingOptions) {
-                LoadingOptions.OFFLINE -> {
-                    groupDao.getGroups(chatId = accountManager.getAccount().chatId, it)
-                        .map { group ->
-                            val groups = group.map { group ->
-                                group.toByzantineGroup()
-                            }
-                            groups
-                        }
+    override fun getGroups(): Flow<List<ByzantineGroup>> =
+        groupDao.getGroups(chatId = accountManager.getAccount().chatId, chain = chain.value)
+            .map { group ->
+                val groups = group.map { group ->
+                    group.toByzantineGroup()
                 }
-
-                LoadingOptions.REMOTE -> {
-                    return@flatMapLatest flow {
-                        syncer.syncGroups()?.let {
-                            emit(it)
-                        }
-                    }
-                }
+                groups
             }
-        }
+
+    override suspend fun getGroupsRemote(): List<ByzantineGroup> {
+        return syncer.syncGroups() ?: emptyList()
+    }
 
     override suspend fun syncGroupWallets(): Boolean {
         val response = userWalletApiManager.groupWalletApi.getGroups()
@@ -1857,26 +1849,18 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return groups.isNotEmpty()
     }
 
-    override fun getGroup(groupId: String, loadingOption: LoadingOptions): Flow<ByzantineGroup> {
-        return when (loadingOption) {
-            LoadingOptions.OFFLINE -> {
-                groupDao.getById(
-                    groupId,
-                    chatId = accountManager.getAccount().chatId,
-                    chain = chain.value
-                ).map { group ->
-                    group.toByzantineGroup()
-                }
-            }
-
-            LoadingOptions.REMOTE -> {
-                return flow {
-                    syncer.syncGroup(groupId)?.let {
-                        emit(it)
-                    }
-                }
-            }
+    override fun getGroup(groupId: String): Flow<ByzantineGroup> {
+        return groupDao.getById(
+            groupId,
+            chatId = accountManager.getAccount().chatId,
+            chain = chain.value
+        ).map { group ->
+            group.toByzantineGroup()
         }
+    }
+
+    override suspend fun getGroupRemote(groupId: String): ByzantineGroup {
+        return syncer.syncGroup(groupId) ?: throw NullPointerException("Can not get group")
     }
 
     override suspend fun deleteGroupWallet(groupId: String) {
@@ -1987,30 +1971,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return saveWalletToLib(wallet, groupAssistedKeys)
     }
 
-    override fun getAlerts(groupId: String, loadingOption: LoadingOptions): Flow<List<Alert>> {
-        return when (loadingOption) {
-            LoadingOptions.OFFLINE -> {
-                alertDao.getAlerts(
-                    groupId,
-                    chatId = accountManager.getAccount().chatId,
-                    chain.value
-                )
-                    .map { alerts ->
-                        alerts.map { alert ->
-                            alert.toAlert()
-                        }
-                    }
-            }
-
-            LoadingOptions.REMOTE -> {
-                return flow {
-                    val syncerList = syncer.syncAlerts(groupId)
-                    if (syncerList != null) {
-                        emit(syncerList)
-                    }
+    override fun getAlerts(groupId: String): Flow<List<Alert>> {
+        return alertDao.getAlerts(groupId, chatId = accountManager.getAccount().chatId, chain.value)
+            .map { alerts ->
+                alerts.map { alert ->
+                    alert.toAlert()
                 }
             }
-        }
+    }
+
+    override suspend fun getAlertsRemote(groupId: String): List<Alert> {
+        return syncer.syncAlerts(groupId) ?: emptyList()
     }
 
     override suspend fun markAlertAsRead(groupId: String, alertId: String) {
@@ -2042,7 +2013,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 CreateOrUpdateGroupChatRequest(historyPeriodId = historyPeriodId, roomId = roomId)
             )
         }
-        return response.data.chat.toGroupChat()
+        if (response.isSuccess.not() || response.data.chat == null) {
+            throw response.error
+        }
+        return response.data.chat!!.toGroupChat()
     }
 
     override suspend fun getGroupChatByRoomId(roomId: String): GroupChat? {
@@ -2056,7 +2030,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getGroupChatByGroupId(groupId: String): GroupChat {
         val response = userWalletApiManager.groupWalletApi.getGroupChat(groupId)
-        return response.data.chat.toGroupChat()
+        if (response.isSuccess.not() || response.data.chat == null) {
+            throw response.error
+        }
+        return response.data.chat!!.toGroupChat()
     }
 
     override suspend fun deleteGroupChat(roomId: String) {

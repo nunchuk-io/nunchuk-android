@@ -38,10 +38,10 @@ import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupServerKeysUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
-import com.nunchuk.android.util.LoadingOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +58,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
     private val updateGroupServerKeysUseCase: UpdateGroupServerKeysUseCase,
     private val calculateRequiredSignaturesUpdateGroupKeyPolicyUseCase: CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase,
     private val getGroupKeyPolicyUserDataUseCase: GetGroupKeyPolicyUserDataUseCase,
-    private val getGroupUseCase: GetGroupUseCase,
+    private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
     private val parseUpdateGroupKeyPayloadUseCase: ParseUpdateGroupKeyPayloadUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
@@ -125,10 +125,9 @@ class CosigningGroupPolicyViewModel @Inject constructor(
 
     private fun loadMembers() {
         viewModelScope.launch {
-            getGroupUseCase(GetGroupUseCase.Params(args.groupId, loadingOptions = LoadingOptions.REMOTE)).collect {
-                val group = it.getOrNull()
+            getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(args.groupId)).onSuccess { group ->
                 val myEmail = accountManager.getAccount().email
-                val members = group?.members.orEmpty().mapNotNull { member ->
+                val members = group.members.orEmpty().mapNotNull { member ->
                     if (member.role.toRole.isKeyHolder) {
                         AssistedMember(
                             role = member.role,
