@@ -276,6 +276,9 @@ class AddByzantineKeyListViewModel @Inject constructor(
     fun getAirgap() =
         _state.value.signers.filter { it.type == SignerType.AIRGAP && isSignerExist(it.fingerPrint).not() }
 
+    fun getHardwareSigners(tag: SignerTag) =
+        _state.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
+
     fun reuseKeyFromWallet(id: String) {
         viewModelScope.launch {
             reuseGroupWalletUseCase(
@@ -308,6 +311,39 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     fun markHandledShowKeyAdded() {
         _state.update { it.copy(shouldShowKeyAdded = false) }
+    }
+
+    fun handleSignerNewIndex(signer: SingleSigner) {
+        viewModelScope.launch {
+            syncKeyToGroupUseCase(
+                SyncKeyToGroupUseCase.Param(
+                    groupId = args.groupId,
+                    step = membershipStepManager.currentStep
+                        ?: throw IllegalArgumentException("Current step empty"),
+                    signer = signer
+                )
+            ).onFailure {
+                _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
+                return@launch
+            }
+            saveMembershipStepUseCase(
+                MembershipStepInfo(
+                    step = membershipStepManager.currentStep
+                        ?: throw IllegalArgumentException("Current step empty"),
+                    masterSignerId = signer.masterFingerprint,
+                    plan = membershipStepManager.plan,
+                    verifyType = VerifyType.APP_VERIFIED,
+                    extraData = gson.toJson(
+                        SignerExtra(
+                            derivationPath = signer.derivationPath,
+                            isAddNew = false,
+                            signerType = signer.type
+                        )
+                    ),
+                    groupId = args.groupId
+                )
+            )
+        }
     }
 
     companion object {

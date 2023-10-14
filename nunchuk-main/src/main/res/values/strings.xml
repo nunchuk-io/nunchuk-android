@@ -188,4 +188,9 @@
     <string name="nc_recurring_payments">Recurring payments</string>
     <string name="nc_add_recurring_payments">Add recurring payment</string>
     <string name="nc_recurring_payments_intro_desc">Recurring payments allow you to automatically create transactions that send bitcoins to a predefined destination wallet or addresses at scheduled intervals.</string>
+    <string name="nc_customize_key_account">Customize key account</string>
+    <string name="nc_custom_key_account_desc">Would you like to use a different account on this key? Using a new account helps prevent key reuse and improve privacy.</string>
+    <string name="nc_last_used_account">Last used account</string>
+    <string name="nc_new_account">New account</string>
+    <string name="nc_master_signer_new_index_not_available">New account data needed. Please use the desktop app to connect your device so that the new account can be loaded.</string>
 </resources>

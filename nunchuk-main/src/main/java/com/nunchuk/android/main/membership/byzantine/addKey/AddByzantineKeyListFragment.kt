@@ -44,11 +44,13 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragmentFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -56,6 +58,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -93,10 +96,18 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
             if (data.signers.isNotEmpty()) {
                 when (data.type) {
-                    SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
+                    SignerType.NFC -> {
+                        openCreateBackUpTapSigner(data.signers.first().id)
+                    }
                     SignerType.AIRGAP,
                     SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
-
+                    SignerType.HARDWARE -> {
+                        findNavController().navigate(
+                            AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
+                                data.signers.first()
+                            )
+                        )
+                    }
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             } else {
@@ -108,6 +119,13 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 }
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+        }
+        setFragmentResultListener(CustomKeyAccountFragmentFragment.REQUEST_KEY) { _, bundle ->
+            val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
+            if (signer != null) {
+                viewModel.handleSignerNewIndex(signer)
+            }
+            clearFragmentResult(CustomKeyAccountFragmentFragment.REQUEST_KEY)
         }
         childFragmentManager.setFragmentResultListener(
             AssistedWalletBottomSheet.TAG,
@@ -128,7 +146,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             )
 
             SignerType.COLDCARD_NFC.ordinal -> handleShowKeysOrCreate(
-                viewModel.getColdcard(),
+                viewModel.getColdcard() + viewModel.getHardwareSigners(SignerTag.COLDCARD),
                 SignerType.COLDCARD_NFC,
                 ::showAddColdcardOptions
             )
@@ -158,10 +176,19 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
 
-            SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
-            SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
+            SheetOptionType.TYPE_ADD_LEDGER -> handleShowKeysOrCreate(
+                viewModel.getHardwareSigners(SignerTag.LEDGER),
+                SignerType.HARDWARE
+            ) { openRequestAddDesktopKey(SignerTag.LEDGER) }
+            SheetOptionType.TYPE_ADD_TREZOR -> handleShowKeysOrCreate(
+                viewModel.getHardwareSigners(SignerTag.TREZOR),
+                SignerType.HARDWARE
+            ) { openRequestAddDesktopKey(SignerTag.TREZOR) }
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
-            SheetOptionType.TYPE_ADD_BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
+            SheetOptionType.TYPE_ADD_BITBOX -> handleShowKeysOrCreate(
+                viewModel.getHardwareSigners(SignerTag.BITBOX),
+                SignerType.HARDWARE
+            ) { openRequestAddDesktopKey(SignerTag.BITBOX) }
         }
     }
 
