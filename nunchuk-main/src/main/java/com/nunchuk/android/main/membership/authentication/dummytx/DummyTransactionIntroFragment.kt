@@ -141,6 +141,7 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.HEALTH_CHECK_REQUEST,
         DummyTransactionType.HEALTH_CHECK_PENDING,
         -> stringResource(R.string.nc_complete_a_health_check)
+        DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_authorize_inheritance_planning_request)
 
         else -> stringResource(R.string.nc_authorize_these_change)
     }

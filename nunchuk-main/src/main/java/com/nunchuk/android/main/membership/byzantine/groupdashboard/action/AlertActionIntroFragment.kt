@@ -203,7 +203,7 @@ private fun AlertActionIntroContent(
                             .fillMaxWidth(),
                         onClick = onCancelRequest
                     ) {
-                        Text(text = cancelButton)
+                        Text(text = cancelButton, style = NunchukTheme.typography.title)
                     }
                 }
             }
