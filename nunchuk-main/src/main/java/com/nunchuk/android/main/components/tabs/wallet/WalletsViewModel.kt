@@ -288,8 +288,7 @@ internal class WalletsViewModel @Inject constructor(
 
     private suspend fun checkInheritance(wallets: List<AssistedWalletBrief>) {
         val walletsUnSetupInheritance =
-            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO || it.plan == MembershipPlan.BYZANTINE }
-        // TODO: remove MemberShipPlan.BYZANTINE
+            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO }
         supervisorScope {
             walletsUnSetupInheritance.map {
                 async {
@@ -416,7 +415,8 @@ internal class WalletsViewModel @Inject constructor(
                 groupWalletUi = groupWalletUi.copy(
                     group = group,
                     role = role,
-                    inviterName = inviterName
+                    inviterName = inviterName,
+                    badgeCount = alerts[group.id] ?: 0
                 )
                 results.add(groupWalletUi)
             }
