@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.key
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -74,19 +76,34 @@ fun SpendingLimitAccountView(
                 .padding(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = colorResource(id = R.color.nc_beeswax_light),
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = name.take(2),
-                        style = NunchukTheme.typography.title
-                    )
+                if (member.isJoinGroup) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                color = colorResource(id = R.color.nc_beeswax_light),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = name.take(2),
+                            style = NunchukTheme.typography.title
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(color = colorResource(id = R.color.nc_whisper_color)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_account_member),
+                            contentDescription = ""
+                        )
+                    }
                 }
                 Column(modifier = Modifier.padding(start = 12.dp)) {
                     Text(text = name, style = NunchukTheme.typography.body)
@@ -105,7 +122,7 @@ fun SpendingLimitAccountView(
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
                         text = stringResource(R.string.nc_contact_pending),
-                        style = NunchukTheme.typography.caption,
+                        style = NunchukTheme.typography.captionTitle,
                     )
                 }
             }
@@ -211,6 +228,24 @@ fun SpendingLimitAccountPreview() {
                     email = "boblee@gmail.com"
                 ),
                 spendingPolicy = InputSpendingPolicy("5000", SpendingTimeUnit.DAILY, "USD")
+            )
+        )
+    }
+}
+
+@Preview
+@Composable
+fun SpendingLimitAccountNotMemberPreview() {
+    NunchukTheme {
+        SpendingLimitAccountView(
+            member = AssistedMemberSpendingPolicy(
+                member = AssistedMember(
+                    role = AssistedWalletRole.MASTER.name,
+                    name = "Bob Lee",
+                    email = "boblee@gmail.com",
+                ),
+                spendingPolicy = InputSpendingPolicy("5000", SpendingTimeUnit.DAILY, "USD"),
+                isJoinGroup = true
             )
         )
     }

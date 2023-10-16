@@ -82,7 +82,6 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
-import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
@@ -331,9 +330,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             else -> Unit
         }
     }
-
-    private val groupId: String
-        get() = (activity as MembershipActivity).groupId
 
     private fun openSelectHardwareOption() {
         BottomSheetOption.newInstance(

@@ -23,7 +23,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +31,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -45,9 +45,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -91,7 +94,7 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
 
             setContent {
                 NunchukTheme {
-                    TapSignerListScreen(viewModel, args)
+                    TapSignerListScreen(viewModel, args, onCloseClicked = ::dismissAllowingStateLoss)
                 }
             }
         }
@@ -129,14 +132,12 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
 private fun TapSignerListScreen(
     viewModel: TapSingerListBottomSheetViewModel,
     args: TapSignerListBottomSheetFragmentArgs,
+    onCloseClicked : () -> Unit = {},
 ) {
     val selectedSigner by viewModel.selectSingle.collectAsStateWithLifecycle()
-    val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
     TapSignerListContent(
-        onCloseClicked = {
-            onBackPressedDispatcher?.onBackPressed()
-        },
+        onCloseClicked = onCloseClicked,
         onAddExistKeyClicked = viewModel::onAddExistingKey,
         onAddNewKeyClicked = viewModel::onAddNewKey,
         signers = args.signers.toList(),
@@ -162,11 +163,12 @@ private fun TapSignerListContent(
         SignerType.AIRGAP -> "Air-gapped key(s)"
         else -> ""
     }
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
     Column(
         modifier = Modifier.background(
             color = MaterialTheme.colors.surface,
             shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-        )
+        ).nestedScroll(rememberNestedScrollInteropConnection())
     ) {
         IconButton(
             modifier = Modifier.padding(top = 40.dp), onClick = onCloseClicked
@@ -189,7 +191,7 @@ private fun TapSignerListContent(
             style = NunchukTheme.typography.body,
         )
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).heightIn(max = screenHeightDp.times(2).div(3).dp),
             contentPadding = PaddingValues(vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
