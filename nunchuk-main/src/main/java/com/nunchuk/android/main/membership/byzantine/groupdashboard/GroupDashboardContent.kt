@@ -69,13 +69,11 @@ import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
-import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.type.SignerType
 import com.skydoves.landscapist.ImageOptions
@@ -112,13 +110,8 @@ fun GroupDashboardContent(
         }
     }
 
-    val isShowMore: Boolean = (uiState.groupChat != null && uiState.myRole.isMasterOrAdmin)
-            || if (uiState.group?.isPendingWallet() == true) {
-        uiState.myRole == AssistedWalletRole.MASTER
-    } else {
-        uiState.myRole.isMasterOrAdmin &&
-                uiState.group?.walletConfig?.toGroupWalletType()?.isPro == true
-    }
+    val isShowMore = (uiState.myRole != AssistedWalletRole.KEYHOLDER_LIMITED && uiState.myRole != AssistedWalletRole.OBSERVER)
+            && (uiState.groupChat != null || uiState.group?.isPendingWallet() == false || uiState.myRole == AssistedWalletRole.MASTER)
 
     NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
         Scaffold(

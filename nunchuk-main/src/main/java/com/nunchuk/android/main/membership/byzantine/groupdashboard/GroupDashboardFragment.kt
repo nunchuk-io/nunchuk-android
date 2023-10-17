@@ -435,15 +435,22 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         val options = mutableListOf<SheetOption>()
         val uiState = viewModel.state.value
         if (viewModel.isPendingCreateWallet().not()) {
-            if (uiState.myRole.isMasterOrAdmin &&
-                uiState.group?.walletConfig?.toGroupWalletType()?.isPro == true
-            ) {
-                options.add(
-                    SheetOption(
-                        type = SheetOptionType.SET_UP_INHERITANCE,
-                        stringId = if (uiState.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan_wallet
-                    ),
-                )
+            if (uiState.group?.walletConfig?.toGroupWalletType()?.isPro == true) {
+                if (uiState.myRole.isMasterOrAdmin) {
+                    options.add(
+                        SheetOption(
+                            type = SheetOptionType.SET_UP_INHERITANCE,
+                            stringId = if (uiState.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan_wallet
+                        ),
+                    )
+                } else if (uiState.isSetupInheritance) {
+                    options.add(
+                        SheetOption(
+                            type = SheetOptionType.SET_UP_INHERITANCE,
+                            stringId = R.string.nc_view_inheritance_plan
+                        ),
+                    )
+                }
                 if (!args.walletId.isNullOrEmpty()) {
                     options.add(
                         SheetOption(
@@ -453,16 +460,18 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     )
                 }
             }
-            options.addAll(
-                mutableListOf(
+            if (uiState.myRole.isMasterOrAdmin) {
+                options.add(
                     SheetOption(
                         type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
                         stringId = R.string.nc_emergency_lockdown
-                    ),
-                    SheetOption(
-                        type = SheetOptionType.TYPE_RECURRING_PAYMENT,
-                        stringId = R.string.nc_view_recurring_payments
                     )
+                )
+            }
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_RECURRING_PAYMENT,
+                    stringId = R.string.nc_view_recurring_payments
                 )
             )
         }
@@ -474,15 +483,15 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
         }
-        if (viewModel.isPendingCreateWallet() && uiState.myRole == AssistedWalletRole.MASTER) (
-                options.add(
-                    SheetOption(
-                        type = SheetOptionType.TYPE_RESTART_WIZARD,
-                        stringId = R.string.nc_cancel_pending_wallet,
-                        isDeleted = true
-                    )
+        if (viewModel.isPendingCreateWallet() && uiState.myRole == AssistedWalletRole.MASTER) {
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_RESTART_WIZARD,
+                    stringId = R.string.nc_cancel_pending_wallet,
+                    isDeleted = true
                 )
-        )
+            )
+        }
         if (options.isEmpty()) return
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")

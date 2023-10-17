@@ -40,7 +40,6 @@ import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupServerKeysUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -127,7 +126,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
         viewModelScope.launch {
             getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(args.groupId)).onSuccess { group ->
                 val myEmail = accountManager.getAccount().email
-                val members = group.members.orEmpty().mapNotNull { member ->
+                val members = group.members.mapNotNull { member ->
                     if (member.role.toRole.isKeyHolder) {
                         AssistedMember(
                             role = member.role,

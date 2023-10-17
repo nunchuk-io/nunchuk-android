@@ -59,6 +59,7 @@ import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
@@ -265,7 +266,7 @@ private fun CosigningGroupPolicyContent(
                         text = stringResource(R.string.nc_spending_limit),
                         style = NunchukTheme.typography.title
                     )
-                    if (uiState.dummyTransactionId.isEmpty()) {
+                    if (uiState.dummyTransactionId.isEmpty() && uiState.myRole.isMasterOrAdmin) {
                         Text(
                             modifier = Modifier.clickable(onClick = onEditSpendingLimitClicked),
                             text = stringResource(R.string.nc_edit),
@@ -314,7 +315,7 @@ private fun CosigningGroupPolicyContent(
                         text = stringResource(R.string.nc_co_signing_delay),
                         style = NunchukTheme.typography.title
                     )
-                    if (uiState.dummyTransactionId.isEmpty()) {
+                    if (uiState.dummyTransactionId.isEmpty() && uiState.myRole.isMasterOrAdmin) {
                         Text(
                             modifier = Modifier.clickable(onClick = onEditSingingDelayClicked),
                             text = stringResource(R.string.nc_edit),
@@ -380,7 +381,7 @@ private fun CosigningGroupPolicyContent(
                         )
                     }
                 }
-                if (isUpdateFlow) {
+                if (isUpdateFlow || uiState.myRole.isMasterOrAdmin) {
                     Spacer(modifier = Modifier.weight(1.0f))
                     NcPrimaryDarkButton(
                         modifier = Modifier
@@ -400,7 +401,7 @@ private fun CosigningGroupPolicyContent(
                             Text(text = stringResource(R.string.nc_continue_save_changes))
                         }
                     }
-                    if (uiState.myRole == AssistedWalletRole.MASTER || uiState.myRole == AssistedWalletRole.ADMIN) {
+                    if (uiState.myRole.isMasterOrAdmin) {
                         TextButton(
                             modifier = Modifier
                                 .padding(16.dp)
