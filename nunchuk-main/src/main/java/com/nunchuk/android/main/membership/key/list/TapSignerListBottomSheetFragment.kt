@@ -191,7 +191,7 @@ private fun TapSignerListContent(
             style = NunchukTheme.typography.body,
         )
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp).heightIn(max = screenHeightDp.times(2).div(3).dp),
+            modifier = Modifier.padding(horizontal = 16.dp).heightIn(max = screenHeightDp.div(2).dp),
             contentPadding = PaddingValues(vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
