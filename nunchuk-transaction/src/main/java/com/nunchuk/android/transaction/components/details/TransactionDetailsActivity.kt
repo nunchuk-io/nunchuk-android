@@ -433,15 +433,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                             || signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.COLDCARD) -> showSignByMk4Options()
 
                     signer.type == SignerType.NFC -> {
-                        if (viewModel.isInheritanceSigner(signer.fingerPrint)) {
-                            NCWarningDialog(this).showDialog(title = getString(R.string.nc_text_confirmation),
-                                message = getString(R.string.nc_inheritance_key_warning),
-                                onYesClick = {
-                                    startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
-                                })
-                        } else {
-                            startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
-                        }
+                        startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                     }
 
                     signer.type == SignerType.AIRGAP || signer.type == SignerType.UNKNOWN -> showSignByAirgapOptions()
