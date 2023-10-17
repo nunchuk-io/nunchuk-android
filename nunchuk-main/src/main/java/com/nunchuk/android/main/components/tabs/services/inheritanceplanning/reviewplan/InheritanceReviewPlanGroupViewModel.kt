@@ -39,7 +39,6 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
     private val cancelInheritanceUserDataUseCase: CancelInheritanceUserDataUseCase,
     private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     private val accountManager: AccountManager,
-    private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase
 ) : ViewModel() {
 
     private lateinit var param: InheritancePlanningParam.SetupOrReview
@@ -157,13 +156,6 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
 
     private fun isCreateOrUpdateFlow() =
         state.value.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN
-
-    fun getDummyTransactionType() = state.value.type
-
-    fun markSetupInheritance() = viewModelScope.launch {
-        markSetupInheritanceUseCase(MarkSetupInheritanceUseCase.Param(walletId = param.walletId, isSetupInheritance = isCreateOrUpdateFlow()))
-        _event.emit(InheritanceReviewPlanGroupEvent.MarkSetupInheritance)
-    }
 }
 
 sealed class InheritanceReviewPlanGroupEvent {
@@ -177,7 +169,6 @@ sealed class InheritanceReviewPlanGroupEvent {
     data class ProcessFailure(val message: String) : InheritanceReviewPlanGroupEvent()
     data object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanGroupEvent()
     data object CancelInheritanceSuccess : InheritanceReviewPlanGroupEvent()
-    data object MarkSetupInheritance : InheritanceReviewPlanGroupEvent()
 }
 
 data class InheritanceReviewPlanGroupState(

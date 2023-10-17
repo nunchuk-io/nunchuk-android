@@ -45,9 +45,12 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
@@ -85,6 +88,43 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 viewModel.dismissCurrentAlert()
             }
         }
+
+    private val inheritanceLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                val dummyTransactionId = it.data?.getStringExtra(GlobalResultKey.DUMMY_TX_ID).orEmpty()
+                val requiredSignatures = it.data?.getIntExtra(GlobalResultKey.REQUIRED_SIGNATURES, 0) ?: 0
+                if (dummyTransactionId.isNotEmpty()) {
+                    openWalletAuthentication(
+                        dummyTransactionId = dummyTransactionId,
+                        requiredSignatures = requiredSignatures,)
+                }
+            }
+        }
+
+    private val signLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val dummyTransactionType = data.parcelable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
+                if (dummyTransactionType != null && dummyTransactionType.isInheritanceFlow()) {
+                    viewModel.markSetupInheritance(dummyTransactionType)
+                    showInheritanceMessage(dummyTransactionType)
+                }
+            }
+        }
+
+    private fun showInheritanceMessage(dummyTransactionType: DummyTransactionType) {
+        val message = when(dummyTransactionType) {
+            DummyTransactionType.CREATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_created)
+            DummyTransactionType.UPDATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_updated)
+            DummyTransactionType.CANCEL_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_canlled)
+            else -> ""
+        }
+        if (message.isNotEmpty()) {
+            showSuccess(message = message)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -153,6 +193,23 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         }
     }
 
+    private fun openWalletAuthentication(
+        dummyTransactionId: String,
+        requiredSignatures: Int,
+        userData: String = "",
+    ) {
+        navigator.openWalletAuthentication(
+            activityContext = requireActivity(),
+            walletId = viewModel.getWalletId(),
+            requiredSignatures = requiredSignatures,
+            type = VerificationType.SIGN_DUMMY_TX,
+            groupId = args.groupId,
+            dummyTransactionId = dummyTransactionId,
+            userData = userData,
+            launcher = signLauncher
+        )
+    }
+
     private fun networkCheck(block: () -> Unit) {
         if (isNetworkConnectedUseCase().not()) {
             showError(message = getString(R.string.nc_no_internet_connection_try_again_later))
@@ -182,13 +239,9 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 bundle.getString(AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID).orEmpty()
             val requiredSignatures = bundle.getInt(AlertActionIntroFragment.EXTRA_REQUIRE_KEY)
             if (dummyTransactionId.isNotEmpty()) {
-                navigator.openWalletAuthentication(
-                    activityContext = requireActivity(),
-                    walletId = viewModel.getWalletId(),
-                    requiredSignatures = requiredSignatures,
-                    type = VerificationType.SIGN_DUMMY_TX,
-                    groupId = args.groupId,
+                openWalletAuthentication(
                     dummyTransactionId = dummyTransactionId,
+                    requiredSignatures = requiredSignatures,
                 )
             }
             clearFragmentResult(AlertActionIntroFragment.REQUEST_KEY)
@@ -223,7 +276,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         if (event.token.isNotEmpty()) {
                             navigator.openInheritancePlanningScreen(
                                 walletId = viewModel.getWalletId(),
-                                requireContext(),
+                                activityContext = requireContext(),
                                 verifyToken = event.token,
                                 inheritance = event.inheritance,
                                 flowInfo = InheritancePlanFlow.VIEW,
@@ -272,14 +325,10 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 }
 
                 is GroupDashboardEvent.CalculateRequiredSignaturesSuccess -> {
-                    navigator.openWalletAuthentication(
-                        walletId = viewModel.getWalletId(),
-                        userData = event.userData,
-                        requiredSignatures = event.requiredSignatures,
-                        type = event.type,
-                        groupId = args.groupId,
+                    openWalletAuthentication(
                         dummyTransactionId = event.dummyTransactionId,
-                        activityContext = requireActivity()
+                        requiredSignatures = event.requiredSignatures,
+                        userData = event.userData
                     )
                 }
 
@@ -335,6 +384,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             }
         } else if (alert.type.isInheritanceType()) {
             navigator.openInheritancePlanningScreen(
+                launcher = inheritanceLauncher,
                 walletId = viewModel.getWalletId(),
                 activityContext = requireActivity(),
                 flowInfo = InheritancePlanFlow.SIGN_DUMMY_TX,

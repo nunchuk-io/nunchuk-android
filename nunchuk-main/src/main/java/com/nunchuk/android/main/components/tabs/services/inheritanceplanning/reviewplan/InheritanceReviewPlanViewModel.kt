@@ -140,16 +140,16 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     )
                 )
             } else {
-                calculateRequiredSignaturesByzantine(resultCalculate.getOrThrow(), userData)
+                calculateRequiredSignaturesByzantine(resultCalculate.getOrThrow(), userData, isCreateOrUpdateFlow)
             }
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
-    private suspend fun calculateRequiredSignaturesByzantine(signatures: CalculateRequiredSignatures, userData: String) {
+    private suspend fun calculateRequiredSignaturesByzantine(signatures: CalculateRequiredSignatures, userData: String, isCreateOrUpdateFlow: Boolean) {
         if (signatures.type == VerificationType.SIGN_DUMMY_TX) {
-            if (isCreateOrUpdateFlow()) {
+            if (isCreateOrUpdateFlow) {
                 createOrUpdateInheritanceUseCase(
                     CreateOrUpdateInheritanceUseCase.Param(
                         signatures = hashMapOf(),

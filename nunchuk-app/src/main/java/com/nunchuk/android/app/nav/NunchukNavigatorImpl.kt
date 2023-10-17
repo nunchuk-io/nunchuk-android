@@ -245,6 +245,7 @@ interface AppNavigatorDelegate : AppNavigator {
     }
 
     override fun openInheritancePlanningScreen(
+        launcher: ActivityResultLauncher<Intent>?,
         walletId: String,
         activityContext: Context,
         verifyToken: String?,
@@ -255,6 +256,7 @@ interface AppNavigatorDelegate : AppNavigator {
         dummyTransactionId: String?
     ) {
         InheritancePlanningActivity.navigate(
+            launcher = launcher,
             activity = activityContext,
             verifyToken = verifyToken,
             flowInfo = flowInfo,

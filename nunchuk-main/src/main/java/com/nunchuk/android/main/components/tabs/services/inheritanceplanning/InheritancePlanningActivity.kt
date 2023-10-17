@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
@@ -144,6 +145,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_DUMMY_TRANSACTION_ID = "dummy_transaction_id"
 
         fun navigate(
+            launcher: ActivityResultLauncher<Intent>? = null,
             walletId: String,
             activity: Context,
             verifyToken: String?,
@@ -161,7 +163,11 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 .putExtra(EXTRA_WALLET_ID, walletId)
                 .putExtra(MembershipActivity.EXTRA_GROUP_ID, groupId)
                 .putExtra(EXTRA_DUMMY_TRANSACTION_ID, dummyTransactionId)
-            activity.startActivity(intent)
+            if (launcher != null) {
+                launcher.launch(intent)
+            } else {
+                activity.startActivity(intent)
+            }
         }
     }
 }

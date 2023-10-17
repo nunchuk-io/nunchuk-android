@@ -356,7 +356,10 @@ class WalletAuthenticationViewModel @Inject constructor(
             signatures[singleSigner.masterFingerprint] = signature
             if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
                 if (uploadSignature(singleSigner.masterFingerprint, signature, signatures)) {
-                    _event.emit(WalletAuthenticationEvent.UploadSignatureSuccess(_state.value.transactionStatus))
+                    val status = _state.value.transactionStatus
+                    if (status != TransactionStatus.CONFIRMED) {
+                        _event.emit(WalletAuthenticationEvent.UploadSignatureSuccess(status))
+                    }
                 }
             } else {
                 if (signatures.size == args.requiredSignatures) {
@@ -483,13 +486,12 @@ class WalletAuthenticationViewModel @Inject constructor(
                 || type == SignerType.COLDCARD_NFC
     }
 
+    fun getDummyTransactionType() = _state.value.dummyTransactionType
+
     val signedSuccessMessage: String
         get() = if (state.value.transactionStatus != TransactionStatus.CONFIRMED) {
             application.getString(R.string.nc_transaction_updated)
         } else when (state.value.dummyTransactionType) {
-            DummyTransactionType.CREATE_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_created)
-            DummyTransactionType.UPDATE_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_updated)
-            DummyTransactionType.CANCEL_INHERITANCE_PLAN -> application.getString(R.string.nc_inheritance_has_been_canlled)
             DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> application.getString(R.string.nc_inheritance_planning_request_approved)
             DummyTransactionType.UPDATE_SERVER_KEY -> application.getString(R.string.nc_policy_updated)
             DummyTransactionType.HEALTH_CHECK_PENDING,

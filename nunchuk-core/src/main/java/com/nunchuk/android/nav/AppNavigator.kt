@@ -77,6 +77,7 @@ interface AppNavigator {
      * @param inheritance for view/update inheritance [InheritancePlanFlow.VIEW]
      */
     fun openInheritancePlanningScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
         walletId: String = "",
         activityContext: Context,
         verifyToken: String? = null,

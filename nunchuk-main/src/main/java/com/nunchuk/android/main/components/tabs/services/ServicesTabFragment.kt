@@ -110,7 +110,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 )
                 is ServicesTabEvent.GetInheritanceSuccess -> navigator.openInheritancePlanningScreen(
                     walletId = event.walletId,
-                    requireContext(),
+                    activityContext = requireContext(),
                     verifyToken = event.token,
                     inheritance = event.inheritance,
                     flowInfo = InheritancePlanFlow.VIEW,

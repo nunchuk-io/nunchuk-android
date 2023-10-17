@@ -65,6 +65,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationSt
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
@@ -151,7 +152,8 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                     when (event) {
                         is WalletAuthenticationEvent.SignDummyTxSuccess -> {
                             val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
-                            if (!args.dummyTransactionId.isNullOrEmpty() && args.action != TargetAction.CLAIM_KEY.name) {
+                            if (!args.dummyTransactionId.isNullOrEmpty() && args.action != TargetAction.CLAIM_KEY.name
+                                && walletAuthenticationViewModel.getDummyTransactionType().isInheritanceFlow().not()) {
                                 openGroupDashboard()
                             } else {
                                 requireActivity().setResult(Activity.RESULT_OK, Intent().apply {

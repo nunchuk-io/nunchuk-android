@@ -31,4 +31,6 @@ object GlobalResultKey {
     const val UPDATE_INHERITANCE = "UPDATE_INHERITANCE"
     const val WALLET_ID = "WALLET_ID"
     const val EXTRA_COINS = "coins"
+    const val DUMMY_TX_ID = "DUMMY_TX_ID"
+    const val REQUIRED_SIGNATURES = "REQUIRED_SIGNATURES"
 }

@@ -1,6 +1,8 @@
 package com.nunchuk.android.model.byzantine
 
+import android.os.Parcelable
 import androidx.annotation.Keep
+import kotlinx.parcelize.Parcelize
 
 data class DummyTransactionPayload(
     val dummyTransactionId: String,
@@ -13,7 +15,8 @@ data class DummyTransactionPayload(
 )
 
 @Keep
-enum class DummyTransactionType {
+@Parcelize
+enum class DummyTransactionType : Parcelable {
     NONE, DOWNLOAD_KEY_BACKUP, UPDATE_SECURITY_QUESTIONS, CREATE_INHERITANCE_PLAN, UPDATE_INHERITANCE_PLAN, CANCEL_INHERITANCE_PLAN, UPDATE_SERVER_KEY, HEALTH_CHECK_REQUEST, HEALTH_CHECK_PENDING, REQUEST_INHERITANCE_PLANNING
 }
 

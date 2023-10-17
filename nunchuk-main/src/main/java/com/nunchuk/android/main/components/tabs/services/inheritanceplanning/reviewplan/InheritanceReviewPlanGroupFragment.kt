@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -70,21 +71,6 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
     private val viewModel: InheritanceReviewPlanGroupViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
 
-    private val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val data = it.data?.extras
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val signatureMap =
-                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
-                        ?: return@registerForActivityResult
-                val securityQuestionToken =
-                    data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                if (signatureMap.isEmpty() && securityQuestionToken.isEmpty()) {
-                    viewModel.markSetupInheritance()
-                }
-            }
-        }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -106,34 +92,17 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceReviewPlanGroupEvent.OnContinue -> {
-                    navigator.openWalletAuthentication(
-                        walletId = inheritanceViewModel.setupOrReviewParam.walletId,
-                        userData = event.userData,
-                        requiredSignatures = event.requiredSignatures.requiredSignatures,
-                        type = event.requiredSignatures.type,
-                        groupId = inheritanceViewModel.setupOrReviewParam.groupId,
-                        dummyTransactionId = event.dummyTransactionId,
-                        launcher = launcher,
-                        activityContext = requireActivity()
-                    )
+                    requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra(GlobalResultKey.DUMMY_TX_ID, event.dummyTransactionId)
+                        putExtra(GlobalResultKey.REQUIRED_SIGNATURES, event.requiredSignatures.requiredSignatures)
+                    })
+                   requireActivity().finish()
                 }
 
                 is InheritanceReviewPlanGroupEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanGroupEvent.ProcessFailure -> showError(message = event.message)
                 InheritanceReviewPlanGroupEvent.CancelInheritanceSuccess -> {}
                 InheritanceReviewPlanGroupEvent.CreateOrUpdateInheritanceSuccess -> {}
-                InheritanceReviewPlanGroupEvent.MarkSetupInheritance -> {
-                    if (viewModel.getDummyTransactionType() == DummyTransactionType.CREATE_INHERITANCE_PLAN) {
-                        NcToastManager.scheduleShowMessage(
-                            message = getString(R.string.nc_inheritance_has_been_created)
-                        )
-                    } else {
-                        NcToastManager.scheduleShowMessage(
-                            message = getString(R.string.nc_inheritance_has_been_updated)
-                        )
-                    }
-                    findNavController().popBackStack()
-                }
             }
         }
     }
@@ -159,7 +128,7 @@ fun InheritanceReviewPlanGroupScreenContent(
     val newData = uiState.payload.newData
     val oldData = uiState.payload.oldData
 
-    if (newData == null && oldData == null) {
+    if (newData == null && oldData == null && uiState.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN) {
         return
     }
 

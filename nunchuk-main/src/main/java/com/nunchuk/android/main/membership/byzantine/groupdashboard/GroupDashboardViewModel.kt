@@ -29,6 +29,7 @@ import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
@@ -45,6 +46,7 @@ import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
+import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
@@ -55,7 +57,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -98,6 +99,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val requestPlanningInheritanceUseCase: RequestPlanningInheritanceUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
     private val membershipStepManager: MembershipStepManager,
+    private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -555,6 +557,10 @@ class GroupDashboardViewModel @Inject constructor(
                 _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
             }
         }
+    }
+
+    fun markSetupInheritance(type: DummyTransactionType) = viewModelScope.launch {
+        markSetupInheritanceUseCase(MarkSetupInheritanceUseCase.Param(walletId = getWalletId(), isSetupInheritance = type != DummyTransactionType.CANCEL_INHERITANCE_PLAN))
     }
 
     private val currentSelectedAlert: Alert?
