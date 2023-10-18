@@ -28,7 +28,6 @@ import com.nunchuk.android.persistence.dao.AlertDao
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.dao.DummyTransactionDao
-import com.nunchuk.android.persistence.dao.GroupChatDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.HandledEventDao
 import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
@@ -103,8 +102,4 @@ internal object NunchukPersistenceModule {
     @Singleton
     @Provides
     fun provideDummyTransactionDao(database: NunchukDatabase): DummyTransactionDao = database.dummyTransactionDao()
-
-    @Singleton
-    @Provides
-    fun provideGroupChatDao(database: NunchukDatabase): GroupChatDao = database.groupChatDao()
 }

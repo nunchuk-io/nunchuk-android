@@ -98,11 +98,11 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun openRoomDetailScreen(summary: RoomSummary) {
-        openRoomDetailScreen(summary.roomId, summary.tags.any { it.name == GROUP_CHAT_ROOM_TYPE })
+        openRoomDetailScreen(summary.roomId)
     }
 
-    private fun openRoomDetailScreen(roomId: String, isGroupChat: Boolean = false) {
-        navigator.openRoomDetailActivity(requireContext(), roomId, isGroupChat = isGroupChat)
+    private fun openRoomDetailScreen(roomId: String) {
+        navigator.openRoomDetailActivity(requireContext(), roomId)
     }
 
 
@@ -118,6 +118,10 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         adapter.roomWallets.apply {
             clear()
             addAll(state.roomWallets.map(RoomWallet::roomId))
+        }
+        adapter.groupChatRooms.apply {
+            clear()
+            putAll(state.groupChatRooms)
         }
         val visibleRooms = state.rooms.filter(RoomSummary::shouldShow)
         adapter.submitList(visibleRooms)
@@ -144,7 +148,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun handleRemoveRoom(roomSummary: RoomSummary, hasSharedWallet: Boolean) {
-        if (isResumed.not()) return
         if (hasSharedWallet) {
             NCWarningDialog(requireActivity())
                 .showDialog(

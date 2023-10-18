@@ -35,7 +35,6 @@ import com.nunchuk.android.model.byzantine.toAlertType
 import com.nunchuk.android.model.transaction.AlertPayload
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.entity.AlertEntity
-import com.nunchuk.android.persistence.entity.GroupChatEntity
 import com.nunchuk.android.persistence.entity.GroupEntity
 import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
 import com.nunchuk.android.type.Chain
@@ -152,26 +151,6 @@ internal fun GroupChatDto.toGroupChat(): GroupChat {
         groupId = groupId.orEmpty(),
         historyPeriod = historyPeriod?.toHistoryPeriod() ?: HistoryPeriod(),
         roomId = roomId.orEmpty()
-    )
-}
-
-internal fun GroupChatEntity.toGroupChat(): GroupChat {
-    return GroupChat(
-        createdTimeMillis = createdTimeMillis,
-        groupId = groupId,
-        historyPeriod = gson.fromJson(historyPeriod, HistoryPeriod::class.java),
-        roomId = roomId
-    )
-}
-
-internal fun GroupChatDto.toGroupChatEntity(chatId: String, chain: String): GroupChatEntity {
-    return GroupChatEntity(
-        createdTimeMillis = createdTimeMillis ?: 0,
-        groupId = groupId.orEmpty(),
-        chatId = chatId,
-        roomId = roomId.orEmpty(),
-        chain = Chain.valueOf(chain),
-        historyPeriod = gson.toJson(historyPeriod)
     )
 }
 

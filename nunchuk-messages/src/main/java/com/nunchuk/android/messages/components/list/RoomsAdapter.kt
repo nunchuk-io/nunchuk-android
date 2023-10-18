@@ -28,10 +28,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.databinding.ItemRoomBinding
 import com.nunchuk.android.messages.util.lastMessage
+import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.utils.formatMessageDate
 import com.nunchuk.android.widget.swipe.SwipeLayout
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import java.util.*
+import kotlin.collections.HashMap
 
 class RoomAdapter(
     private val currentName: String,
@@ -42,11 +44,13 @@ class RoomAdapter(
 ) {
 
     val roomWallets: MutableSet<String> = mutableSetOf()
+    val groupChatRooms: HashMap<String, GroupChatRoom> = hashMapOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
         return RoomViewHolder(
             ItemRoomBinding.inflate(LayoutInflater.from(parent.context), parent, false),
             roomWallets,
+            groupChatRooms,
             currentName,
             enterRoom,
             removeRoom
@@ -61,6 +65,7 @@ class RoomAdapter(
 class RoomViewHolder(
     private val binding: ItemRoomBinding,
     private val roomWallets: MutableSet<String>,
+    private val groupChatRooms: HashMap<String, GroupChatRoom>,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
@@ -94,6 +99,7 @@ class RoomViewHolder(
 
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
+        binding.swipeLayout.isSwipeEnabled = groupChatRooms[data.roomId]?.isMasterOrAdmin == true || groupChatRooms[data.roomId] == null
     }
 
     private fun bindCount(data: RoomSummary) {

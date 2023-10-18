@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
+import org.matrix.android.sdk.api.session.room.model.create.CreateRoomStateEvent
 import javax.inject.Inject
 
 class CreateRoomGroupChatUseCase @Inject constructor(
@@ -39,6 +40,11 @@ class CreateRoomGroupChatUseCase @Inject constructor(
                     "group_id" to parameters.group.id
                 )
             )
+            this.initialStates = mutableListOf(CreateRoomStateEvent(
+                type = GROUP_CHAT_ROOM_TYPE,
+                content = mutableMapOf("group_id" to parameters.group.id),
+                stateKey = ""
+            ))
         }
         val roomId = session.roomService().createRoom(params)
         session.roomService().getRoom(roomId)?.also { room ->

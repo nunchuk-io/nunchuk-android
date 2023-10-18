@@ -146,7 +146,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
 
         setupViews()
         observeEvent()
-        viewModel.initialize(args.roomId)
+        viewModel.initialize(args.roomId, args.isGroupChat)
         viewModel.checkShowBannerNewChat()
     }
 
@@ -194,7 +194,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
     private fun handleState(state: RoomDetailState) {
         setupViewForSelectMode(state.isSelectEnable)
         val count = state.roomInfo.memberCount
-        if (state.isSupportRoom || args.isGroupChat) {
+        if (state.isSupportRoom || state.isGroupChatRoom) {
             adapter.removeBannerNewChat()
             binding.memberCount.text = resources.getString(R.string.nc_message_transaction_view_details)
         } else {

@@ -83,7 +83,6 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
-import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.Alert
@@ -94,6 +93,7 @@ import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
+import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.GroupStatus
 import com.nunchuk.android.model.HistoryPeriod
@@ -123,6 +123,8 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
@@ -135,7 +137,6 @@ import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AlertDao
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
-import com.nunchuk.android.persistence.dao.GroupChatDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
@@ -144,7 +145,6 @@ import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
 import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
-import com.nunchuk.android.share.result.GlobalResultKey.SECURITY_QUESTION_TOKEN
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -157,9 +157,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -177,7 +175,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val requestAddKeyDao: RequestAddKeyDao,
     private val groupDao: GroupDao,
     private val alertDao: AlertDao,
-    private val groupChatDao: GroupChatDao,
     private val groupWalletRepository: GroupWalletRepository,
     private val pushEventManager: PushEventManager,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
@@ -1859,6 +1856,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getLocalGroup(groupId: String): ByzantineGroup? {
+        return groupDao.getGroupById(
+            groupId,
+            chatId = accountManager.getAccount().chatId,
+            chain = chain.value
+        )?.toByzantineGroup()
+    }
+
     override suspend fun getGroupRemote(groupId: String): ByzantineGroup {
         return syncer.syncGroup(groupId) ?: throw NullPointerException("Can not get group")
     }
@@ -2019,15 +2024,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.chat!!.toGroupChat()
     }
 
-    override suspend fun getGroupChatByRoomId(roomId: String): GroupChat? {
-        val entity = groupChatDao.getByRoomId(roomId, accountManager.getAccount().chatId, chain.value)
-        return entity?.toGroupChat()
-    }
-
-    override suspend fun syncGroupChat() {
-        syncer.syncGroupChat()
-    }
-
     override suspend fun getGroupChatByGroupId(groupId: String): GroupChat {
         val response = userWalletApiManager.groupWalletApi.getGroupChat(groupId)
         if (response.isSuccess.not() || response.data.chat == null) {
@@ -2036,9 +2032,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.chat!!.toGroupChat()
     }
 
-    override suspend fun deleteGroupChat(roomId: String) {
-        val groupId = groupChatDao.getByRoomId(roomId, accountManager.getAccount().chatId, chain.value)?.groupId
-            ?: throw NullPointerException("Can not find group chat")
+    override suspend fun deleteGroupChat(groupId: String) {
         userWalletApiManager.groupWalletApi.deleteGroupChat(groupId)
     }
 

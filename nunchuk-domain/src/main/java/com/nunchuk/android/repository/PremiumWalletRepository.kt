@@ -26,6 +26,7 @@ import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
+import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
@@ -354,6 +355,7 @@ interface PremiumWalletRepository {
     suspend fun getGroupsRemote(): List<ByzantineGroup>
     suspend fun syncGroupWallets(): Boolean
     fun getGroup(groupId: String): Flow<ByzantineGroup>
+    suspend fun getLocalGroup(groupId: String): ByzantineGroup?
     suspend fun getGroupRemote(groupId: String): ByzantineGroup
     suspend fun deleteGroupWallet(groupId: String)
     suspend fun deleteGroup(groupId: String)
@@ -392,9 +394,7 @@ interface PremiumWalletRepository {
     suspend fun getAlertTotal(groupId: String): Int
     suspend fun createOrUpdateGroupChat(roomId: String, groupId: String, historyPeriodId: String?): GroupChat
     suspend fun getGroupChatByGroupId(groupId: String): GroupChat
-    suspend fun getGroupChatByRoomId(roomId: String): GroupChat?
-    suspend fun syncGroupChat()
-    suspend fun deleteGroupChat(roomId: String)
+    suspend fun deleteGroupChat(groupId: String)
     suspend fun getHistoryPeriod(): List<HistoryPeriod>
     suspend fun requestConfirmationCode(action: String, userData: String): Pair<String, String>
     suspend fun verifyConfirmationCode(codeId: String, code: String): String

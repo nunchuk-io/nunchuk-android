@@ -8,7 +8,6 @@ import com.nunchuk.android.core.data.model.byzantine.KeyHealthStatusDto
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toByzantineGroup
-import com.nunchuk.android.core.mapper.toGroupChatEntity
 import com.nunchuk.android.core.mapper.toGroupEntity
 import com.nunchuk.android.core.mapper.toKeyHealthStatus
 import com.nunchuk.android.core.persistence.NcDataStore
@@ -17,11 +16,9 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupStatus
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.persistence.dao.AlertDao
-import com.nunchuk.android.persistence.dao.GroupChatDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
 import com.nunchuk.android.persistence.entity.AlertEntity
-import com.nunchuk.android.persistence.entity.GroupChatEntity
 import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
 import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +30,6 @@ import javax.inject.Inject
 internal class ByzantineSyncer @Inject constructor(
     private val alertDao: AlertDao,
     private val groupDao: GroupDao,
-    private val groupChatDao: GroupChatDao,
     private val keyHealthStatusDao: KeyHealthStatusDao,
     private val userWalletApiManager: UserWalletApiManager,
     private val accountManager: AccountManager,
@@ -167,35 +163,6 @@ internal class ByzantineSyncer @Inject constructor(
             return updateOrInsertList.map { it.toKeyHealthStatus() }
         }.onFailure { return null }
         return null
-    }
-
-    suspend fun syncGroupChat() {
-        runCatching {
-            val response =
-                userWalletApiManager.groupWalletApi.getGroupChats()
-            if (response.isSuccess.not()) return
-            val remoteList = response.data.chats.orEmpty()
-            val localMap = groupChatDao.getGroupChats(getChatId(), chain.value)
-                .associateByTo(mutableMapOf()) { it.groupId }
-            val updateOrInsertList = mutableListOf<GroupChatEntity>()
-            remoteList.forEach { remote ->
-                val local = localMap[remote.groupId]
-                if (local != null) {
-                    updateOrInsertList += local.copy(
-                        createdTimeMillis = remote.createdTimeMillis ?: 0L,
-                        historyPeriod = gson.toJson(remote.historyPeriod),
-                        roomId = remote.roomId.orEmpty()
-                    )
-                    localMap.remove(remote.groupId)
-                } else {
-                    updateOrInsertList += remote.toGroupChatEntity(getChatId(), chain.value.name)
-                }
-            }
-            val deleteList = localMap.values.toList()
-            if (updateOrInsertList.isNotEmpty() || deleteList.isNotEmpty()) {
-                groupChatDao.updateData(updateOrInsertList, deleteList)
-            }
-        }
     }
 
     private fun Alert.toAlertEntity(

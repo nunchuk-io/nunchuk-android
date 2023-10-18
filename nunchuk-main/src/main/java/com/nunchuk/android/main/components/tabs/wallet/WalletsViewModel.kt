@@ -79,7 +79,6 @@ import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
 import com.nunchuk.android.usecase.byzantine.SyncDeletedWalletUseCase
-import com.nunchuk.android.usecase.byzantine.SyncGroupChatUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
@@ -139,7 +138,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val syncDeletedWalletUseCase: SyncDeletedWalletUseCase,
-    private val syncGroupChatUseCase: SyncGroupChatUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -254,9 +252,6 @@ internal class WalletsViewModel @Inject constructor(
             syncDeletedWalletUseCase(Unit).onSuccess { shouldReload ->
                 if (shouldReload) retrieveData()
             }
-        }
-        viewModelScope.launch {
-            syncGroupChatUseCase(Unit)
         }
         viewModelScope.launch {
             getGroupsUseCase(Unit).distinctUntilChanged().collect {
