@@ -359,7 +359,8 @@ fun InheritanceReviewPlanScreenContent(
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
 ) {
-    val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
+    val isAccountSetupInheritance = groupId.isEmpty() || magicalPhrase.isEmpty().not()
+    val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty().not()) {
         Utils.maskValue("", isMask = true)
     } else { magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) } }
 
@@ -473,7 +474,7 @@ fun InheritanceReviewPlanScreenContent(
                                         iconId = R.drawable.ic_calendar_light,
                                         titleId = R.string.nc_activation_date,
                                         content = Date(state.activationDate).simpleGlobalDateFormat(),
-                                        editable = true,
+                                        editable = isAccountSetupInheritance,
                                         onClick = {
                                             onEditActivationDateClick()
                                         }
@@ -492,7 +493,7 @@ fun InheritanceReviewPlanScreenContent(
                                         content = stringResource(id = R.string.nc_backup_password_desc),
                                         editable = false
                                     )
-                                    if (planFlow == InheritancePlanFlow.VIEW) {
+                                    if (isAccountSetupInheritance && planFlow == InheritancePlanFlow.VIEW) {
                                         Spacer(modifier = Modifier.height(24.dp))
                                         NcOutlineButton(
                                             modifier = Modifier
@@ -535,14 +536,16 @@ fun InheritanceReviewPlanScreenContent(
                                     style = NunchukTheme.typography.title
                                 )
                                 Spacer(modifier = Modifier.weight(weight = 1f))
-                                Text(
-                                    text = stringResource(id = R.string.nc_edit),
-                                    style = NunchukTheme.typography.title,
-                                    textDecoration = TextDecoration.Underline,
-                                    modifier = Modifier.clickable {
-                                        onEditNoteClick()
-                                    }
-                                )
+                                if (isAccountSetupInheritance) {
+                                    Text(
+                                        text = stringResource(id = R.string.nc_edit),
+                                        style = NunchukTheme.typography.title,
+                                        textDecoration = TextDecoration.Underline,
+                                        modifier = Modifier.clickable {
+                                            onEditNoteClick()
+                                        }
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -579,14 +582,16 @@ fun InheritanceReviewPlanScreenContent(
                                     style = NunchukTheme.typography.title
                                 )
                                 Spacer(modifier = Modifier.weight(weight = 1f))
-                                Text(
-                                    text = stringResource(id = R.string.nc_edit),
-                                    style = NunchukTheme.typography.title,
-                                    textDecoration = TextDecoration.Underline,
-                                    modifier = Modifier.clickable {
-                                        onEditBufferPeriodClick(state.bufferPeriod)
-                                    }
-                                )
+                                if (isAccountSetupInheritance) {
+                                    Text(
+                                        text = stringResource(id = R.string.nc_edit),
+                                        style = NunchukTheme.typography.title,
+                                        textDecoration = TextDecoration.Underline,
+                                        modifier = Modifier.clickable {
+                                            onEditBufferPeriodClick(state.bufferPeriod)
+                                        }
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -625,14 +630,16 @@ fun InheritanceReviewPlanScreenContent(
                                     style = NunchukTheme.typography.title,
                                 )
                                 Spacer(modifier = Modifier.weight(weight = 1f))
-                                Text(
-                                    text = stringResource(id = R.string.nc_edit),
-                                    style = NunchukTheme.typography.title,
-                                    textDecoration = TextDecoration.Underline,
-                                    modifier = Modifier.clickable {
-                                        onNotifyPrefClick()
-                                    }
-                                )
+                                if (isAccountSetupInheritance) {
+                                    Text(
+                                        text = stringResource(id = R.string.nc_edit),
+                                        style = NunchukTheme.typography.title,
+                                        textDecoration = TextDecoration.Underline,
+                                        modifier = Modifier.clickable {
+                                            onNotifyPrefClick()
+                                        }
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
