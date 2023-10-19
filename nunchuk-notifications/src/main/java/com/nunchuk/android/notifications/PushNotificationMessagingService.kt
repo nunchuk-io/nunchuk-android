@@ -42,6 +42,7 @@ import com.nunchuk.android.messages.util.isNunchukWalletEvent
 import com.nunchuk.android.messages.util.isTransactionReceived
 import com.nunchuk.android.messages.util.isTransactionScheduleMissingSignaturesEvent
 import com.nunchuk.android.messages.util.isTransactionScheduleNetworkRejectedEvent
+import com.nunchuk.android.messages.util.isWalletInheritancePlanningRequestDenied
 import com.nunchuk.android.messages.util.lastMessageContent
 import com.nunchuk.android.messages.util.lastMessageSender
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
@@ -267,6 +268,16 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                     isCancelBroadcast = true,
                     errorMessage = message
                 )
+            )
+        }
+
+        isWalletInheritancePlanningRequestDenied() -> {
+            val message = this.getLastMessageContentSafe().orEmpty()
+            PushNotificationData(
+                id = localId,
+                title = getString(R.string.nc_notification_inheritance_planning_request_denied),
+                message = message,
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
             )
         }
 

@@ -55,6 +55,7 @@ const val GROUP_MEMBERSHIP_REQUEST_DENIED = "io.nunchuk.custom.group_membership_
 const val DRAFT_WALLET_RESET = "io.nunchuk.custom.draft_wallet_reset"
 const val GROUP_WALLET_CREATED = "io.nunchuk.custom.group_wallet_created"
 const val GROUP_EMERGENCY_LOCKDOWN_STARTED = "io.nunchuk.custom.group_emergency_lockdown_started"
+const val WALLET_INHERITANCE_PLANNING_REQUEST_DENIED = "io.nunchuk.custom.wallet_inheritance_planning_request_denied"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
     return if (isSupportRoom.not()) {
@@ -147,3 +148,6 @@ fun TimelineEvent.isGroupWalletCreatedEvent() =
 
 fun TimelineEvent.isGroupEmergencyLockdownStarted() =
     getMsgType() == GROUP_EMERGENCY_LOCKDOWN_STARTED
+
+fun TimelineEvent.isWalletInheritancePlanningRequestDenied() =
+    getMsgType() == WALLET_INHERITANCE_PLANNING_REQUEST_DENIED

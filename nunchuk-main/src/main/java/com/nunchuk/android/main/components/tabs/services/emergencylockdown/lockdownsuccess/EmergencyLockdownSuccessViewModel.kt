@@ -24,7 +24,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardState
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
