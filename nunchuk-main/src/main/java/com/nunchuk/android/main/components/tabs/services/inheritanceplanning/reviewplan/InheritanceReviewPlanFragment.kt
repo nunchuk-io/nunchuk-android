@@ -171,7 +171,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                                 magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
                                 planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
                                 walletId = inheritanceViewModel.setupOrReviewParam.walletId,
-                                isOpenFromWizard = inheritanceViewModel.setupOrReviewParam.isOpenFromWizard
+                                sourceFlow = inheritanceViewModel.setupOrReviewParam.sourceFlow
                             )
                         )
                     },
@@ -260,7 +260,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
                     planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
                     walletId = inheritanceViewModel.setupOrReviewParam.walletId,
-                    isOpenFromWizard = inheritanceViewModel.setupOrReviewParam.isOpenFromWizard
+                    sourceFlow = inheritanceViewModel.setupOrReviewParam.sourceFlow
                 )
             )
         } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
@@ -360,7 +360,7 @@ fun InheritanceReviewPlanScreenContent(
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
 ) {
     val isAccountSetupInheritance = groupId.isEmpty() || magicalPhrase.isEmpty().not()
-    val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty().not()) {
+    val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
         Utils.maskValue("", isMask = true)
     } else { magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) } }
 
@@ -399,7 +399,7 @@ fun InheritanceReviewPlanScreenContent(
                                         showMoreIcon = true
                                     }
                                 }
-                                if (showMoreIcon) {
+                                if (showMoreIcon && isAccountSetupInheritance) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_more_horizontal),
                                         contentDescription = "More"
@@ -700,23 +700,25 @@ fun InheritanceReviewPlanScreenContent(
                 } else {
                     stringResource(id = R.string.nc_continue_to_finalize_changes)
                 }
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp), onContinueClicked
-                ) {
-                    Text(text = continueText)
-                }
-                if (planFlow == InheritancePlanFlow.VIEW) {
-                    NcOutlineButton(
+                if (isAccountSetupInheritance) {
+                    NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .padding(bottom = 16.dp)
-                            .height(48.dp),
-                        onClick = onDiscardChange,
+                            .padding(16.dp), onContinueClicked
                     ) {
-                        Text(text = stringResource(R.string.nc_discard_changes))
+                        Text(text = continueText)
+                    }
+                    if (planFlow == InheritancePlanFlow.VIEW) {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 16.dp)
+                                .height(48.dp),
+                            onClick = onDiscardChange,
+                        ) {
+                            Text(text = stringResource(R.string.nc_discard_changes))
+                        }
                     }
                 }
             }

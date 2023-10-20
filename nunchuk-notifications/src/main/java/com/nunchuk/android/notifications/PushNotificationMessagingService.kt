@@ -275,8 +275,8 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             val message = this.getLastMessageContentSafe().orEmpty()
             PushNotificationData(
                 id = localId,
-                title = getString(R.string.nc_notification_inheritance_planning_request_denied),
-                message = message,
+                title = message,
+                message = "",
                 intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
             )
         }

@@ -40,3 +40,17 @@ object InheritancePlanFlow {
     annotation class InheritancePlanFlowInfo
 
 }
+
+object InheritanceSourceFlow {
+    const val NONE = 0
+    const val WIZARD = 1
+    const val GROUP_DASHBOARD = 2
+
+    @IntDef(
+        NONE,
+        WIZARD,
+        GROUP_DASHBOARD,
+    )
+    @Retention(AnnotationRetention.SOURCE)
+    annotation class InheritanceSourceFlowInfo
+}

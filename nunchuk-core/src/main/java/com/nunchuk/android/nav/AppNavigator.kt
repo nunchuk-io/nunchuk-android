@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
@@ -83,7 +84,7 @@ interface AppNavigator {
         verifyToken: String? = null,
         inheritance: Inheritance? = null,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
-        isOpenFromWizard: Boolean = false,
+        @InheritanceSourceFlow.InheritanceSourceFlowInfo sourceFlow: Int = InheritanceSourceFlow.NONE,
         groupId: String? = null,
         dummyTransactionId: String? = null
     )

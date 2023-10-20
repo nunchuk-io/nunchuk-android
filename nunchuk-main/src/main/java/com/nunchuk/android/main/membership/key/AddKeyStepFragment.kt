@@ -60,6 +60,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.main.R
@@ -126,7 +127,7 @@ class AddKeyStepFragment : MembershipFragment() {
                 walletId = walletId,
                 activityContext = requireContext(),
                 flowInfo = InheritancePlanFlow.SETUP,
-                isOpenFromWizard = true
+                sourceFlow = InheritanceSourceFlow.WIZARD
             )
         }
     }

@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NCLabelWithIndex
@@ -61,6 +62,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.nav.NunchukNavigator
@@ -86,18 +88,22 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
             setContent {
                 InheritanceShareSecretInfoScreen(viewModel, args) {
-                    showDialogInfo(args.isOpenFromWizard)
+                    showDialogInfo(args.sourceFlow)
                 }
             }
         }
     }
 
-    private fun showDialogInfo(isOpenFromWizard: Boolean) {
+    private fun showDialogInfo(sourceFlow: Int) {
         NCInfoDialog(requireActivity()).showDialog(
             message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
             onYesClick = {
-                ActivityManager.popUntilRoot()
-                if (isOpenFromWizard) {
+                if (sourceFlow == InheritanceSourceFlow.GROUP_DASHBOARD) {
+                    findNavController().popBackStack(R.id.groupDashboardFragment, false)
+                } else {
+                    ActivityManager.popUntilRoot()
+                }
+                if (sourceFlow != InheritanceSourceFlow.NONE) {
                     navigator.openWalletDetailsScreen(requireContext(), args.walletId)
                 }
             }

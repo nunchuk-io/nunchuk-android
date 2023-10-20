@@ -26,6 +26,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -269,7 +270,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 magicalPhrase = event.inheritance.magic,
                                 planFlow = InheritancePlanFlow.VIEW,
                                 walletId = args.walletId.orEmpty(),
-                                isOpenFromWizard = false
+                                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                             )
                         )
                     } else {
@@ -388,7 +389,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 walletId = viewModel.getWalletId(),
                 activityContext = requireActivity(),
                 flowInfo = InheritancePlanFlow.SIGN_DUMMY_TX,
-                isOpenFromWizard = false,
+                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                 groupId = args.groupId,
                 dummyTransactionId = alert.payload.dummyTransactionId
             )

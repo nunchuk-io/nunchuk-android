@@ -3,6 +3,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Period
@@ -72,7 +73,7 @@ sealed class InheritancePlanningParam {
         val note: String = "",
         val verifyToken: String = "",
         val planFlow: Int = 0,
-        val isOpenFromWizard: Boolean = false,
+        val sourceFlow: Int = InheritanceSourceFlow.NONE,
         val groupId: String = "",
         val dummyTransactionId: String = ""
     ) : InheritancePlanningParam()

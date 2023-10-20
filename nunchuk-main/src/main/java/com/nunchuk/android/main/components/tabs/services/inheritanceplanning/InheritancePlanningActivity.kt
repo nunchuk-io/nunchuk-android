@@ -28,6 +28,7 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
@@ -75,7 +76,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                         planFlow = planFlow,
                         walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
                         groupId = groupId,
-                        isOpenFromWizard = intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false)
+                        sourceFlow = intent.getIntExtra(EXTRA_SOURCE_FLOW, InheritanceSourceFlow.NONE)
                     )
                 )
             }
@@ -93,7 +94,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                         planFlow = planFlow,
                         bufferPeriod = inheritance.bufferPeriod,
                         walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
-                        isOpenFromWizard = intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false),
+                        sourceFlow = intent.getIntExtra(EXTRA_SOURCE_FLOW, InheritanceSourceFlow.NONE),
                         groupId = groupId,
                         dummyTransactionId = intent.getStringExtra(EXTRA_DUMMY_TRANSACTION_ID)
                             .orEmpty()
@@ -140,7 +141,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_INHERITANCE_PLAN_FLOW = "extra_inheritance_plan_flow"
         private const val EXTRA_VERIFY_TOKEN = "extra_verify_token"
         private const val EXTRA_INHERITANCE = "extra_inheritance"
-        private const val EXTRA_IS_OPEN_FROM_WIZARD = "extra_is_open_from_wizard"
+        private const val EXTRA_SOURCE_FLOW = "extra_source_flow"
         private const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_DUMMY_TRANSACTION_ID = "dummy_transaction_id"
 
@@ -151,7 +152,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
             verifyToken: String?,
             inheritance: Inheritance?,
             @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
-            isOpenFromWizard: Boolean,
+            @InheritanceSourceFlow.InheritanceSourceFlowInfo sourceFlow: Int,
             groupId: String?,
             dummyTransactionId: String?
         ) {
@@ -159,7 +160,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 .putExtra(EXTRA_INHERITANCE_PLAN_FLOW, flowInfo)
                 .putExtra(EXTRA_VERIFY_TOKEN, verifyToken)
                 .putExtra(EXTRA_INHERITANCE, inheritance)
-                .putExtra(EXTRA_IS_OPEN_FROM_WIZARD, isOpenFromWizard)
+                .putExtra(EXTRA_SOURCE_FLOW, sourceFlow)
                 .putExtra(EXTRA_WALLET_ID, walletId)
                 .putExtra(MembershipActivity.EXTRA_GROUP_ID, groupId)
                 .putExtra(EXTRA_DUMMY_TRANSACTION_ID, dummyTransactionId)

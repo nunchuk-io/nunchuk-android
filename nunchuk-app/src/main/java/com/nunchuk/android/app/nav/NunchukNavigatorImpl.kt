@@ -34,6 +34,7 @@ import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
@@ -251,7 +252,7 @@ interface AppNavigatorDelegate : AppNavigator {
         verifyToken: String?,
         inheritance: Inheritance?,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
-        isOpenFromWizard: Boolean,
+        @InheritanceSourceFlow.InheritanceSourceFlowInfo sourceFlow: Int,
         groupId: String?,
         dummyTransactionId: String?
     ) {
@@ -261,7 +262,7 @@ interface AppNavigatorDelegate : AppNavigator {
             verifyToken = verifyToken,
             flowInfo = flowInfo,
             inheritance = inheritance,
-            isOpenFromWizard = isOpenFromWizard,
+            sourceFlow = sourceFlow,
             walletId = walletId,
             groupId = groupId,
             dummyTransactionId = dummyTransactionId

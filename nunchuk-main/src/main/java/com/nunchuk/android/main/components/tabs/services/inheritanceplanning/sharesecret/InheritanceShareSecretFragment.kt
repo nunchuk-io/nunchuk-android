@@ -82,7 +82,7 @@ class InheritanceShareSecretFragment : MembershipFragment() {
                             type = event.type,
                             planFlow = args.planFlow,
                             walletId = args.walletId,
-                            isOpenFromWizard = args.isOpenFromWizard
+                            sourceFlow = args.sourceFlow
                         )
                     )
                 }
