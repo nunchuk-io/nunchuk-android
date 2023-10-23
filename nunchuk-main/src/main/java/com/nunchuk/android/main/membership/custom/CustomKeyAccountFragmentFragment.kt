@@ -234,7 +234,7 @@ private fun CustomKeyAccountFragmentContent(
 
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
-                    text = "BIP32 path: m/48h/0h/${newIndex}h/2h",
+                    text = if (newIndex.isEmpty()) "" else "BIP32 path: m/48h/0h/${newIndex}h/2h",
                     style = NunchukTheme.typography.bodySmall,
                 )
             }
