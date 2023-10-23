@@ -23,6 +23,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -33,6 +34,6 @@ class GetAllSignersUseCase @Inject constructor(
 ) : UseCase<Unit, Pair<List<MasterSigner>, List<SingleSigner>>>(ioDispatcher) {
 
     override suspend fun execute(parameters: Unit): Pair<List<MasterSigner>, List<SingleSigner>> {
-        return nativeSdk.getMasterSigners() to nativeSdk.getRemoteSigners()
+        return nativeSdk.getMasterSigners().filter { it.isVisible } to nativeSdk.getRemoteSigners().filter { it.type != SignerType.SERVER && it.isVisible }
     }
 }

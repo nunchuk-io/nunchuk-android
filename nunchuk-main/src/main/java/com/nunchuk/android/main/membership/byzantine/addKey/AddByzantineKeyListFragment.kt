@@ -95,16 +95,17 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
             if (data.signers.isNotEmpty()) {
-                when (data.type) {
+                val signer = data.signers.first()
+                when (signer.type) {
                     SignerType.NFC -> {
-                        openCreateBackUpTapSigner(data.signers.first().id)
+                        openCreateBackUpTapSigner(signer.id)
                     }
                     SignerType.AIRGAP,
-                    SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
+                    SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(signer)
                     SignerType.HARDWARE -> {
                         findNavController().navigate(
                             AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
-                                data.signers.first()
+                                signer
                             )
                         )
                     }
