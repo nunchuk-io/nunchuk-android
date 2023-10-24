@@ -52,6 +52,7 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -82,7 +83,7 @@ class LockdownSuccessFragment : Fragment() {
             setContent {
                 LockdownSuccessScreen(viewModel, args.period, groupId, onGotItClick = {
                     if (groupId.isNotEmpty()) {
-                        requireActivity().finish()
+                        ActivityManager.popUntilRoot()
                     } else {
                         viewModel.onContinueClicked()
                     }
