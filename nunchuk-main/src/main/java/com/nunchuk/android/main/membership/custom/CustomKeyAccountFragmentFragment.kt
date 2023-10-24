@@ -127,6 +127,7 @@ private fun CustomKeyAccountFragmentScreen(
         signer = signer,
         oldIndex = uiState.currentIndex,
         remainingTime = remainingTime,
+        isTestNet = uiState.isTestNet,
         onShowMoreOptions = onShowMoreOptions,
         onContinueClicked = viewModel::checkSignerIndex
     )
@@ -136,6 +137,7 @@ private fun CustomKeyAccountFragmentScreen(
 private fun CustomKeyAccountFragmentContent(
     signer: SignerModel,
     oldIndex: Int = 0,
+    isTestNet: Boolean = false,
     remainingTime: Int = 0,
     onShowMoreOptions: () -> Unit = {},
     onContinueClicked: (newIndex: Int) -> Unit = {},
@@ -215,7 +217,7 @@ private fun CustomKeyAccountFragmentContent(
 
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
-                    text = "BIP32 path: m/48h/0h/${oldIndex}h/2h",
+                    text = getPath(oldIndex.toString(), isTestNet),
                     style = NunchukTheme.typography.bodySmall,
                 )
 
@@ -234,12 +236,17 @@ private fun CustomKeyAccountFragmentContent(
 
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
-                    text = if (newIndex.isEmpty()) "" else "BIP32 path: m/48h/0h/${newIndex}h/2h",
+                    text =  getPath(newIndex, isTestNet),
                     style = NunchukTheme.typography.bodySmall,
                 )
             }
         }
     }
+}
+
+private fun getPath(index: String, isTestNet: Boolean): String {
+    if (index.isEmpty()) return ""
+    return if (isTestNet) "BIP32 path: m/48h/1h/${index}h/2h" else "BIP32 path: m/48h/0h/${index}h/2h"
 }
 
 @Preview
