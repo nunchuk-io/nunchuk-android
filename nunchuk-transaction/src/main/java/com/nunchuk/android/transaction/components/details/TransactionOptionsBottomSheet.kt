@@ -32,7 +32,14 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.model.TransactionOption
-import com.nunchuk.android.share.model.TransactionOption.*
+import com.nunchuk.android.share.model.TransactionOption.CANCEL
+import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
+import com.nunchuk.android.share.model.TransactionOption.COPY_TRANSACTION_ID
+import com.nunchuk.android.share.model.TransactionOption.EXPORT_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.IMPORT_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
+import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
+import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -109,7 +116,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 
         binding.btnScheduleBroadcast.isVisible = args.isPending
                 && args.isAssistedWallet
-                && membershipStepManager.plan == MembershipPlan.HONEY_BADGER
+                && membershipStepManager.plan == MembershipPlan.HONEY_BADGER || membershipStepManager.plan == MembershipPlan.BYZANTINE_PRO || membershipStepManager.plan == MembershipPlan.BYZANTINE
         binding.btnScheduleBroadcast.text = if (args.isScheduleBroadcast) {
             getString(R.string.nc_cancel_scheduled_broadcast)
         } else {
