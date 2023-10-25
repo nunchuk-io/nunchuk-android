@@ -45,4 +45,5 @@ data class GroupDashboardState(
     val signers: List<SignerModel> = emptyList(),
     val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),
     val isSetupInheritance: Boolean = false,
+    val inheritanceOwnerId: String? = null,
 )

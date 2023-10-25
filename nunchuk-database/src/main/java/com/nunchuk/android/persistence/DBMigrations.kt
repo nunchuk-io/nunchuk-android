@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.persistence
 
+import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
@@ -50,6 +51,13 @@ object DBMigrations {
 
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("CREATE TABLE IF NOT EXISTS `handled_event` (`event_id` TEXT NOT NULL, PRIMARY KEY(`event_id`))")
+        }
+    }
+
+    val MIGRATION_17_18 = object : Migration(17, 18) {
+
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE `assisted_wallet` ADD COLUMN `ext` TEXT DEFAULT NULL")
         }
     }
 }

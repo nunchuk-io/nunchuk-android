@@ -168,7 +168,11 @@ class GroupDashboardViewModel @Inject constructor(
                         _state.update { state -> state.copy(isSetupInheritance = wallet.isSetupInheritance) }
                         savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
                     }
-                    _state.update { it.copy(isSetupInheritance = wallets.find { wallet -> wallet.groupId == args.groupId }?.isSetupInheritance.orFalse()) }
+                    _state.update {
+                        it.copy(
+                            isSetupInheritance = wallets.find { wallet -> wallet.groupId == args.groupId }?.isSetupInheritance.orFalse(),
+                            inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == args.groupId }?.ext?.inheritanceOwnerId)
+                    }
                 }
         }
         viewModelScope.launch {
@@ -425,8 +429,11 @@ class GroupDashboardViewModel @Inject constructor(
                 walletId.value.orEmpty(),
                 args.groupId
             )
-        ).onSuccess {
-            _event.emit(GroupDashboardEvent.GetInheritanceSuccess(it, token, isAlertFlow))
+        ).onSuccess { inheritance ->
+            _state.update {
+                it.copy(inheritanceOwnerId = inheritance.ownerId)
+            }
+            _event.emit(GroupDashboardEvent.GetInheritanceSuccess(inheritance, token, isAlertFlow))
         }.onFailure {
             _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
         }
@@ -560,7 +567,16 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun markSetupInheritance(type: DummyTransactionType) = viewModelScope.launch {
-        markSetupInheritanceUseCase(MarkSetupInheritanceUseCase.Param(walletId = getWalletId(), isSetupInheritance = type != DummyTransactionType.CANCEL_INHERITANCE_PLAN))
+        markSetupInheritanceUseCase(
+            MarkSetupInheritanceUseCase.Param(
+                walletId = getWalletId(),
+                isSetupInheritance = type != DummyTransactionType.CANCEL_INHERITANCE_PLAN
+            )
+        )
+    }
+
+    fun isInheritanceOwner(): Boolean {
+        return  _state.value.inheritanceOwnerId.isNullOrEmpty() || _state.value.inheritanceOwnerId == accountManager.getAccount().id
     }
 
     private val currentSelectedAlert: Alert?

@@ -28,4 +28,9 @@ data class AssistedWalletBrief(
     val isSetupInheritance: Boolean,
     val registerAirgapCount: Int,
     val registerColdcardCount: Int,
+    val ext: AssistedWalletBriefExt
+)
+
+data class AssistedWalletBriefExt(
+    val inheritanceOwnerId: String? = null
 )

@@ -116,7 +116,8 @@ class ServicesTabViewModel @Inject constructor(
         viewModelScope.launch {
             getGroupsUseCase(Unit)
                 .collect { result ->
-                    val groups = result.getOrDefault(emptyList()).filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
+                    val groups = result.getOrDefault(emptyList())
+                        .filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
                     updateGroupInfo(groups)
                 }
         }
@@ -129,8 +130,10 @@ class ServicesTabViewModel @Inject constructor(
         val sortedGroups: List<ByzantineGroup>
         if (group2of4Multisigs.isEmpty()) {
             group2Of3Or3of5Multisigs =
-                groups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_THREE.m && it.walletConfig.n == GroupWalletType.TWO_OF_THREE.n
-                        || it.walletConfig.m == GroupWalletType.THREE_OF_FIVE.m && it.walletConfig.n == GroupWalletType.THREE_OF_FIVE.n }
+                groups.filter {
+                    it.walletConfig.m == GroupWalletType.TWO_OF_THREE.m && it.walletConfig.n == GroupWalletType.TWO_OF_THREE.n
+                            || it.walletConfig.m == GroupWalletType.THREE_OF_FIVE.m && it.walletConfig.n == GroupWalletType.THREE_OF_FIVE.n
+                }
             sortedGroups = group2Of3Or3of5Multisigs.sortedWith(compareBy { group ->
                 AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
             })
@@ -302,7 +305,8 @@ class ServicesTabViewModel @Inject constructor(
             val groupId = assistedWalletManager.getGroupId(walletId)
             if (groupId != null) {
                 _event.emit(ServicesTabEvent.Loading(true))
-                val inheritance = getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId))
+                val inheritance =
+                    getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId))
                 if (inheritance.getOrNull()?.status == InheritanceStatus.PENDING_APPROVAL) {
                     calculateRequiredSignatures(walletId, groupId)
                 } else {
@@ -383,7 +387,7 @@ class ServicesTabViewModel @Inject constructor(
     fun getEmail() = accountManager.getAccount().email
 
     fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
-        val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() }
+        val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId)}
         return if (state.value.plan.isByzantine()) {
             wallets.filter {
                 state.value.groups2of4Multisig.find { group ->
@@ -417,6 +421,10 @@ class ServicesTabViewModel @Inject constructor(
                 it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
             }
         }
+    }
+
+    private fun isInheritanceOwner(inheritanceOwnerId: String?): Boolean {
+        return inheritanceOwnerId.isNullOrEmpty() || inheritanceOwnerId == accountManager.getAccount().id
     }
 
     /**

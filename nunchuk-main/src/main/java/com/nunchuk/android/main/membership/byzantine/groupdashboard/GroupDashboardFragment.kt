@@ -488,12 +488,21 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         if (viewModel.isPendingCreateWallet().not()) {
             if (uiState.group?.walletConfig?.toGroupWalletType()?.isPro == true) {
                 if (uiState.myRole.isMasterOrAdmin) {
-                    options.add(
-                        SheetOption(
-                            type = SheetOptionType.SET_UP_INHERITANCE,
-                            stringId = if (uiState.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan_wallet
-                        ),
-                    )
+                    if (uiState.isSetupInheritance) {
+                        options.add(
+                            SheetOption(
+                                type = SheetOptionType.SET_UP_INHERITANCE,
+                                stringId = R.string.nc_view_inheritance_plan
+                            ),
+                        )
+                    } else if (viewModel.isInheritanceOwner()) {
+                        options.add(
+                            SheetOption(
+                                type = SheetOptionType.SET_UP_INHERITANCE,
+                                stringId = R.string.nc_set_up_inheritance_plan_wallet
+                            ),
+                        )
+                    }
                 } else if (uiState.isSetupInheritance) {
                     options.add(
                         SheetOption(

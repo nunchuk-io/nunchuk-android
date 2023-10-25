@@ -37,6 +37,7 @@ import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -138,6 +139,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val syncDeletedWalletUseCase: SyncDeletedWalletUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -264,6 +266,11 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         getAppSettings()
+        viewModelScope.launch {
+            if (accountManager.getAccount().id.isEmpty()) {
+                getUserProfileUseCase(Unit)
+            }
+        }
     }
 
     private fun syncGroup() {
