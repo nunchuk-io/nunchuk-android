@@ -93,4 +93,5 @@
     <string name="nc_ssigner_primary_key_not_now">Not now</string>
     <string name="nc_byzantine">Byzantine</string>
     <string name="nc_byzantine_pro">Byzantine Pro</string>
+    <string name="nc_byzantine_premier">Byzantine Premier</string>
 </resources>

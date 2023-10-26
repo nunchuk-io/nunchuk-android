@@ -323,12 +323,12 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
             MembershipPlan.IRON_HAND -> getString(R.string.nc_iron_hand)
             MembershipPlan.BYZANTINE -> getString(R.string.nc_byzantine)
             MembershipPlan.BYZANTINE_PRO -> getString(R.string.nc_byzantine_pro)
+            MembershipPlan.BYZANTINE_PREMIER -> getString(R.string.nc_byzantine_premier)
             MembershipPlan.NONE -> ""
         }
     }
 
     companion object {
-        private const val REQUEST_TAKE_PHOTO_CODE = 1249
         private const val KEY_CURRENT_PHOTO_PATH = "_a"
     }
 

@@ -88,7 +88,7 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
                 MembershipPlan.HONEY_BADGER -> findNavController().navigate(
                     ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
                 )
-                MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
+                MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.BYZANTINE_PREMIER -> {
                     val groupId = (requireActivity() as ConfigServerKeyActivity).groupId
                     if (groupId.isNotEmpty()) {
                         findNavController().navigate(

@@ -152,7 +152,7 @@ fun CreateWalletSuccessScreenContent(
                     style = NunchukTheme.typography.body
                 )
 
-                if (uiState.isSingleSetup) {
+                if (uiState.isSingleSetup && uiState.allowInheritance) {
                     NcHighlightText(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         text = stringResource(R.string.nc_create_wallet_success_distribute_setup_desc),

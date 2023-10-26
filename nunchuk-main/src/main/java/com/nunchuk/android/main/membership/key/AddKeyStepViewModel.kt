@@ -123,12 +123,6 @@ class AddKeyStepViewModel @Inject constructor(
         }
     }
 
-    fun openContactUs(email: String) {
-        viewModelScope.launch {
-            _event.emit(AddKeyStepEvent.OpenContactUs(email))
-        }
-    }
-
     fun onContinueClicked() {
         viewModelScope.launch {
             if (isSetupInheritanceDone.value) {
