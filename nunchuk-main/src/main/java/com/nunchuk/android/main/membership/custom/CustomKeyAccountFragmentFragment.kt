@@ -68,8 +68,8 @@ class CustomKeyAccountFragmentFragment : MembershipFragment() {
             setContent {
                 val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
                 CustomKeyAccountFragmentScreen(
-                    viewModel,
-                    args.signer,
+                    viewModel = viewModel,
+                    signer = args.signer,
                     onShowMoreOptions = ::handleShowMore,
                     remainingTime = remainingTime,
                 )
@@ -145,6 +145,7 @@ private fun CustomKeyAccountFragmentContent(
     var newIndex by remember(oldIndex) {
         mutableStateOf("$oldIndex")
     }
+    val formatOldIndex = if (oldIndex >= 0) oldIndex.toString() else ""
     NunchukTheme {
         Scaffold(
             modifier = Modifier.systemBarsPadding(),
@@ -211,13 +212,13 @@ private fun CustomKeyAccountFragmentContent(
                         )
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    text = oldIndex.toString(),
+                    text = formatOldIndex,
                     style = NunchukTheme.typography.body,
                 )
 
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
-                    text = getPath(oldIndex.toString(), isTestNet),
+                    text = getPath(formatOldIndex, isTestNet),
                     style = NunchukTheme.typography.bodySmall,
                 )
 
