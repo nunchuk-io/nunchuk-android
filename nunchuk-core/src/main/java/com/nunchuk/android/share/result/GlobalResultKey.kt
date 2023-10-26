@@ -34,4 +34,5 @@ object GlobalResultKey {
     const val EXTRA_SIGNER = "_l"
     const val DUMMY_TX_ID = "_m"
     const val REQUIRED_SIGNATURES = "_n"
+    const val DUMMY_TX_INTRO_DO_LATER = "_o"
 }

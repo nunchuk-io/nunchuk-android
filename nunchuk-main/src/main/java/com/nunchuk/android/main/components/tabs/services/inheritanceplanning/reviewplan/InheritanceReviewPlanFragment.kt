@@ -91,6 +91,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.buf
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.nav.NunchukNavigator
@@ -118,15 +120,20 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val signatureMap =
-                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
-                        ?: return@registerForActivityResult
-                val securityQuestionToken =
-                    data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                if (signatureMap.isNotEmpty() || securityQuestionToken.isNotEmpty()) {
-                    viewModel.handleFlow(signatureMap, securityQuestionToken)
-                } else if (inheritanceViewModel.setupOrReviewParam.groupId.isNotEmpty()) {
-                    viewModel.markSetupInheritance()
+                val isDoLater = data.getBoolean(GlobalResultKey.DUMMY_TX_INTRO_DO_LATER, false)
+                if (isDoLater) {
+                    requireActivity().finish()
+                } else {
+                    val signatureMap =
+                        data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
+                            ?: return@registerForActivityResult
+                    val securityQuestionToken =
+                        data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
+                    if (signatureMap.isNotEmpty() || securityQuestionToken.isNotEmpty()) {
+                        viewModel.handleFlow(signatureMap, securityQuestionToken)
+                    } else if (inheritanceViewModel.setupOrReviewParam.groupId.isNotEmpty()) {
+                        viewModel.markSetupInheritance()
+                    }
                 }
             }
         }
