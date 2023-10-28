@@ -122,6 +122,7 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.toGroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletBriefExt
 import com.nunchuk.android.model.membership.AssistedWalletConfig
@@ -1454,6 +1455,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             remainingByzantineWallet = response.data.byzantine?.remainingWalletCount ?: 0,
             remainingByzantineProWallet = response.data.byzantinePro?.remainingWalletCount ?: 0,
             remainingHoneyBadgerWallet = response.data.honeyBadger?.remainingWalletCount ?: 0,
+            remainingPremierWallet = response.data.premier?.remainingWalletCount ?: 0,
+            allowWalletTypes = response.data.allowGroupWalletTypes.mapNotNull { it.toGroupWalletType() }
         )
     }
 

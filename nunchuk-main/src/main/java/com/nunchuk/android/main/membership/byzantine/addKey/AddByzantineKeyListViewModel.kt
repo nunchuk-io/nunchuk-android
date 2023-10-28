@@ -32,6 +32,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
@@ -39,7 +40,6 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -297,13 +297,11 @@ class AddByzantineKeyListViewModel @Inject constructor(
             _state.update { it.copy(isRefreshing = true) }
             syncGroupDraftWalletUseCase(args.groupId).onSuccess { draft ->
                 loadSigners()
-                GroupWalletType.values()
-                    .find { type -> type.n == draft.config.n && type.m == draft.config.m }
-                    ?.let { type ->
-                        if (_keys.value.isEmpty()) {
-                            _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
-                        }
+                draft.config.toGroupWalletType()?.let { type ->
+                    if (_keys.value.isEmpty()) {
+                        _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
                     }
+                }
             }
             _state.update { it.copy(isRefreshing = false) }
         }

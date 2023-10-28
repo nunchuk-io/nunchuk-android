@@ -25,7 +25,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,6 +51,7 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.desc
+import com.nunchuk.android.main.membership.model.shortName
 import com.nunchuk.android.main.membership.model.title
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -84,8 +84,7 @@ class SelectGroupFragment : MembershipFragment() {
                             NCInfoDialog(requireActivity()).init(
                                 message = getString(
                                     R.string.nc_run_out_of_byzantine_wallet,
-                                    if (groupType.isPro) getString(R.string.nc_pro)
-                                    else getString(R.string.nc_standard)
+                                    getString(groupType.shortName)
                                 ),
                                 btnYes = getString(R.string.nc_take_me_there),
                                 btnInfo = getString(R.string.nc_text_got_it),
@@ -132,11 +131,13 @@ private fun SelectGroupContent(
     onMoreClicked: () -> Unit = {},
 ) {
     var selectedType by rememberSaveable(uiState.plan) {
-        mutableStateOf(if (uiState.plan == MembershipPlan.BYZANTINE_PRO) GroupWalletType.TWO_OF_FOUR_MULTISIG else GroupWalletType.TWO_OF_THREE)
-    }
-    val options = remember(uiState.plan) {
-        if (uiState.plan == MembershipPlan.BYZANTINE_PRO) GroupWalletType.values()
-        else arrayOf(GroupWalletType.TWO_OF_THREE, GroupWalletType.THREE_OF_FIVE)
+        mutableStateOf(
+            when (uiState.plan) {
+                MembershipPlan.BYZANTINE_PRO -> GroupWalletType.TWO_OF_FOUR_MULTISIG
+                MembershipPlan.BYZANTINE_PREMIER -> GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE
+                else -> GroupWalletType.TWO_OF_THREE
+            }
+        )
     }
     NunchukTheme {
         Scaffold(modifier = Modifier
@@ -179,7 +180,7 @@ private fun SelectGroupContent(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(options) {
+                    items(uiState.options) {
                         GroupWalletTypeOptionView(type = it, isSelected = selectedType == it) {
                             selectedType = it
                         }
@@ -199,12 +200,15 @@ fun GroupWalletTypeOptionView(
 ) {
     NcRadioOption(modifier = modifier.fillMaxWidth(), isSelected = isSelected, onClick = onClick) {
         Row {
-            if (type.isPro) {
-                ProBadgePlan(modifier = Modifier.padding(end = 4.dp))
+            if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG || type == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE) {
+                ProBadgePlan(
+                    modifier = Modifier.padding(end = 4.dp),
+                    text = stringResource(id = type.shortName)
+                )
             } else {
                 StandardBadgePlan(modifier = Modifier.padding(end = 4.dp))
             }
-            if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG || type == GroupWalletType.TWO_OF_THREE) {
+            if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG || type == GroupWalletType.TWO_OF_THREE || type == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE) {
                 NcTag(
                     modifier = Modifier.padding(bottom = 4.dp),
                     label = stringResource(id = R.string.nc_recommended)
@@ -221,7 +225,7 @@ fun GroupWalletTypeOptionView(
 }
 
 @Composable
-fun ProBadgePlan(modifier: Modifier) {
+fun ProBadgePlan(modifier: Modifier, text: String) {
     Row(
         modifier = modifier
             .background(
@@ -238,7 +242,7 @@ fun ProBadgePlan(modifier: Modifier) {
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),
-            text = stringResource(id = R.string.nc_pro),
+            text = text,
             style = NunchukTheme.typography.bold.copy(
                 color = MaterialTheme.colors.surface,
                 fontSize = 10.sp

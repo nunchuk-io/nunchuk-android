@@ -486,7 +486,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         val options = mutableListOf<SheetOption>()
         val uiState = viewModel.state.value
         if (viewModel.isPendingCreateWallet().not()) {
-            if (uiState.group?.walletConfig?.toGroupWalletType()?.isPro == true) {
+            if (uiState.group?.walletConfig?.allowInheritance == true) {
                 if (uiState.myRole.isMasterOrAdmin) {
                     if (uiState.isSetupInheritance) {
                         options.add(
@@ -511,6 +511,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         ),
                     )
                 }
+            }
+            if (uiState.group?.walletConfig?.requiredServerKey == true) {
                 if (!args.walletId.isNullOrEmpty()) {
                     options.add(
                         SheetOption(

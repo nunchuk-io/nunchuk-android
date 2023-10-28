@@ -99,7 +99,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
             val result = getWalletConstraintsUseCase(Unit)
             val groupWalletType = args.groupType.toGroupWalletType() ?: return@launch
             result.getOrDefault(emptyList())
-                .find { it.walletConfig.m == groupWalletType.m && it.walletConfig.n == groupWalletType.n }
+                .find { it.walletConfig.toGroupWalletType() == groupWalletType }
                 ?.let { walletConstraints ->
                     _state.update { it.copy(walletConstraints = walletConstraints) }
                 }
@@ -258,6 +258,10 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         return _state.value.members.any { it.role == AssistedWalletRole.ADMIN.name }
     }
 
+    fun allowInheritance(): Boolean {
+        return _state.value.walletConstraints?.walletConfig?.allowInheritance == true
+    }
+
     fun createGroup() = viewModelScope.launch {
         _event.emit(ByzantineInviteMembersEvent.Loading(true))
         val groupWalletType = args.groupType.toGroupWalletType() ?: return@launch
@@ -273,7 +277,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
                 m = groupWalletType.m,
                 n = groupWalletType.n,
                 allowInheritance = args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG.name,
-                requiredServerKey = args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG.name,
+                requiredServerKey = args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG.name || args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE.name,
                 setupPreference = args.setupPreference,
             )
         )

@@ -98,6 +98,7 @@
     <string name="nc_members_updated">Members updated</string>
     <string name="nc_three_keyholder_setup_message_dialog">If each keyholder holds their own key, all members will have equal rights in the wallet. At any point in time, two of the keyholders can withdraw all bitcoins without the remaining person’s permission.\nAre you sure you want this setup?</string>
     <string name="nc_admin_role_message_dialog">The admin account will have the ability to add and remove members and to propose changes to the inheritance plan and wallet policies. Please make sure that it is someone that you can trust.</string>
+    <string name="nc_admin_role_no_inheritance_message_dialog">The admin account will have the ability to add and remove members and to propose changes to the  wallet policies. Please make sure that it is someone that you can trust.</string>
     <string name="nc_primary_key_admin_role_message_dialog">An admin must have an email-based account.</string>
     <string name="nc_limit_keyholder_message_dialog">Please make sure that you have no more than %1$s keyholders.</string>
     <string name="nc_remove_member_inheritance_message_dialog">This member is currently in charge of the inheritance plan for this wallet. Please cancel the plan first.</string>
@@ -128,6 +129,7 @@
     <string name="nc_run_out_of_byzantine_wallet">You’ve run out of %1$s wallets. To purchase additional %1$s wallets, please visit nunchuk.io/my-plan.</string>
     <string name="nc_take_me_there">Take me there</string>
     <string name="nc_pro">PRO</string>
+    <string name="nc_premier">PREMIER</string>
     <string name="nc_standard">STANDARD</string>
     <string name="nc_duplicate_email_addresses">Duplicate email addresses</string>
     <string name="nc_co_signing_activation">Co-signing activation</string>
@@ -193,4 +195,6 @@
     <string name="nc_last_used_account">Last used account</string>
     <string name="nc_new_account">New account</string>
     <string name="nc_master_signer_new_index_not_available">New account data needed. Please use the desktop app to connect your device so that the new account can be loaded.</string>
+    <string name="nc__2_of_4_multisig_without_inheritance_planning">2-of-4 multisig without inheritance planning</string>
+    <string name="nc_2_of_4_no_inheritance_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key.</string>
 </resources>
