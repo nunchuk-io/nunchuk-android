@@ -60,5 +60,9 @@
             app:argType="string"
             android:defaultValue=""/>
 
+        <argument
+            android:name="group_type"
+            app:argType="string" />
+
     </fragment>
 </navigation>

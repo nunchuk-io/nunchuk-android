@@ -19,7 +19,6 @@ import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.GetContactsUseCase
@@ -276,8 +275,8 @@ class ByzantineInviteMembersViewModel @Inject constructor(
                 },
                 m = groupWalletType.m,
                 n = groupWalletType.n,
-                allowInheritance = args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG.name,
-                requiredServerKey = args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG.name || args.groupType == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE.name,
+                allowInheritance = groupWalletType.allowInheritance,
+                requiredServerKey = groupWalletType.requiredServerKey,
                 setupPreference = args.setupPreference,
             )
         )

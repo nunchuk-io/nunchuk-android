@@ -118,7 +118,12 @@ internal interface GroupWalletApi {
     suspend fun deleteDraftWallet(@Path("group_id") groupId: String): Data<Unit>
 
     @GET("/v1.1/group-wallets/permissions/default")
-    suspend fun getPermissionGroupWallet(): Data<PermissionResponse>
+    suspend fun getPermissionGroupWallet(
+        @Query("n") n: Int,
+        @Query("m") m: Int,
+        @Query("required_server_key") requiredServerKey: Boolean,
+        @Query("allow_inheritance") allowInheritance: Boolean,
+    ): Data<PermissionResponse>
 
     @POST("/v1.1/group-wallets/groups")
     suspend fun createGroup(@Body payload: CreateGroupRequest): Data<GroupDataResponse>

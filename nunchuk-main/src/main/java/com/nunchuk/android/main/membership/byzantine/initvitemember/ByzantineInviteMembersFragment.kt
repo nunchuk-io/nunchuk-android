@@ -114,7 +114,8 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 InviteMembersScreen(flow = args.flow, viewModel = viewModel, onSelectRole = {
                     findNavController().navigate(
                         ByzantineInviteMembersFragmentDirections.actionByzantineInviteMembersFragmentToByzantineSelectRoleFragment(
-                            role = it
+                            role = it,
+                            groupType = args.groupType
                         )
                     )
                 }, onContinueClick = {

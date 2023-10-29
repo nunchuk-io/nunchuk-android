@@ -122,6 +122,7 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.toGroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletBriefExt
@@ -1585,8 +1586,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getPermissionGroupWallet(): DefaultPermissions {
-        val response = userWalletApiManager.groupWalletApi.getPermissionGroupWallet()
+    override suspend fun getPermissionGroupWallet(type: GroupWalletType): DefaultPermissions {
+        val response = userWalletApiManager.groupWalletApi.getPermissionGroupWallet(
+            n = type.n,
+            m = type.m,
+            allowInheritance = type.allowInheritance,
+            requiredServerKey = type.requiredServerKey
+        )
         if (response.isSuccess.not()) {
             throw response.error
         }

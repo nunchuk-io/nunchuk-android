@@ -26,7 +26,6 @@ import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
-import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
@@ -45,6 +44,7 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
@@ -338,7 +338,7 @@ interface PremiumWalletRepository {
     suspend fun checkKeyAdded(plan: MembershipPlan, groupId: String, requestId: String?): Boolean
     suspend fun deleteDraftWallet()
     suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep)
-    suspend fun getPermissionGroupWallet(): DefaultPermissions
+    suspend fun getPermissionGroupWallet(type: GroupWalletType): DefaultPermissions
     suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)
     suspend fun syncKeyToGroup(groupId: String, step: MembershipStep, signer: SingleSigner)
     suspend fun createGroup(
