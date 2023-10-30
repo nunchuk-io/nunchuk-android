@@ -38,5 +38,7 @@ dependencies {
 
     implementation zxingDeps.values()
 
+    implementation "com.squareup.moshi:moshi:1.14.0"
+
     testImplementation otherTestDeps.junit
 }

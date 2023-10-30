@@ -20,14 +20,14 @@
 package com.nunchuk.android.core.persistence
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.guestmode.SignInMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.matrix.android.sdk.api.auth.data.Credentials
+import org.matrix.android.sdk.api.util.MatrixJsonParser
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -63,6 +63,21 @@ class NcEncryptedPreferences @Inject constructor(
             apply()
         }
         walletPinFlow.value = value
+    }
+
+    fun setMatrixCredential(credentials: Credentials) {
+        prefs.edit {
+            putString(credentials.userId, MatrixJsonParser.getMoshi().adapter(Credentials::class.java).toJson(credentials))
+        }
+    }
+
+    fun getMatrixCredential(userId: String): Credentials? {
+        val json = prefs.getString(userId, null)
+        return if (json != null) {
+            MatrixJsonParser.getMoshi().adapter(Credentials::class.java).fromJson(json)
+        } else {
+            null
+        }
     }
 
     fun getWalletPinFlow(): Flow<String> {

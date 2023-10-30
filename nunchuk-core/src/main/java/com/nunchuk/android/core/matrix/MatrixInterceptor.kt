@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.core.network.HeaderProvider
+import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.matrix.android.sdk.api.Matrix
@@ -34,25 +35,31 @@ internal class MatrixInterceptorImpl @Inject constructor(
     matrix: Matrix,
     private val matrixProvider: MatrixProvider,
     private val headerProvider: HeaderProvider,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val encryptedPreferences: NcEncryptedPreferences,
 ) : MatrixInterceptor {
 
     private var authenticationService = matrix.authenticationService()
 
     // TODO remove encryptedDeviceId
     override fun login(username: String, password: String, encryptedDeviceId: String) = flow {
-        emit(
-            authenticationService
-                .directAuthentication(
+        val session = encryptedPreferences.getMatrixCredential(username)?.let { credentials ->
+            runCatching {
+                authenticationService.createSessionFromSso(
                     homeServerConnectionConfig = matrixProvider.getServerConfig(),
-                    matrixId = username,
-                    password = password,
-                    initialDeviceName = headerProvider.getDeviceName(),
-                ).apply {
-                    authenticationService.reset()
-                    sessionHolder.storeActiveSession(this)
-                    MatrixEvenBus.instance.publish(MatrixEvent.SignedInEvent(this))
-                })
-    }
+                    credentials = credentials,
+                )
+            }.getOrNull()
+        } ?: authenticationService.directAuthentication(
+            homeServerConnectionConfig = matrixProvider.getServerConfig(),
+            matrixId = username,
+            password = password,
+            initialDeviceName = headerProvider.getDeviceName(),
+        )
 
+        authenticationService.reset()
+        sessionHolder.storeActiveSession(session)
+        MatrixEvenBus.instance.publish(MatrixEvent.SignedInEvent(session))
+        emit(session)
+    }
 }
