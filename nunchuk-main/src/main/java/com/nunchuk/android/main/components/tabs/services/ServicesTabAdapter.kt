@@ -86,6 +86,12 @@ class ServicesTabAdapter constructor(
                 )
                 viewHolder
             }
+            R.layout.item_service_tab_empty_state -> {
+                val viewHolder = ServiceTabViewHolder.EmptyStateViewHolder(
+                    ItemServiceTabEmptyStateBinding.inflate(inflater, parent, false)
+                )
+                viewHolder
+            }
             else -> throw IllegalStateException("Unknown viewType $viewType")
         }
     }
@@ -118,6 +124,7 @@ class ServicesTabAdapter constructor(
             is NonSubRow -> R.layout.item_service_tab_non_sub_row
             is Banner -> R.layout.item_services_tab_banner
             is ObserverRole -> R.layout.item_service_tab_observer_role
+            is EmptyState -> R.layout.item_service_tab_empty_state
             else -> throw IllegalStateException("Unknown view type at position $position")
         }
     }
@@ -134,6 +141,7 @@ object DiffCallback : DiffUtil.ItemCallback<Any>() {
             oldItem is NonSubHeader && newItem is NonSubHeader -> oldItem.title == newItem.title
             oldItem is Banner && newItem is Banner -> oldItem.id == newItem.id
             oldItem is ObserverRole && newItem is ObserverRole -> oldItem == newItem
+            oldItem is EmptyState && newItem is EmptyState -> oldItem == newItem
             else -> false
         }
     }
@@ -147,6 +155,7 @@ object DiffCallback : DiffUtil.ItemCallback<Any>() {
             oldItem is NonSubHeader && newItem is NonSubHeader -> oldItem == newItem
             oldItem is Banner && newItem is Banner -> oldItem == newItem
             oldItem is ObserverRole && newItem is ObserverRole -> oldItem == newItem
+            oldItem is EmptyState && newItem is EmptyState -> oldItem == newItem
             else -> true
         }
     }
@@ -175,6 +184,10 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
 
     class ObserverRoleViewHolder(
         val binding: ItemServiceTabObserverRoleBinding
+    ) : ServiceTabViewHolder(binding.root)
+
+    class EmptyStateViewHolder(
+        val binding: ItemServiceTabEmptyStateBinding
     ) : ServiceTabViewHolder(binding.root)
 
     class BannerViewHolder(val binding: ItemServicesTabBannerBinding) :

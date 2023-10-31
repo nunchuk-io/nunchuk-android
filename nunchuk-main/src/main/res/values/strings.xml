@@ -194,6 +194,8 @@
     <string name="nc_custom_key_account_desc">Would you like to use a different account on this key? Using a new account helps prevent key reuse and improve privacy.</string>
     <string name="nc_last_used_account">Last used account</string>
     <string name="nc_new_account">New account</string>
+    <string name="nc_security_tip">Security tip</string>
+    <string name="nc_security_tip_desc">For maximum security, keep your keys geographically distributed.</string>
     <string name="nc_master_signer_new_index_not_available">New account data needed. Please use the desktop app to connect your device so that the new account can be loaded.</string>
     <string name="nc__2_of_4_multisig_without_inheritance_planning">2-of-4 multisig without inheritance planning</string>
     <string name="nc_2_of_4_no_inheritance_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key.</string>

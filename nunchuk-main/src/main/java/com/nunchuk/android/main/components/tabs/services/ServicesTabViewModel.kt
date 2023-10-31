@@ -39,6 +39,7 @@ import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
@@ -117,20 +118,21 @@ class ServicesTabViewModel @Inject constructor(
             getGroupsUseCase(Unit)
                 .collect { result ->
                     val groups = result.getOrDefault(emptyList())
-                        .filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
+                    _state.update { it.copy(allGroups = groups) }
                     updateGroupInfo(groups)
                 }
         }
     }
 
     private fun updateGroupInfo(groups: List<ByzantineGroup>) {
+        val joinedGroups = groups.filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
         val group2of4Multisigs =
-            groups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
+            joinedGroups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
         val group2Of3Or3of5Multisigs: List<ByzantineGroup>
         val sortedGroups: List<ByzantineGroup>
         if (group2of4Multisigs.isEmpty()) {
             group2Of3Or3of5Multisigs =
-                groups.filter {
+                joinedGroups.filter {
                     it.walletConfig.m == GroupWalletType.TWO_OF_THREE.m && it.walletConfig.n == GroupWalletType.TWO_OF_THREE.n
                             || it.walletConfig.m == GroupWalletType.THREE_OF_FIVE.m && it.walletConfig.n == GroupWalletType.THREE_OF_FIVE.n
                 }
@@ -148,7 +150,7 @@ class ServicesTabViewModel @Inject constructor(
                 userRole = byzantineGroupUtils.getCurrentUserRole(
                     sortedGroups.firstOrNull()
                 ),
-                groups = groups.associateBy { it.id }
+                joinedGroups = joinedGroups.associateBy { it.id },
             )
         }
     }
@@ -387,18 +389,16 @@ class ServicesTabViewModel @Inject constructor(
     fun getEmail() = accountManager.getAccount().email
 
     fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
-        val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId)}
-        return if (state.value.plan.isByzantine()) {
-            wallets.filter {
-                state.value.groups2of4Multisig.find { group ->
-                    group.id == it.groupId
-                } != null && byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isMasterOrAdmin
+        val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId) }
+        return wallets.filter {
+                it.groupId.isEmpty() || isAllowSetupInheritance(it)
             }
-        } else {
-            wallets.filter {
-                it.groupId.isEmpty() && byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isMasterOrAdmin
-            }
-        }
+    }
+
+    private fun isAllowSetupInheritance(wallet: AssistedWalletBrief): Boolean {
+        return state.value.groups2of4Multisig.find { group -> group.id == wallet.groupId } != null
+                && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[wallet.groupId]).toRole.isMasterOrAdmin
+                && state.value.joinedGroups[wallet.groupId]?.walletConfig?.allowInheritance == true
     }
 
     /**
@@ -414,11 +414,11 @@ class ServicesTabViewModel @Inject constructor(
             wallets.filter {
                 state.value.groups2of4Multisig.find { group ->
                     group.id == it.groupId
-                } != null && byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
+                } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
             }
         } else {
             wallets.filter {
-                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
+                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
             }
         }
     }
@@ -433,13 +433,29 @@ class ServicesTabViewModel @Inject constructor(
     fun getAllowEmergencyLockdownWallets(): Pair<Boolean, List<AssistedWalletBrief>> {
         var hasLockedWallet = false
         val wallets = state.value.assistedWallets.filter {
-            if (state.value.groups[it.groupId]?.isLocked == true) {
+            if (state.value.joinedGroups[it.groupId]?.isLocked == true) {
                 hasLockedWallet = true
             }
-            byzantineGroupUtils.getCurrentUserRole(state.value.groups[it.groupId]).toRole.isMasterOrAdmin && state.value.groups[it.groupId]?.isLocked == false
+            byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isMasterOrAdmin && state.value.joinedGroups[it.groupId]?.isLocked == false
         }
         return hasLockedWallet to wallets
     }
 
     fun getGroupId(walletId: String): String? = assistedWalletManager.getGroupId(walletId)
+
+    private fun isNoByzantineWallet(): Boolean {
+        return isByzantine() && state.value.joinedGroups.all { it.value.isPendingWallet() }
+    }
+
+    fun isByzantine(): Boolean {
+        return state.value.plan.isByzantine() || state.value.allGroups.isNotEmpty()
+    }
+
+    fun isShowClaimInheritanceLayout(): Boolean {
+        if (state.value.has2Of4WalletNotAllowInheritance() || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
+        if (state.value.userRole.toRole == AssistedWalletRole.OBSERVER) return true
+        if (isNoByzantineWallet()) return true
+        if (state.value.plan == MembershipPlan.NONE && state.value.joinedGroups.isEmpty()) return true
+        return false
+    }
 }

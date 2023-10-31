@@ -138,9 +138,9 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         flowObserver(viewModel.state) { state ->
             adapter.submitList(viewModel.getRowItems())
             state.isPremiumUser?.let {
-                binding.supportFab.isVisible = state.isPremiumUser
-                binding.actionGroup.isVisible = state.isPremiumUser.not()
-                binding.claimLayout.isVisible = state.isPremiumUser.not()
+                binding.supportFab.isVisible = state.isPremiumUser || viewModel.isByzantine()
+                binding.actionGroup.isVisible = state.isPremiumUser.not() && viewModel.getRowItems().any { it is NonSubHeader }
+                binding.claimLayout.isVisible = viewModel.isShowClaimInheritanceLayout()
             }
         }
     }
