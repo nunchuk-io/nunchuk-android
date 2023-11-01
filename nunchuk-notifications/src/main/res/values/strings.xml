@@ -15,4 +15,6 @@
     <string name="nc_notification_cosign_and_broadcast">The transaction has been co-signed and broadcast</string>
     <string name="nc_notification_transaction_co_signed">The transaction has been co-signed</string>
     <string name="nc_notification_inheritance_planning_request_denied">Inheritance planning request denied</string>
+    <string name="nc_notification_key_recovery_requested">Key recovery requested</string>
+    <string name="nc_notification_key_recovery_approved">Key recovery approved</string>
 </resources>

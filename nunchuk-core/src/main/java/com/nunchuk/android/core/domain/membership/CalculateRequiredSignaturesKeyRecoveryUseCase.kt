@@ -17,19 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer
+package com.nunchuk.android.core.domain.membership
 
-import com.nunchuk.android.model.SecurityQuestion
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.CalculateRequiredSignaturesExt
+import com.nunchuk.android.model.QuestionsAndAnswer
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-sealed class AnswerSecurityQuestionEvent {
-    data class Loading(val isLoading: Boolean) : AnswerSecurityQuestionEvent()
-    data class ProcessFailure(val message: String) : AnswerSecurityQuestionEvent()
-    data class OnVerifySuccess(val token: String, val answer: String, val questionId: String) :
-        AnswerSecurityQuestionEvent()
+class CalculateRequiredSignaturesKeyRecoveryUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletsRepository: PremiumWalletRepository,
+) : UseCase<CalculateRequiredSignaturesKeyRecoveryUseCase.Param, CalculateRequiredSignaturesExt>(dispatcher) {
+    override suspend fun execute(parameters: Param): CalculateRequiredSignaturesExt {
+        return userWalletsRepository.calculateRequiredSignaturesRecoverKey(parameters.xfp)
+    }
+
+    class Param(val xfp: String)
 }
-
-data class AnswerSecurityQuestionState(
-    val question: SecurityQuestion? = null,
-    val answer: String = "",
-    val error: String = "",
-)

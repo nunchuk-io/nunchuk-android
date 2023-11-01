@@ -140,6 +140,7 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.HEALTH_CHECK_REQUEST,
         DummyTransactionType.HEALTH_CHECK_PENDING,
         -> stringResource(R.string.nc_health_check_procedure)
+        DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_key_recovery_requested)
 
         else -> stringResource(R.string.nc_signatures_required)
     }
@@ -148,7 +149,7 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.HEALTH_CHECK_PENDING,
         -> stringResource(R.string.nc_complete_a_health_check)
         DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_authorize_inheritance_planning_request)
-
+        DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_approve_key_recovery)
         else -> stringResource(R.string.nc_authorize_these_change)
     }
     val lastSentences = when {

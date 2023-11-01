@@ -19,7 +19,9 @@ import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.CalculateRequiredSignatureStep
 import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
@@ -59,6 +61,19 @@ internal fun CalculateRequiredSignaturesResponse.Data?.toCalculateRequiredSignat
         type = this?.type.orEmpty(),
         requiredSignatures = this?.requiredSignatures.orDefault(0),
         requiredAnswers = this?.requiredAnswers.orDefault(0)
+    )
+}
+
+internal fun CalculateRequiredSignaturesResponse.toCalculateRequiredSignaturesEx(): CalculateRequiredSignaturesExt {
+    val step = when (this.step) {
+        "REQUEST_RECOVER" -> CalculateRequiredSignatureStep.REQUEST_RECOVER
+        "PENDING_APPROVAL" -> CalculateRequiredSignatureStep.PENDING_APPROVAL
+        "RECOVER" -> CalculateRequiredSignatureStep.RECOVER
+        else -> null
+    }
+    return CalculateRequiredSignaturesExt(
+        data = result?.toCalculateRequiredSignatures(),
+        step = step
     )
 }
 
@@ -140,7 +155,8 @@ internal fun AlertResponse.toAlert(): Alert {
             pendingKeysCount = payload?.pendingKeysCount.orDefault(0),
             dummyTransactionId = payload?.dummyTransactionId.orEmpty(),
             xfps = payload?.xfps.orEmpty(),
-            claimKey = payload?.claimKey.orFalse()
+            claimKey = payload?.claimKey.orFalse(),
+            keyXfp = payload?.keyXfp.orEmpty()
         )
     )
 }

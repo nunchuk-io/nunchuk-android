@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
+import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
 import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUserDataUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -20,6 +21,7 @@ import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroEvent
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.Alert
@@ -99,7 +101,8 @@ class GroupDashboardViewModel @Inject constructor(
     private val requestPlanningInheritanceUseCase: RequestPlanningInheritanceUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
     private val membershipStepManager: MembershipStepManager,
-    private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase
+    private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase,
+    private val recoverKeyUseCase: RecoverKeyUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -573,6 +576,23 @@ class GroupDashboardViewModel @Inject constructor(
                 isSetupInheritance = type != DummyTransactionType.CANCEL_INHERITANCE_PLAN
             )
         )
+    }
+
+    fun recoverKey(xfp: String) {
+        viewModelScope.launch {
+            _event.emit(GroupDashboardEvent.Loading(true))
+            val result = recoverKeyUseCase(
+                RecoverKeyUseCase.Param(
+                    xfp = xfp
+                )
+            )
+            _event.emit(GroupDashboardEvent.Loading(false))
+            if (result.isSuccess) {
+                _event.emit(GroupDashboardEvent.DownloadBackupKeySuccess(result.getOrThrow()))
+            } else {
+                _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
     }
 
     fun isInheritanceOwner(): Boolean {

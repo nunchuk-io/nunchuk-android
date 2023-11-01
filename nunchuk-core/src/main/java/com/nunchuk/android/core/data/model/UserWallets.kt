@@ -254,3 +254,19 @@ data class DeleteAssistedWalletRequest(
     @SerializedName("nonce")
     val nonce: String? = null
 )
+
+data class RequestRecoverKeyRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: Body? = null
+) {
+    class Body
+}
+
+data class MarkRecoverStatusRequest(
+    @SerializedName("status")
+    val status: String? = null
+)
+
+class EmptyRequest

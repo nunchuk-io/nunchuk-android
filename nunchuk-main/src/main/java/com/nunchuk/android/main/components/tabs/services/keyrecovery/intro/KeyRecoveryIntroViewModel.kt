@@ -19,15 +19,26 @@
 
 package com.nunchuk.android.main.components.tabs.services.keyrecovery.intro
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesKeyRecoveryUseCase
+import com.nunchuk.android.core.domain.membership.DownloadBackupKeyUseCase
+import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
+import com.nunchuk.android.core.domain.membership.RequestRecoverUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer.AnswerSecurityQuestionEvent
+import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,13 +47,32 @@ import javax.inject.Inject
 class KeyRecoveryIntroViewModel @Inject constructor(
     private val getMasterSignersUseCase: GetMasterSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
-    private val cardIdManager: CardIdManager
+    private val cardIdManager: CardIdManager,
+    private val downloadBackupKeyUseCase: DownloadBackupKeyUseCase,
+    private val calculateRequiredSignaturesKeyRecoveryUseCase: CalculateRequiredSignaturesKeyRecoveryUseCase,
+    private val getGroupsUseCase: GetGroupsUseCase,
+    private val requestRecoverUseCase: RequestRecoverUseCase,
+    private val recoverKeyUseCase: RecoverKeyUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val args =
+        KeyRecoveryIntroFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private val _state = MutableStateFlow(KeyRecoveryIntroState())
 
     private val _event = MutableSharedFlow<KeyRecoveryIntroEvent>()
     val event = _event.asSharedFlow()
+
+    var isHasGroup = false
+
+    init {
+        viewModelScope.launch {
+            getGroupsUseCase(Unit).distinctUntilChanged().collect {
+                isHasGroup = it.getOrNull().isNullOrEmpty().not()
+            }
+        }
+    }
 
     fun getTapSignerList() = viewModelScope.launch {
         _event.emit(KeyRecoveryIntroEvent.Loading(true))
@@ -64,4 +94,103 @@ class KeyRecoveryIntroViewModel @Inject constructor(
         }
     }
 
+    fun setSelectedSigner(signer: SignerModel) = viewModelScope.launch {
+        _state.update {
+            it.copy(selectedSigner = signer)
+        }
+    }
+
+    fun downloadBackupKey(questionId: String, answer: String) = viewModelScope.launch {
+        val state = _state.value
+        if (state.selectedSigner == null) {
+            return@launch
+        }
+        _event.emit(KeyRecoveryIntroEvent.Loading(true))
+        val result = downloadBackupKeyUseCase(
+            DownloadBackupKeyUseCase.Param(
+                id = state.selectedSigner.fingerPrint,
+                questionId = questionId,
+                answer = answer,
+                verifyToken = args.verifyToken
+            )
+        )
+        _event.emit(KeyRecoveryIntroEvent.Loading(false))
+        if (result.isSuccess) {
+            _event.emit(
+                KeyRecoveryIntroEvent.DownloadBackupKeySuccess(result.getOrThrow())
+            )
+        } else {
+            _event.emit(KeyRecoveryIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    fun calculateRequiredSignatures() = viewModelScope.launch {
+        val state = _state.value
+        if (state.selectedSigner == null) {
+            return@launch
+        }
+        _event.emit(KeyRecoveryIntroEvent.Loading(true))
+        val result = calculateRequiredSignaturesKeyRecoveryUseCase(
+            CalculateRequiredSignaturesKeyRecoveryUseCase.Param(
+                xfp = state.selectedSigner.fingerPrint
+            )
+        )
+        _event.emit(KeyRecoveryIntroEvent.Loading(false))
+        if (result.isSuccess) {
+            _event.emit(
+                KeyRecoveryIntroEvent.CalculateRequiredSignaturesSuccess(result.getOrThrow())
+            )
+        } else {
+            _event.emit(KeyRecoveryIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    fun requestRecover(
+        signatures: HashMap<String, String>,
+        securityQuestionToken: String, confirmCodeToken: String, confirmCodeNonce: String) {
+        viewModelScope.launch {
+            val state = _state.value
+            if (state.selectedSigner == null) {
+                return@launch
+            }
+            _event.emit(KeyRecoveryIntroEvent.Loading(true))
+            val result = requestRecoverUseCase(
+                RequestRecoverUseCase.Param(
+                    signatures = signatures,
+                    verifyToken = args.verifyToken,
+                    securityQuestionToken = securityQuestionToken,
+                    confirmCodeToken = confirmCodeToken,
+                    confirmCodeNonce = confirmCodeNonce,
+                    xfp = state.selectedSigner.fingerPrint
+                )
+            )
+            _event.emit(KeyRecoveryIntroEvent.Loading(false))
+            if (result.isSuccess) {
+                _event.emit(KeyRecoveryIntroEvent.RequestRecoverSuccess)
+            } else {
+                _event.emit(KeyRecoveryIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun recoverKey() {
+        viewModelScope.launch {
+            val state = _state.value
+            if (state.selectedSigner == null) {
+                return@launch
+            }
+            _event.emit(KeyRecoveryIntroEvent.Loading(true))
+            val result = recoverKeyUseCase(
+                RecoverKeyUseCase.Param(
+                    xfp = state.selectedSigner.fingerPrint
+                )
+            )
+            _event.emit(KeyRecoveryIntroEvent.Loading(false))
+            if (result.isSuccess) {
+                _event.emit(KeyRecoveryIntroEvent.DownloadBackupKeySuccess(result.getOrThrow()))
+            } else {
+                _event.emit(KeyRecoveryIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
 }

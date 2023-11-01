@@ -24,6 +24,7 @@ import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
+import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -409,4 +410,23 @@ interface PremiumWalletRepository {
     suspend fun deleteKey(xfp: String)
 
     suspend fun syncConfirmedTransactionNotes(groupId: String?, walletId: String)
+
+    suspend fun calculateRequiredSignaturesRecoverKey(
+        xfp: String,
+    ): CalculateRequiredSignaturesExt
+
+    suspend fun requestRecoverKey(
+        authorizations: List<String>,
+        verifyToken: String,
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String,
+        xfp: String,
+    )
+
+    suspend fun recoverKey(
+        xfp: String,
+    ): BackupKey
+
+    suspend fun markKeyAsRecovered(xfp: String, status: String)
 }

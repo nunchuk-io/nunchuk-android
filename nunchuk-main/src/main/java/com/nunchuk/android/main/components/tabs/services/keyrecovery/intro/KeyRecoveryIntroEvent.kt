@@ -20,10 +20,19 @@
 package com.nunchuk.android.main.components.tabs.services.keyrecovery.intro
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.BackupKey
+import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 
 sealed class KeyRecoveryIntroEvent {
     data class Loading(val isLoading: Boolean) : KeyRecoveryIntroEvent()
     data class GetTapSignerSuccess(val signers: List<SignerModel>) : KeyRecoveryIntroEvent()
+    data class Error(val message: String) : KeyRecoveryIntroEvent()
+    data class DownloadBackupKeySuccess(val backupKey: BackupKey) : KeyRecoveryIntroEvent()
+    data class CalculateRequiredSignaturesSuccess(val calculateRequiredSignaturesExt: CalculateRequiredSignaturesExt) : KeyRecoveryIntroEvent()
+    data object RequestRecoverSuccess : KeyRecoveryIntroEvent()
 }
 
-data class KeyRecoveryIntroState(val tapSigners: List<SignerModel> = emptyList())
+data class KeyRecoveryIntroState(
+    val tapSigners: List<SignerModel> = emptyList(),
+    val selectedSigner: SignerModel? = null
+)

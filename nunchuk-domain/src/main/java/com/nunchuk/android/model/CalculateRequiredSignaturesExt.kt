@@ -17,19 +17,9 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer
+package com.nunchuk.android.model
 
-import com.nunchuk.android.model.SecurityQuestion
-
-sealed class AnswerSecurityQuestionEvent {
-    data class Loading(val isLoading: Boolean) : AnswerSecurityQuestionEvent()
-    data class ProcessFailure(val message: String) : AnswerSecurityQuestionEvent()
-    data class OnVerifySuccess(val token: String, val answer: String, val questionId: String) :
-        AnswerSecurityQuestionEvent()
-}
-
-data class AnswerSecurityQuestionState(
-    val question: SecurityQuestion? = null,
-    val answer: String = "",
-    val error: String = "",
+data class CalculateRequiredSignaturesExt(
+    val step: CalculateRequiredSignatureStep? = null,
+    val data: CalculateRequiredSignatures? = null,
 )

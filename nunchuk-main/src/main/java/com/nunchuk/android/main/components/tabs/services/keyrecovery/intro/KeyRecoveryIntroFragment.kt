@@ -19,11 +19,18 @@
 
 package com.nunchuk.android.main.components.tabs.services.keyrecovery.intro
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
@@ -36,22 +43,71 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NCLabelWithIndex
+import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer.AnswerSecurityQuestionFragment
+import com.nunchuk.android.model.CalculateRequiredSignatureStep
+import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.serializable
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class KeyRecoveryIntroFragment : Fragment() {
 
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val viewModel by viewModels<KeyRecoveryIntroViewModel>()
-    private val args: KeyRecoveryIntroFragmentArgs by navArgs()
+
+    private val signLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val extraInfo =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.SECURITY_QUESTION_EXTRA_INFO)
+                val securityQuestionToken =
+                    data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
+                val confirmCodeMap =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.CONFIRM_CODE)
+                        .orEmpty()
+                val signatureMap =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
+                if (!extraInfo.isNullOrEmpty()) {
+                    viewModel.downloadBackupKey(
+                        questionId = extraInfo[AnswerSecurityQuestionFragment.QUESTION_ID].orEmpty(),
+                        answer = extraInfo[AnswerSecurityQuestionFragment.QUESTION_ANSWER].orEmpty()
+                    )
+                } else if (confirmCodeMap.isNotEmpty()) {
+                    viewModel.requestRecover(
+                        signatureMap ?: hashMapOf(),
+                        securityQuestionToken,
+                        confirmCodeMap[GlobalResultKey.CONFIRM_CODE_TOKEN].orEmpty(),
+                        confirmCodeMap[GlobalResultKey.CONFIRM_CODE_NONCE].orEmpty()
+                    )
+                }
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -73,11 +129,69 @@ class KeyRecoveryIntroFragment : Fragment() {
                 is KeyRecoveryIntroEvent.GetTapSignerSuccess -> {
                     findNavController().navigate(
                         KeyRecoveryIntroFragmentDirections.actionKeyRecoveryIntroFragmentToRecoverTapSignerListBottomSheetFragment(
-                            event.signers.toTypedArray(),
-                            args.verifyToken
+                            event.signers.toTypedArray()
                         )
                     )
                 }
+
+                is KeyRecoveryIntroEvent.Error -> {
+                    showError(message = event.message)
+                }
+
+                is KeyRecoveryIntroEvent.DownloadBackupKeySuccess -> {
+                    findNavController().navigate(
+                        KeyRecoveryIntroFragmentDirections.actionKeyRecoveryIntroFragmentToBackupDownloadFragment(
+                            backupKey = event.backupKey
+                        )
+                    )
+                }
+
+                is KeyRecoveryIntroEvent.CalculateRequiredSignaturesSuccess -> {
+                    val step = event.calculateRequiredSignaturesExt.step
+                    if (step == CalculateRequiredSignatureStep.PENDING_APPROVAL) {
+                        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_recovery_request_already_exists))
+                    } else if (step == CalculateRequiredSignatureStep.REQUEST_RECOVER && event.calculateRequiredSignaturesExt.data != null) {
+                        navigator.openWalletAuthentication(
+                            walletId = "",
+                            userData = "",
+                            requiredSignatures = event.calculateRequiredSignaturesExt.data!!.requiredSignatures,
+                            type = event.calculateRequiredSignaturesExt.data!!.type,
+                            action = TargetAction.DOWNLOAD_KEY_BACKUP.name,
+                            launcher = signLauncher,
+                            activityContext = requireActivity()
+                        )
+                    } else if (step == CalculateRequiredSignatureStep.RECOVER) {
+                        viewModel.recoverKey()
+                    }
+                }
+
+                KeyRecoveryIntroEvent.RequestRecoverSuccess -> {
+                    findNavController().navigate(
+                        KeyRecoveryIntroFragmentDirections.actionKeyRecoveryIntroFragmentToKeyRecoverySuccessStateFragment(
+                            type = KeyRecoverySuccessState.KEY_RECOVERY_REQUEST_SENT.name
+                        )
+                    )
+                }
+            }
+        }
+
+        setFragmentResultListener(RecoveryTapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+            bundle.parcelable<SignerModel>(RecoveryTapSignerListBottomSheetFragment.EXTRA_SIGNER)
+                ?.let {
+                    viewModel.setSelectedSigner(it)
+                    if (viewModel.isHasGroup.not()) {
+                        navigator.openWalletAuthentication(
+                            walletId = "",
+                            requiredSignatures = 0,
+                            activityContext = requireActivity(),
+                            type = VerificationType.SECURITY_QUESTION,
+                            launcher = signLauncher
+                        )
+                    } else {
+                        viewModel.calculateRequiredSignatures()
+                    }
+                } ?: run {
+                clearFragmentResult(RecoveryTapSignerListBottomSheetFragment.REQUEST_KEY)
             }
         }
     }

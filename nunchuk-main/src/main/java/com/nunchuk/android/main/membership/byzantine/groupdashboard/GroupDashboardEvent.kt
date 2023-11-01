@@ -1,7 +1,9 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroEvent
 import com.nunchuk.android.model.Alert
+import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
@@ -34,6 +36,7 @@ sealed class GroupDashboardEvent {
     ) : GroupDashboardEvent()
 
     data object RestartWizardSuccess: GroupDashboardEvent()
+    data class DownloadBackupKeySuccess(val backupKey: BackupKey) : GroupDashboardEvent()
 }
 
 data class GroupDashboardState(

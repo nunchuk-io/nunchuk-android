@@ -32,6 +32,8 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroFragmentDirections
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
@@ -108,9 +110,17 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 val dummyTransactionType = data.parcelable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
-                if (dummyTransactionType != null && dummyTransactionType.isInheritanceFlow()) {
-                    viewModel.markSetupInheritance(dummyTransactionType)
-                    showInheritanceMessage(dummyTransactionType)
+                if (dummyTransactionType != null) {
+                    if (dummyTransactionType.isInheritanceFlow()) {
+                        viewModel.markSetupInheritance(dummyTransactionType)
+                        showInheritanceMessage(dummyTransactionType)
+                    } else if (dummyTransactionType == DummyTransactionType.KEY_RECOVERY_REQUEST) {
+                        findNavController().navigate(
+                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToKeyRecoverySuccessStateFragment(
+                                type = KeyRecoverySuccessState.KEY_RECOVERY_APPROVED.name
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -334,6 +344,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 }
 
                 GroupDashboardEvent.RestartWizardSuccess -> requireActivity().finish()
+                is GroupDashboardEvent.DownloadBackupKeySuccess -> {
+                    findNavController().navigate(
+                        GroupDashboardFragmentDirections.actionGroupDashboardFragmentToBackupDownloadFragment(
+                            backupKey = event.backupKey
+                        )
+                    )
+                }
             }
         }
     }
@@ -429,6 +446,16 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 flowInfo = InheritancePlanFlow.SETUP,
                 groupId = args.groupId
             )
+        } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST) {
+            findNavController().navigate(
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
+                    args.groupId,
+                    viewModel.getWalletId(),
+                    alert
+                )
+            )
+        } else if (alert.type == AlertType.KEY_RECOVERY_APPROVED) {
+            viewModel.recoverKey(alert.payload.keyXfp)
         }
     }
 

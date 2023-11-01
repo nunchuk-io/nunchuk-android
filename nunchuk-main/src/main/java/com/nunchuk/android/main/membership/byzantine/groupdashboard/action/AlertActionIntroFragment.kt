@@ -73,10 +73,16 @@ class AlertActionIntroFragment : Fragment() {
                         goBack()
                     },
                     onCancel = {
-                        val message = if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-                            getString(R.string.nc_cancel_inheritance_planning_request)
-                        } else {
-                            getString(R.string.nc_cancel_health_check_request)
+                        val message = when (args.alert.type) {
+                            AlertType.REQUEST_INHERITANCE_PLANNING -> {
+                                getString(R.string.nc_cancel_inheritance_planning_request)
+                            }
+                            AlertType.KEY_RECOVERY_REQUEST -> {
+                                getString(R.string.nc_cancel_this_change)
+                            }
+                            else -> {
+                                getString(R.string.nc_cancel_health_check_request)
+                            }
                         }
                         NCWarningDialog(requireActivity())
                             .showDialog(
@@ -153,6 +159,7 @@ private fun AlertActionIntroContent(
     val cancelButton = when (alert.type) {
         AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
         AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_deny)
+        AlertType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_cancel)
         else -> stringResource(id = R.string.nc_cancel_request)
     }
 
@@ -239,7 +246,8 @@ private fun AlertActionIntroScreenPreview() {
                 pendingKeysCount = 1,
                 masterName = "masterName",
                 xfps = listOf("xfps"),
-                claimKey = false
+                claimKey = false,
+                keyXfp = "keyXfp"
             ),
             body = "There is a health check request for [key name].",
             createdTimeMillis = 0,

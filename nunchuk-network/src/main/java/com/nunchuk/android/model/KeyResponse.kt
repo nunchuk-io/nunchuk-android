@@ -43,3 +43,8 @@ data class KeyResponse(
     @SerializedName("derivation_path")
     val derivationPath: String? = null,
 )
+
+data class KeyResponseData(
+    @SerializedName("key")
+    val key: KeyResponse? = null,
+)

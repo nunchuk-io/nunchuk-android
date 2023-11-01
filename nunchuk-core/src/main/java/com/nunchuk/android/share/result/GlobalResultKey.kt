@@ -35,4 +35,5 @@ object GlobalResultKey {
     const val DUMMY_TX_ID = "_m"
     const val REQUIRED_SIGNATURES = "_n"
     const val DUMMY_TX_INTRO_DO_LATER = "_o"
+    const val SECURITY_QUESTION_EXTRA_INFO = "_p"
 }

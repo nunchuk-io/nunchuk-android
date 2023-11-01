@@ -65,6 +65,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationSt
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -151,9 +152,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                 .collect { event ->
                     when (event) {
                         is WalletAuthenticationEvent.SignDummyTxSuccess -> {
-                            val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
-                            if (!args.dummyTransactionId.isNullOrEmpty() && args.action != TargetAction.CLAIM_KEY.name
-                                && walletAuthenticationViewModel.getDummyTransactionType().isInheritanceFlow().not()) {
+                            if (isOpenGroupDashboard()) {
                                 openGroupDashboard()
                             } else {
                                 requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
@@ -229,6 +228,13 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
             }
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    private fun isOpenGroupDashboard(): Boolean {
+        val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
+        return !args.dummyTransactionId.isNullOrEmpty() && args.action != TargetAction.CLAIM_KEY.name
+                && walletAuthenticationViewModel.getDummyTransactionType().isInheritanceFlow().not()
+                && walletAuthenticationViewModel.getDummyTransactionType() != DummyTransactionType.KEY_RECOVERY_REQUEST
     }
 
     private fun openGroupDashboard() {

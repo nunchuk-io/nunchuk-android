@@ -37,12 +37,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AnswerSecurityQuestionViewModel @Inject constructor(
     private val getSecurityQuestionUseCase: GetSecurityQuestionUseCase,
-    private val downloadBackupKeyUseCase: DownloadBackupKeyUseCase,
     private val verifySecurityQuestionUseCase: VerifySecurityQuestionUseCase,
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
-    private val args = AnswerSecurityQuestionFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private val _event = MutableSharedFlow<AnswerSecurityQuestionEvent>()
     val event = _event.asSharedFlow()
@@ -55,11 +51,7 @@ class AnswerSecurityQuestionViewModel @Inject constructor(
     }
 
     fun onContinueClicked() {
-        if (args.signer != null && args.verifyToken.isNotEmpty()) {
-            downloadBackupKey(args.signer ?: return)
-        } else {
-            verifySecurityQuestion()
-        }
+        verifySecurityQuestion()
     }
 
     private fun getSecurityQuestion() = viewModelScope.launch {
@@ -86,45 +78,11 @@ class AnswerSecurityQuestionViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                _event.emit(AnswerSecurityQuestionEvent.OnVerifySuccess(result.getOrThrow()))
+                _event.emit(AnswerSecurityQuestionEvent.OnVerifySuccess(result.getOrThrow(), state.answer, state.question.id))
             } else {
                 _state.update {
                     it.copy(error = result.exceptionOrNull()?.message.orUnknownError())
                 }
-            }
-        }
-    }
-
-    private fun downloadBackupKey(signer: SignerModel) = viewModelScope.launch {
-        val state = _state.value
-        if (state.question == null || state.answer.isBlank()) {
-            return@launch
-        }
-        _event.emit(AnswerSecurityQuestionEvent.Loading(true))
-        val result = downloadBackupKeyUseCase(
-            DownloadBackupKeyUseCase.Param(
-                id = signer.fingerPrint,
-                questionId = state.question.id,
-                answer = state.answer,
-                verifyToken = args.verifyToken
-            )
-        )
-        _event.emit(AnswerSecurityQuestionEvent.Loading(false))
-        if (result.isSuccess) {
-            _event.emit(
-                AnswerSecurityQuestionEvent.DownloadBackupKeySuccess(
-                    signer,
-                    result.getOrThrow()
-                )
-            )
-        } else {
-            val exception = result.exceptionOrNull()
-            if (exception is NunchukApiException && exception.code == 400) {
-                _state.update {
-                    it.copy(error = result.exceptionOrNull()?.message.orUnknownError())
-                }
-            } else {
-                _event.emit(AnswerSecurityQuestionEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }

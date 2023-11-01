@@ -26,15 +26,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ImportTapsignerMasterSignerContentUseCase
 import com.nunchuk.android.core.domain.VerifyTapSignerBackupContentUseCase
+import com.nunchuk.android.core.domain.membership.MarkRecoverStatusUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.main.R
 import com.nunchuk.android.main.util.ChecksumUtil
+import com.nunchuk.android.model.MasterSigner
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -45,6 +50,7 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @ApplicationContext private val context: Context,
     private val masterSignerMapper: MasterSignerMapper,
+    private val markRecoverStatusUseCase: MarkRecoverStatusUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -61,36 +67,36 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
         if (stateValue.password.isBlank()) return@launch
         val backupData = Base64.decode(args.backupKey.keyBackUpBase64, Base64.DEFAULT)
         if (ChecksumUtil.verifyChecksum(backupData, args.backupKey.keyCheckSum)) {
-            val resultVerify = verifyTapSignerBackupContentUseCase(
-                VerifyTapSignerBackupContentUseCase.Param(
-                    content = backupData,
-                    masterSignerId = args.signer.id,
-                    backUpKey = stateValue.password
+            val resultImport = importTapsignerMasterSignerContentUseCase(
+                ImportTapsignerMasterSignerContentUseCase.Param(
+                    backupData,
+                    stateValue.password,
+                    stateValue.keyName
                 )
             )
-            if (resultVerify.isSuccess) {
-                val resultImport = importTapsignerMasterSignerContentUseCase(
-                    ImportTapsignerMasterSignerContentUseCase.Param(
-                        backupData,
-                        stateValue.password,
-                        stateValue.keyName
-                    )
+            if (resultImport.isSuccess) {
+                markRecoverStatusSuccess(resultImport.getOrThrow())
+            } else {
+                _event.emit(BackupDownloadEvent.ProcessFailure(resultImport.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    private fun markRecoverStatusSuccess(masterSigner: MasterSigner) {
+        viewModelScope.launch {
+            markRecoverStatusUseCase(
+                MarkRecoverStatusUseCase.Param(
+                    xfp = args.backupKey.keyXfp,
+                    status = "SUCCESS"
                 )
-                if (resultImport.isSuccess) {
-                    _event.emit(
-                        BackupDownloadEvent.ImportTapsignerSuccess(
-                            masterSignerMapper(
-                                resultImport.getOrThrow()
-                            )
+            ).onSuccess {
+                _event.emit(
+                    BackupDownloadEvent.ImportTapsignerSuccess(
+                        masterSignerMapper(
+                            masterSigner
                         )
                     )
-                } else {
-                    _event.emit(BackupDownloadEvent.ProcessFailure(resultImport.exceptionOrNull()?.message.orUnknownError()))
-                }
-            } else {
-                _state.update {
-                    it.copy(error = context.getString(R.string.nc_invalid_backup_password))
-                }
+                )
             }
         }
     }

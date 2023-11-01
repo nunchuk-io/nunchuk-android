@@ -25,6 +25,7 @@ import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.network.Data
 import com.nunchuk.android.model.KeyResponse
+import com.nunchuk.android.model.KeyResponseData
 import com.nunchuk.android.model.KeyVerifiedRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -142,6 +143,31 @@ internal interface UserWalletsApi {
         @Path("key_id_or_xfp") id: String,
         @Query("derivation_path") derivationPath: String,
     ): Data<KeyResponse>
+
+    @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesRecoverKey(
+        @Path("key_id_or_xfp") id: String,
+        @Body payload: EmptyRequest = EmptyRequest()
+    ): Data<CalculateRequiredSignaturesResponse>
+
+    @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/request-recover")
+    suspend fun requestRecoverKey(
+        @HeaderMap headers: Map<String, String>,
+        @Path("key_id_or_xfp") id: String,
+        @Body payload: RequestRecoverKeyRequest
+    ): Data<TransactionAdditionalResponse>
+
+    @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/recover")
+    suspend fun recoverKey(
+        @Path("key_id_or_xfp") id: String,
+        @Body payload: EmptyRequest = EmptyRequest()
+    ): Data<KeyResponseData>
+
+    @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/mark-recover-status")
+    suspend fun markRecoverStatus(
+        @Path("key_id_or_xfp") id: String,
+        @Body payload: MarkRecoverStatusRequest
+    ): Data<Unit>
 
     @POST("/v1.1/user-wallets/security-questions/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesSecurityQuestions(

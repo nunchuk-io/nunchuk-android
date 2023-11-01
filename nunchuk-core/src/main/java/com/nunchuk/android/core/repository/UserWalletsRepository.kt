@@ -38,8 +38,10 @@ import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequ
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
+import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequestBody
+import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
@@ -72,6 +74,7 @@ import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toBackupKey
 import com.nunchuk.android.core.mapper.toByzantineGroup
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
+import com.nunchuk.android.core.mapper.toCalculateRequiredSignaturesEx
 import com.nunchuk.android.core.mapper.toGroupChat
 import com.nunchuk.android.core.mapper.toGroupEntity
 import com.nunchuk.android.core.mapper.toHistoryPeriod
@@ -91,6 +94,7 @@ import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
+import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -2093,6 +2097,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     request.body
                 }
 
+                TargetAction.DOWNLOAD_KEY_BACKUP.name -> {
+                    Any()
+                }
+
                 else -> null
             }
         }
@@ -2152,6 +2160,45 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
             }
             if (response.data.notes.size < TRANSACTION_PAGE_COUNT) return
+        }
+    }
+
+    override suspend fun calculateRequiredSignaturesRecoverKey(xfp: String): CalculateRequiredSignaturesExt {
+        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesRecoverKey(xfp)
+        return response.data.toCalculateRequiredSignaturesEx()
+    }
+
+    override suspend fun requestRecoverKey(
+        authorizations: List<String>,
+        verifyToken: String,
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String,
+        xfp: String
+    ) {
+        val nonce = getNonce()
+        val request = RequestRecoverKeyRequest(nonce = nonce)
+        val headers = getHeaders(
+            authorizations = authorizations,
+            verifyToken = verifyToken,
+            securityQuestionToken = securityQuestionToken,
+            confirmCodeToken = confirmCodeToken
+        )
+        userWalletApiManager.walletApi.requestRecoverKey(headers, id = xfp, payload = request)
+    }
+
+    override suspend fun recoverKey(
+        xfp: String
+    ): BackupKey {
+        val response = userWalletApiManager.walletApi.recoverKey(id = xfp)
+        val key = response.data.key ?: throw NullPointerException("Can not get key")
+        return key.toBackupKey()
+    }
+
+    override suspend fun markKeyAsRecovered(xfp: String, status: String) {
+        val response = userWalletApiManager.walletApi.markRecoverStatus(xfp, MarkRecoverStatusRequest(status))
+        if (response.isSuccess.not()) {
+            throw response.error
         }
     }
 

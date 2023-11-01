@@ -38,6 +38,7 @@
     <string name="nc_authorize_these_change">To authorize these changes</string>
     <string name="nc_complete_a_health_check">To complete a health check</string>
     <string name="nc_authorize_inheritance_planning_request">To authorize the inheritance planning request</string>
+    <string name="nc_approve_key_recovery">To approve the key recovery</string>
     <string name="nc_dummy_transaction_desc">%1$s, you will be asked to sign a dummy transaction that sends 10,000 sat (%2$s) to your own wallet%3$s.\n\n[B]The dummy transaction uses a fake input and does not move any of your real bitcoins. It will not be broadcast and will be immediately removed afterwards.[/B]</string>
     <string name="nc_dummy_transaction_key_holder_desc">. Since more than one signature is required, other keyholders will also be notified</string>
     <string name="nc_tell_me_more">Tell me more</string>
@@ -148,6 +149,7 @@
     <string name="nc_inheritance_has_been_created">The inheritance plan has been created</string>
     <string name="nc_inheritance_has_been_updated">The inheritance plan has been updated</string>
     <string name="nc_cancel_health_check_request">Are you sure you want to cancel this health check request?</string>
+    <string name="nc_cancel_this_change">Are you sure you want to cancel this change?</string>
     <string name="nc_cancel_inheritance_planning_request">Are you sure you want to deny this inheritance planning request?</string>
     <string name="nc_key_added_to_group_wallet">Key added to group wallet</string>
     <string name="add_key_to_group_desc">Once enough keys have been added, the master or admin account can finish the setup.</string>
@@ -188,6 +190,7 @@
     <string name="nc_health_check_has_been_canceled">Health check request has been canceled</string>
     <string name="nc_all_wallets_under_lockdown">All of your assisted wallets are already under lockdown.</string>
     <string name="nc_recurring_payments">Recurring payments</string>
+    <string name="nc_recovery_request_already_exists">A recovery request for this key already exists. </string>
     <string name="nc_add_recurring_payments">Add recurring payment</string>
     <string name="nc_recurring_payments_intro_desc">Recurring payments allow you to automatically create transactions that send bitcoins to a predefined destination wallet or addresses at scheduled intervals.</string>
     <string name="nc_customize_key_account">Customize key account</string>
@@ -199,4 +202,9 @@
     <string name="nc_master_signer_new_index_not_available">New account data needed. Please use the desktop app to connect your device so that the new account can be loaded.</string>
     <string name="nc__2_of_4_multisig_without_inheritance_planning">2-of-4 multisig without inheritance planning</string>
     <string name="nc_2_of_4_no_inheritance_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key.</string>
+    <string name="nc_key_recovery_approved">Key recovery approved</string>
+    <string name="nc_key_recovery_request_sent">Key recovery request sent</string>
+    <string name="nc_key_recovery_approved_desc">The keyholder can now continue with the key recovery process on their device.</string>
+    <string name="nc_key_recovery_request_sent_desc">For security, the key recovery request needs to be approved by at least another keyholder. Please resume once the request has been approved.</string>
+    <string name="nc_key_recovery_requested">Key recovery requested</string>
 </resources>
