@@ -259,10 +259,8 @@ data class RequestRecoverKeyRequest(
     @SerializedName("nonce")
     val nonce: String? = null,
     @SerializedName("body")
-    val body: Body? = null
-) {
-    class Body
-}
+    val body: EmptyRequest = EmptyRequest()
+)
 
 data class MarkRecoverStatusRequest(
     @SerializedName("status")

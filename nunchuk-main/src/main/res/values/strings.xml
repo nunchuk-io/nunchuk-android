@@ -122,6 +122,7 @@
     <string name="nc_group_wallet_creation_pending_desc">%s initiated a group wallet. If you’re part of this wallet, please add your key.</string>
     <string name="nc_confirm_changes">Confirm changes</string>
     <string name="nc_confirm_new_security_questions">Confirm new security questions</string>
+    <string name="nc_confirm_recovery">Confirm recovery</string>
     <string name="nc_confirm_changes_msg">We’ve sent a code to [B]%1$s[/B]. Please enter it below.</string>
     <string name="nc_code">Code</string>
     <string name="nc_observing">Observing</string>

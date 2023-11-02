@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -32,6 +33,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -52,7 +54,11 @@ class KeyRecoverySuccessStateFragment : Fragment() {
 
             setContent {
                 KeyRecoverySuccessStateScreen(args.type, onGotItClick = {
-                    requireActivity().finish()
+                    if (requireActivity() is GroupDashboardActivity) {
+                        findNavController().popBackStack()
+                    } else {
+                        requireActivity().finish()
+                    }
                 })
             }
         }

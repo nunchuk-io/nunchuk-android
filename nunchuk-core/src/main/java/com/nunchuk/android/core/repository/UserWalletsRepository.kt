@@ -30,6 +30,7 @@ import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
+import com.nunchuk.android.core.data.model.EmptyRequest
 import com.nunchuk.android.core.data.model.InheritanceByzantineRequestPlanning
 import com.nunchuk.android.core.data.model.InheritanceCancelRequest
 import com.nunchuk.android.core.data.model.InheritanceCheckRequest
@@ -2098,7 +2099,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
 
                 TargetAction.DOWNLOAD_KEY_BACKUP.name -> {
-                    Any()
+                    EmptyRequest()
                 }
 
                 else -> null
@@ -2109,6 +2110,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.requestConfirmationCode(
             action = action, payload = request
         )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
         return Pair(nonce, response.data.codeId.orEmpty())
     }
 
@@ -2176,15 +2180,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         confirmCodeNonce: String,
         xfp: String
     ) {
-        val nonce = getNonce()
-        val request = RequestRecoverKeyRequest(nonce = nonce)
+        val request = RequestRecoverKeyRequest(nonce = confirmCodeNonce)
         val headers = getHeaders(
             authorizations = authorizations,
             verifyToken = verifyToken,
             securityQuestionToken = securityQuestionToken,
             confirmCodeToken = confirmCodeToken
         )
-        userWalletApiManager.walletApi.requestRecoverKey(headers, id = xfp, payload = request)
+        val response = userWalletApiManager.walletApi.requestRecoverKey(headers, id = xfp, payload = request)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
     }
 
     override suspend fun recoverKey(
