@@ -15,6 +15,10 @@ enum class GroupWalletType(
     TWO_OF_FOUR_MULTISIG_NO_INHERITANCE(2, 4, false, true)
 }
 
+fun GroupWalletType.isPremier(): Boolean {
+    return this == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE
+}
+
 fun String.toGroupWalletType(): GroupWalletType? {
     return when (this) {
         "W2OF4_INHERITANCE", GroupWalletType.TWO_OF_FOUR_MULTISIG.name -> GroupWalletType.TWO_OF_FOUR_MULTISIG

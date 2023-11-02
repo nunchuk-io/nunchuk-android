@@ -43,9 +43,11 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.isPremier
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.toGroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetGroupsUseCase
@@ -127,12 +129,12 @@ class ServicesTabViewModel @Inject constructor(
     private fun updateGroupInfo(groups: List<ByzantineGroup>) {
         val joinedGroups = groups.filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
         val group2of4Multisigs =
-            joinedGroups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
+            groups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
         val group2Of3Or3of5Multisigs: List<ByzantineGroup>
         val sortedGroups: List<ByzantineGroup>
         if (group2of4Multisigs.isEmpty()) {
             group2Of3Or3of5Multisigs =
-                joinedGroups.filter {
+                groups.filter {
                     it.walletConfig.m == GroupWalletType.TWO_OF_THREE.m && it.walletConfig.n == GroupWalletType.TWO_OF_THREE.n
                             || it.walletConfig.m == GroupWalletType.THREE_OF_FIVE.m && it.walletConfig.n == GroupWalletType.THREE_OF_FIVE.n
                 }
@@ -452,7 +454,8 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     fun isShowClaimInheritanceLayout(): Boolean {
-        if (state.value.has2Of4WalletNotAllowInheritance() || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
+        if (state.value.plan == MembershipPlan.HONEY_BADGER || state.value.plan == MembershipPlan.IRON_HAND) return false
+        if (state.value.allGroups.any { it.walletConfig.toGroupWalletType()?.isPremier() == true } || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
         if (state.value.userRole.toRole == AssistedWalletRole.OBSERVER) return true
         if (isNoByzantineWallet()) return true
         if (state.value.plan == MembershipPlan.NONE && state.value.joinedGroups.isEmpty()) return true

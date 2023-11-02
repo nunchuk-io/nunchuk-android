@@ -29,7 +29,9 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isPremier
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.toGroupWalletType
 import kotlinx.parcelize.Parcelize
 
 sealed class ServicesTabEvent {
@@ -89,7 +91,7 @@ data class ServicesTabState(
             MembershipPlan.NONE -> {
                 if (allGroups.isNotEmpty()) {
                     if (isShowEmptyState()) items.add(EmptyState)
-                    else if (has2Of4WalletNotAllowInheritance()) return getItemsByzantinePremier()
+                    else if (hasPremierGroupWallet()) return getItemsByzantinePremier()
                     else return getItemsByzantineAndPro()
                 } else {
                     bannerPage?.let { bannerPage ->
@@ -143,7 +145,7 @@ data class ServicesTabState(
             MembershipPlan.BYZANTINE_PREMIER -> return getItemsByzantinePremier()
 
             MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
-                return if (has2Of4WalletNotAllowInheritance()) getItemsByzantinePremier() else getItemsByzantineAndPro()
+                return if (hasPremierGroupWallet()) getItemsByzantinePremier() else getItemsByzantineAndPro()
             }
 
             else -> {}
@@ -282,13 +284,13 @@ data class ServicesTabState(
         return items
     }
 
-    fun has2Of4WalletNotAllowInheritance(): Boolean {
-        return groups2of4Multisig.any { group -> group.walletConfig.allowInheritance.not() }
+    private fun hasPremierGroupWallet(): Boolean {
+        return allGroups.any { group -> group.walletConfig.toGroupWalletType()?.isPremier() == true }
     }
 
-    fun isShowEmptyState(): Boolean {
+    private fun isShowEmptyState(): Boolean {
        if (plan == MembershipPlan.NONE && allGroups.isNotEmpty() && joinedGroups.isEmpty()) return true
-        if (joinedGroups.all { it.value.isPendingWallet() }) return true
+        if (allGroups.isEmpty()) return true
         return false
     }
 }
