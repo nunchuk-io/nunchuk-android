@@ -104,6 +104,7 @@
     <string name="nc_limit_keyholder_message_dialog">Please make sure that you have no more than %1$s keyholders.</string>
     <string name="nc_remove_member_inheritance_message_dialog">This member is currently in charge of the inheritance plan for this wallet. Please cancel the plan first.</string>
     <string name="nc_byzantine_add_key_2_of_4_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nYour group will have possession of three keys. The fourth key will be held by Nunchuk on our secure server.\n\nAmong your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.\n\nPull to refresh the key statuses.</string>
+    <string name="nc_byzantine_add_key_2_of_4_no_inheritance_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nYour group will have possession of three keys. The fourth key will be held by Nunchuk on our secure server.\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_2_of_3_desc">Your new wallet will be a 2-of-3 multisig wallet. [B]Two keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_3_of_5_desc">Your new wallet will be a 3-of-5 multisig wallet. [B]Three keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_pending_wallet">Pending wallet</string>

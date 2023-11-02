@@ -447,6 +447,7 @@ fun AddKeyListScreen(
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
         isRefreshing = state.isRefreshing,
-        isAddOnly = isAddOnly
+        isAddOnly = isAddOnly,
+        groupWalletType = state.groupWalletType
     )
 }

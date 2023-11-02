@@ -40,6 +40,7 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -297,6 +298,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
             _state.update { it.copy(isRefreshing = true) }
             syncGroupDraftWalletUseCase(args.groupId).onSuccess { draft ->
                 loadSigners()
+                _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType()) }
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
                         _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
@@ -353,8 +355,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
     data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
-    object OnAddAllKey : AddKeyListEvent()
-    object SelectAirgapType : AddKeyListEvent()
+    data object OnAddAllKey : AddKeyListEvent()
+    data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
     data class LoadSimilarGroup(val similarWalletIds: List<String>) : AddKeyListEvent()
 }
@@ -364,4 +366,5 @@ data class AddKeyListState(
     val signers: List<SignerModel> = emptyList(),
     val similarGroups: Map<String, String> = emptyMap(),
     val shouldShowKeyAdded: Boolean = false,
+    val groupWalletType: GroupWalletType? = null,
 )
