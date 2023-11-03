@@ -53,7 +53,8 @@ private val LightColors = lightColors(
     secondary = SecondaryColor,
     onSecondary = Color.White,
     error = ErrorColor,
-    secondaryVariant = PrimaryColor
+    secondaryVariant = PrimaryColor,
+    background = Color.White
 )
 
 @Immutable

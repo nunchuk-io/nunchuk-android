@@ -44,6 +44,7 @@ dependencies {
 
     kapt hiltDeps.processor
     implementation hiltDeps.hilt
+    implementation hiltDeps.hiltNavigation
 
     // Coroutines
     implementation coroutineDeps.values()

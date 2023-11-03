@@ -211,4 +211,7 @@
     <string name="nc_key_recovery_request_sent_desc">For security, the key recovery request needs to be approved by at least another keyholder. Please resume once the request has been approved.</string>
     <string name="nc_key_recovery_requested">Key recovery requested</string>
     <string name="nc_start_group_chat">Start group chat</string>
+    <string name="nc_please_name_the_payment">Please name the payment.</string>
+    <string name="nc_payment_name">Payment name</string>
+    <string name="nc_please_enter_the_amount_for_the_payment">Please enter the amount for the payment.</string>
 </resources>

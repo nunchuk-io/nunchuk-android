@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -569,7 +568,7 @@ private fun MemberView(
                                                 onInputEmailChange(contact.email, contact.name)
                                             }
                                             onDropdownDismissRequest()
-                                        }, text = {
+                                        }, content = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Box(
                                                     modifier = Modifier
@@ -629,12 +628,6 @@ private fun MemberView(
             }
         }
     }
-}
-
-@Preview
-@Composable
-private fun InviteMembersScreenPreview() {
-    InviteMembersScreen()
 }
 
 @Preview

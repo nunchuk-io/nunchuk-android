@@ -96,14 +96,15 @@ ext {
     ]
 
     hiltDeps = [
-            processor: "com.google.dagger:hilt-compiler:${hiltVersion}",
-            hilt     : "com.google.dagger:hilt-android:${hiltVersion}",
+            processor     : "com.google.dagger:hilt-compiler:${hiltVersion}",
+            hilt          : "com.google.dagger:hilt-android:${hiltVersion}",
+            hiltNavigation: "androidx.hilt:hilt-navigation-compose:1.0.0",
     ]
 
     imageLoaderDeps = [
             glide    : "com.github.bumptech.glide:glide:4.14.2",
             processor: "com.github.bumptech.glide:compiler:4.14.2",
-            compose  : "com.github.bumptech.glide:compose:1.0.0-alpha.1"
+            compose  : "com.github.bumptech.glide:compose:1.0.0-beta01"
     ]
 
     networkDeps = [
@@ -191,7 +192,8 @@ ext {
             'composeViewModel'       : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
             'composeSystemUi'        : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",
             'composeInsets'          : "com.google.accompanist:accompanist-insets:0.25.1",
-            'composelifecycle'       : "androidx.lifecycle:lifecycle-runtime-compose:2.6.0-alpha02",
-            "composeConstraintLayout": "androidx.constraintlayout:constraintlayout-compose:1.0.1"
+            'composelifecycle'       : "androidx.lifecycle:lifecycle-runtime-compose:2.6.2",
+            "composeConstraintLayout": "androidx.constraintlayout:constraintlayout-compose:1.0.1",
+            "navigationCompose"      : "androidx.navigation:navigation-compose:2.7.5",
     ]
 }

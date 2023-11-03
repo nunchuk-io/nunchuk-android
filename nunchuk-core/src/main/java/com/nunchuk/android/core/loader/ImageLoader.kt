@@ -66,11 +66,12 @@ class ImageLoaderImpl @Inject constructor(
             }
             onSuccess()
         }.listener(object : RequestListener<Drawable> {
+
             override fun onLoadFailed(
                 e: GlideException?,
                 model: Any?,
-                target: Target<Drawable>?,
-                isFirstResource: Boolean
+                target: Target<Drawable>,
+                isFirstResource: Boolean,
             ): Boolean {
                 onFailed()
                 e?.let(CrashlyticsReporter::recordException)
@@ -78,14 +79,12 @@ class ImageLoaderImpl @Inject constructor(
             }
 
             override fun onResourceReady(
-                resource: Drawable?,
-                model: Any?,
+                resource: Drawable,
+                model: Any,
                 target: Target<Drawable>?,
-                dataSource: DataSource?,
-                isFirstResource: Boolean
-            ): Boolean {
-                return false
-            }
+                dataSource: DataSource,
+                isFirstResource: Boolean,
+            ): Boolean = false
 
         }).into(imageView)
     }

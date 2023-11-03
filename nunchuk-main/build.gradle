@@ -48,7 +48,6 @@ dependencies {
     implementation 'commons-codec:commons-codec:1.15'
     implementation project(path: ':nunchuk-transaction')
 
-    implementation "androidx.compose.material3:material3:1.0.1"
     implementation "com.github.skydoves:landscapist-glide:2.2.2"
 
     testImplementation otherTestDeps.junit

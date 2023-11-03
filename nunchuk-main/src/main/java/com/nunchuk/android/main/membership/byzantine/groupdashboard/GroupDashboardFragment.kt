@@ -33,12 +33,11 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
-import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroFragmentDirections
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
-import com.nunchuk.android.main.membership.byzantine.recurringpayment.RecurringPaymentActivity
+import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.GroupChat
