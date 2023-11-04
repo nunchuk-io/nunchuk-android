@@ -16,9 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -74,7 +74,6 @@ fun HealthCheckContent(
                 NcTopAppBar(
                     title = stringResource(R.string.nc_key_health_status),
                     textStyle = NunchukTheme.typography.titleLarge,
-                    elevation = 0.dp
                 )
             }) { innerPadding ->
             Column(
@@ -124,7 +123,7 @@ private fun HealthCheckItem(
         modifier = Modifier
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colors.border,
+                color = MaterialTheme.colorScheme.border,
                 shape = RoundedCornerShape(size = 12.dp)
             )
             .padding(16.dp),

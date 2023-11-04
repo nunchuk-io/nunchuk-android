@@ -21,10 +21,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -226,7 +226,7 @@ private fun CosigningGroupPolicyContent(
             modifier = Modifier
                 .statusBarsPadding()
                 .navigationBarsPadding(),
-            topBar = { NcTopAppBar(title = "", elevation = 0.dp) }) { innerPadding ->
+            topBar = { NcTopAppBar(title = "") }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)

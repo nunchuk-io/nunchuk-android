@@ -37,7 +37,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -46,6 +45,15 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
@@ -137,7 +145,6 @@ fun GroupDashboardContent(
                         )
                     },
                     textStyle = NunchukTheme.typography.titleLarge,
-                    elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                         if (isKeyholderLimited.not()) {
@@ -184,7 +191,7 @@ fun GroupDashboardContent(
                                 ExtendedFloatingActionButton(onClick = {
                                     if (isEnableStartGroupChat) onGroupChatClick()
                                 },
-                                    backgroundColor = if (isEnableStartGroupChat) MaterialTheme.colors.secondary else colorResource(
+                                    containerColor = if (isEnableStartGroupChat) MaterialTheme.colorScheme.secondary else colorResource(
                                         id = R.color.nc_whisper_color
                                     ),
                                     text = {
@@ -199,9 +206,7 @@ fun GroupDashboardContent(
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_create_message),
                                             contentDescription = "Search",
-                                            tint = if (isEnableStartGroupChat) LocalContentColor.current.copy(
-                                                alpha = LocalContentAlpha.current
-                                            ) else colorResource(
+                                            tint = if (isEnableStartGroupChat) LocalContentColor.current else colorResource(
                                                 id = R.color.nc_grey_dark_color
                                             )
                                         )
@@ -253,7 +258,7 @@ fun GroupDashboardContent(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
-                            .background(color = MaterialTheme.colors.surface)
+                            .background(color = MaterialTheme.colorScheme.surface)
                     )
                 }
                 PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))

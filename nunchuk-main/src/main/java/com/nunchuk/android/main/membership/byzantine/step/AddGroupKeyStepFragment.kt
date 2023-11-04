@@ -31,10 +31,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -53,7 +53,6 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.StepWithEstTime
@@ -82,7 +81,6 @@ class AddGroupKeyStepFragment : MembershipFragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) { event ->
             when (event) {
-                is AddKeyStepEvent.OpenContactUs -> requireActivity().sendEmail(event.email)
                 AddKeyStepEvent.OpenAddKeyList -> handleOpenKeyList()
                 AddKeyStepEvent.OpenRecoveryQuestion -> handleOpenRecoveryQuestion()
                 AddKeyStepEvent.OpenCreateWallet -> handleOpenCreateWallet()
@@ -161,7 +159,6 @@ fun AddKeyStepScreen(viewModel: AddGroupKeyStepViewModel) {
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
         onContinueClicked = viewModel::onContinueClicked,
-        openContactUs = viewModel::openContactUs,
     )
 }
 
@@ -175,7 +172,6 @@ fun AddKeyStepContent(
     groupRemainTime: IntArray = IntArray(4),
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
-    openContactUs: (mail: String) -> Unit = {},
 ) = NunchukTheme {
     val imageBannerId =
         when {
@@ -185,7 +181,22 @@ fun AddKeyStepContent(
             else -> R.drawable.nc_bg_let_s_add_keys
         }
 
-    Scaffold { innerPadding ->
+    Scaffold(topBar = {
+        NcImageAppBar(
+            backgroundRes = imageBannerId,
+            actions = {
+                if (isShowMoreOption) {
+                    IconButton(onClick = onMoreClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_more),
+                            contentDescription = "More icon"
+                        )
+                    }
+                }
+            },
+            backIconRes = R.drawable.ic_close,
+        )
+    }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -193,20 +204,6 @@ fun AddKeyStepContent(
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
         ) {
-            NcImageAppBar(
-                backgroundRes = imageBannerId,
-                actions = {
-                    if (isShowMoreOption) {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
-                        }
-                    }
-                },
-                backIconRes = R.drawable.ic_close,
-            )
             StepWithEstTime(
                 1,
                 stringResource(id = R.string.nc_add_your_keys),

@@ -38,11 +38,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -143,13 +143,13 @@ private fun FilterByCollectionContent(
                     .navigationBarsPadding()
                     .imePadding()
                     .background(
-                        color = MaterialTheme.colors.surface,
+                        color = MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
                     )
             ) {
                 Box(
                     modifier = Modifier
-                        .background(color = MaterialTheme.colors.background)
+                        .background(color = MaterialTheme.colorScheme.background)
                         .fillMaxWidth()
                         .height(56.dp),
                 ) {

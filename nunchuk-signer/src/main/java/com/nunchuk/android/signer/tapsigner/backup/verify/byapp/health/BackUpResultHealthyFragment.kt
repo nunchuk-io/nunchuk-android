@@ -26,7 +26,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -109,6 +109,7 @@ private fun BackUpResultHealthyScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BackUpResultHealthyContent(
     remainingTime: Int = 0,
@@ -124,9 +125,8 @@ private fun BackUpResultHealthyContent(
                     .statusBarsPadding()
                     .navigationBarsPadding(),
             ) {
-                TopAppBar(
-                    backgroundColor = MaterialTheme.colors.surface,
-                    elevation = 0.dp,
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
                     navigationIcon = {
                         IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                             Icon(

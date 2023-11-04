@@ -187,7 +187,7 @@ ext {
             'composeUi'              : "androidx.compose.ui:ui",
             'composeUiTool'          : "androidx.compose.ui:ui-tooling",
             'composeFoundation'      : "androidx.compose.foundation:foundation",
-            'composeMaterial'        : "androidx.compose.material:material",
+            'composeMaterial'        : "androidx.compose.material3:material3",
             'composeActivity'        : "androidx.activity:activity-compose",
             'composeViewModel'       : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
             'composeSystemUi'        : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",

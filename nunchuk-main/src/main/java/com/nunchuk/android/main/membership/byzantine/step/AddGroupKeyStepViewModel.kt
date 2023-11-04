@@ -148,12 +148,6 @@ class AddGroupKeyStepViewModel @Inject constructor(
         }
     }
 
-    fun openContactUs(email: String) {
-        viewModelScope.launch {
-            _event.emit(AddKeyStepEvent.OpenContactUs(email))
-        }
-    }
-
     fun onContinueClicked() {
         viewModelScope.launch {
             if (isSetupRecoverKeyDone.value && isConfigKeyDone.value) {
@@ -207,7 +201,6 @@ class AddGroupKeyStepViewModel @Inject constructor(
 data class AddGroupUiState(val isMaster: Boolean = false)
 
 sealed class AddKeyStepEvent {
-    data class OpenContactUs(val email: String) : AddKeyStepEvent()
     object OpenAddKeyList : AddKeyStepEvent()
     object OpenRecoveryQuestion : AddKeyStepEvent()
     object OpenCreateWallet : AddKeyStepEvent()

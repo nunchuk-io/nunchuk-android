@@ -32,7 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -130,7 +130,7 @@ fun InheritanceNoteScreen(
     )
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InheritanceNoteScreenContent(
     remainTime: Int = 0,
@@ -155,7 +155,7 @@ fun InheritanceNoteScreenContent(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else ""
-                NcTopAppBar(title = title, elevation = 0.dp, actions = {
+                NcTopAppBar(title = title, actions = {
                     Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                 })
                 Text(
@@ -195,13 +195,13 @@ fun InheritanceNoteScreenContent(
                     keyboardOptions = KeyboardOptions.Default,
                     modifier = Modifier
                         .background(
-                            color = MaterialTheme.colors.surface, shape = RoundedCornerShape(8.dp)
+                            color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp)
                         )
                         .height(145.dp)
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth(),
                     decorationBox = @Composable { innerTextField ->
-                        TextFieldDefaults.OutlinedTextFieldDecorationBox(value = note,
+                        TextFieldDefaults.DecorationBox(value = note,
                             visualTransformation = VisualTransformation.None,
                             label = null,
                             innerTextField = innerTextField,
@@ -212,7 +212,7 @@ fun InheritanceNoteScreenContent(
                             singleLine = false,
                             interactionSource = interactionSource,
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
-                            border = {
+                            container = {
                                 Box(
                                     Modifier.border(
                                         width = 1.dp,

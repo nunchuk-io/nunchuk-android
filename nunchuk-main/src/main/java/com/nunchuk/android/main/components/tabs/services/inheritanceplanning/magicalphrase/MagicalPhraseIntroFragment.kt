@@ -38,9 +38,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Card
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -148,7 +148,6 @@ private fun MagicalPhraseIntroContent(
                             id = R.string.nc_estimate_remain_time,
                             remainTime
                         ),
-                        elevation = 0.dp,
                         actions = {
                             Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                         }

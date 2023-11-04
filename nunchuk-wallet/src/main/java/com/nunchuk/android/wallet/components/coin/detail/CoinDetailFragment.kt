@@ -31,7 +31,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -233,6 +233,7 @@ private fun CoinDetailScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CoinDetailContent(
     output: UnspentOutput = UnspentOutput(),
@@ -250,7 +251,7 @@ private fun CoinDetailContent(
     onViewCoinAncestry: (output: UnspentOutput) -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
-    val backgroundColor = if (isSpentCoin) MaterialTheme.colors.whisper else MaterialTheme.colors.denimTint
+    val backgroundColor = if (isSpentCoin) MaterialTheme.colorScheme.whisper else MaterialTheme.colorScheme.denimTint
     NunchukTheme {
         Scaffold(topBar = {
             Box(
@@ -258,8 +259,8 @@ private fun CoinDetailContent(
                     .background(color = backgroundColor)
                     .statusBarsPadding()
             ) {
-                TopAppBar(
-                    elevation = 0.dp,
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
                     navigationIcon = {
                         IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                             Icon(
@@ -275,7 +276,6 @@ private fun CoinDetailContent(
                             text = stringResource(R.string.nc_coin_detail)
                         )
                     },
-                    backgroundColor = backgroundColor,
                     actions = {
                         IconButton(onClick = onShowMore) {
                             Icon(

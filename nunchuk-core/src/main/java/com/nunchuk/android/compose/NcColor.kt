@@ -19,7 +19,7 @@
 
 package com.nunchuk.android.compose
 
-import androidx.compose.material.Colors
+import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 
 object NcColor {
@@ -34,24 +34,24 @@ object NcColor {
     val beeswaxLight = Color(0xFFFDD95C)
 }
 
-val Colors.border: Color
+val ColorScheme.border: Color
     get() = Color(0xFFDEDEDE)
 
-val Colors.greyLight: Color
+val ColorScheme.greyLight: Color
     get() = Color(0xFFF5F5F5)
 
-val Colors.whisper: Color
+val ColorScheme.whisper: Color
     get() = Color(0xFFEAEAEA)
 
-val Colors.denimTint: Color
+val ColorScheme.denimTint: Color
     get() = Color(0xFFD0E2FF)
 
-val Colors.everglade: Color
+val ColorScheme.everglade: Color
     get() = Color(0xFF1C4A21)
 
-val Colors.ming: Color
+val ColorScheme.ming: Color
     get() = Color(0xFF2F766D)
 
-val Colors.yellowishOrange: Color
+val ColorScheme.yellowishOrange: Color
     get() = Color(0xFFFDEBD2)
 

@@ -16,7 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -295,7 +295,6 @@ private fun InviteMembersContent(
                     title = title,
                     textStyle = NunchukTheme.typography.titleLarge,
                     isBack = flow != ByzantineMemberFlow.EDIT,
-                    elevation = 0.dp,
                     actions = {
                         if (flow != ByzantineMemberFlow.EDIT) {
                             IconButton(onClick = onMoreClicked) {
@@ -568,7 +567,7 @@ private fun MemberView(
                                                 onInputEmailChange(contact.email, contact.name)
                                             }
                                             onDropdownDismissRequest()
-                                        }, content = {
+                                        }, text = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Box(
                                                     modifier = Modifier
@@ -609,7 +608,7 @@ private fun MemberView(
                     title = stringResource(id = R.string.nc_role),
                     value = role.toTitle(stringResource(id = R.string.nc_select_a_role)),
                     enabled = false,
-                    disableBackgroundColor = if (isMaster) colorResource(id = R.color.nc_whisper_color) else MaterialTheme.colors.surface,
+                    disableBackgroundColor = if (isMaster) colorResource(id = R.color.nc_whisper_color) else MaterialTheme.colorScheme.surface,
                     onClick = {
                         if (isMaster.not()) onSelectRoleClick()
                     },

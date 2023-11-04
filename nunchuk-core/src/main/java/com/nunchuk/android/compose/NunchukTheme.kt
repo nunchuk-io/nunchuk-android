@@ -20,9 +20,9 @@
 package com.nunchuk.android.compose
 
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Typography
-import androidx.compose.material.lightColors
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -45,16 +45,38 @@ private val ErrorColor = Color(0xffCF4018)
 val montserratMedium = FontFamily(Font(R.font.montserrat_medium))
 val latoRegular = FontFamily(Font(R.font.lato_regular))
 val latoBold = FontFamily(Font(R.font.lato_bold))
-val latoSemiBold = FontFamily(Font(R.font.lato_semibold))
 
-private val LightColors = lightColors(
+private val LightColors = lightColorScheme(
     primary = PrimaryColor,
     onPrimary = Color.White,
     secondary = SecondaryColor,
     onSecondary = Color.White,
     error = ErrorColor,
-    secondaryVariant = PrimaryColor,
-    background = Color.White
+    background = Color.White,
+    surfaceVariant = Color.White,
+)
+
+private val defaultTypography = Typography()
+private val typography = Typography(
+    displayLarge = defaultTypography.displayLarge.copy(fontFamily = latoRegular),
+    displayMedium = defaultTypography.displayMedium.copy(fontFamily = latoRegular),
+    displaySmall = defaultTypography.displaySmall.copy(fontFamily = latoRegular),
+
+    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = latoRegular),
+    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = latoRegular),
+    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = latoRegular),
+
+    titleLarge = defaultTypography.titleLarge.copy(fontFamily = latoRegular),
+    titleMedium = defaultTypography.titleMedium.copy(fontFamily = latoRegular),
+    titleSmall = defaultTypography.titleSmall.copy(fontFamily = latoRegular),
+
+    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = latoRegular),
+    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = latoRegular),
+    bodySmall = defaultTypography.bodySmall.copy(fontFamily = latoRegular),
+
+    labelLarge = defaultTypography.labelLarge.copy(fontFamily = latoRegular),
+    labelMedium = defaultTypography.labelMedium.copy(fontFamily = latoRegular),
+    labelSmall = defaultTypography.labelSmall.copy(fontFamily = latoRegular)
 )
 
 @Immutable
@@ -159,8 +181,8 @@ fun NunchukTheme(
         LocalNunchukShapes provides nunchukShapes
     ) {
         MaterialTheme(
-            colors = LightColors,
-            typography = Typography(defaultFontFamily = latoSemiBold),
+            colorScheme = LightColors,
+            typography = typography,
             content = content,
         )
     }
@@ -207,6 +229,28 @@ fun NunchukTheme(
             fontWeight = FontWeight.Bold
         ),
     )
+    val defaultTypography = Typography()
+    val typography = Typography(
+        displayLarge = defaultTypography.displayLarge.copy(fontFamily = latoRegular),
+        displayMedium = defaultTypography.displayMedium.copy(fontFamily = latoRegular),
+        displaySmall = defaultTypography.displaySmall.copy(fontFamily = latoRegular),
+
+        headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = latoRegular),
+        headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = latoRegular),
+        headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = latoRegular),
+
+        titleLarge = defaultTypography.titleLarge.copy(fontFamily = latoRegular),
+        titleMedium = defaultTypography.titleMedium.copy(fontFamily = latoRegular),
+        titleSmall = defaultTypography.titleSmall.copy(fontFamily = latoRegular),
+
+        bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = latoRegular),
+        bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = latoRegular),
+        bodySmall = defaultTypography.bodySmall.copy(fontFamily = latoRegular),
+
+        labelLarge = defaultTypography.labelLarge.copy(fontFamily = latoRegular),
+        labelMedium = defaultTypography.labelMedium.copy(fontFamily = latoRegular),
+        labelSmall = defaultTypography.labelSmall.copy(fontFamily = latoRegular)
+    )
     if (isSetStatusBar) {
         val systemUiController = rememberSystemUiController()
         systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = true)
@@ -215,8 +259,8 @@ fun NunchukTheme(
         LocalNunchukTypography provides nunchukTypography,
     ) {
         MaterialTheme(
-            colors = LightColors,
-            typography = Typography(defaultFontFamily = latoSemiBold),
+            colorScheme = LightColors,
+            typography = typography,
             content = content,
         )
     }

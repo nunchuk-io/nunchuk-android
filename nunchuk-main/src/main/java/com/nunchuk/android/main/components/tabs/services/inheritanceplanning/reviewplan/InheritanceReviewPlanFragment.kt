@@ -42,11 +42,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -388,7 +388,6 @@ fun InheritanceReviewPlanScreenContent(
                     NcTopAppBar(
                         backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
                         title = title,
-                        elevation = 0.dp,
                         isBack = planFlow != InheritancePlanFlow.VIEW,
                         actions = {
                             IconButton(onClick = {

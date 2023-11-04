@@ -28,7 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -44,7 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NcTextField(
     modifier: Modifier = Modifier,
@@ -60,13 +60,13 @@ fun NcTextField(
     keyboardActions: KeyboardActions = KeyboardActions(),
     enabled: Boolean = true,
     readOnly: Boolean = false,
-    disableBackgroundColor: Color = MaterialTheme.colors.surface,
+    disableBackgroundColor: Color = MaterialTheme.colorScheme.background,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
-    textFieldColor: Color = MaterialTheme.colors.surface,
+    textFieldColor: Color = MaterialTheme.colorScheme.background,
     maxLength: Int = Int.MAX_VALUE,
     enableMaxLength: Boolean = false,
-    colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
+    colors: TextFieldColors = TextFieldDefaults.colors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: String) -> Unit,
@@ -120,7 +120,7 @@ fun NcTextField(
             visualTransformation = visualTransformation,
             decorationBox = @Composable { innerTextField ->
                 // places leading icon, text field with label and placeholder, trailing icon
-                TextFieldDefaults.OutlinedTextFieldDecorationBox(
+                TextFieldDefaults.DecorationBox(
                     value = value,
                     visualTransformation = VisualTransformation.None,
                     innerTextField = innerTextField,
@@ -134,7 +134,7 @@ fun NcTextField(
                     interactionSource = interactionSource,
                     colors = colors,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
-                    border = {
+                    container = {
                         Box(
                             Modifier.border(
                                 width = 1.dp,
@@ -171,7 +171,7 @@ fun NcTextField(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NcTextField(
     modifier: Modifier = Modifier,
@@ -187,7 +187,7 @@ fun NcTextField(
     readOnly: Boolean = false,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
-    colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
+    colors: TextFieldColors = TextFieldDefaults.colors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: TextFieldValue) -> Unit,
@@ -206,7 +206,7 @@ fun NcTextField(
             BasicTextField(
                 modifier = Modifier
                     .background(
-                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colors.surface,
+                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .onFocusEvent(onFocusEvent)
@@ -226,7 +226,7 @@ fun NcTextField(
                 visualTransformation = visualTransformation,
                 decorationBox = @Composable { innerTextField ->
                     // places leading icon, text field with label and placeholder, trailing icon
-                    TextFieldDefaults.OutlinedTextFieldDecorationBox(
+                    TextFieldDefaults.DecorationBox(
                         value = value.text,
                         visualTransformation = VisualTransformation.None,
                         innerTextField = innerTextField,
@@ -240,7 +240,7 @@ fun NcTextField(
                         interactionSource = interactionSource,
                         colors = colors,
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
-                        border = {
+                        container = {
                             Box(
                                 Modifier.border(
                                     width = 1.dp,
