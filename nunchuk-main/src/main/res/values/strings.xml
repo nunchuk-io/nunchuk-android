@@ -214,4 +214,5 @@
     <string name="nc_please_name_the_payment">Please name the payment.</string>
     <string name="nc_payment_name">Payment name</string>
     <string name="nc_please_enter_the_amount_for_the_payment">Please enter the amount for the payment.</string>
+    <string name="nc_fixed_amount">Fixed amount</string>
 </resources>
