@@ -215,4 +215,17 @@
     <string name="nc_payment_name">Payment name</string>
     <string name="nc_please_enter_the_amount_for_the_payment">Please enter the amount for the payment.</string>
     <string name="nc_fixed_amount">Fixed amount</string>
+    <string name="nc_please_enter_a_percentage">Please enter a percentage.</string>
+    <string name="nc_use_percentage">Use percentage</string>
+    <string name="nc_use_fixed_amount">Use fixed amount</string>
+    <string name="nc_please_specify_the_destination">Please specify the destination for the payment.</string>
+    <string name="nc_use_a_destination_wallet">Use a destination wallet</string>
+    <string name="nc_use_a_destination_wallet_desc">The recurring payment will be sent to the first available (unused) addresses in the wallet. To set the destination wallet, import the wallet configuration for that wallet.</string>
+    <string name="nc_whitelist_address">Use whitelisted addresses</string>
+    <string name="nc_whitelist_address_desc">The recurring payment will automatically rotate among the whitelisted addresses.</string>
+    <string name="nc_select_import_format">Select import format</string>
+    <string name="nc_just_in_time">Just-in-time</string>
+    <string name="nc_calculate_percentage_just_in_time_desc">The percentage will be calculated based on the wallet balance on the day of the payment.</string>
+    <string name="nc_running_average">Running average</string>
+    <string name="nc_running_average_desc">The percentage will be calculated based on the daily average of the wallet balance over the previous period.</string>
 </resources>

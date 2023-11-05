@@ -14,12 +14,21 @@ import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPayme
 import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPaymentsList
 import com.nunchuk.android.main.membership.byzantine.payment.name.addPaymentName
 import com.nunchuk.android.main.membership.byzantine.payment.name.navigateToPaymentName
+import com.nunchuk.android.main.membership.byzantine.payment.paymentpercentage.addPaymentPercentageCalculation
+import com.nunchuk.android.main.membership.byzantine.payment.paymentpercentage.navigateToPaymentPercentageCalculation
+import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.addPaymentSelectAddressType
+import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.navigateToPaymentSelectAddressType
+import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RecurringPaymentActivity : AppCompatActivity() {
 
     private val viewModel: RecurringPaymentViewModel by viewModels()
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(
@@ -43,7 +52,27 @@ class RecurringPaymentActivity : AppCompatActivity() {
                         )
                         addPaymentAmount(
                             recurringPaymentViewModel = viewModel,
-                            openCalculateScreen = { }
+                            openCalculateScreen = {
+                                navController.navigateToPaymentPercentageCalculation()
+                            },
+                            openSelectAddressTypeScreen = {
+                                navController.navigateToPaymentSelectAddressType()
+                            },
+                        )
+                        addPaymentSelectAddressType(
+                            recurringPaymentViewModel = viewModel,
+                            openWhiteListAddressScreen = {
+
+                            },
+                            openScanQRCodeScreen = {
+                                navigator.openRecoverWalletQRCodeScreen(this@RecurringPaymentActivity, false)
+                            },
+                        )
+                        addPaymentPercentageCalculation(
+                            recurringPaymentViewModel = viewModel,
+                            openSelectAddressTypeScreen = {
+                                navController.navigateToPaymentSelectAddressType()
+                            },
                         )
                     }
                 }

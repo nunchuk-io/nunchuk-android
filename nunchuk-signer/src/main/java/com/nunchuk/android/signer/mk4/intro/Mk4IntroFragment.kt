@@ -23,7 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -218,7 +223,25 @@ private fun Mk4IntroContent(
 ) =
     NunchukTheme {
         NunchukTheme {
-            Scaffold { innerPadding ->
+            Scaffold(topBar = {
+                NcImageAppBar(
+                    backgroundRes = R.drawable.nc_bg_coldcard_intro,
+                    title = if (isMembershipFlow) stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else "",
+                    actions = {
+                        if (isMembershipFlow) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    }
+                )
+            }) { innerPadding ->
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
@@ -226,23 +249,6 @@ private fun Mk4IntroContent(
                         .navigationBarsPadding()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    NcImageAppBar(
-                        backgroundRes = R.drawable.nc_bg_coldcard_intro,
-                        title = if (isMembershipFlow) stringResource(
-                            id = R.string.nc_estimate_remain_time,
-                            remainTime
-                        ) else "",
-                        actions = {
-                            if (isMembershipFlow) {
-                                IconButton(onClick = onMoreClicked) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_more),
-                                        contentDescription = "More icon"
-                                    )
-                                }
-                            }
-                        }
-                    )
                     Text(
                         modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                         text = stringResource(R.string.nc_coldcard_nfc_tip),

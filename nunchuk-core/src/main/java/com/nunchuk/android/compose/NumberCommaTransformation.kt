@@ -28,7 +28,6 @@ import java.text.DecimalFormatSymbols
 
 class NumberCommaTransformation(
     suffix: String = "",
-    private val afterDecimal: Int = Int.MAX_VALUE,
 ) : VisualTransformation {
     private val formatSuffix = if (suffix.isEmpty()) "" else " $suffix"
     override fun filter(text: AnnotatedString): TransformedText {
@@ -37,9 +36,7 @@ class NumberCommaTransformation(
         val value = when {
             formatValue == null -> ""
             splits.size > 1 -> "${formatValue.formatDecimalWithoutZero()}${DecimalFormatSymbols.getInstance().decimalSeparator}${
-                splits[1].take(
-                    afterDecimal
-                )
+                splits[1]
             }$formatSuffix"
 
             else -> "${formatValue.formatDecimalWithoutZero()}$formatSuffix"

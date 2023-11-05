@@ -11,4 +11,6 @@ data class RecurringPaymentConfig(
     val amount: String = "",
     val unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     val currency: String = "",
+    val useAmount: Boolean = true,
+    val calculatePercentageJustInTime: Boolean = false,
 ) : Parcelable

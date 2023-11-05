@@ -12,12 +12,12 @@ import java.util.Locale
 
 @Composable
 fun NcNumberInputField(
-    title: String = "",
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    title: String = "",
     allowDecimal: Boolean = true,
-    afterDecimal: Int = Int.MAX_VALUE,
+    suffix: String = "",
 ) {
     val decimalCharacter = remember {
         DecimalFormatSymbols(Locale.US).decimalSeparator
@@ -36,7 +36,7 @@ fun NcNumberInputField(
             imeAction = ImeAction.Done
         ),
         maxLines = 1,
-        visualTransformation = NumberCommaTransformation(afterDecimal = afterDecimal),
+        visualTransformation = NumberCommaTransformation(suffix = suffix),
     )
 }
 
@@ -48,7 +48,6 @@ fun NcNumberInputFieldPreview() {
             title = "Amount",
             value = "1234567890.9999",
             onValueChange = {},
-            afterDecimal = 2
         )
     }
 }

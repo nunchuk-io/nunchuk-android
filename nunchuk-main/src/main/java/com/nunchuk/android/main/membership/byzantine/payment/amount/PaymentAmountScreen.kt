@@ -29,10 +29,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcNumberInputField
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
 import com.nunchuk.android.main.membership.key.server.limit.toLabel
@@ -42,14 +44,18 @@ import com.nunchuk.android.model.SpendingCurrencyUnit
 fun PaymentAmountRoute(
     recurringPaymentViewModel: RecurringPaymentViewModel,
     openCalculateScreen: () -> Unit,
+    openSelectAddressTypeScreen: () -> Unit,
 ) {
     val config by recurringPaymentViewModel.config.collectAsStateWithLifecycle()
     PaymentAmountScreen(
         openCalculateScreen = openCalculateScreen,
+        openSelectAddressTypeScreen = openSelectAddressTypeScreen,
         amount = config.amount,
         unit = config.unit,
+        useAmount = config.useAmount,
         onAmountChange = recurringPaymentViewModel::onAmountChange,
         onUnitChange = recurringPaymentViewModel::onUnitChange,
+        onUseAmountChange = recurringPaymentViewModel::onUseAmountChange,
     )
 }
 
@@ -58,9 +64,12 @@ fun PaymentAmountRoute(
 fun PaymentAmountScreen(
     unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     amount: String = "",
+    useAmount: Boolean = true,
     onAmountChange: (String) -> Unit = {},
     onUnitChange: (SpendingCurrencyUnit) -> Unit = {},
     openCalculateScreen: () -> Unit = {},
+    openSelectAddressTypeScreen: () -> Unit = {},
+    onUseAmountChange: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     var showSelectUnitSheet by remember {
@@ -73,14 +82,32 @@ fun PaymentAmountScreen(
                 textStyle = NunchukTheme.typography.titleLarge,
             )
         }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                onClick = openCalculateScreen,
-                enabled = amount.isNotEmpty()
-            ) {
-                Text(text = stringResource(R.string.nc_text_continue))
+            Column {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    onClick = { if (useAmount) openSelectAddressTypeScreen() else openCalculateScreen() },
+                    enabled = amount.isNotEmpty()
+                ) {
+                    Text(text = stringResource(R.string.nc_text_continue))
+                }
+                NcOutlineButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                        .height(48.dp),
+                    onClick = {
+                        onUseAmountChange(!useAmount)
+                        onAmountChange("")
+                    },
+                ) {
+                    Text(
+                        text = if (useAmount) stringResource(R.string.nc_use_percentage)
+                        else stringResource(R.string.nc_use_fixed_amount),
+                    )
+                }
             }
         }) { innerPadding ->
             Column(
@@ -98,35 +125,41 @@ fun PaymentAmountScreen(
                 Row(verticalAlignment = Alignment.Bottom) {
                     NcNumberInputField(
                         modifier = Modifier
-                            .padding(top = 16.dp, end = 16.dp)
+                            .padding(top = 16.dp)
                             .weight(2f),
-                        title = stringResource(R.string.nc_fixed_amount),
+                        title = if (useAmount) stringResource(R.string.nc_fixed_amount)
+                        else stringResource(R.string.nc_please_enter_a_percentage),
                         value = amount,
-                        onValueChange = onAmountChange,
+                        onValueChange = { s -> onAmountChange(CurrencyFormatter.format(s, 2)) },
+                        allowDecimal = unit != SpendingCurrencyUnit.sat && !useAmount,
+                        suffix = if (useAmount) "" else "%",
                     )
 
-                    Row(
-                        modifier = Modifier
-                            .height(52.dp)
-                            .weight(1f)
-                            .border(
-                                width = 1.dp,
-                                color = Color(0xFFDEDEDE),
-                                shape = RoundedCornerShape(8.dp),
+                    if (useAmount) {
+                        Row(
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                                .height(52.dp)
+                                .weight(1f)
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0xFFDEDEDE),
+                                    shape = RoundedCornerShape(8.dp),
+                                )
+                                .clickable { showSelectUnitSheet = true }
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(end = 16.dp),
+                                text = unit.toLabel(context),
                             )
-                            .clickable { showSelectUnitSheet = true }
-                            .padding(horizontal = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(end = 16.dp),
-                            text = unit.toLabel(context),
-                        )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow),
-                            contentDescription = ""
-                        )
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_arrow),
+                                contentDescription = ""
+                            )
+                        }
                     }
                 }
             }
@@ -140,6 +173,7 @@ fun PaymentAmountScreen(
                         showSelectUnitSheet = false
                     },
                     onDismiss = { showSelectUnitSheet = false },
+                    showSelectIndicator = true
                 )
             }
         }

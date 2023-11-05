@@ -24,7 +24,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.google.zxing.client.android.Intents
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.wallet.personal.databinding.ActivityImportWalletQrcodeBinding
@@ -33,7 +33,7 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class RecoverWalletQrCodeActivity : BaseActivity<ActivityImportWalletQrcodeBinding>() {
+class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcodeBinding>() {
 
     private val viewModel: RecoverWalletQrCodeViewModel by viewModels()
 
@@ -43,8 +43,12 @@ class RecoverWalletQrCodeActivity : BaseActivity<ActivityImportWalletQrcodeBindi
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-        setupViews()
+        requestCameraPermissionOrExecuteAction()
         observeEvent()
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        setupViews()
     }
 
     private fun observeEvent() {

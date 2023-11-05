@@ -28,6 +28,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.databinding.ActivityAddRecoverWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -41,7 +42,7 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
     private val viewModel: RecoverWalletViewModel by viewModels()
 
     private val recoverWalletData: RecoverWalletData
-        get() = intent.getParcelableExtra(EXTRAS_DATA)!!
+        get() = intent.parcelable(EXTRAS_DATA)!!
 
     override fun initializeBinding() = ActivityAddRecoverWalletBinding.inflate(layoutInflater)
 

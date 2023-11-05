@@ -11,11 +11,13 @@ const val amountPaymentRoute = "amount_payment"
 fun NavGraphBuilder.addPaymentAmount(
     recurringPaymentViewModel: RecurringPaymentViewModel,
     openCalculateScreen: () -> Unit,
+    openSelectAddressTypeScreen: () -> Unit,
 ) {
     composable(amountPaymentRoute) {
         PaymentAmountRoute(
-            recurringPaymentViewModel,
+            recurringPaymentViewModel = recurringPaymentViewModel,
             openCalculateScreen = openCalculateScreen,
+            openSelectAddressTypeScreen = openSelectAddressTypeScreen,
         )
     }
 }

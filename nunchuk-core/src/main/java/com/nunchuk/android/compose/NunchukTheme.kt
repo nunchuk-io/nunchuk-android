@@ -74,7 +74,7 @@ private val typography = Typography(
     bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = latoRegular),
     bodySmall = defaultTypography.bodySmall.copy(fontFamily = latoRegular),
 
-    labelLarge = defaultTypography.labelLarge.copy(fontFamily = latoRegular),
+    labelLarge = defaultTypography.labelLarge.copy(fontFamily = latoBold),
     labelMedium = defaultTypography.labelMedium.copy(fontFamily = latoRegular),
     labelSmall = defaultTypography.labelSmall.copy(fontFamily = latoRegular)
 )

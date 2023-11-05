@@ -30,6 +30,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun NcSelectableBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(),
+    title: String? = null,
+    showSelectIndicator: Boolean = false,
     options: List<String>,
     selectedPos: Int = -1,
     onSelected: (Int) -> Unit,
@@ -42,11 +44,18 @@ fun NcSelectableBottomSheet(
         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
         onDismissRequest = onDismiss,
         content = {
+            title?.let {
+                Text(
+                    text = it,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                    style = NunchukTheme.typography.title
+                )
+            }
             LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
                 itemsIndexed(options) { index, s ->
                     NcSelectableBottomSheetItem(
                         text = s,
-                        selected = index == selectedIndex,
+                        selected = index == selectedIndex && showSelectIndicator,
                         onClick = {
                             selectedIndex = index
                             scope.launch {
@@ -68,7 +77,11 @@ fun NcSelectableBottomSheet(
 }
 
 @Composable
-fun NcSelectableBottomSheetItem(text: String, selected: Boolean, onClick: () -> Unit) {
+fun NcSelectableBottomSheetItem(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .clickable(onClick = onClick)
@@ -91,6 +104,22 @@ fun NcSelectableBottomSheetItem(text: String, selected: Boolean, onClick: () -> 
 @Preview(showBackground = true)
 @Composable
 private fun NcSelectableBottomSheetPreview() {
+    NunchukTheme {
+        NcSelectableBottomSheet(
+            sheetState = rememberModalBottomSheetState(),
+            title = "Title",
+            options = listOf("Option 1", "Option 2", "Option 3"),
+            selectedPos = 1,
+            onSelected = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun NcSelectableBottomSheetNoTitlePreview() {
     NunchukTheme {
         NcSelectableBottomSheet(
             sheetState = rememberModalBottomSheetState(),
