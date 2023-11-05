@@ -140,7 +140,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             state.isPremiumUser?.let {
                 binding.supportFab.isVisible = state.isPremiumUser || viewModel.isByzantine()
                 binding.actionGroup.isVisible = state.isPremiumUser.not() && viewModel.getRowItems().any { it is NonSubHeader }
-                binding.claimLayout.isVisible = viewModel.isShowClaimInheritanceLayout()
+                binding.claimLayout.isVisible = viewModel.isShowClaimInheritanceLayout() && viewModel.getRowItems().none { it is ServiceTabRowItem.ClaimInheritance }
             }
         }
     }

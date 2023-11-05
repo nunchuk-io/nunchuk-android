@@ -71,6 +71,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -126,7 +127,7 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
-    private fun updateGroupInfo(groups: List<ByzantineGroup>) {
+    private fun updateGroupInfo(groups: List<ByzantineGroup>) = viewModelScope.launch(Dispatchers.IO) {
         val joinedGroups = groups.filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
         val group2of4Multisigs =
             groups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
@@ -146,14 +147,17 @@ class ServicesTabViewModel @Inject constructor(
                 AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
             })
         }
-        _state.update { state ->
-            state.copy(
-                groups2of4Multisig = if (group2of4Multisigs.isEmpty()) emptyList() else sortedGroups,
-                userRole = byzantineGroupUtils.getCurrentUserRole(
-                    sortedGroups.firstOrNull()
-                ),
-                joinedGroups = joinedGroups.associateBy { it.id },
-            )
+        withContext(Dispatchers.Main) {
+            _state.update { state ->
+                state.copy(
+                    groups2of4Multisig = if (group2of4Multisigs.isEmpty()) emptyList() else sortedGroups,
+                    userRole = byzantineGroupUtils.getCurrentUserRole(
+                        sortedGroups.firstOrNull()
+                    ),
+                    joinedGroups = joinedGroups.associateBy { it.id },
+                    isMasterHasNotCreatedWallet = groups.all { it.isPendingWallet() && byzantineGroupUtils.getCurrentUserRole(it) == AssistedWalletRole.MASTER.name },
+                )
+            }
         }
     }
 
