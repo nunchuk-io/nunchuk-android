@@ -140,7 +140,7 @@ internal class InputAmountViewModel @Inject constructor(
         val amount = getState().amountBTC
         if (amount <= 0 || amount > availableAmount) {
             setEvent(InputAmountEvent.InsufficientFundsEvent)
-        } else if (amount > availableAmountWithoutUnlocked && !isFromSelectedCoin) {
+        } else if (hasLockedCoin && amount > availableAmountWithoutUnlocked && !isFromSelectedCoin) {
             setEvent(InputAmountEvent.InsufficientFundsLockedCoinEvent)
         } else {
             setEvent(InputAmountEvent.AcceptAmountEvent(amount))
