@@ -177,7 +177,7 @@ private fun ScheduleBroadcastTransactionContent(
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
+            Column(modifier = Modifier) {
                 NcTopAppBar(title = "", isBack = false)
                 Text(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),

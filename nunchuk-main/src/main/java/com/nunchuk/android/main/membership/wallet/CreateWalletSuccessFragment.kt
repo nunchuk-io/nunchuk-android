@@ -130,7 +130,11 @@ fun CreateWalletSuccessScreenContent(
     plan: MembershipPlan = MembershipPlan.IRON_HAND,
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.nc_bg_wallet_done,
+            )
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -138,9 +142,6 @@ fun CreateWalletSuccessScreenContent(
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_wallet_done,
-                )
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_create_wallet_success),

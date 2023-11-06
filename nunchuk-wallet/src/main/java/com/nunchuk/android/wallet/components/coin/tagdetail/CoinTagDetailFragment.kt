@@ -275,7 +275,6 @@ private fun CoinTagDetailContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 Column(

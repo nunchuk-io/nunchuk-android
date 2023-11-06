@@ -111,7 +111,6 @@ private fun LocalCurrencyContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())

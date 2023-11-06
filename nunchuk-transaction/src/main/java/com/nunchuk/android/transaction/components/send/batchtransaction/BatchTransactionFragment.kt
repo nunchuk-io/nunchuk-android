@@ -283,7 +283,7 @@ private fun BatchTransactionContent(
     val coroutineScope = rememberCoroutineScope()
     NunchukTheme {
         Scaffold { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
+            Column(modifier = Modifier) {
                 NcTopAppBar(
                     title = stringResource(id = R.string.nc_batched_transaction),
                     textStyle = NunchukTheme.typography.titleLarge,

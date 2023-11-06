@@ -143,7 +143,12 @@ private fun UploadBackUpTapSignerContent(
     isError: Boolean = false,
     remainTime: Int = 0,
 ) = NunchukTheme {
-    Scaffold { innerPadding ->
+    Scaffold(topBar = {
+        NcImageAppBar(
+            backgroundRes = R.drawable.nc_bg_upload_back_up_tapsinger,
+            title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+        )
+    }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -151,10 +156,6 @@ private fun UploadBackUpTapSignerContent(
                 .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
         ) {
-            NcImageAppBar(
-                backgroundRes = R.drawable.nc_bg_upload_back_up_tapsinger,
-                title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
-            )
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                 text = stringResource(R.string.nc_back_up_tapsigner),

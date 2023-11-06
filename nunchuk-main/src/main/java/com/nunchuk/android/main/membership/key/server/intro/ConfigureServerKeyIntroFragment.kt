@@ -129,7 +129,20 @@ fun ConfigureServerKeyIntroScreenContent(
     remainTime: Int = 0,
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.nc_bg_server_key_intro,
+                title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                actions = {
+                    IconButton(onClick = onMoreClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_more),
+                            contentDescription = "More icon"
+                        )
+                    }
+                }
+            )
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -137,18 +150,6 @@ fun ConfigureServerKeyIntroScreenContent(
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_server_key_intro,
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
-                    actions = {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
-                        }
-                    }
-                )
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_configure_server_key_intro_question),

@@ -21,6 +21,7 @@
 
 package com.nunchuk.android.main.nonsubscriber.intro
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -161,6 +162,7 @@ class NonSubscriberIntroFragment : Fragment(), BottomSheetOptionListener {
 }
 
 @Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun NonSubscriberIntroContent(
     state: NonSubscriberState,
     onTellMeMore: () -> Unit = {},
@@ -169,11 +171,9 @@ private fun NonSubscriberIntroContent(
     onActionClick: () -> Unit = {}
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold {
             Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .navigationBarsPadding()
+                modifier = Modifier.navigationBarsPadding()
             ) {
                 if (state.items.isNotEmpty()) {
                     LazyColumn(

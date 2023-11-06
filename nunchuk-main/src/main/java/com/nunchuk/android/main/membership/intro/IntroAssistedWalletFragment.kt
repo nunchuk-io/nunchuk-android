@@ -23,7 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -80,7 +85,12 @@ class IntroAssistedWalletFragment : Fragment() {
 fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewModel()) =
     NunchukTheme {
         NunchukTheme {
-            Scaffold { innerPadding ->
+            Scaffold(topBar = {
+                NcImageAppBar(
+                    backgroundRes = R.drawable.nc_bg_intro_assisted_wallet,
+                    backIconRes = R.drawable.ic_close
+                )
+            }) { innerPadding ->
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
@@ -88,10 +98,6 @@ fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewMode
                         .navigationBarsPadding()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    NcImageAppBar(
-                        backgroundRes = R.drawable.nc_bg_intro_assisted_wallet,
-                        backIconRes = R.drawable.ic_close
-                    )
                     Text(
                         modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                         text = stringResource(R.string.nc_welcome_assisted_wallet_title),

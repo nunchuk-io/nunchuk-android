@@ -55,13 +55,7 @@ fun AddDesktopKeyContent(
                     )
                 }
             },
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
+            topBar = {
                 NcImageAppBar(
                     backgroundRes = backgroundId,
                     title = stringResource(
@@ -77,6 +71,14 @@ fun AddDesktopKeyContent(
                         }
                     },
                 )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = title,

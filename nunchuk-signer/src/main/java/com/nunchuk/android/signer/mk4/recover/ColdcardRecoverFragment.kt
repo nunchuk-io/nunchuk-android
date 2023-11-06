@@ -136,7 +136,25 @@ private fun ColdcardRecoverContent(
     isMembershipFlow: Boolean = false,
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
+                title = if (isMembershipFlow) stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ) else "",
+                actions = {
+                    if (isMembershipFlow) {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    }
+                }
+            )
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -144,23 +162,6 @@ private fun ColdcardRecoverContent(
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
-                    title = if (isMembershipFlow) stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ) else "",
-                    actions = {
-                        if (isMembershipFlow) {
-                            IconButton(onClick = onMoreClicked) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_more),
-                                    contentDescription = "More icon"
-                                )
-                            }
-                        }
-                    }
-                )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_add_your_coldcard),

@@ -179,7 +179,6 @@ fun ConfigureServerKeySettingScreenContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
                     .fillMaxSize()

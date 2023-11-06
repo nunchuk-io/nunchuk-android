@@ -46,11 +46,7 @@ fun WaitingDesktopKeyContent(
                     )
                 }
             },
-        ) { innerPadding ->
-            Column(modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())) {
+            topBar = {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_waiting_add_desktop_key,
                     title = stringResource(
@@ -66,6 +62,12 @@ fun WaitingDesktopKeyContent(
                         }
                     },
                 )
+            }
+        ) { innerPadding ->
+            Column(modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())) {
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = title,

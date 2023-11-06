@@ -23,7 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -81,8 +86,33 @@ private fun AirgapIntroContent(
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
+    val bgResId = when(signerTag) {
+        SignerTag.SEEDSIGNER -> R.drawable.bg_airgap_seedsigner_intro
+        SignerTag.JADE -> R.drawable.bg_airgap_jade_intro
+        SignerTag.PASSPORT -> R.drawable.bg_airgap_passport_intro
+        SignerTag.KEYSTONE -> R.drawable.bg_airgap_keystone_intro
+        else -> R.drawable.bg_airgap_other_intro
+    }
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = bgResId,
+                title = if (isMembershipFlow) stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ) else "",
+                actions = {
+                    if (isMembershipFlow) {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    }
+                }
+            )
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -90,30 +120,6 @@ private fun AirgapIntroContent(
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                val bgResId = when(signerTag) {
-                    SignerTag.SEEDSIGNER -> R.drawable.bg_airgap_seedsigner_intro
-                    SignerTag.JADE -> R.drawable.bg_airgap_jade_intro
-                    SignerTag.PASSPORT -> R.drawable.bg_airgap_passport_intro
-                    SignerTag.KEYSTONE -> R.drawable.bg_airgap_keystone_intro
-                    else -> R.drawable.bg_airgap_other_intro
-                }
-                NcImageAppBar(
-                    backgroundRes = bgResId,
-                    title = if (isMembershipFlow) stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ) else "",
-                    actions = {
-                        if (isMembershipFlow) {
-                            IconButton(onClick = onMoreClicked) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_more),
-                                    contentDescription = "More icon"
-                                )
-                            }
-                        }
-                    }
-                )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_create_signer_title),

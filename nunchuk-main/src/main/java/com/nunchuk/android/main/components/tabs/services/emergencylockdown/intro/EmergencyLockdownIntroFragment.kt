@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.emergencylockdown.intro
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -93,6 +94,7 @@ fun EmergencyLockdownIntroScreen(
 }
 
 @Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun EmergencyLockdownIntroScreenContent(
     onContinueClicked: () -> Unit = {}
 ) {
@@ -100,7 +102,6 @@ fun EmergencyLockdownIntroScreenContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 LazyColumn(modifier = Modifier.weight(1f)) {

@@ -438,7 +438,6 @@ fun AddKeyListContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {

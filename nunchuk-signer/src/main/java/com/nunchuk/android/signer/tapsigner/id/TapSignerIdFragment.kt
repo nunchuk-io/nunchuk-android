@@ -28,9 +28,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -156,14 +154,13 @@ private fun TapSignerIdContent(
     isExist: Boolean = false,
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .statusBarsPadding()
-                    .navigationBarsPadding(),
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = if (isExist) stringResource(R.string.nc_tap_signer_already_existed) else stringResource(

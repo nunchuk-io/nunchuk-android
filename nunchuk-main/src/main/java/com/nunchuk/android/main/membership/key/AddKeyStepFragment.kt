@@ -188,7 +188,22 @@ fun AddKeyStepContent(
             else -> R.drawable.nc_bg_let_s_add_keys
         }
 
-    Scaffold { innerPadding ->
+    Scaffold(topBar = {
+        NcImageAppBar(
+            backgroundRes = imageBannerId,
+            actions = {
+                if (isShowMoreOption) {
+                    IconButton(onClick = onMoreClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_more),
+                            contentDescription = "More icon"
+                        )
+                    }
+                }
+            },
+            backIconRes = R.drawable.ic_close,
+        )
+    }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -196,20 +211,6 @@ fun AddKeyStepContent(
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
         ) {
-            NcImageAppBar(
-                backgroundRes = imageBannerId,
-                actions = {
-                    if (isShowMoreOption) {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
-                        }
-                    }
-                },
-                backIconRes = R.drawable.ic_close,
-            )
             StepWithEstTime(
                 1,
                 stringResource(id = R.string.nc_add_your_keys),

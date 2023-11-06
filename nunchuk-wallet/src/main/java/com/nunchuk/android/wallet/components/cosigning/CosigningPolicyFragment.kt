@@ -218,7 +218,6 @@ private fun CosigningPolicyContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
                     .fillMaxSize()

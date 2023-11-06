@@ -182,7 +182,12 @@ private fun CheckBackUpByAppContent(
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.nc_bg_tap_signer_explain,
+                title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
+            )
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -191,10 +196,6 @@ private fun CheckBackUpByAppContent(
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_tap_signer_explain,
-                    title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
-                )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_verify_backup_via_the_app_title),

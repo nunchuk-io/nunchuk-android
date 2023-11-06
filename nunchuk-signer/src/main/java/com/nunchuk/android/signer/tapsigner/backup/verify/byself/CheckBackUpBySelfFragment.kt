@@ -139,7 +139,6 @@ private fun CheckBackUpBySelfContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding(),
             ) {

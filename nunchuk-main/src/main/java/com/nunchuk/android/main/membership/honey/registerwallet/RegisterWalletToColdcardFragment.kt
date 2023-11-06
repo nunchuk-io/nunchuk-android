@@ -192,7 +192,12 @@ private fun RegisterWalletToColdcardContent(
     onExportToColdcardClicked: () -> Unit = {}
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.bg_register_coldcard,
+                title = stringResource(id = R.string.nc_estimate_remain_time, remainingTime),
+            )
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -200,10 +205,6 @@ private fun RegisterWalletToColdcardContent(
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.bg_register_coldcard,
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainingTime),
-                )
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = stringResource(R.string.nc_register_wallet_to_coldcard, uiState.keyName),
