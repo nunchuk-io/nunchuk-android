@@ -127,11 +127,15 @@ class KeyRecoveryIntroFragment : Fragment() {
             when (event) {
                 is KeyRecoveryIntroEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is KeyRecoveryIntroEvent.GetTapSignerSuccess -> {
-                    findNavController().navigate(
-                        KeyRecoveryIntroFragmentDirections.actionKeyRecoveryIntroFragmentToRecoverTapSignerListBottomSheetFragment(
-                            event.signers.toTypedArray()
+                    if (event.signers.isEmpty()) {
+                        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_do_not_have_tapsigner))
+                    } else {
+                        findNavController().navigate(
+                            KeyRecoveryIntroFragmentDirections.actionKeyRecoveryIntroFragmentToRecoverTapSignerListBottomSheetFragment(
+                                event.signers.toTypedArray()
+                            )
                         )
-                    )
+                    }
                 }
 
                 is KeyRecoveryIntroEvent.Error -> {

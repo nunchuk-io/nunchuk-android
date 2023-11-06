@@ -284,7 +284,6 @@ data class ServicesTabState(
                 showOption2Of4Multisig {
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
-                add(ServiceTabRowItem.GetAdditionalWallets)
                 add(ServiceTabRowItem.RollOverAssistedWallet)
                 add(ServiceTabRowItem.ManageSubscription)
             }
