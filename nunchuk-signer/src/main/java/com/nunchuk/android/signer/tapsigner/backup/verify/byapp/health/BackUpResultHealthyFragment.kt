@@ -33,12 +33,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -48,6 +45,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -109,41 +107,21 @@ private fun BackUpResultHealthyScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BackUpResultHealthyContent(
     remainingTime: Int = 0,
     onContinueClicked: () -> Unit = {},
 ) {
-    val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     // wrap your theme here
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcTopAppBar(
+                title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
+            )
+        }) { innerPadding ->
             Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding(),
+                modifier = Modifier.padding(innerPadding),
             ) {
-                CenterAlignedTopAppBar(
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-                    navigationIcon = {
-                        IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_back),
-                                contentDescription = "Back"
-                            )
-                        }
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(R.string.nc_estimate_remain_time, remainingTime),
-                            style = NunchukTheme.typography.titleSmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1.0f),
-                        )
-                        Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                    },
-                )
                 NcCircleImage(
                     modifier = Modifier
                         .size(96.dp)

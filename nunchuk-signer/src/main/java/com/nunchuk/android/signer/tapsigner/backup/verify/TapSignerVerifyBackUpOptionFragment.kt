@@ -23,7 +23,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,11 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -47,6 +43,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
@@ -121,7 +118,6 @@ private fun TapSignerVerifyBackUpOptionScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TapSignerVerifyBackUpOptionContent(
     onContinueClicked: () -> Unit = {},
@@ -129,33 +125,14 @@ private fun TapSignerVerifyBackUpOptionContent(
     remainingTime: Int = 0,
     options: List<TsBackUpOption> = emptyList(),
 ) = NunchukTheme {
-    val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
-    Scaffold { innerPadding ->
+    Scaffold(topBar = {
+        NcTopAppBar(
+            title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
+        )
+    }) { innerPadding ->
         Column(
-            modifier = Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding(),
+            modifier = Modifier.padding(innerPadding),
         ) {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-                navigationIcon = {
-                    IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_back),
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                title = {
-                    Text(
-                        text = stringResource(R.string.nc_estimate_remain_time, remainingTime),
-                        style = NunchukTheme.typography.titleSmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1.0f),
-                    )
-                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                },
-            )
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                 text = stringResource(R.string.nc_verify_your_backup),

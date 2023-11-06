@@ -24,7 +24,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -40,7 +39,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -250,7 +248,6 @@ private fun CoinDetailContent(
     onLockOrUnlock: (isLocked: Boolean) -> Unit = {},
     onViewCoinAncestry: (output: UnspentOutput) -> Unit = {},
 ) {
-    val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     val backgroundColor = if (isSpentCoin) MaterialTheme.colorScheme.whisper else MaterialTheme.colorScheme.denimTint
     NunchukTheme {
         Scaffold(topBar = {
@@ -259,23 +256,9 @@ private fun CoinDetailContent(
                     .background(color = backgroundColor)
                     .statusBarsPadding()
             ) {
-                CenterAlignedTopAppBar(
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-                    navigationIcon = {
-                        IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_back),
-                                contentDescription = "Back"
-                            )
-                        }
-                    },
-                    title = {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            text = stringResource(R.string.nc_coin_detail)
-                        )
-                    },
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_coin_detail),
+                    textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         IconButton(onClick = onShowMore) {
                             Icon(
@@ -284,7 +267,8 @@ private fun CoinDetailContent(
                             )
                         }
                     },
-                )
+                    backgroundColor = backgroundColor
+                    )
             }
         }) { innerPadding ->
             Column(
