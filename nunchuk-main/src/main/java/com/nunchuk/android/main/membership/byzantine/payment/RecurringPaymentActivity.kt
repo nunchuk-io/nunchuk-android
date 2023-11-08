@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.addWhitelistAddress
+import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.navigateToWhitelistAddress
 import com.nunchuk.android.main.membership.byzantine.payment.amount.addPaymentAmount
 import com.nunchuk.android.main.membership.byzantine.payment.amount.navigateToPaymentAmount
 import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPaymentRoute
@@ -62,16 +64,25 @@ class RecurringPaymentActivity : AppCompatActivity() {
                         addPaymentSelectAddressType(
                             recurringPaymentViewModel = viewModel,
                             openWhiteListAddressScreen = {
-
+                                navController.navigateToWhitelistAddress()
                             },
                             openScanQRCodeScreen = {
-                                navigator.openRecoverWalletQRCodeScreen(this@RecurringPaymentActivity, false)
+                                navigator.openRecoverWalletQRCodeScreen(
+                                    this@RecurringPaymentActivity,
+                                    false
+                                )
                             },
                         )
                         addPaymentPercentageCalculation(
                             recurringPaymentViewModel = viewModel,
                             openSelectAddressTypeScreen = {
                                 navController.navigateToPaymentSelectAddressType()
+                            },
+                        )
+                        addWhitelistAddress(
+                            paymentViewModel = viewModel,
+                            openPaymentFrequencyScreen = {
+
                             },
                         )
                     }

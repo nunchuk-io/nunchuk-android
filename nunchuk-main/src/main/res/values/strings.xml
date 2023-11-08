@@ -228,4 +228,12 @@
     <string name="nc_calculate_percentage_just_in_time_desc">The percentage will be calculated based on the wallet balance on the day of the payment.</string>
     <string name="nc_running_average">Running average</string>
     <string name="nc_running_average_desc">The percentage will be calculated based on the daily average of the wallet balance over the previous period.</string>
+    <string name="nc_use_whitelisted_addresses">Use whitelisted addresses</string>
+    <string name="nc_enter_addresses">Enter addresses</string>
+    <string name="nc_batch_import">Batch import</string>
+    <string name="nc_addresses">Addresses</string>
+    <string name="nc_batch_import_addresses_place_holder">To include multiple addresses, separate them by line-breaks.</string>
+    <string name="nc_add_address">Add address</string>
+    <string name="nc_first_address_of_wallet">First address of wallet</string>
+    <string name="nc_configuration_details">Configuration details (visible to you only)</string>
 </resources>

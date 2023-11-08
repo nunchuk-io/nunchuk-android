@@ -38,6 +38,7 @@ import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -69,6 +70,7 @@ fun NcTextField(
     colors: TextFieldColors = TextFieldDefaults.colors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
+    textStyle: TextStyle = NunchukTheme.typography.body,
     onValueChange: (value: String) -> Unit,
 ) {
     val hasError = !error.isNullOrEmpty()
@@ -109,7 +111,7 @@ fun NcTextField(
                 .clickable(onClick = onClick)
                 .fillMaxWidth(),
             value = value,
-            textStyle = NunchukTheme.typography.body,
+            textStyle = textStyle,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             maxLines = maxLines,

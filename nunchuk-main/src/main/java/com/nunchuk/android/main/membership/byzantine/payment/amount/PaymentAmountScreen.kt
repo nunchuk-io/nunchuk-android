@@ -131,7 +131,7 @@ fun PaymentAmountScreen(
                         else stringResource(R.string.nc_please_enter_a_percentage),
                         value = amount,
                         onValueChange = { s -> onAmountChange(CurrencyFormatter.format(s, 2)) },
-                        allowDecimal = unit != SpendingCurrencyUnit.sat && !useAmount,
+                        allowDecimal = unit != SpendingCurrencyUnit.sat && useAmount,
                         suffix = if (useAmount) "" else "%",
                     )
 

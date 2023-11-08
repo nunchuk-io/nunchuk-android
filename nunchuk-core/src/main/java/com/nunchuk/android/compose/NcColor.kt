@@ -55,3 +55,5 @@ val ColorScheme.ming: Color
 val ColorScheme.yellowishOrange: Color
     get() = Color(0xFFFDEBD2)
 
+val ColorScheme.textColorMid: Color
+    get() = Color(0xFF757575)
