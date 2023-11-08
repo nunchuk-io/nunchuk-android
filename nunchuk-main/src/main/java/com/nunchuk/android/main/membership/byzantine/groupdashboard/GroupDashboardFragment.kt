@@ -522,7 +522,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 stringId = R.string.nc_view_inheritance_plan
                             ),
                         )
-                    } else if (viewModel.isInheritanceOwner()) {
+                    } else if (viewModel.isInheritanceOwner() && uiState.isHasPendingRequestInheritance.not()) {
                         options.add(
                             SheetOption(
                                 type = SheetOptionType.SET_UP_INHERITANCE,

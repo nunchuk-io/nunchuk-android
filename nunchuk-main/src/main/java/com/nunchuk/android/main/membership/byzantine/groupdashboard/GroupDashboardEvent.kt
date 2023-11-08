@@ -49,4 +49,5 @@ data class GroupDashboardState(
     val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),
     val isSetupInheritance: Boolean = false,
     val inheritanceOwnerId: String? = null,
+    val isHasPendingRequestInheritance: Boolean = false,
 )

@@ -192,6 +192,18 @@ class GroupDashboardViewModel @Inject constructor(
                     }
                 }
         }
+        viewModelScope.launch {
+            getInheritanceUseCase(
+                GetInheritanceUseCase.Param(
+                    walletId.value.orEmpty(),
+                    args.groupId
+                )
+            ).onSuccess { inheritance ->
+                _state.update {
+                    it.copy(isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty(), inheritanceOwnerId = inheritance.ownerId)
+                }
+            }
+        }
         getGroup()
         getAlerts()
     }
@@ -434,7 +446,7 @@ class GroupDashboardViewModel @Inject constructor(
             )
         ).onSuccess { inheritance ->
             _state.update {
-                it.copy(inheritanceOwnerId = inheritance.ownerId)
+                it.copy(inheritanceOwnerId = inheritance.ownerId, isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty())
             }
             _event.emit(GroupDashboardEvent.GetInheritanceSuccess(inheritance, token, isAlertFlow))
         }.onFailure {
@@ -535,6 +547,9 @@ class GroupDashboardViewModel @Inject constructor(
                         groupId = args.groupId
                     )
                 ).onSuccess {
+                    _state.update { state ->
+                        state.copy(isHasPendingRequestInheritance = true)
+                    }
                     _event.emit(
                         GroupDashboardEvent.CalculateRequiredSignaturesSuccess(
                             type = resultCalculate.type,

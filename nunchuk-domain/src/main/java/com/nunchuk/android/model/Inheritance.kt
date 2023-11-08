@@ -35,4 +35,11 @@ class Inheritance(
     val lastModifiedTimeMilis: Long,
     val bufferPeriod: Period? = null,
     val ownerId: String,
+    val pendingRequests: List<InheritancePendingRequest> = arrayListOf(),
+) : Parcelable
+
+@Parcelize
+class InheritancePendingRequest(
+    val membershipId: String,
+    val dummyTransactionId: String,
 ) : Parcelable

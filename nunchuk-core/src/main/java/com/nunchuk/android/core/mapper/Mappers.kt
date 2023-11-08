@@ -25,6 +25,7 @@ import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritancePendingRequest
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.Period
@@ -84,6 +85,13 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         "PENDING_APPROVAL" -> InheritanceStatus.PENDING_APPROVAL
         else -> InheritanceStatus.PENDING_CREATION
     }
+    val pendingRequests = pendingRequests?.map {
+        InheritancePendingRequest(
+            membershipId = it.membershipId.orEmpty(),
+            dummyTransactionId = it.dummyTransactionId.orEmpty()
+        )
+    } ?: emptyList()
+
     return Inheritance(
         walletId = walletId.orEmpty(),
         walletLocalId = walletLocalId.orEmpty(),
@@ -95,7 +103,8 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         createdTimeMilis = createdTimeMilis ?: 0,
         lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
         bufferPeriod = bufferPeriod?.toPeriod(),
-        ownerId = ownerId.orEmpty()
+        ownerId = ownerId.orEmpty(),
+        pendingRequests = pendingRequests
     )
 }
 
