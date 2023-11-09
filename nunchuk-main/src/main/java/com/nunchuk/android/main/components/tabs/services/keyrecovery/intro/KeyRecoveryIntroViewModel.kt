@@ -31,6 +31,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -111,18 +112,16 @@ class KeyRecoveryIntroViewModel @Inject constructor(
 
     fun getTapSignerList() = viewModelScope.launch {
         _event.emit(KeyRecoveryIntroEvent.Loading(true))
+        val assistedWallets = _state.value.wallets.filter { _state.value.assistedWallets.contains(it.wallet.id) }
         val signers = _state.value.tapSigners.filter {
-            isInWallet(it)
+            isInWallet(assistedWallets, it)
         }
         _event.emit(KeyRecoveryIntroEvent.Loading(false))
         _event.emit(KeyRecoveryIntroEvent.GetTapSignerSuccess(signers))
     }
 
-    private fun isInWallet(signer: SignerModel): Boolean {
-        return _state.value.wallets.any {
-            if (_state.value.assistedWallets.contains(it.wallet.id).not()) {
-                return@any false
-            }
+    private fun isInWallet(assistedWallets: List<WalletExtended>, signer: SignerModel): Boolean {
+        return assistedWallets.any {
             it.wallet.signers.any anyLast@{ singleSigner ->
                 if (singleSigner.hasMasterSigner) {
                     return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
