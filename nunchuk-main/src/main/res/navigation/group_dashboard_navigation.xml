@@ -246,6 +246,9 @@
         <argument
             android:name="group"
             app:argType="com.nunchuk.android.model.ByzantineGroup" />
+
+        <argument android:name="wallet_name"
+            app:argType="string" />
     </fragment>
 
     <fragment android:id="@+id/keyRecoverySuccessStateFragment"

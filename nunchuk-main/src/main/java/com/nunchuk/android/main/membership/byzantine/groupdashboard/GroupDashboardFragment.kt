@@ -178,7 +178,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 viewModel.getByzantineGroup()?.let { group ->
                                     findNavController().navigate(
                                         GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(
-                                            group
+                                            group,
+                                            viewModel.state.value.wallet.name
                                         )
                                     )
                                 }

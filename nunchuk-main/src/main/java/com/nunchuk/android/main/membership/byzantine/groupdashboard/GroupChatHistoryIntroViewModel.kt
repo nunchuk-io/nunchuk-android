@@ -29,7 +29,7 @@ class GroupChatHistoryIntroViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(GroupChatHistoryIntroEvent.Loading(true))
            createRoomGroupChatUseCase(
-                CreateRoomGroupChatUseCase.Param(args.group)
+                CreateRoomGroupChatUseCase.Param(args.group, args.walletName)
             ).onSuccess {
                 createOrUpdateGroupChatUseCase(
                     CreateOrUpdateGroupChatUseCase.Param(
