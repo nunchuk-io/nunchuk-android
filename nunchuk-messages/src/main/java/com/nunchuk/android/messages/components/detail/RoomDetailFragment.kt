@@ -208,7 +208,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         val hasRoomWallet = state.roomWallet != null
         stickyBinding.root.isVisible = hasRoomWallet
         binding.sendAction.isVisible = state.isSupportRoom || args.isGroupChat
-        binding.addWallet.isVisible = !hasRoomWallet && !state.isSupportRoom && !args.isGroupChat
+        binding.addWallet.isVisible = !hasRoomWallet && !state.isSupportRoom && !args.isGroupChat && !state.isHasByzantineGroup && !state.isGroupChatRoom
         binding.sendBTC.isVisible = hasRoomWallet
         binding.receiveBTC.isVisible = hasRoomWallet
         binding.expand.isVisible = hasRoomWallet
@@ -243,7 +243,8 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
             )
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(
                 requireActivity(),
-                args.roomId
+                args.roomId,
+                viewModel.isByzantineChat()
             )
             OpenChatInfoEvent -> navigator.openChatInfoScreen(requireActivity(), args.roomId)
             RoomWalletCreatedEvent -> showSuccess(getString(R.string.nc_message_wallet_created))

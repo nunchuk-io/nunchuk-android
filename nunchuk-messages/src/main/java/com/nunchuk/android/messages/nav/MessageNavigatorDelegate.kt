@@ -52,8 +52,8 @@ interface MessageNavigatorDelegate : MessageNavigator {
         ChatInfoActivity.start(activityContext, roomId)
     }
 
-    override fun openChatGroupInfoScreen(activityContext: Context, roomId: String) {
-        ChatGroupInfoActivity.start(activityContext, roomId)
+    override fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean) {
+        ChatGroupInfoActivity.start(activityContext, roomId, isByzantineChat)
     }
 
 }

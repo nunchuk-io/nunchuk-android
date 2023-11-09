@@ -532,6 +532,8 @@ class RoomDetailViewModel @Inject constructor(
         }
     }
 
+    fun isByzantineChat() = getState().isHasByzantineGroup || getState().isGroupChatRoom
+
     override fun onCleared() {
         timeline?.apply {
             dispose()

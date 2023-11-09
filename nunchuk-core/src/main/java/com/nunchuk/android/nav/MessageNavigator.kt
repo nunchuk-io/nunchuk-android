@@ -38,5 +38,5 @@ interface MessageNavigator {
 
     fun openChatInfoScreen(activityContext: Context, roomId: String)
 
-    fun openChatGroupInfoScreen(activityContext: Context, roomId: String)
+    fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean)
 }

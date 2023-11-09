@@ -23,17 +23,20 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 
-data class ChatGroupInfoArgs(val roomId: String) : ActivityArgs {
+data class ChatGroupInfoArgs(val roomId: String, val isByzantineChat: Boolean) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ChatGroupInfoActivity::class.java).apply {
         putExtra(EXTRA_ROOM_ID, roomId)
+        putExtra(EXTRA_BYZANTINE_CHAT, isByzantineChat)
     }
 
     companion object {
         private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
+        private const val EXTRA_BYZANTINE_CHAT = "EXTRA_BYZANTINE_CHAT"
 
         fun deserializeFrom(intent: Intent) = ChatGroupInfoArgs(
             intent.extras?.getString(EXTRA_ROOM_ID, "").orEmpty(),
+            intent.extras?.getBoolean(EXTRA_BYZANTINE_CHAT, false) ?: false,
         )
     }
 
