@@ -50,5 +50,7 @@ dependencies {
 
     implementation "com.github.skydoves:landscapist-glide:2.2.2"
 
+    implementation zxingDeps.values()
+
     testImplementation otherTestDeps.junit
 }

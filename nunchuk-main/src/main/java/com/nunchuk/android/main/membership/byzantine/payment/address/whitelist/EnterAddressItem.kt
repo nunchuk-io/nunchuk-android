@@ -28,6 +28,7 @@ fun EnterAddressItem(
     value: String = "",
     onValueChange: (String) -> Unit = { },
     onRemoveAddress: (Int) -> Unit = {},
+    openScanQrCode: (Int) -> Unit = {},
 ) {
     Column(modifier = modifier) {
         Row(
@@ -36,7 +37,7 @@ fun EnterAddressItem(
                 .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(text = "Address $index", style = NunchukTheme.typography.title)
+            Text(text = "Address ${index.inc()}", style = NunchukTheme.typography.title)
             Text(
                 modifier = Modifier
                     .clickable { onRemoveAddress(index) },
@@ -59,7 +60,9 @@ fun EnterAddressItem(
             minLines = 3,
             rightContent = {
                 Image(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier
+                        .clickable { openScanQrCode(index) }
+                        .padding(12.dp),
                     painter = painterResource(id = R.drawable.ic_qr),
                     contentDescription = "QR Code"
                 )

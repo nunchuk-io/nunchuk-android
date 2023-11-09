@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.payment.address.whitelist
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,31 +11,39 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSnackBarHost
+import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textColorMid
+import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
-import de.palm.composestateevents.EventEffect
 
 
 @Composable
@@ -43,26 +52,50 @@ fun WhitelistAddressRoute(
     whitelistAddressViewModel: WhitelistAddressViewModel = hiltViewModel(),
     openPaymentFrequencyScreen: () -> Unit,
 ) {
+    val snackState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     val state by whitelistAddressViewModel.state.collectAsStateWithLifecycle()
-    EventEffect(state.openNextScreenEvent, onConsumed = whitelistAddressViewModel::onOpenNextScreenEventConsumed) {
-        openPaymentFrequencyScreen()
+    LaunchedEffect(
+        state.openPaymentFrequentScreenEvent,
+    ) {
+        state.openPaymentFrequentScreenEvent?.let {
+            recurringPaymentViewModel.onAddressesChange(it)
+            openPaymentFrequencyScreen()
+        }
+        whitelistAddressViewModel.onOpenNextScreenEventConsumed()
     }
-    EventEffect(state.invalidAddressEvent, onConsumed = whitelistAddressViewModel::onInvalidAddressEventConsumed) {
-
+    LaunchedEffect(
+        state.invalidAddressEvent,
+    ) {
+        state.invalidAddressEvent?.let { address ->
+            snackState.showSnackbar(
+                NcSnackbarVisuals(
+                    type = NcToastType.ERROR,
+                    message = "${context.getString(R.string.nc_transaction_invalid_address)}: $address",
+                )
+            )
+            whitelistAddressViewModel.onInvalidAddressEventConsumed()
+        }
     }
     WhitelistAddressScreen(
-        openPaymentFrequencyScreen = openPaymentFrequencyScreen,
-        checkAddress = whitelistAddressViewModel::checkAddressValid
+        uiState = state,
+        snackState = snackState,
+        checkAddress = whitelistAddressViewModel::checkAddressValid,
+        parseBtcUri = whitelistAddressViewModel::parseBtcUri,
+        onParseAddressEventConsumed = whitelistAddressViewModel::onParseAddressEventConsumed,
     )
 }
 
 @Composable
 fun WhitelistAddressScreen(
-    openPaymentFrequencyScreen: () -> Unit = {},
+    uiState: WhitelistAddressUiState = WhitelistAddressUiState(),
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     checkAddress: (List<String>) -> Unit = {},
+    parseBtcUri: (String) -> Unit = {},
+    onParseAddressEventConsumed: () -> Unit = {},
 ) {
     var addresses by rememberSaveable {
-        mutableStateOf(listOf(""))
+        mutableStateOf(listOf("", ""))
     }
     var batchAddress by rememberSaveable {
         mutableStateOf("")
@@ -70,32 +103,32 @@ fun WhitelistAddressScreen(
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
+    var addressIndex by rememberSaveable {
+        mutableIntStateOf(0)
+    }
+    val qrLauncher = rememberLauncherForActivityResult(contract = ScanContract()) { result ->
+        result.contents?.let { content ->
+            parseBtcUri(content)
+        }
+    }
+    LaunchedEffect(uiState.parseAddressEvent) {
+        uiState.parseAddressEvent?.let {
+            addresses = addresses.toMutableList().apply {
+                set(addressIndex, it)
+            }
+        }
+        onParseAddressEventConsumed()
+    }
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                title = stringResource(R.string.nc_use_whitelisted_addresses),
-                textStyle = NunchukTheme.typography.titleLarge,
-                isBack = false
-            )
-        }, bottomBar = {
-            Column {
-                if (selectedTabIndex == 0) {
-                    NcOutlineButton(
-                        modifier = Modifier
-                            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                            .fillMaxWidth(),
-                        onClick = { addresses = addresses + "" },
-                    ) {
-                        Image(
-                            modifier = Modifier
-                                .padding(end = 6.dp)
-                                .size(24.dp),
-                            painter = painterResource(id = R.drawable.ic_plus),
-                            contentDescription = "Icon Add",
-                        )
-                        Text(text = stringResource(R.string.nc_add_address))
-                    }
-                }
+        Scaffold(
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_use_whitelisted_addresses),
+                    textStyle = NunchukTheme.typography.titleLarge,
+                    isBack = false
+                )
+            },
+            bottomBar = {
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .padding(16.dp)
@@ -111,8 +144,12 @@ fun WhitelistAddressScreen(
                 ) {
                     Text(text = stringResource(R.string.nc_text_continue))
                 }
+            },
+            snackbarHost = {
+                NcSnackBarHost(snackState)
             }
-        }) { innerPadding ->
+            ,
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -155,6 +192,13 @@ fun WhitelistAddressScreen(
                                 removeAt(index)
                             }
                         },
+                        onAddNewAddress = {
+                            addresses = addresses + ""
+                        },
+                        openScanQrCode = {
+                            addressIndex = it
+                            startQRCodeScan(qrLauncher)
+                        }
                     )
                 } else {
                     BatchImportView(batchAddress) {
@@ -171,15 +215,36 @@ private fun EnterAddressView(
     addresses: List<String>,
     onAddressChange: (Int, String) -> Unit = { _, _ -> },
     onRemoveAddress: (Int) -> Unit = {},
+    onAddNewAddress: () -> Unit = {},
+    openScanQrCode: (Int) -> Unit = {},
 ) {
     LazyColumn {
         itemsIndexed(addresses) { index, address ->
             EnterAddressItem(
-                index = index.inc(),
+                index = index,
                 value = address,
                 onValueChange = { onAddressChange(index, it) },
-                onRemoveAddress = { onRemoveAddress(index) }
+                onRemoveAddress = { onRemoveAddress(index) },
+                openScanQrCode = openScanQrCode
             )
+        }
+
+        item("add_button") {
+            NcOutlineButton(
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                    .fillMaxWidth(),
+                onClick = onAddNewAddress,
+            ) {
+                Image(
+                    modifier = Modifier
+                        .padding(end = 6.dp)
+                        .size(24.dp),
+                    painter = painterResource(id = R.drawable.ic_plus),
+                    contentDescription = "Icon Add",
+                )
+                Text(text = stringResource(R.string.nc_add_address))
+            }
         }
     }
 }

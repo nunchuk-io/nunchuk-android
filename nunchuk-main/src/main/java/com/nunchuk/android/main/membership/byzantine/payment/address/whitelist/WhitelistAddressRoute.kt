@@ -15,7 +15,7 @@ fun NavGraphBuilder.addWhitelistAddress(
     composable(whitelistAddressRoute) {
         WhitelistAddressRoute(
             openPaymentFrequencyScreen = openPaymentFrequencyScreen,
-            viewModel = paymentViewModel,
+            recurringPaymentViewModel = paymentViewModel,
         )
     }
 }

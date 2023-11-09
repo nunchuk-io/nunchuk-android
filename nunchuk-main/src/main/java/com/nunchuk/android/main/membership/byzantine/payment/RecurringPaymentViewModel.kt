@@ -55,6 +55,12 @@ class RecurringPaymentViewModel @Inject constructor(
         }
     }
 
+    fun onAddressesChange(addresses: List<String>) {
+        _config.update {
+            it.copy(addresses = addresses)
+        }
+    }
+
     fun onCalculatePercentageJustInTimeChange(value: Boolean) {
         _config.update {
             it.copy(calculatePercentageJustInTime = value)
