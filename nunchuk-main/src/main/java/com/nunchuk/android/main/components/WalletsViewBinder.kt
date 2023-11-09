@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.components
 
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.databinding.ItemWalletBinding
@@ -35,7 +36,8 @@ internal class WalletsViewBinder(
     container: ViewGroup,
     wallets: List<WalletExtended>,
     val assistedWalletIds: Set<String>,
-    val hideWalletDetail: Boolean = false,
+    val lockdownWalletIds: Set<String>,
+    private val hideWalletDetail: Boolean = false,
     val callback: (String) -> Unit = {}
 ) : AbsViewBinder<WalletExtended, ItemWalletBinding>(container, wallets) {
 
@@ -60,7 +62,9 @@ internal class WalletsViewBinder(
         }
         binding.config.bindWalletConfiguration(wallet, hideWalletDetail)
         binding.root.setOnClickListener { callback(wallet.id) }
-        if (isAssistedWallet) {
+        if (lockdownWalletIds.contains(wallet.id)) {
+            binding.root.setBackgroundResource(R.drawable.nc_grey_background)
+        } else if (isAssistedWallet) {
             binding.root.setBackgroundResource(R.drawable.nc_gradient_premium_background)
         } else {
             binding.root.setBackgroundResource(R.drawable.nc_gradient_background)

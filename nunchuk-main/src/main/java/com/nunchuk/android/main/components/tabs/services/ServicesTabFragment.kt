@@ -239,7 +239,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     if (wallets.size == 1) {
                         enterPasswordDialog(item = item, walletId = wallets.first().localId)
                     } else {
-                        AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                        AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                     }
                 } else {
                     enterPasswordDialog(item)
@@ -254,7 +254,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 if (wallets.size == 1) {
                     viewModel.openSetupInheritancePlan(wallets.first().localId)
                 } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                 }
             }
             ServiceTabRowItem.CoSigningPolicies,
@@ -264,7 +264,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 if (wallets.size == 1) {
                     enterPasswordDialog(item = item, walletId = wallets.first().localId)
                 } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                 }
             }
 

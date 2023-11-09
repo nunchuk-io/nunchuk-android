@@ -442,9 +442,15 @@ class ServicesTabViewModel @Inject constructor(
             if (state.value.joinedGroups[it.groupId]?.isLocked == true) {
                 hasLockedWallet = true
             }
-            byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isMasterOrAdmin && state.value.joinedGroups[it.groupId]?.isLocked == false
+            byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isMasterOrAdmin
         }
         return hasLockedWallet to wallets
+    }
+
+    fun getLockdownWalletsIds(): List<String> {
+        return state.value.assistedWallets.filter {
+            state.value.joinedGroups[it.groupId]?.isLocked == true
+        }.map { it.localId }
     }
 
     fun getGroupId(walletId: String): String? = assistedWalletManager.getGroupId(walletId)
