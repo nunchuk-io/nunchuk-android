@@ -32,7 +32,8 @@ data class RoomDetailState(
     val isSelectEnable: Boolean,
     val selectedEventIds: MutableSet<Long> = mutableSetOf(),
     val isSupportRoom: Boolean = false,
-    val isGroupChatRoom: Boolean = false
+    val isGroupChatRoom: Boolean = false,
+    val isHasByzantineGroup: Boolean = false,
 ) {
 
     companion object {
