@@ -22,24 +22,26 @@ package com.nunchuk.android.main.components.tabs.services.keyrecovery.intro
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesKeyRecoveryUseCase
 import com.nunchuk.android.core.domain.membership.DownloadBackupKeyUseCase
 import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
 import com.nunchuk.android.core.domain.membership.RequestRecoverUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer.AnswerSecurityQuestionEvent
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
+import com.nunchuk.android.usecase.GetWalletsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,6 +55,8 @@ class KeyRecoveryIntroViewModel @Inject constructor(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val requestRecoverUseCase: RequestRecoverUseCase,
     private val recoverKeyUseCase: RecoverKeyUseCase,
+    private val getWalletsUseCase: GetWalletsUseCase,
+    private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -72,24 +76,58 @@ class KeyRecoveryIntroViewModel @Inject constructor(
                 isHasGroup = it.getOrNull().isNullOrEmpty().not()
             }
         }
+        viewModelScope.launch {
+            getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
+                .distinctUntilChanged()
+                .collect { assistedWallets ->
+                    _state.update {
+                        it.copy(assistedWallets = assistedWallets.map { it.localId }.toHashSet())
+                    }
+                }
+        }
+        viewModelScope.launch {
+            getMasterSignersUseCase.execute().zip(getWalletsUseCase.execute()) { p, wallets ->
+                Pair(p, wallets)
+            }.map {
+                val (masterSigners, wallets) = it
+                val signers = masterSigners
+                    .filter { it.device.isTapsigner }
+                    .map { signer ->
+                        masterSignerMapper(signer)
+                    }.map {
+                        it.copy(cardId = cardIdManager.getCardId(signerId = it.id))
+                    }.toList()
+                return@map Pair(signers, wallets)
+            }.collect { (tapSigners, wallets) ->
+                _state.update {
+                    it.copy(
+                        tapSigners = tapSigners,
+                        wallets = wallets
+                    )
+                }
+            }
+        }
     }
 
     fun getTapSignerList() = viewModelScope.launch {
         _event.emit(KeyRecoveryIntroEvent.Loading(true))
-        getMasterSignersUseCase.execute().collect { masterSigners ->
-            _event.emit(KeyRecoveryIntroEvent.Loading(false))
-            val signers = masterSigners
-                .filter { it.device.isTapsigner }
-                .map { signer ->
-                    masterSignerMapper(signer)
-                }.map {
-                    it.copy(cardId = cardIdManager.getCardId(signerId = it.id))
-                }.toList()
-            _event.emit(KeyRecoveryIntroEvent.GetTapSignerSuccess(signers))
-            _state.update {
-                it.copy(
-                    tapSigners = signers,
-                )
+        val signers = _state.value.tapSigners.filter {
+            isInWallet(it)
+        }
+        _event.emit(KeyRecoveryIntroEvent.Loading(false))
+        _event.emit(KeyRecoveryIntroEvent.GetTapSignerSuccess(signers))
+    }
+
+    private fun isInWallet(signer: SignerModel): Boolean {
+        return _state.value.wallets.any {
+            if (_state.value.assistedWallets.contains(it.wallet.id).not()) {
+                return@any false
+            }
+            it.wallet.signers.any anyLast@{ singleSigner ->
+                if (singleSigner.hasMasterSigner) {
+                    return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
+                }
+                return@anyLast singleSigner.masterFingerprint == signer.fingerPrint && singleSigner.derivationPath == signer.derivationPath
             }
         }
     }
@@ -147,7 +185,8 @@ class KeyRecoveryIntroViewModel @Inject constructor(
 
     fun requestRecover(
         signatures: HashMap<String, String>,
-        securityQuestionToken: String, confirmCodeToken: String, confirmCodeNonce: String) {
+        securityQuestionToken: String, confirmCodeToken: String, confirmCodeNonce: String
+    ) {
         viewModelScope.launch {
             val state = _state.value
             if (state.selectedSigner == null) {
