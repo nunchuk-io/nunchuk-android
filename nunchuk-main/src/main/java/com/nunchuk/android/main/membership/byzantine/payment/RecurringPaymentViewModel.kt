@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.main.membership.byzantine.payment.frequent.PaymentFrequency
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -64,6 +65,42 @@ class RecurringPaymentViewModel @Inject constructor(
     fun onCalculatePercentageJustInTimeChange(value: Boolean) {
         _config.update {
             it.copy(calculatePercentageJustInTime = value)
+        }
+    }
+
+    fun onFrequencyChange(frequency: PaymentFrequency) {
+        _config.update {
+            it.copy(frequency = frequency)
+        }
+    }
+
+    fun onStartDateChange(startDate: Long) {
+        _config.update {
+            it.copy(startDate = startDate)
+        }
+    }
+
+    fun onEndDateChange(endDate: Long) {
+        _config.update {
+            it.copy(endDate = endDate)
+        }
+    }
+
+    fun onNoteChange(note: String) {
+        _config.update {
+            it.copy(note = note)
+        }
+    }
+
+    fun onNoEndDateChange(noEndDate: Boolean) {
+        _config.update {
+            it.copy(noEndDate = noEndDate)
+        }
+    }
+
+    fun onIsCosignChange(isCosign: Boolean) {
+        _config.update {
+            it.copy(isCosign = isCosign)
         }
     }
 }

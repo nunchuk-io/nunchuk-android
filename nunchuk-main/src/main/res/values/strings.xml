@@ -236,4 +236,19 @@
     <string name="nc_add_address">Add address</string>
     <string name="nc_first_address_of_wallet">First address of wallet</string>
     <string name="nc_configuration_details">Configuration details (visible to you only)</string>
+    <string name="nc_payment_set_frequency">Please set the frequency of the payment.</string>
+    <string name="nc_repeat">Repeat</string>
+    <string name="nc_every_day">Every day</string>
+    <string name="nc_every_week">Every week</string>
+    <string name="nc_every_month">Every month</string>
+    <string name="nc_every_three_months">Every three months</string>
+    <string name="nc_every_six_months">Every six months</string>
+    <string name="nc_every_year">Every year</string>
+    <string name="nc_start_date">Start date</string>
+    <string name="nc_end_date">End date</string>
+    <string name="nc_no_end_date">No end date</string>
+    <string name="nc_allow_platform_key_to_co_sign">Allow platform key to co-sign</string>
+    <string name="nc_allow_platform_key_to_co_sign_desc">The recurring payment will only require 1 signature from any keyholder.</string>
+    <string name="nc_don_t_allow_platform_key_to_co_sign">Don’t allow platform key to co-sign</string>
+    <string name="nc_don_t_allow_platform_key_to_co_sign_desc">The recurring payment will require 2 signatures from the keyholders.</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.membership.byzantine.payment
 
 import android.os.Parcelable
+import com.nunchuk.android.main.membership.byzantine.payment.frequent.PaymentFrequency
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import kotlinx.parcelize.Parcelize
 
@@ -14,4 +15,10 @@ data class RecurringPaymentConfig(
     val useAmount: Boolean = true,
     val calculatePercentageJustInTime: Boolean = false,
     val addresses: List<String> = emptyList(),
+    val frequency: PaymentFrequency? = null,
+    val startDate: Long = 0,
+    val endDate: Long = 0,
+    val note: String = "",
+    val noEndDate: Boolean = false,
+    val isCosign: Boolean? = null,
 ) : Parcelable

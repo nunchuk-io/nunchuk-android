@@ -108,7 +108,7 @@ fun NcTextField(
                 .defaultMinSize(
                     minWidth = TextFieldDefaults.MinWidth,
                 )
-                .clickable(onClick = onClick)
+                .clickable(enabled = readOnly, onClick = onClick)
                 .fillMaxWidth(),
             value = value,
             textStyle = textStyle,

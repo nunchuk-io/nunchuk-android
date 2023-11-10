@@ -12,6 +12,8 @@ import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.a
 import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.navigateToWhitelistAddress
 import com.nunchuk.android.main.membership.byzantine.payment.amount.addPaymentAmount
 import com.nunchuk.android.main.membership.byzantine.payment.amount.navigateToPaymentAmount
+import com.nunchuk.android.main.membership.byzantine.payment.frequent.addPaymentFrequency
+import com.nunchuk.android.main.membership.byzantine.payment.frequent.navigateToPaymentFrequency
 import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPaymentRoute
 import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPaymentsList
 import com.nunchuk.android.main.membership.byzantine.payment.name.addPaymentName
@@ -82,6 +84,12 @@ class RecurringPaymentActivity : AppCompatActivity() {
                         addWhitelistAddress(
                             paymentViewModel = viewModel,
                             openPaymentFrequencyScreen = {
+                                navController.navigateToPaymentFrequency()
+                            },
+                        )
+                        addPaymentFrequency(
+                            recurringPaymentViewModel = viewModel,
+                            openKeyPolicyScreen = {
 
                             },
                         )
