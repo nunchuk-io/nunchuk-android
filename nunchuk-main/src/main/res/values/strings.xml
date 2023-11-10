@@ -251,4 +251,15 @@
     <string name="nc_allow_platform_key_to_co_sign_desc">The recurring payment will only require 1 signature from any keyholder.</string>
     <string name="nc_don_t_allow_platform_key_to_co_sign">Don’t allow platform key to co-sign</string>
     <string name="nc_don_t_allow_platform_key_to_co_sign_desc">The recurring payment will require 2 signatures from the keyholders.</string>
+    <string name="nc_payment_note_title">Would you like to add a transaction note for this recurring payment?</string>
+    <string name="nc_date_range">Date range</string>
+    <string name="nc_priority_fee_rate">Priority fee rate</string>
+    <string name="nc_standard_fee_rate">Standard fee rate</string>
+    <string name="nc_economy_fee_rate">Economy fee rate</string>
+    <string name="nc_priority_fee_rate_desc">Typically allow the payment to be confirmed in 1 block. Recommended if the payment is of time-sensitive nature or must be reliably settled at the earliest.</string>
+    <string name="nc_standard_fee_rate_desc">Typically allow the payment to be confirmed in 2 blocks.</string>
+    <string name="nc_economy_fee_rate_desc">Typically allow the payment to be confirmed in 3 blocks. Maximum fee savings, although when fees spike it could take much longer.</string>
+    <string name="nc_payment_fee_rate_title">Please select the fee rate for the recurring payment.</string>
+    <string name="nc_payment_cosign_enable_warning">This recurring payment enables the platform key to automatically co-sign. Only 1 signature (from any keyholder) is required for each payment.</string>
+    <string name="nc_fee_rate">Fee rate</string>
 </resources>

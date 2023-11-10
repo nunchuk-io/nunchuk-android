@@ -1,16 +1,8 @@
-package com.nunchuk.android.main.membership.byzantine.payment.frequent
+package com.nunchuk.android.main.membership.byzantine.payment
 
 import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
-
-enum class PaymentFrequency {
-    DAILY,
-    WEEKLY,
-    MONTHLY,
-    THREE_MONTHLY,
-    SIX_MONTHLY,
-    YEARLY,
-}
+import com.nunchuk.android.model.payment.PaymentFrequency
 
 @StringRes
 fun PaymentFrequency.toResId(): Int {

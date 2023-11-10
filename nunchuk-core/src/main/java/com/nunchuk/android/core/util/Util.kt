@@ -47,6 +47,8 @@ fun String?.orUnknownError() = this ?: UNKNOWN_ERROR
 
 fun String.isValidCvc() = length in MIN_CVC_LENGTH..MAX_CVC_LENGTH
 
+const val MAX_NOTE_LENGTH = 280
+
 const val MAX_CVC_LENGTH = 32
 const val MIN_CVC_LENGTH = 6
 

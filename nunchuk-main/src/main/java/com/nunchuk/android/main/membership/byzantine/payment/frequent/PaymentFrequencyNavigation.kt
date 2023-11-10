@@ -9,12 +9,12 @@ import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentVie
 const val addPaymentFrequencyRoute = "add_payment_frequency"
 fun NavGraphBuilder.addPaymentFrequency(
     recurringPaymentViewModel: RecurringPaymentViewModel,
-    openKeyPolicyScreen: () -> Unit,
+    openPaymentFeeRateScreen: () -> Unit,
 ) {
     composable(addPaymentFrequencyRoute) {
         PaymentFrequentRoute(
             viewModel = recurringPaymentViewModel,
-            openKeyPolicyScreen = openKeyPolicyScreen,
+            openPaymentFeeRateScreen = openPaymentFeeRateScreen,
         )
     }
 }

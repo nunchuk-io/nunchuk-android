@@ -38,7 +38,8 @@ fun PaymentSelectAddressTypeRoute(
     PaymentSelectAddressTypeScreen(
         openWhiteListAddressScreen = openWhiteListAddressScreen,
         openScanQRCodeScreen = openScanQRCodeScreen,
-        openBsms = recurringPaymentViewModel::openBsms
+        openBsms = recurringPaymentViewModel::openBsms,
+        clearAddressInfo = recurringPaymentViewModel::clearAddressInfo,
     )
 }
 
@@ -47,7 +48,8 @@ fun PaymentSelectAddressTypeRoute(
 private fun PaymentSelectAddressTypeScreen(
     openWhiteListAddressScreen: () -> Unit = {},
     openScanQRCodeScreen: () -> Unit = {},
-    openBsms : (Uri) -> Unit = {},
+    openBsms: (Uri) -> Unit = {},
+    clearAddressInfo: () -> Unit = {},
 ) {
     var useWallet by rememberSaveable {
         mutableStateOf<Boolean?>(null)
@@ -73,6 +75,7 @@ private fun PaymentSelectAddressTypeScreen(
                     .padding(16.dp)
                     .fillMaxWidth(),
                 onClick = {
+                    clearAddressInfo()
                     if (useWallet == true) {
                         showImportSheet = true
                     } else {
@@ -127,7 +130,7 @@ private fun PaymentSelectAddressTypeScreen(
                         stringResource(R.string.nc_text_wallet_qr_code),
                     ),
                     onSelected = { pos ->
-                        when(pos) {
+                        when (pos) {
                             0 -> openBsmsLauncher.launch("*/*")
                             1 -> Unit
                             2 -> openScanQRCodeScreen()

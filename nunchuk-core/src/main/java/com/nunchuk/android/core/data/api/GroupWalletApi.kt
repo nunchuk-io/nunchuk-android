@@ -39,6 +39,7 @@ import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TransactionNoteResponse
 import com.nunchuk.android.core.data.model.membership.TransactionResponse
 import com.nunchuk.android.core.data.model.membership.TransactionsResponse
+import com.nunchuk.android.core.data.model.payment.CreateRecurringPaymentRequest
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -420,4 +421,11 @@ internal interface GroupWalletApi {
     suspend fun calculateRequiredSignaturesLockdown(
         @Body payload: LockdownUpdateRequest.Body
     ): Data<CalculateRequiredSignaturesResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/recurring-payment")
+    suspend fun createRecurringPayment(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body request: CreateRecurringPaymentRequest
+    ): Data<DummyTransactionResponse>
 }

@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -38,19 +37,21 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
+import com.nunchuk.android.main.membership.byzantine.payment.toResId
+import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import java.util.Date
 
 @Composable
 fun PaymentFrequentRoute(
     viewModel: RecurringPaymentViewModel,
-    openKeyPolicyScreen: () -> Unit,
+    openPaymentFeeRateScreen: () -> Unit,
 ) {
     val config by viewModel.config.collectAsStateWithLifecycle()
     PaymentFrequentScreen(
         frequency = config.frequency,
         onFrequencyChange = viewModel::onFrequencyChange,
-        openKeyPolicyScreen = openKeyPolicyScreen,
+        openPaymentFeeRateScreen = openPaymentFeeRateScreen,
         noEndDate = config.noEndDate,
         onNoEndDateChange = viewModel::onNoEndDateChange,
         startDate = config.startDate,
@@ -71,9 +72,8 @@ fun PaymentFrequentScreen(
     onEndDateChange: (Long) -> Unit = {},
     onNoEndDateChange: (Boolean) -> Unit = {},
     onFrequencyChange: (PaymentFrequency) -> Unit = {},
-    openKeyPolicyScreen: () -> Unit = {},
+    openPaymentFeeRateScreen: () -> Unit = {},
 ) {
-    val datePickerState = rememberDatePickerState()
     var showDatePicker by rememberSaveable {
         mutableStateOf(false)
     }
@@ -91,7 +91,7 @@ fun PaymentFrequentScreen(
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth(),
-                onClick = openKeyPolicyScreen,
+                onClick = openPaymentFeeRateScreen,
                 enabled = frequency != null
             ) {
                 Text(text = stringResource(R.string.nc_text_continue))
@@ -135,7 +135,7 @@ fun PaymentFrequentScreen(
 
                     Text(
                         modifier = Modifier.padding(top = 24.dp),
-                        text = stringResource(R.string.nc_repeat),
+                        text = stringResource(R.string.nc_date_range),
                         style = NunchukTheme.typography.title,
                     )
 
@@ -157,13 +157,15 @@ fun PaymentFrequentScreen(
                         modifier = Modifier
                             .padding(top = 16.dp)
                             .fillMaxSize(),
-                        title = if (endDate > 0) Date(endDate).simpleGlobalDateFormat() else stringResource(R.string.nc_end_date),
-                        value = stringResource(id = R.string.nc_activation_date_holder),
+                        title = stringResource(R.string.nc_end_date),
+                        value = if (endDate > 0) Date(endDate).simpleGlobalDateFormat() else stringResource(id = R.string.nc_activation_date_holder),
                         onValueChange = {},
                         enabled = false,
                         onClick = {
-                            isStartDate = false
-                            showDatePicker = true
+                            if (!noEndDate) {
+                                isStartDate = false
+                                showDatePicker = true
+                            }
                         },
                         readOnly = noEndDate,
                         disableBackgroundColor = if (noEndDate) MaterialTheme.colorScheme.whisper else MaterialTheme.colorScheme.background,

@@ -12,16 +12,24 @@ import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.a
 import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.navigateToWhitelistAddress
 import com.nunchuk.android.main.membership.byzantine.payment.amount.addPaymentAmount
 import com.nunchuk.android.main.membership.byzantine.payment.amount.navigateToPaymentAmount
+import com.nunchuk.android.main.membership.byzantine.payment.cosign.addPaymentCosignScreen
+import com.nunchuk.android.main.membership.byzantine.payment.cosign.navigatePaymentCosign
+import com.nunchuk.android.main.membership.byzantine.payment.feerate.addPaymentFeeRateScreen
+import com.nunchuk.android.main.membership.byzantine.payment.feerate.navigateToPaymentFeeRate
 import com.nunchuk.android.main.membership.byzantine.payment.frequent.addPaymentFrequency
 import com.nunchuk.android.main.membership.byzantine.payment.frequent.navigateToPaymentFrequency
 import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPaymentRoute
 import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPaymentsList
 import com.nunchuk.android.main.membership.byzantine.payment.name.addPaymentName
 import com.nunchuk.android.main.membership.byzantine.payment.name.navigateToPaymentName
+import com.nunchuk.android.main.membership.byzantine.payment.note.addPaymentNoteScreen
+import com.nunchuk.android.main.membership.byzantine.payment.note.navigateToPaymentNote
 import com.nunchuk.android.main.membership.byzantine.payment.paymentpercentage.addPaymentPercentageCalculation
 import com.nunchuk.android.main.membership.byzantine.payment.paymentpercentage.navigateToPaymentPercentageCalculation
 import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.addPaymentSelectAddressType
 import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.navigateToPaymentSelectAddressType
+import com.nunchuk.android.main.membership.byzantine.payment.summary.addPaymentSummary
+import com.nunchuk.android.main.membership.byzantine.payment.summary.navigateToPaymentSummary
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -89,9 +97,30 @@ class RecurringPaymentActivity : AppCompatActivity() {
                         )
                         addPaymentFrequency(
                             recurringPaymentViewModel = viewModel,
-                            openKeyPolicyScreen = {
-
+                            openPaymentFeeRateScreen = {
+                                navController.navigateToPaymentFeeRate()
                             },
+                        )
+                        addPaymentCosignScreen(
+                            recurringPaymentViewModel = viewModel,
+                            openPaymentNote = {
+                                navController.navigateToPaymentNote()
+                            },
+                        )
+                        addPaymentNoteScreen(
+                            recurringPaymentViewModel = viewModel,
+                            openSummaryScreen = {
+                                navController.navigateToPaymentSummary()
+                            },
+                        )
+                        addPaymentFeeRateScreen(
+                            recurringPaymentViewModel = viewModel,
+                            openPaymentCosignScreen = {
+                                navController.navigatePaymentCosign()
+                            },
+                        )
+                        addPaymentSummary(
+                            recurringPaymentViewModel = viewModel,
                         )
                     }
                 }

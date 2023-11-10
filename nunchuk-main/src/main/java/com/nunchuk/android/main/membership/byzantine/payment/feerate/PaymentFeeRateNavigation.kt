@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.byzantine.payment.cosign
+package com.nunchuk.android.main.membership.byzantine.payment.feerate
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -6,22 +6,21 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
 
-const val paymentCosignRoute = "payment_cosign"
-
-fun NavGraphBuilder.addPaymentCosignScreen(
+const val paymentFeeRateRoute = "payment_fee_rate"
+fun NavGraphBuilder.addPaymentFeeRateScreen(
     recurringPaymentViewModel: RecurringPaymentViewModel,
-    openPaymentNote: () -> Unit,
+    openPaymentCosignScreen: () -> Unit,
 ) {
-    composable(paymentCosignRoute) {
-        PaymentCosignRoute(
+    composable(paymentFeeRateRoute) {
+        PaymentFeeRateRoute(
             recurringPaymentViewModel = recurringPaymentViewModel,
-            openPaymentNote = openPaymentNote,
+            openPaymentCosignScreen = openPaymentCosignScreen,
         )
     }
 }
 
-fun NavController.navigatePaymentCosign(
+fun NavController.navigateToPaymentFeeRate(
     navOptions: NavOptions? = null
 ) {
-    navigate(paymentCosignRoute, navOptions)
+    navigate(paymentFeeRateRoute, navOptions)
 }
