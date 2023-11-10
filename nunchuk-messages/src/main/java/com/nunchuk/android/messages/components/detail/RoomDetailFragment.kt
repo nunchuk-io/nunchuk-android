@@ -246,7 +246,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
                 args.roomId,
                 viewModel.isByzantineChat()
             )
-            OpenChatInfoEvent -> navigator.openChatInfoScreen(requireActivity(), args.roomId)
+            OpenChatInfoEvent -> navigator.openChatInfoScreen(requireActivity(), args.roomId, viewModel.isByzantineChat())
             RoomWalletCreatedEvent -> showSuccess(getString(R.string.nc_message_wallet_created))
             HideBannerNewChatEvent -> adapter.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(
