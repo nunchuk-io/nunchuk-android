@@ -243,7 +243,7 @@ class ServicesTabViewModel @Inject constructor(
                     token = result.getOrThrow().orEmpty(),
                     walletId = walletId,
                     item = item,
-                    groupId = assistedWalletManager.getGroupId(walletId)
+                    groupId = state.value.assistedWallets.find { it.localId == walletId }?.groupId
                 )
             )
         } else {
@@ -310,7 +310,7 @@ class ServicesTabViewModel @Inject constructor(
 
     fun openSetupInheritancePlan(walletId: String) {
         viewModelScope.launch {
-            val groupId = assistedWalletManager.getGroupId(walletId)
+            val groupId = state.value.assistedWallets.find { it.localId == walletId }?.groupId
             if (groupId != null) {
                 _event.emit(ServicesTabEvent.Loading(true))
                 val inheritance =
@@ -434,7 +434,7 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     /**
-     * Get wallets with master or admin role
+     * Get wallets with master or admin role or no group
      */
     fun getAllowEmergencyLockdownWallets(): Pair<Boolean, List<AssistedWalletBrief>> {
         var hasLockedWallet = false
@@ -442,7 +442,7 @@ class ServicesTabViewModel @Inject constructor(
             if (state.value.joinedGroups[it.groupId]?.isLocked == true) {
                 hasLockedWallet = true
             }
-            byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isMasterOrAdmin
+            byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isMasterOrAdmin || it.groupId.isEmpty()
         }
         return hasLockedWallet to wallets
     }

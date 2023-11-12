@@ -230,19 +230,23 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         when (item) {
             ServiceTabRowItem.ClaimInheritance -> viewModel.checkInheritance()
             ServiceTabRowItem.EmergencyLockdown -> {
-                if (viewModel.state.value.plan.isByzantine()) {
-                    val (hasLockedWallet, wallets) = viewModel.getAllowEmergencyLockdownWallets()
-                    if (wallets.isEmpty()) {
-                        if (hasLockedWallet) NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_all_wallets_under_lockdown))
-                        return
-                    }
-                    if (wallets.size == 1) {
-                        enterPasswordDialog(item = item, walletId = wallets.first().localId)
-                    } else {
-                        AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
-                    }
+                val (hasLockedWallet, wallets) = viewModel.getAllowEmergencyLockdownWallets()
+                if (wallets.isEmpty()) {
+                    if (hasLockedWallet) NCInfoDialog(requireActivity()).showDialog(
+                        message = getString(
+                            R.string.nc_all_wallets_under_lockdown
+                        )
+                    )
+                    return
+                }
+                if (wallets.size == 1) {
+                    enterPasswordDialog(item = item, walletId = wallets.first().localId)
                 } else {
-                    enterPasswordDialog(item)
+                    AssistedWalletBottomSheet.show(
+                        childFragmentManager,
+                        assistedWalletIds = wallets.map { it.localId },
+                        lockdownWalletIds = viewModel.getLockdownWalletsIds()
+                    )
                 }
             }
             ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext(), viewModel.state.value.userRole)
