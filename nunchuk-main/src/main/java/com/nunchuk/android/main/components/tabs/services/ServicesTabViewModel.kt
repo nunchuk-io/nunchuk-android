@@ -436,15 +436,15 @@ class ServicesTabViewModel @Inject constructor(
     /**
      * Get wallets with master or admin role or no group
      */
-    fun getAllowEmergencyLockdownWallets(): Pair<Boolean, List<AssistedWalletBrief>> {
-        var hasLockedWallet = false
+    fun getAllowEmergencyLockdownWallets(): Pair<Int, List<AssistedWalletBrief>> {
+        var numOfLockedWallet = 0
         val wallets = state.value.assistedWallets.filter {
             if (state.value.joinedGroups[it.groupId]?.isLocked == true) {
-                hasLockedWallet = true
+                numOfLockedWallet ++
             }
             byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isMasterOrAdmin || it.groupId.isEmpty()
         }
-        return hasLockedWallet to wallets
+        return numOfLockedWallet to wallets
     }
 
     fun getLockdownWalletsIds(): List<String> {

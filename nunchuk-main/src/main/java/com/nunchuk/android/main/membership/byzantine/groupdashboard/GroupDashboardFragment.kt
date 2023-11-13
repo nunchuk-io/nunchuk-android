@@ -276,6 +276,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 GroupDashboardEvent.RequestHealthCheckSuccess -> {}
                 is GroupDashboardEvent.GetInheritanceSuccess -> {
                     if (event.isAlertFlow) {
+                        viewModel.dismissCurrentAlert()
                         findNavController().navigate(
                             GroupDashboardFragmentDirections.actionGroupDashboardFragmentToInheritanceCreateSuccessFragment(
                                 magicalPhrase = event.inheritance.magic,
