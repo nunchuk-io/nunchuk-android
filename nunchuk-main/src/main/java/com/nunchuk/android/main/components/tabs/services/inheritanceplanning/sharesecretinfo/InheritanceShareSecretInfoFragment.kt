@@ -65,6 +65,7 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
@@ -88,7 +89,9 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
             setContent {
                 InheritanceShareSecretInfoScreen(viewModel, args) {
-                    showDialogInfo(args.sourceFlow)
+                    if (args.planFlow == InheritancePlanFlow.SETUP) {
+                        showDialogInfo(args.sourceFlow)
+                    }
                 }
             }
         }
@@ -99,11 +102,11 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
             message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
             onYesClick = {
                 if (sourceFlow == InheritanceSourceFlow.GROUP_DASHBOARD) {
-                    findNavController().popBackStack(R.id.groupDashboardFragment, false)
+                    ActivityManager.popUntil(GroupDashboardActivity::class.java)
                 } else {
                     ActivityManager.popUntilRoot()
                 }
-                if (sourceFlow != InheritanceSourceFlow.NONE) {
+                if (sourceFlow != InheritanceSourceFlow.WIZARD) {
                     navigator.openWalletDetailsScreen(requireContext(), args.walletId)
                 }
             }

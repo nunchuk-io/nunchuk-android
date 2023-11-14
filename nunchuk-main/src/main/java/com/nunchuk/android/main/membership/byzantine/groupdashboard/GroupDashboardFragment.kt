@@ -293,7 +293,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 verifyToken = event.token,
                                 inheritance = event.inheritance,
                                 flowInfo = InheritancePlanFlow.VIEW,
-                                groupId = args.groupId
+                                groupId = args.groupId,
+                                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                             )
                         } else if (event.inheritance.status == InheritanceStatus.PENDING_APPROVAL) {
                             viewModel.calculateRequiredSignatures()
@@ -302,7 +303,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 walletId = viewModel.getWalletId(),
                                 activityContext = requireContext(),
                                 flowInfo = InheritancePlanFlow.SETUP,
-                                groupId = args.groupId
+                                groupId = args.groupId,
+                                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                             )
                         }
                     }
@@ -446,7 +448,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 walletId = viewModel.getWalletId(),
                 activityContext = requireContext(),
                 flowInfo = InheritancePlanFlow.SETUP,
-                groupId = args.groupId
+                groupId = args.groupId,
+                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
             )
         } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST) {
             findNavController().navigate(

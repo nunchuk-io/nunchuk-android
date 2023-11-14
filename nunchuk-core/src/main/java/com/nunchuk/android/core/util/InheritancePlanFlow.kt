@@ -45,11 +45,13 @@ object InheritanceSourceFlow {
     const val NONE = 0
     const val WIZARD = 1
     const val GROUP_DASHBOARD = 2
+    const val SERVICE_TAB = 3
 
     @IntDef(
         NONE,
         WIZARD,
         GROUP_DASHBOARD,
+        SERVICE_TAB
     )
     @Retention(AnnotationRetention.SOURCE)
     annotation class InheritanceSourceFlowInfo
