@@ -147,15 +147,14 @@ class ServicesTabViewModel @Inject constructor(
                 AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
             })
         }
+        val isMasterHasNotCreatedWallet = groups.all { it.isPendingWallet() && byzantineGroupUtils.getCurrentUserRole(it) == AssistedWalletRole.MASTER.name }
         withContext(Dispatchers.Main) {
             _state.update { state ->
                 state.copy(
                     groups2of4Multisig = if (group2of4Multisigs.isEmpty()) emptyList() else sortedGroups,
-                    userRole = byzantineGroupUtils.getCurrentUserRole(
-                        sortedGroups.firstOrNull()
-                    ),
+                    userRole = byzantineGroupUtils.getCurrentUserRole(sortedGroups.firstOrNull()),
                     joinedGroups = joinedGroups.associateBy { it.id },
-                    isMasterHasNotCreatedWallet = groups.all { it.isPendingWallet() && byzantineGroupUtils.getCurrentUserRole(it) == AssistedWalletRole.MASTER.name },
+                    isMasterHasNotCreatedWallet = isMasterHasNotCreatedWallet,
                 )
             }
         }
