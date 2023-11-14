@@ -116,7 +116,6 @@ fun GroupDashboardContent(
     NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
         Scaffold(
             modifier = Modifier
-                .navigationBarsPadding()
                 .statusBarsPadding(),
             topBar = {
                 NcTopAppBar(
