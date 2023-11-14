@@ -181,14 +181,14 @@ fun GroupDashboardContent(
                                     if (isEnableStartGroupChat) LocalRippleTheme.current else NoRippleTheme
                         ) {
                             if (uiState.groupChat != null) {
-                                FloatingActionButton(onClick = onGroupChatClick) {
+                                FloatingActionButton(shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary, onClick = onGroupChatClick) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_messages),
                                         contentDescription = "Search"
                                     )
                                 }
                             } else {
-                                ExtendedFloatingActionButton(onClick = {
+                                ExtendedFloatingActionButton(shape = RoundedCornerShape(50) ,onClick = {
                                     if (isEnableStartGroupChat) onGroupChatClick()
                                 },
                                     containerColor = if (isEnableStartGroupChat) MaterialTheme.colorScheme.secondary else colorResource(

@@ -88,7 +88,6 @@ private fun InheritanceSetupIntroContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()

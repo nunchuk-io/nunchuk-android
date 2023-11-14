@@ -199,7 +199,6 @@ private fun InheritanceClaimNoteContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 Column(

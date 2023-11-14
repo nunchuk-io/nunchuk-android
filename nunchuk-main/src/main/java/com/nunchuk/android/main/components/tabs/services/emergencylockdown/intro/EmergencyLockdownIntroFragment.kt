@@ -53,7 +53,6 @@ import com.nunchuk.android.main.R
 class EmergencyLockdownIntroFragment : Fragment() {
 
     private val viewModel: EmergencyLockdownIntroViewModel by viewModels()
-    private val args: EmergencyLockdownIntroFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,

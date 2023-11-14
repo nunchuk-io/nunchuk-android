@@ -132,7 +132,6 @@ private fun MagicalPhraseIntroContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())

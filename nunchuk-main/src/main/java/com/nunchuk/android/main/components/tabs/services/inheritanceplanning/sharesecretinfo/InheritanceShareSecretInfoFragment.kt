@@ -158,7 +158,6 @@ private fun InheritanceShareSecretInfoContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 LazyColumn(modifier = Modifier.weight(1f)) {

@@ -373,7 +373,6 @@ fun InheritanceReviewPlanScreenContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 Column(

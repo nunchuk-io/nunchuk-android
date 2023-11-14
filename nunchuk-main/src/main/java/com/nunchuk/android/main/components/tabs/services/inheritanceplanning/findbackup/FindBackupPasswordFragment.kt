@@ -97,7 +97,6 @@ private fun FindBackupPasswordContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()

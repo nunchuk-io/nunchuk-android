@@ -92,7 +92,6 @@ private fun InheritanceKeyTipContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .fillMaxSize()
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())

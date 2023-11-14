@@ -108,7 +108,6 @@ private fun InheritancePlanOverviewContent(
         Scaffold { innerPadding ->
             Column(
                 Modifier
-                    .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
                     .fillMaxSize()

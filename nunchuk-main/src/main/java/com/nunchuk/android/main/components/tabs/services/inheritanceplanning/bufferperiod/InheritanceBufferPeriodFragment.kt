@@ -147,7 +147,6 @@ private fun InheritanceBufferPeriodContent(
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
                 .statusBarsPadding()
                 .navigationBarsPadding()
         ) {
