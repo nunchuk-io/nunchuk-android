@@ -30,11 +30,13 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
+import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusRemoteUseCase
@@ -103,6 +105,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase,
     private val recoverKeyUseCase: RecoverKeyUseCase,
+    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -548,7 +551,7 @@ class GroupDashboardViewModel @Inject constructor(
                     )
                 ).onSuccess {
                     _state.update { state ->
-                        state.copy(isHasPendingRequestInheritance = true)
+                        state.copy(isHasPendingRequestInheritance = true, inheritanceOwnerId = accountManager.getAccount().id)
                     }
                     _event.emit(
                         GroupDashboardEvent.CalculateRequiredSignaturesSuccess(
@@ -607,6 +610,18 @@ class GroupDashboardViewModel @Inject constructor(
             } else {
                 _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    fun getGroupDummyTransactionPayload(dummyTransactionId: String) = viewModelScope.launch {
+        getGroupDummyTransactionPayloadUseCase(
+            GetGroupDummyTransactionPayloadUseCase.Param(
+                groupId = args.groupId,
+                walletId = getWalletId(),
+                transactionId = dummyTransactionId
+            )
+        ).onSuccess {
+            _event.emit(GroupDashboardEvent.GroupDummyTransactionPayloadSuccess(it))
         }
     }
 

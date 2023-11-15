@@ -355,6 +355,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         )
                     )
                 }
+
+                is GroupDashboardEvent.GroupDummyTransactionPayloadSuccess -> {
+                    openWalletAuthentication(
+                        dummyTransactionId = event.dummyTransactionPayload.dummyTransactionId,
+                        requiredSignatures = event.dummyTransactionPayload.requiredSignatures,
+                    )
+                }
             }
         }
     }
@@ -436,13 +443,17 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 viewModel.handleRegisterSigners(alert.payload.xfps)
             }
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-            findNavController().navigate(
-                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                    args.groupId,
-                    viewModel.getWalletId(),
-                    alert
+            if (viewModel.isInheritanceOwner()) {
+                viewModel.getGroupDummyTransactionPayload(alert.payload.dummyTransactionId)
+            } else {
+                findNavController().navigate(
+                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
+                        args.groupId,
+                        viewModel.getWalletId(),
+                        alert
+                    )
                 )
-            )
+            }
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
             navigator.openInheritancePlanningScreen(
                 walletId = viewModel.getWalletId(),
