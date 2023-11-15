@@ -1467,7 +1467,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>> {
-        return assistedWalletDao.getAssistedWallets().map { list ->
+        return assistedWalletDao.getAssistedWalletsFlow().map { list ->
             list.map { wallet ->
                 AssistedWalletBrief(
                     localId = wallet.localId,
@@ -1858,6 +1858,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.groupWalletApi.getGroups()
         val groupAssistedKeys = mutableSetOf<String>()
         val groups = response.data.groups.orEmpty()
+        val groupIds = groups.map { it.id.orEmpty() }
         if (groups.isNotEmpty()) {
             groups.forEach {
                 when (it.status) {
@@ -1871,10 +1872,23 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
+        val isShouldRefresh = deleteAssistedWallets(groupIds)
         ncDataStore.setGroupAssistedKey(groupAssistedKeys)
         syncer.syncGroups(groups)
 
-        return groups.isNotEmpty()
+        return groups.isNotEmpty() || isShouldRefresh
+    }
+
+    private suspend fun deleteAssistedWallets(groupIds: List<String>): Boolean {
+        val localGroupWallets = assistedWalletDao.getAssistedWallets().filter { it.groupId.isNotEmpty() }
+        val deleteGroupIds = localGroupWallets.map { it.groupId }.filter { groupId -> groupIds.isEmpty() || groupIds.contains(groupId).not() }
+        assistedWalletDao.deletes(localGroupWallets.filter { deleteGroupIds.contains(it.groupId) })
+
+        localGroupWallets.filter { deleteGroupIds.contains(it.groupId) }
+            .map { it.localId }.forEach { localId ->
+                nunchukNativeSdk.deleteWallet(localId)
+            }
+        return deleteGroupIds.isNotEmpty()
     }
 
     override fun getGroup(groupId: String): Flow<ByzantineGroup> {
