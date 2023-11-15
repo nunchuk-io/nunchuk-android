@@ -1,8 +1,15 @@
 package com.nunchuk.android.core.data.model.payment
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.model.payment.RecurringPayment
+import com.nunchuk.android.model.payment.toPaymentCalculationMethod
+import com.nunchuk.android.model.payment.toPaymentDestinationType
+import com.nunchuk.android.model.payment.toPaymentFrequency
+import com.nunchuk.android.model.payment.toRecurringPaymentType
 
 internal data class RecurringPaymentResponse(
+    @SerializedName("id")
+    val id: String? = null,
     @SerializedName("name")
     val name: String? = null,
     @SerializedName("payment_type")
@@ -22,7 +29,7 @@ internal data class RecurringPaymentResponse(
     @SerializedName("allow_cosigning")
     val allowCosigning: Boolean? = null,
     @SerializedName("transaction_note")
-    val transactionNote: String? = null
+    val transactionNote: String? = null,
 )
 
 internal data class PaymentPayload(
@@ -31,7 +38,7 @@ internal data class PaymentPayload(
     @SerializedName("currency")
     val currency: String? = null,
     @SerializedName("calculation_method")
-    val calculationMethod: String? = null
+    val calculationMethod: String? = null,
 )
 
 internal data class DestinationPayload(
@@ -43,5 +50,22 @@ internal data class DestinationPayload(
     val addresses: List<String>? = null,
     @SerializedName("current_index")
     val currentIndex: Int = 0,
+)
+
+internal fun RecurringPaymentResponse.toModel() = RecurringPayment(
+    name = name.orEmpty(),
+    paymentType = paymentType.toRecurringPaymentType,
+    destinationType = destinationType.toPaymentDestinationType,
+    frequency = frequency.toPaymentFrequency,
+    startDate = startDateMillis,
+    endDate = endDateMillis,
+    allowCosigning = allowCosigning ?: false,
+    note = transactionNote.orEmpty(),
+    amount = paymentPayload?.amount ?: 0.0,
+    currency = paymentPayload?.currency,
+    calculationMethod = paymentPayload?.calculationMethod.toPaymentCalculationMethod,
+    addresses = destinationPayload?.addresses.orEmpty(),
+    bsms = destinationPayload?.bsms,
+    id = id
 )
 

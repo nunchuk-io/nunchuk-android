@@ -1,9 +1,9 @@
 package com.nunchuk.android.main.membership.byzantine.payment
 
 import android.os.Parcelable
-import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
+import com.nunchuk.android.model.payment.PaymentFrequency
 import kotlinx.parcelize.Parcelize
 
 
@@ -14,7 +14,8 @@ data class RecurringPaymentConfig(
     val unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     val currency: String = "",
     val useAmount: Boolean = true,
-    val calculatePercentageJustInTime: Boolean = false,
+    val calculatePercentageJustInTime: Boolean? = false,
+    val bsms: String? = null,
     val addresses: List<String> = emptyList(),
     val frequency: PaymentFrequency? = null,
     val startDate: Long = 0,

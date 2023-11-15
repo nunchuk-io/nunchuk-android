@@ -27,12 +27,11 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentConfig
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
 import com.nunchuk.android.main.membership.byzantine.payment.feerate.toTitle
 import com.nunchuk.android.main.membership.byzantine.payment.toResId
-import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.model.FeeRate
+import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import java.util.Date
 
@@ -41,11 +40,35 @@ fun PaymentSummaryRoute(
     recurringPaymentViewModel: RecurringPaymentViewModel,
 ) {
     val state by recurringPaymentViewModel.config.collectAsStateWithLifecycle()
-    PaymentSummaryScreen(state = state)
+    PaymentSummaryScreen(
+        isCosign = state.isCosign == true,
+        name = state.name,
+        amount = state.amount,
+        frequency = state.frequency ?: PaymentFrequency.DAILY,
+        startDate = state.startDate,
+        endDate = state.endDate,
+        noEndDate = state.noEndDate,
+        feeRate = state.feeRate,
+        addresses = state.addresses,
+        note = state.note,
+        onSubmit = recurringPaymentViewModel::onSubmit,
+    )
 }
 
 @Composable
-fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig()) {
+fun PaymentSummaryScreen(
+    onSubmit: () -> Unit = {},
+    isCosign: Boolean = false,
+    name: String = "",
+    amount: String = "",
+    frequency: PaymentFrequency = PaymentFrequency.DAILY,
+    startDate: Long = 0,
+    endDate: Long = 0,
+    noEndDate: Boolean = false,
+    feeRate: FeeRate = FeeRate.PRIORITY,
+    addresses: List<String> = emptyList(),
+    note: String = "",
+) {
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(
@@ -57,7 +80,7 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth(),
-                onClick = {},
+                onClick = onSubmit,
             ) {
                 Text(text = stringResource(R.string.nc_text_continue))
             }
@@ -69,7 +92,7 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (state.isCosign == true) {
+                if (isCosign) {
                     NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_payment_cosign_enable_warning))))
                 }
                 NcTextField(
@@ -77,7 +100,7 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
                     title = stringResource(id = R.string.nc_payment_name),
-                    value = state.name,
+                    value = name,
                     onValueChange = {},
                     enabled = false,
                     disableBackgroundColor = MaterialTheme.colorScheme.whisper,
@@ -88,7 +111,7 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
                     title = stringResource(id = R.string.nc_amount),
-                    value = state.amount,
+                    value = amount,
                     onValueChange = {},
                     enabled = false,
                     disableBackgroundColor = MaterialTheme.colorScheme.whisper,
@@ -99,7 +122,7 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
                     title = stringResource(id = R.string.nc_repeat),
-                    value = state.frequency?.toResId()?.let { stringResource(id = it) }.orEmpty(),
+                    value = frequency?.toResId()?.let { stringResource(id = it) }.orEmpty(),
                     onValueChange = {},
                     enabled = false,
                     disableBackgroundColor = MaterialTheme.colorScheme.whisper,
@@ -111,7 +134,7 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                             .padding(top = 16.dp)
                             .weight(1f),
                         title = stringResource(id = R.string.nc_start_date),
-                        value = Date(state.startDate).simpleGlobalDateFormat(),
+                        value = Date(startDate).simpleGlobalDateFormat(),
                         onValueChange = {},
                         enabled = false,
                         disableBackgroundColor = MaterialTheme.colorScheme.whisper,
@@ -122,8 +145,8 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                             .padding(top = 16.dp)
                             .weight(1f),
                         title = stringResource(id = R.string.nc_end_date),
-                        value = if (state.noEndDate) stringResource(id = R.string.nc_no_end_date)
-                        else Date(state.endDate).simpleGlobalDateFormat(),
+                        value = if (noEndDate) stringResource(id = R.string.nc_no_end_date)
+                        else Date(endDate).simpleGlobalDateFormat(),
                         onValueChange = {},
                         enabled = false,
                         disableBackgroundColor = MaterialTheme.colorScheme.whisper,
@@ -135,7 +158,7 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
                     title = stringResource(R.string.nc_fee_rate),
-                    value = stringResource(id = state.feeRate.toTitle()),
+                    value = stringResource(id = feeRate.toTitle()),
                     onValueChange = {},
                     enabled = false,
                     disableBackgroundColor = MaterialTheme.colorScheme.whisper,
@@ -146,26 +169,26 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
                     title = stringResource(R.string.nc_allow_platform_key_to_co_sign),
-                    value = if (state.isCosign == true) stringResource(id = R.string.nc_text_yes)
+                    value = if (isCosign == true) stringResource(id = R.string.nc_text_yes)
                     else stringResource(id = R.string.nc_text_no),
                     onValueChange = {},
                     enabled = false,
                     disableBackgroundColor = MaterialTheme.colorScheme.whisper,
                 )
 
-                if (state.addresses.isNotEmpty()) {
+                if (addresses.isNotEmpty()) {
 
                 } else {
 
                 }
 
-                if (state.note.isNotEmpty()) {
+                if (note.isNotEmpty()) {
                     NcTextField(
                         modifier = Modifier
                             .padding(top = 16.dp)
                             .fillMaxWidth(),
                         title = stringResource(R.string.nc_note),
-                        value = state.note,
+                        value = note,
                         onValueChange = {},
                         enabled = false,
                         disableBackgroundColor = MaterialTheme.colorScheme.whisper,
@@ -180,15 +203,15 @@ fun PaymentSummaryScreen(state: RecurringPaymentConfig = RecurringPaymentConfig(
 @Composable
 fun PaymentSummaryScreenPreview() {
     PaymentSummaryScreen(
-        RecurringPaymentConfig(
-            name = "Consultant fee",
-            note = "Lorem ipsum dolore",
-            feeRate = FeeRate.PRIORITY,
-            frequency = PaymentFrequency.DAILY,
-            startDate = System.currentTimeMillis(),
-            endDate = System.currentTimeMillis() + 1000000L,
-            noEndDate = false,
-            amount = "0.0001",
-        )
+        isCosign = true,
+        name = "John Doe",
+        amount = "100",
+        frequency = PaymentFrequency.DAILY,
+        startDate = 0,
+        endDate = 0,
+        noEndDate = false,
+        feeRate = FeeRate.PRIORITY,
+        addresses = emptyList(),
+        note = "",
     )
 }

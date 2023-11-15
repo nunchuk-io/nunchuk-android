@@ -9,11 +9,19 @@ import com.nunchuk.android.core.base.MutableSaveStateFlow
 import com.nunchuk.android.core.base.update
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
+import com.nunchuk.android.model.payment.PaymentCalculationMethod
+import com.nunchuk.android.model.payment.PaymentDestinationType
+import com.nunchuk.android.model.payment.PaymentFrequency
+import com.nunchuk.android.model.payment.RecurringPayment
+import com.nunchuk.android.model.payment.RecurringPaymentType
+import com.nunchuk.android.usecase.premier.CreateRecurringPaymentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,14 +29,21 @@ import javax.inject.Inject
 class RecurringPaymentViewModel @Inject constructor(
     private val application: Application,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val createRecurringPaymentUseCase: CreateRecurringPaymentUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    private val groupId = savedStateHandle.get<String>(RecurringPaymentActivity.GROUP_ID).orEmpty()
+    private val walletId =
+        savedStateHandle.get<String>(RecurringPaymentActivity.WALLET_ID).orEmpty()
     private val _config = MutableSaveStateFlow(
         savedStateHandle = savedStateHandle,
         key = "recurring_payment_config",
         defaultValue = RecurringPaymentConfig()
     )
     val config = _config.asStateFlow()
+
+    private val _state = MutableStateFlow(RecurringPaymentUiState())
+    val state = _state.asStateFlow()
 
     fun onNameChange(name: String) {
         _config.update {
@@ -123,6 +138,47 @@ class RecurringPaymentViewModel @Inject constructor(
                 note = "",
                 isCosign = null,
             )
+        }
+    }
+
+    fun onSubmit() {
+        viewModelScope.launch {
+            val recurringPayment = RecurringPayment(
+                name = config.value.name,
+                paymentType = if (config.value.useAmount) RecurringPaymentType.FIXED_AMOUNT else RecurringPaymentType.PERCENTAGE,
+                destinationType = if (config.value.addresses.isNotEmpty()) PaymentDestinationType.WHITELISTED_ADDRESSES else PaymentDestinationType.DESTINATION_WALLET,
+                frequency = config.value.frequency!!,
+                startDate = config.value.startDate,
+                endDate = config.value.endDate,
+                allowCosigning = config.value.isCosign!!,
+                note = config.value.note,
+                amount = config.value.amount.toDoubleOrNull() ?: 0.0,
+                currency = config.value.currency,
+                calculationMethod = config.value.calculatePercentageJustInTime?.let {
+                    if (it) PaymentCalculationMethod.JUST_IN_TIME else PaymentCalculationMethod.RUNNING_AVERAGE
+                },
+                bsms = config.value.bsms,
+                addresses = config.value.addresses,
+            )
+            createRecurringPaymentUseCase(
+                CreateRecurringPaymentUseCase.Params(
+                    groupId = groupId,
+                    walletId = walletId,
+                    recurringPayment = recurringPayment,
+                )
+            ).onSuccess { dummyTransactionId ->
+                _state.update {
+                    it.copy(
+                        openDummyTransactionScreen = dummyTransactionId,
+                    )
+                }
+            }.onFailure { error ->
+                _state.update {
+                    it.copy(
+                        errorMessage = error.message.orEmpty(),
+                    )
+                }
+            }
         }
     }
 }

@@ -129,8 +129,8 @@ class RecurringPaymentActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val GROUP_ID = "group_id"
-        private const val WALLET_ID = "wallet_id"
+        internal const val GROUP_ID = "group_id"
+        internal const val WALLET_ID = "wallet_id"
 
         fun navigate(
             activity: Context,

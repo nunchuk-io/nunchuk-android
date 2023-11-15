@@ -36,7 +36,6 @@ import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
-import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showOrHideLoading

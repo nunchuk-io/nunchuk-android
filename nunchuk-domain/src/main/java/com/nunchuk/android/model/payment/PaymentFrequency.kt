@@ -11,3 +11,6 @@ enum class PaymentFrequency {
     SIX_MONTHLY,
     YEARLY,
 }
+
+val String?.toPaymentFrequency: PaymentFrequency
+    get() = PaymentFrequency.values().find { it.name == this } ?: PaymentFrequency.DAILY

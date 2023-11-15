@@ -94,12 +94,15 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
     private val inheritanceLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                val dummyTransactionId = it.data?.getStringExtra(GlobalResultKey.DUMMY_TX_ID).orEmpty()
-                val requiredSignatures = it.data?.getIntExtra(GlobalResultKey.REQUIRED_SIGNATURES, 0) ?: 0
+                val dummyTransactionId =
+                    it.data?.getStringExtra(GlobalResultKey.DUMMY_TX_ID).orEmpty()
+                val requiredSignatures =
+                    it.data?.getIntExtra(GlobalResultKey.REQUIRED_SIGNATURES, 0) ?: 0
                 if (dummyTransactionId.isNotEmpty()) {
                     openWalletAuthentication(
                         dummyTransactionId = dummyTransactionId,
-                        requiredSignatures = requiredSignatures,)
+                        requiredSignatures = requiredSignatures,
+                    )
                 }
             }
         }
@@ -108,7 +111,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val dummyTransactionType = data.parcelable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
+                val dummyTransactionType =
+                    data.parcelable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
                 if (dummyTransactionType != null) {
                     if (dummyTransactionType.isInheritanceFlow()) {
                         viewModel.markSetupInheritance(dummyTransactionType)
@@ -125,7 +129,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         }
 
     private fun showInheritanceMessage(dummyTransactionType: DummyTransactionType) {
-        val message = when(dummyTransactionType) {
+        val message = when (dummyTransactionType) {
             DummyTransactionType.CREATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_created)
             DummyTransactionType.UPDATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_updated)
             DummyTransactionType.CANCEL_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_canlled)
@@ -474,6 +478,14 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             )
         } else if (alert.type == AlertType.KEY_RECOVERY_APPROVED) {
             viewModel.recoverKey(alert.payload.keyXfp)
+        } else if (alert.type == AlertType.RECURRING_PAYMENT_REQUEST) {
+            findNavController().navigate(
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToRecurringPaymentRequestFragment(
+                    args.groupId,
+                    viewModel.getWalletId(),
+                    alert.payload.dummyTransactionId
+                )
+            )
         }
     }
 

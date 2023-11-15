@@ -65,4 +65,8 @@ internal interface DataModule {
     @Binds
     @Singleton
     fun bindDummyTransactionRepository(repository: DummyTransactionRepositoryImpl): DummyTransactionRepository
+
+    @Binds
+    @Singleton
+    fun bindRecurringPaymentRepository(repository: RecurringPaymentRepositoryImpl): RecurringPaymentRepository
 }

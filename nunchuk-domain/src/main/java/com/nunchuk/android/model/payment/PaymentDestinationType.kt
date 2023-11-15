@@ -6,3 +6,6 @@ import androidx.annotation.Keep
 enum class PaymentDestinationType {
     DESTINATION_WALLET, WHITELISTED_ADDRESSES
 }
+
+val String?.toPaymentDestinationType: PaymentDestinationType
+    get() = PaymentDestinationType.values().find { it.name == this } ?: PaymentDestinationType.DESTINATION_WALLET

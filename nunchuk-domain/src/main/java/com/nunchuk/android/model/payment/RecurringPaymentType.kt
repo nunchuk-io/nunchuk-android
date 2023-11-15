@@ -6,3 +6,6 @@ import androidx.annotation.Keep
 enum class RecurringPaymentType {
     FIXED_AMOUNT, PERCENTAGE
 }
+
+val String?.toRecurringPaymentType: RecurringPaymentType
+    get() = RecurringPaymentType.values().find { it.name == this } ?: RecurringPaymentType.FIXED_AMOUNT

@@ -100,9 +100,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim">
-            <argument android:name="source_flow"
-                app:argType="integer"
-                android:defaultValue="0"/>
+            <argument
+                android:name="source_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
             <argument
                 android:name="magical_phrase"
                 app:argType="string" />
@@ -140,6 +141,13 @@
                 android:name="backupKey"
                 app:argType="com.nunchuk.android.model.BackupKey" />
         </action>
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_recurringPaymentRequestFragment"
+            app:destination="@id/recurringPaymentRequestFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />
@@ -234,12 +242,12 @@
     <fragment
         android:id="@+id/walletConfigIntroFragment"
         android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.wallet.WalletConfigIntroFragment"
-        android:label="WalletConfigIntroFragment" >
+        android:label="WalletConfigIntroFragment">
 
         <argument
             android:name="is_claim_flow"
-            app:argType="boolean"
-            android:defaultValue="false" />
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
 
     <fragment
@@ -250,17 +258,57 @@
             android:name="group"
             app:argType="com.nunchuk.android.model.ByzantineGroup" />
 
-        <argument android:name="wallet_name"
+        <argument
+            android:name="wallet_name"
             app:argType="string" />
     </fragment>
 
-    <fragment android:id="@+id/keyRecoverySuccessStateFragment"
+    <fragment
+        android:id="@+id/keyRecoverySuccessStateFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessStateFragment"
         android:label="KeyRecoverySuccessStateFragment">
-        <argument android:name="type"
+        <argument
+            android:name="type"
             app:argType="string" />
     </fragment>
 
     <include app:graph="@navigation/key_recovery_download_backup_navigation" />
+    <fragment
+        android:id="@+id/recurringPaymentRequestFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.payment.RecurringPaymentRequestFragment"
+        android:label="RecurringPaymentRequestFragment">
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="dummy_transaction_id"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_recurringPaymentRequestFragment_to_recurringPaymentRequestReviewFragment"
+            app:destination="@id/recurringPaymentRequestReviewFragment"
+            />
+    </fragment>
+    <fragment
+        android:id="@+id/recurringPaymentRequestReviewFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.payment.RecurringPaymentRequestReviewFragment"
+        android:label="RecurringPaymentRequestReviewFragment" >
+
+        <argument
+            android:name="dummy_transaction_id"
+            app:argType="string" />
+
+        <argument
+            android:name="pending_signatures"
+            app:argType="integer" />
+        <argument
+            android:name="recurring_payment"
+            app:argType="com.nunchuk.android.model.payment.RecurringPayment" />
+    </fragment>
+
 
 </navigation>

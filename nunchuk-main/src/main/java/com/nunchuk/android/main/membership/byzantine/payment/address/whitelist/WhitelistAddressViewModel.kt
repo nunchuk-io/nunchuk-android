@@ -23,7 +23,7 @@ class WhitelistAddressViewModel @Inject constructor(
             checkAddressValidUseCase(CheckAddressValidUseCase.Params(addresses = addresses))
                 .onSuccess {
                     if (it.isEmpty()) {
-                        _state.update { state -> state.copy(openPaymentFrequentScreenEvent = it) }
+                        _state.update { state -> state.copy(openPaymentFrequentScreenEvent = addresses) }
                     } else {
                         _state.update { state -> state.copy(invalidAddressEvent = it.first()) }
                     }
