@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +30,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcTag
@@ -58,9 +58,9 @@ fun SpendingLimitAccountView(
     onShowTimeUnitOption: (email: String?) -> Unit = {},
     onLimitChange: (email: String?, limit: String) -> Unit = { _, _ -> },
 ) {
-    val name = member.member?.name ?: return
-    val email = member.member?.email ?: return
-    val role = member.member?.role ?: return
+    val name = member.member?.name.orEmpty()
+    val email = member.member?.email.orEmpty()
+    val role = member.member?.role.orEmpty()
     val isNotKeyHolderLimited = role.toRole != AssistedWalletRole.KEYHOLDER_LIMITED
     Column(modifier = modifier) {
         if (index == 0) {
@@ -105,8 +105,17 @@ fun SpendingLimitAccountView(
                         )
                     }
                 }
-                Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(text = name, style = NunchukTheme.typography.body)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 12.dp),
+                ) {
+                    Text(
+                        text = name,
+                        style = NunchukTheme.typography.body,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
                     NcTag(
                         modifier = Modifier.padding(top = 4.dp),
                         label = role.toTitle()
@@ -114,12 +123,13 @@ fun SpendingLimitAccountView(
                     Text(
                         modifier = Modifier.padding(top = 4.dp),
                         text = email,
-                        style = NunchukTheme.typography.bodySmall
+                        style = NunchukTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
                     )
                 }
 
                 if (!member.isJoinGroup) {
-                    Spacer(modifier = Modifier.weight(1f))
                     Text(
                         text = stringResource(R.string.nc_contact_pending),
                         style = NunchukTheme.typography.captionTitle,
