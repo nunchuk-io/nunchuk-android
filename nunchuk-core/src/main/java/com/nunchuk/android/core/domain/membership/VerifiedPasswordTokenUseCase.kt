@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.domain.membership
 
-import androidx.annotation.Keep
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
@@ -38,15 +37,4 @@ class VerifiedPasswordTokenUseCase @Inject constructor(
     }
 
     class Param(val targetAction: String, val password: String)
-}
-
-@Keep
-enum class VerifiedPasswordTargetAction {
-    EMERGENCY_LOCKDOWN,
-    DOWNLOAD_KEY_BACKUP,
-    UPDATE_SECURITY_QUESTIONS,
-    UPDATE_INHERITANCE_PLAN,
-    UPDATE_SERVER_KEY,
-    DELETE_WALLET,
-    PROTECT_WALLET
 }

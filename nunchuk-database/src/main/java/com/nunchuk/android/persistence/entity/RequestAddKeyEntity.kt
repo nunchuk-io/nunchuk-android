@@ -38,5 +38,7 @@ data class RequestAddKeyEntity(
     @ColumnInfo(name = "chain")
     val chain: Chain = Chain.MAIN,
     @ColumnInfo(name = "tag", defaultValue = "")
-    val tag: String = ""
+    val tag: String = "",
+    @ColumnInfo(name = "group_id", defaultValue = "")
+    val groupId: String = "",
 )

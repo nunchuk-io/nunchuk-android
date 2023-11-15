@@ -26,6 +26,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
 import androidx.core.text.HtmlCompat
 import com.nunchuk.android.widget.databinding.NcWarningDialogBinding
+import com.nunchuk.android.widget.databinding.NcWarningDialogVeritcalBinding
 import javax.inject.Inject
 
 class NCWarningDialog @Inject constructor(
@@ -63,4 +64,43 @@ class NCWarningDialog @Inject constructor(
         window?.setLayout(MATCH_PARENT, MATCH_PARENT)
     }
 
+
+    fun showDialog(
+        title: String = activity.getString(R.string.nc_text_warning),
+        message: String,
+        btnPositive: String = activity.getString(R.string.nc_text_yes),
+        btnNegative: String = activity.getString(R.string.nc_text_no),
+        btnNeutral: String = "",
+        onPositiveClick: () -> Unit = {},
+        onNegativeClick: () -> Unit = {},
+        onNeutralClick: () -> Unit = {},
+    ) = Dialog(activity).apply {
+        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        setCancelable(false)
+        val binding = NcWarningDialogVeritcalBinding.inflate(LayoutInflater.from(context))
+        setContentView(binding.root)
+
+        binding.title.text = title
+        binding.btnYes.text = btnPositive
+        binding.btnNo.text = btnNegative
+        binding.btnNeutral.text = btnNeutral
+        binding.message.text = message
+        binding.btnYes.setOnClickListener {
+            onPositiveClick()
+            dismiss()
+        }
+
+        binding.btnNo.setOnClickListener {
+            onNegativeClick()
+            dismiss()
+        }
+
+        binding.btnNeutral.setOnClickListener {
+            onNeutralClick()
+            dismiss()
+        }
+        show()
+        window?.setLayout(MATCH_PARENT, MATCH_PARENT)
+    }
 }

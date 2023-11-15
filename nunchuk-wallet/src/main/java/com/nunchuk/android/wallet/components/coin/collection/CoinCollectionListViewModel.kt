@@ -134,6 +134,7 @@ class CoinCollectionListViewModel @Inject constructor(
         val addResultDefer = async {
             addToCoinCollectionUseCase(
                 AddToCoinCollectionUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(args.walletId),
                     walletId = args.walletId,
                     collectionIds = selectedCollections.toList(),
                     coins = args.coins.toList(),
@@ -144,6 +145,7 @@ class CoinCollectionListViewModel @Inject constructor(
         val deleteResultDefer = async {
             removeCoinFromCollectionUseCase(
                 RemoveCoinFromCollectionUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(args.walletId),
                     walletId = args.walletId,
                     collectionIds = deletedCollections.toList(),
                     coins = args.coins.toList(),

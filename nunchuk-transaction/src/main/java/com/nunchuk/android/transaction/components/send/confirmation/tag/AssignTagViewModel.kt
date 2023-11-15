@@ -94,6 +94,7 @@ class AssignTagViewModel @Inject constructor(
         viewModelScope.launch {
             addToCoinTagUseCase(
                 AddToCoinTagUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
                     tagIds = tags.map { it.id },
                     coins = listOf(output),

@@ -31,6 +31,7 @@ interface SignerNavigator {
 
     fun openSignerInfoScreen(
         activityContext: Context,
+        isMasterSigner: Boolean,
         id: String,
         masterFingerprint: String,
         name: String,
@@ -43,7 +44,7 @@ interface SignerNavigator {
         customMessage: String = ""
     )
 
-    fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean, tag: SignerTag? = null)
+    fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean, tag: SignerTag? = null, groupId: String = "")
 
     /**
      * @param passphrase only need for replacing primary key

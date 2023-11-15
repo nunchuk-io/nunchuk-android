@@ -30,4 +30,6 @@ interface PushNotificationIntentProvider {
         isCancelBroadcast: Boolean = false,
         errorMessage: String = ""
     ): Intent
+
+    fun getGeneralIntent(walletId: String?, groupId: String?, transactionId: String?): Intent
 }

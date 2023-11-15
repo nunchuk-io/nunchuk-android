@@ -22,6 +22,7 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -40,17 +41,23 @@ interface SignInUseCase {
 internal class SignInUseCaseImpl @Inject constructor(
     private val authRepository: AuthRepository,
     private val accountManager: AccountManager,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
 ) : SignInUseCase {
 
-    override fun execute(email: String, password: String, staySignedIn: Boolean) = authRepository.login(
-        email = email,
-        password = password
-    ).map {
-        storeAccount(email, it, staySignedIn)
-    }.flowOn(ioDispatcher)
+    override fun execute(email: String, password: String, staySignedIn: Boolean) =
+        authRepository.login(
+            email = email,
+            password = password
+        ).map {
+            storeAccount(email, it, staySignedIn)
+        }.flowOn(ioDispatcher)
 
-    private fun storeAccount(email: String, response: UserTokenResponse, staySignedIn: Boolean): Pair<String, String> {
+    private suspend fun storeAccount(
+        email: String,
+        response: UserTokenResponse,
+        staySignedIn: Boolean
+    ): Pair<String, String> {
         val account = accountManager.getAccount()
         accountManager.storeAccount(
             account.copy(
@@ -58,9 +65,11 @@ internal class SignInUseCaseImpl @Inject constructor(
                 token = response.tokenId,
                 activated = true,
                 staySignedIn = staySignedIn,
-                deviceId = response.deviceId
+                deviceId = response.deviceId,
             )
         )
+
+        getUserProfileUseCase(Unit)
         return response.tokenId to response.deviceId
     }
 

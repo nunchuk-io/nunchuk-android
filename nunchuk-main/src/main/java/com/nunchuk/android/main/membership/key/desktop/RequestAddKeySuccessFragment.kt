@@ -4,7 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -17,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -31,6 +38,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.key.toString
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
 
@@ -115,9 +123,7 @@ private fun RequestAddKeySuccessContent(
                     modifier = Modifier.padding(24.dp),
                     text = stringResource(
                         R.string.nc_added_successfully,
-                        if (tag == SignerTag.LEDGER)
-                            stringResource(id = R.string.nc_ledger)
-                        else stringResource(id = R.string.nc_trezor)
+                        tag.toString(LocalContext.current)
                     ),
                     style = NunchukTheme.typography.heading
                 )

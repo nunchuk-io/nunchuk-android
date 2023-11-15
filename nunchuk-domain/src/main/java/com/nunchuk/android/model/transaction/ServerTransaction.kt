@@ -24,8 +24,10 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ServerTransaction(
+    val transactionId: String,
     val type: String = "",
     val broadcastTimeInMilis: Long = 0L,
     val spendingLimitMessage: String = "",
     val signedInMilis: Long = 0L,
+    val isCosigning: Boolean = false
 ) : Parcelable

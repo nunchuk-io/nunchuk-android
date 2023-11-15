@@ -40,16 +40,23 @@ internal class AssistedWalletManagerImpl @Inject constructor(
         MembershipPlan.NONE
     )
 
-    private val _assistedWalletId = getAssistedWalletsFlowUseCase(Unit)
-        .map { if (plan.value != MembershipPlan.NONE) it.getOrElse { emptyList() } else emptyList() }
-        .stateIn(applicationScope, SharingStarted.Eagerly, emptyList())
+    private val _assistedWalletId =
+        getAssistedWalletsFlowUseCase(Unit).map { wallets ->
+            wallets.getOrElse { emptyList() }
+        }.stateIn(applicationScope, SharingStarted.Eagerly, emptyList())
 
     override fun isActiveAssistedWallet(walletId: String): Boolean {
-        return _assistedWalletId.value.any { it.localId == walletId } && plan.value != MembershipPlan.NONE
+        return _assistedWalletId.value.any { it.localId == walletId }
+                && (plan.value != MembershipPlan.NONE || !getGroupId(walletId).isNullOrEmpty())
+    }
+
+    override fun getGroupId(walletId: String): String? {
+        return _assistedWalletId.value.find { it.localId == walletId }?.groupId
     }
 
     override fun isInactiveAssistedWallet(walletId: String): Boolean {
-        return _assistedWalletId.value.any { it.localId == walletId } && plan.value == MembershipPlan.NONE
+        return _assistedWalletId.value.any { it.localId == walletId }
+                && (plan.value == MembershipPlan.NONE && getGroupId(walletId).isNullOrEmpty())
     }
 
     override fun isShowSetupInheritance(walletId: String): Boolean {

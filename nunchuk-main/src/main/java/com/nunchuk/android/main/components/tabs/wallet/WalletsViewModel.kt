@@ -31,18 +31,20 @@ import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
@@ -54,7 +56,9 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPassphraseSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
+import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -62,21 +66,29 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
+import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
+import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
+import com.nunchuk.android.usecase.byzantine.SyncDeletedWalletUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
+import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -91,6 +103,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -119,6 +132,15 @@ internal class WalletsViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
+    private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
+    private val getGroupsUseCase: GetGroupsUseCase,
+    private val groupMemberAcceptRequestUseCase: GroupMemberAcceptRequestUseCase,
+    private val groupMemberDenyRequestUseCase: GroupMemberDenyRequestUseCase,
+    private val getPendingWalletNotifyCountUseCase: GetPendingWalletNotifyCountUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils,
+    private val syncDeletedWalletUseCase: SyncDeletedWalletUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
@@ -131,6 +153,7 @@ internal class WalletsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private var isRetrievingData = AtomicBoolean(false)
+    private var isRetrievingAlert = AtomicBoolean(false)
 
     override val initialState = WalletsState()
 
@@ -145,6 +168,7 @@ internal class WalletsViewModel @Inject constructor(
                     updateState { copy(assistedWallets = it) }
                     checkMemberMembership()
                     checkInheritance(it)
+                    mapGroupWalletUi()
                 }
         }
         viewModelScope.launch {
@@ -168,7 +192,6 @@ internal class WalletsViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            delay(1000)
             getWalletPinUseCase(Unit).collect {
                 updateState { copy(currentWalletPin = it.getOrDefault("")) }
             }
@@ -181,14 +204,81 @@ internal class WalletsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
-                if (event is PushEvent.WalletCreate) {
-                    if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                        retrieveData()
+                when (event) {
+                    is PushEvent.WalletCreate -> {
+                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
+                            getServerWalletUseCase(Unit).onSuccess {
+                                if (it.isNeedReload) {
+                                    retrieveData()
+                                }
+                            }
+                        }
                     }
+
+                    is PushEvent.DraftResetWallet -> {
+                        syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                            if (shouldReload) retrieveData()
+                        }
+                    }
+
+                    is PushEvent.GroupMembershipRequestCreated -> {
+                        if (!getState().allGroups.any { it.id == event.groupId }) {
+                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                                if (shouldReload) retrieveData()
+                            }
+                        }
+                    }
+
+                    is PushEvent.GroupEmergencyLockdownStarted -> {
+                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
+                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                                if (shouldReload) retrieveData()
+                            }
+                        }
+                    }
+
+                    is PushEvent.GroupWalletCreated -> {
+                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
+                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                                if (shouldReload) retrieveData()
+                            }
+                        }
+                    }
+
+                    else -> {}
                 }
             }
         }
+        syncGroup()
+        viewModelScope.launch {
+            syncDeletedWalletUseCase(Unit).onSuccess { shouldReload ->
+                if (shouldReload) retrieveData()
+            }
+        }
+        viewModelScope.launch {
+            getGroupsUseCase(Unit).distinctUntilChanged().collect {
+                val groups = it.getOrDefault(emptyList())
+                updateState { copy(allGroups = groups) }
+                if (groups.isNotEmpty()) {
+                    updateBadge()
+                }
+                mapGroupWalletUi()
+            }
+        }
         getAppSettings()
+        viewModelScope.launch {
+            if (accountManager.getAccount().id.isEmpty()) {
+                getUserProfileUseCase(Unit)
+            }
+        }
+    }
+
+    private fun syncGroup() {
+        viewModelScope.launch {
+            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                if (shouldReload) retrieveData()
+            }
+        }
     }
 
     fun reloadMembership() {
@@ -199,12 +289,17 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private suspend fun checkInheritance(wallets: List<AssistedWalletBrief>) {
-        val honeyWalletsUnSetupInheritance =
-            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER }
+        val walletsUnSetupInheritance =
+            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO }
         supervisorScope {
-            honeyWalletsUnSetupInheritance.map {
+            walletsUnSetupInheritance.map {
                 async {
-                    getInheritanceUseCase(it.localId)
+                    getInheritanceUseCase(
+                        GetInheritanceUseCase.Param(
+                            it.localId,
+                            groupId = it.groupId
+                        )
+                    )
                 }
             }.awaitAll()
         }
@@ -217,12 +312,14 @@ internal class WalletsViewModel @Inject constructor(
                 val subscription = result.getOrThrow()
                 val getServerWalletResult = getServerWalletUseCase(Unit)
                 if (getServerWalletResult.isFailure) return@launch
-                if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
-                    retrieveData()
-                }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
                 updateState { copy(plan = subscription.plan) }
+                if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
+                    retrieveData()
+                } else {
+                    mapGroupWalletUi()
+                }
             } else {
                 updateState { copy(plan = MembershipPlan.NONE) }
             }
@@ -237,13 +334,11 @@ internal class WalletsViewModel @Inject constructor(
 
     private fun getAppSettings() {
         viewModelScope.launch {
-            getChainSettingFlowUseCase(Unit)
-                .map { it.getOrElse { Chain.MAIN } }
-                .collect {
-                    updateState {
-                        copy(chain = it)
-                    }
+            getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.collect {
+                updateState {
+                    copy(chain = it)
                 }
+            }
         }
     }
 
@@ -251,40 +346,109 @@ internal class WalletsViewModel @Inject constructor(
         if (isRetrievingData.get()) return
         isRetrievingData.set(true)
         viewModelScope.launch {
-            getCompoundSignersUseCase.execute()
-                .zip(getWalletsUseCase.execute()) { p, wallets ->
-                    Triple(p.first, p.second, wallets)
+            getCompoundSignersUseCase.execute().zip(getWalletsUseCase.execute()) { p, wallets ->
+                Triple(p.first, p.second, wallets)
+            }.map {
+                mapSigners(it.second, it.first).sortedByDescending { signer ->
+                    isPrimaryKey(
+                        signer.id
+                    )
+                } to it.third
+            }.flowOn(Dispatchers.IO).onException {
+                updateState { copy(signers = emptyList()) }
+            }.flowOn(Dispatchers.Main).onStart {
+                if (getState().wallets.isEmpty()) {
+                    event(Loading(true))
                 }
-                .map {
-                    mapSigners(it.second, it.first).sortedByDescending { signer ->
-                        isPrimaryKey(
-                            signer.id
-                        )
-                    } to it.third
+            }.onCompletion {
+                event(Loading(false))
+                isRetrievingData.set(false)
+            }.collect {
+                val (signers, wallets) = it
+                updateState {
+                    copy(
+                        signers = signers, wallets = wallets
+                    )
                 }
-                .flowOn(Dispatchers.IO)
-                .onException {
-                    updateState { copy(signers = emptyList()) }
-                }
-                .flowOn(Dispatchers.Main)
-                .onStart {
-                    if (getState().wallets.isEmpty()) {
-                        event(Loading(true))
+                mapGroupWalletUi()
+            }
+        }
+    }
+
+    private fun mapGroupWalletUi() {
+        viewModelScope.launch(ioDispatcher) {
+            val results = arrayListOf<GroupWalletUi>()
+            val wallets = getState().wallets
+            val groups = getState().allGroups
+            val assistedWallets = getState().assistedWallets
+            val alerts = getState().alerts
+            val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()
+            val pendingGroup = groups.filter { it.isPendingWallet() }
+            wallets.forEach { wallet ->
+                val groupId = assistedWallets.find { it.localId == wallet.wallet.id }?.groupId
+                val group = groups.firstOrNull { it.id == groupId }
+                var groupWalletUi = GroupWalletUi(
+                    wallet = wallet,
+                    isAssistedWallet = wallet.wallet.id in assistedWalletIds,
+                    badgeCount = alerts[groupId] ?: 0
+                )
+                if (group != null) {
+                    val role = byzantineGroupUtils.getCurrentUserRole(group)
+                    var inviterName = ""
+                    if ((role == AssistedWalletRole.MASTER.name).not()) {
+                        inviterName = byzantineGroupUtils.getInviterName(group)
                     }
+                    groupWalletUi = groupWalletUi.copy(
+                        wallet = if (inviterName.isNotEmpty()) null else wallet,
+                        group = group,
+                        role = role,
+                        inviterName = inviterName
+                    )
                 }
-                .onCompletion {
-                    event(Loading(false))
-                    isRetrievingData.set(false)
+                results.add(groupWalletUi)
+            }
+            pendingGroup.forEach { group ->
+                var groupWalletUi = GroupWalletUi(group = group)
+                val role = byzantineGroupUtils.getCurrentUserRole(group)
+                var inviterName = ""
+                if ((role == AssistedWalletRole.MASTER.name).not()) {
+                    inviterName = byzantineGroupUtils.getInviterName(group)
                 }
-                .collect {
-                    val (signers, wallets) = it
-                    updateState {
-                        copy(
-                            signers = signers,
-                            wallets = wallets
-                        )
-                    }
-                }
+                groupWalletUi = groupWalletUi.copy(
+                    group = group,
+                    role = role,
+                    inviterName = inviterName,
+                    badgeCount = alerts[group.id] ?: 0
+                )
+                results.add(groupWalletUi)
+            }
+
+            val (groupsWithNullWallet, groupsWithNonNullWallet) = results.partition { it.wallet == null }
+            val sortedGroupsWithNullWallet =
+                groupsWithNullWallet.sortedByDescending { it.group?.createdTimeMillis }
+            val sortedGroupsWithNonNullWallet =
+                groupsWithNonNullWallet.sortedByDescending { it.wallet?.wallet?.createDate }
+            val mergedSortedGroups = sortedGroupsWithNullWallet + sortedGroupsWithNonNullWallet
+
+            withContext(Dispatchers.Main) {
+                updateState { copy(groupWalletUis = mergedSortedGroups) }
+            }
+        }
+    }
+
+    fun updateBadge() {
+        if (isRetrievingAlert.get()) return
+        viewModelScope.launch {
+            val groupIds = getState().allGroups.map { it.id }
+            if (groupIds.isEmpty()) return@launch
+            isRetrievingAlert.set(true)
+            val result = getPendingWalletNotifyCountUseCase(groupIds)
+            isRetrievingAlert.set(false)
+            if (result.isSuccess) {
+                val alerts = result.getOrDefault(hashMapOf())
+                updateState { copy(alerts = alerts) }
+                mapGroupWalletUi()
+            }
         }
     }
 
@@ -300,16 +464,14 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun isInWallet(signer: SignerModel): Boolean {
-        return getState().wallets
-            .any {
-                it.wallet.signers.any anyLast@{ singleSigner ->
-                    if (singleSigner.hasMasterSigner) {
-                        return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
-                    }
+        return getState().wallets.any {
+            it.wallet.signers.any anyLast@{ singleSigner ->
+                if (singleSigner.hasMasterSigner) {
                     return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
-                            && singleSigner.derivationPath == signer.derivationPath
                 }
+                return@anyLast singleSigner.masterFingerprint == signer.fingerPrint && singleSigner.derivationPath == signer.derivationPath
             }
+        }
     }
 
     fun hasSigner() = getState().signers.isNotEmpty()
@@ -342,8 +504,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private suspend fun mapSigners(
-        singleSigners: List<SingleSigner>,
-        masterSigners: List<MasterSigner>
+        singleSigners: List<SingleSigner>, masterSigners: List<MasterSigner>,
     ): List<SignerModel> {
         return masterSigners.map {
             masterSignerMapper(it)
@@ -372,6 +533,11 @@ internal class WalletsViewModel @Inject constructor(
                     assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
                     else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
                 }
+            }
+
+            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.BYZANTINE_PREMIER -> {
+                val allGroups = getState().allGroups
+                return if (allGroups.isEmpty()) MembershipStage.NONE else MembershipStage.DONE
             }
 
             else -> return MembershipStage.DONE // no subscription plan it means done
@@ -406,8 +572,7 @@ internal class WalletsViewModel @Inject constructor(
         }
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
-                password = password,
-                targetAction = VerifiedPasswordTargetAction.PROTECT_WALLET.name
+                password = password, targetAction = TargetAction.PROTECT_WALLET.name
             )
         )
         if (result.isSuccess) {
@@ -423,7 +588,29 @@ internal class WalletsViewModel @Inject constructor(
         }
         val result = verifiedPKeyTokenUseCase(passphrase)
         if (result.isSuccess) {
-            event(WalletsEvent.VerifyPassphraseSuccess(walletId))
+            event(VerifyPassphraseSuccess(walletId))
+        } else {
+            event(ShowErrorEvent(result.exceptionOrNull()))
+        }
+    }
+
+    fun acceptInviteMember(groupId: String) = viewModelScope.launch {
+        setEvent(Loading(true))
+        groupMemberAcceptRequestUseCase(groupId)
+            .onSuccess {
+                val walletId = getState().assistedWallets.find { it.groupId == groupId }?.localId
+                setEvent(WalletsEvent.AcceptWalletInvitationSuccess(walletId, groupId))
+                syncGroup()
+            }.onFailure {
+                event(ShowErrorEvent(it))
+            }
+        setEvent(Loading(false))
+    }
+
+    fun denyInviteMember(groupId: String) = viewModelScope.launch {
+        val result = groupMemberDenyRequestUseCase(groupId)
+        if (result.isSuccess) {
+            event(WalletsEvent.DenyWalletInvitationSuccess)
         } else {
             event(ShowErrorEvent(result.exceptionOrNull()))
         }

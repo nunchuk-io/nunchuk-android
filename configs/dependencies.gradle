@@ -15,37 +15,37 @@ ext {
     lifecycleVersion = '2.5.0'
 
     retrofitVersion = '2.9.0'
-    okhttpVersion = '4.7.2'
+    okhttpVersion = '4.11.0'
     coroutinesVersion = '1.6.4'
 
     // Plugins versions
-    gradleVersion = '7.4.2'
+    gradleVersion = '8.1.1'
     googleServiceVersion = '4.3.15'
-    kotlinGradlePluginVersion = '1.8.10'
-    kotlinStdlibVersion = '1.8.10'
+    kotlinGradlePluginVersion = '1.9.0'
+    kotlinStdlibVersion = '1.9.0'
     pagingVersion = "3.1.1"
 
-    hiltVersion = "2.44.2"
+    hiltVersion = "2.48"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.62'
+    nativeSdkVersion = '1.1.63'
 
     // Matrix
     matrixSdkVersion = '1.5.30'
     // https://user-images.githubusercontent.com/9841565/164481595-53564bf0-416c-469c-b251-71b0e59074c8.png
 
-    navVersion = "2.5.3"
+    navVersion = "2.6.0"
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 33
-    TASK_LABEL = "UAT"
+    PATCH_VERSION = 36
+    TASK_LABEL = "BYZANTINE"
 
-    VERSION_CODE = 212
+    VERSION_CODE = 217
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
-            compileSdkVersion: 33,
+            compileSdkVersion: 34,
             targetSdkVersion : 33,
             minSdkVersion    : 24,
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
@@ -183,11 +183,11 @@ ext {
     ]
 
     composeDeps = [
-            'composeUi'              : "androidx.compose.ui:ui:1.4.1",
-            'composeUiTool'          : "androidx.compose.ui:ui-tooling:1.4.1",
-            'composeFoundation'      : "androidx.compose.foundation:foundation:1.4.1",
-            'composeMaterial'        : "androidx.compose.material:material:1.4.1",
-            'composeActivity'        : "androidx.activity:activity-compose:1.6.1",
+            'composeUi'              : "androidx.compose.ui:ui",
+            'composeUiTool'          : "androidx.compose.ui:ui-tooling",
+            'composeFoundation'      : "androidx.compose.foundation:foundation",
+            'composeMaterial'        : "androidx.compose.material:material",
+            'composeActivity'        : "androidx.activity:activity-compose",
             'composeViewModel'       : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
             'composeSystemUi'        : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",
             'composeInsets'          : "com.google.accompanist:accompanist-insets:0.25.1",

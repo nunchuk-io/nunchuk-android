@@ -14,7 +14,32 @@
             app:nullable="true" />
 
         <argument
-            android:name="xfp"
+            android:name="walletId"
+            app:argType="string"
+            android:defaultValue=""/>
+
+        <argument
+            android:name="token"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
+            android:name="signer"
+            app:argType="com.nunchuk.android.core.signer.SignerModel"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </fragment>
+    <fragment
+        android:id="@+id/cosigningGroupPolicyFragment"
+        android:name="com.nunchuk.android.wallet.components.cosigning.CosigningGroupPolicyFragment"
+        android:label="CosigningGroupPolicyFragment" >
+        <argument
+            android:name="key_policy"
+            app:argType="com.nunchuk.android.model.GroupKeyPolicy"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+
+        <argument
+            android:name="group_id"
             app:argType="string"
             android:defaultValue=""/>
 
@@ -27,5 +52,16 @@
             android:name="token"
             app:argType="string"
             android:defaultValue=""/>
+
+        <argument
+            android:name="dummy_transaction_id"
+            app:argType="string"
+            android:defaultValue=""/>
+
+        <argument
+            android:name="signer"
+            app:argType="com.nunchuk.android.core.signer.SignerModel"
+            app:nullable="true"
+            android:defaultValue="@null"/>
     </fragment>
 </navigation>

@@ -23,7 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -53,6 +58,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.AddKeyStepViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -62,7 +68,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class CreateWalletFragment : MembershipFragment() {
     private val viewModel: CreateWalletViewModel by viewModels()
     private val addKeyStepViewModel: AddKeyStepViewModel by activityViewModels()
-
+    private val groupId: String by lazy { (activity as MembershipActivity).groupId }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -70,13 +76,21 @@ class CreateWalletFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                CreateWalletScreen(viewModel, ::handleShowMore, membershipStepManager)
+                CreateWalletScreen(
+                    viewModel = viewModel,
+                    onMoreClicked = ::handleShowMore,
+                    membershipStepManager = membershipStepManager,
+                    groupId = groupId,
+                )
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (groupId.isEmpty()) {
+            viewModel.loadSignerFromDatabase()
+        }
         flowObserver(viewModel.event) {
             when (it) {
                 is CreateWalletEvent.Loading -> showOrHideLoading(it.isLoading)
@@ -84,24 +98,32 @@ class CreateWalletFragment : MembershipFragment() {
                     addKeyStepViewModel.requireInheritance(it.walletId)
                     handleCreateWalletSuccess(it)
                 }
+
                 is CreateWalletEvent.ShowError -> showError(it.message)
             }
         }
     }
 
     private fun handleCreateWalletSuccess(event: CreateWalletEvent.OnCreateWalletSuccess) {
-        if (event.hasColdcard) {
+        if (event.coldcardCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToColdcardFragment(
                     event.walletId,
-                    event.hasAirgap
-                )
+                    event.coldcardCount,
+                    event.airgapCount
+                ),
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                    .build()
             )
-        } else if (event.hasAirgap) {
+        } else if (event.airgapCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
                     event.walletId,
-                )
+                ),
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                    .build()
             )
         } else {
             findNavController().navigate(
@@ -121,12 +143,13 @@ fun CreateWalletScreen(
     viewModel: CreateWalletViewModel = viewModel(),
     onMoreClicked: () -> Unit = {},
     membershipStepManager: MembershipStepManager,
+    groupId: String,
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CreateWalletScreenContent(
-        onContinueClicked = viewModel::onContinueClicked,
+        onContinueClicked = { viewModel.onContinueClicked(groupId) },
         onMoreClicked = onMoreClicked,
         onWalletNameTextChange = viewModel::updateWalletName,
         remainTime = remainTime,
@@ -152,14 +175,14 @@ fun CreateWalletScreenContent(
             ) {
                 NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime),
                     actions = {
-                            IconButton(onClick = onMoreClicked) {
-                                Icon(
-                                    painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                                    contentDescription = "More icon"
-                                )
-                            }
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
                         }
-                    )
+                    }
+                )
 
                 Text(
                     modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),

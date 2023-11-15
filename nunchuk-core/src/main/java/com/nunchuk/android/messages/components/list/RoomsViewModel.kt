@@ -31,10 +31,12 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
+import com.nunchuk.android.messages.usecase.message.GetGroupChatRoomsUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.usecase.membership.DeleteGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetLocalCurrentSubscriptionPlan
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
@@ -42,7 +44,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -55,6 +66,8 @@ class RoomsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
     private val markSyncRoomSuccessUseCase: MarkSyncRoomSuccessUseCase,
+    private val deleteGroupChatUseCase: DeleteGroupChatUseCase,
+    private val getGroupChatRoomsUseCase: GetGroupChatRoomsUseCase,
     getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
@@ -89,10 +102,23 @@ class RoomsViewModel @Inject constructor(
                 if (it.isNotEmpty()) {
                     markSyncRoomSuccessUseCase(Unit)
                 }
+                listenRoomEvents(it)
             }
             .onCompletion { setEvent(RoomsEvent.LoadingEvent(false)) }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
+    }
+
+    private suspend fun listenRoomEvents(rooms: List<RoomSummary>) {
+        val roomIds = rooms.map { it.roomId }
+            getGroupChatRoomsUseCase(GetGroupChatRoomsUseCase.Params(roomIds))
+                .onSuccess { result ->
+                    updateState {
+                        copy(
+                            groupChatRooms = result.associateBy { it.roomId }.toMutableMap()
+                        )
+                    }
+        }
     }
 
     private suspend fun retrieveMessages(rooms: List<RoomSummary>) {
@@ -148,7 +174,19 @@ class RoomsViewModel @Inject constructor(
             setEvent(RoomsEvent.LoadingEvent(true))
             val room = getRoom(roomSummary)
             if (room != null) {
-                handleRemoveRoom(room)
+                if (getState().groupChatRooms.containsKey(room.roomId)) {
+                    deleteGroupChatUseCase(getState().groupChatRooms[room.roomId]!!.groupId)
+                        .onSuccess {
+                            setEvent(RoomsEvent.RemoveRoomSuccess(roomSummary))
+                            RoomsEvent.LoadingEvent(false)
+                            listenRoomSummaries()
+                        }.onFailure { throwable ->
+                            setEvent(RoomsEvent.LoadingEvent(false))
+                            setEvent(RoomsEvent.ShowError(throwable.message.orUnknownError()))
+                        }
+                } else {
+                    handleRemoveRoom(room, roomSummary)
+                }
             } else {
                 setEvent(RoomsEvent.LoadingEvent(false))
             }
@@ -168,12 +206,13 @@ class RoomsViewModel @Inject constructor(
         }
     }
 
-    private fun handleRemoveRoom(room: Room) {
+    private fun handleRemoveRoom(room: Room, roomSummary: RoomSummary) {
         viewModelScope.launch {
             leaveRoomUseCase.execute(room.roomId)
                 .flowOn(dispatcher)
                 .onException { RoomsEvent.LoadingEvent(false) }
                 .collect {
+                    setEvent(RoomsEvent.RemoveRoomSuccess(roomSummary))
                     RoomsEvent.LoadingEvent(false)
                     listenRoomSummaries()
                 }

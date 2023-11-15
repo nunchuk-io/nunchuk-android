@@ -19,7 +19,9 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
+import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 
 sealed class InheritanceReviewPlanEvent {
     data class Loading(val loading: Boolean) : InheritanceReviewPlanEvent()
@@ -27,12 +29,14 @@ sealed class InheritanceReviewPlanEvent {
         val type: String,
         val walletId: String,
         val userData: String,
-        val requiredSignatures: Int
+        val requiredSignatures: Int,
+        val dummyTransactionId: String
     ) : InheritanceReviewPlanEvent()
 
     data class ProcessFailure(val message: String) : InheritanceReviewPlanEvent()
-    object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanEvent()
-    object CancelInheritanceSuccess : InheritanceReviewPlanEvent()
+    data object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanEvent()
+    data object CancelInheritanceSuccess : InheritanceReviewPlanEvent()
+    data object MarkSetupInheritance : InheritanceReviewPlanEvent()
 }
 
 data class InheritanceReviewPlanState(
@@ -45,5 +49,8 @@ data class InheritanceReviewPlanState(
     val walletName: String? = null,
     val isCreateOrUpdateFlow: Boolean = true,
     val isDataChanged: Boolean = false,
-    val bufferPeriod: Period? = null
+    val bufferPeriod: Period? = null,
+    val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
+    val dummyTransactionId: String = "",
+    val currentUserRole: String = AssistedWalletRole.NONE.name,
 )

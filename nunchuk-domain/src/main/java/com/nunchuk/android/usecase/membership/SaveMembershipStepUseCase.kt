@@ -34,6 +34,6 @@ class SaveMembershipStepUseCase @Inject constructor(
 ) : UseCase<MembershipStepInfo, Unit>(dispatcher) {
     override suspend fun execute(parameters: MembershipStepInfo) {
         repository.saveStepInfo(parameters)
-        walletRepository.cancelRequestIdIfNeed(parameters.step)
+        walletRepository.cancelRequestIdIfNeed(parameters.groupId, parameters.step)
     }
 }

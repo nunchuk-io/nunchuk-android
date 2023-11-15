@@ -31,8 +31,10 @@ import javax.inject.Inject
 class GetMembershipStepUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val repository: MembershipRepository,
-) : FlowUseCase<MembershipPlan, List<MembershipStepInfo>>(dispatcher) {
-    override fun execute(parameters: MembershipPlan): Flow<List<MembershipStepInfo>> {
-        return repository.getSteps(parameters)
+) : FlowUseCase<GetMembershipStepUseCase.Param, List<MembershipStepInfo>>(dispatcher) {
+    override fun execute(parameters: Param): Flow<List<MembershipStepInfo>> {
+        return repository.getSteps(parameters.plan, parameters.groupId)
     }
+
+    data class Param(val plan: MembershipPlan, val groupId: String)
 }

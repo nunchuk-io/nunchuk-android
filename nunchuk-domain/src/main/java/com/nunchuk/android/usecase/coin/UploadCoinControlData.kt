@@ -30,8 +30,13 @@ class UploadCoinControlData @Inject constructor(
     private val repository: PremiumWalletRepository,
 ) : UseCase<UploadCoinControlData.Param, Unit>(dispatcher) {
     override suspend fun execute(parameters: Param) {
-        return repository.uploadCoinControlData(parameters.walletId, parameters.data)
+        return repository.uploadCoinControlData(parameters.groupId, parameters.walletId, parameters.data)
     }
 
-    data class Param(val walletId: String, val data: String, val isForce: Boolean)
+    data class Param(
+        val groupId: String?,
+        val walletId: String,
+        val data: String,
+        val isForce: Boolean
+    )
 }

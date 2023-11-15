@@ -32,10 +32,7 @@ class NfcFileManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     fun storeBackupKeyToFile(tapStatus: TapSignerStatus): String {
-        val file = File(
-            context.filesDir,
-            "backup.${System.currentTimeMillis()}.${tapStatus.ident.orEmpty()}.aes"
-        ).apply {
+        val file = getBackUpKeyFile(tapStatus.ident.orEmpty()).apply {
             if (exists().not()) {
                 createNewFile()
             }
@@ -55,4 +52,9 @@ class NfcFileManager @Inject constructor(
     }
 
     fun buildFilePath(id: String): String = File(context.filesDir, "${id}.aes").path
+
+    fun getBackUpKeyFile(ident: String) : File = File(
+            context.filesDir,
+            "backup.${System.currentTimeMillis()}.${ident}.aes"
+        )
 }

@@ -20,10 +20,13 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
 
 class InheritanceResponse(
     @SerializedName("inheritance")
-    val inheritance: InheritanceDto? = null
+    val inheritance: InheritanceDto? = null,
+    @SerializedName("dummy_transaction")
+    val dummyTransaction: DummyTransactionDto? = null
 )
 
 class InheritanceDto(
@@ -46,5 +49,16 @@ class InheritanceDto(
     @SerializedName("last_modified_time_milis")
     val lastModifiedTimeMilis: Long? = null,
     @SerializedName("buffer_period")
-    val bufferPeriod: PeriodResponse.Data? = null
+    val bufferPeriod: PeriodResponse.Data? = null,
+    @SerializedName("owner_id")
+    val ownerId: String? = null,
+    @SerializedName("pending_requests")
+    val pendingRequests: List<InheritancePendingRequestResponse>? = null,
+)
+
+class InheritancePendingRequestResponse(
+    @SerializedName("membership_id")
+    val membershipId: String? = null,
+    @SerializedName("dummy_transaction_id")
+    val dummyTransactionId: String? = null,
 )

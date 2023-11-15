@@ -49,6 +49,16 @@ const val ADD_DESKTOP_KEY_COMPLETED = "io.nunchuk.custom.draft_wallet_add_key_re
 const val EVENT_WALLET_CREATED = "io.nunchuk.custom.wallet_created"
 const val EVENT_TRANSACTION_CANCEL = "io.nunchuk.custom.transaction_canceled"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
+const val GROUP_MEMBERSHIP_REQUEST_CREATED = "io.nunchuk.custom.group_membership_request_created"
+const val GROUP_MEMBERSHIP_REQUEST_ACCEPTED = "io.nunchuk.custom.group_membership_request_accepted"
+const val GROUP_MEMBERSHIP_REQUEST_DENIED = "io.nunchuk.custom.group_membership_request_denied"
+const val DRAFT_WALLET_RESET = "io.nunchuk.custom.draft_wallet_reset"
+const val GROUP_WALLET_CREATED = "io.nunchuk.custom.group_wallet_created"
+const val GROUP_EMERGENCY_LOCKDOWN_STARTED = "io.nunchuk.custom.group_emergency_lockdown_started"
+const val WALLET_INHERITANCE_PLANNING_REQUEST_DENIED = "io.nunchuk.custom.wallet_inheritance_planning_request_denied"
+const val KEY_RECOVERY_REQUEST = "io.nunchuk.custom.key_recovery_request"
+const val KEY_RECOVERY_APPROVED = "io.nunchuk.custom.key_recovery_approved"
+const val KEY_RECOVERY_SUCCESS = "io.nunchuk.custom.key_recovery_success"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
     return if (isSupportRoom.not()) {
@@ -122,6 +132,31 @@ fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
 
 fun TimelineEvent.getMsgBody() = root.getClearContent()?.get("body")?.toString().orEmpty()
 
-fun TimelineEvent.getTransactionId() = root.getClearContent()?.get("transaction_id").toString()
+fun TimelineEvent.getTransactionId() = root.getClearContent()?.get("transaction_id")?.toString()
 
-fun TimelineEvent.getWalletId() = root.getClearContent()?.get("wallet_local_id").toString()
+fun TimelineEvent.getWalletId() = root.getClearContent()?.get("wallet_local_id")?.toString()
+fun TimelineEvent.getGroupId() = root.getClearContent()?.get("group_id")?.toString()
+
+fun TimelineEvent.isGroupMembershipRequestEvent() =
+    getMsgType() == GROUP_MEMBERSHIP_REQUEST_ACCEPTED || getMsgType() == GROUP_MEMBERSHIP_REQUEST_DENIED
+
+fun TimelineEvent.isDraftWalletResetEvent() =
+    getMsgType() == DRAFT_WALLET_RESET
+
+fun TimelineEvent.isGroupMembershipRequestCreatedEvent() =
+    getMsgType() == GROUP_MEMBERSHIP_REQUEST_CREATED
+
+fun TimelineEvent.isGroupWalletCreatedEvent() =
+    getMsgType() == GROUP_WALLET_CREATED
+
+fun TimelineEvent.isGroupEmergencyLockdownStarted() =
+    getMsgType() == GROUP_EMERGENCY_LOCKDOWN_STARTED
+
+fun TimelineEvent.isWalletInheritancePlanningRequestDenied() =
+    getMsgType() == WALLET_INHERITANCE_PLANNING_REQUEST_DENIED
+
+fun TimelineEvent.isKeyRecoveryRequest() =
+    getMsgType() == KEY_RECOVERY_REQUEST
+
+fun TimelineEvent.isKeyRecoveryApproved() =
+    getMsgType() == KEY_RECOVERY_APPROVED

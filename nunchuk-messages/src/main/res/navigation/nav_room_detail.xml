@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/roomDetailFragment"
         android:name="com.nunchuk.android.messages.components.detail.RoomDetailFragment"
-        android:label="RoomDetailFragment" >
+        android:label="RoomDetailFragment">
 
         <argument
             android:name="room_id"
@@ -15,8 +15,12 @@
 
         <argument
             android:name="room_action"
-            app:argType="com.nunchuk.android.core.constants.RoomAction"
-            android:defaultValue="NONE" />
+            android:defaultValue="NONE"
+            app:argType="com.nunchuk.android.core.constants.RoomAction" />
+        <argument
+            android:name="is_group_chat"
+            android:defaultValue="false"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_roomDetailFragment_to_roomMediaViewerFragment"
             app:destination="@id/roomMediaViewerFragment" />
@@ -24,7 +28,7 @@
     <fragment
         android:id="@+id/roomMediaViewerFragment"
         android:name="com.nunchuk.android.messages.components.detail.viewer.RoomMediaViewerFragment"
-        android:label="RoomMediaViewerFragment" >
+        android:label="RoomMediaViewerFragment">
 
         <argument
             android:name="init_event_id"

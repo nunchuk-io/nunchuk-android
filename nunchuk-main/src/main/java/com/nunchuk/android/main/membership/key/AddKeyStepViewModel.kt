@@ -30,7 +30,13 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -58,11 +64,11 @@ class AddKeyStepViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isRegisterAirgap = assistedWallets.combine(walletId) { assistedWallets, id ->
-        assistedWallets.find { it.localId == id }?.isRegisterAirgap == true
+        (assistedWallets.find { it.localId == id }?.registerAirgapCount ?: 0) > 0
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isRegisterColdcard = assistedWallets.combine(walletId) { assistedWallets, id ->
-        assistedWallets.find { it.localId == id }?.isRegisterColdcard == true
+        (assistedWallets.find { it.localId == id }?.registerColdcardCount ?: 0) > 0
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val plan = membershipStepManager.plan
@@ -85,16 +91,19 @@ class AddKeyStepViewModel @Inject constructor(
 
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
-            val setupKeySteps = if (plan == MembershipPlan.IRON_HAND) listOf(
-                MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-                MembershipStep.IRON_ADD_HARDWARE_KEY_2,
-                MembershipStep.ADD_SEVER_KEY
-            ) else listOf(
-                MembershipStep.HONEY_ADD_TAP_SIGNER,
-                MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-                MembershipStep.ADD_SEVER_KEY
-            )
+            val setupKeySteps = when (plan) {
+                MembershipPlan.IRON_HAND -> listOf(
+                    MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                    MembershipStep.IRON_ADD_HARDWARE_KEY_2,
+                    MembershipStep.ADD_SEVER_KEY
+                )
+                else -> listOf(
+                    MembershipStep.HONEY_ADD_TAP_SIGNER,
+                    MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+                    MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+                    MembershipStep.ADD_SEVER_KEY
+                )
+            }
             intArrayOf(
                 membershipStepManager.getRemainTimeBySteps(setupKeySteps),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_KEY_RECOVERY)),
@@ -114,12 +123,6 @@ class AddKeyStepViewModel @Inject constructor(
         }
     }
 
-    fun openContactUs(email: String) {
-        viewModelScope.launch {
-            _event.emit(AddKeyStepEvent.OpenContactUs(email))
-        }
-    }
-
     fun onContinueClicked() {
         viewModelScope.launch {
             if (isSetupInheritanceDone.value) {
@@ -131,12 +134,7 @@ class AddKeyStepViewModel @Inject constructor(
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.CREATE_WALLET
                 if (isCreateWalletDone.value && isRegisterColdcard.value.not()) {
                     val walletId = assistedWallets.value.lastOrNull()?.localId ?: return@launch
-                    _event.emit(
-                        AddKeyStepEvent.OpenRegisterColdCard(
-                            walletId,
-                            isRegisterAirgap.value
-                        )
-                    )
+                    _event.emit(AddKeyStepEvent.OpenRegisterColdCard(walletId))
                 } else if (isCreateWalletDone.value && isRegisterAirgap.value.not()) {
                     val walletId = assistedWallets.value.lastOrNull()?.localId ?: return@launch
                     _event.emit(AddKeyStepEvent.OpenRegisterAirgap(walletId))
@@ -153,7 +151,7 @@ class AddKeyStepViewModel @Inject constructor(
     }
 
     private fun isRegisterWalletDone() = assistedWallets.value.lastOrNull()
-        ?.let { it.isRegisterAirgap && it.isRegisterColdcard } == true
+        ?.let { it.registerAirgapCount <= 0 && it.registerColdcardCount <= 0 } == true
 
     fun onMoreClicked() {
         viewModelScope.launch {
@@ -168,6 +166,12 @@ class AddKeyStepViewModel @Inject constructor(
         savedStateHandle[MembershipActivity.EXTRA_KEY_WALLET_ID] = walletId
     }
 
+    fun getRegisterColdcardIndex() =
+        assistedWallets.value.find { it.localId == walletId.value }?.registerColdcardCount ?: 0
+
+    fun getRegisterAirgapIndex() =
+        assistedWallets.value.find { it.localId == walletId.value }?.registerAirgapCount ?: 0
+
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
     }
@@ -180,7 +184,6 @@ sealed class AddKeyStepEvent {
     object OpenCreateWallet : AddKeyStepEvent()
     data class OpenRegisterColdCard(
         val walletId: String,
-        val isNeedRegisterAirgap: Boolean,
     ) : AddKeyStepEvent()
 
     data class OpenRegisterAirgap(val walletId: String) : AddKeyStepEvent()

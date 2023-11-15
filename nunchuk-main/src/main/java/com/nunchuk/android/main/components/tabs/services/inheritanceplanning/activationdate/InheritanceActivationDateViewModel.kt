@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.ac
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -31,7 +32,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceActivationDateViewModel @Inject constructor(
-    private val membershipStepManager: MembershipStepManager,
+    membershipStepManager: MembershipStepManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -45,10 +46,10 @@ class InheritanceActivationDateViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    init {
+    fun init(param: InheritancePlanningParam.SetupOrReview) {
         if (args.isUpdateRequest) {
             _state.update {
-                it.copy(date = args.selectedActivationDate)
+                it.copy(date = param.activationDate)
             }
         }
     }

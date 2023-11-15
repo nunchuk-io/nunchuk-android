@@ -47,17 +47,26 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val binding = BottomSheetAssistedWalletBinding.bind(view)
         val assistedWalletIds = requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty()
+        val lockdownWalletIds = requireArguments().getStringArrayList(EXTRA_LOCKDOWN_WALLET_IDS).orEmpty()
+        val title = requireArguments().getString(EXTRA_TITLE)
+        if (!title.isNullOrEmpty()) {
+            binding.tvTitle.text = title
+        }
         viewModel.loadWallets(assistedWalletIds)
         flowObserver(viewModel.state) { wallets ->
             WalletsViewBinder(
                 container = binding.walletList,
                 wallets = wallets,
                 assistedWalletIds = assistedWalletIds.toSet(),
+                lockdownWalletIds = lockdownWalletIds.toSet(),
                 callback = {
-                    setFragmentResult(
-                        TAG, bundleOf(GlobalResultKey.WALLET_ID to it)
-                    )
+                    if (lockdownWalletIds.isEmpty() || lockdownWalletIds.contains(it).not()) {
+                        setFragmentResult(
+                            TAG, bundleOf(GlobalResultKey.WALLET_ID to it)
+                        )
+                    }
                     dismissAllowingStateLoss()
                 }
             ).bindItems()
@@ -67,10 +76,14 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
     companion object {
         const val TAG = "AddContactsBottomSheet"
         private const val EXTRA_WALLET_IDS = "wallet_ids"
+        private const val EXTRA_TITLE = "title"
+        private const val EXTRA_LOCKDOWN_WALLET_IDS = "lockdown_wallet_ids"
 
-        fun show(fragmentManager: FragmentManager, assistedWalletIds: List<String>) = AssistedWalletBottomSheet().apply {
+        fun show(fragmentManager: FragmentManager, assistedWalletIds: List<String>, title: String? = null, lockdownWalletIds: List<String> = emptyList()) = AssistedWalletBottomSheet().apply {
             arguments = Bundle().apply {
                 putStringArrayList(EXTRA_WALLET_IDS, ArrayList(assistedWalletIds))
+                putStringArrayList(EXTRA_LOCKDOWN_WALLET_IDS, ArrayList(lockdownWalletIds))
+                putString(EXTRA_TITLE, title)
             }
             show(fragmentManager, TAG)
         }

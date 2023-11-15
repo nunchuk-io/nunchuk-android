@@ -33,6 +33,7 @@ import javax.inject.Inject
 
 interface GetTransactionUseCase {
     fun execute(
+        groupId: String?,
         walletId: String,
         txId: String,
         isAssistedWallet: Boolean
@@ -46,6 +47,7 @@ internal class GetTransactionUseCaseImpl @Inject constructor(
 ) : GetTransactionUseCase {
 
     override fun execute(
+        groupId: String?,
         walletId: String,
         txId: String,
         isAssistedWallet: Boolean
@@ -55,7 +57,7 @@ internal class GetTransactionUseCaseImpl @Inject constructor(
         emit(ExtendedTransaction(transaction = tx.copy(height = tx.getConfirmations(chainTip))))
         if (isAssistedWallet && tx.status.isPending()) {
             delay(100L)
-            val extendedTransaction = repository.getServerTransaction(walletId, txId)
+            val extendedTransaction = repository.getServerTransaction(groupId, walletId, txId)
             val transaction = extendedTransaction.transaction.copy(
                 height = extendedTransaction.transaction.getConfirmations(chainTip)
             )

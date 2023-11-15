@@ -23,6 +23,8 @@ import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.core.guestmode.SignInMode
 
 data class AccountInfo(
+    @SerializedName("id")
+    val id: String = "",
     @SerializedName("email")
     val email: String = "",
     @SerializedName("name")

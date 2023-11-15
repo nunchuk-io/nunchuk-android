@@ -21,6 +21,7 @@ package com.nunchuk.android.manager
 
 interface AssistedWalletManager {
     fun isActiveAssistedWallet(walletId: String): Boolean
+    fun getGroupId(walletId: String): String?
     fun isInactiveAssistedWallet(walletId: String): Boolean
     fun isShowSetupInheritance(walletId: String) : Boolean
 }

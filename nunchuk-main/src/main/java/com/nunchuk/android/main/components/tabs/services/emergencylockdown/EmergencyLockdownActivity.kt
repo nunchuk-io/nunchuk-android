@@ -33,6 +33,14 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class EmergencyLockdownActivity : BaseActivity<ActivityNavigationBinding>() {
 
+    private val args by lazy {
+        EmergencyLockdownIntroFragmentArgs.fromBundle(intent.extras ?: Bundle())
+    }
+
+    val verifyToken by lazy { args.verifyToken }
+    val groupId by lazy { args.groupId }
+    val walletId by lazy { args.walletId }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -51,11 +59,13 @@ class EmergencyLockdownActivity : BaseActivity<ActivityNavigationBinding>() {
     }
 
     companion object {
-        fun navigate(activity: Context, verifyToken: String) {
+        fun navigate(activity: Context, verifyToken: String, groupId: String?, walletId: String?) {
             activity.startActivity(Intent(activity, EmergencyLockdownActivity::class.java).apply {
                 putExtras(
                     EmergencyLockdownIntroFragmentArgs(
                         verifyToken = verifyToken,
+                        groupId = groupId.orEmpty(),
+                        walletId = walletId.orEmpty()
                     ).toBundle()
                 )
             })

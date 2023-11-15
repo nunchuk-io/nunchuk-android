@@ -43,7 +43,13 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.showWarning
+import com.nunchuk.android.core.util.toReadableDrawable
+import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
@@ -106,7 +112,7 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
     }
 
     private fun onChangeCvcOptionClicked() {
-        viewModel.state.value?.masterSigner?.id?.let { masterSignerId ->
+        viewModel.state.value.masterSigner?.id?.let { masterSignerId ->
             NfcSetupActivity.navigate(
                 activity = requireActivity(),
                 setUpAction = NfcSetupActivity.CHANGE_CVC,
@@ -136,8 +142,8 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-        viewModel.state.observe(viewLifecycleOwner, ::handleState)
+        flowObserver(viewModel.event, ::handleEvent)
+        flowObserver(viewModel.state, ::handleState)
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }) {
             requestViewBackupKey(it)
@@ -149,7 +155,7 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
             viewModel.healthCheckTapSigner(
                 isoDep,
                 nfcViewModel.inputCvc.orEmpty(),
-                viewModel.state.value?.masterSigner ?: return@flowObserver
+                viewModel.state.value.masterSigner ?: return@flowObserver
             )
             nfcViewModel.clearScanInfo()
         }
@@ -160,7 +166,7 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
-            viewModel.state.value?.remoteSigner?.let { signer ->
+            viewModel.state.value.remoteSigner?.let { signer ->
                 viewModel.generateColdcardHealthMessages(
                     Ndef.get(scanInfo.tag) ?: return@flowObserver,
                     signer.derivationPath
@@ -170,7 +176,7 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_MK4_IMPORT_SIGNATURE }) {
-            viewModel.state.value?.remoteSigner?.let { signer ->
+            viewModel.state.value.remoteSigner?.let { signer ->
                 viewModel.healthCheckColdCard(signer, it.records)
             }
             nfcViewModel.clearScanInfo()
@@ -326,8 +332,8 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
         binding.toolbar.setNavigationOnClickListener { openMainScreen() }
         binding.toolbar.setOnMenuItemClickListener {
             if (it.itemId == R.id.menu_more) {
-                val type = viewModel.state.value?.masterSigner?.type
-                    ?: viewModel.state.value?.remoteSigner?.type
+                val type = viewModel.state.value.masterSigner?.type
+                    ?: viewModel.state.value.remoteSigner?.type
                 type?.let { signerType ->
                     SingerInfoOptionBottomSheet.newInstance(signerType)
                         .show(childFragmentManager, "SingerInfoOptionBottomSheet")
@@ -341,8 +347,8 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
     }
 
     private fun handleRunHealthCheck() {
-        val masterSigner = viewModel.state.value?.masterSigner
-        val remoteSigner = viewModel.state.value?.remoteSigner
+        val masterSigner = viewModel.state.value.masterSigner
+        val remoteSigner = viewModel.state.value.remoteSigner
         if (masterSigner != null) {
             if (args.signerType == SignerType.NFC) {
                 (requireActivity() as NfcActionListener).startNfcFlow(REQUEST_NFC_HEALTH_CHECK)

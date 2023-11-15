@@ -222,7 +222,7 @@
     <string name="nc_let_s_get_you_started">Let’s get you started</string>
     <string name="nc_start_wizard">Start wizard</string>
     <string name="nc_configure_server_key_intro_question">What is the Nunchuk platform key?</string>
-    <string name="nc_configure_server_key_intro_desc">This key will be managed by our secure server. It automatically co-signs transactions based on the policies that you will configure in the next step.</string>
+    <string name="nc_configure_server_key_intro_desc">This key will be managed by our secure server. It can automatically co-sign transactions based on the policies that you will configure in the next step.</string>
     <string name="nc_configure_server_key_intro_info">The Nunchuk server will never initiate or be the first one to sign a transaction.</string>
     <string name="nc_configure_server_key_setting_cosigning_delay">Configure broadcast &amp; delay policies</string>
     <string name="nc_configure_server_key_setting_auto_broadcast">Automatically broadcast transaction after co-signing</string>
@@ -243,10 +243,13 @@
     <string name="nc_minutes">Minutes</string>
     <string name="nc_take_me_my_wallet">Take me to my wallet</string>
     <string name="nc_create_wallet_success">Congratulations! Your wallet has been created</string>
-    <string name="nc_create_wallet_success_desc">For best security, please keep your keys stored in physically distributed locations.</string>
+    <string name="nc_create_wallet_success_desc">To access the wallet configuration file or export it to your device later, navigate to the wallet → View wallet config → More menu → Export wallet configuration.\n\nFor best security, the keys should be stored in physically distributed locations.</string>
+    <string name="nc_create_wallet_success_distribute_setup_desc">Since you will need all keys to sign off on the inheritance plan, [B]we recommend that you set up the inheritance plan first before distributing the keys to the keyholders.[/B]</string>
     <string name="nc_create_my_own_question">Create my own question</string>
     <string name="nc_cosigning_policies">Platform key co-signing policies</string>
-    <string name="nc_co_signing_delay">Co-signing delay</string>
+    <string name="nc_cosigning_policies_change">%1$s: platform key policies change</string>
+    <string name="nc_request_cosigning_policies_change_by">%1$s is requesting to make the following changes to the platform key co-signing policies.</string>
+    <string name="nc_co_signing_delay">Broadcast and delay</string>
     <string name="nc_edit">Edit</string>
     <string name="nc_automation_broadcast_transaction">Automatically broadcast transaction after co-signing</string>
     <string name="nc_on">On</string>
@@ -262,8 +265,9 @@
     <string name="nc_assisted">Assisted</string>
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key. Once you have set up an inheritance plan, a Beneficiary or Trustee will be able to recover this TAPSIGNER’s private key at a later date to access your wallet and claim the inheritance.\n\nPlease take a moment to mark or label this key.</string>
-    <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance[/B]. As such, it should rarely be accessed. However, in an emergency, it can function as a backup signing key.\n\nWe recommend that you put it away in a safe place. Only use this key to sign daily transactions as a last resort.</string>
+    <string name="nc_inheritance_key_tip_desc">The inheritance key can function as a backup signing key on a day-to-day basis.\n\nHowever, since the TAPSIGNER used as the inheritance key contains sensitive information with regards to the inheritance (i.e., the Backup Password), [B]we recommend that you exercise extra caution when storing and accessing it.[/B]</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
+    <string name="nc_set_up_inheritance_plan_wallet">Set up an inheritance plan for this wallet</string>
     <string name="nc_view_inheritance_plan">View inheritance plan</string>
     <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
     <string name="nc_export_xpubs_from_coldcard">Export XPUBs from COLDCARD</string>
@@ -280,8 +284,8 @@
     <string name="nc_monthly">Monthly</string>
     <string name="nc_weekly">Weekly</string>
     <string name="nc_yearly">Yearly</string>
-    <string name="nc_register_wallet_to_coldcard">Please register this wallet with your COLDCARD</string>
-    <string name="nc_register_wallet_to_coldcard_desc">You must register this wallet with your COLDCARD before you can use it to sign transactions.</string>
+    <string name="nc_register_wallet_to_coldcard">Please register this wallet with %1$s</string>
+    <string name="nc_register_wallet_to_coldcard_desc">You must register this wallet with %1$s before you can use it to sign transactions.</string>
     <string name="nc_select_your_export_method">Select your export method</string>
     <string name="nc_show_wallet_qr">Show wallet QR code</string>
     <string name="nc_done_scanning">Done scanning</string>
@@ -300,6 +304,7 @@
     <string name="nc_update_cosigning_delay">Update policies</string>
     <string name="nc_update_spending_limit">Update spending limit</string>
     <string name="nc_are_you_sure_discard_the_change">Are you sure want to discard the changes?</string>
+    <string name="nc_are_you_sure_cancel_the_change">Are you sure want to cancel the changes?</string>
     <string name="nc_backup_uploaded_successfully">The backup was uploaded successfully</string>
     <string name="nc_services_tab">Services</string>
     <string name="nc_emergency">Emergency</string>
@@ -312,6 +317,7 @@
     <string name="nc_order_new_hardware">Order new hardware</string>
     <string name="nc_manage_subscription">Manage subscription</string>
     <string name="nc_roll_over_assisted_wallet">Roll over to a new assisted wallet</string>
+    <string name="nc_get_additional_wallet">Get additional wallets</string>
     <string name="nc_start_key_recovery">Start key recovery</string>
     <string name="nc_update_recovery_question">Update security questions</string>
     <string name="nc_key_recovery_intro_desc">If you lost a TAPSIGNER or the card malfunctions, this procedure will recover the TAPSIGNER’s private key using the encrypted backup from our server. Please note the following:</string>
@@ -339,6 +345,7 @@
     <string name="nc_emergency_lockdown_period_title">Select your lockdown period</string>
     <string name="nc_emergency_lockdown_period_desc">Your access will be automatically re-enabled once the lockdown period ends.</string>
     <string name="nc_emergency_lockdown_success_title">Your account is now under lockdown</string>
+    <string name="nc_emergency_lockdown_wallet_success_title">%1$s is now under lockdown</string>
     <string name="nc_emergency_lockdown_success_info">The lockdown will last [B]%1$s.[/B]</string>
     <string name="nc_emergency_lockdown_confirm_title">Confirm the lockdown</string>
     <string name="nc_emergency_lockdown_confirm_desc">For confirmation, please sign a test message using one of the keys below.</string>
@@ -366,15 +373,16 @@
     <string name="nc_update_message">Update message</string>
     <string name="nc_note">Note</string>
     <string name="nc_optional">(optional)</string>
-    <string name="nc_inheritance_notify_pref_desc">On the activation date, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address.</string>
+    <string name="nc_inheritance_notify_pref_desc">On the Activation Date, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address.</string>
     <string name="nc_notify_them_today">Also notify them today</string>
     <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magic Phrase and Backup Password with the Beneficiary or Trustee. The notification email won’t include these information.</string>
     <string name="nc_update_notification_preferences">Update notification preferences</string>
     <string name="nc_dont_want_any_notifications">I don’t want any notifications</string>
-    <string name="nc_policy_updated">Policies have been updated.</string>
+    <string name="nc_policy_updated">The platform key policies have been updated</string>
     <string name="nc_recovered_key_name">Recovered %s</string>
     <string name="nc_tapsigner_has_been_recovered">TAPSIGNER has been recovered.</string>
     <string name="nc_key_recovery_questions_updated">Key recovery questions updated</string>
+    <string name="nc_security_questions_updated">Security questions updated</string>
     <string name="nc_manage_subscription_desc">Please manage your subscription through our website. Sign in and navigate to the Plan and Invoices page.</string>
     <string name="nc_order_new_hardware_desc">You can order new hardware by using the referral links on our website. Sign in and navigate to the Hardware Replacement page</string>
     <string name="nc_take_me_to_the_website">Take me to the website</string>
@@ -420,7 +428,7 @@
     <string name="nc_in_app_chat_support_desc">Chat to an expert directly within the app when you run into issues.</string>
     <string name="nc_hardware_discounts">Hardware discounts</string>
     <string name="nc_hardware_discounts_desc">Get exclusive discounts when purchasing signing devices from our partners.</string>
-    <string name="nc_two_signatures_required">Two signatures required</string>
+    <string name="nc_signatures_required">Signatures required</string>
     <string name="nc_feature_assisted_wallet_inform_desc">This feature is only available with an assisted wallet. Please create one first.</string>
     <string name="nc_continue_setting_up_wallet">Continue setting up wallet</string>
     <string name="nc_show_me_how">Show me how</string>
@@ -497,7 +505,6 @@
     <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
     <string name="nc_xpubs_file_invalid">XPUBs file is invalid</string>
     <string name="nc_card_id_does_not_match">Card ID does not match. Please try a different card.</string>
-    <string name="nc_inheritance_key_warning">This is the inheritance key. It should only be used to sign transactions in an emergency. Are you sure you want to sign using this key?</string>
     <string name="nc_set_up_buffer_period">Set up buffer period</string>
     <string name="nc_buffer_period">Buffer period</string>
     <string name="nc_buffer_period_has_started">Buffer period has started</string>
@@ -516,11 +523,12 @@
     <string name="nc_high">High</string>
     <string name="nc_density">Density</string>
     <string name="nc_select_an_assisted_wallet">Select an assisted wallet</string>
+    <string name="nc_select_a_group_wallet">Select a group wallet</string>
     <string name="nc_key_resuse">Key reuse</string>
     <string name="nc_keystone">Keystone</string>
     <string name="nc_blockstream_jade">Blockstream Jade</string>
     <string name="nc_foudation_passport">Foundation Passport</string>
-    <string name="nc_what_type_of_airgap_you_have">What type of air-gapped device do you have?</string>
+    <string name="nc_what_type_of_airgap_you_have">Select your air-gapped device type</string>
     <string name="nc_do_it_now">Do it now</string>
     <string name="nc_setup_inheritance_for">Set up an inheritance plan for %1$s</string>
     <string name="nc_import_via_qr">Import via QR</string>
@@ -574,9 +582,9 @@
     <string name="nc_delete_tag_confirmation"><![CDATA[There are currently <b>%s</b> coins that have this tag. Are you sure you want to delete this tag?]]></string>
     <string name="nc_delete_collection_confirmation"><![CDATA[There are currently <b>%s</b> coins that have this tag. Are you sure you want to delete this collection?]]></string>
     <string name="nc_remove_coin_confirmation"><![CDATA[Are you sure you want to remove this coin from <b>%s</b>?]]></string>
-    <string name="nc_remove_coin_from_this_tag">Remove coins from this tag</string>
-    <string name="nc_remove_coin_from_this_collection">Remove coins from this collection</string>
-    <string name="nc_move_coin_to_another_collection">Move coins to another collection</string>
+    <string name="nc_remove_coin_from_this_tag">Remove from tag</string>
+    <string name="nc_remove_coin_from_this_collection">Remove from collection</string>
+    <string name="nc_move_coin_to_another_collection">Move to another collection</string>
     <string name="nc_select_coins">Select coins</string>
     <string name="nc_coin_updated">Coin updated</string>
     <string name="nc_view_all">View all</string>
@@ -656,4 +664,13 @@
     <string name="nc_add_recipient">Add recipient</string>
     <string name="nc_address">Address</string>
     <string name="nc_use_desktop_app_to_sign">Please use the desktop app to sign with this key</string>
+    <string name="nc_master">Master</string>
+    <string name="nc_member">Member</string>
+    <string name="nc_text_continue_signature_pending">Continue (%1$s signature pending)</string>
+    <string name="nc_inheritance_plan_group_create">%1$s: inheritance plan creation</string>
+    <string name="nc_inheritance_plan_group_change">%1$s: inheritance plan change</string>
+    <string name="nc_create_inheritance_plan_group_change_by">%1$s is requesting to create the inheritance plan for %1$s:</string>
+    <string name="nc_update_inheritance_plan_group_change_by">%1$s is requesting to make the following changes to the inheritance plan for %1$s:</string>
+    <string name="nc_cancel_inheritance_plan_group_change_by">%1$s is requesting to cancel the inheritance plan for %1$s.</string>
+    <string name="nc_no_internet_connection_try_again_later">No Internet connection. Please try again later.</string>
 </resources>

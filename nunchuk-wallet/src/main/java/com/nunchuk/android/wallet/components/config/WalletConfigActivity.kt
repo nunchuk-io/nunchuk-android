@@ -32,6 +32,7 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.model.KeyPolicy
@@ -155,7 +156,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private fun handleDeleteWallet() {
         if (viewModel.isAssistedWallet()) {
-            showReEnterPassword(true, "")
+            showReEnterPassword(null)
         } else if (viewModel.isSharedWallet()) {
             NCWarningDialog(this).showDialog(
                 message = getString(R.string.nc_delete_collaborative_wallet),
@@ -235,13 +236,23 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun openServerKeyDetail(event: WalletConfigEvent.VerifyPasswordSuccess) {
-        CosigningPolicyActivity.start(
-            activity = this,
-            keyPolicy = args.keyPolicy,
-            xfp = event.xfp,
-            token = event.token,
-            walletId = args.walletId,
-        )
+        if (!event.groupId.isNullOrEmpty()) {
+            CosigningPolicyActivity.start(
+                activity = this,
+                signer = event.signer,
+                token = event.token,
+                walletId = args.walletId,
+                groupId = event.groupId,
+            )
+        } else {
+            CosigningPolicyActivity.start(
+                activity = this,
+                keyPolicy = args.keyPolicy,
+                signer = event.signer,
+                token = event.token,
+                walletId = args.walletId,
+            )
+        }
     }
 
     private fun onGetWalletError(event: WalletConfigEvent.WalletDetailsError) {
@@ -289,7 +300,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             signers = state.signers,
             isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet()
         ) {
-            showReEnterPassword(false, it.fingerPrint)
+            showReEnterPassword(it)
         }.bindItems()
     }
 
@@ -424,16 +435,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         }
     }
 
-    private fun showReEnterPassword(isDeletedWalletFlow: Boolean, fingerPrint: String) {
+    private fun showReEnterPassword(signer: SignerModel?) {
         NCDeleteConfirmationDialog(this).showDialog(
             title = getString(R.string.nc_re_enter_password),
             isMaskInput = true,
             message = getString(R.string.nc_enter_your_password_desc),
             onConfirmed = { password ->
-                if (isDeletedWalletFlow) {
+                if (signer == null) {
                     viewModel.verifyPasswordToDeleteAssistedWallet(password)
                 } else {
-                    viewModel.verifyPassword(password, fingerPrint)
+                    viewModel.verifyPassword(password, signer)
                 }
             }
         )

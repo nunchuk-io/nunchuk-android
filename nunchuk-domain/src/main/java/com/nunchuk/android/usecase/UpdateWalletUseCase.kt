@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface UpdateWalletUseCase {
-    fun execute(wallet: Wallet, isAssistedWallet: Boolean = false): Flow<Boolean>
+    fun execute(wallet: Wallet, isAssistedWallet: Boolean = false, groupId: String? = null): Flow<Boolean>
 }
 
 internal class UpdateWalletUseCaseImpl @Inject constructor(
@@ -35,9 +35,13 @@ internal class UpdateWalletUseCaseImpl @Inject constructor(
     private val userWalletsRepository: PremiumWalletRepository,
 ) : UpdateWalletUseCase {
 
-    override fun execute(wallet: Wallet, isAssistedWallet: Boolean): Flow<Boolean> = flow {
+    override fun execute(
+        wallet: Wallet,
+        isAssistedWallet: Boolean,
+        groupId: String?
+    ): Flow<Boolean> = flow {
         if (isAssistedWallet) {
-            userWalletsRepository.updateServerWallet(wallet.id, wallet.name)
+            userWalletsRepository.updateServerWallet(wallet.id, wallet.name, groupId)
         }
         emit(nativeSdk.updateWallet(wallet))
     }

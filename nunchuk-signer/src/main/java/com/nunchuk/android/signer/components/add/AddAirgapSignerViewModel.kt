@@ -45,6 +45,7 @@ import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
@@ -70,11 +71,13 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
+    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
     private var chain: Chain = Chain.MAIN
+    private var groupId: String = ""
 
     private val _state = MutableStateFlow(AddAirgapSignerState())
     val uiState = _state.asStateFlow()
@@ -85,11 +88,20 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         }
     }
 
+    fun init(groupId: String) {
+        this.groupId = groupId
+    }
+
     private val _signers = mutableListOf<SingleSigner>()
     val signers: List<SingleSigner>
         get() = _signers
 
-    fun handleAddAirgapSigner(signerName: String, signerSpec: String, isMembershipFlow: Boolean, signerTag: SignerTag?) {
+    fun handleAddAirgapSigner(
+        signerName: String,
+        signerSpec: String,
+        isMembershipFlow: Boolean,
+        signerTag: SignerTag?
+    ) {
         val newSignerName = if (isMembershipFlow) "Hardware key${
             membershipStepManager.getNextKeySuffixByType(
                 SignerType.AIRGAP
@@ -138,9 +150,20 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                     isAddNew = true,
                                     signerType = airgap.type
                                 )
-                            )
+                            ),
+                            groupId = groupId
                         )
                     )
+                    if (groupId.isNotEmpty()) {
+                        syncKeyToGroupUseCase(
+                            SyncKeyToGroupUseCase.Param(
+                                step = membershipStepManager.currentStep
+                                    ?: throw IllegalArgumentException("Current step empty"),
+                                groupId = groupId,
+                                signer = airgap
+                            )
+                        )
+                    }
                 }
                 setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
             } else {

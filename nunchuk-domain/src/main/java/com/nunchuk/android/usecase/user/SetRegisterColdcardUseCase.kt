@@ -29,7 +29,7 @@ class SetRegisterColdcardUseCase @Inject constructor(
     private val repository: MembershipRepository,
     @IoDispatcher ioDispatcher: CoroutineDispatcher
 ) : UseCase<SetRegisterColdcardUseCase.Params, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: Params) = repository.setRegisterColdcard(parameters.walletId, parameters.isRegister)
+    override suspend fun execute(parameters: Params) = repository.setRegisterColdcard(parameters.walletId, parameters.count)
 
-    data class Params(val walletId: String, val isRegister: Boolean)
+    data class Params(val walletId: String, val count: Int)
 }

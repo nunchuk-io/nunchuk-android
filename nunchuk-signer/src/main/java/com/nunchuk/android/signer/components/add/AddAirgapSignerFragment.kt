@@ -38,7 +38,15 @@ import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AirgapSignerNameRequiredEvent
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.InvalidAirgapSignerSpecEvent
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSigner
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
 import com.nunchuk.android.signer.databinding.FragmentAddSignerBinding
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
@@ -93,6 +101,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
+        viewModel.init((activity as AddAirgapSignerActivity).groupId)
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -148,6 +157,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         if ((requireActivity() as AddAirgapSignerActivity).isMembershipFlow.not()) {
             navigator.openSignerInfoScreen(
                 requireContext(),
+                isMasterSigner = singleSigner.hasMasterSigner,
                 id = singleSigner.masterSignerId,
                 masterFingerprint = singleSigner.masterFingerprint,
                 name = singleSigner.name,

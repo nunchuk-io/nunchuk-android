@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.membership.honey.registerwallet
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -57,8 +58,12 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.upload.SharedWalletConfigurationViewModel
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -121,7 +126,7 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
                 }
         }
 
-        sharedViewModel.event.observe(viewLifecycleOwner) {
+        flowObserver(sharedViewModel.event) {
             if (it is UploadConfigurationEvent.ExportColdcardSuccess) {
                 if (it.filePath.isNullOrEmpty()) {
                     openNextScreen()
@@ -137,18 +142,34 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
 
     private fun openNextScreen() {
         viewModel.setRegisterColdcardSuccess(args.walletId)
-        if (args.hasAirgap) {
+        if (args.index > 1 && !args.isSingleRegister) {
+            findNavController().navigate(
+                RegisterWalletToColdcardFragmentDirections.actionRegisterWalletToColdcardFragmentSelf(
+                    args.walletId,
+                    args.index - 1,
+                    args.airgapIndex,
+                ),
+            )
+        } else if (args.airgapIndex > 0) {
             findNavController().navigate(
                 RegisterWalletToColdcardFragmentDirections.actionRegisterWalletToColdcardFragmentToRegisterWalletToAirgapFragment(
-                    args.walletId
+                    args.walletId,
                 ),
             )
         } else {
-            findNavController().navigate(
-                RegisterWalletToColdcardFragmentDirections.actionRegisterWalletFragmentToCreateWalletSuccessFragment(
-                    args.walletId
-                ),
-            )
+            val stage = requireActivity().intent.serializable<MembershipStage>(MembershipActivity.EXTRA_GROUP_STEP)
+            if (stage == MembershipStage.REGISTER_WALLET) {
+                requireActivity().apply {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
+            } else {
+                findNavController().navigate(
+                    RegisterWalletToColdcardFragmentDirections.actionRegisterWalletFragmentToCreateWalletSuccessFragment(
+                        args.walletId
+                    ),
+                )
+            }
         }
     }
 }
@@ -156,7 +177,9 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
 @Composable
 private fun RegisterWalletToColdcardScreen(viewModel: RegisterWalletToColdcardViewModel = viewModel()) {
     val remainingTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     RegisterWalletToColdcardContent(
+        uiState = uiState,
         remainingTime = remainingTime,
         onExportToColdcardClicked = viewModel::onExportColdcardClicked
     )
@@ -164,6 +187,7 @@ private fun RegisterWalletToColdcardScreen(viewModel: RegisterWalletToColdcardVi
 
 @Composable
 private fun RegisterWalletToColdcardContent(
+    uiState: RegisterWalletToColdcardUiState = RegisterWalletToColdcardUiState(),
     remainingTime: Int = 0,
     onExportToColdcardClicked: () -> Unit = {}
 ) {
@@ -182,12 +206,12 @@ private fun RegisterWalletToColdcardContent(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_register_wallet_to_coldcard),
+                    text = stringResource(R.string.nc_register_wallet_to_coldcard, uiState.keyName),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.nc_register_wallet_to_coldcard_desc),
+                    text = stringResource(R.string.nc_register_wallet_to_coldcard_desc, uiState.keyName),
                     style = NunchukTheme.typography.body
                 )
                 Spacer(modifier = Modifier.weight(1.0f))

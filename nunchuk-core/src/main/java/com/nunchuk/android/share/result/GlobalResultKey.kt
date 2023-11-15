@@ -20,10 +20,20 @@
 package com.nunchuk.android.share.result
 
 object GlobalResultKey {
-    const val SIGNATURE_EXTRA = "SIGNATURE_EXTRA"
-    const val TRANSACTION_EXTRA = "TRANSACTION_EXTRA"
-    const val SECURITY_QUESTION_TOKEN = "SECURITY_QUESTION_TOKEN"
-    const val UPDATE_INHERITANCE = "UPDATE_INHERITANCE"
-    const val WALLET_ID = "WALLET_ID"
-    const val EXTRA_COINS = "coins"
+    const val SIGNATURE_EXTRA = "_a"
+    const val TRANSACTION_EXTRA = "_b"
+    const val EXTRA_HEALTH_CHECK_XFP = "_c"
+    const val EXTRA_DUMMY_TX_TYPE = "_d"
+    const val SECURITY_QUESTION_TOKEN = "_e"
+    const val CONFIRM_CODE_TOKEN = "_f"
+    const val CONFIRM_CODE_NONCE = "_g"
+    const val CONFIRM_CODE = "_h"
+    const val UPDATE_INHERITANCE = "_i"
+    const val WALLET_ID = "_j"
+    const val EXTRA_COINS = "_k"
+    const val EXTRA_SIGNER = "_l"
+    const val DUMMY_TX_ID = "_m"
+    const val REQUIRED_SIGNATURES = "_n"
+    const val DUMMY_TX_INTRO_DO_LATER = "_o"
+    const val SECURITY_QUESTION_EXTRA_INFO = "_p"
 }

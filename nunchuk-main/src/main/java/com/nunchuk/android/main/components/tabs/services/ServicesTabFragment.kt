@@ -26,13 +26,20 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
@@ -66,11 +73,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
             val item = currentSelectedItem
             if (item == ServiceTabRowItem.SetUpInheritancePlan) {
-                navigator.openInheritancePlanningScreen(
-                    walletId = walletId,
-                    activityContext = requireContext(),
-                    flowInfo = InheritancePlanFlow.SETUP
-                )
+                viewModel.openSetupInheritancePlan(walletId)
             } else {
                 if (walletId.isNotEmpty() && item != null) {
                     enterPasswordDialog(item, walletId)
@@ -107,19 +110,37 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 )
                 is ServicesTabEvent.GetInheritanceSuccess -> navigator.openInheritancePlanningScreen(
                     walletId = event.walletId,
-                    requireContext(),
+                    activityContext = requireContext(),
                     verifyToken = event.token,
                     inheritance = event.inheritance,
-                    flowInfo = InheritancePlanFlow.VIEW
+                    flowInfo = InheritancePlanFlow.VIEW,
+                    groupId = event.groupId
+                )
+
+                is ServicesTabEvent.OpenSetupInheritancePlan -> navigator.openInheritancePlanningScreen(
+                    walletId = event.walletId,
+                    activityContext = requireContext(),
+                    flowInfo = InheritancePlanFlow.SETUP,
+                    groupId = event.groupId
+                )
+
+                is ServicesTabEvent.CalculateRequiredSignaturesSuccess -> navigator.openWalletAuthentication(
+                    walletId = event.walletId,
+                    userData = event.userData,
+                    requiredSignatures = event.requiredSignatures,
+                    type = event.type,
+                    groupId = event.groupId,
+                    dummyTransactionId = event.dummyTransactionId,
+                    activityContext = requireActivity()
                 )
             }
         }
         flowObserver(viewModel.state) { state ->
             adapter.submitList(viewModel.getRowItems())
             state.isPremiumUser?.let {
-                binding.supportFab.isVisible = state.isPremiumUser
-                binding.actionGroup.isVisible = state.isPremiumUser.not()
-                binding.claimLayout.isVisible = state.isPremiumUser.not()
+                binding.supportFab.isVisible = state.isPremiumUser || viewModel.isByzantine()
+                binding.actionGroup.isVisible = state.isPremiumUser.not() && viewModel.getRowItems().any { it is NonSubHeader }
+                binding.claimLayout.isVisible = viewModel.isShowClaimInheritanceLayout() && viewModel.getRowItems().none { it is ServiceTabRowItem.ClaimInheritance }
             }
         }
     }
@@ -154,11 +175,12 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 viewModel.getServiceKey(event.token, event.walletId)
             }
             ServiceTabRowItem.EmergencyLockdown -> {
-                navigator.openEmergencyLockdownScreen(requireContext(), event.token)
+                navigator.openEmergencyLockdownScreen(requireContext(), event.token, event.groupId, event.walletId)
             }
             ServiceTabRowItem.ViewInheritancePlan -> viewModel.getInheritance(
                 event.walletId,
-                event.token
+                event.token,
+                event.groupId
             )
             else -> Unit
         }
@@ -207,33 +229,50 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         }
         when (item) {
             ServiceTabRowItem.ClaimInheritance -> viewModel.checkInheritance()
-            ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(item)
-            ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
+            ServiceTabRowItem.EmergencyLockdown -> {
+                val (numOfLockedWallet, wallets) = viewModel.getAllowEmergencyLockdownWallets()
+                if (numOfLockedWallet == wallets.size) {
+                    NCInfoDialog(requireActivity()).showDialog(
+                        message = getString(
+                            R.string.nc_all_wallets_under_lockdown
+                        )
+                    )
+                    return
+                }
+                if (wallets.size == 1) {
+                    enterPasswordDialog(item = item, walletId = wallets.first().localId)
+                } else {
+                    AssistedWalletBottomSheet.show(
+                        childFragmentManager,
+                        assistedWalletIds = wallets.map { it.localId },
+                        lockdownWalletIds = viewModel.getLockdownWalletsIds()
+                    )
+                }
+            }
+            ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext(), viewModel.state.value.userRole)
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
             ServiceTabRowItem.RollOverAssistedWallet -> {}
             ServiceTabRowItem.SetUpInheritancePlan -> {
                 val wallets = viewModel.getUnSetupInheritanceWallets()
                 if (wallets.size == 1) {
-                    navigator.openInheritancePlanningScreen(
-                        walletId = wallets.first().localId,
-                        activityContext = requireContext(),
-                        flowInfo = InheritancePlanFlow.SETUP
-                    )
+                    viewModel.openSetupInheritancePlan(wallets.first().localId)
                 } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                 }
             }
             ServiceTabRowItem.CoSigningPolicies,
             ServiceTabRowItem.ViewInheritancePlan -> {
-                val wallets = viewModel.getWallet(ignoreSetupInheritance = item != ServiceTabRowItem.ViewInheritancePlan)
+                val wallets = viewModel.getWallets(ignoreSetupInheritance = item != ServiceTabRowItem.ViewInheritancePlan)
                 if (wallets.isEmpty()) return
                 if (wallets.size == 1) {
                     enterPasswordDialog(item = item, walletId = wallets.first().localId)
                 } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                 }
             }
+
+            ServiceTabRowItem.GetAdditionalWallets -> {}
         }
     }
 
@@ -282,13 +321,24 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     }
 
     private fun openServerKeyDetail(event: ServicesTabEvent.GetServerKeySuccess) {
-        CosigningPolicyActivity.start(
-            activity = requireActivity(),
-            keyPolicy = null,
-            xfp = event.signer.masterFingerprint,
-            token = event.token,
-            walletId = event.walletId,
-        )
+        val groupId = viewModel.getGroupId(event.walletId)
+        if (!groupId.isNullOrEmpty()) {
+            CosigningPolicyActivity.start(
+                activity = requireActivity(),
+                signer = event.signer.toModel(),
+                token = event.token,
+                walletId = event.walletId,
+                groupId = groupId,
+            )
+        } else {
+            CosigningPolicyActivity.start(
+                activity = requireActivity(),
+                keyPolicy = null,
+                signer = event.signer.toModel(),
+                token = event.token,
+                walletId = event.walletId,
+            )
+        }
     }
 
     private fun showManageSubscriptionDialog() {

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/inheritance_planning_success_navigation"
+    app:startDestination="@id/inheritanceCreateSuccessFragment">
+
+    <fragment
+        android:id="@+id/inheritanceCreateSuccessFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.InheritanceCreateSuccessFragment"
+        android:label="InheritanceCreateSuccessFragment">
+        <action
+            android:id="@+id/action_inheritanceCreateSuccessFragment_to_inheritanceShareSecretFragment"
+            app:destination="@id/inheritance_planning_secret_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument android:name="source_flow"
+                app:argType="integer"
+                android:defaultValue="0"/>
+            <argument
+                android:name="magical_phrase"
+                app:argType="string" />
+            <argument
+                android:name="plan_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
+            <argument
+                android:name="wallet_id"
+                app:argType="string" />
+        </action>
+        <argument android:name="source_flow"
+            app:argType="integer"
+            android:defaultValue="0"/>
+        <argument
+            android:name="magical_phrase"
+            app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+    </fragment>
+    <include app:graph="@navigation/inheritance_planning_secret_navigation" />
+
+</navigation>

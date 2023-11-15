@@ -32,7 +32,6 @@ object NcColor {
     val denimDark = Color(0xFF2F466C)
     val white = Color(0xFFFFFFFF)
     val beeswaxLight = Color(0xFFFDD95C)
-    val kinglyCloud = Color(0xFFDEDEDE)
 }
 
 val Colors.border: Color
@@ -46,3 +45,13 @@ val Colors.whisper: Color
 
 val Colors.denimTint: Color
     get() = Color(0xFFD0E2FF)
+
+val Colors.everglade: Color
+    get() = Color(0xFF1C4A21)
+
+val Colors.ming: Color
+    get() = Color(0xFF2F766D)
+
+val Colors.yellowishOrange: Color
+    get() = Color(0xFFFDEBD2)
+

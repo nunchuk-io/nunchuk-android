@@ -55,6 +55,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.os.bundleOf
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -71,6 +72,7 @@ import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import dagger.hilt.android.AndroidEntryPoint
@@ -81,6 +83,7 @@ import java.util.Date
 class InheritanceActivationDateFragment : MembershipFragment() {
 
     private val viewModel: InheritanceActivationDateViewModel by viewModels()
+    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
     private val args: InheritanceActivationDateFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -92,6 +95,7 @@ class InheritanceActivationDateFragment : MembershipFragment() {
             setContent {
                 InheritanceActivationDateScreen(viewModel,
                     args,
+                    inheritanceViewModel,
                     onDatePicker = {
                         showDatePicker()
                     })
@@ -101,24 +105,16 @@ class InheritanceActivationDateFragment : MembershipFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.init(inheritanceViewModel.setupOrReviewParam)
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceActivationDateEvent.ContinueClick -> {
-                    if (args.isUpdateRequest || args.planFlow == InheritancePlanFlow.VIEW) {
-                        setFragmentResult(
-                            REQUEST_KEY,
-                            bundleOf(EXTRA_ACTIVATION_DATE to event.date)
-                        )
+                    inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(activationDate = event.date))
+                    if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                         findNavController().popBackStack()
                     } else {
                         findNavController().navigate(
-                            InheritanceActivationDateFragmentDirections.actionInheritanceActivationDateFragmentToInheritanceNoteFragment(
-                                activationDate = event.date,
-                                verifyToken = args.verifyToken,
-                                magicalPhrase = args.magicalPhrase,
-                                planFlow = args.planFlow,
-                                walletId = args.walletId,
-                            )
+                            InheritanceActivationDateFragmentDirections.actionInheritanceActivationDateFragmentToInheritanceNoteFragment()
                         )
                     }
                 }
@@ -154,6 +150,7 @@ class InheritanceActivationDateFragment : MembershipFragment() {
 fun InheritanceActivationDateScreen(
     viewModel: InheritanceActivationDateViewModel = viewModel(),
     args: InheritanceActivationDateFragmentArgs,
+    inheritanceViewModel: InheritancePlanningViewModel,
     onDatePicker: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -163,7 +160,7 @@ fun InheritanceActivationDateScreen(
     InheritanceActivationDateScreenContent(
         remainTime = remainTime,
         date = date,
-        planFlow = args.planFlow,
+        planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         isUpdateRequest = args.isUpdateRequest,
         onContinueClick = {
             viewModel.onContinueClicked()

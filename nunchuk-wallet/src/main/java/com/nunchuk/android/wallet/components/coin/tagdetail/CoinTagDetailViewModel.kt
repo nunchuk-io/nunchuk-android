@@ -69,6 +69,7 @@ class CoinTagDetailViewModel @Inject constructor(
     fun deleteCoinTag() = viewModelScope.launch {
         val result = deleteCoinTagUseCase(
             DeleteCoinTagUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(args.walletId),
                 walletId = args.walletId,
                 tagId = args.coinTag.id,
                 isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
@@ -92,6 +93,7 @@ class CoinTagDetailViewModel @Inject constructor(
         val coinTag = _state.value.coinTag?.copy(color = color) ?: return@launch
         val result = updateCoinTagUseCase(
             UpdateCoinTagUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(args.walletId),
                 walletId = args.walletId,
                 coinTag = coinTag,
                 isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
@@ -108,6 +110,7 @@ class CoinTagDetailViewModel @Inject constructor(
     fun removeCoin(coins: List<UnspentOutput>) = viewModelScope.launch {
         val result = removeCoinFromTagUseCase(
             RemoveCoinFromTagUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(args.walletId),
                 walletId = args.walletId,
                 tagIds = listOf(args.coinTag.id),
                 coins = coins,

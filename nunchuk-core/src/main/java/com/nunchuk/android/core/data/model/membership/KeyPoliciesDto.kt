@@ -20,7 +20,10 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.SpendingPolicy
+import com.nunchuk.android.model.SpendingTimeUnit
 
 internal data class KeyPoliciesDto(
     @SerializedName("auto_broadcast_transaction")
@@ -28,7 +31,18 @@ internal data class KeyPoliciesDto(
     @SerializedName("signing_delay_seconds")
     val signingDelaySeconds: Int = 0,
     @SerializedName("spending_limit")
-    val spendingLimit: SpendingPolicyDto? = null
+    val spendingLimit: SpendingPolicyDto? = null,
+    @SerializedName("apply_same_spending_limit")
+    val applySamePendingLimit: Boolean? = null,
+    @SerializedName("members_spending_limit")
+    val membersSpendingLimit: List<MemberSpendingLimitDto>? = null,
+)
+
+internal data class MemberSpendingLimitDto(
+    @SerializedName("membership_id")
+    val membershipId: String? = null,
+    @SerializedName("spending_limit")
+    val spendingLimit: SpendingPolicyDto? = null,
 )
 
 internal data class SpendingPolicyDto(
@@ -51,3 +65,61 @@ internal fun KeyPolicy.toDto(): KeyPoliciesDto = KeyPoliciesDto(
         )
     }
 )
+
+internal fun GroupKeyPolicy.toDto(): KeyPoliciesDto = if (isApplyAll) {
+    val spendingPolicy = spendingPolicies.values.first()
+    KeyPoliciesDto(
+        autoBroadcastTransaction = autoBroadcastTransaction,
+        signingDelaySeconds =signingDelayInSeconds,
+        spendingLimit = spendingPolicy.let {
+            SpendingPolicyDto(
+                interval = it.timeUnit.name,
+                currency = it.currencyUnit,
+                limit = it.limit,
+            )
+        },
+        applySamePendingLimit = true,
+    )
+} else {
+    KeyPoliciesDto(autoBroadcastTransaction = autoBroadcastTransaction,
+        signingDelaySeconds = signingDelayInSeconds,
+        applySamePendingLimit = false,
+        membersSpendingLimit = spendingPolicies.map { (memberId, spendingPolicy) ->
+            MemberSpendingLimitDto(
+                spendingLimit = SpendingPolicyDto(
+                    interval = spendingPolicy.timeUnit.name,
+                    currency = spendingPolicy.currencyUnit,
+                    limit = spendingPolicy.limit,
+                ), membershipId = memberId
+            )
+        })
+}
+
+internal fun KeyPoliciesDto.toExternalModel() : GroupKeyPolicy {
+   return if (applySamePendingLimit == true) {
+        val spendingLimit = spendingLimit?.let {
+            SpendingPolicy(limit = it.limit,
+                currencyUnit = it.currency,
+                timeUnit = runCatching { SpendingTimeUnit.valueOf(it.interval) }.getOrElse { SpendingTimeUnit.DAILY })
+        }
+        GroupKeyPolicy(
+            autoBroadcastTransaction = autoBroadcastTransaction,
+            signingDelayInSeconds = signingDelaySeconds,
+            spendingPolicies = spendingLimit?.let { mapOf("" to spendingLimit) }.orEmpty(),
+            isApplyAll = applySamePendingLimit
+        )
+    } else {
+        GroupKeyPolicy(
+            autoBroadcastTransaction = autoBroadcastTransaction,
+            signingDelayInSeconds = signingDelaySeconds,
+            spendingPolicies = membersSpendingLimit.orEmpty().associate {
+                it.membershipId.orEmpty() to it.spendingLimit!!.let { policy ->
+                    SpendingPolicy(limit = policy.limit,
+                        currencyUnit = policy.currency,
+                        timeUnit = runCatching { SpendingTimeUnit.valueOf(policy.interval) }.getOrElse { SpendingTimeUnit.DAILY })
+                }
+            },
+            isApplyAll = false
+        )
+    }
+}

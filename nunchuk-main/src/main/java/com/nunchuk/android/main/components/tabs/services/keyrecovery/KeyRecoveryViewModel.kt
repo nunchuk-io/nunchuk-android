@@ -19,30 +19,51 @@
 
 package com.nunchuk.android.main.components.tabs.services.keyrecovery
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.MembershipPlan
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class KeyRecoveryViewModel @Inject constructor(
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase
-) :
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
+    savedStateHandle: SavedStateHandle) :
     ViewModel() {
+
+    private val args = KeyRecoveryFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private val _event = MutableSharedFlow<KeyRecoveryEvent>()
     val event = _event.asSharedFlow()
 
     private val _state = MutableStateFlow(KeyRecoveryState())
     val state = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            getLocalMembershipPlanFlowUseCase(Unit)
+                .map { it.getOrElse { MembershipPlan.NONE } }
+                .collect { plan ->
+                    _state.update { it.copy(plan = plan, myUserRole = args.role) }
+                    _state.update { it.copy(actionItems = it.initRowItems()) }
+                }
+        }
+    }
 
     fun onItemClick(item: KeyRecoveryActionItem) = viewModelScope.launch {
         _event.emit(KeyRecoveryEvent.ItemClick(item))
@@ -55,10 +76,10 @@ class KeyRecoveryViewModel @Inject constructor(
         _event.emit(KeyRecoveryEvent.Loading(true))
         val targetAction = when (item) {
             is KeyRecoveryActionItem.StartKeyRecovery -> {
-                VerifiedPasswordTargetAction.DOWNLOAD_KEY_BACKUP.name
+                TargetAction.DOWNLOAD_KEY_BACKUP.name
             }
             is KeyRecoveryActionItem.UpdateRecoveryQuestion -> {
-                VerifiedPasswordTargetAction.UPDATE_SECURITY_QUESTIONS.name
+                TargetAction.UPDATE_SECURITY_QUESTIONS.name
             }
         }
         val result = verifiedPasswordTokenUseCase(

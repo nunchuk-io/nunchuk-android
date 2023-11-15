@@ -205,6 +205,11 @@
                 android:paddingVertical="@dimen/nc_padding_8"
                 android:visibility="gone" />
 
+            <androidx.compose.ui.platform.ComposeView
+                android:id="@+id/pending_wallet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

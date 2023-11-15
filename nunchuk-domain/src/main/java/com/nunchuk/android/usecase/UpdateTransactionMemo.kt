@@ -40,6 +40,7 @@ class UpdateTransactionMemo @Inject constructor(
             if (parameters.isAssistedWallet) {
                 runCatching {
                     repository.updateServerTransaction(
+                        parameters.groupId,
                         parameters.walletId,
                         parameters.txId,
                         parameters.newMemo
@@ -50,9 +51,10 @@ class UpdateTransactionMemo @Inject constructor(
     }
 
     class Data(
+        override val groupId: String?,
         override val walletId: String,
         override val isAssistedWallet: Boolean,
         val txId: String,
         val newMemo: String
-    ) : Param(walletId, isAssistedWallet)
+    ) : Param(groupId, walletId, isAssistedWallet)
 }

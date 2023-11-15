@@ -39,4 +39,7 @@ interface AssistedWalletDao : BaseDao<AssistedWalletEntity> {
 
     @Query("SELECT * FROM $TABLE_ASSISTED_WALLET WHERE local_id =:id ")
     suspend fun getById(id: String): AssistedWalletEntity?
+
+    @Query("SELECT * FROM $TABLE_ASSISTED_WALLET WHERE group_id =:id ")
+    suspend fun getByGroupId(id: String): AssistedWalletEntity?
 }

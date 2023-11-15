@@ -28,6 +28,7 @@ import com.nunchuk.android.core.domain.message.HandlePushMessageUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.isAtLeastStarted
+import com.nunchuk.android.messages.util.getGroupId
 import com.nunchuk.android.messages.util.getLastMessageContentSafe
 import com.nunchuk.android.messages.util.getMsgBody
 import com.nunchuk.android.messages.util.getTransactionId
@@ -35,12 +36,15 @@ import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.isContactUpdateEvent
 import com.nunchuk.android.messages.util.isCosignedAndBroadcastEvent
 import com.nunchuk.android.messages.util.isCosignedEvent
+import com.nunchuk.android.messages.util.isKeyRecoveryApproved
+import com.nunchuk.android.messages.util.isKeyRecoveryRequest
 import com.nunchuk.android.messages.util.isMessageEvent
 import com.nunchuk.android.messages.util.isNunchukTransactionEvent
 import com.nunchuk.android.messages.util.isNunchukWalletEvent
 import com.nunchuk.android.messages.util.isTransactionReceived
 import com.nunchuk.android.messages.util.isTransactionScheduleMissingSignaturesEvent
 import com.nunchuk.android.messages.util.isTransactionScheduleNetworkRejectedEvent
+import com.nunchuk.android.messages.util.isWalletInheritancePlanningRequestDenied
 import com.nunchuk.android.messages.util.lastMessageContent
 import com.nunchuk.android.messages.util.lastMessageSender
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
@@ -209,8 +213,8 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = getString(R.string.notification_transaction_update),
                 message = getMsgBody(),
                 intent = intentProvider.getTransactionDetailIntent(
-                    getWalletId(),
-                    getTransactionId()
+                    walletId = getWalletId().orEmpty(),
+                    txId = getTransactionId().orEmpty(),
                 )
             )
         }
@@ -221,8 +225,8 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = getString(R.string.notification_transaction_update),
                 message = getString(R.string.nc_notification_transaction_co_signed),
                 intent = intentProvider.getTransactionDetailIntent(
-                    getWalletId(),
-                    getTransactionId()
+                    walletId = getWalletId().orEmpty(),
+                    txId = getTransactionId().orEmpty(),
                 )
             )
         }
@@ -233,8 +237,8 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = getString(R.string.notification_transaction_update),
                 message = getString(R.string.nc_notification_cosign_and_broadcast),
                 intent = intentProvider.getTransactionDetailIntent(
-                    getWalletId(),
-                    getTransactionId()
+                    walletId = getWalletId().orEmpty(),
+                    txId = getTransactionId().orEmpty(),
                 )
             )
         }
@@ -246,8 +250,8 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = getString(R.string.notification_transaction_update),
                 message = message,
                 intent = intentProvider.getTransactionDetailIntent(
-                    walletId = getWalletId(),
-                    txId = getTransactionId(),
+                    walletId = getWalletId().orEmpty(),
+                    txId = getTransactionId().orEmpty(),
                     isCancelBroadcast = true,
                     errorMessage = message
                 )
@@ -261,15 +265,45 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = getString(R.string.notification_transaction_update),
                 message = message,
                 intent = intentProvider.getTransactionDetailIntent(
-                    walletId = getWalletId(),
-                    txId = getTransactionId(),
+                    walletId = getWalletId().orEmpty(),
+                    txId = getTransactionId().orEmpty(),
                     isCancelBroadcast = true,
                     errorMessage = message
                 )
             )
         }
 
-        else -> defaultNotificationData(localId, getLastMessageContentSafe().orEmpty())
+        isWalletInheritancePlanningRequestDenied() -> {
+            val message = this.getLastMessageContentSafe().orEmpty()
+            PushNotificationData(
+                id = localId,
+                title = message,
+                message = "",
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        isKeyRecoveryRequest() -> {
+            val message = this.getLastMessageContentSafe().orEmpty()
+            PushNotificationData(
+                id = localId,
+                title = getString(R.string.nc_notification_key_recovery_requested),
+                message = message,
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        isKeyRecoveryApproved() -> {
+            val message = this.getLastMessageContentSafe().orEmpty()
+            PushNotificationData(
+                id = localId,
+                title = getString(R.string.nc_notification_key_recovery_approved),
+                message = message,
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        else -> defaultNotificationData(localId, getWalletId(), getGroupId(), getTransactionId(), getLastMessageContentSafe().orEmpty())
     }
 
     private fun getActiveSession() = if (sessionHolder.hasActiveSession()) {
@@ -281,13 +315,13 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     private fun getLastSession(): Session? =
         trySafe(matrix.authenticationService()::getLastAuthenticatedSession)
 
-    private fun defaultNotificationData(localId: Long, message: String) =
+    private fun defaultNotificationData(localId: Long, walletId: String?, groupId: String?, transactionId: String?, message: String) =
         if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
             PushNotificationData(
                 id = localId,
                 title = getString(R.string.notification_update),
                 message = message.ifEmpty { getString(R.string.notification_update_message) },
-                intent = intentProvider.getMainIntent()
+                intent = intentProvider.getGeneralIntent(walletId, groupId, transactionId)
             )
         } else null
 

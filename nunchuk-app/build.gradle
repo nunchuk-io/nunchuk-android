@@ -123,20 +123,14 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.4'
+        kotlinCompilerExtensionVersion '1.5.2'
+    }
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0', 'META-INF/versions/9/module-info.class']
+        }
     }
 
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/license.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/notice.txt'
-        exclude 'META-INF/ASL2.0'
-        exclude 'META-INF/versions/9/module-info.class'
-    }
     namespace 'com.nunchuk.android'
 }
 
@@ -180,7 +174,7 @@ dependencies {
     implementation hiltDeps.hilt
 
     implementation networkDeps.values()
-    implementation platform('androidx.compose:compose-bom:2023.01.00')
+    implementation platform('androidx.compose:compose-bom:2023.08.00')
     implementation composeDeps.values()
 
     implementation androidxDeps.values()
@@ -190,8 +184,8 @@ dependencies {
     implementation navigationDeps.values()
     implementation coroutineDeps.values()
 
-    implementation 'com.google.android.gms:play-services-base:18.0.1'
-    implementation 'com.google.firebase:firebase-messaging-ktx:23.0.0'
+    implementation 'com.google.android.gms:play-services-base:18.2.0'
+    implementation 'com.google.firebase:firebase-messaging-ktx:23.2.0'
 
     def multidex_version = "2.0.1"
     implementation "androidx.multidex:multidex:$multidex_version"

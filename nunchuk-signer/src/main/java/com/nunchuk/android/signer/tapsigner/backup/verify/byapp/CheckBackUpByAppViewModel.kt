@@ -57,7 +57,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
 
     var tryCount = 0
 
-    fun onContinueClicked(masterSignerId: String) {
+    fun onContinueClicked(groupId: String, masterSignerId: String) {
         viewModelScope.launch {
             val result =
                 verifyTapSignerBackupUseCase(
@@ -69,7 +69,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                 )
             if (result.isSuccess && result.getOrThrow()) {
                 val apiResult =
-                    setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(masterSignerId, true))
+                    setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(groupId, masterSignerId, true))
                 if (apiResult.isSuccess) {
                     _event.emit(CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess)
                 } else {

@@ -36,7 +36,12 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.type.TransactionStatus.*
+import com.nunchuk.android.type.TransactionStatus.CONFIRMED
+import com.nunchuk.android.type.TransactionStatus.NETWORK_REJECTED
+import com.nunchuk.android.type.TransactionStatus.PENDING_CONFIRMATION
+import com.nunchuk.android.type.TransactionStatus.PENDING_SIGNATURES
+import com.nunchuk.android.type.TransactionStatus.READY_TO_BROADCAST
+import com.nunchuk.android.type.TransactionStatus.REPLACED
 import javax.inject.Inject
 
 class TextUtils @Inject constructor(val context: Context) {
@@ -118,6 +123,10 @@ fun Boolean?.orFalse(): Boolean {
 }
 
 fun Int?.orDefault(default: Int): Int {
+    return this ?: default
+}
+
+fun Long?.orDefault(default: Long): Long {
     return this ?: default
 }
 

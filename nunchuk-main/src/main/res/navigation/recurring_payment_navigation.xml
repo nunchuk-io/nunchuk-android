@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/key_recovery_navigation"
+    app:startDestination="@id/recurringPaymentIntroFragment">
+
+    <fragment
+        android:id="@+id/recurringPaymentIntroFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.recurringpayment.RecurringPaymentIntroFragment"
+        android:label="RecurringPaymentIntroFragment">
+
+    </fragment>
+
+</navigation>

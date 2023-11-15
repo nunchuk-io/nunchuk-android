@@ -106,7 +106,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         }
         binding.feeRateInput.textChanges()
             .onEach { binding.btnContinue.tag = true }
-            .debounce(500)
+            .debounce(1000L)
             .onEach { viewModel.updateFeeRate(it.safeManualFee()) }
             .onEach { binding.btnContinue.tag = false }
             .launchIn(lifecycleScope)
@@ -161,7 +161,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         binding.tvEffectiveFee.isVisible = state.cpfpFee.value > 0
         binding.manualFeeDesc.isVisible = binding.tvEffectiveFee.isVisible
-        binding.tvEffectiveFee.text = getString(R.string.nc_transaction_effective_fee_rate, state.cpfpFee.value)
+        binding.tvEffectiveFee.text = getString(R.string.nc_transaction_effective_fee_rate, (state.cpfpFee.value.toDouble() / 1000.0).formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS))
 
         if (state.subtractFeeFromAmount) {
             bindSubtotal(viewModel.getOutputAmount())

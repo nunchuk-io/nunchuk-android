@@ -24,6 +24,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
+import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
@@ -35,39 +37,74 @@ interface AppNavigator {
         activityContext: Activity,
         groupStep: MembershipStage,
         walletId: String? = null,
-        isClearTop: Boolean = false
+        groupId: String? = null,
+        addOnHoneyBadger: Boolean = false
     )
 
     fun openMembershipActivity(
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity,
         groupStep: MembershipStage,
+        walletId: String? = null,
+        groupId: String? = null,
+        addOnHoneyBadger: Boolean = false
+    )
+
+    fun openConfigServerKeyActivity(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activityContext: Activity,
+        groupStep: MembershipStage,
         keyPolicy: KeyPolicy? = null,
         xfp: String? = null
     )
 
-    fun openKeyRecoveryScreen(activityContext: Context)
-    fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String)
+    fun openConfigGroupServerKeyActivity(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: GroupKeyPolicy? = null,
+        xfp: String? = null,
+        groupId: String? = null
+    )
+
+    /**
+     * @param role for Byzantine
+     */
+    fun openKeyRecoveryScreen(activityContext: Context, role: String? = null)
+    fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String, groupId: String? = null, walletId: String? = null)
 
     /**
      * @param verifyToken for view/update inheritance [InheritancePlanFlow.VIEW]
      * @param inheritance for view/update inheritance [InheritancePlanFlow.VIEW]
      */
     fun openInheritancePlanningScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
         walletId: String = "",
         activityContext: Context,
         verifyToken: String? = null,
         inheritance: Inheritance? = null,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
-        isOpenFromWizard: Boolean = false
+        @InheritanceSourceFlow.InheritanceSourceFlowInfo sourceFlow: Int = InheritanceSourceFlow.NONE,
+        groupId: String? = null,
+        dummyTransactionId: String? = null
     )
 
     fun openWalletAuthentication(
         walletId: String,
-        userData: String,
+        userData: String = "",
         requiredSignatures: Int,
         type: String,
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Activity
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activityContext: Activity,
+        groupId: String? = null,
+        dummyTransactionId: String? = null,
+        action: String? = null
+    )
+
+    fun openGroupDashboardScreen(
+        groupId: String,
+        walletId: String? = null,
+        message: String? = null,
+        activityContext: Context
     )
 }

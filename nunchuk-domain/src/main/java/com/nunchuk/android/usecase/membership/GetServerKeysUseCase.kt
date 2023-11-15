@@ -29,8 +29,13 @@ import javax.inject.Inject
 class GetServerKeysUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletsRepository: PremiumWalletRepository,
-) : UseCase<String, KeyPolicy>(dispatcher) {
-    override suspend fun execute(parameters: String): KeyPolicy {
-        return userWalletsRepository.getServerKey(parameters)
+) : UseCase<GetServerKeysUseCase.Param, KeyPolicy>(dispatcher) {
+    override suspend fun execute(parameters: Param): KeyPolicy {
+        return userWalletsRepository.getServerKey(
+            xfp = parameters.xfp,
+            derivationPath = parameters.derivationPath
+        )
     }
+
+    data class Param(val xfp: String, val derivationPath: String)
 }

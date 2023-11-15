@@ -81,7 +81,8 @@ class InheritanceShareSecretFragment : MembershipFragment() {
                             magicalPhrase = args.magicalPhrase,
                             type = event.type,
                             planFlow = args.planFlow,
-                            walletId = args.walletId
+                            walletId = args.walletId,
+                            sourceFlow = args.sourceFlow
                         )
                     )
                 }

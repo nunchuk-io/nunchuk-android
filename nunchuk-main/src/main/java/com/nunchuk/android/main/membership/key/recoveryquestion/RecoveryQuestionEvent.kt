@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.membership.key.recoveryquestion
 
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
+import com.nunchuk.android.model.MembershipPlan
 
 sealed class RecoveryQuestionEvent {
     data class Loading(val isLoading: Boolean) : RecoveryQuestionEvent()
@@ -47,8 +48,9 @@ data class RecoveryQuestionState(
     val securityQuestions: List<SecurityQuestionModel> = emptyList(),
     val interactQuestionIndex: Int = InitValue,
     val userData: String? = null,
-    val clearFocusRequest: Boolean = false
-) {
+    val clearFocusRequest: Boolean = false,
+    val plan: MembershipPlan = MembershipPlan.NONE,
+    ) {
     companion object {
         val Empty = RecoveryQuestionState()
         const val InitValue = -1

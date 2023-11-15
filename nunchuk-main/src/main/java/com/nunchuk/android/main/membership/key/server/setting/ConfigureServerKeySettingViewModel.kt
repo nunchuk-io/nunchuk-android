@@ -60,7 +60,7 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
 
     fun onContinueClicked() = viewModelScope.launch {
         val state = _state.value
-        if (state.enableCoSigningSwitched && state.cosigningTextMinutes.isEmpty()) {
+        if (state.enableCoSigningSwitched && state.cosigningTextMinutes.isEmpty() && state.cosigningTextHours.isEmpty()) {
             _event.emit(ConfigureServerKeySettingEvent.NoDelayInput)
             return@launch
         }

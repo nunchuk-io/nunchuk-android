@@ -19,24 +19,26 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.repository.PremiumWalletRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface DeleteMasterSignerUseCase {
-    suspend fun execute(masterSignerId: String): Result<Boolean>
-}
-
-internal class DeleteMasterSignerUseCaseImpl @Inject constructor(
+class DeleteMasterSignerUseCase @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk,
-    private val membershipRepository: MembershipRepository
-) : BaseUseCase(), DeleteMasterSignerUseCase {
+    private val membershipRepository: MembershipRepository,
+    private val premiumWalletRepository: PremiumWalletRepository,
+) : UseCase<String, Boolean>(ioDispatcher) {
 
-    override suspend fun execute(masterSignerId: String) = exe {
-        val isSuccess = nativeSdk.deleteMasterSigner(masterSignerId)
-        membershipRepository.deleteStepBySignerId(masterSignerId)
-        isSuccess
+    override suspend fun execute(parameters: String): Boolean {
+        val isSuccess = nativeSdk.deleteMasterSigner(parameters)
+        runCatching {
+            membershipRepository.deleteStepBySignerId(parameters)
+            premiumWalletRepository.deleteKey(parameters)
+        }
+        return isSuccess
     }
-
 }

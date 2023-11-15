@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetInheritanceBufferPeriodUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,6 +44,7 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val args = InheritanceBufferPeriodFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private lateinit var param: InheritancePlanningParam.SetupOrReview
 
     private val _event = MutableSharedFlow<InheritanceBufferPeriodEvent>()
     val event = _event.asSharedFlow()
@@ -52,7 +54,8 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    init {
+    fun init(param: InheritancePlanningParam.SetupOrReview) {
+        this.param = param
         getBufferPeriod()
     }
 
@@ -67,7 +70,7 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
                 it.copy(options = options)
             }
             if (args.isUpdateRequest) {
-                onOptionClick(args.preBufferPeriod?.id ?: NO_NEED_PERIOD_ITEM_ID)
+                onOptionClick(param.bufferPeriod?.id ?: NO_NEED_PERIOD_ITEM_ID)
             }
         } else {
             _event.emit(InheritanceBufferPeriodEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))

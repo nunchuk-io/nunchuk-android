@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.QuestionsAndAnswer
 import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -44,6 +45,7 @@ class RecoveryQuestionViewModel @Inject constructor(
     private val calculateRequiredSignaturesSecurityQuestionUseCase: CalculateRequiredSignaturesSecurityQuestionUseCase,
     private val getSecurityQuestionsUserDataUseCase: GetSecurityQuestionsUserDataUseCase,
     private val securityQuestionsUpdateUseCase: SecurityQuestionsUpdateUseCase,
+    private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
     getAssistedWalletIdsFlowUseCase: GetAssistedWalletsFlowUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -81,6 +83,13 @@ class RecoveryQuestionViewModel @Inject constructor(
                     )
                 }
             }
+        }
+        viewModelScope.launch {
+            getLocalMembershipPlanFlowUseCase(Unit)
+                .map { it.getOrElse { MembershipPlan.NONE } }
+                .collect { plan ->
+                    _state.update { it.copy(plan = plan) }
+                }
         }
     }
 
@@ -225,7 +234,12 @@ class RecoveryQuestionViewModel @Inject constructor(
         }
     }
 
-    fun securityQuestionUpdate(signatures: HashMap<String, String>, securityQuestionToken: String) =
+    fun securityQuestionUpdate(
+        signatures: HashMap<String, String>,
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String
+    ) =
         viewModelScope.launch {
             val state = _state.value
             _event.emit(RecoveryQuestionEvent.Loading(true))
@@ -234,7 +248,9 @@ class RecoveryQuestionViewModel @Inject constructor(
                     signatures = signatures,
                     verifyToken = args.verifyToken,
                     userData = state.userData.orEmpty(),
-                    securityQuestionToken = securityQuestionToken
+                    securityQuestionToken = securityQuestionToken,
+                    confirmCodeNonce = confirmCodeNonce,
+                    confirmCodeToken = confirmCodeToken,
                 )
             )
             _event.emit(RecoveryQuestionEvent.Loading(false))

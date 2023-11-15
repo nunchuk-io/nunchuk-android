@@ -20,6 +20,12 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.util.toSignerType
+import com.nunchuk.android.model.KeyResponse
+import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.signer.SignerServer
+import com.nunchuk.android.model.toVerifyType
+import com.nunchuk.android.type.SignerType
 
 internal data class SignerServerDto(
     @SerializedName("name") val name: String? = null,
@@ -29,5 +35,22 @@ internal data class SignerServerDto(
     @SerializedName("pubkey") val pubkey: String? = null,
     @SerializedName("type") val type: String? = null,
     @SerializedName("tapsigner") val tapsigner: TapSignerDto? = null,
-    @SerializedName("tags") val tags: List<String>? = null
+    @SerializedName("tags") val tags: List<String>? = null,
+    @SerializedName("tapsigner_key") val tapsignerKey: KeyResponse? = null,
+    @SerializedName("key_index") val index: Int = 0,
+    @SerializedName("is_visible") val isVisible: Boolean = true,
 )
+
+internal fun SignerServerDto.toModel(): SignerServer {
+    val signerType = type.toSignerType()
+    return SignerServer(
+        name = name,
+        xfp = xfp,
+        derivationPath = derivationPath,
+        type = signerType,
+        index = index,
+        verifyType = if (signerType == SignerType.NFC) tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED,
+        isVisible = isVisible
+    )
+}
+

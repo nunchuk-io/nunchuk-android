@@ -19,25 +19,57 @@
 
 package com.nunchuk.android.main.membership.honey.registerwallet
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
+import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class RegisterWalletToColdcardViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
     private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _event = MutableSharedFlow<RegisterWalletToColdcardEvent>()
     val event = _event.asSharedFlow()
 
+    private val _state = MutableStateFlow(RegisterWalletToColdcardUiState(keyName = COLDCARD_DEFAULT_KEY_NAME))
+    val state = _state.asStateFlow()
+
+    private val args: RegisterWalletToColdcardFragmentArgs =
+        RegisterWalletToColdcardFragmentArgs.fromSavedStateHandle(savedStateHandle)
+
     val remainTime = membershipStepManager.remainingTime
+
+    init {
+        if (!args.isSingleRegister) {
+            viewModelScope.launch {
+                getWalletDetail2UseCase(args.walletId)
+                    .onSuccess {
+                        val keyName =
+                            it.signers.filter { signer -> signer.isColdCard }
+                                .reversed()
+                                .getOrNull(args.index.dec())?.name ?: COLDCARD_DEFAULT_KEY_NAME
+                        _state.update { state -> state.copy(keyName = keyName) }
+                    }
+            }
+        }
+    }
 
     fun onExportColdcardClicked() {
         viewModelScope.launch {
@@ -46,11 +78,16 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
     }
 
     fun setRegisterColdcardSuccess(walletId: String) {
+        if (args.isSingleRegister) return
         viewModelScope.launch {
-            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(walletId, true))
+            withContext(NonCancellable) {
+                setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(walletId, -1))
+            }
         }
     }
 }
+
+data class RegisterWalletToColdcardUiState(val keyName: String = "")
 
 sealed class RegisterWalletToColdcardEvent {
     object ExportWalletToColdcard : RegisterWalletToColdcardEvent()

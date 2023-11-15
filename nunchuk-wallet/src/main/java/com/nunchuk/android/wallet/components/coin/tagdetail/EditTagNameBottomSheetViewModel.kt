@@ -56,9 +56,10 @@ class EditTagNameBottomSheetViewModel @Inject constructor(
         val coinTag = args.coinTag.copy(name = tagName)
         val result = updateCoinTagUseCase(
             UpdateCoinTagUseCase.Param(
-                args.walletId,
-                coinTag,
-                assistedWalletManager.isActiveAssistedWallet(args.walletId)
+                groupId = assistedWalletManager.getGroupId(args.walletId),
+                walletId = args.walletId,
+                coinTag = coinTag,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
             )
         )
         if (result.isSuccess) {

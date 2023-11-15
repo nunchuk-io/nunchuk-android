@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/key_recovery_navigation"
+    app:startDestination="@id/groupDashboardFragment">
+
+    <fragment
+        android:id="@+id/groupDashboardFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardFragment"
+        android:label="GroupDashboardFragment">
+
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string"
+            app:nullable="true" />
+
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_groupChatHistoryFragment"
+            app:destination="@id/groupChatHistoryFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_groupChatHistoryIntroFragment"
+            app:destination="@id/groupChatHistoryIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_byzantineInviteMembersFragment"
+            app:destination="@id/invite_member_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+
+            <argument
+                android:name="group_id"
+                android:defaultValue=""
+                app:argType="string" />
+
+            <argument
+                android:name="wallet_id"
+                android:defaultValue=""
+                app:argType="string" />
+
+            <argument
+                android:name="members"
+                app:argType="com.nunchuk.android.model.ByzantineMember[]" />
+
+            <argument
+                android:name="flow"
+                android:defaultValue="0"
+                app:argType="integer" />
+
+            <argument
+                android:name="setup_preference"
+                android:defaultValue=""
+                app:argType="string" />
+
+            <argument
+                android:name="group_type"
+                android:defaultValue=""
+                app:argType="string" />
+
+        </action>
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_healthCheckFragment"
+            app:destination="@id/healthCheckFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_alertActionIntroFragment"
+            app:destination="@id/alertActionIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_claimKeyFragment"
+            app:destination="@id/claimKeyFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_inheritanceCreateSuccessFragment"
+            app:destination="@id/inheritance_planning_success_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument android:name="source_flow"
+                app:argType="integer"
+                android:defaultValue="0"/>
+            <argument
+                android:name="magical_phrase"
+                app:argType="string" />
+            <argument
+                android:name="plan_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
+            <argument
+                android:name="wallet_id"
+                app:argType="string" />
+        </action>
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_walletConfigIntroFragment"
+            app:destination="@id/walletConfigIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_keyRecoverySuccessStateFragment"
+            app:destination="@id/keyRecoverySuccessStateFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_backupDownloadFragment"
+            app:destination="@id/key_recovery_download_backup_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="backupKey"
+                app:argType="com.nunchuk.android.model.BackupKey" />
+        </action>
+    </fragment>
+
+    <include app:graph="@navigation/invite_member_navigation" />
+
+    <dialog
+        android:id="@+id/groupChatHistoryFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment"
+        android:label="GroupChatHistoryFragment">
+
+        <argument
+            android:name="periods"
+            app:argType="com.nunchuk.android.model.HistoryPeriod[]" />
+
+        <argument
+            android:name="history_period_id"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <argument
+            android:name="group_id"
+            android:defaultValue=""
+            app:argType="string" />
+
+    </dialog>
+
+    <fragment
+        android:id="@+id/healthCheckFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.healthcheck.HealthCheckFragment"
+        android:label="HealthCheckFragment">
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_healthCheckFragment_to_requestHealthCheckSentFragment"
+            app:destination="@id/requestHealthCheckSentFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/requestHealthCheckSentFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.healthcheck.RequestHealthCheckSentFragment"
+        android:label="RequestHealthCheckSentFragment" />
+    <fragment
+        android:id="@+id/alertActionIntroFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment"
+        android:label="AlertActionIntroFragment">
+
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="alert"
+            app:argType="com.nunchuk.android.model.Alert" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/claimKeyFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.claim.ClaimKeyFragment"
+        android:label="ClaimKeyFragment">
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_claimKeyFragment_to_walletConfigIntroFragment"
+            app:destination="@id/walletConfigIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <include app:graph="@navigation/inheritance_planning_success_navigation" />
+    <fragment
+        android:id="@+id/walletConfigIntroFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.wallet.WalletConfigIntroFragment"
+        android:label="WalletConfigIntroFragment" >
+
+        <argument
+            android:name="is_claim_flow"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/groupChatHistoryIntroFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupChatHistoryIntroFragment"
+        android:label="GroupChatHistoryIntroFragment">
+        <argument
+            android:name="group"
+            app:argType="com.nunchuk.android.model.ByzantineGroup" />
+
+        <argument android:name="wallet_name"
+            app:argType="string" />
+    </fragment>
+
+    <fragment android:id="@+id/keyRecoverySuccessStateFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessStateFragment"
+        android:label="KeyRecoverySuccessStateFragment">
+        <argument android:name="type"
+            app:argType="string" />
+    </fragment>
+
+    <include app:graph="@navigation/key_recovery_download_backup_navigation" />
+
+</navigation>

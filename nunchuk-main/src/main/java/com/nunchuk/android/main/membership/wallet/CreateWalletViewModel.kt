@@ -24,6 +24,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.core.domain.membership.CreateServerWalletUseCase
+import com.nunchuk.android.core.util.isColdCard
+import com.nunchuk.android.core.util.isRemoteSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.ServerKeyExtra
@@ -36,6 +38,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
+import com.nunchuk.android.usecase.byzantine.CreateGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
@@ -68,7 +71,8 @@ class CreateWalletViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
-    private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase
+    private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
+    private val createGroupWalletUseCase: CreateGroupWalletUseCase,
 ) : ViewModel() {
     private val signers = hashMapOf<String, SignerExtra>()
     private var serverKeyExtra: ServerKeyExtra? = null
@@ -84,9 +88,9 @@ class CreateWalletViewModel @Inject constructor(
 
     private var createWalletJob: Job? = null
 
-    init {
+    fun loadSignerFromDatabase() {
         viewModelScope.launch {
-            getMembershipStepUseCase(membershipStepManager.plan)
+            getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.plan, ""))
                 .filter { it.isSuccess }
                 .map { it.getOrThrow() }
                 .collect { steps ->
@@ -106,6 +110,7 @@ class CreateWalletViewModel @Inject constructor(
                                     signers[stepInfo.masterSignerId] = signerExtra
                                 }
                             }
+
                             MembershipStep.ADD_SEVER_KEY -> {
                                 serverKeyExtra = runCatching {
                                     gson.fromJson(
@@ -115,6 +120,7 @@ class CreateWalletViewModel @Inject constructor(
                                 }.getOrNull()
                                 serverKeyId = stepInfo.keyIdInServer
                             }
+
                             else -> {}
                         }
                     }
@@ -128,8 +134,45 @@ class CreateWalletViewModel @Inject constructor(
         }
     }
 
-    fun onContinueClicked() {
-        createQuickWallet()
+    fun onContinueClicked(groupId: String) {
+        if (groupId.isNotEmpty()) {
+            createGroupWallet(groupId)
+        } else {
+            createQuickWallet()
+        }
+    }
+
+    private fun createGroupWallet(groupId: String) {
+        viewModelScope.launch {
+            _event.emit(CreateWalletEvent.Loading(true))
+            createGroupWalletUseCase(
+                CreateGroupWalletUseCase.Param(
+                    name = _state.value.walletName,
+                    groupId = groupId
+                )
+            ).onSuccess {
+                val totalColdcard = it.signers.count { signer -> signer.isColdCard }
+                if (totalColdcard > 0) {
+                    setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, totalColdcard))
+                }
+                val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
+                if (totalAirgap > 0) {
+                    setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
+                }
+                _event.emit(
+                    CreateWalletEvent.OnCreateWalletSuccess(
+                        walletId = it.id,
+                        coldcardCount = totalColdcard,
+                        airgapCount = totalAirgap
+                    )
+                )
+            }.onFailure {
+                _event.emit(
+                    CreateWalletEvent.ShowError(it.message.orUnknownError())
+                )
+            }
+            _event.emit(CreateWalletEvent.Loading(false))
+        }
     }
 
     private fun createQuickWallet() {
@@ -158,7 +201,7 @@ class CreateWalletViewModel @Inject constructor(
                 return@launch
             }
             val remoteSignerResults =
-                signers.filter { it.value.signerType == SignerType.COLDCARD_NFC || it.value.signerType == SignerType.AIRGAP || it.value.signerType == SignerType.HARDWARE }
+                signers.filter { it.value.signerType.isRemoteSigner }
                     .map {
                         async {
                             getRemoteSignerUseCase(
@@ -216,22 +259,19 @@ class CreateWalletViewModel @Inject constructor(
                         _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
                     }
                     .collect {
-                        if (signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC }) {
-                            setRegisterColdcardUseCase(
-                                SetRegisterColdcardUseCase.Params(
-                                    it.id,
-                                    false
-                                )
-                            )
+                        val totalColdcard = it.signers.count { signer -> signer.isColdCard }
+                        if (totalColdcard > 0) {
+                            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, totalColdcard))
                         }
-                        if (signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }) {
-                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, false))
+                        val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
+                        if (totalAirgap > 0) {
+                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
                         }
                         _event.emit(
                             CreateWalletEvent.OnCreateWalletSuccess(
                                 walletId = it.id,
-                                hasColdcard = signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC },
-                                hasAirgap = signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }
+                                coldcardCount = totalColdcard,
+                                airgapCount = totalAirgap
                             )
                         )
                     }

@@ -35,7 +35,6 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -117,23 +116,19 @@ internal class SyncRoomViewModel @Inject constructor(
     fun setupMatrix(token: String, encryptedDeviceId: String) {
         fileLog("Start setup matrix")
         viewModelScope.launch {
-            getUserProfileUseCase.execute()
-                .flowOn(IO)
-                .onException {  }
-                .flatMapConcat {
-                    loginWithMatrix(
-                        userName = it,
-                        password = token,
-                        encryptedDeviceId = encryptedDeviceId
-                    ).onStart {
-                        fileLog("start login matrix")
-                    }.onCompletion {
-                        fileLog("end login matrix")
-                    }
+            getUserProfileUseCase(Unit).onSuccess {
+                loginWithMatrix(
+                    userName = it,
+                    password = token,
+                    encryptedDeviceId = encryptedDeviceId
+                ).onStart {
+                    fileLog("start login matrix")
+                }.onCompletion {
+                    fileLog("end login matrix")
+                }.collect { session ->
+                    event(SyncRoomEvent.LoginMatrixSucceedEvent(session))
                 }
-                .collect {
-                    event(SyncRoomEvent.LoginMatrixSucceedEvent(it))
-                }
+            }
         }
     }
 

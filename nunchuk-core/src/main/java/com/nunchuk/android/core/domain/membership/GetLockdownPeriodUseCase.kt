@@ -29,10 +29,12 @@ import javax.inject.Inject
 class GetLockdownPeriodUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
-) : UseCase<Unit, List<Period>>(
+) : UseCase<GetLockdownPeriodUseCase.Param, List<Period>>(
     dispatcher
 ) {
-    override suspend fun execute(parameters: Unit): List<Period> {
-        return userWalletRepository.getLockdownPeriod()
+    override suspend fun execute(parameters: Param): List<Period> {
+        return userWalletRepository.getLockdownPeriod(parameters.groupId)
     }
+
+    class Param(val groupId: String?)
 }

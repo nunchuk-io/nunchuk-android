@@ -3,6 +3,12 @@ apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
 
 android {
+
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0', 'META-INF/versions/9/module-info.class']
+        }
+    }
     namespace 'com.nunchuk.android.notifications'
 }
 
@@ -24,8 +30,8 @@ dependencies {
     kapt hiltDeps.processor
     api hiltDeps.hilt
 
-    implementation 'com.google.android.gms:play-services-base:18.0.1'
-    implementation 'com.google.firebase:firebase-messaging-ktx:23.0.0'
+    implementation 'com.google.android.gms:play-services-base:18.2.0'
+    implementation 'com.google.firebase:firebase-messaging-ktx:23.2.0'
 
     testImplementation otherTestDeps.junit
 }

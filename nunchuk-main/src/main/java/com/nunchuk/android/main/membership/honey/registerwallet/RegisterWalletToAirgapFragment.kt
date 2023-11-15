@@ -52,6 +52,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
@@ -89,11 +90,13 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect {
-                    (requireActivity() as BaseWalletConfigActivity<*>).openDynamicQRScreen(sharedViewModel.walletId)
+                    (requireActivity() as BaseWalletConfigActivity<*>).openDynamicQRScreen(
+                        sharedViewModel.walletId
+                    )
                 }
         }
 
-        sharedViewModel.event.observe(viewLifecycleOwner) {
+        flowObserver(sharedViewModel.event) {
             if (it == UploadConfigurationEvent.DoneScanQr) {
                 viewModel.setRegisterAirgapSuccess(args.walletId)
                 findNavController().navigate(
@@ -122,11 +125,12 @@ private fun RegisterWalletToAirgapContent(
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
-            Column(modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_register_to_air_gapped,

@@ -38,11 +38,12 @@ fun NcOutlineButton(
     borderColor: Color = MaterialTheme.colors.primary,
     onClick: () -> Unit, content: @Composable RowScope.() -> Unit
 ) {
+    val color = if (enabled) borderColor else MaterialTheme.colors.whisper
     OutlinedButton(
         modifier = modifier.height(48.dp),
         enabled = enabled,
         onClick = onClick,
-        border = BorderStroke(2.dp, borderColor),
+        border = BorderStroke(2.dp, color),
         shape = RoundedCornerShape(44.dp),
         content = content,
         colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.Transparent)

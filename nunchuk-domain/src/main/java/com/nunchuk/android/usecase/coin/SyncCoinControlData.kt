@@ -30,13 +30,18 @@ class SyncCoinControlData @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk,
     private val repository: PremiumWalletRepository,
-) : UseCase<String, Unit>(dispatcher) {
-    override suspend fun execute(parameters: String) {
-        val serverData = repository.getCoinControlData(parameters)
-        val result = nunchukNativeSdk.importCoinControlData(parameters, serverData, false)
+) : UseCase<SyncCoinControlData.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        val serverData = repository.getCoinControlData(parameters.groupId, parameters.walletId)
+        val result = nunchukNativeSdk.importCoinControlData(parameters.walletId, serverData, false)
         if (!result) {
-            val deviceData = nunchukNativeSdk.exportCoinControlData(parameters)
-            repository.uploadCoinControlData(parameters, deviceData)
+            val deviceData = nunchukNativeSdk.exportCoinControlData(parameters.walletId)
+            repository.uploadCoinControlData(parameters.groupId, parameters.walletId, deviceData)
         }
     }
+
+    data class Param(
+        val groupId: String?,
+        val walletId: String
+    )
 }

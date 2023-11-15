@@ -40,9 +40,10 @@ class UnLockCoinUseCase @Inject constructor(
     }
 
     data class Params(
+        override val groupId: String?,
         override val walletId: String,
         val txId: String,
         val vout: Int,
         override val isAssistedWallet: Boolean,
-    ) : Param(walletId, isAssistedWallet)
+    ) : Param(groupId, walletId, isAssistedWallet)
 }

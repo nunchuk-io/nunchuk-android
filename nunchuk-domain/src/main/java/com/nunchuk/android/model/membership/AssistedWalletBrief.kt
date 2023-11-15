@@ -23,8 +23,14 @@ import com.nunchuk.android.model.MembershipPlan
 
 data class AssistedWalletBrief(
     val localId: String,
+    val groupId: String,
     val plan: MembershipPlan,
     val isSetupInheritance: Boolean,
-    val isRegisterAirgap: Boolean,
-    val isRegisterColdcard: Boolean,
+    val registerAirgapCount: Int,
+    val registerColdcardCount: Int,
+    val ext: AssistedWalletBriefExt
+)
+
+data class AssistedWalletBriefExt(
+    val inheritanceOwnerId: String? = null
 )

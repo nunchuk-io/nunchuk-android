@@ -24,6 +24,17 @@ import androidx.room.Room
 import com.nunchuk.android.persistence.DATABASE_NAME
 import com.nunchuk.android.persistence.DBMigrations
 import com.nunchuk.android.persistence.NunchukDatabase
+import com.nunchuk.android.persistence.dao.AlertDao
+import com.nunchuk.android.persistence.dao.AssistedWalletDao
+import com.nunchuk.android.persistence.dao.ContactDao
+import com.nunchuk.android.persistence.dao.DummyTransactionDao
+import com.nunchuk.android.persistence.dao.GroupDao
+import com.nunchuk.android.persistence.dao.HandledEventDao
+import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
+import com.nunchuk.android.persistence.dao.MembershipStepDao
+import com.nunchuk.android.persistence.dao.RequestAddKeyDao
+import com.nunchuk.android.persistence.dao.SyncEventDao
+import com.nunchuk.android.persistence.dao.SyncFileDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,33 +53,54 @@ internal object NunchukPersistenceModule {
             .addMigrations(DBMigrations.MIGRATION_2_3)
             .addMigrations(DBMigrations.MIGRATION_3_4)
             .addMigrations(DBMigrations.MIGRATION_4_5)
+            .addMigrations(DBMigrations.MIGRATION_17_18)
             .build()
 
     @Singleton
     @Provides
-    fun provideContactDao(database: NunchukDatabase) = database.contactDao()
+    fun provideContactDao(database: NunchukDatabase): ContactDao = database.contactDao()
 
     @Singleton
     @Provides
-    fun provideSyncFileDao(database: NunchukDatabase) = database.syncFileDao()
+    fun provideSyncFileDao(database: NunchukDatabase): SyncFileDao = database.syncFileDao()
 
     @Singleton
     @Provides
-    fun provideMembershipStepDao(database: NunchukDatabase) = database.membershipDao()
+    fun provideMembershipStepDao(database: NunchukDatabase): MembershipStepDao =
+        database.membershipDao()
 
     @Singleton
     @Provides
-    fun provideSyncEventDao(database: NunchukDatabase) = database.syncEventDao()
+    fun provideSyncEventDao(database: NunchukDatabase): SyncEventDao = database.syncEventDao()
 
     @Singleton
     @Provides
-    fun provideHandledEventDao(database: NunchukDatabase) = database.handledEventDao()
+    fun provideHandledEventDao(database: NunchukDatabase): HandledEventDao =
+        database.handledEventDao()
 
     @Singleton
     @Provides
-    fun provideAssistedWalletDao(database: NunchukDatabase) = database.assistedWalletDao()
+    fun provideAssistedWalletDao(database: NunchukDatabase): AssistedWalletDao =
+        database.assistedWalletDao()
 
     @Singleton
     @Provides
-    fun provideRequestAddKeyDao(database: NunchukDatabase) = database.requestAddKeyDao()
+    fun provideRequestAddKeyDao(database: NunchukDatabase): RequestAddKeyDao =
+        database.requestAddKeyDao()
+
+    @Singleton
+    @Provides
+    fun provideGroupDao(database: NunchukDatabase): GroupDao = database.groupDao()
+
+    @Singleton
+    @Provides
+    fun provideAlertDao(database: NunchukDatabase): AlertDao = database.alertDao()
+
+    @Singleton
+    @Provides
+    fun provideKeyHealthStatusDao(database: NunchukDatabase): KeyHealthStatusDao = database.keyHealthStatusDao()
+
+    @Singleton
+    @Provides
+    fun provideDummyTransactionDao(database: NunchukDatabase): DummyTransactionDao = database.dummyTransactionDao()
 }

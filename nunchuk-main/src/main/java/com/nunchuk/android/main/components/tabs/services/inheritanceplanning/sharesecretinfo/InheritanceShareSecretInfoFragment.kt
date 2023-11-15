@@ -24,7 +24,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
@@ -42,14 +48,22 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NCLabelWithIndex
+import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -74,20 +88,22 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
             setContent {
                 InheritanceShareSecretInfoScreen(viewModel, args) {
-                    val isOpenFromWizard =
-                        (requireActivity() as? InheritancePlanningActivity)?.isOpenFromWizard.orFalse()
-                    showDialogInfo(isOpenFromWizard)
+                    showDialogInfo(args.sourceFlow)
                 }
             }
         }
     }
 
-    private fun showDialogInfo(isOpenFromWizard: Boolean) {
+    private fun showDialogInfo(sourceFlow: Int) {
         NCInfoDialog(requireActivity()).showDialog(
             message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
             onYesClick = {
-                ActivityManager.popUntilRoot()
-                if (isOpenFromWizard) {
+                if (sourceFlow == InheritanceSourceFlow.GROUP_DASHBOARD) {
+                    findNavController().popBackStack(R.id.groupDashboardFragment, false)
+                } else {
+                    ActivityManager.popUntilRoot()
+                }
+                if (sourceFlow != InheritanceSourceFlow.NONE) {
                     navigator.openWalletDetailsScreen(requireContext(), args.walletId)
                 }
             }

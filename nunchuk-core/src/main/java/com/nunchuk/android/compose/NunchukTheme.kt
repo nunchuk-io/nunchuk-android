@@ -65,6 +65,7 @@ data class NunchukTypography(
     val body: TextStyle,
     val bold: TextStyle,
     val caption: TextStyle,
+    val captionTitle: TextStyle,
     val bodySmall: TextStyle,
 )
 
@@ -89,7 +90,8 @@ val LocalNunchukTypography = staticCompositionLocalOf {
         titleLarge = TextStyle.Default,
         titleSmall = TextStyle.Default,
         bodySmall = TextStyle.Default,
-        caption = TextStyle.Default
+        caption = TextStyle.Default,
+        captionTitle = TextStyle.Default,
     )
 }
 
@@ -106,6 +108,7 @@ object NunchukTheme {
 
 @Composable
 fun NunchukTheme(
+    statusBarColor: Color = Color.Transparent,
     content: @Composable () -> Unit,
 ) {
     val nunchukTypography = NunchukTypography(
@@ -137,13 +140,19 @@ fun NunchukTheme(
             color = PrimaryColor,
             fontWeight = FontWeight.Medium
         ),
+        captionTitle = TextStyle(
+            fontSize = 12.sp,
+            fontFamily = latoBold,
+            color = PrimaryColor,
+            fontWeight = FontWeight.Bold
+        ),
     )
 
     val nunchukShapes = NunchukShapes(
         medium = RoundedCornerShape(12.dp)
     )
     val systemUiController = rememberSystemUiController()
-    systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = true)
+    systemUiController.setSystemBarsColor(color = statusBarColor, darkIcons = true)
     CompositionLocalProvider(
         LocalNunchukTypography provides nunchukTypography,
         LocalNunchukShapes provides nunchukShapes
@@ -189,6 +198,12 @@ fun NunchukTheme(
             fontFamily = latoRegular,
             color = PrimaryColor,
             fontWeight = FontWeight.Medium
+        ),
+        captionTitle = TextStyle(
+            fontSize = 12.sp,
+            fontFamily = latoBold,
+            color = PrimaryColor,
+            fontWeight = FontWeight.Bold
         ),
     )
     if (isSetStatusBar) {

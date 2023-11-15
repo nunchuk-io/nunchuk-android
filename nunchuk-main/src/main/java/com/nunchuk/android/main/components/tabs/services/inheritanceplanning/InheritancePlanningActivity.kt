@@ -22,12 +22,16 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragmentArgs
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -42,11 +46,14 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
     @Inject
     internal lateinit var membershipStepManager: MembershipStepManager
 
-    val isOpenFromWizard: Boolean by lazy { intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false) }
+    private val viewModel by viewModels<InheritancePlanningViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val groupId = intent.getStringExtra(MembershipActivity.EXTRA_GROUP_ID).orEmpty()
+        if (groupId.isEmpty()) {
+            membershipStepManager.initStep(groupId)
+        }
         membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -57,38 +64,70 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
         val planFlow = intent.getIntExtra(EXTRA_INHERITANCE_PLAN_FLOW, InheritancePlanFlow.NONE)
         when (planFlow) {
-            InheritancePlanFlow.SETUP -> {
-                graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
-            }
-            InheritancePlanFlow.VIEW -> {
-                graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
-            }
-            InheritancePlanFlow.CLAIM -> {
-                graph.setStartDestination(R.id.inheritanceClaimInputFragment)
-            }
+            InheritancePlanFlow.SETUP -> graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
+            InheritancePlanFlow.VIEW -> graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
+            InheritancePlanFlow.CLAIM -> graph.setStartDestination(R.id.inheritanceClaimInputFragment)
+            InheritancePlanFlow.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.inheritanceReviewPlanGroupGroupFragment)
         }
-        val bundle = when (planFlow) {
+        when (planFlow) {
+            InheritancePlanFlow.SETUP -> {
+                viewModel.setOrUpdate(
+                    InheritancePlanningParam.SetupOrReview(
+                        planFlow = planFlow,
+                        walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                        groupId = groupId,
+                        sourceFlow = intent.getIntExtra(EXTRA_SOURCE_FLOW, InheritanceSourceFlow.NONE)
+                    )
+                )
+            }
+
             InheritancePlanFlow.VIEW -> {
                 val inheritance = intent.parcelable<Inheritance>(EXTRA_INHERITANCE) ?: return
-                InheritanceReviewPlanFragmentArgs(
-                    activationDate = inheritance.activationTimeMilis,
-                    emails = inheritance.notificationEmails.toTypedArray(),
-                    isNotify = inheritance.notificationEmails.isNotEmpty(),
-                    magicalPhrase = inheritance.magic,
-                    note = inheritance.note,
-                    verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
-                    planFlow = planFlow,
-                    bufferPeriod = inheritance.bufferPeriod,
-                    walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
-                ).toBundle()
+                viewModel.setOrUpdate(
+                    InheritancePlanningParam.SetupOrReview(
+                        activationDate = inheritance.activationTimeMilis,
+                        emails = inheritance.notificationEmails,
+                        isNotify = inheritance.notificationEmails.isNotEmpty(),
+                        magicalPhrase = inheritance.magic,
+                        note = inheritance.note,
+                        verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
+                        planFlow = planFlow,
+                        bufferPeriod = inheritance.bufferPeriod,
+                        walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                        sourceFlow = intent.getIntExtra(EXTRA_SOURCE_FLOW, InheritanceSourceFlow.NONE),
+                        groupId = groupId,
+                        dummyTransactionId = intent.getStringExtra(EXTRA_DUMMY_TRANSACTION_ID)
+                            .orEmpty()
+                    )
+                )
             }
-            else -> intent.extras
+            InheritancePlanFlow.SIGN_DUMMY_TX -> {
+                viewModel.setOrUpdate(
+                    InheritancePlanningParam.SetupOrReview(
+                        verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
+                        planFlow = planFlow,
+                        walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                        groupId = groupId,
+                        dummyTransactionId = intent.getStringExtra(EXTRA_DUMMY_TRANSACTION_ID)
+                            .orEmpty()
+                    )
+                )
+            }
         }
-        navHostFragment.navController.setGraph(graph, bundle)
+        navHostFragment.navController.setGraph(graph, intent.extras)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
                 R.id.selectWalletFragment -> WindowCompat.setDecorFitsSystemWindows(window, true)
                 else -> WindowCompat.setDecorFitsSystemWindows(window, false)
+            }
+        }
+        observer()
+    }
+
+    private fun observer() {
+        flowObserver(viewModel.state) {
+            if (it.groupWalletType != null) {
+                membershipStepManager.initStep(it.groupId, it.groupWalletType)
             }
         }
     }
@@ -102,24 +141,34 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_INHERITANCE_PLAN_FLOW = "extra_inheritance_plan_flow"
         private const val EXTRA_VERIFY_TOKEN = "extra_verify_token"
         private const val EXTRA_INHERITANCE = "extra_inheritance"
-        private const val EXTRA_IS_OPEN_FROM_WIZARD = "extra_is_open_from_wizard"
+        private const val EXTRA_SOURCE_FLOW = "extra_source_flow"
         private const val EXTRA_WALLET_ID = "wallet_id"
+        private const val EXTRA_DUMMY_TRANSACTION_ID = "dummy_transaction_id"
 
         fun navigate(
+            launcher: ActivityResultLauncher<Intent>? = null,
             walletId: String,
             activity: Context,
             verifyToken: String?,
             inheritance: Inheritance?,
             @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
-            isOpenFromWizard: Boolean
+            @InheritanceSourceFlow.InheritanceSourceFlowInfo sourceFlow: Int,
+            groupId: String?,
+            dummyTransactionId: String?
         ) {
             val intent = Intent(activity, InheritancePlanningActivity::class.java)
                 .putExtra(EXTRA_INHERITANCE_PLAN_FLOW, flowInfo)
                 .putExtra(EXTRA_VERIFY_TOKEN, verifyToken)
                 .putExtra(EXTRA_INHERITANCE, inheritance)
-                .putExtra(EXTRA_IS_OPEN_FROM_WIZARD, isOpenFromWizard)
+                .putExtra(EXTRA_SOURCE_FLOW, sourceFlow)
                 .putExtra(EXTRA_WALLET_ID, walletId)
-            activity.startActivity(intent)
+                .putExtra(MembershipActivity.EXTRA_GROUP_ID, groupId)
+                .putExtra(EXTRA_DUMMY_TRANSACTION_ID, dummyTransactionId)
+            if (launcher != null) {
+                launcher.launch(intent)
+            } else {
+                activity.startActivity(intent)
+            }
         }
     }
 }

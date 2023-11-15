@@ -19,17 +19,19 @@
 
 package com.nunchuk.android.share.membership
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCInfoDialog
@@ -45,7 +47,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     @Inject
     lateinit var nunchukNavigator: NunchukNavigator
 
-    private val viewModel : MembershipViewModel by viewModels()
+    private val viewModel: MembershipViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,11 +61,14 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
         flowObserver(viewModel.event) {
             if (it is MembershipEvent.RestartWizardSuccess) {
                 nunchukNavigator.openMembershipActivity(
-                    requireActivity(),
-                    MembershipStage.NONE,
-                    isClearTop = true
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.NONE,
+                    addOnHoneyBadger = viewModel.groupId.isEmpty()
                 )
+                requireActivity().setResult(Activity.RESULT_OK)
                 requireActivity().finish()
+            } else if (it is MembershipEvent.Error) {
+                showError(it.message)
             }
         }
     }
@@ -89,18 +94,22 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     }
 
     protected fun handleShowMore() {
-        BottomSheetOption.newInstance(
-            listOf(
+        val options = mutableListOf<SheetOption>()
+        if (allowRestartWizard) {
+            options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_RESTART_WIZARD,
                     label = getString(R.string.nc_restart_wizard)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXIT_WIZARD,
-                    label = getString(R.string.nc_exit_wizard)
                 )
             )
-        ).show(childFragmentManager, "BottomSheetOption")
+        }
+        options.add(
+            SheetOption(
+                type = SheetOptionType.TYPE_EXIT_WIZARD,
+                label = getString(R.string.nc_exit_wizard)
+            )
+        )
+        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun resetWizard() {
@@ -115,4 +124,5 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     }
 
     open val isCountdown: Boolean = true
+    open val allowRestartWizard: Boolean = true
 }

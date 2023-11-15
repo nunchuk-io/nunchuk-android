@@ -27,8 +27,10 @@ internal data class ServerKeyDto(
     @SerializedName("derivation_path") val derivationPath: String? = null,
     @SerializedName("xpub") val xpub: String? = null,
     @SerializedName("pubkey") val pubkey: String? = null,
-    @SerializedName("type") val type: String? = null,
     @SerializedName("id") val id: String? = null,
-    @SerializedName("tapsigner") val tapsigner: TapSignerDto,
-    @SerializedName("policies") val policies: KeyPoliciesDto? = null
+    @SerializedName("type") val type: String? = null,
+    @SerializedName("tapsigner") val tapsigner: TapSignerDto? = null,
+    @SerializedName("policies") val policies: KeyPoliciesDto? = null,
+    @SerializedName("tags") val tags: List<String> = emptyList(),
+    @SerializedName("key_index") val index: Int = 0,
 )

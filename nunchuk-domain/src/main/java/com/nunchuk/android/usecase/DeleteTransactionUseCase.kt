@@ -34,11 +34,16 @@ class DeleteTransactionUseCase @Inject constructor(
     override suspend fun execute(parameters: Param) {
         if (parameters.isAssistedWallet) {
             runCatching {
-                repository.deleteServerTransaction(parameters.walletId, parameters.txId)
+                repository.deleteServerTransaction(parameters.groupId, parameters.walletId, parameters.txId)
             }
         }
         nativeSdk.deleteTransaction(parameters.walletId, parameters.txId)
     }
 
-    data class Param(val walletId: String, val txId: String, val isAssistedWallet: Boolean)
+    data class Param(
+        val groupId: String?,
+        val walletId: String,
+        val txId: String,
+        val isAssistedWallet: Boolean
+    )
 }

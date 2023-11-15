@@ -238,7 +238,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 if (transactionConfirmViewModel.isInheritanceClaimingFlow()) event.estimateFeeRates.priorityRate else event.estimateFeeRates.defaultRate
             transactionConfirmViewModel.init(
                 walletId = args.walletId,
-                txReceipts = listOf(TxReceipt(address,finalAmount)),
+                txReceipts = listOf(TxReceipt(address, finalAmount)),
                 privateNote = state.privateNote,
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 slots = args.slots,

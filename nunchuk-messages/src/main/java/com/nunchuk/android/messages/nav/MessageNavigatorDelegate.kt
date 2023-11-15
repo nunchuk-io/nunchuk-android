@@ -31,8 +31,13 @@ import com.nunchuk.android.nav.MessageNavigator
 
 interface MessageNavigatorDelegate : MessageNavigator {
 
-    override fun openRoomDetailActivity(activityContext: Context, roomId: String, roomAction: RoomAction) {
-        RoomDetailActivity.start(activityContext, roomId, roomAction)
+    override fun openRoomDetailActivity(
+        activityContext: Context,
+        roomId: String,
+        roomAction: RoomAction,
+        isGroupChat: Boolean
+    ) {
+        RoomDetailActivity.start(activityContext, roomId, roomAction, isGroupChat)
     }
 
     override fun returnRoomDetailScreen() {
@@ -43,12 +48,12 @@ interface MessageNavigatorDelegate : MessageNavigator {
         CreateRoomBottomSheet.show(fragmentManager)
     }
 
-    override fun openChatInfoScreen(activityContext: Context, roomId: String) {
-        ChatInfoActivity.start(activityContext, roomId)
+    override fun openChatInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean) {
+        ChatInfoActivity.start(activityContext, roomId, isByzantineChat)
     }
 
-    override fun openChatGroupInfoScreen(activityContext: Context, roomId: String) {
-        ChatGroupInfoActivity.start(activityContext, roomId)
+    override fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean) {
+        ChatGroupInfoActivity.start(activityContext, roomId, isByzantineChat)
     }
 
 }

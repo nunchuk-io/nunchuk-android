@@ -41,6 +41,7 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
@@ -89,6 +90,8 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> navigator.openSetupMk4(
                 requireActivity(), false, ColdcardAction.RECOVER_SINGLE_SIG_WALLET
             )
+            SheetOptionType.TYPE_GROUP_WALLET -> openCreateGroupWallet()
+            SheetOptionType.TYPE_HONEY_BADGER_WALLET -> openCreateAssistedWallet()
         }
     }
 
@@ -101,20 +104,31 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         flowObserver(viewModel.state) {
-            val isCreateAssistedWalletVisible = it.remainWalletCount > 0
-            binding.btnCreateAssistedWallet.apply {
-                isVisible = isCreateAssistedWalletVisible
-                text = if (viewModel.getGroupStage() != MembershipStage.NONE) {
-                    getString(R.string.nc_continue_setting_your_wallet)
-                } else {
-                    context.getString(
+            if (!it.plan.isByzantine()) {
+                val isCreateAssistedWalletVisible = it.remainWalletCount > 0
+                binding.btnCreateAssistedWallet.apply {
+                    isVisible = isCreateAssistedWalletVisible
+                    text = if (viewModel.getGroupStage() != MembershipStage.NONE) {
+                        getString(R.string.nc_continue_setting_your_wallet)
+                    } else {
+                        context.getString(
+                            R.string.nc_create_assisted_wallet,
+                            it.remainWalletCount
+                        )
+                    }
+                }
+            } else {
+                binding.btnCreateGroupWallet.apply {
+                    isVisible = true
+                    text = context.getString(
                         R.string.nc_create_assisted_wallet,
-                        it.remainWalletCount
+                        (it.remainGroupCount + it.remainWalletCount)
                     )
                 }
             }
-            binding.btnCreateNewWallet.setBackgroundResource(if (isCreateAssistedWalletVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
-            val textColor = ContextCompat.getColor(requireActivity(), if (isCreateAssistedWalletVisible) R.color.nc_primary_color else R.color.nc_white_color)
+            val assistedVisible = binding.btnCreateGroupWallet.isVisible || binding.btnCreateGroupWallet.isVisible
+            binding.btnCreateNewWallet.setBackgroundResource(if (assistedVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
+            val textColor = ContextCompat.getColor(requireActivity(), if (assistedVisible) R.color.nc_primary_color else R.color.nc_white_color)
             binding.btnCreateNewWallet.setTextColor(textColor)
         }
     }
@@ -187,14 +201,35 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         binding.btnCreateAssistedWallet.setOnDebounceClickListener {
-            navigator.openMembershipActivity(
-                requireActivity(),
-                viewModel.getGroupStage()
-            )
+            openCreateAssistedWallet()
+        }
+        binding.btnCreateGroupWallet.setOnDebounceClickListener {
+            if (viewModel.remainWalletCount > 0 && viewModel.remainGroupCount > 0) {
+                showOptionGroupWalletType()
+            } else if (viewModel.remainWalletCount > 0) {
+                openCreateAssistedWallet()
+            } else {
+                openCreateGroupWallet()
+            }
         }
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressedDispatcher?.onBackPressed()
         }
+    }
+
+    private fun openCreateGroupWallet() {
+        navigator.openMembershipActivity(
+            activityContext = requireActivity(),
+            groupStep = MembershipStage.NONE
+        )
+    }
+
+    private fun openCreateAssistedWallet() {
+        navigator.openMembershipActivity(
+            activityContext = requireActivity(),
+            groupStep = viewModel.getGroupStage(),
+            addOnHoneyBadger = true
+        )
     }
 
     private fun openWalletEmptySignerScreen() {
@@ -214,6 +249,22 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 ),
             ),
             title = getString(R.string.nc_which_type_wallet_you_want_import)
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showOptionGroupWalletType() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    SheetOptionType.TYPE_GROUP_WALLET,
+                    stringId = R.string.nc_group_wallet,
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_HONEY_BADGER_WALLET,
+                    stringId = R.string.nc_personal_honey_badger_wallet,
+                ),
+            ),
+            title = getString(R.string.nc_type_of_assisted_wallet)
         ).show(childFragmentManager, "BottomSheetOption")
     }
 }

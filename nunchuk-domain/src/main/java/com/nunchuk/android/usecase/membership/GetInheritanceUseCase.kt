@@ -29,9 +29,11 @@ import javax.inject.Inject
 class GetInheritanceUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<String, Inheritance>(ioDispatcher) {
+) : UseCase<GetInheritanceUseCase.Param, Inheritance>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String): Inheritance {
-        return repository.getInheritance(parameters)
+    override suspend fun execute(parameters: Param): Inheritance {
+        return repository.getInheritance(walletId = parameters.walletId, groupId = parameters.groupId)
     }
+
+    data class Param(val walletId: String, val groupId: String?)
 }

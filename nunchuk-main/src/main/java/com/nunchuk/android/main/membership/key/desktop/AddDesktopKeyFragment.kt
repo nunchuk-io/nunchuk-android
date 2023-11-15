@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.viewModels
@@ -17,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.key.toString
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,8 +57,9 @@ class AddDesktopKeyFragment : MembershipFragment() {
                         is AddDesktopKeyEvent.RequestAddKeyFailed -> showError(event.message)
                         is AddDesktopKeyEvent.RequestAddKeySuccess -> findNavController().navigate(
                             AddDesktopKeyFragmentDirections.actionAddDesktopKeyFragmentToWaitingDesktopKeyFragment(
-                                args.signerTag,
-                                event.requestId
+                                signerTag = args.signerTag,
+                                requestId = event.requestId,
+                                groupId = args.groupId
                             )
                         )
                     }
@@ -72,40 +75,31 @@ private fun AddLedgerScreen(
     onMoreClicked: () -> Unit = {},
     remainTime: Int = 0,
 ) {
-    when (tag) {
-        SignerTag.LEDGER -> {
-            AddDesktopKeyContent(
-                title = stringResource(id = R.string.nc_add_ledger),
-                desc = stringResource(id = R.string.nc_main_add_ledger_desc),
-                button = stringResource(id = R.string.nc_text_continue),
-                onContinueClicked = onContinueClicked,
-                onMoreClicked = onMoreClicked,
-                remainTime = remainTime,
-                backgroundId = R.drawable.bg_add_ledger
-            )
-        }
-        SignerTag.TREZOR -> {
-            AddDesktopKeyContent(
-                title = stringResource(R.string.nc_add_trezor),
-                desc = stringResource(id = R.string.nc_main_add_trezor_desc),
-                button = stringResource(id = R.string.nc_text_continue),
-                onContinueClicked = onContinueClicked,
-                onMoreClicked = onMoreClicked,
-                remainTime = remainTime,
-                backgroundId = R.drawable.bg_add_trezor
-            )
-        }
-        SignerTag.COLDCARD -> {
-            AddDesktopKeyContent(
-                title = stringResource(R.string.nc_add_coldcard_usb),
-                desc = stringResource(id = R.string.nc_main_add_coldcard_desc),
-                button = stringResource(id = R.string.nc_text_continue),
-                onContinueClicked = onContinueClicked,
-                onMoreClicked = onMoreClicked,
-                remainTime = remainTime,
-                backgroundId = R.drawable.bg_coldcard_desktop
-            )
-        }
-        else -> Unit
+    val desc = when(tag) {
+        SignerTag.COLDCARD -> stringResource(id = R.string.nc_main_add_coldcard_desc)
+        SignerTag.TREZOR -> stringResource(id = R.string.nc_main_add_trezor_desc)
+        SignerTag.LEDGER -> stringResource(id = R.string.nc_main_add_ledger_desc)
+        SignerTag.BITBOX -> stringResource(id = R.string.nc_main_add_bitbox_desc)
+        else -> ""
     }
+    val imageId = when(tag) {
+        SignerTag.COLDCARD -> R.drawable.bg_coldcard_desktop
+        SignerTag.TREZOR -> R.drawable.bg_add_trezor
+        SignerTag.LEDGER -> R.drawable.bg_add_ledger
+        SignerTag.BITBOX -> R.drawable.bg_add_bitbox
+        else -> 0
+    }
+
+    AddDesktopKeyContent(
+        title = stringResource(
+            id = R.string.nc_add_desktop_key,
+            tag.toString(LocalContext.current)
+        ),
+        desc = desc,
+        button = stringResource(id = R.string.nc_text_continue),
+        onContinueClicked = onContinueClicked,
+        onMoreClicked = onMoreClicked,
+        remainTime = remainTime,
+        backgroundId = imageId
+    )
 }

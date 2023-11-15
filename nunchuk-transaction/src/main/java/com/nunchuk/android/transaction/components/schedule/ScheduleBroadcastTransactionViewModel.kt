@@ -25,19 +25,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.ScheduleBroadcastTransactionUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
 class ScheduleBroadcastTransactionViewModel @Inject constructor(
     private val application: Application,
     private val scheduleBroadcastTransactionUseCase: ScheduleBroadcastTransactionUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args =
@@ -105,9 +112,10 @@ class ScheduleBroadcastTransactionViewModel @Inject constructor(
                 _event.emit(ScheduleBroadcastTransactionEvent.Loading(true))
                 val result = scheduleBroadcastTransactionUseCase(
                     ScheduleBroadcastTransactionUseCase.Param(
+                        groupId = assistedWalletManager.getGroupId(args.walletId),
                         walletId = args.walletId,
                         transactionId = args.transactionId,
-                        selectedTime.timeInMillis,
+                        scheduleTime = selectedTime.timeInMillis,
                     )
                 )
                 _event.emit(ScheduleBroadcastTransactionEvent.Loading(false))

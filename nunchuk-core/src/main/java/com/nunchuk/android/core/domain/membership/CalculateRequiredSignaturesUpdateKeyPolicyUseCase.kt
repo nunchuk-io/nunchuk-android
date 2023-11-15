@@ -37,9 +37,15 @@ class CalculateRequiredSignaturesUpdateKeyPolicyUseCase @Inject constructor(
         return userWalletsRepository.calculateRequiredSignaturesUpdateKeyPolicy(
             walletId = parameters.walletId,
             xfp = parameters.xfp,
-            keyPolicy = parameters.keyPolicy
+            keyPolicy = parameters.keyPolicy,
+            derivationPath = parameters.derivationPath
         )
     }
 
-    class Param(val walletId: String, val xfp: String, val keyPolicy: KeyPolicy)
+    class Param(
+        val walletId: String,
+        val xfp: String,
+        val derivationPath: String,
+        val keyPolicy: KeyPolicy,
+    )
 }

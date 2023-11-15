@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 interface UserProfileRepository {
 
-    fun getUserProfile(): Flow<UserProfileResponse>
+    suspend fun getUserProfile(): UserProfileResponse
 
     fun confirmDeleteAccount(confirmationCode: String): Flow<Unit>
 
@@ -54,9 +54,9 @@ internal class UserProfileRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
 ) : UserProfileRepository {
 
-    override fun getUserProfile() = flow {
-        emit(userProfileApi.getUserProfile().data.user)
-    }.flowOn(Dispatchers.IO)
+    override suspend fun getUserProfile() : UserProfileResponse  {
+       return userProfileApi.getUserProfile().data.user
+    }
 
     override fun confirmDeleteAccount(confirmationCode: String) = flow {
         val result = userProfileApi.confirmDeleteAccount(DeleteConfirmationPayload(confirmationCode))

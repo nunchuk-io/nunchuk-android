@@ -21,15 +21,27 @@ package com.nunchuk.android.core.repository
 
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.data.model.membership.SignerServerDto
+import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.persistence.NcDataStore
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.KeyUpload
+import com.nunchuk.android.model.KeyVerifiedRequest
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.toIndex
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -54,10 +66,12 @@ internal class KeyRepositoryImpl @Inject constructor(
     private val membershipDao: MembershipStepDao,
     private val nfcFileManager: NfcFileManager,
     private val gson: Gson,
-    ncDataStore: NcDataStore,
+    private val ncDataStore: NcDataStore,
+    private val nativeSdk: NunchukNativeSdk,
     applicationScope: CoroutineScope,
 ) : KeyRepository {
-    private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
+    private val chain =
+        ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
 
     override fun uploadBackupKey(
         step: MembershipStep,
@@ -67,7 +81,8 @@ internal class KeyRepositoryImpl @Inject constructor(
         cardId: String,
         filePath: String,
         isAddNewKey: Boolean,
-        plan: MembershipPlan
+        plan: MembershipPlan,
+        groupId: String
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -84,7 +99,8 @@ internal class KeyRepositoryImpl @Inject constructor(
             val keyTypeBody: RequestBody =
                 keyType.toRequestBody("multipart/form-data".toMediaTypeOrNull())
             val keyXfp: RequestBody = xfp.toRequestBody("multipart/form-data".toMediaTypeOrNull())
-            val keyCardId: RequestBody = cardId.toRequestBody("multipart/form-data".toMediaTypeOrNull())
+            val keyCardId: RequestBody =
+                cardId.toRequestBody("multipart/form-data".toMediaTypeOrNull())
             val result = userWalletApiManager.walletApi.uploadBackupKey(
                 keyName = keyNameBody,
                 keyType = keyTypeBody,
@@ -112,8 +128,45 @@ internal class KeyRepositoryImpl @Inject constructor(
                     ),
                     verifyType = verifyType,
                     plan = plan,
-                    chain = chain.value
+                    chain = chain.value,
+                    groupId = groupId
                 )
+                if (groupId.isNotEmpty()) {
+                    val isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+                    val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
+                    val signer =
+                        nativeSdk.getDefaultSignerFromMasterSigner(
+                            xfp,
+                            WalletType.MULTI_SIG.ordinal,
+                            AddressType.NATIVE_SEGWIT.ordinal
+                        )
+                    val keyResponse = userWalletApiManager.groupWalletApi.addKeyToServer(
+                        groupId = groupId,
+                        payload = SignerServerDto(
+                            name = signer.name,
+                            xfp = signer.masterFingerprint,
+                            derivationPath = signer.derivationPath,
+                            xpub = signer.xpub,
+                            pubkey = signer.publicKey,
+                            type = SignerType.NFC.name,
+                            tapsigner = TapSignerDto(
+                                cardId = status.ident.toString(),
+                                version = status.version.orEmpty(),
+                                birthHeight = status.birthHeight,
+                                isTestnet = status.isTestNet,
+                                isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+                            ),
+                            tags = if (isInheritance) listOf(
+                                SignerTag.INHERITANCE.name
+                            ) else null,
+                            index = step.toIndex()
+                        ),
+                    )
+
+                    if (keyResponse.isSuccess.not()) {
+                        throw keyResponse.error
+                    }
+                }
                 membershipDao.updateOrInsert(info)
                 send(KeyUpload.Progress(100))
                 if (result.isSuccess) {
@@ -133,12 +186,17 @@ internal class KeyRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun setKeyVerified(masterSignerId: String, isAppVerify: Boolean) {
+    override suspend fun setKeyVerified(
+        groupId: String,
+        masterSignerId: String,
+        isAppVerify: Boolean
+    ) {
         val stepInfo =
             membershipDao.getStepByMasterSignerId(
                 email = accountManager.getAccount().chatId,
                 chain = chain.value,
-                masterSignerId = masterSignerId
+                masterSignerId = masterSignerId,
+                groupId = groupId
             )
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
         val response =

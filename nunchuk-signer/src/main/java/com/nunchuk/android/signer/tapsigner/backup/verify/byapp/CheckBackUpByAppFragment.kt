@@ -65,6 +65,7 @@ import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -86,7 +87,8 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                 CheckBackUpByAppScreen(
                     viewModel,
                     membershipStepManager,
-                    nfcViewModel.masterSignerId
+                    nfcViewModel.masterSignerId,
+                    (activity as NfcSetupActivity).groupId
                 )
             }
         }
@@ -152,6 +154,7 @@ private fun CheckBackUpByAppScreen(
     viewModel: CheckBackUpByAppViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
     masterSignerId: String,
+    groupId: String,
 ) {
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
 
@@ -162,17 +165,19 @@ private fun CheckBackUpByAppScreen(
         onValueChange = viewModel::onDecryptionKeyChange,
         remainingTime = remainingTime,
         masterSignerId = masterSignerId,
+        groupId = groupId,
     )
 }
 
 @Composable
 private fun CheckBackUpByAppContent(
-    onContinueClicked: (masterSignerId: String) -> Unit = {},
+    onContinueClicked: (groupId: String, masterSignerId: String) -> Unit = {_, _ ->},
     decryptionKey: String = "",
     errorMessage: String = "",
     onValueChange: (value: String) -> Unit = {},
     remainingTime: Int = 0,
     masterSignerId: String = "",
+    groupId: String = "",
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -223,7 +228,7 @@ private fun CheckBackUpByAppContent(
                         .padding(16.dp)
                         .bringIntoViewRequester(bringIntoViewRequester)
                         .fillMaxWidth(),
-                    onClick = { onContinueClicked(masterSignerId) }
+                    onClick = { onContinueClicked(groupId, masterSignerId) }
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }

@@ -49,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -438,8 +439,9 @@ private fun RecipientView(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(shape = RoundedCornerShape(12.dp))
                 .border(
-                    width = 1.dp, color = NcColor.kinglyCloud, shape = RoundedCornerShape(12.dp)
+                    width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp)
                 )
                 .background(color = NcColor.greyLight)
                 .padding(16.dp)

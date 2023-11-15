@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/key_recovery_download_backup_navigation"
+    app:startDestination="@id/backupDownloadFragment">
+
+    <fragment
+        android:id="@+id/backupDownloadFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.backupdownload.BackupDownloadFragment"
+        android:label="BackupDownloadFragment">
+        <action
+            android:id="@+id/action_backupDownloadFragment_to_keyRecoverySuccessFragment"
+            app:destination="@id/keyRecoverySuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="backupKey"
+            app:argType="com.nunchuk.android.model.BackupKey" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/keyRecoverySuccessFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.keyrecoverysuccess.KeyRecoverySuccessFragment"
+        android:label="KeyRecoverySuccessFragment">
+
+        <argument
+            android:name="signer"
+            app:argType="com.nunchuk.android.core.signer.SignerModel" />
+
+    </fragment>
+
+</navigation>

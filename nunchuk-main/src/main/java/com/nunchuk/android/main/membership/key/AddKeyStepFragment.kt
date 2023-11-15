@@ -25,7 +25,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -51,7 +58,11 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -85,27 +96,27 @@ class AddKeyStepFragment : MembershipFragment() {
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
                 AddKeyStepEvent.OpenInheritanceSetup -> handleOpenInheritanceSetup()
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
-                is AddKeyStepEvent.OpenRegisterColdCard -> handleOpenRegisterColdcard(
-                    event.walletId,
-                    event.isNeedRegisterAirgap
-                )
+                is AddKeyStepEvent.OpenRegisterColdCard -> handleOpenRegisterColdcard(event.walletId,)
                 AddKeyStepEvent.SetupInheritanceSetupDone -> requireActivity().finish()
             }
         }
     }
 
-    private fun handleOpenRegisterColdcard(walletId: String, needRegisterAirgap: Boolean) {
+    private fun handleOpenRegisterColdcard(walletId: String) {
         findNavController().navigate(
             AddKeyStepFragmentDirections.actionAddKeyStepFragmentToRegisterWalletToColdcardFragment(
                 walletId,
-                needRegisterAirgap,
+                viewModel.getRegisterColdcardIndex(),
+                viewModel.getRegisterAirgapIndex(),
             )
         )
     }
 
     private fun handleOpenRegisterAirgap(walletId: String) {
         findNavController().navigate(
-            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToRegisterWalletToAirgapFragment(walletId)
+            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToRegisterWalletToAirgapFragment(
+                walletId
+            )
         )
     }
 
@@ -116,7 +127,7 @@ class AddKeyStepFragment : MembershipFragment() {
                 walletId = walletId,
                 activityContext = requireContext(),
                 flowInfo = InheritancePlanFlow.SETUP,
-                isOpenFromWizard = true
+                sourceFlow = InheritanceSourceFlow.WIZARD
             )
         }
     }
@@ -153,7 +164,6 @@ fun AddKeyStepScreen(viewModel: AddKeyStepViewModel) {
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
         onContinueClicked = viewModel::onContinueClicked,
-        openContactUs = viewModel::openContactUs,
         plan = viewModel.plan
     )
 }
@@ -168,7 +178,6 @@ fun AddKeyStepContent(
     groupRemainTime: IntArray = IntArray(4),
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
-    openContactUs: (mail: String) -> Unit = {},
     plan: MembershipPlan = MembershipPlan.HONEY_BADGER,
 ) = NunchukTheme {
     val imageBannerId =
@@ -210,11 +219,8 @@ fun AddKeyStepContent(
             )
             if (isConfigKeyDone.not()) {
                 NcHintMessage(
-                    modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp),
-                    messages = listOf(ClickAbleText("This step requires hardware keys to complete. If you have not received your hardware after a while, please contact us at"),
-                        ClickAbleText(CONTACT_EMAIL) {
-                            openContactUs(CONTACT_EMAIL)
-                        })
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp, end = 16.dp, start = 16.dp),
+                    messages = listOf(ClickAbleText(stringResource(R.string.nc_this_step_require_hardware_key)))
                 )
             }
             StepWithEstTime(
@@ -231,7 +237,7 @@ fun AddKeyStepContent(
                 isCreateWalletDone,
                 isConfigKeyDone && isSetupRecoverKeyDone && isCreateWalletDone.not()
             )
-            if (plan == MembershipPlan.HONEY_BADGER) {
+            if (plan != MembershipPlan.IRON_HAND) {
                 StepWithEstTime(
                     4,
                     stringResource(R.string.nc_set_up_inheritance_plan),

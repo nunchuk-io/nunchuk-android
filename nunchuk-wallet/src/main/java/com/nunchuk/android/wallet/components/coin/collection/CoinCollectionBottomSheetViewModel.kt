@@ -74,6 +74,7 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
             CollectionFlow.ADD -> {
                 createCoinCollectionUseCase(
                     CreateCoinCollectionUseCase.Param(
+                        groupId = assistedWalletManager.getGroupId(args.walletId),
                         walletId = args.walletId,
                         coinCollection = coinCollection,
                         isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
@@ -84,6 +85,7 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
             CollectionFlow.VIEW -> {
                 updateCoinCollectionUseCase(
                     UpdateCoinCollectionUseCase.Param(
+                        groupId = assistedWalletManager.getGroupId(args.walletId),
                         walletId = args.walletId,
                         coinCollection = coinCollection,
                         isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)

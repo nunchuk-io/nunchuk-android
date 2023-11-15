@@ -35,9 +35,10 @@ class CalculateRequiredSignaturesLockdownUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): CalculateRequiredSignatures {
         return userWalletsRepository.calculateRequiredSignaturesLockdown(
             walletId = parameters.walletId,
-            periodId = parameters.periodId
+            periodId = parameters.periodId,
+            groupId = parameters.groupId
         )
     }
 
-    class Param(val walletId: String, val periodId: String)
+    class Param(val walletId: String, val periodId: String, val groupId: String?)
 }

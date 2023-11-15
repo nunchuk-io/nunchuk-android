@@ -23,37 +23,48 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.toReadableDrawableResId
-import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.component.SignerCard
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.AndroidEntryPoint
@@ -75,7 +86,7 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
 
             setContent {
                 NunchukTheme {
-                    TapSignerListScreen(viewModel, args)
+                    TapSignerListScreen(viewModel, args, onCloseClicked = ::dismissAllowingStateLoss)
                 }
             }
         }
@@ -84,6 +95,7 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) { event ->
+            findNavController().popBackStack()
             when (event) {
                 is TapSignerListBottomSheetEvent.OnAddExistingKey -> setFragmentResult(
                     REQUEST_KEY,
@@ -92,6 +104,7 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
                         args.type
                     ).toBundle()
                 )
+
                 TapSignerListBottomSheetEvent.OnAddNewKey -> setFragmentResult(
                     REQUEST_KEY, TapSignerListBottomSheetFragmentArgs(
                         emptyArray(),
@@ -99,7 +112,6 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
                     ).toBundle()
                 )
             }
-            dismissAllowingStateLoss()
         }
     }
 
@@ -113,14 +125,12 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
 private fun TapSignerListScreen(
     viewModel: TapSingerListBottomSheetViewModel,
     args: TapSignerListBottomSheetFragmentArgs,
+    onCloseClicked : () -> Unit = {},
 ) {
     val selectedSigner by viewModel.selectSingle.collectAsStateWithLifecycle()
-    val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
     TapSignerListContent(
-        onCloseClicked = {
-            onBackPressedDispatcher?.onBackPressed()
-        },
+        onCloseClicked = onCloseClicked,
         onAddExistKeyClicked = viewModel::onAddExistingKey,
         onAddNewKeyClicked = viewModel::onAddNewKey,
         signers = args.signers.toList(),
@@ -144,13 +154,15 @@ private fun TapSignerListContent(
         SignerType.NFC -> "TAPSIGNER(s)"
         SignerType.COLDCARD_NFC -> "COLDCARD(s)"
         SignerType.AIRGAP -> "Air-gapped key(s)"
+        SignerType.HARDWARE -> "Wired key(s)"
         else -> ""
     }
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
     Column(
         modifier = Modifier.background(
             color = MaterialTheme.colors.surface,
             shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-        )
+        ).nestedScroll(rememberNestedScrollInteropConnection())
     ) {
         IconButton(
             modifier = Modifier.padding(top = 40.dp), onClick = onCloseClicked
@@ -173,12 +185,17 @@ private fun TapSignerListContent(
             style = NunchukTheme.typography.body,
         )
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).heightIn(max = screenHeightDp.div(2).dp),
             contentPadding = PaddingValues(vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             items(signers) { signer ->
-                SignerCard(signer, signer == selectedSigner, onSignerSelected)
+                SignerCard(
+                    signer = signer,
+                    isSelected = signer == selectedSigner,
+                    onSignerSelected = onSignerSelected,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
         NcPrimaryDarkButton(
@@ -206,55 +223,14 @@ private fun TapSignerListContent(
     }
 }
 
-@Composable
-private fun SignerCard(
-    signer: SignerModel,
-    isSelected: Boolean,
-    onSignerSelected: (signer: SignerModel) -> Unit = {},
-) {
-    Row(
-        modifier = Modifier.clickable { onSignerSelected(signer) },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        NcCircleImage(resId = signer.toReadableDrawableResId())
-        Column(
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .weight(1.0f)
-        ) {
-            Text(text = signer.name, style = NunchukTheme.typography.body)
-            Text(
-                modifier = Modifier.padding(top = 4.dp),
-                text = signer.getXfpOrCardIdLabel(),
-                style = NunchukTheme.typography.bodySmall.copy(
-                    color = colorResource(
-                        id = R.color.nc_grey_dark_color
-                    )
-                ),
-            )
-            NcTag(
-                modifier = Modifier
-                    .padding(top = 6.dp),
-                label = signer.toReadableSignerType(LocalContext.current),
-            )
-        }
-        RadioButton(selected = isSelected, onClick = { onSignerSelected(signer) })
-    }
-}
-
 @Preview
 @Composable
-fun TapSignerListContentPreview() {
+fun TapSignerListContentPreview(
+    @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
+) {
     NunchukTheme {
         TapSignerListContent(
-            signers = listOf(
-                SignerModel(
-                    "123", "Tom’s TAPSIGNER", fingerPrint = "79EB35F4", derivationPath = ""
-                ),
-                SignerModel(
-                    "123", "Tom’s TAPSIGNER 2", fingerPrint = "79EB35F4", derivationPath = ""
-                ),
-            ),
+            signers = signers
         )
     }
 }

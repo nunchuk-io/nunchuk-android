@@ -41,9 +41,6 @@ internal interface UserProfileDomainModule {
     fun bindGetUserDevicesUseCase(userCase: GetUserDevicesUseCaseImpl): GetUserDevicesUseCase
 
     @Binds
-    fun bindGetUserProfileUseCase(userCase: GetUserProfileUseCaseImpl): GetUserProfileUseCase
-
-    @Binds
     fun bindUpdateUserProfileUseCase(userCase: UpdateUseProfileUseCaseImpl): UpdateUseProfileUseCase
 
 }

@@ -42,20 +42,23 @@ class EmergencyLockdownPeriodViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    private val args = EmergencyLockdownPeriodFragmentArgs.fromSavedStateHandle(savedStateHandle)
-
     private val _event = MutableSharedFlow<LockdownPeriodEvent>()
     val event = _event.asSharedFlow()
 
     private val _state = MutableStateFlow(LockdownPeriodState())
     val state = _state.asStateFlow()
 
-    init {
+    private lateinit var verifyToken: String
+    private lateinit var groupId: String
+
+    fun init(verifyToken: String, groupId: String) {
+        this.verifyToken = verifyToken
+        this.groupId = groupId
         getLockdownPeriod()
     }
 
     private fun getLockdownPeriod() = viewModelScope.launch {
-        val result = getLockdownPeriodUseCase(Unit)
+        val result = getLockdownPeriodUseCase(GetLockdownPeriodUseCase.Param(groupId = groupId))
         if (result.isSuccess) {
             val options = result.getOrNull()?.map {
                 PeriodOption(it, isSelected = false)
@@ -74,13 +77,15 @@ class EmergencyLockdownPeriodViewModel @Inject constructor(
         val resultCalculate = calculateRequiredSignaturesLockdownUseCase(
             CalculateRequiredSignaturesLockdownUseCase.Param(
                 walletId = "",
-                periodId = period.id
+                periodId = period.id,
+                groupId = groupId
             )
         )
         val resultUserData = getLockdownUserDataUseCase(
             GetLockdownUserDataUseCase.Param(
                 walletId = "",
-                periodId = period.id
+                periodId = period.id,
+                groupId = groupId
             )
         )
         val userData = resultUserData.getOrThrow()
@@ -102,16 +107,22 @@ class EmergencyLockdownPeriodViewModel @Inject constructor(
         }
     }
 
-    fun lockdownUpdate(signatures: HashMap<String, String>, securityQuestionToken: String) =
+    fun lockdownUpdate(
+        signatures: HashMap<String, String>, securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String
+    ) =
         viewModelScope.launch {
             val state = _state.value
             _event.emit(LockdownPeriodEvent.Loading(true))
             val result = lockdownUpdateUseCase(
                 LockdownUpdateUseCase.Param(
                     signatures = signatures,
-                    verifyToken = args.verifyToken,
+                    verifyToken = verifyToken,
                     userData = state.userData.orEmpty(),
-                    securityQuestionToken = securityQuestionToken
+                    securityQuestionToken = securityQuestionToken,
+                    confirmCodeToken = confirmCodeToken,
+                    confirmCodeNonce = confirmCodeNonce
                 )
             )
             _event.emit(LockdownPeriodEvent.Loading(false))

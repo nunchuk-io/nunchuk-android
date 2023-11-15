@@ -32,6 +32,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
@@ -47,7 +48,20 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.RENEW_ACCOUNT_LINK
+import com.nunchuk.android.core.util.TextUtils
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.makeTextLink
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.openSelectFileChooser
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.setUnderline
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
@@ -55,12 +69,16 @@ import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigAction
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.PaginationTransactions
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SendMoneyEvent
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.UpdateUnusedAddress
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
@@ -85,7 +103,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             val data = it.data
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 when (data.serializable<WalletConfigAction>(WalletConfigActivity.EXTRA_WALLET_ACTION)) {
-                    WalletConfigAction.DELETE -> requireActivity().onBackPressedDispatcher.onBackPressed()
+                    WalletConfigAction.DELETE -> {
+                        if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
+                        else findNavController().popBackStack()
+                    }
                     WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
                     WalletConfigAction.FORCE_REFRESH -> viewModel.setForceRefreshWalletProcessing(
                         true
@@ -167,7 +188,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun paginateTransactions() {
         adapter.submitData(lifecycle, PagingData.empty())
         updateDataJob?.cancel()
-        updateDataJob = lifecycleScope.launch(Dispatchers.IO) {
+        updateDataJob = lifecycleScope.launch {
             viewModel.paginateTransactions().catch { hideLoading() }
                 .collectLatest(adapter::submitData)
         }

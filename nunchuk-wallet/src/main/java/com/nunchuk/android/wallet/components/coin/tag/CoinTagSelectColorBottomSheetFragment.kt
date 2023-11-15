@@ -53,7 +53,6 @@ import com.nunchuk.android.wallet.R
 
 class CoinTagSelectColorBottomSheetFragment : BaseComposeBottomSheet() {
 
-    private val args: CoinTagSelectColorBottomSheetFragmentArgs by navArgs()
     private val viewModel by viewModels<CoinTagSelectColorBottomSheetViewModel>()
 
     override fun onCreateView(

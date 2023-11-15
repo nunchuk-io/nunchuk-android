@@ -41,8 +41,9 @@ class WaitingDesktopKeyViewModel @Inject constructor(
         viewModelScope.launch {
             checkRequestAddDesktopKeyStatusUseCase(
                 CheckRequestAddDesktopKeyStatusUseCase.Param(
-                    membershipStepManager.plan,
-                    args.requestId
+                    plan = membershipStepManager.plan,
+                    groupId = args.groupId.orEmpty(),
+                    requestId = args.requestId
                 )
             ).onSuccess {
                 _state.update { state -> state.copy(isCompleted = it) }

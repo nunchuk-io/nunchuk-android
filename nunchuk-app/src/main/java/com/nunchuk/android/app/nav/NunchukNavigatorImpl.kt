@@ -34,13 +34,17 @@ import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
+import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
+import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
@@ -151,14 +155,16 @@ interface AppNavigatorDelegate : AppNavigator {
         activityContext: Activity,
         groupStep: MembershipStage,
         walletId: String?,
-        isClearTop: Boolean
+        groupId: String?,
+        addOnHoneyBadger: Boolean
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
             groupStep = groupStep,
-            walletId = walletId
+            walletId = walletId,
+            groupId = groupId,
+            addOnHoneyBadger = addOnHoneyBadger
         )
-        if (isClearTop) intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         activityContext.startActivity(intent)
     }
 
@@ -166,42 +172,100 @@ interface AppNavigatorDelegate : AppNavigator {
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity,
         groupStep: MembershipStage,
+        walletId: String?,
+        groupId: String?,
+        addOnHoneyBadger: Boolean
+    ) {
+        val intent = MembershipActivity.buildIntent(
+            activity = activityContext,
+            groupStep = groupStep,
+            walletId = walletId,
+            groupId = groupId,
+            addOnHoneyBadger = addOnHoneyBadger
+        )
+        launcher.launch(intent)
+    }
+
+    override fun openConfigServerKeyActivity(
+        launcher: ActivityResultLauncher<Intent>?,
+        activityContext: Activity,
+        groupStep: MembershipStage,
         keyPolicy: KeyPolicy?,
         xfp: String?
     ) {
-        launcher.launch(
-            MembershipActivity.buildIntent(
+        launcher?.launch(
+            ConfigServerKeyActivity.buildIntent(
                 activity = activityContext,
-                groupStep = groupStep,
                 keyPolicy = keyPolicy,
-                xfp = xfp
+                xfp = xfp,
+                groupStep = groupStep
+            )
+        ) ?: activityContext.startActivity(
+            ConfigServerKeyActivity.buildIntent(
+                activity = activityContext,
+                keyPolicy = keyPolicy,
+                xfp = xfp,
+                groupStep = groupStep
             )
         )
     }
 
-    override fun openKeyRecoveryScreen(activityContext: Context) {
-        KeyRecoveryActivity.navigate(activityContext)
+    override fun openConfigGroupServerKeyActivity(
+        launcher: ActivityResultLauncher<Intent>?,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: GroupKeyPolicy?,
+        xfp: String?,
+        groupId: String?
+    ) {
+        launcher?.launch(
+            ConfigServerKeyActivity.buildGroupIntent(
+                activity = activityContext,
+                keyPolicy = keyPolicy,
+                groupId = groupId,
+                xfp = xfp,
+                groupStep = groupStep
+            )
+        ) ?: activityContext.startActivity(
+            ConfigServerKeyActivity.buildGroupIntent(
+                activity = activityContext,
+                keyPolicy = keyPolicy,
+                groupId = groupId,
+                xfp = xfp,
+                groupStep = groupStep
+            )
+        )
     }
 
-    override fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String) {
-        EmergencyLockdownActivity.navigate(activityContext, verifyToken)
+    override fun openKeyRecoveryScreen(activityContext: Context, role: String?) {
+        KeyRecoveryActivity.navigate(activityContext, role.orEmpty())
+    }
+
+    override fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String, groupId: String?, walletId: String?) {
+        EmergencyLockdownActivity.navigate(activityContext, verifyToken, groupId, walletId)
     }
 
     override fun openInheritancePlanningScreen(
+        launcher: ActivityResultLauncher<Intent>?,
         walletId: String,
         activityContext: Context,
         verifyToken: String?,
         inheritance: Inheritance?,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
-        isOpenFromWizard: Boolean
+        @InheritanceSourceFlow.InheritanceSourceFlowInfo sourceFlow: Int,
+        groupId: String?,
+        dummyTransactionId: String?
     ) {
         InheritancePlanningActivity.navigate(
+            launcher = launcher,
             activity = activityContext,
             verifyToken = verifyToken,
             flowInfo = flowInfo,
             inheritance = inheritance,
-            isOpenFromWizard = isOpenFromWizard,
+            sourceFlow = sourceFlow,
             walletId = walletId,
+            groupId = groupId,
+            dummyTransactionId = dummyTransactionId
         )
     }
 
@@ -210,8 +274,11 @@ interface AppNavigatorDelegate : AppNavigator {
         userData: String,
         requiredSignatures: Int,
         type: String,
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Activity
+        launcher: ActivityResultLauncher<Intent>?,
+        activityContext: Activity,
+        groupId: String?,
+        dummyTransactionId: String?,
+        action: String?
     ) {
         WalletAuthenticationActivity.start(
             walletId = walletId,
@@ -219,7 +286,19 @@ interface AppNavigatorDelegate : AppNavigator {
             requiredSignatures = requiredSignatures,
             type = type,
             launcher = launcher,
-            activityContext = activityContext
+            activityContext = activityContext,
+            groupId = groupId,
+            dummyTransactionId = dummyTransactionId,
+            action = action
         )
+    }
+
+    override fun openGroupDashboardScreen(
+        groupId: String,
+        walletId: String?,
+        message: String?,
+        activityContext: Context
+    ) {
+        GroupDashboardActivity.navigate(activityContext, groupId = groupId, walletId = walletId, message = message)
     }
 }

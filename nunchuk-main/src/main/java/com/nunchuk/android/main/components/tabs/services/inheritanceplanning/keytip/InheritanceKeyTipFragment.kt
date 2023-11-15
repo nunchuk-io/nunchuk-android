@@ -53,7 +53,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class InheritanceKeyTipFragment : MembershipFragment() {
     private val viewModel: InheritanceKeyTipViewModel by viewModels()
-    private val args: InheritanceKeyTipFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -76,11 +75,7 @@ class InheritanceKeyTipFragment : MembershipFragment() {
             when (it) {
                 InheritanceKeyTipEvent.ContinueClickEvent -> {
                     findNavController().navigate(
-                        InheritanceKeyTipFragmentDirections.actionInheritanceKeyTipFragmentToInheritanceActivationDateFragment(
-                            magicalPhrase = args.magicalPhrase,
-                            planFlow = InheritancePlanFlow.SETUP,
-                            walletId = args.walletId,
-                        )
+                        InheritanceKeyTipFragmentDirections.actionInheritanceKeyTipFragmentToInheritanceActivationDateFragment()
                     )
                 }
             }

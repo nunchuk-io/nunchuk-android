@@ -19,20 +19,38 @@
 
 package com.nunchuk.android.main.components.tabs.services
 
+import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUseCase
+import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUserDataUseCase
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.util.ByzantineGroupUtils
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
+import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.CalculateRequiredSignaturesAction
+import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.isPremier
+import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.toGroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.banner.GetAssistedWalletPageContentUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
@@ -43,8 +61,17 @@ import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,6 +88,12 @@ class ServicesTabViewModel @Inject constructor(
     private val getAssistedWalletPageContentUseCase: GetAssistedWalletPageContentUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val submitEmailUseCase: SubmitEmailUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
+    private val getGroupsUseCase: GetGroupsUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils,
+    private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
+    private val requestPlanningInheritanceUseCase: RequestPlanningInheritanceUseCase,
+    private val requestPlanningInheritanceUserDataUseCase: RequestPlanningInheritanceUserDataUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -84,9 +117,59 @@ class ServicesTabViewModel @Inject constructor(
                     handleAssistedWallet(wallets, plan)
                 }
         }
+        viewModelScope.launch {
+            getGroupsUseCase(Unit)
+                .collect { result ->
+                    val groups = result.getOrDefault(emptyList())
+                    _state.update { it.copy(allGroups = groups) }
+                    updateGroupInfo(groups)
+                }
+        }
     }
 
-    private fun handleAssistedWallet(assistedWallets: List<AssistedWalletBrief>, plan: MembershipPlan) {
+    private fun updateGroupInfo(groups: List<ByzantineGroup>) = viewModelScope.launch(Dispatchers.IO) {
+        val joinedGroups = groups.filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
+        val group2of4Multisigs =
+            groups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
+        val group2Of3Or3of5Multisigs: List<ByzantineGroup>
+        val sortedGroups: List<ByzantineGroup>
+        if (group2of4Multisigs.isEmpty()) {
+            group2Of3Or3of5Multisigs =
+                groups.filter {
+                    it.walletConfig.m == GroupWalletType.TWO_OF_THREE.m && it.walletConfig.n == GroupWalletType.TWO_OF_THREE.n
+                            || it.walletConfig.m == GroupWalletType.THREE_OF_FIVE.m && it.walletConfig.n == GroupWalletType.THREE_OF_FIVE.n
+                }
+            sortedGroups = group2Of3Or3of5Multisigs.sortedWith(compareBy { group ->
+                AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
+            })
+        } else {
+            sortedGroups = group2of4Multisigs.sortedWith(compareBy { group ->
+                AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
+            })
+        }
+        withContext(Dispatchers.Main) {
+            _state.update { state ->
+                state.copy(
+                    groups2of4Multisig = if (group2of4Multisigs.isEmpty()) emptyList() else sortedGroups,
+                    userRole = byzantineGroupUtils.getCurrentUserRole(
+                        sortedGroups.firstOrNull()
+                    ),
+                    joinedGroups = joinedGroups.associateBy { it.id },
+                    isMasterHasNotCreatedWallet = groups.all { it.isPendingWallet() && byzantineGroupUtils.getCurrentUserRole(it) == AssistedWalletRole.MASTER.name },
+                )
+            }
+        }
+    }
+
+    @Keep
+    private enum class AssistedWalletRoleByOrder {
+        MASTER, ADMIN, KEYHOLDER, KEYHOLDER_LIMITED, OBSERVER
+    }
+
+    private fun handleAssistedWallet(
+        assistedWallets: List<AssistedWalletBrief>,
+        plan: MembershipPlan
+    ) {
         if (plan == MembershipPlan.NONE) {
             getNonSubscriberPageContent()
         } else {
@@ -109,9 +192,9 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getRowItems() = _state.value.initRowItems()
 
-    fun getInheritance(walletId: String, token: String) = viewModelScope.launch {
-        getInheritanceUseCase(walletId).onSuccess {
-            _event.emit(ServicesTabEvent.GetInheritanceSuccess(walletId, it, token))
+    fun getInheritance(walletId: String, token: String, groupId: String?) = viewModelScope.launch {
+        getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId)).onSuccess {
+            _event.emit(ServicesTabEvent.GetInheritanceSuccess(walletId, it, token, groupId))
         }.onFailure {
             _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
         }
@@ -132,24 +215,20 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
-    fun confirmPassword(walletId: String, password: String, item: ServiceTabRowItem) = viewModelScope.launch {
+    fun confirmPassword(
+        walletId: String,
+        password: String,
+        item: ServiceTabRowItem
+    ) = viewModelScope.launch {
         if (password.isBlank()) {
             return@launch
         }
         _event.emit(ServicesTabEvent.Loading(true))
         val targetAction = when (item) {
-            is ServiceTabRowItem.EmergencyLockdown -> {
-                VerifiedPasswordTargetAction.EMERGENCY_LOCKDOWN.name
-            }
-            is ServiceTabRowItem.CoSigningPolicies -> {
-                VerifiedPasswordTargetAction.UPDATE_SERVER_KEY.name
-            }
-            is ServiceTabRowItem.ViewInheritancePlan -> {
-                VerifiedPasswordTargetAction.UPDATE_INHERITANCE_PLAN.name
-            }
-            else -> {
-                throw IllegalArgumentException()
-            }
+            is ServiceTabRowItem.EmergencyLockdown -> TargetAction.EMERGENCY_LOCKDOWN.name
+            is ServiceTabRowItem.CoSigningPolicies -> TargetAction.UPDATE_SERVER_KEY.name
+            is ServiceTabRowItem.ViewInheritancePlan -> TargetAction.UPDATE_INHERITANCE_PLAN.name
+            else -> throw IllegalArgumentException()
         }
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
@@ -161,9 +240,10 @@ class ServicesTabViewModel @Inject constructor(
         if (result.isSuccess) {
             _event.emit(
                 ServicesTabEvent.CheckPasswordSuccess(
-                    result.getOrThrow().orEmpty(),
-                    walletId,
-                    item
+                    token = result.getOrThrow().orEmpty(),
+                    walletId = walletId,
+                    item = item,
+                    groupId = state.value.assistedWallets.find { it.localId == walletId }?.groupId
                 )
             )
         } else {
@@ -228,6 +308,68 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
+    fun openSetupInheritancePlan(walletId: String) {
+        viewModelScope.launch {
+            val groupId = state.value.assistedWallets.find { it.localId == walletId }?.groupId
+            if (groupId != null) {
+                _event.emit(ServicesTabEvent.Loading(true))
+                val inheritance =
+                    getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId))
+                if (inheritance.getOrNull()?.status == InheritanceStatus.PENDING_APPROVAL) {
+                    calculateRequiredSignatures(walletId, groupId)
+                } else {
+                    _event.emit(ServicesTabEvent.OpenSetupInheritancePlan(walletId, groupId))
+                }
+                _event.emit(ServicesTabEvent.Loading(false))
+            } else {
+                _event.emit(ServicesTabEvent.OpenSetupInheritancePlan(walletId, null))
+            }
+        }
+    }
+
+    private fun calculateRequiredSignatures(walletId: String, groupId: String) {
+        viewModelScope.launch {
+            _event.emit(ServicesTabEvent.Loading(true))
+            val userData = requestPlanningInheritanceUserDataUseCase(
+                RequestPlanningInheritanceUserDataUseCase.Param(
+                    walletId = walletId,
+                    groupId = groupId
+                )
+            )
+            calculateRequiredSignaturesInheritanceUseCase(
+                CalculateRequiredSignaturesInheritanceUseCase.Param(
+                    walletId = walletId,
+                    action = CalculateRequiredSignaturesAction.REQUEST_PLANNING,
+                    groupId = groupId
+                )
+            ).onSuccess { resultCalculate ->
+                requestPlanningInheritanceUseCase(
+                    RequestPlanningInheritanceUseCase.Param(
+                        userData = userData.getOrThrow(),
+                        walletId = walletId,
+                        groupId = groupId
+                    )
+                ).onSuccess {
+                    _event.emit(
+                        ServicesTabEvent.CalculateRequiredSignaturesSuccess(
+                            type = resultCalculate.type,
+                            walletId = walletId,
+                            groupId = groupId,
+                            userData = userData.getOrThrow(),
+                            requiredSignatures = resultCalculate.requiredSignatures,
+                            dummyTransactionId = it
+                        )
+                    )
+                }.onFailure {
+                    _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
+                }
+            }.onFailure {
+                _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
+            }
+            _event.emit(ServicesTabEvent.Loading(false))
+        }
+    }
+
     fun submitEmail(email: String) {
         viewModelScope.launch {
             if (EmailValidator.valid(email).not()) {
@@ -252,11 +394,81 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getEmail() = accountManager.getAccount().email
 
-    fun getUnSetupInheritanceWallets() =
-        state.value.assistedWallets.filter { it.isSetupInheritance.not() }
+    fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
+        val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId) }
+        return wallets.filter {
+                it.groupId.isEmpty() || isAllowSetupInheritance(it)
+            }
+    }
 
-    fun getWallet(ignoreSetupInheritance: Boolean = true) : List<AssistedWalletBrief> {
-        if (ignoreSetupInheritance.not()) return state.value.assistedWallets.filter { it.isSetupInheritance }
-        return state.value.assistedWallets
+    private fun isAllowSetupInheritance(wallet: AssistedWalletBrief): Boolean {
+        return state.value.groups2of4Multisig.find { group -> group.id == wallet.groupId } != null
+                && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[wallet.groupId]).toRole.isMasterOrAdmin
+                && state.value.joinedGroups[wallet.groupId]?.walletConfig?.allowInheritance == true
+    }
+
+    /**
+     * Get wallets that are able to setup inheritance or config server key policy
+     * Limit to 2 of 4 multisig group if plan is byzantine
+     * Limit to master or admin or keyholder
+     * @param ignoreSetupInheritance: ignore setup inheritance or not
+     */
+    fun getWallets(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
+        val wallets =
+            if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
+        return if (state.value.plan.isByzantine()) {
+            wallets.filter {
+                state.value.groups2of4Multisig.find { group ->
+                    group.id == it.groupId
+                } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
+            }
+        } else {
+            wallets.filter {
+                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
+            }
+        }
+    }
+
+    private fun isInheritanceOwner(inheritanceOwnerId: String?): Boolean {
+        return inheritanceOwnerId.isNullOrEmpty() || inheritanceOwnerId == accountManager.getAccount().id
+    }
+
+    /**
+     * Get wallets with master or admin role or no group
+     */
+    fun getAllowEmergencyLockdownWallets(): Pair<Int, List<AssistedWalletBrief>> {
+        var numOfLockedWallet = 0
+        val wallets = state.value.assistedWallets.filter {
+            if (state.value.joinedGroups[it.groupId]?.isLocked == true) {
+                numOfLockedWallet ++
+            }
+            byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isMasterOrAdmin || it.groupId.isEmpty()
+        }
+        return numOfLockedWallet to wallets
+    }
+
+    fun getLockdownWalletsIds(): List<String> {
+        return state.value.assistedWallets.filter {
+            state.value.joinedGroups[it.groupId]?.isLocked == true
+        }.map { it.localId }
+    }
+
+    fun getGroupId(walletId: String): String? = assistedWalletManager.getGroupId(walletId)
+
+    private fun isNoByzantineWallet(): Boolean {
+        return isByzantine() && state.value.joinedGroups.all { it.value.isPendingWallet() }
+    }
+
+    fun isByzantine(): Boolean {
+        return state.value.plan.isByzantine() || state.value.allGroups.isNotEmpty()
+    }
+
+    fun isShowClaimInheritanceLayout(): Boolean {
+        if (state.value.plan == MembershipPlan.HONEY_BADGER || state.value.plan == MembershipPlan.IRON_HAND) return false
+        if (state.value.allGroups.any { it.walletConfig.toGroupWalletType()?.isPremier() == true } || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
+        if (state.value.userRole.toRole == AssistedWalletRole.OBSERVER) return true
+        if (isNoByzantineWallet()) return true
+        if (state.value.plan == MembershipPlan.NONE && state.value.joinedGroups.isEmpty()) return true
+        return false
     }
 }

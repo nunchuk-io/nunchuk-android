@@ -23,16 +23,21 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.viewModels
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     private val args: WalletAuthenticationActivityArgs by navArgs()
+    private val viewModel: WalletAuthenticationViewModel by viewModels()
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }
@@ -40,6 +45,7 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initStartDestination()
+        observer()
     }
 
     private fun initStartDestination() {
@@ -49,38 +55,53 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
         val graph = inflater.inflate(R.navigation.check_sign_message_navigation)
 
         when (args.type) {
-            SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
-            SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionIntroFragment)
-            SECURITY_QUESTION -> graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
+            VerificationType.SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
+            VerificationType.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionIntroFragment)
+            VerificationType.SECURITY_QUESTION -> graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
+            VerificationType.CONFIRMATION_CODE -> graph.setStartDestination(R.id.confirmationCodeFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
     }
 
-    companion object {
-        internal const val SIGN_TEMP_MESSAGE = "SIGN_MESSAGE"
-        internal const val SIGN_DUMMY_TX = "SIGN_DUMMY_TX"
-        internal const val SECURITY_QUESTION = "SECURITY_QUESTION"
+    private fun observer() {
+        if (args.type != VerificationType.CONFIRMATION_CODE) {
+            flowObserver(viewModel.event) {
+                if (it is WalletAuthenticationEvent.Loading) {
+                    showOrHideLoading(it.isLoading)
+                } else if (it is WalletAuthenticationEvent.ShowError) {
+                    hideLoading()
+                    NCToastMessage(this).showError(it.message)
+                }
+            }
+        }
+    }
 
+    companion object {
         fun start(
             walletId: String,
             userData: String,
             requiredSignatures: Int,
             type: String,
-            launcher: ActivityResultLauncher<Intent>,
-            activityContext: Activity
+            launcher: ActivityResultLauncher<Intent>?,
+            activityContext: Activity,
+            groupId: String? = null,
+            dummyTransactionId: String? = null,
+            action: String? = null
         ) {
-            launcher.launch(
-                Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
-                    putExtras(
-                        WalletAuthenticationActivityArgs(
-                            walletId = walletId,
-                            userData = userData,
-                            requiredSignatures = requiredSignatures,
-                            type = type,
-                        ).toBundle()
-                    )
-                }
-            )
+            val intent = Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
+                putExtras(
+                    WalletAuthenticationActivityArgs(
+                        walletId = walletId,
+                        userData = userData,
+                        requiredSignatures = requiredSignatures,
+                        type = type,
+                        groupId = groupId,
+                        dummyTransactionId = dummyTransactionId,
+                        action = action
+                    ).toBundle()
+                )
+            }
+            launcher?.launch(intent) ?: activityContext.startActivity(intent)
         }
     }
 }

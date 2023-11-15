@@ -39,7 +39,13 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.guestmode.isPrimaryKey
 import com.nunchuk.android.core.media.NcMediaManager
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.loadImage
+import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
@@ -273,9 +279,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
 
     private fun setupViews() {
         binding.premiumBadge.isVisible = viewModel.plan != MembershipPlan.NONE
-        binding.premiumBadge.text =
-            if (viewModel.plan == MembershipPlan.HONEY_BADGER) getString(R.string.nc_honey_badger)
-            else getString(R.string.nc_iron_hand)
+        binding.premiumBadge.text = getPlanName(viewModel.plan)
         binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }
         binding.signIn.setOnClickListener {
             navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
@@ -313,8 +317,18 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         viewModel.getCurrentUser()
     }
 
+    private fun getPlanName(plan: MembershipPlan): String {
+        return when (plan) {
+            MembershipPlan.HONEY_BADGER -> getString(R.string.nc_honey_badger)
+            MembershipPlan.IRON_HAND -> getString(R.string.nc_iron_hand)
+            MembershipPlan.BYZANTINE -> getString(R.string.nc_byzantine)
+            MembershipPlan.BYZANTINE_PRO -> getString(R.string.nc_byzantine_pro)
+            MembershipPlan.BYZANTINE_PREMIER -> getString(R.string.nc_byzantine_premier)
+            MembershipPlan.NONE -> ""
+        }
+    }
+
     companion object {
-        private const val REQUEST_TAKE_PHOTO_CODE = 1249
         private const val KEY_CURRENT_PHOTO_PATH = "_a"
     }
 

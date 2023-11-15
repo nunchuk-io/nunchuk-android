@@ -21,19 +21,45 @@ package com.nunchuk.android.main.membership.honey.intro
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TapSignerInheritanceIntroViewModel @Inject constructor(
-    membershipStepManager: MembershipStepManager,
+    private val membershipStepManager: MembershipStepManager,
+    private val getMasterSignersUseCase: GetMasterSignersUseCase,
+    private val masterSignerMapper: MasterSignerMapper,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<TapSignerInheritanceIntroEvent>()
     val event = _event.asSharedFlow()
+
+    private val _tapSigners = MutableStateFlow<List<SignerModel>>(emptyList())
+    val tapSigners = _tapSigners.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            getMasterSignersUseCase.execute()
+                .collect {
+                    val signers = it.map { signer -> masterSignerMapper(signer) }
+                        .filter { signer ->
+                            signer.type == SignerType.NFC && membershipStepManager.isKeyExisted(
+                                signer.fingerPrint
+                            ).not()
+                        }
+
+                    _tapSigners.update { signers }
+                }
+        }
+    }
+
+    fun getTapSigners() = tapSigners.value
 
     fun onContinueClicked() {
         viewModelScope.launch {

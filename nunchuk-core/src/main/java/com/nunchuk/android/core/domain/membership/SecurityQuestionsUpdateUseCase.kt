@@ -41,7 +41,9 @@ class SecurityQuestionsUpdateUseCase @Inject constructor(
             authorizations = authorizations,
             verifyToken = parameters.verifyToken,
             userData = parameters.userData,
-            securityQuestionToken = parameters.securityQuestionToken
+            securityQuestionToken = parameters.securityQuestionToken,
+            confirmCodeToken = parameters.confirmCodeToken,
+            confirmCodeNonce = parameters.confirmCodeNonce
         )
     }
 
@@ -49,6 +51,8 @@ class SecurityQuestionsUpdateUseCase @Inject constructor(
         val signatures: Map<String, String> = emptyMap(),
         val userData: String,
         val verifyToken: String,
-        val securityQuestionToken: String
+        val securityQuestionToken: String,
+        val confirmCodeToken: String,
+        val confirmCodeNonce: String
     )
 }

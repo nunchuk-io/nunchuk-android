@@ -24,9 +24,15 @@ import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.persistence.NcDataStore
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.AppSettings
+import com.nunchuk.android.model.MemberSubscription
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
+import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.entity.toModel
@@ -34,7 +40,12 @@ import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -47,14 +58,30 @@ class MembershipRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val ncSharePreferences: NCSharePreferences,
     private val assistedWalletDao: AssistedWalletDao,
+    private val groupDao: GroupDao,
     applicationScope: CoroutineScope,
 ) : MembershipRepository {
-    private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
-    override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
-        return ncDataStore.chain.flatMapLatest { chain -> membershipStepDao.getSteps(accountManager.getAccount().chatId, chain, plan) }
-            .map {
-                it.map { entity -> entity.toModel() }
+    private val chain =
+        ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
+
+    override fun getSteps(plan: MembershipPlan, groupId: String): Flow<List<MembershipStepInfo>> {
+        return ncDataStore.chain.flatMapLatest { chain ->
+            if (groupId.isNotEmpty()) {
+                membershipStepDao.getSteps(
+                    accountManager.getAccount().chatId,
+                    chain,
+                    groupId
+                )
+            } else {
+                membershipStepDao.getSteps(
+                    accountManager.getAccount().chatId,
+                    chain,
+                    plan
+                )
             }
+        }.map {
+            it.map { entity -> entity.toModel() }
+        }
     }
 
     override suspend fun saveStepInfo(info: MembershipStepInfo) {
@@ -69,14 +96,19 @@ class MembershipRepositoryImpl @Inject constructor(
                     extraJson = info.extraData,
                     keyIdInServer = info.keyIdInServer,
                     plan = info.plan,
-                    chain = chain.value
+                    chain = chain.value,
+                    groupId = info.groupId
                 )
             )
         )
     }
 
     override suspend fun deleteStepBySignerId(masterSignerId: String) {
-        membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().chatId, chain.value, masterSignerId)
+        membershipStepDao.deleteByMasterSignerId(
+            accountManager.getAccount().chatId,
+            chain.value,
+            masterSignerId
+        )
     }
 
     override suspend fun getSubscription(): MemberSubscription {
@@ -107,11 +139,11 @@ class MembershipRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun restart(plan: MembershipPlan) {
-        val steps = getSteps(plan).firstOrNull().orEmpty()
+    override suspend fun restart(plan: MembershipPlan, groupId: String) {
+        val steps = getSteps(plan, groupId).firstOrNull().orEmpty()
         steps.filter { it.masterSignerId.isNotEmpty() }.forEach {
             runCatching {
-               gson.fromJson(it.extraData, SignerExtra::class.java)
+                gson.fromJson(it.extraData, SignerExtra::class.java)
                     ?.takeIf { extra -> extra.isAddNew }
                     ?.let { extra ->
                         if (extra.signerType == SignerType.NFC) {
@@ -122,21 +154,44 @@ class MembershipRepositoryImpl @Inject constructor(
                     }
             }
         }
-        membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
+        if (groupId.isNotEmpty()) {
+            membershipStepDao.deleteStepByGroupId(groupId)
+        } else {
+            membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
+        }
     }
 
     override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan
 
     override fun isHideUpsellBanner(): Flow<Boolean> = ncDataStore.isHideUpsellBanner
 
-    override suspend fun setRegisterAirgap(walletId: String, value: Boolean) {
+    override suspend fun setRegisterAirgap(walletId: String, value: Int) {
         val entity = assistedWalletDao.getById(walletId) ?: return
-        assistedWalletDao.update(entity.copy(isRegisterAirgap = value))
+        assistedWalletDao.update(entity.copy(registerAirgapCount = entity.registerAirgapCount + value))
     }
 
-    override suspend fun setRegisterColdcard(walletId: String, value: Boolean) {
+    override suspend fun setRegisterColdcard(walletId: String, value: Int) {
         val entity = assistedWalletDao.getById(walletId) ?: return
-        assistedWalletDao.update(entity.copy(isRegisterColdcard = value))
+        assistedWalletDao.update(entity.copy(registerColdcardCount = entity.registerColdcardCount + value))
     }
+
     override suspend fun setHideUpsellBanner() = ncDataStore.setHideUpsellBanner()
+
+    override suspend fun isViewPendingWallet(groupId: String): Boolean {
+        return groupDao.getGroupById(
+            groupId,
+            accountManager.getAccount().chatId,
+            chain.value
+        )?.isViewPendingWallet ?: false
+    }
+
+    override suspend fun setViewPendingWallet(groupId: String) {
+        groupDao.getGroupById(
+            groupId,
+            accountManager.getAccount().chatId,
+            chain.value
+        )?.let {
+            groupDao.updateOrInsert(it.copy(isViewPendingWallet = true))
+        }
+    }
 }

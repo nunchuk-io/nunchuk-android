@@ -67,7 +67,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
             sharedViewModel.handleColdcardExportNfc(Ndef.get(it.tag) ?: return@flowObserver)
             nfcViewModel.clearScanInfo()
         }
-        sharedViewModel.event.observe(this, ::handleSharedEvent)
+        flowObserver(sharedViewModel.event, collector = ::handleSharedEvent)
     }
 
     @CallSuper

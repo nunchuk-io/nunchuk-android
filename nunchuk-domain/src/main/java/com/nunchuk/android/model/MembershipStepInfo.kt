@@ -27,6 +27,7 @@ data class MembershipStepInfo(
     val verifyType: VerifyType = VerifyType.NONE,
     val extraData: String = "",
     val plan: MembershipPlan,
+    val groupId: String,
 ) {
     val isVerifyOrAddKey: Boolean
         get() = verifyType != VerifyType.NONE || masterSignerId.isNotEmpty()

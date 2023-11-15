@@ -20,6 +20,8 @@
 package com.nunchuk.android.main.components.tabs.services.keyrecovery
 
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 
 sealed class KeyRecoveryEvent {
     data class Loading(val isLoading: Boolean) : KeyRecoveryEvent()
@@ -30,14 +32,31 @@ sealed class KeyRecoveryEvent {
 }
 
 data class KeyRecoveryState(
-    val actionItems: List<KeyRecoveryActionItem> = arrayListOf(
-        KeyRecoveryActionItem.StartKeyRecovery,
-        KeyRecoveryActionItem.UpdateRecoveryQuestion
-    )
-)
+    val actionItems: List<KeyRecoveryActionItem> = arrayListOf(),
+    val plan: MembershipPlan = MembershipPlan.NONE,
+    val myUserRole: String = AssistedWalletRole.NONE.name,
+) {
+    fun initRowItems(): List<KeyRecoveryActionItem> {
+        val items = mutableListOf<KeyRecoveryActionItem>()
+        when (plan) {
+            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
+                items.add(KeyRecoveryActionItem.StartKeyRecovery)
+                if (myUserRole == AssistedWalletRole.MASTER.name) {
+                    items.add(KeyRecoveryActionItem.UpdateRecoveryQuestion)
+                }
+            }
+
+            else -> {
+                items.add(KeyRecoveryActionItem.StartKeyRecovery)
+                items.add(KeyRecoveryActionItem.UpdateRecoveryQuestion)
+            }
+        }
+        return items
+    }
+}
 
 sealed class KeyRecoveryActionItem(val title: Int) {
-    object StartKeyRecovery : KeyRecoveryActionItem(R.string.nc_start_key_recovery)
-    object UpdateRecoveryQuestion : KeyRecoveryActionItem(R.string.nc_update_recovery_question)
+    data object StartKeyRecovery : KeyRecoveryActionItem(R.string.nc_start_key_recovery)
+    data object UpdateRecoveryQuestion : KeyRecoveryActionItem(R.string.nc_update_recovery_question)
 }
 

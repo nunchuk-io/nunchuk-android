@@ -21,6 +21,7 @@ package com.nunchuk.android.core.matrix
 
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.asFlow
+import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -36,6 +37,7 @@ import javax.inject.Singleton
 @Singleton
 class SessionHolder @Inject constructor(
     private val sessionListener: SessionListener,
+    private val encryptedPreferences: NcEncryptedPreferences,
 ) {
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
 
@@ -65,6 +67,7 @@ class SessionHolder @Inject constructor(
                 CrashlyticsReporter.recordException(e)
             }
         }
+        encryptedPreferences.setMatrixCredential(session.sessionParams.credentials)
     }
 
     fun clearActiveRoom() {

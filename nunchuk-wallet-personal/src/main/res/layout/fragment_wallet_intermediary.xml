@@ -64,12 +64,25 @@
         app:layout_constraintTop_toBottomOf="@+id/title" />
 
     <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnCreateGroupWallet"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/btnCreateNewWallet"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Create new assisted wallet (2 remaining)" />
+
+    <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnCreateAssistedWallet"
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:visibility="gone"
+        tools:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/btnCreateNewWallet"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Create new assisted wallet (2 remaining)" />

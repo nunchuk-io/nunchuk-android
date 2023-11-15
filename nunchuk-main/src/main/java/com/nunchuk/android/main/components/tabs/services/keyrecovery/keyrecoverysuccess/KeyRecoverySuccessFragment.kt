@@ -24,7 +24,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
@@ -41,7 +49,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NCLabelWithIndex
+import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
@@ -77,13 +90,14 @@ class KeyRecoverySuccessFragment : Fragment() {
                 KeyRecoverySuccessEvent.GotItClick -> {
                     navigator.openSignerInfoScreen(
                         activityContext = requireActivity(),
+                        isMasterSigner = args.signer.isMasterSigner,
                         id = args.signer.id,
                         masterFingerprint = args.signer.fingerPrint,
                         name = args.signer.name,
                         type = args.signer.type,
                         derivationPath = args.signer.derivationPath,
                         justAdded = true,
-                        customMessage = getString(R.string.nc_tapsigner_has_been_recovered)
+                        customMessage = getString(R.string.nc_tapsigner_has_been_recovered),
                     )
                     requireActivity().finish()
                 }

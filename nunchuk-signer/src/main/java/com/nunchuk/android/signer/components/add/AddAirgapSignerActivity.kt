@@ -50,12 +50,14 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
 
     val isMembershipFlow : Boolean by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
     val signerTag : SignerTag? by lazy { intent.serializable(EXTRA_SIGNER_TAG) }
+    val groupId : String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
     companion object {
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
         private const val EXTRA_SIGNER_TAG = "signer_tag"
+        private const val EXTRA_GROUP_ID = "group_id"
 
-        fun start(activityContext: Context, isMembershipFlow: Boolean, tag: SignerTag?) {
+        fun start(activityContext: Context, isMembershipFlow: Boolean, tag: SignerTag?, groupId: String) {
             activityContext.startActivity(
                 Intent(
                     activityContext,
@@ -63,6 +65,7 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
                 ).apply {
                     putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
                     putExtra(EXTRA_SIGNER_TAG, tag)
+                    putExtra(EXTRA_GROUP_ID, groupId)
                 }
             )
         }

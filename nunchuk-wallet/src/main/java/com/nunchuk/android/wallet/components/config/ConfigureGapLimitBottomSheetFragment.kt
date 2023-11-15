@@ -46,7 +46,8 @@ class ConfigureGapLimitBottomSheetFragment :
     private val gapLimit: Int
         get() = arguments?.getInt(ARG_GAP_LIMIT) ?: 0
 
-    private var isIgnoreLimit: Boolean = false
+    private var isConnectUserServer: Boolean = false
+    private var maxGapLimit = LIMIT_GAP
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -63,24 +64,31 @@ class ConfigureGapLimitBottomSheetFragment :
         flowObserver(viewModel.event) { event ->
             if (event is ConfigureGapLimitEvent.GetAppSettingSuccess) {
                 if (event.url.isNotEmpty() && event.url != MAIN_NET_HOST) {
-                    isIgnoreLimit = true
-                    binding.tvMax.isVisible = false
+                    maxGapLimit = LIMIT_GAP_USER_SERVER
+                    isConnectUserServer = true
+                    updateInfoText()
                 }
             }
         }
     }
 
     private fun setupViews() {
-        binding.errorText.text = String.format(getString(R.string.nc_gap_limit_error), LIMIT_GAP)
-        binding.tvMax.text = String.format(getString(R.string.nc_max_data), LIMIT_GAP)
+        updateInfoText()
         binding.edtGapLimit.setText(gapLimit.toString())
         binding.closeBtn.setOnClickListener {
             binding.edtGapLimit.text?.clear()
             dismiss()
         }
         binding.saveBtn.setOnClickListener {
-            val limit = binding.edtGapLimit.text.toString().toIntOrNull()
-            if (limit != null && (limit <= LIMIT_GAP || isIgnoreLimit)) {
+            binding.errorText.isVisible = false
+            binding.errorText.text = String.format(getString(R.string.nc_gap_limit_error), maxGapLimit)
+            val limit = try {
+                binding.edtGapLimit.text.toString().toInt()
+            } catch (e: Exception) {
+                binding.errorText.text = getString(R.string.nc_limit_too_large)
+                null
+            }
+            if (limit != null && (limit <= maxGapLimit)) {
                 listener(limit)
                 dismiss()
             } else {
@@ -90,8 +98,14 @@ class ConfigureGapLimitBottomSheetFragment :
         }
     }
 
+    private fun updateInfoText() {
+        binding.errorText.text = String.format(getString(R.string.nc_gap_limit_error), maxGapLimit)
+        binding.tvMax.text = String.format(getString(R.string.nc_max_data), maxGapLimit)
+    }
+
     companion object {
         const val LIMIT_GAP = 200
+        const val LIMIT_GAP_USER_SERVER = 2000
 
         private const val ARG_GAP_LIMIT = "ARG_GAP_LIMIT"
         fun show(gapLimit: Int, fragmentManager: FragmentManager) =

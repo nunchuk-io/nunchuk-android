@@ -2,6 +2,12 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
 android {
+
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0', 'META-INF/versions/9/module-info.class']
+        }
+    }
     namespace 'com.nunchuk.android.utils'
 }
 

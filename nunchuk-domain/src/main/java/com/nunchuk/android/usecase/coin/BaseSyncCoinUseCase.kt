@@ -23,8 +23,8 @@ import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 abstract class BaseSyncCoinUseCase<P : BaseSyncCoinUseCase.Param, R>(
     private val repository: PremiumWalletRepository,
@@ -33,20 +33,24 @@ abstract class BaseSyncCoinUseCase<P : BaseSyncCoinUseCase.Param, R>(
 ) : UseCase<P, R>(dispatcher) {
     override suspend fun execute(parameters: P): R {
         return run(parameters).also {
-             if (parameters.isAssistedWallet) {
-                 GlobalScope.launch {// run in another thread to make it does not blocking current execution
-                     runCatching {
-                         val data = nunchukNativeSdk.exportCoinControlData(parameters.walletId)
-                         if (data.isNotEmpty()) {
-                             repository.uploadCoinControlData(parameters.walletId, data)
-                         }
-                     }
-                 }
-             }
+            if (parameters.isAssistedWallet) {
+                withContext(NonCancellable) {// run in another thread to make it does not blocking current execution
+                    runCatching {
+                        val data = nunchukNativeSdk.exportCoinControlData(parameters.walletId)
+                        if (data.isNotEmpty()) {
+                            repository.uploadCoinControlData(parameters.groupId, parameters.walletId, data)
+                        }
+                    }
+                }
+            }
         }
     }
 
-    abstract suspend fun run(parameters: P) : R
+    abstract suspend fun run(parameters: P): R
 
-    abstract class Param(open val walletId: String, open val isAssistedWallet: Boolean)
+    abstract class Param(
+        open val groupId: String?,
+        open val walletId: String,
+        open val isAssistedWallet: Boolean
+    )
 }

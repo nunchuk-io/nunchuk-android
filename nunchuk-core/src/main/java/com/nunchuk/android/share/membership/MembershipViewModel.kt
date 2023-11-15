@@ -19,8 +19,10 @@
 
 package com.nunchuk.android.share.membership
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,22 +35,27 @@ import javax.inject.Inject
 class MembershipViewModel @Inject constructor(
     private val restartWizardUseCase: RestartWizardUseCase,
     private val membershipStepManager: MembershipStepManager,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-
+    // don't change the value group_id
+    val groupId = savedStateHandle.get<String>("group_id").orEmpty()
     private val _event = MutableSharedFlow<MembershipEvent>()
     val event = _event.asSharedFlow()
 
     fun resetWizard(plan: MembershipPlan) {
         viewModelScope.launch {
-            val result = restartWizardUseCase(plan)
-            if (result.isSuccess) {
-                membershipStepManager.restart()
-                _event.emit(MembershipEvent.RestartWizardSuccess)
-            }
+            restartWizardUseCase(RestartWizardUseCase.Param(plan, groupId))
+                .onSuccess {
+                    membershipStepManager.restart()
+                    _event.emit(MembershipEvent.RestartWizardSuccess)
+                }.onFailure {
+                    _event.emit(MembershipEvent.Error(it.message.orUnknownError()))
+                }
         }
     }
 }
 
 sealed class MembershipEvent {
     object RestartWizardSuccess : MembershipEvent()
+    data class Error(val message: String,) : MembershipEvent()
 }

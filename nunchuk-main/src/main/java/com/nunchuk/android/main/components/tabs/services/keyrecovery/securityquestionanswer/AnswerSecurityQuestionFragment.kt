@@ -78,14 +78,6 @@ class AnswerSecurityQuestionFragment : Fragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AnswerSecurityQuestionEvent.Loading -> showOrHideLoading(loading = event.isLoading)
-                is AnswerSecurityQuestionEvent.DownloadBackupKeySuccess -> {
-                    findNavController().navigate(
-                        AnswerSecurityQuestionFragmentDirections.actionAnswerSecurityQuestionFragmentToBackupDownloadFragment(
-                            signer = event.signer,
-                            backupKey = event.backupKey
-                        )
-                    )
-                }
                 is AnswerSecurityQuestionEvent.ProcessFailure -> {
                     showError(message = event.message)
                 }
@@ -96,11 +88,21 @@ class AnswerSecurityQuestionFragment : Fragment() {
                             HashMap<String, String>()
                         )
                         putExtra(GlobalResultKey.SECURITY_QUESTION_TOKEN, event.token)
+                        putExtra(GlobalResultKey.SECURITY_QUESTION_EXTRA_INFO, HashMap<String, String>().apply {
+                            put(QUESTION_ID, event.questionId)
+                            put(QUESTION_ANSWER, event.answer)
+                        })
                     })
                     requireActivity().finish()
                 }
             }
         }
+    }
+
+    companion object {
+        const val QUESTION_ID = "question_id"
+        const val QUESTION_ANSWER = "question_answer"
+        const val BACKUP_KEY = "backup_key"
     }
 }
 

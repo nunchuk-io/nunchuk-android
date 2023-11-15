@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.GROUP_CHAT_ROOM_TYPE
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
@@ -118,6 +119,10 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             clear()
             addAll(state.roomWallets.map(RoomWallet::roomId))
         }
+        adapter.groupChatRooms.apply {
+            clear()
+            putAll(state.groupChatRooms)
+        }
         val visibleRooms = state.rooms.filter(RoomSummary::shouldShow)
         adapter.submitList(visibleRooms)
         handleShowEmptyState()
@@ -138,11 +143,11 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             is LoadingEvent -> showOrHideLoading(event.loading)
             is RoomsEvent.CreateSupportRoomSuccess -> openRoomDetailScreen(event.roomId)
             is RoomsEvent.ShowError -> showError(event.message)
+            is RoomsEvent.RemoveRoomSuccess -> deleteRoom(event.roomSummary)
         }
     }
 
     private fun handleRemoveRoom(roomSummary: RoomSummary, hasSharedWallet: Boolean) {
-        if (isResumed.not()) return
         if (hasSharedWallet) {
             NCWarningDialog(requireActivity())
                 .showDialog(
@@ -161,7 +166,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
                 )
         } else {
             viewModel.removeRoom(roomSummary)
-            deleteRoom(roomSummary)
         }
     }
 

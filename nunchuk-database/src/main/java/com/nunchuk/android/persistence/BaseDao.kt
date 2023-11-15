@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.persistence
 
+import android.database.SQLException
 import androidx.room.*
 
 @Dao
@@ -34,7 +35,7 @@ interface BaseDao<in T> {
     suspend fun updateOrInsert(items: List<T>): List<Long>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun updateOrInsert(item : T): Long
+    suspend fun updateOrInsert(item: T): Long
 
     @Update
     suspend fun update(item: T): Int
@@ -45,4 +46,6 @@ interface BaseDao<in T> {
     @Delete
     suspend fun delete(item: T): Int
 
+    @Delete
+    suspend fun deletes(ids: List<T>)
 }

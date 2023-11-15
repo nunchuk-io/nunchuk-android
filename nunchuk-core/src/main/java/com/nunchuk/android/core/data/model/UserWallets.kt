@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.data.model
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
 import com.nunchuk.android.core.data.model.membership.KeyPoliciesDto
 import com.nunchuk.android.core.data.model.membership.ServerKeyDto
 import com.nunchuk.android.core.data.model.membership.TransactionServerDto
@@ -44,7 +45,8 @@ internal data class CreateSecurityQuestionResponse(
 )
 
 internal data class CreateServerKeyResponse(
-    @SerializedName("key") val key: ServerKeyDto? = null
+    @SerializedName("key") val key: ServerKeyDto? = null,
+    @SerializedName("dummy_transaction") val dummyTransaction: DummyTransactionDto? = null
 )
 
 internal data class UpdateWalletPayload(
@@ -116,7 +118,9 @@ data class LockdownUpdateRequest(
         @SerializedName("period_id")
         val periodId: String? = null,
         @SerializedName("wallet")
-        val walletId: String? = null
+        val walletId: String? = null,
+        @SerializedName("group_id")
+        val groupId: String? = null,
     )
 }
 
@@ -138,7 +142,9 @@ data class CreateUpdateInheritancePlanRequest(
         @SerializedName("wallet")
         val walletId: String? = null,
         @SerializedName("buffer_period_id")
-        val bufferPeriodId: String? = null
+        val bufferPeriodId: String? = null,
+        @SerializedName("group_id")
+        val groupId: String? = null
     )
 }
 
@@ -185,7 +191,23 @@ data class InheritanceCancelRequest(
 ) {
     data class Body(
         @SerializedName("wallet")
-        val walletId: String? = null
+        val walletId: String? = null,
+        @SerializedName("group_id")
+        val groupId: String? = null
+    )
+}
+
+data class InheritanceByzantineRequestPlanning(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("wallet")
+        val walletId: String? = null,
+        @SerializedName("group_id")
+        val groupId: String? = null
     )
 }
 
@@ -223,8 +245,8 @@ data class InheritanceCheckResponse(
 
 data class TransactionAdditionalResponse(
     @SerializedName("transaction") val transaction: TransactionServerDto? = null,
-    @SerializedName("tx_fee") val txFee: Double? = null,
-    @SerializedName("tx_fee_rate") val txFeeRate: Double? = null,
+    @SerializedName("fee") val txFee: Double? = null,
+    @SerializedName("fee_rate") val txFeeRate: Double? = null,
     @SerializedName("sub_amount") val subAmount: Double? = null
 )
 
@@ -232,3 +254,17 @@ data class DeleteAssistedWalletRequest(
     @SerializedName("nonce")
     val nonce: String? = null
 )
+
+data class RequestRecoverKeyRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: EmptyRequest = EmptyRequest()
+)
+
+data class MarkRecoverStatusRequest(
+    @SerializedName("status")
+    val status: String? = null
+)
+
+class EmptyRequest

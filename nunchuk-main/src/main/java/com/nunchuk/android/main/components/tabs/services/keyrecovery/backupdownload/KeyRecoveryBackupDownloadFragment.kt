@@ -97,8 +97,8 @@ fun BackupDownloadScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     BackupDownloadScreenContent(
-        tapSignerName = args.signer.name,
-        cardId = args.signer.cardId,
+        tapSignerName = args.backupKey.keyName,
+        cardId = args.backupKey.cardId,
         password = state.password,
         error = state.error,
         onContinueClick = {

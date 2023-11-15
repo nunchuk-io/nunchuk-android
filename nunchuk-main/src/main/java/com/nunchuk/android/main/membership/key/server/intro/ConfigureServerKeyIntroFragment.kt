@@ -23,7 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -49,6 +54,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -82,6 +88,20 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
                 MembershipPlan.HONEY_BADGER -> findNavController().navigate(
                     ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
                 )
+                MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.BYZANTINE_PREMIER -> {
+                    val groupId = (requireActivity() as ConfigServerKeyActivity).groupId
+                    if (groupId.isNotEmpty()) {
+                        findNavController().navigate(
+                            ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigByzantineSpendingLimitFragment(
+                                (requireActivity() as ConfigServerKeyActivity).groupId
+                            )
+                        )
+                    } else {
+                        findNavController().navigate(
+                            ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
+                        )
+                    }
+                }
                 MembershipPlan.NONE -> Unit
             }
         }

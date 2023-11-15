@@ -91,4 +91,7 @@
     <string name="nc_ssigner_primary_key_notification_desc">Get notified when you receive new messages or contact requests.</string>
     <string name="nc_ssigner_primary_key_turn_notification">Turn on notifications</string>
     <string name="nc_ssigner_primary_key_not_now">Not now</string>
+    <string name="nc_byzantine">Byzantine</string>
+    <string name="nc_byzantine_pro">Byzantine Pro</string>
+    <string name="nc_byzantine_premier">Byzantine Premier</string>
 </resources>

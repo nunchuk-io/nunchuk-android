@@ -46,6 +46,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,6 +60,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -66,6 +68,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class InheritanceNoteFragment : MembershipFragment() {
 
     private val viewModel: InheritanceNoteViewModel by viewModels()
+    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
     private val args: InheritanceNoteFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -75,31 +78,26 @@ class InheritanceNoteFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceNoteScreen(viewModel, args)
+                InheritanceNoteScreen(viewModel, args, inheritanceViewModel)
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.init(inheritanceViewModel.setupOrReviewParam)
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceNoteEvent.ContinueClick -> {
-                    if (args.isUpdateRequest || args.planFlow == InheritancePlanFlow.VIEW) {
+                    inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(note = event.note))
+                    if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                         setFragmentResult(
                             REQUEST_KEY, bundleOf(EXTRA_NOTE to event.note)
                         )
                         findNavController().popBackStack()
                     } else {
                         findNavController().navigate(
-                            InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceBufferPeriodFragment(
-                                activationDate = args.activationDate,
-                                verifyToken = args.verifyToken,
-                                note = event.note,
-                                magicalPhrase = args.magicalPhrase,
-                                planFlow = args.planFlow,
-                                walletId = args.walletId,
-                            )
+                            InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceBufferPeriodFragment()
                         )
                     }
                 }
@@ -117,6 +115,7 @@ class InheritanceNoteFragment : MembershipFragment() {
 fun InheritanceNoteScreen(
     viewModel: InheritanceNoteViewModel = viewModel(),
     args: InheritanceNoteFragmentArgs,
+    inheritanceViewModel: InheritancePlanningViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -124,7 +123,7 @@ fun InheritanceNoteScreen(
     InheritanceNoteScreenContent(
         remainTime = remainTime,
         note = state.note,
-        planFlow = args.planFlow,
+        planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         isUpdateRequest = args.isUpdateRequest,
         onContinueClick = viewModel::onContinueClicked,
         onTextChange = viewModel::updateNote
@@ -233,7 +232,6 @@ fun InheritanceNoteScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = note.isNotBlank(),
                     onClick = onContinueClick,
                 ) {
                     Text(text = continueBtnText)

@@ -20,8 +20,9 @@
 package com.nunchuk.android.core.util
 
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 
 const val USD_FRACTION_DIGITS = 2
 
@@ -32,6 +33,7 @@ fun Number.formatDecimal(minFractionDigits: Int = MIN_FRACTION_DIGITS, maxFracti
     return DecimalFormat("#,##0.00").apply {
         minimumFractionDigits = minFractionDigits
         maximumFractionDigits = maxFractionDigits
+        decimalFormatSymbols = DecimalFormatSymbols(Locale.US)
     }.format(this)
 }
 
@@ -39,6 +41,7 @@ fun Number.formatDecimalWithoutZero(maxFractionDigits: Int = MAX_FRACTION_DIGITS
     return DecimalFormat("#,###.##").apply {
         minimumFractionDigits = 0
         maximumFractionDigits = maxFractionDigits
+        decimalFormatSymbols = DecimalFormatSymbols(Locale.US)
     }.format(this)
 }
 
@@ -51,8 +54,4 @@ fun Number.formatCurrencyDecimal(maxFractionDigits: Int = MAX_FRACTION_DIGITS, l
 
 fun Number.beautifySATFormat(locale: Locale = Locale.US): String {
     return DecimalFormat.getNumberInstance(locale).format(this)
-}
-
-fun Number.numberFormat(locale: Locale = Locale.US): String {
-    return NumberFormat.getNumberInstance(locale).format(this)
 }

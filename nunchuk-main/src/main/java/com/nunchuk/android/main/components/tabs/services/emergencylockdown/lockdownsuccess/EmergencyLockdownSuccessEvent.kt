@@ -21,5 +21,9 @@ package com.nunchuk.android.main.components.tabs.services.emergencylockdown.lock
 
 sealed class EmergencyLockdownSuccessEvent {
     data class Loading(val isLoading: Boolean) : EmergencyLockdownSuccessEvent()
-    object SignOut : EmergencyLockdownSuccessEvent()
+    data object SignOut : EmergencyLockdownSuccessEvent()
 }
+
+data class EmergencyLockdownSuccessState(
+    val walletName: String = "",
+)

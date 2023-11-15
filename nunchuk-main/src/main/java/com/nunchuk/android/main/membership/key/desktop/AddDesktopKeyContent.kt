@@ -1,7 +1,11 @@
 package com.nunchuk.android.main.membership.key.desktop
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -17,7 +21,11 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSpannedClickableText
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.R
 

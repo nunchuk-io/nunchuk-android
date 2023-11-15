@@ -51,9 +51,11 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private var isAddNewKey = true
+    private var groupId = ""
 
-    fun init(isAddNewKey: Boolean) {
+    fun init(isAddNewKey: Boolean, groupId: String) {
         this.isAddNewKey = isAddNewKey
+        this.groupId = groupId
     }
 
     fun upload() {
@@ -68,7 +70,8 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                     cardId = cardIdManager.getCardId(args.masterSignerId),
                     filePath = args.filePath,
                     isAddNewKey = isAddNewKey,
-                    plan = membershipStepManager.plan
+                    plan = membershipStepManager.plan,
+                    groupId = groupId
                 )
             ).collect {
                 if (it.isSuccess) {

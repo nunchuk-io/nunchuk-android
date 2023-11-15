@@ -20,11 +20,13 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
@@ -42,15 +44,18 @@ internal data class WalletsState(
     val isHideUpsellBanner: Boolean = false,
     val banner: Banner? = null,
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
-    val currentWalletPin: String = ""
+    val currentWalletPin: String = "",
+    val allGroups: List<ByzantineGroup> = emptyList(),
+    val groupWalletUis: List<GroupWalletUi> = emptyList(),
+    val alerts: Map<String, Int> = emptyMap(),
 )
 
 internal sealed class WalletsEvent {
     data class Loading(val loading: Boolean) : WalletsEvent()
     data class ShowErrorEvent(val e: Throwable?) : WalletsEvent()
-    object AddWalletEvent : WalletsEvent()
-    object ShowSignerIntroEvent : WalletsEvent()
-    object WalletEmptySignerEvent : WalletsEvent()
+    data object AddWalletEvent : WalletsEvent()
+    data object ShowSignerIntroEvent : WalletsEvent()
+    data object WalletEmptySignerEvent : WalletsEvent()
     class NeedSetupSatsCard(val status: SatsCardStatus) : WalletsEvent()
     class NfcLoading(val loading: Boolean) : WalletsEvent()
     class GoToSatsCardScreen(val status: SatsCardStatus) : WalletsEvent()
@@ -59,5 +64,16 @@ internal sealed class WalletsEvent {
     class CheckWalletPin(val match: Boolean, val walletId: String) : WalletsEvent()
     class VerifyPasswordSuccess(val walletId: String) : WalletsEvent()
     class VerifyPassphraseSuccess(val walletId: String) : WalletsEvent()
-    object None: WalletsEvent()
+    data object DenyWalletInvitationSuccess : WalletsEvent()
+    data object None : WalletsEvent()
+    data class AcceptWalletInvitationSuccess(val walletId: String?, val groupId: String) : WalletsEvent()
 }
+
+internal data class GroupWalletUi(
+    val wallet: WalletExtended? = null,
+    val group: ByzantineGroup? = null,
+    val role: String = AssistedWalletRole.NONE.name,
+    val inviterName: String = "",
+    val isAssistedWallet: Boolean = false,
+    val badgeCount: Int = 0
+)

@@ -114,7 +114,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private fun observer() {
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_ADD_KEY }) {
-            viewModel.getMk4Signer(it.records)
+            viewModel.getMk4Signer(it.records, (activity as Mk4Activity).groupId)
             nfcViewModel.clearScanInfo()
         }
 

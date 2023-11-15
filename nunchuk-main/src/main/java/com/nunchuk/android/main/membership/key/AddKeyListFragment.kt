@@ -56,6 +56,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
@@ -70,6 +71,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -86,8 +88,10 @@ import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -109,7 +113,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (membershipStepManager.assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig()) {
+        if (membershipStepManager.assistedWallets.any { !it.plan.isByzantine() } && membershipStepManager.isNotConfig()) {
             NCWarningDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_key_resuse),
                 message = getString(R.string.nc_key_reuse_desc),
@@ -124,7 +128,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -144,7 +148,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 when (data.type) {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
                     SignerType.AIRGAP,
-                    SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
+                    SignerType.COLDCARD_NFC,
+                    -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -199,11 +204,13 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
+            SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
+            -> handleSelectAddAirgapType(option.type)
 
             SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
             SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
+            SheetOptionType.TYPE_ADD_BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
         }
     }
 
@@ -266,10 +273,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             title = getString(R.string.nc_what_type_of_airgap_you_have),
             options = listOf(
                 SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-                    label = getString(R.string.nc_keystone),
-                ),
-                SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
                     label = getString(R.string.nc_blockstream_jade),
                 ),
@@ -280,6 +283,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
                     label = getString(R.string.nc_seedsigner),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+                    label = getString(R.string.nc_keystone),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
@@ -304,7 +311,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_SEVER_KEY -> {
-                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
+                navigator.openConfigServerKeyActivity(
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.NONE
+                )
             }
 
             MembershipStep.HONEY_ADD_TAP_SIGNER -> {
@@ -314,11 +324,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+            -> openSelectHardwareOption()
 
-            MembershipStep.SETUP_KEY_RECOVERY,
-            MembershipStep.SETUP_INHERITANCE,
-            MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
+            else -> Unit
         }
     }
 
@@ -345,6 +354,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     type = SheetOptionType.TYPE_ADD_TREZOR,
                     label = getString(R.string.nc_trezor)
                 ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_BITBOX,
+                    label = getString(R.string.nc_bitbox)
+                ),
             ),
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),
             showClosedIcon = true,
@@ -354,7 +367,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun handleShowKeysOrCreate(
         signer: List<SignerModel>,
         type: SignerType,
-        onEmptySigner: () -> Unit
+        onEmptySigner: () -> Unit,
     ) {
         if (signer.isNotEmpty()) {
             findNavController().navigate(
@@ -372,15 +385,15 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         navigator.openVerifyBackupTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
             masterSignerId = event.signer.id,
-            backUpFilePath = event.filePath
         )
     }
 
     private fun openSetupTapSigner() {
         navigator.openSetupTapSigner(
             activity = requireActivity(),
-            fromMembershipFlow = true
+            fromMembershipFlow = true,
         )
     }
 
@@ -388,7 +401,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
-            masterSignerId = masterSignerId
+            masterSignerId = masterSignerId,
         )
     }
 }
@@ -397,7 +410,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 fun AddKeyListScreen(
     viewModel: AddKeyListViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
-    onMoreClicked: () -> Unit = {}
+    onMoreClicked: () -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
@@ -487,15 +500,14 @@ fun AddKeyListContent(
                         )
                     }
                 }
-                if (keys.all { it.isVerifyOrAddKey }) {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        onClick = onContinueClicked,
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
-                    }
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                    enabled = keys.all { it.isVerifyOrAddKey }
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
                 }
             }
         }
@@ -567,10 +579,11 @@ fun AddKeyCard(
                             R.string.nc_added
                         )
                     )
-                } else {
+                } else if (item.signer.isVisible) {
                     NcOutlineButton(
                         modifier = Modifier.height(36.dp),
-                        onClick = { onVerifyClicked(item) }) {
+                        onClick = { onVerifyClicked(item) },
+                    ) {
                         Text(text = stringResource(R.string.nc_verify_backup))
                     }
                 }
@@ -598,7 +611,7 @@ fun AddKeyCard(
 @Composable
 private fun ConfigItem(
     item: AddKeyData,
-    onAddClicked: ((data: AddKeyData) -> Unit)? = null
+    onAddClicked: ((data: AddKeyData) -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier.padding(12.dp),
@@ -650,29 +663,19 @@ private fun ConfigItem(
 
 @Preview
 @Composable
-fun AddKeyListScreenIronHandPreview() {
+fun AddKeyListScreenIronHandPreview(
+    @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
+) {
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
                 type = MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-                SignerModel(
-                    id = "123",
-                    type = SignerType.NFC,
-                    name = "My Key",
-                    derivationPath = "",
-                    fingerPrint = "123456"
-                ),
+                signer = signer,
                 verifyType = VerifyType.APP_VERIFIED
             ),
             AddKeyData(
                 type = MembershipStep.IRON_ADD_HARDWARE_KEY_2,
-                signer = SignerModel(
-                    id = "123",
-                    type = SignerType.NFC,
-                    name = "My Key",
-                    derivationPath = "",
-                    fingerPrint = "123456"
-                ),
+                signer = signer,
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
@@ -683,7 +686,9 @@ fun AddKeyListScreenIronHandPreview() {
 
 @Preview
 @Composable
-fun AddKeyListScreenHoneyBadgerPreview() {
+fun AddKeyListScreenHoneyBadgerPreview(
+    @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
+) {
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
@@ -692,13 +697,7 @@ fun AddKeyListScreenHoneyBadgerPreview() {
             ),
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                signer = SignerModel(
-                    id = "123",
-                    type = SignerType.COLDCARD_NFC,
-                    name = "TAPSIGNER",
-                    derivationPath = "",
-                    fingerPrint = "123456"
-                ),
+                signer = signer,
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(

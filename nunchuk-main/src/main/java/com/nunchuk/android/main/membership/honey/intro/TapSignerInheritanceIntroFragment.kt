@@ -23,12 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -44,7 +39,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -61,7 +55,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.key.AddKeyListViewModel
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -74,7 +68,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class TapSignerInheritanceIntroFragment : MembershipFragment() {
     private val viewModel: TapSignerInheritanceIntroViewModel by viewModels()
-    private val addKeyViewModel: AddKeyListViewModel by activityViewModels()
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -114,11 +107,12 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
     }
 
     private fun openCreateBackUpTapSigner(masterSignerId: String) {
-        if (addKeyViewModel.isSignerExist(masterSignerId).not()) {
+        if (membershipStepManager.isKeyExisted(masterSignerId).not()) {
             navigator.openCreateBackUpTapSigner(
                 activity = requireActivity(),
                 fromMembershipFlow = true,
-                masterSignerId = masterSignerId
+                masterSignerId = masterSignerId,
+                groupId = (activity as MembershipActivity).groupId
             )
         } else {
             showSameSignerAdded()
@@ -130,10 +124,10 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
     }
 
     private fun handleAddTapSigner() {
-        if (addKeyViewModel.getTapSigners().isNotEmpty()) {
+        if (viewModel.getTapSigners().isNotEmpty()) {
             findNavController().navigate(
                 TapSignerInheritanceIntroFragmentDirections.actionTapSignerInheritanceIntroFragmentToTapSignerListBottomSheetFragment(
-                    signers = addKeyViewModel.getTapSigners().toTypedArray(),
+                    signers = viewModel.getTapSigners().toTypedArray(),
                     type = SignerType.NFC
                 )
             )
@@ -145,7 +139,8 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
     private fun openSetupTapSigner() {
         navigator.openSetupTapSigner(
             activity = requireActivity(),
-            fromMembershipFlow = true
+            fromMembershipFlow = true,
+            groupId = (activity as MembershipActivity).groupId
         )
         findNavController().popBackStack()
     }

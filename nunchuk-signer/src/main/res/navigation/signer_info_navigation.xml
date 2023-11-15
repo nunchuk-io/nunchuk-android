@@ -37,6 +37,9 @@
             android:name="isReplacePrimaryKey"
             app:argType="boolean" />
         <argument
+            android:name="is_master_signer"
+            app:argType="boolean" />
+        <argument
             android:name="signer_type"
             app:argType="com.nunchuk.android.type.SignerType" />
         <action

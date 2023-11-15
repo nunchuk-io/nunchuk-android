@@ -36,7 +36,8 @@ internal class TransactionSignersViewBinder(
     private val signerMap: Map<String, Boolean>,
     signers: List<SignerModel>,
     private val txStatus: TransactionStatus,
-    val listener: (SignerModel) -> Unit = {}
+    val listener: (SignerModel) -> Unit = {},
+    val enabledSigners: Set<String> = emptySet(),
 ) : AbsViewBinder<SignerModel, ItemTransactionSignerBinding>(container, signers) {
 
     override fun initializeBinding() =
@@ -66,7 +67,7 @@ internal class TransactionSignersViewBinder(
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = true
         } else {
-            binding.btnSign.isVisible = true
+            binding.btnSign.isVisible = enabledSigners.isEmpty() || enabledSigners.contains(model.fingerPrint)
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
         }

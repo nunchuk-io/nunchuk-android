@@ -34,6 +34,7 @@ class UpdateServerKeysUseCase @Inject constructor(
         return userWalletsRepository.updateServerKeys(
             signatures = parameters.signatures,
             keyIdOrXfp = parameters.keyIdOrXfp,
+            derivationPath = parameters.derivationPath,
             token = parameters.token,
             body = parameters.body,
             securityQuestionToken = parameters.securityQuestionToken
@@ -43,6 +44,7 @@ class UpdateServerKeysUseCase @Inject constructor(
     data class Param(
         val body: String,
         val keyIdOrXfp: String,
+        val derivationPath: String,
         val signatures: Map<String, String> = emptyMap(),
         val token: String,
         val securityQuestionToken: String = "",

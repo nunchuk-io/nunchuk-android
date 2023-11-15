@@ -22,24 +22,31 @@ package com.nunchuk.android.main.membership.authentication
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.type.TransactionStatus
 
 sealed class WalletAuthenticationEvent {
     data class Loading(val isLoading: Boolean) : WalletAuthenticationEvent()
     data class ProcessFailure(val message: String) : WalletAuthenticationEvent()
     data class ShowError(val message: String) : WalletAuthenticationEvent()
-    data class WalletAuthenticationSuccess(val signatures: Map<String, String>) :
+    data class SignDummyTxSuccess(val signatures: Map<String, String> = emptyMap()) :
         WalletAuthenticationEvent()
+
+    data class UploadSignatureSuccess(val status: TransactionStatus) : WalletAuthenticationEvent()
 
     class NfcLoading(val isLoading: Boolean, val isColdCard: Boolean = false) :
         WalletAuthenticationEvent()
 
-    object ScanTapSigner : WalletAuthenticationEvent()
-    object ScanColdCard : WalletAuthenticationEvent()
-    object CanNotSignHardwareKey : WalletAuthenticationEvent()
-    object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
-    object ShowAirgapOption : WalletAuthenticationEvent()
-    object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
-    object CanNotSignDummyTx : WalletAuthenticationEvent()
+    data object ScanTapSigner : WalletAuthenticationEvent()
+    data object ScanColdCard : WalletAuthenticationEvent()
+    data object CanNotSignHardwareKey : WalletAuthenticationEvent()
+    data object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
+    data object ShowAirgapOption : WalletAuthenticationEvent()
+    data object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
+    data object CanNotSignDummyTx : WalletAuthenticationEvent()
+    data class FinalizeDummyTxSuccess(val isGoBack: Boolean) : WalletAuthenticationEvent()
+    data class ForceSyncSuccess(val isSuccess: Boolean,) : WalletAuthenticationEvent()
+    data class SignFailed(val singleSigner: SingleSigner,) : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(
@@ -47,5 +54,10 @@ data class WalletAuthenticationState(
     val singleSigners: List<SingleSigner> = emptyList(),
     val signatures: Map<String, String> = emptyMap(),
     val transaction: Transaction? = null,
-    val interactSingleSigner: SingleSigner? = null
+    val pendingSignature : Int = 0,
+    val interactSingleSigner: SingleSigner? = null,
+    val dummyTransactionType: DummyTransactionType = DummyTransactionType.NONE,
+    val enabledSigners : Set<String> = emptySet(),
+    val isDraft: Boolean = false,
+    val transactionStatus: TransactionStatus = TransactionStatus.PENDING_SIGNATURES,
 )

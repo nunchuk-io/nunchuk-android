@@ -24,10 +24,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -37,16 +45,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -60,6 +71,9 @@ class LockdownSuccessFragment : Fragment() {
     private val viewModel: EmergencyLockdownSuccessViewModel by viewModels()
     private val args: LockdownSuccessFragmentArgs by navArgs()
 
+    private val groupId by lazy { (requireActivity() as? EmergencyLockdownActivity)?.groupId.orEmpty() }
+    private val walletId by lazy { (requireActivity() as? EmergencyLockdownActivity)?.walletId.orEmpty() }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -67,19 +81,29 @@ class LockdownSuccessFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                LockdownSuccessScreen(viewModel, args.period)
+                LockdownSuccessScreen(viewModel, args.period, groupId, onGotItClick = {
+                    if (groupId.isNotEmpty()) {
+                        ActivityManager.popUntilRoot()
+                    } else {
+                        viewModel.onContinueClicked()
+                    }
+                })
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.init(walletId)
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is EmergencyLockdownSuccessEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is EmergencyLockdownSuccessEvent.SignOut -> {
                     showOrHideLoading(loading = false)
-                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_your_account_has_been_signed_out), delay = 500L)
+                    NcToastManager.scheduleShowMessage(
+                        message = getString(R.string.nc_your_account_has_been_signed_out),
+                        delay = 500L
+                    )
                     navigator.restartApp(requireActivity())
                 }
             }
@@ -90,16 +114,25 @@ class LockdownSuccessFragment : Fragment() {
 @Composable
 fun LockdownSuccessScreen(
     viewModel: EmergencyLockdownSuccessViewModel = viewModel(),
-    period: String = ""
+    period: String = "",
+    groupId: String = "",
+    onGotItClick: () -> Unit
 ) {
-    LockdownSuccessScreenContent(period) {
-        viewModel.onContinueClicked()
-    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LockdownSuccessScreenContent(
+        walletName = state.walletName,
+        period = period,
+        groupId = groupId,
+        onGotItClick = onGotItClick
+    )
 }
 
 @Composable
 fun LockdownSuccessScreenContent(
     period: String = "",
+    walletName: String = "",
+    groupId: String = "",
     onGotItClick: () -> Unit = {},
 ) {
     NunchukTheme {
@@ -120,9 +153,14 @@ fun LockdownSuccessScreenContent(
                         contentDescription = ""
                     )
                 }
+                val title = if (groupId.isNotEmpty()) {
+                    stringResource(R.string.nc_emergency_lockdown_wallet_success_title, walletName)
+                } else {
+                    stringResource(R.string.nc_emergency_lockdown_success_title)
+                }
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_emergency_lockdown_success_title),
+                    text = title,
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(

@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.model
 
+// Don't change the order of the step, we store ordinal to database
 enum class MembershipStep {
     IRON_ADD_HARDWARE_KEY_1,
     IRON_ADD_HARDWARE_KEY_2,
@@ -29,4 +30,20 @@ enum class MembershipStep {
     HONEY_ADD_HARDWARE_KEY_1,
     HONEY_ADD_HARDWARE_KEY_2,
     SETUP_INHERITANCE,
+    BYZANTINE_ADD_TAP_SIGNER,
+    BYZANTINE_ADD_HARDWARE_KEY_0,
+    BYZANTINE_ADD_HARDWARE_KEY_1,
+    BYZANTINE_ADD_HARDWARE_KEY_2,
+    BYZANTINE_ADD_HARDWARE_KEY_3,
+    BYZANTINE_ADD_HARDWARE_KEY_4,
+    BYZANTINE_INVITE_MEMBER
+}
+
+fun MembershipStep.toIndex() = when (this) {
+    MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 0
+    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> 1
+    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> 2
+    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> 3
+    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> 4
+    else -> throw IllegalArgumentException()
 }

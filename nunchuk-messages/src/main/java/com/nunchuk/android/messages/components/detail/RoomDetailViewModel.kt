@@ -44,6 +44,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.read.ReadService
@@ -74,6 +75,7 @@ class RoomDetailViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val sendMediaUseCase: SendMediaUseCase,
     private val isMyCoinUseCase: IsMyCoinUseCase,
+    private val getGroupsUseCase: GetGroupsUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
@@ -103,11 +105,27 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             timelineListenerAdapter.data.filter { it.isNotEmpty() }.collect(::handleTimelineEvents)
         }
+        viewModelScope.launch {
+            getGroupsUseCase(Unit)
+                .collect { result ->
+                    result.onSuccess { groups ->
+                        updateState { copy(isHasByzantineGroup = groups.isNotEmpty()) }
+                    }
+                }
+        }
     }
 
-    fun initialize(roomId: String) {
-        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom)
-            ?: event(RoomNotFoundEvent)
+    fun initialize(roomId: String, isGroupChatRoom: Boolean) {
+        val room = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)
+        room?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        if (isGroupChatRoom) updateState { copy(isGroupChatRoom = true) }
+        else {
+            room?.let {
+                val stateEvent = room.stateService()
+                    .getStateEvent(GROUP_CHAT_ROOM_TYPE, QueryStringValue.IsEmpty)
+                updateState { copy(isGroupChatRoom = stateEvent != null) }
+            }
+        }
         getDeveloperSettings()
     }
 
@@ -513,6 +531,8 @@ class RoomDetailViewModel @Inject constructor(
             }
         }
     }
+
+    fun isByzantineChat() = getState().isHasByzantineGroup || getState().isGroupChatRoom
 
     override fun onCleared() {
         timeline?.apply {

@@ -86,6 +86,7 @@ class CoinTagListViewModel @Inject constructor(
         val addResultDefer = async {
             addToCoinTagUseCase(
                 AddToCoinTagUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(args.walletId),
                     walletId = args.walletId,
                     tagIds = selectedTags.toList(),
                     coins = args.coins.toList(),
@@ -96,6 +97,7 @@ class CoinTagListViewModel @Inject constructor(
         val deleteResultDefer = async {
             removeCoinFromTagUseCase(
                 RemoveCoinFromTagUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(args.walletId),
                     walletId = args.walletId,
                     tagIds = deletedTags.toList(),
                     coins = args.coins.toList(),
@@ -183,6 +185,7 @@ class CoinTagListViewModel @Inject constructor(
         _event.emit(CoinTagListEvent.Loading(true))
         val result = createCoinTagUseCase(
             CreateCoinTagUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(args.walletId),
                 walletId = args.walletId,
                 name = "#${coinTagInputHolder.name}",
                 color = coinTagInputHolder.color,

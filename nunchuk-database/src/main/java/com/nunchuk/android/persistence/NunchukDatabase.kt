@@ -25,6 +25,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.nunchuk.android.persistence.dao.*
 import com.nunchuk.android.persistence.entity.*
+import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
+import com.nunchuk.android.persistence.spec.AutoMigrationSpec16to17
 
 @Database(
     entities = [
@@ -35,6 +37,10 @@ import com.nunchuk.android.persistence.entity.*
         HandledEventEntity::class,
         AssistedWalletEntity::class,
         RequestAddKeyEntity::class,
+        GroupEntity::class,
+        AlertEntity::class,
+        KeyHealthStatusEntity::class,
+        DummyTransactionEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
@@ -43,6 +49,14 @@ import com.nunchuk.android.persistence.entity.*
         AutoMigration(from = 6, to = 7),
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9),
+        AutoMigration(from = 9, to = 10),
+        AutoMigration(from = 10, to = 11),
+        AutoMigration(from = 11, to = 12),
+        AutoMigration(from = 12, to = 13, AutoMigrationSpec12to13::class),
+        AutoMigration(from = 13, to = 14),
+        AutoMigration(from = 14, to = 15),
+        AutoMigration(from = 15, to = 16),
+        AutoMigration(from = 16, to = 17, AutoMigrationSpec16to17::class),
     ]
 )
 @TypeConverters(Converters::class)
@@ -54,4 +68,8 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun handledEventDao(): HandledEventDao
     abstract fun assistedWalletDao(): AssistedWalletDao
     abstract fun requestAddKeyDao(): RequestAddKeyDao
+    abstract fun groupDao(): GroupDao
+    abstract fun alertDao(): AlertDao
+    abstract fun keyHealthStatusDao(): KeyHealthStatusDao
+    abstract fun dummyTransactionDao(): DummyTransactionDao
 }

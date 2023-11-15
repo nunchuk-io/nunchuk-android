@@ -196,7 +196,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            pushEventManager.event.collect {event ->
+            pushEventManager.event.collect { event ->
                 if (event is PushEvent.ServerTransactionEvent) {
                     if (event.transactionId == txId) {
                         Timber.d("ServerTransactionEvent")
@@ -297,7 +297,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             signServerTransactionUseCase(
                 SignServerTransactionUseCase.Param(
-                    walletId, txId, psbt
+                    groupId = assistedWalletManager.getGroupId(walletId),
+                    walletId = walletId,
+                    txId = txId,
+                    psbt = psbt
                 )
             ).onSuccess { extendedTransaction ->
                 setEvent(
@@ -404,6 +407,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             setEvent(LoadingEvent)
             val result = updateTransactionMemo(
                 UpdateTransactionMemo.Data(
+                    assistedWalletManager.getGroupId(walletId),
                     walletId,
                     isAssistedWallet(),
                     txId,
@@ -433,7 +437,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         if (getTransactionJob?.isActive == true) return
         getTransactionJob = viewModelScope.launch {
             getTransactionUseCase.execute(
-                walletId, txId, assistedWalletManager.isActiveAssistedWallet(walletId)
+                groupId = assistedWalletManager.getGroupId(walletId),
+                walletId = walletId,
+                txId = txId,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
             ).flowOn(IO).onException {
                 if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
                     handleDeleteTransactionEvent(isCancel = true, onlyLocal = true)
@@ -523,6 +530,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             setEvent(LoadingEvent)
             val result = deleteTransactionUseCase(
                 DeleteTransactionUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
                     txId = txId,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId) && !onlyLocal
@@ -540,7 +548,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = cancelScheduleBroadcastTransactionUseCase(
                 CancelScheduleBroadcastTransactionUseCase.Param(
-                    walletId, txId
+                    groupId = assistedWalletManager.getGroupId(walletId),
+                    walletId = walletId,
+                    transactionId = txId,
                 )
             )
             if (result.isSuccess) {
@@ -556,7 +566,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val fingerPrint = signer.fingerPrint
             val device =
-                masterSigners.firstOrNull { it.device.masterFingerprint == fingerPrint }?.device ?: return@launch
+                masterSigners.firstOrNull { it.device.masterFingerprint == fingerPrint }?.device
+                    ?: return@launch
             if (device.needPassPhraseSent) {
                 setEvent(PromptInputPassphrase {
                     viewModelScope.launch {
@@ -742,13 +753,19 @@ internal class TransactionDetailsViewModel @Inject constructor(
             val file = withContext(dispatcher) {
                 getFileFromUri(application.contentResolver, uri, application.cacheDir)
             } ?: return@launch
-            importTransactionUseCase(ImportTransactionUseCase.Param(walletId = walletId, filePath = file.absolutePath, isAssistedWallet = isAssistedWallet()))
-                .onSuccess {
-                    getTransactionInfo()
-                    event(ImportTransactionSuccess)
-                }.onFailure {
-                    event(TransactionError(it.readableMessage()))
-                }
+            importTransactionUseCase(
+                ImportTransactionUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(walletId),
+                    walletId = walletId,
+                    filePath = file.absolutePath,
+                    isAssistedWallet = isAssistedWallet()
+                )
+            ).onSuccess {
+                getTransactionInfo()
+                event(ImportTransactionSuccess)
+            }.onFailure {
+                event(TransactionError(it.readableMessage()))
+            }
         }
     }
 

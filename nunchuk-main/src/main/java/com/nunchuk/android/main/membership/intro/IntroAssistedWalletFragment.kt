@@ -44,6 +44,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -65,7 +66,12 @@ class IntroAssistedWalletFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
-            findNavController().navigate(IntroAssistedWalletFragmentDirections.actionIntroAssistedWalletFragmentToAddKeyStepFragment())
+            val groupId = (activity as MembershipActivity).groupId
+            if (groupId.isNotEmpty()) {
+                findNavController().navigate(IntroAssistedWalletFragmentDirections.actionIntroAssistedWalletFragmentToAddGroupKeyStepFragment())
+            } else {
+                findNavController().navigate(IntroAssistedWalletFragmentDirections.actionIntroAssistedWalletFragmentToAddKeyStepFragment())
+            }
         }
     }
 }
