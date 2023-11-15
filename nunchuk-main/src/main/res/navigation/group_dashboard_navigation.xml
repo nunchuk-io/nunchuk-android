@@ -303,6 +303,14 @@
             app:argType="string" />
 
         <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="group_id"
+            app:argType="string" />
+
+        <argument
             android:name="pending_signatures"
             app:argType="integer" />
         <argument

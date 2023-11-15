@@ -159,6 +159,7 @@ class RecurringPaymentViewModel @Inject constructor(
                 },
                 bsms = config.value.bsms,
                 addresses = config.value.addresses,
+                feeRate = config.value.feeRate,
             )
             createRecurringPaymentUseCase(
                 CreateRecurringPaymentUseCase.Params(

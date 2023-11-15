@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
@@ -34,10 +34,10 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.main.R
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class RecurringPaymentRequestFragment : Fragment() {
+    private val args: RecurringPaymentRequestFragmentArgs by navArgs()
     private val viewModel: RecurringPaymentRequestViewModel by viewModels()
 
     override fun onCreateView(
@@ -46,28 +46,36 @@ class RecurringPaymentRequestFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                RecurringPaymentRequestScreen(viewModel)
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                .collect { event ->
-
+                RecurringPaymentRequestScreen(viewModel) {
+                    val state = viewModel.state.value
+                    state.recurringPayment?.let {
+                        findNavController().navigate(
+                            RecurringPaymentRequestFragmentDirections
+                                .actionRecurringPaymentRequestFragmentToRecurringPaymentRequestReviewFragment(
+                                    recurringPayment = it,
+                                    pendingSignatures = state.pendingSignatures,
+                                    dummyTransactionId = args.dummyTransactionId,
+                                    walletId = args.walletId,
+                                    groupId = args.groupId,
+                                )
+                        )
+                    }
                 }
+            }
         }
     }
 }
 
 @Composable
-private fun RecurringPaymentRequestScreen(viewModel: RecurringPaymentRequestViewModel = viewModel()) {
+private fun RecurringPaymentRequestScreen(
+    viewModel: RecurringPaymentRequestViewModel = viewModel(),
+    openRequestSummaryScreen : () -> Unit,
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     RecurringPaymentRequestContent(
         requestName = state.requester?.emailOrUsername.orEmpty(),
         paymentName = state.recurringPayment?.name.orEmpty(),
+        openRequestSummaryScreen = openRequestSummaryScreen,
     )
 }
 
@@ -75,6 +83,7 @@ private fun RecurringPaymentRequestScreen(viewModel: RecurringPaymentRequestView
 private fun RecurringPaymentRequestContent(
     requestName: String = "",
     paymentName: String = "",
+    openRequestSummaryScreen : () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(
@@ -85,15 +94,14 @@ private fun RecurringPaymentRequestContent(
                 NcTopAppBar(title = "", isBack = false)
             },
             bottomBar = {
-                Column {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        onClick = { },
-                    ) {
-                        Text(text = stringResource(R.string.nc_review_recurring_payment))
-                    }
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    onClick = openRequestSummaryScreen,
+                    enabled = paymentName.isNotEmpty()
+                ) {
+                    Text(text = stringResource(R.string.nc_review_recurring_payment))
                 }
             }
         ) { innerPadding ->

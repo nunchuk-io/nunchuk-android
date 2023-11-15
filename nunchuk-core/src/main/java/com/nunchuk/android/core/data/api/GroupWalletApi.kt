@@ -426,6 +426,7 @@ internal interface GroupWalletApi {
     suspend fun createRecurringPayment(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
-        @Body request: CreateRecurringPaymentRequest
+        @Query("draft") draft: Boolean = true,
+        @Body request: CreateRecurringPaymentRequest,
     ): Data<DummyTransactionResponse>
 }

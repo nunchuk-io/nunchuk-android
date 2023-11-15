@@ -18,11 +18,16 @@ internal class RecurringPaymentRepositoryImpl @Inject constructor(
     override suspend fun createRecurringPayment(
         groupId: String,
         walletId: String,
-        recurringPayment: RecurringPayment
+        recurringPayment: RecurringPayment,
     ): String {
         val nonce = userWalletRepository.getNonce()
         val request = recurringPayment.toRequest(nonce)
-        val response = userWalletApiManager.groupWalletApi.createRecurringPayment(groupId, walletId, request)
-        return response.data.dummyTransaction?.id ?: throw IllegalStateException("Dummy transaction id is null")
+        val response = userWalletApiManager.groupWalletApi.createRecurringPayment(
+            groupId = groupId,
+            walletId = walletId,
+            request = request
+        )
+        return response.data.dummyTransaction?.id
+            ?: throw IllegalStateException("Dummy transaction id is null")
     }
 }

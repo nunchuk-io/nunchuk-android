@@ -6,6 +6,7 @@ import com.nunchuk.android.model.payment.toPaymentCalculationMethod
 import com.nunchuk.android.model.payment.toPaymentDestinationType
 import com.nunchuk.android.model.payment.toPaymentFrequency
 import com.nunchuk.android.model.payment.toRecurringPaymentType
+import com.nunchuk.android.model.toFeeRate
 
 internal data class RecurringPaymentResponse(
     @SerializedName("id")
@@ -30,6 +31,8 @@ internal data class RecurringPaymentResponse(
     val allowCosigning: Boolean? = null,
     @SerializedName("transaction_note")
     val transactionNote: String? = null,
+    @SerializedName("fee_rate")
+    val feeRate: String? = null,
 )
 
 internal data class PaymentPayload(
@@ -66,6 +69,7 @@ internal fun RecurringPaymentResponse.toModel() = RecurringPayment(
     calculationMethod = paymentPayload?.calculationMethod.toPaymentCalculationMethod,
     addresses = destinationPayload?.addresses.orEmpty(),
     bsms = destinationPayload?.bsms,
-    id = id
+    id = id,
+    feeRate = feeRate.toFeeRate
 )
 

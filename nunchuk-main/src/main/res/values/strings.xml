@@ -265,4 +265,8 @@
     <string name="nc_fee_rate">Fee rate</string>
     <string name="nc_review_recurring_payment">Review recurring payment</string>
     <string name="nc_recurring_payment_request">Recurring payment request</string>
+    <string name="nc_approve_signatures_pending">Approve (%1$d signatures pending)</string>
+    <string name="nc_delete_this_payment">Delete this payment</string>
+    <string name="nc_recurring_payment">Recurring payment</string>
+    <string name="nc_destination_whitelisted_addresses">Destination (whitelisted addresses)</string>
 </resources>

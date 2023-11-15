@@ -29,6 +29,7 @@ internal fun RecurringPayment.toRequest(nonce: String): CreateRecurringPaymentRe
             endDateMillis = endDate,
             allowCosigning = allowCosigning,
             transactionNote = note,
+            feeRate = feeRate.name,
         )
     )
 }

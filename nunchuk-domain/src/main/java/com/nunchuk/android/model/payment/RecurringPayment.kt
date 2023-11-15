@@ -1,6 +1,7 @@
 package com.nunchuk.android.model.payment
 
 import android.os.Parcelable
+import com.nunchuk.android.model.FeeRate
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -15,8 +16,9 @@ data class RecurringPayment(
     val allowCosigning: Boolean,
     val note: String,
     val amount: Double,
+    val feeRate: FeeRate,
     val currency: String? = null,
-    val calculationMethod: PaymentCalculationMethod? = null,
     val bsms: String? = null,
+    val calculationMethod: PaymentCalculationMethod? = null,
     val addresses: List<String> = emptyList(),
 ) : Parcelable

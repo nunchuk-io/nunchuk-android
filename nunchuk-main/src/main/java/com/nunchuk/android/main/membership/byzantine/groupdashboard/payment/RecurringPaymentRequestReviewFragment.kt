@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -18,18 +19,34 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
+import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
+import com.nunchuk.android.model.FeeRate
+import com.nunchuk.android.model.payment.PaymentDestinationType
+import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.model.payment.RecurringPayment
+import com.nunchuk.android.model.payment.RecurringPaymentType
+import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RecurringPaymentRequestReviewFragment : Fragment() {
-    private val args : RecurringPaymentRequestReviewFragmentArgs by navArgs()
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
+    private val args: RecurringPaymentRequestReviewFragmentArgs by navArgs()
+    private val viewModel: RecurringPaymentRequestReviewViewModel by viewModels()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -37,8 +54,18 @@ class RecurringPaymentRequestReviewFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 RecurringPaymentRequestReviewContent(
-                    args.recurringPayment
-                )
+                    recurringPayment = args.recurringPayment,
+                    pendingSignatures = args.pendingSignatures,
+                    openDummyTransactionScreen = {
+                        setFragmentResult(
+                            AlertActionIntroFragment.REQUEST_KEY, bundleOf(
+                                AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID to args.dummyTransactionId,
+                                AlertActionIntroFragment.EXTRA_REQUIRE_KEY to args.pendingSignatures
+                            )
+                        )
+                        findNavController().popBackStack(R.id.groupDashboardFragment, false)
+                    },
+                    deleteRecurringPayment = viewModel::deleteDummyTransaction)
             }
         }
     }
@@ -47,7 +74,10 @@ class RecurringPaymentRequestReviewFragment : Fragment() {
 
 @Composable
 private fun RecurringPaymentRequestReviewContent(
-    recurringPayment: RecurringPayment? = null,
+    recurringPayment: RecurringPayment,
+    pendingSignatures: Int = 0,
+    openDummyTransactionScreen: () -> Unit = {},
+    deleteRecurringPayment: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(
@@ -55,31 +85,51 @@ private fun RecurringPaymentRequestReviewContent(
                 .statusBarsPadding()
                 .navigationBarsPadding(),
             topBar = {
-                NcTopAppBar(title = "", isBack = false)
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_recurring_payment),
+                    textStyle = NunchukTheme.typography.titleLarge,
+                )
             },
             bottomBar = {
-                Column {
+                Column(modifier = Modifier.padding(vertical = 16.dp)) {
                     NcPrimaryDarkButton(
                         modifier = Modifier
-                            .padding(16.dp)
+                            .padding(horizontal = 16.dp)
                             .fillMaxWidth(),
-                        onClick = { },
+                        onClick = openDummyTransactionScreen,
                     ) {
-                        Text(text = stringResource(R.string.nc_review_recurring_payment))
+                        Text(
+                            text = stringResource(
+                                R.string.nc_approve_signatures_pending,
+                                pendingSignatures
+                            )
+                        )
+                    }
+
+                    TextButton(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
+                        onClick = deleteRecurringPayment,
+                    ) {
+                        Text(text = stringResource(R.string.nc_delete_this_payment))
                     }
                 }
             }
         ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.nc_recurring_payment_request),
-                    style = NunchukTheme.typography.heading
-                )
-            }
+            PaymentSummaryContent(
+                modifier = Modifier.padding(innerPadding),
+                isCosign = recurringPayment.allowCosigning,
+                name = recurringPayment.name,
+                amount = recurringPayment.amount.toString(),
+                frequency = recurringPayment.frequency,
+                startDate = recurringPayment.startDate,
+                noEndDate = recurringPayment.endDate == 0L,
+                endDate = recurringPayment.endDate,
+                feeRate = recurringPayment.feeRate,
+                addresses = recurringPayment.addresses,
+                note = recurringPayment.note,
+            )
         }
     }
 }
@@ -87,5 +137,20 @@ private fun RecurringPaymentRequestReviewContent(
 @Preview
 @Composable
 private fun RecurringPaymentRequestReviewScreenPreview() {
-    RecurringPaymentRequestReviewContent()
+    RecurringPaymentRequestReviewContent(
+        recurringPayment = RecurringPayment(
+            name = "Test",
+            amount = 100.0,
+            frequency = PaymentFrequency.DAILY,
+            currency = "USD",
+            startDate = System.currentTimeMillis(),
+            endDate = System.currentTimeMillis(),
+            allowCosigning = false,
+            note = "",
+            paymentType = RecurringPaymentType.PERCENTAGE,
+            destinationType = PaymentDestinationType.WHITELISTED_ADDRESSES,
+            addresses = listOf("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"),
+            feeRate = FeeRate.PRIORITY,
+        )
+    )
 }
