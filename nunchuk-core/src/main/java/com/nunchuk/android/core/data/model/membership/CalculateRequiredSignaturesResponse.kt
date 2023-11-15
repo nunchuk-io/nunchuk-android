@@ -23,7 +23,9 @@ import com.google.gson.annotations.SerializedName
 
 data class CalculateRequiredSignaturesResponse(
     @SerializedName("result")
-    val result: Data? = null
+    val result: Data? = null,
+    @SerializedName("step")
+    val step: String? = null,
 ) {
     data class Data(
         @SerializedName("type")
@@ -31,6 +33,8 @@ data class CalculateRequiredSignaturesResponse(
         @SerializedName("required_signatures")
         val requiredSignatures: Int? = null,
         @SerializedName("required_answers")
-        val requiredAnswers: Int? = null
+        val requiredAnswers: Int? = null,
+        @SerializedName("required_confirmation_codes")
+        val requiredConfirmationCodes: Int? = null,
     )
 }

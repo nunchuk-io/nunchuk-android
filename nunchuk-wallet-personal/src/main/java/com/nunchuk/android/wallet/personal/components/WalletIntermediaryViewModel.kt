@@ -96,7 +96,7 @@ class WalletIntermediaryViewModel @Inject constructor(
                 getGroupAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
                     _state.update {
                         it.copy(
-                            remainGroupCount = configs.remainingByzantineWallet + configs.remainingByzantineProWallet,
+                            remainGroupCount = configs.remainingByzantineWallet + configs.remainingByzantineProWallet + configs.remainingPremierWallet,
                             remainWalletCount = configs.remainingHoneyBadgerWallet
                         )
                     }

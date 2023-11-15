@@ -377,7 +377,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
-        showPendingWallet(state.groupWalletUis)
+        showPendingWallet(state.groupWalletUis, state.walletSecuritySetting.hideWalletDetail)
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
@@ -478,7 +478,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showPendingWallet(groupWalletUis: List<GroupWalletUi>) {
+    private fun showPendingWallet(groupWalletUis: List<GroupWalletUi>, hideWalletDetail: Boolean) {
         binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
         binding.walletList.isVisible = groupWalletUis.isNotEmpty()
         binding.pendingWallet.setContent {
@@ -490,6 +490,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             walletsExtended = it.wallet,
                             inviterName = it.inviterName,
                             isAssistedWallet = it.isAssistedWallet,
+                            hideWalletDetail = hideWalletDetail,
                             badgeCount = it.badgeCount,
                             isLocked = it.group?.isLocked.orFalse(),
                             role = it.role,

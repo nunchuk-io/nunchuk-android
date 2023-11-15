@@ -26,6 +26,7 @@ enum class AlertType {
     HEALTH_CHECK_COMPLETED,
     REQUEST_INHERITANCE_PLANNING,
     REQUEST_INHERITANCE_PLANNING_APPROVED,
+    KEY_RECOVERY_APPROVED,
 }
 
 fun String?.toAlertType() = AlertType.values().find { it.name == this } ?: AlertType.NONE

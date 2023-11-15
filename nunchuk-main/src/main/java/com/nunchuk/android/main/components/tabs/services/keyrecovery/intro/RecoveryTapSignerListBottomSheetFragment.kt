@@ -39,6 +39,7 @@ import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,9 +53,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -97,13 +99,19 @@ class RecoveryTapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 RecoveryTapSignerListBottomSheetEvent.ContinueClick -> {
-                    findNavController().navigate(
-                        RecoveryTapSignerListBottomSheetFragmentDirections.actionRecoverTapSignerListBottomSheetFragmentToAnswerSecurityQuestionFragment(viewModel.selectedSigner!!, args.verifyToken)
+                    setFragmentResult(
+                        REQUEST_KEY,
+                        bundleOf(EXTRA_SIGNER to viewModel.selectedSigner)
                     )
+                    dismissAllowingStateLoss()
                 }
             }
-            dismissAllowingStateLoss()
         }
+    }
+
+    companion object {
+        const val REQUEST_KEY = "RecoveryTapSignerListBottomSheetFragment"
+        const val EXTRA_SIGNER = "EXTRA_SIGNER"
     }
 }
 
@@ -209,7 +217,7 @@ private fun SignerCard(
                 ),
             )
         }
-        Checkbox(checked = isSelected, onCheckedChange = {
+        RadioButton(selected = isSelected, onClick = {
             onSignerSelected(signer)
         })
     }

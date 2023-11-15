@@ -35,6 +35,8 @@ class SelectGroupViewModel @Inject constructor(
                         it.copy(
                             remainingByzantineWallet = config.remainingByzantineWallet,
                             remainingByzantineProWallet = config.remainingByzantineProWallet,
+                            remainingByzantinePremier = config.remainingPremierWallet,
+                            options = config.allowWalletTypes,
                             isLoaded = true
                         )
                     }
@@ -44,7 +46,9 @@ class SelectGroupViewModel @Inject constructor(
     }
 
     fun checkGroupTypeAvailable(groupWalletType: GroupWalletType): Boolean {
-        return (groupWalletType.isPro && state.value.remainingByzantineProWallet > 0) || (groupWalletType.isPro.not() && state.value.remainingByzantineWallet > 0)
+        return (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG && state.value.remainingByzantineProWallet > 0)
+                || (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE && state.value.remainingByzantinePremier > 0)
+                || state.value.remainingByzantineWallet > 0
     }
 }
 
@@ -55,6 +59,8 @@ sealed class SelectGroupEvent {
 data class SelectGroupUiState(
     val remainingByzantineWallet: Int = 0,
     val remainingByzantineProWallet: Int = 0,
+    val remainingByzantinePremier: Int = 0,
+    val options: List<GroupWalletType> = emptyList(),
     val isLoaded: Boolean = false,
     val plan : MembershipPlan = MembershipPlan.NONE,
 )

@@ -1,11 +1,11 @@
 package com.nunchuk.android.main.membership.byzantine.selectrole
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toGroupWalletType
 import com.nunchuk.android.usecase.membership.GetPermissionGroupWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,23 +18,19 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ByzantineSelectRoleViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     val getPermissionGroupWalletUseCase: GetPermissionGroupWalletUseCase
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(AdvisorPlanSelectRoleState())
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<ByzantineSelectRoleEvent>()
     val event = _event.asSharedFlow()
 
-    init {
-        getPermissionGroupWallet()
-    }
-
-    private fun getPermissionGroupWallet() = viewModelScope.launch {
+    fun getPermissionGroupWallet(groupType: String) = viewModelScope.launch {
+        if (state.value.roles.isNotEmpty()) return@launch
+        val groupWalletType = groupType.toGroupWalletType() ?: return@launch
         _event.emit(ByzantineSelectRoleEvent.Loading(true))
-        val result = getPermissionGroupWalletUseCase(Unit)
+        val result = getPermissionGroupWalletUseCase(groupWalletType)
         _event.emit(ByzantineSelectRoleEvent.Loading(false))
         if (result.isSuccess) {
             val permissions = result.getOrNull() ?: DefaultPermissions(emptyMap())
@@ -63,5 +59,4 @@ class ByzantineSelectRoleViewModel @Inject constructor(
     fun getSelectedRole(): String {
         return state.value.selectedRole
     }
-
 }

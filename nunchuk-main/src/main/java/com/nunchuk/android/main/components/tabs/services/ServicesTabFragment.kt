@@ -138,9 +138,9 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         flowObserver(viewModel.state) { state ->
             adapter.submitList(viewModel.getRowItems())
             state.isPremiumUser?.let {
-                binding.supportFab.isVisible = state.isPremiumUser
-                binding.actionGroup.isVisible = state.isPremiumUser.not()
-                binding.claimLayout.isVisible = state.isPremiumUser.not()
+                binding.supportFab.isVisible = state.isPremiumUser || viewModel.isByzantine()
+                binding.actionGroup.isVisible = state.isPremiumUser.not() && viewModel.getRowItems().any { it is NonSubHeader }
+                binding.claimLayout.isVisible = viewModel.isShowClaimInheritanceLayout() && viewModel.getRowItems().none { it is ServiceTabRowItem.ClaimInheritance }
             }
         }
     }
@@ -230,19 +230,23 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         when (item) {
             ServiceTabRowItem.ClaimInheritance -> viewModel.checkInheritance()
             ServiceTabRowItem.EmergencyLockdown -> {
-                if (viewModel.state.value.plan.isByzantine()) {
-                    val (hasLockedWallet, wallets) = viewModel.getAllowEmergencyLockdownWallets()
-                    if (wallets.isEmpty()) {
-                        if (hasLockedWallet) NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_all_wallets_under_lockdown))
-                        return
-                    }
-                    if (wallets.size == 1) {
-                        enterPasswordDialog(item = item, walletId = wallets.first().localId)
-                    } else {
-                        AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
-                    }
+                val (numOfLockedWallet, wallets) = viewModel.getAllowEmergencyLockdownWallets()
+                if (numOfLockedWallet == wallets.size) {
+                    NCInfoDialog(requireActivity()).showDialog(
+                        message = getString(
+                            R.string.nc_all_wallets_under_lockdown
+                        )
+                    )
+                    return
+                }
+                if (wallets.size == 1) {
+                    enterPasswordDialog(item = item, walletId = wallets.first().localId)
                 } else {
-                    enterPasswordDialog(item)
+                    AssistedWalletBottomSheet.show(
+                        childFragmentManager,
+                        assistedWalletIds = wallets.map { it.localId },
+                        lockdownWalletIds = viewModel.getLockdownWalletsIds()
+                    )
                 }
             }
             ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext(), viewModel.state.value.userRole)
@@ -254,7 +258,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 if (wallets.size == 1) {
                     viewModel.openSetupInheritancePlan(wallets.first().localId)
                 } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                 }
             }
             ServiceTabRowItem.CoSigningPolicies,
@@ -264,7 +268,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 if (wallets.size == 1) {
                     enterPasswordDialog(item = item, walletId = wallets.first().localId)
                 } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                 }
             }
 

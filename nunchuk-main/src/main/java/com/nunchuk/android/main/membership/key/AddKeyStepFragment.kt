@@ -164,7 +164,6 @@ fun AddKeyStepScreen(viewModel: AddKeyStepViewModel) {
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
         onContinueClicked = viewModel::onContinueClicked,
-        openContactUs = viewModel::openContactUs,
         plan = viewModel.plan
     )
 }
@@ -179,7 +178,6 @@ fun AddKeyStepContent(
     groupRemainTime: IntArray = IntArray(4),
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
-    openContactUs: (mail: String) -> Unit = {},
     plan: MembershipPlan = MembershipPlan.HONEY_BADGER,
 ) = NunchukTheme {
     val imageBannerId =

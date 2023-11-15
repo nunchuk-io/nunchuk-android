@@ -55,7 +55,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
 import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleFragment
-import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleViewModel
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -106,7 +105,7 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
     override val allowRestartWizard: Boolean = false
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -115,7 +114,8 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 InviteMembersScreen(flow = args.flow, viewModel = viewModel, onSelectRole = {
                     findNavController().navigate(
                         ByzantineInviteMembersFragmentDirections.actionByzantineInviteMembersFragmentToByzantineSelectRoleFragment(
-                            role = it
+                            role = it,
+                            groupType = args.groupType
                         )
                     )
                 }, onContinueClick = {
@@ -183,7 +183,12 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
     }
 
     private fun showLimitKeyholderDialog() {
-        NCInfoDialog(requireActivity()).showDialog(message = String.format(getString(R.string.nc_limit_keyholder_message_dialog), viewModel.getMaximumKeyholderRole()))
+        NCInfoDialog(requireActivity()).showDialog(
+            message = String.format(
+                getString(R.string.nc_limit_keyholder_message_dialog),
+                viewModel.getMaximumKeyholderRole()
+            )
+        )
     }
 
     private fun showRemoveMemberInheritanceDialog() {
@@ -203,7 +208,9 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
     private fun showAdminRoleDialog(onContinueClick: () -> Unit) {
         NCWarningDialog(requireActivity())
             .showDialog(
-                message = getString(R.string.nc_admin_role_message_dialog),
+                message = if (viewModel.allowInheritance())
+                    getString(R.string.nc_admin_role_message_dialog) else
+                    getString(R.string.nc_admin_role_no_inheritance_message_dialog),
                 btnYes = getString(R.string.nc_text_got_it),
                 btnNo = getString(R.string.nc_cancel),
                 onYesClick = {
@@ -256,7 +263,7 @@ private fun InviteMembersContent(
     onAddMember: () -> Unit = {},
     onSelectRole: (Int, String) -> Unit = { _, _ -> },
     onInputEmailChange: (Int, String, String) -> Unit = { _, _, _ -> },
-    onMoreClicked: () -> Unit = {}
+    onMoreClicked: () -> Unit = {},
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()

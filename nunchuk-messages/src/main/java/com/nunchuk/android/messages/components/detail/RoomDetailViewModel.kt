@@ -75,6 +75,7 @@ class RoomDetailViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val sendMediaUseCase: SendMediaUseCase,
     private val isMyCoinUseCase: IsMyCoinUseCase,
+    private val getGroupsUseCase: GetGroupsUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
@@ -103,6 +104,14 @@ class RoomDetailViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             timelineListenerAdapter.data.filter { it.isNotEmpty() }.collect(::handleTimelineEvents)
+        }
+        viewModelScope.launch {
+            getGroupsUseCase(Unit)
+                .collect { result ->
+                    result.onSuccess { groups ->
+                        updateState { copy(isHasByzantineGroup = groups.isNotEmpty()) }
+                    }
+                }
         }
     }
 
@@ -522,6 +531,8 @@ class RoomDetailViewModel @Inject constructor(
             }
         }
     }
+
+    fun isByzantineChat() = getState().isHasByzantineGroup || getState().isGroupChatRoom
 
     override fun onCleared() {
         timeline?.apply {

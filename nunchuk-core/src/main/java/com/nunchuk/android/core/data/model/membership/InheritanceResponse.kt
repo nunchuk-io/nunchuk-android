@@ -52,4 +52,13 @@ class InheritanceDto(
     val bufferPeriod: PeriodResponse.Data? = null,
     @SerializedName("owner_id")
     val ownerId: String? = null,
+    @SerializedName("pending_requests")
+    val pendingRequests: List<InheritancePendingRequestResponse>? = null,
+)
+
+class InheritancePendingRequestResponse(
+    @SerializedName("membership_id")
+    val membershipId: String? = null,
+    @SerializedName("dummy_transaction_id")
+    val dummyTransactionId: String? = null,
 )

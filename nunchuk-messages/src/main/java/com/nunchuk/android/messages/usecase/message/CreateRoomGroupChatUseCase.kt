@@ -51,11 +51,12 @@ class CreateRoomGroupChatUseCase @Inject constructor(
             if (room.roomSummary()?.tags?.any { tag -> tag.name == GROUP_CHAT_ROOM_TYPE } == false) {
                 room.tagsService().addTag(GROUP_CHAT_ROOM_TYPE, 1.0)
             }
+            room.stateService().updateName(parameters.walletName)
         } ?: throw NullPointerException("Can not get room")
         delay(500L)
         return roomId
     }
 
-    class Param(val group: ByzantineGroup)
+    class Param(val group: ByzantineGroup, val walletName: String)
 }
 

@@ -19,10 +19,13 @@ import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.CalculateRequiredSignatureStep
 import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritancePendingRequest
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.Period
@@ -62,6 +65,19 @@ internal fun CalculateRequiredSignaturesResponse.Data?.toCalculateRequiredSignat
     )
 }
 
+internal fun CalculateRequiredSignaturesResponse.toCalculateRequiredSignaturesEx(): CalculateRequiredSignaturesExt {
+    val step = when (this.step) {
+        "REQUEST_RECOVER" -> CalculateRequiredSignatureStep.REQUEST_RECOVER
+        "PENDING_APPROVAL" -> CalculateRequiredSignatureStep.PENDING_APPROVAL
+        "RECOVER" -> CalculateRequiredSignatureStep.RECOVER
+        else -> null
+    }
+    return CalculateRequiredSignaturesExt(
+        data = result?.toCalculateRequiredSignatures(),
+        step = step
+    )
+}
+
 internal fun InheritanceDto.toInheritance(): Inheritance {
     val status = when (this.status) {
         "ACTIVE" -> InheritanceStatus.ACTIVE
@@ -69,6 +85,13 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         "PENDING_APPROVAL" -> InheritanceStatus.PENDING_APPROVAL
         else -> InheritanceStatus.PENDING_CREATION
     }
+    val pendingRequests = pendingRequests?.map {
+        InheritancePendingRequest(
+            membershipId = it.membershipId.orEmpty(),
+            dummyTransactionId = it.dummyTransactionId.orEmpty()
+        )
+    } ?: emptyList()
+
     return Inheritance(
         walletId = walletId.orEmpty(),
         walletLocalId = walletLocalId.orEmpty(),
@@ -80,7 +103,8 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         createdTimeMilis = createdTimeMilis ?: 0,
         lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
         bufferPeriod = bufferPeriod?.toPeriod(),
-        ownerId = ownerId.orEmpty()
+        ownerId = ownerId.orEmpty(),
+        pendingRequests = pendingRequests
     )
 }
 
@@ -140,7 +164,8 @@ internal fun AlertResponse.toAlert(): Alert {
             pendingKeysCount = payload?.pendingKeysCount.orDefault(0),
             dummyTransactionId = payload?.dummyTransactionId.orEmpty(),
             xfps = payload?.xfps.orEmpty(),
-            claimKey = payload?.claimKey.orFalse()
+            claimKey = payload?.claimKey.orFalse(),
+            keyXfp = payload?.keyXfp.orEmpty()
         )
     )
 }

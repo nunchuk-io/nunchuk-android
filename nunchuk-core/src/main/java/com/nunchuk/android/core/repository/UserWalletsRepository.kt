@@ -30,6 +30,7 @@ import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
+import com.nunchuk.android.core.data.model.EmptyRequest
 import com.nunchuk.android.core.data.model.InheritanceByzantineRequestPlanning
 import com.nunchuk.android.core.data.model.InheritanceCancelRequest
 import com.nunchuk.android.core.data.model.InheritanceCheckRequest
@@ -38,8 +39,10 @@ import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequ
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
+import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequestBody
+import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
@@ -72,6 +75,7 @@ import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toBackupKey
 import com.nunchuk.android.core.mapper.toByzantineGroup
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
+import com.nunchuk.android.core.mapper.toCalculateRequiredSignaturesEx
 import com.nunchuk.android.core.mapper.toGroupChat
 import com.nunchuk.android.core.mapper.toGroupEntity
 import com.nunchuk.android.core.mapper.toHistoryPeriod
@@ -91,9 +95,9 @@ import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
+import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
-import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.GroupStatus
 import com.nunchuk.android.model.HistoryPeriod
@@ -123,9 +127,10 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
-import com.nunchuk.android.model.byzantine.isMasterOrAdmin
-import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.byzantine.toGroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.membership.AssistedWalletBriefExt
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.toIndex
@@ -157,7 +162,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -925,8 +929,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         ) else userWalletApiManager.walletApi.createInheritance(headers, request, draft)
         if (response.isSuccess.not()) throw response.error
         if (request.body?.groupId == null) {
-            response.data.inheritance?.walletLocalId?.also {
-                markSetupInheritance(it, true)
+            val inheritance = response.data.inheritance
+            inheritance?.walletLocalId?.also { walletLocalId ->
+                markSetupInheritance(walletId = walletLocalId, isSetupInheritance = true)
+                updateAssistedWalletBriefExt(walletLocalId, inheritance.ownerId)
             }
         }
         return response.data.dummyTransaction?.id.orEmpty()
@@ -949,6 +955,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request, draft)
         if (response.isSuccess && request.body?.groupId == null) {
+            updateAssistedWalletBriefExt(walletId, "")
             markSetupInheritance(walletId, false)
         }
         return response.data.dummyTransaction?.id.orEmpty()
@@ -1181,11 +1188,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getInheritance(walletId: String, groupId: String?): Inheritance {
         val response = userWalletApiManager.walletApi.getInheritance(walletId, groupId)
         if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
-        else return response.data.inheritance!!.toInheritance().also {
-            markSetupInheritance(
-                walletId,
-                it.status != InheritanceStatus.PENDING_CREATION && it.status != InheritanceStatus.PENDING_APPROVAL
-            )
+        else {
+            val inheritance = response.data.inheritance!!.toInheritance()
+            inheritance.walletLocalId.also { walletLocalId ->
+                updateAssistedWalletBriefExt(walletLocalId, inheritance.ownerId)
+            }
+            return inheritance.also {
+                markSetupInheritance(
+                    walletId = walletId,
+                    isSetupInheritance = it.status != InheritanceStatus.PENDING_CREATION && it.status != InheritanceStatus.PENDING_APPROVAL,
+                )
+            }
         }
     }
 
@@ -1194,6 +1207,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (entity.isSetupInheritance != isSetupInheritance) {
             assistedWalletDao.updateOrInsert(entity.copy(isSetupInheritance = isSetupInheritance))
         }
+    }
+
+    private suspend fun updateAssistedWalletBriefExt(walletId: String, ownerId: String?) {
+        val entity = assistedWalletDao.getById(walletId) ?: return
+        val ext = entity.ext?.run {
+            gson.fromJson(this, AssistedWalletBriefExt::class.java)
+        } ?: AssistedWalletBriefExt()
+        assistedWalletDao.updateOrInsert(entity.copy(ext = gson.toJson(ext.copy(inheritanceOwnerId = ownerId))))
     }
 
     private suspend fun handleServerTransaction(
@@ -1440,6 +1461,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             remainingByzantineWallet = response.data.byzantine?.remainingWalletCount ?: 0,
             remainingByzantineProWallet = response.data.byzantinePro?.remainingWalletCount ?: 0,
             remainingHoneyBadgerWallet = response.data.honeyBadger?.remainingWalletCount ?: 0,
+            remainingPremierWallet = response.data.premier?.remainingWalletCount ?: 0,
+            allowWalletTypes = response.data.allowGroupWalletTypes.mapNotNull { it.toGroupWalletType() }
         )
     }
 
@@ -1452,7 +1475,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     isSetupInheritance = wallet.isSetupInheritance,
                     registerAirgapCount = wallet.registerAirgapCount,
                     registerColdcardCount = wallet.registerColdcardCount,
-                    groupId = wallet.groupId
+                    groupId = wallet.groupId,
+                    ext = wallet.ext?.run {
+                        gson.fromJson(this, AssistedWalletBriefExt::class.java)
+                    } ?: AssistedWalletBriefExt()
                 )
             }
         }
@@ -1565,8 +1591,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getPermissionGroupWallet(): DefaultPermissions {
-        val response = userWalletApiManager.groupWalletApi.getPermissionGroupWallet()
+    override suspend fun getPermissionGroupWallet(type: GroupWalletType): DefaultPermissions {
+        val response = userWalletApiManager.groupWalletApi.getPermissionGroupWallet(
+            n = type.n,
+            m = type.m,
+            allowInheritance = type.allowInheritance,
+            requiredServerKey = type.requiredServerKey
+        )
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -2067,6 +2098,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     request.body
                 }
 
+                TargetAction.DOWNLOAD_KEY_BACKUP.name -> {
+                    EmptyRequest()
+                }
+
                 else -> null
             }
         }
@@ -2075,6 +2110,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.requestConfirmationCode(
             action = action, payload = request
         )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
         return Pair(nonce, response.data.codeId.orEmpty())
     }
 
@@ -2126,6 +2164,47 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
             }
             if (response.data.notes.size < TRANSACTION_PAGE_COUNT) return
+        }
+    }
+
+    override suspend fun calculateRequiredSignaturesRecoverKey(xfp: String): CalculateRequiredSignaturesExt {
+        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesRecoverKey(xfp)
+        return response.data.toCalculateRequiredSignaturesEx()
+    }
+
+    override suspend fun requestRecoverKey(
+        authorizations: List<String>,
+        verifyToken: String,
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String,
+        xfp: String
+    ) {
+        val request = RequestRecoverKeyRequest(nonce = confirmCodeNonce)
+        val headers = getHeaders(
+            authorizations = authorizations,
+            verifyToken = verifyToken,
+            securityQuestionToken = securityQuestionToken,
+            confirmCodeToken = confirmCodeToken
+        )
+        val response = userWalletApiManager.walletApi.requestRecoverKey(headers, id = xfp, payload = request)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun recoverKey(
+        xfp: String
+    ): BackupKey {
+        val response = userWalletApiManager.walletApi.recoverKey(id = xfp)
+        val key = response.data.key ?: throw NullPointerException("Can not get key")
+        return key.toBackupKey()
+    }
+
+    override suspend fun markKeyAsRecovered(xfp: String, status: String) {
+        val response = userWalletApiManager.walletApi.markRecoverStatus(xfp, MarkRecoverStatusRequest(status))
+        if (response.isSuccess.not()) {
+            throw response.error
         }
     }
 

@@ -32,6 +32,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
@@ -297,13 +298,12 @@ class AddByzantineKeyListViewModel @Inject constructor(
             _state.update { it.copy(isRefreshing = true) }
             syncGroupDraftWalletUseCase(args.groupId).onSuccess { draft ->
                 loadSigners()
-                GroupWalletType.values()
-                    .find { type -> type.n == draft.config.n && type.m == draft.config.m }
-                    ?.let { type ->
-                        if (_keys.value.isEmpty()) {
-                            _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
-                        }
+                _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType()) }
+                draft.config.toGroupWalletType()?.let { type ->
+                    if (_keys.value.isEmpty()) {
+                        _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
                     }
+                }
             }
             _state.update { it.copy(isRefreshing = false) }
         }
@@ -355,8 +355,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
     data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
-    object OnAddAllKey : AddKeyListEvent()
-    object SelectAirgapType : AddKeyListEvent()
+    data object OnAddAllKey : AddKeyListEvent()
+    data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
     data class LoadSimilarGroup(val similarWalletIds: List<String>) : AddKeyListEvent()
 }
@@ -366,4 +366,5 @@ data class AddKeyListState(
     val signers: List<SignerModel> = emptyList(),
     val similarGroups: Map<String, String> = emptyMap(),
     val shouldShowKeyAdded: Boolean = false,
+    val groupWalletType: GroupWalletType? = null,
 )

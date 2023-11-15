@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.main.membership.authentication.dummytx
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -64,6 +66,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEv
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.share.result.GlobalResultKey
 
 class DummyTransactionIntroFragment : Fragment() {
     private val activityViewModel by activityViewModels<WalletAuthenticationViewModel>()
@@ -110,6 +113,9 @@ class DummyTransactionIntroFragment : Fragment() {
         flowObserver(activityViewModel.event) {
             if (it is WalletAuthenticationEvent.FinalizeDummyTxSuccess) {
                 if (it.isGoBack) {
+                    requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra(GlobalResultKey.DUMMY_TX_INTRO_DO_LATER, true)
+                    })
                     requireActivity().finish()
                 } else {
                     findNavController().navigate(
@@ -134,6 +140,7 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.HEALTH_CHECK_REQUEST,
         DummyTransactionType.HEALTH_CHECK_PENDING,
         -> stringResource(R.string.nc_health_check_procedure)
+        DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_key_recovery_requested)
 
         else -> stringResource(R.string.nc_signatures_required)
     }
@@ -142,7 +149,7 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.HEALTH_CHECK_PENDING,
         -> stringResource(R.string.nc_complete_a_health_check)
         DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_authorize_inheritance_planning_request)
-
+        DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_approve_key_recovery)
         else -> stringResource(R.string.nc_authorize_these_change)
     }
     val lastSentences = when {

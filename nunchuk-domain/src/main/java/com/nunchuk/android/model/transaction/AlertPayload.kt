@@ -15,5 +15,7 @@ data class AlertPayload(
     @SerializedName("xfps")
     val xfps: List<String>,
     @SerializedName("claim_key")
-    val claimKey: Boolean
+    val claimKey: Boolean,
+    @SerializedName("key_xfp")
+    val keyXfp: String,
 ): Parcelable

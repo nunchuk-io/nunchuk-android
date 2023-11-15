@@ -22,5 +22,5 @@ package com.nunchuk.android.model
 data class CalculateRequiredSignatures(
     val type: String = "",
     val requiredSignatures: Int = 0,
-    val requiredAnswers: Int = 0
+    val requiredAnswers: Int = 0,
 )

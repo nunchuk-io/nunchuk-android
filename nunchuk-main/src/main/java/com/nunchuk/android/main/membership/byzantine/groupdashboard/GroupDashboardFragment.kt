@@ -32,6 +32,8 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroFragmentDirections
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
@@ -108,9 +110,17 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 val dummyTransactionType = data.parcelable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
-                if (dummyTransactionType != null && dummyTransactionType.isInheritanceFlow()) {
-                    viewModel.markSetupInheritance(dummyTransactionType)
-                    showInheritanceMessage(dummyTransactionType)
+                if (dummyTransactionType != null) {
+                    if (dummyTransactionType.isInheritanceFlow()) {
+                        viewModel.markSetupInheritance(dummyTransactionType)
+                        showInheritanceMessage(dummyTransactionType)
+                    } else if (dummyTransactionType == DummyTransactionType.KEY_RECOVERY_REQUEST) {
+                        findNavController().navigate(
+                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToKeyRecoverySuccessStateFragment(
+                                type = KeyRecoverySuccessState.KEY_RECOVERY_APPROVED.name
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -168,7 +178,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 viewModel.getByzantineGroup()?.let { group ->
                                     findNavController().navigate(
                                         GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryIntroFragment(
-                                            group
+                                            group,
+                                            viewModel.state.value.wallet.name
                                         )
                                     )
                                 }
@@ -265,6 +276,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 GroupDashboardEvent.RequestHealthCheckSuccess -> {}
                 is GroupDashboardEvent.GetInheritanceSuccess -> {
                     if (event.isAlertFlow) {
+                        viewModel.dismissCurrentAlert()
                         findNavController().navigate(
                             GroupDashboardFragmentDirections.actionGroupDashboardFragmentToInheritanceCreateSuccessFragment(
                                 magicalPhrase = event.inheritance.magic,
@@ -334,6 +346,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 }
 
                 GroupDashboardEvent.RestartWizardSuccess -> requireActivity().finish()
+                is GroupDashboardEvent.DownloadBackupKeySuccess -> {
+                    findNavController().navigate(
+                        GroupDashboardFragmentDirections.actionGroupDashboardFragmentToBackupDownloadFragment(
+                            backupKey = event.backupKey
+                        )
+                    )
+                }
             }
         }
     }
@@ -429,6 +448,16 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 flowInfo = InheritancePlanFlow.SETUP,
                 groupId = args.groupId
             )
+        } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST) {
+            findNavController().navigate(
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
+                    args.groupId,
+                    viewModel.getWalletId(),
+                    alert
+                )
+            )
+        } else if (alert.type == AlertType.KEY_RECOVERY_APPROVED) {
+            viewModel.recoverKey(alert.payload.keyXfp)
         }
     }
 
@@ -486,14 +515,23 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         val options = mutableListOf<SheetOption>()
         val uiState = viewModel.state.value
         if (viewModel.isPendingCreateWallet().not()) {
-            if (uiState.group?.walletConfig?.toGroupWalletType()?.isPro == true) {
+            if (uiState.group?.walletConfig?.allowInheritance == true) {
                 if (uiState.myRole.isMasterOrAdmin) {
-                    options.add(
-                        SheetOption(
-                            type = SheetOptionType.SET_UP_INHERITANCE,
-                            stringId = if (uiState.isSetupInheritance) R.string.nc_view_inheritance_plan else R.string.nc_set_up_inheritance_plan_wallet
-                        ),
-                    )
+                    if (uiState.isSetupInheritance) {
+                        options.add(
+                            SheetOption(
+                                type = SheetOptionType.SET_UP_INHERITANCE,
+                                stringId = R.string.nc_view_inheritance_plan
+                            ),
+                        )
+                    } else if (viewModel.isInheritanceOwner() && uiState.isHasPendingRequestInheritance.not()) {
+                        options.add(
+                            SheetOption(
+                                type = SheetOptionType.SET_UP_INHERITANCE,
+                                stringId = R.string.nc_set_up_inheritance_plan_wallet
+                            ),
+                        )
+                    }
                 } else if (uiState.isSetupInheritance) {
                     options.add(
                         SheetOption(
@@ -502,6 +540,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         ),
                     )
                 }
+            }
+            if (uiState.group?.walletConfig?.requiredServerKey == true) {
                 if (!args.walletId.isNullOrEmpty()) {
                     options.add(
                         SheetOption(

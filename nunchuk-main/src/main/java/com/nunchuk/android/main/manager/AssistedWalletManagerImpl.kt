@@ -25,7 +25,7 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MembershipPlan
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -41,12 +41,13 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     )
 
     private val _assistedWalletId =
-        getAssistedWalletsFlowUseCase(Unit).combine(plan) { wallets, plan ->
-            if (plan != MembershipPlan.NONE) wallets.getOrElse { emptyList() } else emptyList()
+        getAssistedWalletsFlowUseCase(Unit).map { wallets ->
+            wallets.getOrElse { emptyList() }
         }.stateIn(applicationScope, SharingStarted.Eagerly, emptyList())
 
     override fun isActiveAssistedWallet(walletId: String): Boolean {
-        return _assistedWalletId.value.any { it.localId == walletId } && plan.value != MembershipPlan.NONE
+        return _assistedWalletId.value.any { it.localId == walletId }
+                && (plan.value != MembershipPlan.NONE || !getGroupId(walletId).isNullOrEmpty())
     }
 
     override fun getGroupId(walletId: String): String? {
@@ -54,7 +55,8 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     }
 
     override fun isInactiveAssistedWallet(walletId: String): Boolean {
-        return _assistedWalletId.value.any { it.localId == walletId } && plan.value == MembershipPlan.NONE
+        return _assistedWalletId.value.any { it.localId == walletId }
+                && (plan.value == MembershipPlan.NONE && getGroupId(walletId).isNullOrEmpty())
     }
 
     override fun isShowSetupInheritance(walletId: String): Boolean {

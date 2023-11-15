@@ -24,5 +24,7 @@ import com.google.gson.annotations.SerializedName
 data class GroupAssistedWalletConfigResponse(
     @SerializedName("byzantine") val byzantine: AssistedWalletConfigResponse? = null,
     @SerializedName("byzantine_pro") val byzantinePro: AssistedWalletConfigResponse? = null,
-    @SerializedName("honey_badger") val honeyBadger: AssistedWalletConfigResponse? = null
+    @SerializedName("honey_badger") val honeyBadger: AssistedWalletConfigResponse? = null,
+    @SerializedName("byzantine_premier") val premier: AssistedWalletConfigResponse? = null,
+    @SerializedName("allow_group_wallet_types") val allowGroupWalletTypes: List<String> = emptyList(),
 )

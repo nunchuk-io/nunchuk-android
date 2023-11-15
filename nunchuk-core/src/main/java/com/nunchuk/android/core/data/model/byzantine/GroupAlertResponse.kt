@@ -42,4 +42,6 @@ data class PayloadResponse(
     val xfps: List<String> = emptyList(),
     @SerializedName("claim_key")
     val claimKey: Boolean = false,
+    @SerializedName("key_xfp")
+    val keyXfp: String? = null,
 )

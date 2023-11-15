@@ -56,6 +56,9 @@ const val DRAFT_WALLET_RESET = "io.nunchuk.custom.draft_wallet_reset"
 const val GROUP_WALLET_CREATED = "io.nunchuk.custom.group_wallet_created"
 const val GROUP_EMERGENCY_LOCKDOWN_STARTED = "io.nunchuk.custom.group_emergency_lockdown_started"
 const val WALLET_INHERITANCE_PLANNING_REQUEST_DENIED = "io.nunchuk.custom.wallet_inheritance_planning_request_denied"
+const val KEY_RECOVERY_REQUEST = "io.nunchuk.custom.key_recovery_request"
+const val KEY_RECOVERY_APPROVED = "io.nunchuk.custom.key_recovery_approved"
+const val KEY_RECOVERY_SUCCESS = "io.nunchuk.custom.key_recovery_success"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
     return if (isSupportRoom.not()) {
@@ -151,3 +154,9 @@ fun TimelineEvent.isGroupEmergencyLockdownStarted() =
 
 fun TimelineEvent.isWalletInheritancePlanningRequestDenied() =
     getMsgType() == WALLET_INHERITANCE_PLANNING_REQUEST_DENIED
+
+fun TimelineEvent.isKeyRecoveryRequest() =
+    getMsgType() == KEY_RECOVERY_REQUEST
+
+fun TimelineEvent.isKeyRecoveryApproved() =
+    getMsgType() == KEY_RECOVERY_APPROVED

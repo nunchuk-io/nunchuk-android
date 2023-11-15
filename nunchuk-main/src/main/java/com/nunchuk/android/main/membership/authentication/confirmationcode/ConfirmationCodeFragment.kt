@@ -121,6 +121,7 @@ fun ConfirmChangeScreenContent(
 ) {
     val title = when (action) {
         TargetAction.UPDATE_SECURITY_QUESTIONS.name -> stringResource(id = R.string.nc_confirm_new_security_questions)
+        TargetAction.DOWNLOAD_KEY_BACKUP.name -> stringResource(id = R.string.nc_confirm_recovery)
         else -> stringResource(id = R.string.nc_confirm_changes)
     }
     NunchukTheme {

@@ -121,6 +121,25 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_keyRecoverySuccessStateFragment"
+            app:destination="@id/keyRecoverySuccessStateFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_backupDownloadFragment"
+            app:destination="@id/key_recovery_download_backup_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="backupKey"
+                app:argType="com.nunchuk.android.model.BackupKey" />
+        </action>
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />
@@ -227,6 +246,18 @@
         <argument
             android:name="group"
             app:argType="com.nunchuk.android.model.ByzantineGroup" />
+
+        <argument android:name="wallet_name"
+            app:argType="string" />
     </fragment>
+
+    <fragment android:id="@+id/keyRecoverySuccessStateFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessStateFragment"
+        android:label="KeyRecoverySuccessStateFragment">
+        <argument android:name="type"
+            app:argType="string" />
+    </fragment>
+
+    <include app:graph="@navigation/key_recovery_download_backup_navigation" />
 
 </navigation>

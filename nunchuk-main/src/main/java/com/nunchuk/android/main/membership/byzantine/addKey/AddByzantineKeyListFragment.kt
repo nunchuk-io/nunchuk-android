@@ -72,6 +72,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 
     private val args: AddByzantineKeyListFragmentArgs by navArgs()
 
+    private var selectedSignerTag: SignerTag? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -116,6 +118,9 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     SignerType.NFC -> openSetupTapSigner()
                     SignerType.AIRGAP -> showAirgapOptions()
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
+                    SignerType.HARDWARE -> selectedSignerTag?.let { tag ->
+                        openRequestAddDesktopKey(tag)
+                    }
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             }
@@ -177,19 +182,28 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
 
-            SheetOptionType.TYPE_ADD_LEDGER -> handleShowKeysOrCreate(
-                viewModel.getHardwareSigners(SignerTag.LEDGER),
-                SignerType.HARDWARE
-            ) { openRequestAddDesktopKey(SignerTag.LEDGER) }
-            SheetOptionType.TYPE_ADD_TREZOR -> handleShowKeysOrCreate(
-                viewModel.getHardwareSigners(SignerTag.TREZOR),
-                SignerType.HARDWARE
-            ) { openRequestAddDesktopKey(SignerTag.TREZOR) }
+            SheetOptionType.TYPE_ADD_LEDGER -> {
+                selectedSignerTag = SignerTag.LEDGER
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.LEDGER),
+                    SignerType.HARDWARE
+                ) { openRequestAddDesktopKey(SignerTag.LEDGER) }
+            }
+            SheetOptionType.TYPE_ADD_TREZOR -> {
+                selectedSignerTag = SignerTag.TREZOR
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.TREZOR),
+                    SignerType.HARDWARE
+                ) { openRequestAddDesktopKey(SignerTag.TREZOR) }
+            }
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
-            SheetOptionType.TYPE_ADD_BITBOX -> handleShowKeysOrCreate(
-                viewModel.getHardwareSigners(SignerTag.BITBOX),
-                SignerType.HARDWARE
-            ) { openRequestAddDesktopKey(SignerTag.BITBOX) }
+            SheetOptionType.TYPE_ADD_BITBOX -> {
+                selectedSignerTag = SignerTag.BITBOX
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.BITBOX),
+                    SignerType.HARDWARE
+                ) { openRequestAddDesktopKey(SignerTag.BITBOX) }
+            }
         }
     }
 
@@ -447,6 +461,7 @@ fun AddKeyListScreen(
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
         isRefreshing = state.isRefreshing,
-        isAddOnly = isAddOnly
+        isAddOnly = isAddOnly,
+        groupWalletType = state.groupWalletType
     )
 }

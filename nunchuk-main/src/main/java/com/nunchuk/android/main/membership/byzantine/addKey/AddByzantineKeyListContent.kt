@@ -40,7 +40,6 @@ import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import java.util.Collections.emptyList
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -54,6 +53,7 @@ fun AddByzantineKeyListContent(
     remainingTime: Int,
     isRefreshing: Boolean = false,
     isAddOnly: Boolean = false,
+    groupWalletType: GroupWalletType? = null,
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
     NunchukTheme {
@@ -98,10 +98,11 @@ fun AddByzantineKeyListContent(
                             text = stringResource(R.string.nc_let_add_your_keys),
                             style = NunchukTheme.typography.heading
                         )
-                        val description = when (keys.size) {
-                            GroupWalletType.TWO_OF_FOUR_MULTISIG.n -> stringResource(R.string.nc_byzantine_add_key_2_of_4_desc)
-                            GroupWalletType.TWO_OF_THREE.n -> stringResource(R.string.nc_byzantine_add_key_2_of_3_desc)
-                            GroupWalletType.THREE_OF_FIVE.n -> stringResource(R.string.nc_byzantine_add_key_3_of_5_desc)
+                        val description = when (groupWalletType) {
+                            GroupWalletType.TWO_OF_FOUR_MULTISIG -> stringResource(R.string.nc_byzantine_add_key_2_of_4_desc)
+                            GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> stringResource(R.string.nc_byzantine_add_key_2_of_4_no_inheritance_desc)
+                            GroupWalletType.TWO_OF_THREE -> stringResource(R.string.nc_byzantine_add_key_2_of_3_desc)
+                            GroupWalletType.THREE_OF_FIVE -> stringResource(R.string.nc_byzantine_add_key_3_of_5_desc)
                             else -> ""
                         }
                         NcSpannedText(

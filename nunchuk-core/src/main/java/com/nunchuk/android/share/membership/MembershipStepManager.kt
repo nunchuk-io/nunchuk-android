@@ -161,6 +161,19 @@ class MembershipStepManager @Inject constructor(
                     steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
                 }
 
+                MembershipPlan.BYZANTINE_PREMIER -> {
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+                }
+
                 MembershipPlan.NONE -> Unit
             }
             _remainingTime.value = calculateRemainTime(steps.toMap().values)

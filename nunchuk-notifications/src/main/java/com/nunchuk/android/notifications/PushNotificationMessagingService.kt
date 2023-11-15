@@ -36,6 +36,8 @@ import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.isContactUpdateEvent
 import com.nunchuk.android.messages.util.isCosignedAndBroadcastEvent
 import com.nunchuk.android.messages.util.isCosignedEvent
+import com.nunchuk.android.messages.util.isKeyRecoveryApproved
+import com.nunchuk.android.messages.util.isKeyRecoveryRequest
 import com.nunchuk.android.messages.util.isMessageEvent
 import com.nunchuk.android.messages.util.isNunchukTransactionEvent
 import com.nunchuk.android.messages.util.isNunchukWalletEvent
@@ -277,6 +279,26 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 id = localId,
                 title = message,
                 message = "",
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        isKeyRecoveryRequest() -> {
+            val message = this.getLastMessageContentSafe().orEmpty()
+            PushNotificationData(
+                id = localId,
+                title = getString(R.string.nc_notification_key_recovery_requested),
+                message = message,
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        isKeyRecoveryApproved() -> {
+            val message = this.getLastMessageContentSafe().orEmpty()
+            PushNotificationData(
+                id = localId,
+                title = getString(R.string.nc_notification_key_recovery_approved),
+                message = message,
                 intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
             )
         }
