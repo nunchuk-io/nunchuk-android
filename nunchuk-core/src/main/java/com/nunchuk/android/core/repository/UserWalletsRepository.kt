@@ -1858,7 +1858,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.groupWalletApi.getGroups()
         val groupAssistedKeys = mutableSetOf<String>()
         val groups = response.data.groups.orEmpty()
-        val groupIds = groups.map { it.id.orEmpty() }
+        val groupIds = groups.asSequence().map { it.id.orEmpty() }.toSet()
         if (groups.isNotEmpty()) {
             groups.forEach {
                 when (it.status) {
@@ -1872,14 +1872,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
-        val isShouldRefresh = deleteAssistedWallets(groupIds)
+        val isDeletedWallet = deleteAssistedWallets(groupIds)
         ncDataStore.setGroupAssistedKey(groupAssistedKeys)
         syncer.syncGroups(groups)
 
-        return groups.isNotEmpty() || isShouldRefresh
+        return groups.isNotEmpty() || isDeletedWallet
     }
 
-    private suspend fun deleteAssistedWallets(groupIds: List<String>): Boolean {
+    private suspend fun deleteAssistedWallets(groupIds: Set<String>): Boolean {
         val localGroupWallets = assistedWalletDao.getAssistedWallets().filter { it.groupId.isNotEmpty() }
         val deleteGroupIds = localGroupWallets.map { it.groupId }.filter { groupId -> groupIds.isEmpty() || groupIds.contains(groupId).not() }
         assistedWalletDao.deletes(localGroupWallets.filter { deleteGroupIds.contains(it.groupId) })
