@@ -241,7 +241,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         groupId: String,
         walletId: String,
     ): Flow<List<KeyHealthStatus>> {
-        return keyHealthStatusDao.getKeys(groupId, walletId, accountManager.getAccount().chatId, chain.value).map {
+        return keyHealthStatusDao.getKeysFlow(groupId, walletId, accountManager.getAccount().chatId, chain.value).map {
             it.map { entity -> entity.toKeyHealthStatus() }
         }
     }

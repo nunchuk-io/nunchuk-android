@@ -190,6 +190,10 @@ class GroupDashboardViewModel @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { alerts ->
+                    val groupWalletSetupAlert = alerts.find { alert -> alert.type == AlertType.GROUP_WALLET_SETUP }
+                    if (groupWalletSetupAlert != null && getWalletId().isNotEmpty()) {
+                        dismissAlert(groupWalletSetupAlert.id)
+                    }
                     _state.update { state ->
                         state.copy(alerts = alerts)
                     }

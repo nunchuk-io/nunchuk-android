@@ -1842,7 +1842,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getGroups(): Flow<List<ByzantineGroup>> =
-        groupDao.getGroups(chatId = accountManager.getAccount().chatId, chain = chain.value)
+        groupDao.getGroupsFlow(chatId = accountManager.getAccount().chatId, chain = chain.value)
             .map { group ->
                 val groups = group.map { group ->
                     group.toByzantineGroup()
@@ -2022,7 +2022,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getAlerts(groupId: String): Flow<List<Alert>> {
-        return alertDao.getAlerts(groupId, chatId = accountManager.getAccount().chatId, chain.value)
+        return alertDao.getAlertsFlow(groupId, chatId = accountManager.getAccount().chatId, chain.value)
             .map { alerts ->
                 alerts.map { alert ->
                     alert.toAlert()
