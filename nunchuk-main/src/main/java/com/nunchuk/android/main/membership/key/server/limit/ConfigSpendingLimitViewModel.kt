@@ -30,7 +30,11 @@ import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -98,13 +102,13 @@ data class ConfigSpendingLimitState(
 )
 
 sealed class ConfigSpendingLimitEvent {
-    object ShowTimeUnit : ConfigSpendingLimitEvent()
-    object ShowCurrencyUnit : ConfigSpendingLimitEvent()
+    data object ShowTimeUnit : ConfigSpendingLimitEvent()
+    data object ShowCurrencyUnit : ConfigSpendingLimitEvent()
     data class ContinueClicked(val spendingPolicy: SpendingPolicy) : ConfigSpendingLimitEvent()
 }
 
 fun SpendingCurrencyUnit.toLabel(context: Context) = when (this) {
-    SpendingCurrencyUnit.CURRENCY_UNIT -> LOCAL_CURRENCY
+    SpendingCurrencyUnit.USD -> context.getString(R.string.nc_currency_usd)
     SpendingCurrencyUnit.BTC -> context.getString(R.string.nc_currency_btc)
     SpendingCurrencyUnit.sat -> context.getString(R.string.nc_currency_sat)
 }

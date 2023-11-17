@@ -17,24 +17,33 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
 import com.nunchuk.android.model.FeeRate
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.payment.PaymentFrequency
 
 @Composable
 fun PaymentSummaryRoute(
     recurringPaymentViewModel: RecurringPaymentViewModel,
+    openDummyTransactionScreen: (DummyTransactionPayload) -> Unit,
 ) {
-    val state by recurringPaymentViewModel.config.collectAsStateWithLifecycle()
+    val config by recurringPaymentViewModel.config.collectAsStateWithLifecycle()
+    val state by recurringPaymentViewModel.state.collectAsStateWithLifecycle()
+
+    state.openDummyTransactionScreen?.let {
+        openDummyTransactionScreen(it)
+        recurringPaymentViewModel.onOpenDummyTransactionScreenComplete()
+    }
+
     PaymentSummaryScreen(
-        isCosign = state.isCosign == true,
-        name = state.name,
-        amount = state.amount,
-        frequency = state.frequency ?: PaymentFrequency.DAILY,
-        startDate = state.startDate,
-        endDate = state.endDate,
-        noEndDate = state.noEndDate,
-        feeRate = state.feeRate,
-        addresses = state.addresses,
-        note = state.note,
+        isCosign = config.isCosign == true,
+        name = config.name,
+        amount = config.amount,
+        frequency = config.frequency ?: PaymentFrequency.DAILY,
+        startDate = config.startDate,
+        endDate = config.endDate,
+        noEndDate = config.noEndDate,
+        feeRate = config.feeRate,
+        addresses = config.addresses,
+        note = config.note,
         onSubmit = recurringPaymentViewModel::onSubmit,
     )
 }

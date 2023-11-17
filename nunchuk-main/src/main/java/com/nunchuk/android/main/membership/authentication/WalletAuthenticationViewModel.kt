@@ -500,7 +500,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 R.string.nc_txt_run_health_check_success_event,
                 getInteractSingleSigner()?.name.orEmpty()
             )
-
+            DummyTransactionType.CREATE_RECURRING_PAYMENT -> application.getString(R.string.nc_the_recurring_payment_has_been_approved)
             else -> ""
         }
 

@@ -23,7 +23,7 @@ import androidx.annotation.Keep
 
 @Keep
 enum class SpendingCurrencyUnit {
-    CURRENCY_UNIT, BTC, sat
+    USD, BTC, sat
 }
 
 @Keep

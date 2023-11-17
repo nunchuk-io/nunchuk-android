@@ -18,6 +18,7 @@ fun NcNumberInputField(
     title: String = "",
     allowDecimal: Boolean = true,
     suffix: String = "",
+    placeholder: @Composable (() -> Unit)? = null,
 ) {
     val decimalCharacter = remember {
         DecimalFormatSymbols(Locale.US).decimalSeparator
@@ -37,6 +38,7 @@ fun NcNumberInputField(
         ),
         maxLines = 1,
         visualTransformation = NumberCommaTransformation(suffix = suffix),
+        placeholder = placeholder,
     )
 }
 

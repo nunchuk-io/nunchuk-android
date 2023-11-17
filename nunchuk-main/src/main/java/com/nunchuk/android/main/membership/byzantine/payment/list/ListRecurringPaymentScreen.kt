@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,20 +65,28 @@ fun ListRecurringPaymentScreen(
                     .padding(innerPadding)
                     .fillMaxSize(),
             ) {
-                NcCircleImage(
-                    resId = R.drawable.ic_pending_transaction,
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .align(CenterHorizontally),
-                    size = 96.dp,
-                    iconSize = 60.dp,
-                )
+                if (uiState.payments.isEmpty()) {
+                    NcCircleImage(
+                        resId = R.drawable.ic_pending_transaction,
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .align(CenterHorizontally),
+                        size = 96.dp,
+                        iconSize = 60.dp,
+                    )
 
-                Text(
-                    text = stringResource(R.string.nc_recurring_payments_intro_desc),
-                    modifier = Modifier.padding(16.dp),
-                    style = NunchukTheme.typography.body,
-                )
+                    Text(
+                        text = stringResource(R.string.nc_recurring_payments_intro_desc),
+                        modifier = Modifier.padding(16.dp),
+                        style = NunchukTheme.typography.body,
+                    )
+                } else {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(uiState.payments) { payment ->
+                            RecurringPaymentItemView(recurringPayment = payment)
+                        }
+                    }
+                }
             }
         }
     }

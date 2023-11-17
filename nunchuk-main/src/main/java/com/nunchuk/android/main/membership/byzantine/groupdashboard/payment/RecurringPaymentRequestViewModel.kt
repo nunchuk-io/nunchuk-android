@@ -52,6 +52,8 @@ class RecurringPaymentRequestViewModel @Inject constructor(
                         }
                         getGroup(payload.requestByUserId)
                     }
+            }.onFailure {
+                _event.emit(RecurringPaymentRequestEvent.ShowError(it.message.orEmpty()))
             }
         }
     }
@@ -70,7 +72,9 @@ class RecurringPaymentRequestViewModel @Inject constructor(
     }
 }
 
-sealed class RecurringPaymentRequestEvent
+sealed class RecurringPaymentRequestEvent {
+    data class ShowError(val message: String) : RecurringPaymentRequestEvent()
+}
 
 data class RecurringPaymentRequestUiState(
     val recurringPayment: RecurringPayment? = null,

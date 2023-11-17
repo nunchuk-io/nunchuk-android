@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -28,14 +29,13 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
+import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
-import com.nunchuk.android.model.FeeRate
-import com.nunchuk.android.model.payment.PaymentDestinationType
-import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.model.payment.RecurringPayment
-import com.nunchuk.android.model.payment.RecurringPaymentType
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -66,6 +66,21 @@ class RecurringPaymentRequestReviewFragment : Fragment() {
                         findNavController().popBackStack(R.id.groupDashboardFragment, false)
                     },
                     deleteRecurringPayment = viewModel::deleteDummyTransaction)
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is RecurringPaymentRequestReviewEvent.DeleteDummyTransaction -> {
+                    findNavController().popBackStack(R.id.groupDashboardFragment, false)
+                }
+
+                is RecurringPaymentRequestReviewEvent.ShowError -> {
+                    showError(event.message)
+                }
             }
         }
     }
@@ -136,21 +151,8 @@ private fun RecurringPaymentRequestReviewContent(
 
 @Preview
 @Composable
-private fun RecurringPaymentRequestReviewScreenPreview() {
-    RecurringPaymentRequestReviewContent(
-        recurringPayment = RecurringPayment(
-            name = "Test",
-            amount = 100.0,
-            frequency = PaymentFrequency.DAILY,
-            currency = "USD",
-            startDate = System.currentTimeMillis(),
-            endDate = System.currentTimeMillis(),
-            allowCosigning = false,
-            note = "",
-            paymentType = RecurringPaymentType.PERCENTAGE,
-            destinationType = PaymentDestinationType.WHITELISTED_ADDRESSES,
-            addresses = listOf("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"),
-            feeRate = FeeRate.PRIORITY,
-        )
-    )
+private fun RecurringPaymentRequestReviewScreenPreview(
+    @PreviewParameter(RecurringPaymentProvider::class) recurringPayment: RecurringPayment,
+) {
+    RecurringPaymentRequestReviewContent(recurringPayment = recurringPayment)
 }

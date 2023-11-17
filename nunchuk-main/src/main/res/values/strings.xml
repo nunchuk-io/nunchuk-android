@@ -269,4 +269,5 @@
     <string name="nc_delete_this_payment">Delete this payment</string>
     <string name="nc_recurring_payment">Recurring payment</string>
     <string name="nc_destination_whitelisted_addresses">Destination (whitelisted addresses)</string>
+    <string name="nc_the_recurring_payment_has_been_approved">The recurring payment has been approved</string>
 </resources>

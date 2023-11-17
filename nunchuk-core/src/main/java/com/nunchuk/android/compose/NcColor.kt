@@ -40,6 +40,9 @@ val ColorScheme.border: Color
 val ColorScheme.greyLight: Color
     get() = Color(0xFFF5F5F5)
 
+val ColorScheme.greyDark: Color
+    get() = NcColor.greyDark
+
 val ColorScheme.whisper: Color
     get() = Color(0xFFEAEAEA)
 

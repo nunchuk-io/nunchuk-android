@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,7 +63,7 @@ fun PaymentAmountRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentAmountScreen(
-    unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
+    unit: SpendingCurrencyUnit = SpendingCurrencyUnit.USD,
     amount: String = "",
     useAmount: Boolean = true,
     onAmountChange: (String) -> Unit = {},
@@ -133,6 +134,13 @@ fun PaymentAmountScreen(
                         onValueChange = { s -> onAmountChange(CurrencyFormatter.format(s, 2)) },
                         allowDecimal = unit != SpendingCurrencyUnit.sat && useAmount,
                         suffix = if (useAmount) "" else "%",
+                        placeholder = {
+                            Text(
+                                text = if (unit != SpendingCurrencyUnit.sat) "0.00" else "0",
+                                style = NunchukTheme.typography.body,
+                                color = colorResource(id = R.color.nc_boulder_color)
+                            )
+                        }
                     )
 
                     if (useAmount) {

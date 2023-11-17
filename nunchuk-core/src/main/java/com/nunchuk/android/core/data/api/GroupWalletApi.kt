@@ -18,6 +18,7 @@ import com.nunchuk.android.core.data.model.byzantine.GroupChatListDataResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
+import com.nunchuk.android.core.data.model.byzantine.RecurringPaymentListResponse
 import com.nunchuk.android.core.data.model.byzantine.ReuseFromGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.SimilarGroupResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
@@ -429,4 +430,10 @@ internal interface GroupWalletApi {
         @Query("draft") draft: Boolean = true,
         @Body request: CreateRecurringPaymentRequest,
     ): Data<DummyTransactionResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/recurring-payment")
+    suspend fun getRecurringPayments(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<RecurringPaymentListResponse>
 }

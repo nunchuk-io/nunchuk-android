@@ -153,7 +153,7 @@ class RecurringPaymentViewModel @Inject constructor(
                 allowCosigning = config.value.isCosign!!,
                 note = config.value.note,
                 amount = config.value.amount.toDoubleOrNull() ?: 0.0,
-                currency = config.value.currency,
+                currency = config.value.unit.name,
                 calculationMethod = config.value.calculatePercentageJustInTime?.let {
                     if (it) PaymentCalculationMethod.JUST_IN_TIME else PaymentCalculationMethod.RUNNING_AVERAGE
                 },
@@ -167,10 +167,10 @@ class RecurringPaymentViewModel @Inject constructor(
                     walletId = walletId,
                     recurringPayment = recurringPayment,
                 )
-            ).onSuccess { dummyTransactionId ->
+            ).onSuccess { payload ->
                 _state.update {
                     it.copy(
-                        openDummyTransactionScreen = dummyTransactionId,
+                        openDummyTransactionScreen = payload,
                     )
                 }
             }.onFailure { error ->
@@ -180,6 +180,14 @@ class RecurringPaymentViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun onOpenDummyTransactionScreenComplete() {
+        _state.update {
+            it.copy(
+                openDummyTransactionScreen = null,
+            )
         }
     }
 }

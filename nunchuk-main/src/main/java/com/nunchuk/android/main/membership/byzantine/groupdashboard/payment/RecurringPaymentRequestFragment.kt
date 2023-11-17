@@ -32,6 +32,8 @@ import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -60,6 +62,17 @@ class RecurringPaymentRequestFragment : Fragment() {
                                 )
                         )
                     }
+                }
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewModel.event) {
+            when (it) {
+                is RecurringPaymentRequestEvent.ShowError -> {
+                    showError(it.message)
                 }
             }
         }

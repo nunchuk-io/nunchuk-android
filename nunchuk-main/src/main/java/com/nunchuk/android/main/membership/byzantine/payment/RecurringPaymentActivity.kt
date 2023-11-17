@@ -18,7 +18,6 @@ import com.nunchuk.android.main.membership.byzantine.payment.feerate.addPaymentF
 import com.nunchuk.android.main.membership.byzantine.payment.feerate.navigateToPaymentFeeRate
 import com.nunchuk.android.main.membership.byzantine.payment.frequent.addPaymentFrequency
 import com.nunchuk.android.main.membership.byzantine.payment.frequent.navigateToPaymentFrequency
-import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPaymentRoute
 import com.nunchuk.android.main.membership.byzantine.payment.list.recurringPaymentsList
 import com.nunchuk.android.main.membership.byzantine.payment.name.addPaymentName
 import com.nunchuk.android.main.membership.byzantine.payment.name.navigateToPaymentName
@@ -30,6 +29,7 @@ import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.addPay
 import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.navigateToPaymentSelectAddressType
 import com.nunchuk.android.main.membership.byzantine.payment.summary.addPaymentSummary
 import com.nunchuk.android.main.membership.byzantine.payment.summary.navigateToPaymentSummary
+import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -43,18 +43,22 @@ class RecurringPaymentActivity : AppCompatActivity() {
     lateinit var navigator: NunchukNavigator
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val walletId = intent.getStringExtra(WALLET_ID).orEmpty()
+        val groupId = intent.getStringExtra(GROUP_ID).orEmpty()
         setContentView(
             ComposeView(this).apply {
                 setContent {
                     val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = recurringPaymentRoute
+                        startDestination = "recurring_payment/${groupId}/${walletId}"
                     ) {
                         recurringPaymentsList(
                             onOpenAddRecurringPayment = {
                                 navController.navigateToPaymentName()
                             },
+                            groupId = groupId,
+                            walletId = walletId,
                         )
                         addPaymentName(
                             recurringPaymentViewModel = viewModel,
@@ -121,6 +125,18 @@ class RecurringPaymentActivity : AppCompatActivity() {
                         )
                         addPaymentSummary(
                             recurringPaymentViewModel = viewModel,
+                            openDummyTransactionScreen = {
+                                navigator.openWalletAuthentication(
+                                    walletId = it.walletId,
+                                    userData = "",
+                                    requiredSignatures = it.requiredSignatures,
+                                    type = VerificationType.SIGN_DUMMY_TX,
+                                    null,
+                                    activityContext = this@RecurringPaymentActivity,
+                                    groupId = groupId,
+                                    dummyTransactionId = it.dummyTransactionId,
+                                )
+                            },
                         )
                     }
                 }

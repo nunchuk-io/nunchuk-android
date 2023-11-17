@@ -5,18 +5,23 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 
 const val paymentSummaryRoute = "payment_summary"
 fun NavGraphBuilder.addPaymentSummary(
-    recurringPaymentViewModel: RecurringPaymentViewModel
+    recurringPaymentViewModel: RecurringPaymentViewModel,
+    openDummyTransactionScreen: (DummyTransactionPayload) -> Unit,
 ) {
     composable(paymentSummaryRoute) {
-        PaymentSummaryRoute(recurringPaymentViewModel = recurringPaymentViewModel)
+        PaymentSummaryRoute(
+            recurringPaymentViewModel = recurringPaymentViewModel,
+            openDummyTransactionScreen = openDummyTransactionScreen
+        )
     }
 }
 
 fun NavController.navigateToPaymentSummary(
-    navOptions: NavOptions? = null
+    navOptions: NavOptions? = null,
 ) {
     navigate(paymentSummaryRoute, navOptions)
 }
