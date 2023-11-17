@@ -72,7 +72,7 @@ fun RecurringPaymentItemView(
 
         Image(
             modifier = Modifier.size(24.dp),
-            painter = painterResource(id = R.drawable.ic_arrow),
+            painter = painterResource(id = R.drawable.ic_right_arrow_dark),
             contentDescription = "Arrow"
         )
     }

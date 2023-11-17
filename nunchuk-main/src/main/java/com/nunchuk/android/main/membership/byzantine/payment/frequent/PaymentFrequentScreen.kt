@@ -92,7 +92,7 @@ fun PaymentFrequentScreen(
                     .padding(16.dp)
                     .fillMaxWidth(),
                 onClick = openPaymentFeeRateScreen,
-                enabled = frequency != null
+                enabled = frequency != null && startDate > 0L && (endDate > 0L || noEndDate),
             ) {
                 Text(text = stringResource(R.string.nc_text_continue))
             }

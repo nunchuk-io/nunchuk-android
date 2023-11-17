@@ -30,12 +30,8 @@ class ListRecurringPaymentViewModel @Inject constructor(
                     walletId = walletId,
                     groupId = groupId,
                 )
-            ).onSuccess {
-                _state.update {
-                    it.copy(
-                        payments = it.payments,
-                    )
-                }
+            ).onSuccess { payments ->
+                _state.update { it.copy(payments = payments,) }
             }
         }
     }

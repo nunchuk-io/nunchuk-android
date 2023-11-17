@@ -26,7 +26,7 @@ internal data class RecurringPaymentResponse(
     @SerializedName("start_date_millis")
     val startDateMillis: Long = 0L,
     @SerializedName("end_date_millis")
-    val endDateMillis: Long = 0L,
+    val endDateMillis: Long? = null,
     @SerializedName("allow_cosigning")
     val allowCosigning: Boolean? = null,
     @SerializedName("transaction_note")
@@ -36,8 +36,8 @@ internal data class RecurringPaymentResponse(
 )
 
 internal data class PaymentPayload(
-    @SerializedName("amount")
-    val amount: Double? = null,
+    @SerializedName("value")
+    val value: Double? = null,
     @SerializedName("currency")
     val currency: String? = null,
     @SerializedName("calculation_method")
@@ -61,10 +61,10 @@ internal fun RecurringPaymentResponse.toModel() = RecurringPayment(
     destinationType = destinationType.toPaymentDestinationType,
     frequency = frequency.toPaymentFrequency,
     startDate = startDateMillis,
-    endDate = endDateMillis,
+    endDate = endDateMillis ?: 0L,
     allowCosigning = allowCosigning ?: false,
     note = transactionNote.orEmpty(),
-    amount = paymentPayload?.amount ?: 0.0,
+    amount = paymentPayload?.value ?: 0.0,
     currency = paymentPayload?.currency,
     calculationMethod = paymentPayload?.calculationMethod.toPaymentCalculationMethod,
     addresses = destinationPayload?.addresses.orEmpty(),

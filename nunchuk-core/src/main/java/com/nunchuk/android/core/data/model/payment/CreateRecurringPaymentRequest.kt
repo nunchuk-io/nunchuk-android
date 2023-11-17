@@ -15,7 +15,7 @@ internal fun RecurringPayment.toRequest(nonce: String): CreateRecurringPaymentRe
             name = name,
             paymentType = paymentType.name,
             paymentPayload = PaymentPayload(
-                amount = amount,
+                value = amount,
                 currency = currency,
                 calculationMethod = calculationMethod?.name,
             ),
@@ -26,7 +26,7 @@ internal fun RecurringPayment.toRequest(nonce: String): CreateRecurringPaymentRe
             ),
             frequency = frequency.name,
             startDateMillis = startDate,
-            endDateMillis = endDate,
+            endDateMillis = endDate.takeIf { it > 0L },
             allowCosigning = allowCosigning,
             transactionNote = note,
             feeRate = feeRate.name,
