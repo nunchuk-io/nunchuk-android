@@ -179,7 +179,15 @@ private fun HealthCheckItem(
                     text = signer.name,
                     style = NunchukTheme.typography.body
                 )
-                NcTag(label = signer.toReadableSignerType(context))
+                Row {
+                    NcTag(label = signer.toReadableSignerType(context))
+                    if (signer.isShowAcctX()) {
+                        NcTag(
+                            modifier = Modifier.padding(start = 4.dp),
+                            label = stringResource(id = R.string.nc_acct_x, signer.index)
+                        )
+                    }
+                }
                 Text(
                     text = signer.getXfpOrCardIdLabel(),
                     style = NunchukTheme.typography.bodySmall

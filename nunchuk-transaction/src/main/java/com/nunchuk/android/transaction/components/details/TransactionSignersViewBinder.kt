@@ -91,6 +91,10 @@ internal class TransactionSignersViewBinder(
         }
 
         binding.signerType.isVisible = model.type != SignerType.SERVER
+        binding.acctX.apply {
+            isVisible = model.isShowAcctX()
+            text = String.format(context.getString(R.string.nc_acct_x), model.index)
+        }
         if (model.type == SignerType.SERVER) {
             val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
             val cosignedTime = serverTransaction?.signedInMilis ?: 0L

@@ -26,6 +26,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
+import com.nunchuk.android.main.R
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.widget.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
@@ -51,6 +52,10 @@ internal class TransactionSignersViewBinder(
         binding.signerName.text = model.name
         binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(context)
+        binding.acctX.apply {
+            isVisible = model.isShowAcctX()
+            text = String.format(context.getString(R.string.nc_acct_x), model.index)
+        }
         binding.btnSign.setOnDebounceClickListener { listener(model) }
         val isSigned = model.isSigned()
 

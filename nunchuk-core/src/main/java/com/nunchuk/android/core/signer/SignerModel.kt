@@ -41,7 +41,8 @@ data class SignerModel(
     val cardId: String = "",
     val tags : List<SignerTag> = emptyList(),
     val isVisible: Boolean = true,
-    val isMasterSigner: Boolean
+    val isMasterSigner: Boolean,
+    val index: Int = 0,
 ) : Parcelable {
     val isEditablePath: Boolean
         get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
@@ -73,6 +74,8 @@ data class SignerModel(
     } else ""
 
     private fun cardIdShorten() = cardId.takeLast(5)
+
+    fun isShowAcctX() = index > 0
 }
 
 fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
@@ -86,7 +89,8 @@ fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
     isPrimaryKey = isPrimaryKey,
     tags = tags,
     isVisible = isVisible,
-    isMasterSigner = hasMasterSigner
+    isMasterSigner = hasMasterSigner,
+    index = index
 )
 
 fun JoinKey.toSignerModel() = SignerModel(
