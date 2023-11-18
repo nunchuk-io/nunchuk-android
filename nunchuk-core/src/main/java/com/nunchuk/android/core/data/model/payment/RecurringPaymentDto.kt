@@ -8,7 +8,7 @@ import com.nunchuk.android.model.payment.toPaymentFrequency
 import com.nunchuk.android.model.payment.toRecurringPaymentType
 import com.nunchuk.android.model.toFeeRate
 
-internal data class RecurringPaymentResponse(
+internal data class RecurringPaymentDto(
     @SerializedName("id")
     val id: String? = null,
     @SerializedName("name")
@@ -55,7 +55,7 @@ internal data class DestinationPayload(
     val currentIndex: Int = 0,
 )
 
-internal fun RecurringPaymentResponse.toModel() = RecurringPayment(
+internal fun RecurringPaymentDto.toModel() = RecurringPayment(
     name = name.orEmpty(),
     paymentType = paymentType.toRecurringPaymentType,
     destinationType = destinationType.toPaymentDestinationType,

@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
+import com.nunchuk.android.core.data.model.payment.CreateRecurringPaymentRequest
 import com.nunchuk.android.core.data.model.payment.toModel
 import com.nunchuk.android.core.data.model.payment.toRequest
 import com.nunchuk.android.core.manager.UserWalletApiManager
@@ -39,5 +40,34 @@ internal class RecurringPaymentRepositoryImpl @Inject constructor(
         )
         return response.data.dummyTransaction?.toDomainModel()
             ?: throw IllegalStateException("Dummy transaction is null")
+    }
+
+    override suspend fun deleteRecurringPayment(
+        groupId: String,
+        walletId: String,
+        recurringPaymentId: String,
+    ): DummyTransactionPayload {
+        val nonce = userWalletRepository.getNonce()
+        return userWalletApiManager.groupWalletApi.deleteRecurringPayment(
+            groupId = groupId,
+            walletId = walletId,
+            recurringPaymentId = recurringPaymentId,
+            request = CreateRecurringPaymentRequest(nonce)
+        ).data.dummyTransaction?.toDomainModel()
+            ?: throw IllegalStateException("Dummy transaction is null")
+    }
+
+    override suspend fun getRecurringPayment(
+        groupId: String,
+        walletId: String,
+        recurringPaymentId: String,
+    ): RecurringPayment {
+        val response = userWalletApiManager.groupWalletApi.getRecurringPayment(
+            groupId = groupId,
+            walletId = walletId,
+            recurringPaymentId = recurringPaymentId
+        )
+        return response.data.recurringPayment?.toModel()
+            ?: throw IllegalStateException("Recurring payment is null")
     }
 }

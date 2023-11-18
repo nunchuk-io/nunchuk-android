@@ -11,6 +11,7 @@ const val recurringPaymentRoute = "recurring_payment/{groupId}/{walletId}"
 
 fun NavGraphBuilder.recurringPaymentsList(
     onOpenAddRecurringPayment: () -> Unit,
+    onOpenRecurringPaymentDetail: (String) -> Unit,
     groupId: String,
     walletId: String,
 ) {
@@ -29,6 +30,7 @@ fun NavGraphBuilder.recurringPaymentsList(
     ) {
         ListRecurringPaymentRoute(
             onOpenAddRecurringPayment = onOpenAddRecurringPayment,
+            onOpenRecurringPaymentDetail = onOpenRecurringPaymentDetail,
         )
     }
 }

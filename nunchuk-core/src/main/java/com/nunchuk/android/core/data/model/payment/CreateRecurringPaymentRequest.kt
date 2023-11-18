@@ -5,13 +5,13 @@ import com.nunchuk.android.model.payment.RecurringPayment
 
 internal data class CreateRecurringPaymentRequest(
     @SerializedName("nonce") val nonce: String? = null,
-    @SerializedName("body") val body: RecurringPaymentResponse? = null,
+    @SerializedName("body") val body: RecurringPaymentDto? = null,
 )
 
 internal fun RecurringPayment.toRequest(nonce: String): CreateRecurringPaymentRequest {
     return CreateRecurringPaymentRequest(
         nonce = nonce,
-        body = RecurringPaymentResponse(
+        body = RecurringPaymentDto(
             name = name,
             paymentType = paymentType.name,
             paymentPayload = PaymentPayload(

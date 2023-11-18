@@ -14,6 +14,8 @@ import com.nunchuk.android.main.membership.byzantine.payment.amount.addPaymentAm
 import com.nunchuk.android.main.membership.byzantine.payment.amount.navigateToPaymentAmount
 import com.nunchuk.android.main.membership.byzantine.payment.cosign.addPaymentCosignScreen
 import com.nunchuk.android.main.membership.byzantine.payment.cosign.navigatePaymentCosign
+import com.nunchuk.android.main.membership.byzantine.payment.detail.addRecurringPaymentDetail
+import com.nunchuk.android.main.membership.byzantine.payment.detail.navigateToRecurringPaymentDetail
 import com.nunchuk.android.main.membership.byzantine.payment.feerate.addPaymentFeeRateScreen
 import com.nunchuk.android.main.membership.byzantine.payment.feerate.navigateToPaymentFeeRate
 import com.nunchuk.android.main.membership.byzantine.payment.frequent.addPaymentFrequency
@@ -30,6 +32,7 @@ import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.naviga
 import com.nunchuk.android.main.membership.byzantine.payment.summary.addPaymentSummary
 import com.nunchuk.android.main.membership.byzantine.payment.summary.navigateToPaymentSummary
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -39,12 +42,18 @@ class RecurringPaymentActivity : AppCompatActivity() {
 
     private val viewModel: RecurringPaymentViewModel by viewModels()
 
+    private val groupId: String by lazy {
+        intent.getStringExtra(GROUP_ID).orEmpty()
+    }
+
+    private val walletId: String by lazy {
+        intent.getStringExtra(WALLET_ID).orEmpty()
+    }
+
     @Inject
     lateinit var navigator: NunchukNavigator
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val walletId = intent.getStringExtra(WALLET_ID).orEmpty()
-        val groupId = intent.getStringExtra(GROUP_ID).orEmpty()
         setContentView(
             ComposeView(this).apply {
                 setContent {
@@ -59,6 +68,13 @@ class RecurringPaymentActivity : AppCompatActivity() {
                             },
                             groupId = groupId,
                             walletId = walletId,
+                            onOpenRecurringPaymentDetail = { recurringPaymentId ->
+                                navController.navigateToRecurringPaymentDetail(
+                                    groupId = groupId,
+                                    walletId = walletId,
+                                    recurringPaymentId = recurringPaymentId,
+                                )
+                            },
                         )
                         addPaymentName(
                             recurringPaymentViewModel = viewModel,
@@ -125,22 +141,27 @@ class RecurringPaymentActivity : AppCompatActivity() {
                         )
                         addPaymentSummary(
                             recurringPaymentViewModel = viewModel,
-                            openDummyTransactionScreen = {
-                                navigator.openWalletAuthentication(
-                                    walletId = it.walletId,
-                                    userData = "",
-                                    requiredSignatures = it.requiredSignatures,
-                                    type = VerificationType.SIGN_DUMMY_TX,
-                                    null,
-                                    activityContext = this@RecurringPaymentActivity,
-                                    groupId = groupId,
-                                    dummyTransactionId = it.dummyTransactionId,
-                                )
-                            },
+                            openDummyTransactionScreen = ::openWalletAuthentication,
+                        )
+                        addRecurringPaymentDetail(
+                            onOpenDummyTransaction = ::openWalletAuthentication,
                         )
                     }
                 }
             }
+        )
+    }
+
+    private fun openWalletAuthentication(payload: DummyTransactionPayload) {
+        navigator.openWalletAuthentication(
+            walletId = payload.walletId,
+            userData = "",
+            requiredSignatures = payload.requiredSignatures,
+            type = VerificationType.SIGN_DUMMY_TX,
+            null,
+            activityContext = this@RecurringPaymentActivity,
+            groupId = groupId,
+            dummyTransactionId = payload.dummyTransactionId,
         )
     }
 

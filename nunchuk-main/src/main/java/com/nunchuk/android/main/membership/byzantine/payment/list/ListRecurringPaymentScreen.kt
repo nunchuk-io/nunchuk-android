@@ -27,12 +27,14 @@ import com.nunchuk.android.main.R
 fun ListRecurringPaymentRoute(
     viewModel: ListRecurringPaymentViewModel = hiltViewModel(),
     onOpenAddRecurringPayment: () -> Unit = {},
+    onOpenRecurringPaymentDetail: (String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ListRecurringPaymentScreen(
         uiState = state,
         onOpenAddRecurringPayment = onOpenAddRecurringPayment,
+        onOpenRecurringPaymentDetail = onOpenRecurringPaymentDetail,
     )
 }
 
@@ -40,6 +42,7 @@ fun ListRecurringPaymentRoute(
 fun ListRecurringPaymentScreen(
     uiState: ListRecurringPaymentUiState = ListRecurringPaymentUiState(),
     onOpenAddRecurringPayment: () -> Unit = {},
+    onOpenRecurringPaymentDetail: (String) -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(
@@ -83,7 +86,10 @@ fun ListRecurringPaymentScreen(
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(uiState.payments) { payment ->
-                            RecurringPaymentItemView(recurringPayment = payment)
+                            RecurringPaymentItemView(
+                                recurringPayment = payment,
+                                onClick = onOpenRecurringPaymentDetail
+                            )
                         }
                     }
                 }

@@ -19,6 +19,7 @@ import com.nunchuk.android.core.data.model.byzantine.GroupDataResponse
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.RecurringPaymentListResponse
+import com.nunchuk.android.core.data.model.byzantine.RecurringPaymentResponse
 import com.nunchuk.android.core.data.model.byzantine.ReuseFromGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.SimilarGroupResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
@@ -436,4 +437,19 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<RecurringPaymentListResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/recurring-payment/{recurring_payment_id}")
+    suspend fun getRecurringPayment(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("recurring_payment_id") recurringPaymentId: String,
+    ): Data<RecurringPaymentResponse>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/recurring-payment/{recurring_payment_id}")
+    suspend fun deleteRecurringPayment(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("recurring_payment_id") recurringPaymentId: String,
+        @Body request: CreateRecurringPaymentRequest,
+    ): Data<DummyTransactionResponse>
 }
