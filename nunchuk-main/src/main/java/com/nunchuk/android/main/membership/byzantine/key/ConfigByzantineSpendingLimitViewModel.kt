@@ -237,9 +237,14 @@ sealed class ConfigByzantineSpendingLimitEvent {
 }
 
 fun SpendingCurrencyUnit.toLabel(context: Context) = when (this) {
-    SpendingCurrencyUnit.USD -> LOCAL_CURRENCY
+    SpendingCurrencyUnit.CURRENCY_UNIT -> LOCAL_CURRENCY
     SpendingCurrencyUnit.BTC -> context.getString(R.string.nc_currency_btc)
     SpendingCurrencyUnit.sat -> context.getString(R.string.nc_currency_sat)
+}
+
+fun SpendingCurrencyUnit.toRecurringPaymentType() = when (this) {
+    SpendingCurrencyUnit.CURRENCY_UNIT -> "USD"
+    else -> this.name
 }
 
 fun SpendingTimeUnit.toLabel(context: Context) = when (this) {

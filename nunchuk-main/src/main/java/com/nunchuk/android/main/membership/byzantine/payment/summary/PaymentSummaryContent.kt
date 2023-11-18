@@ -42,6 +42,8 @@ fun PaymentSummaryContent(
     feeRate: FeeRate,
     addresses: List<String>,
     note: String,
+    currency: String?,
+    useAmount: Boolean,
 ) {
     Column(
         modifier = modifier
@@ -68,7 +70,7 @@ fun PaymentSummaryContent(
                 .padding(top = 24.dp)
                 .fillMaxWidth(),
             title = stringResource(id = R.string.nc_amount),
-            value = amount,
+            value = "$amount ${if (useAmount) currency.orEmpty() else "%"}",
             onValueChange = {},
             enabled = false,
             disableBackgroundColor = MaterialTheme.colorScheme.greyLight,
@@ -79,7 +81,7 @@ fun PaymentSummaryContent(
                 .padding(top = 24.dp)
                 .fillMaxWidth(),
             title = stringResource(id = R.string.nc_repeat),
-            value = frequency?.toResId()?.let { stringResource(id = it) }.orEmpty(),
+            value = stringResource(id = frequency.toResId()),
             onValueChange = {},
             enabled = false,
             disableBackgroundColor = MaterialTheme.colorScheme.greyLight,

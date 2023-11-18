@@ -9,6 +9,7 @@ import com.nunchuk.android.core.base.MutableSaveStateFlow
 import com.nunchuk.android.core.base.update
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.main.membership.byzantine.key.toRecurringPaymentType
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.payment.PaymentCalculationMethod
@@ -153,7 +154,7 @@ class RecurringPaymentViewModel @Inject constructor(
                 allowCosigning = config.value.isCosign!!,
                 note = config.value.note,
                 amount = config.value.amount.toDoubleOrNull() ?: 0.0,
-                currency = config.value.unit.name,
+                currency = config.value.unit.toRecurringPaymentType(),
                 calculationMethod = config.value.calculatePercentageJustInTime?.let {
                     if (it) PaymentCalculationMethod.JUST_IN_TIME else PaymentCalculationMethod.RUNNING_AVERAGE
                 },

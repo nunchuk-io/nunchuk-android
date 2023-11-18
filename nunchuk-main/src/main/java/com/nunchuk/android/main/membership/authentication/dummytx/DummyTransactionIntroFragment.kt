@@ -118,6 +118,7 @@ class DummyTransactionIntroFragment : Fragment() {
                     })
                     requireActivity().finish()
                 } else {
+                    requireActivity().setResult(Activity.RESULT_OK)
                     findNavController().navigate(
                         DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
                     )

@@ -70,7 +70,7 @@ fun ListRecurringPaymentScreen(
             ) {
                 if (uiState.payments.isEmpty()) {
                     NcCircleImage(
-                        resId = R.drawable.ic_pending_transaction,
+                        resId = R.drawable.ic_new_pending_transaction,
                         modifier = Modifier
                             .padding(top = 16.dp)
                             .align(CenterHorizontally),

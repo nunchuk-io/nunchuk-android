@@ -29,7 +29,7 @@ fun NcNumberInputField(
         value = value,
         onValueChange = { s ->
             if (s.all { it.isDigit() || (allowDecimal && it == decimalCharacter) }) {
-                onValueChange(s)
+                onValueChange(s.take(15))
             }
         },
         keyboardOptions = KeyboardOptions(

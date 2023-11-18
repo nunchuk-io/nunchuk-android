@@ -11,7 +11,7 @@ import kotlinx.parcelize.Parcelize
 data class RecurringPaymentConfig(
     val name: String = "",
     val amount: String = "",
-    val unit: SpendingCurrencyUnit = SpendingCurrencyUnit.USD,
+    val unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     val useAmount: Boolean = true,
     val calculatePercentageJustInTime: Boolean? = false,
     val bsms: String? = null,

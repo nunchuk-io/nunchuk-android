@@ -63,7 +63,7 @@ fun PaymentAmountRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentAmountScreen(
-    unit: SpendingCurrencyUnit = SpendingCurrencyUnit.USD,
+    unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     amount: String = "",
     useAmount: Boolean = true,
     onAmountChange: (String) -> Unit = {},

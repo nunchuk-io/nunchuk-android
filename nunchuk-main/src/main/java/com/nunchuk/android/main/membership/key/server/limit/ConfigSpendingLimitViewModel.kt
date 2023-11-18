@@ -108,7 +108,7 @@ sealed class ConfigSpendingLimitEvent {
 }
 
 fun SpendingCurrencyUnit.toLabel(context: Context) = when (this) {
-    SpendingCurrencyUnit.USD -> context.getString(R.string.nc_currency_usd)
+    SpendingCurrencyUnit.CURRENCY_UNIT -> context.getString(R.string.nc_currency_usd)
     SpendingCurrencyUnit.BTC -> context.getString(R.string.nc_currency_btc)
     SpendingCurrencyUnit.sat -> context.getString(R.string.nc_currency_sat)
 }

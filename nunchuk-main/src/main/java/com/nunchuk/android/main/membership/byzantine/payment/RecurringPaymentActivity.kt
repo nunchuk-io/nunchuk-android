@@ -1,8 +1,10 @@
 package com.nunchuk.android.main.membership.byzantine.payment
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ComposeView
@@ -50,6 +52,12 @@ class RecurringPaymentActivity : AppCompatActivity() {
         intent.getStringExtra(WALLET_ID).orEmpty()
     }
 
+    private val signLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                finish()
+            }
+        }
     @Inject
     lateinit var navigator: NunchukNavigator
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -158,7 +166,7 @@ class RecurringPaymentActivity : AppCompatActivity() {
             userData = "",
             requiredSignatures = payload.requiredSignatures,
             type = VerificationType.SIGN_DUMMY_TX,
-            null,
+            launcher = signLauncher,
             activityContext = this@RecurringPaymentActivity,
             groupId = groupId,
             dummyTransactionId = payload.dummyTransactionId,

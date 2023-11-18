@@ -69,13 +69,13 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("key_id_or_xfp") id: String,
         @Query("derivation_path") derivationPath: String,
-        @Body payload: CreateServerKeysPayload
+        @Body payload: CreateServerKeysPayload,
     ): Data<CalculateRequiredSignaturesResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/request-add-key")
     suspend fun requestAddKey(
         @Path("group_id") groupId: String,
-        @Body payload: DesktopKeyRequest
+        @Body payload: DesktopKeyRequest,
     ): Data<RequestDesktopKeyResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/draft-wallets/request-add-key/{request_id}")
@@ -93,18 +93,18 @@ internal interface GroupWalletApi {
     @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/add-key")
     suspend fun addKeyToServer(
         @Path("group_id") groupId: String,
-        @Body payload: SignerServerDto
+        @Body payload: SignerServerDto,
     ): Data<SignerServerDto>
 
 
     @POST("/v1.1/group-wallets/groups/{group_id}/server-keys")
     suspend fun createGroupServerKey(
-        @Path("group_id") groupId: String, @Body payload: CreateServerKeysPayload
+        @Path("group_id") groupId: String, @Body payload: CreateServerKeysPayload,
     ): Data<CreateServerKeyResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/set-server-key")
     suspend fun setGroupServerKey(
-        @Path("group_id") groupId: String, @Body payload: Map<String, String>
+        @Path("group_id") groupId: String, @Body payload: Map<String, String>,
     ): Data<CreateServerKeyResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/server-keys/{key_id_or_xfp}")
@@ -143,19 +143,19 @@ internal interface GroupWalletApi {
     @POST("/v1.1/group-wallets/groups/{group_id}/members/calculate-requires-signatures")
     suspend fun calculateRequiredSignaturesEditMember(
         @Path("group_id") groupId: String,
-        @Body payload: EditGroupMemberRequest.Body
+        @Body payload: EditGroupMemberRequest.Body,
     ): Data<CalculateRequiredSignaturesResponse>
 
     @PUT("/v1.1/group-wallets/groups/{group_id}/members")
     suspend fun editGroupMember(
         @Path("group_id") groupId: String,
-        @HeaderMap headers: Map<String, String>, @Body payload: EditGroupMemberRequest
+        @HeaderMap headers: Map<String, String>, @Body payload: EditGroupMemberRequest,
     ): Data<GroupDataResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/create-from-draft")
     suspend fun createGroupWallet(
         @Path("group_id") groupId: String,
-        @Body payload: Map<String, String>
+        @Body payload: Map<String, String>,
     ): Data<CreateOrUpdateWalletResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/current")
@@ -175,7 +175,7 @@ internal interface GroupWalletApi {
     suspend fun getAlerts(
         @Path("group_id") groupId: String,
         @Query("offset") offset: Int,
-        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT
+        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT,
     ): Data<GroupAlertResponse>
 
     @PUT("/v1.1/group-wallets/groups/{group_id}/alerts/{alert_id}/mark-as-read")
@@ -192,7 +192,7 @@ internal interface GroupWalletApi {
 
     @GET("/v1.1/group-wallets/groups/{group_id}/alerts/total")
     suspend fun getAlertTotal(
-        @Path("group_id") groupId: String
+        @Path("group_id") groupId: String,
     ): Data<TotalAlertResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
@@ -220,7 +220,7 @@ internal interface GroupWalletApi {
     @POST("/v1.1/group-wallets/chat/{group_id}")
     suspend fun createGroupChat(
         @Path("group_id") groupId: String,
-        @Body payload: CreateOrUpdateGroupChatRequest
+        @Body payload: CreateOrUpdateGroupChatRequest,
     ): Data<GroupChatDataResponse>
 
     @DELETE("/v1.1/group-wallets/chat/{group_id}/current")
@@ -239,7 +239,7 @@ internal interface GroupWalletApi {
     @PUT("/v1.1/group-wallets/chat/{group_id}/current")
     suspend fun updateGroupChat(
         @Path("group_id") groupId: String,
-        @Body body: CreateOrUpdateGroupChatRequest
+        @Body body: CreateOrUpdateGroupChatRequest,
     ): Data<GroupChatDataResponse>
 
     @GET("/v1.1/group-wallets/chat/settings/history-periods")
@@ -249,13 +249,13 @@ internal interface GroupWalletApi {
     suspend fun updateWallet(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletLocalId: String,
-        @Body payload: UpdateWalletPayload
+        @Body payload: UpdateWalletPayload,
     ): Data<CreateOrUpdateWalletResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
         @Path("group_id") groupId: String,
-        @Path("wallet_id_or_local_id") walletId: String
+        @Path("wallet_id_or_local_id") walletId: String,
     ): Data<CalculateRequiredSignaturesResponse>
 
     @HTTP(
@@ -267,14 +267,14 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @HeaderMap headers: Map<String, String>,
-        @Body payload: DeleteAssistedWalletRequest
+        @Body payload: DeleteAssistedWalletRequest,
     ): Data<TransactionResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/coin-control")
     suspend fun uploadCoinControlData(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
-        @Body payload: CoinDataContent
+        @Body payload: CoinDataContent,
     ): Data<Unit>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/coin-control")
@@ -302,14 +302,14 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("transaction_id") transactionId: String,
-        @Body payload: CreateOrUpdateServerTransactionRequest
+        @Body payload: CreateOrUpdateServerTransactionRequest,
     ): Data<TransactionResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions")
     suspend fun createTransaction(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
-        @Body payload: CreateOrUpdateServerTransactionRequest
+        @Body payload: CreateOrUpdateServerTransactionRequest,
     ): Data<TransactionResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/schedule")
@@ -340,7 +340,7 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("transaction_id") transactionId: String,
-        @Body payload: SignServerTransactionRequest
+        @Body payload: SignServerTransactionRequest,
     ): Data<TransactionResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/find-similar")
@@ -373,7 +373,7 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
         @Query("draft") draft: Boolean,
-        @Body request: HealthCheckRequest
+        @Body request: HealthCheckRequest,
     ): Data<DummyTransactionResponse>
 
     @GET("/v1.1/group-wallets/wallets")
@@ -387,14 +387,14 @@ internal interface GroupWalletApi {
     suspend fun getTransactionsToSync(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
-        @Query("offset") offset: Int
+        @Query("offset") offset: Int,
     ): Data<TransactionsResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
     suspend fun getTransactionsToDelete(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
-        @Query("offset") offset: Int
+        @Query("offset") offset: Int,
     ): Data<TransactionsResponse>
 
     @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}/finalize")
@@ -408,7 +408,7 @@ internal interface GroupWalletApi {
     suspend fun getConfirmedAndRejectedTransactions(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
-        @Query("offset") offset: Int
+        @Query("offset") offset: Int,
     ): Data<TransactionNoteResponse>
 
     @GET("/v1.1/group-wallets/lockdown/period")
@@ -416,12 +416,12 @@ internal interface GroupWalletApi {
 
     @POST("/v1.1/group-wallets/lockdown/lock")
     suspend fun lockdownUpdate(
-        @HeaderMap headers: Map<String, String>, @Body payload: LockdownUpdateRequest
+        @HeaderMap headers: Map<String, String>, @Body payload: LockdownUpdateRequest,
     ): Data<Unit>
 
     @POST("/v1.1/group-wallets/lockdown/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesLockdown(
-        @Body payload: LockdownUpdateRequest.Body
+        @Body payload: LockdownUpdateRequest.Body,
     ): Data<CalculateRequiredSignaturesResponse>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/recurring-payment")
@@ -445,7 +445,11 @@ internal interface GroupWalletApi {
         @Path("recurring_payment_id") recurringPaymentId: String,
     ): Data<RecurringPaymentResponse>
 
-    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/recurring-payment/{recurring_payment_id}")
+    @HTTP(
+        method = "DELETE",
+        path = "/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/recurring-payment/{recurring_payment_id}",
+        hasBody = true
+    )
     suspend fun deleteRecurringPayment(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,

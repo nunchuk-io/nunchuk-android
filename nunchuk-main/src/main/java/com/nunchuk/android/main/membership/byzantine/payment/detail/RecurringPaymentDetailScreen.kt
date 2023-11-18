@@ -21,11 +21,14 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.payment.RecurringPayment
+import com.nunchuk.android.model.payment.RecurringPaymentType
 
 @Composable
 fun RecurringPaymentDetailRoute(
@@ -75,7 +78,7 @@ fun RecurringPaymentDetailScreen(
                     modifier = Modifier.padding(innerPadding),
                     isCosign = recurringPayment.allowCosigning,
                     name = recurringPayment.name,
-                    amount = recurringPayment.amount.toString(),
+                    amount = recurringPayment.amount.formatDecimal(minFractionDigits = 0, maxFractionDigits = MIN_FRACTION_DIGITS),
                     frequency = recurringPayment.frequency,
                     startDate = recurringPayment.startDate,
                     noEndDate = recurringPayment.endDate == 0L,
@@ -83,6 +86,8 @@ fun RecurringPaymentDetailScreen(
                     feeRate = recurringPayment.feeRate,
                     addresses = recurringPayment.addresses,
                     note = recurringPayment.note,
+                    currency = recurringPayment.currency,
+                    useAmount = recurringPayment.paymentType == RecurringPaymentType.FIXED_AMOUNT,
                 )
             }
         }

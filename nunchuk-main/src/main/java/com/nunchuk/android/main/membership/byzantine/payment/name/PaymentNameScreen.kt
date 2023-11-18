@@ -82,7 +82,6 @@ fun PaymentNameScreen(
                     value = name,
                     onValueChange = onNameChange,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                    maxLines = 1
                 )
             }
         }

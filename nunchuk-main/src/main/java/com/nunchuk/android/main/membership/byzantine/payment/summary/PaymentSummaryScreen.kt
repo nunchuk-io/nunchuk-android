@@ -15,8 +15,10 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.key.toRecurringPaymentType
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
 import com.nunchuk.android.model.FeeRate
+import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.payment.PaymentFrequency
 
@@ -45,6 +47,8 @@ fun PaymentSummaryRoute(
         addresses = config.addresses,
         note = config.note,
         onSubmit = recurringPaymentViewModel::onSubmit,
+        unit = config.unit,
+        useAmount = config.useAmount,
     )
 }
 
@@ -61,6 +65,8 @@ fun PaymentSummaryScreen(
     feeRate: FeeRate = FeeRate.PRIORITY,
     addresses: List<String> = emptyList(),
     note: String = "",
+    unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
+    useAmount: Boolean = false,
 ) {
     NunchukTheme {
         Scaffold(topBar = {
@@ -89,7 +95,9 @@ fun PaymentSummaryScreen(
                 endDate = endDate,
                 feeRate = feeRate,
                 addresses = addresses,
-                note = note
+                note = note,
+                currency = unit.toRecurringPaymentType(),
+                useAmount = useAmount,
             )
         }
     }
