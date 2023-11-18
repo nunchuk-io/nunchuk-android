@@ -79,6 +79,9 @@ class AlertActionIntroFragment : Fragment() {
                             AlertType.KEY_RECOVERY_REQUEST -> {
                                 getString(R.string.nc_cancel_this_change)
                             }
+                            AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> {
+                               getString(R.string.nc_cancel_recurring_payment_desc)
+                            }
                             else -> {
                                 getString(R.string.nc_cancel_health_check_request)
                             }
@@ -158,7 +161,8 @@ private fun AlertActionIntroContent(
     val cancelButton = when (alert.type) {
         AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
         AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_deny)
-        AlertType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_cancel)
+        AlertType.KEY_RECOVERY_REQUEST, AlertType.RECURRING_PAYMENT_CANCELATION_PENDING
+        -> stringResource(R.string.nc_cancel)
         else -> stringResource(id = R.string.nc_cancel_request)
     }
 

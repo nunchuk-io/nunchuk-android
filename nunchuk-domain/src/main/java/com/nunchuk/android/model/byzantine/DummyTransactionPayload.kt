@@ -29,6 +29,7 @@ enum class DummyTransactionType : Parcelable {
     REQUEST_INHERITANCE_PLANNING,
     KEY_RECOVERY_REQUEST,
     CREATE_RECURRING_PAYMENT,
+    CANCEL_RECURRING_PAYMENT
 }
 
 fun DummyTransactionType.isInheritanceFlow() =

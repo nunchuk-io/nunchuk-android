@@ -468,7 +468,9 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 groupId = args.groupId,
                 sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
             )
-        } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST) {
+        } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST
+            || alert.type == AlertType.RECURRING_PAYMENT_CANCELATION_PENDING
+        ) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
                     args.groupId,

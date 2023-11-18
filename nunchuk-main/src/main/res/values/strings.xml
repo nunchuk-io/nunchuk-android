@@ -272,4 +272,6 @@
     <string name="nc_the_recurring_payment_has_been_approved">The recurring payment has been approved</string>
     <string name="nc_cancel_this_payment">Cancel this payment</string>
     <string name="nc_delete_recurring_payment_message">Are you sure you want to cancel this recurring payment?</string>
+    <string name="nc_cancel_recurring_payment_desc">Are you sure you want to cancel pending cancellation of recurring payments?</string>
+    <string name="nc_pending_cancellation_has_been_cancelled">Pending cancellation has been cancelled</string>
 </resources>
