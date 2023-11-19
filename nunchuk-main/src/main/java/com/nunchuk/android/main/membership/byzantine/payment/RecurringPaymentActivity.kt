@@ -7,7 +7,9 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.addWhitelistAddress
@@ -15,7 +17,7 @@ import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.n
 import com.nunchuk.android.main.membership.byzantine.payment.amount.addPaymentAmount
 import com.nunchuk.android.main.membership.byzantine.payment.amount.navigateToPaymentAmount
 import com.nunchuk.android.main.membership.byzantine.payment.cosign.addPaymentCosignScreen
-import com.nunchuk.android.main.membership.byzantine.payment.cosign.navigatePaymentCosign
+import com.nunchuk.android.main.membership.byzantine.payment.cosign.navigateToPaymentCosign
 import com.nunchuk.android.main.membership.byzantine.payment.detail.addRecurringPaymentDetail
 import com.nunchuk.android.main.membership.byzantine.payment.detail.navigateToRecurringPaymentDetail
 import com.nunchuk.android.main.membership.byzantine.payment.feerate.addPaymentFeeRateScreen
@@ -66,6 +68,7 @@ class RecurringPaymentActivity : AppCompatActivity() {
             ComposeView(this).apply {
                 setContent {
                     val navController = rememberNavController()
+                    val state by viewModel.state.collectAsStateWithLifecycle()
                     NavHost(
                         navController = navController,
                         startDestination = "recurring_payment/${groupId}/${walletId}"
@@ -144,7 +147,11 @@ class RecurringPaymentActivity : AppCompatActivity() {
                         addPaymentFeeRateScreen(
                             recurringPaymentViewModel = viewModel,
                             openPaymentCosignScreen = {
-                                navController.navigatePaymentCosign()
+                                if (state.hasServerKey) {
+                                    navController.navigateToPaymentCosign()
+                                } else {
+                                    navController.navigateToPaymentNote()
+                                }
                             },
                         )
                         addPaymentSummary(

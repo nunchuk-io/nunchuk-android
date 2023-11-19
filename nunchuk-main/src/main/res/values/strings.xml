@@ -216,7 +216,7 @@
     <string name="nc_payment_name">Payment name</string>
     <string name="nc_please_enter_the_amount_for_the_payment">Please enter the amount for the payment.</string>
     <string name="nc_fixed_amount">Fixed amount</string>
-    <string name="nc_please_enter_a_percentage">Please enter a percentage.</string>
+    <string name="nc_enter_a_percentage">Enter a percentage</string>
     <string name="nc_use_percentage">Use percentage</string>
     <string name="nc_use_fixed_amount">Use fixed amount</string>
     <string name="nc_please_specify_the_destination">Please specify the destination for the payment.</string>
@@ -274,4 +274,5 @@
     <string name="nc_delete_recurring_payment_message">Are you sure you want to cancel this recurring payment?</string>
     <string name="nc_cancel_recurring_payment_desc">Are you sure you want to cancel pending cancellation of recurring payments?</string>
     <string name="nc_pending_cancellation_has_been_cancelled">Pending cancellation has been cancelled</string>
+    <string name="nc_please_enter_a_percentage">Please enter a percentage.</string>
 </resources>

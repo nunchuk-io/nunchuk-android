@@ -17,7 +17,9 @@ import com.nunchuk.android.model.payment.PaymentDestinationType
 import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.premier.CreateRecurringPaymentUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +33,7 @@ class RecurringPaymentViewModel @Inject constructor(
     private val application: Application,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val createRecurringPaymentUseCase: CreateRecurringPaymentUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val groupId = savedStateHandle.get<String>(RecurringPaymentActivity.GROUP_ID).orEmpty()
@@ -45,6 +48,18 @@ class RecurringPaymentViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(RecurringPaymentUiState())
     val state = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                _state.update {
+                    it.copy(
+                        hasServerKey = wallet.signers.any { signer -> signer.type == SignerType.SERVER },
+                    )
+                 }
+            }
+        }
+    }
 
     fun onNameChange(name: String) {
         _config.update {
@@ -188,6 +203,14 @@ class RecurringPaymentViewModel @Inject constructor(
         _state.update {
             it.copy(
                 openDummyTransactionScreen = null,
+            )
+        }
+    }
+
+    fun onErrorMessageShown() {
+        _state.update {
+            it.copy(
+                errorMessage = null,
             )
         }
     }

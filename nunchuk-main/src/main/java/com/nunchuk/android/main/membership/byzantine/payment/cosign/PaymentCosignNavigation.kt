@@ -20,7 +20,7 @@ fun NavGraphBuilder.addPaymentCosignScreen(
     }
 }
 
-fun NavController.navigatePaymentCosign(
+fun NavController.navigateToPaymentCosign(
     navOptions: NavOptions? = null
 ) {
     navigate(paymentCosignRoute, navOptions)

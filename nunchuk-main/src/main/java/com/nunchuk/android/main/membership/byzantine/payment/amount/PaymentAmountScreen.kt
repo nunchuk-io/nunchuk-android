@@ -48,6 +48,7 @@ fun PaymentAmountRoute(
     openSelectAddressTypeScreen: () -> Unit,
 ) {
     val config by recurringPaymentViewModel.config.collectAsStateWithLifecycle()
+
     PaymentAmountScreen(
         openCalculateScreen = openCalculateScreen,
         openSelectAddressTypeScreen = openSelectAddressTypeScreen,
@@ -119,7 +120,8 @@ fun PaymentAmountScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(R.string.nc_please_enter_the_amount_for_the_payment),
+                    text = if (useAmount) stringResource(R.string.nc_please_enter_the_amount_for_the_payment)
+                    else stringResource(R.string.nc_please_enter_a_percentage),
                     style = NunchukTheme.typography.body,
                 )
 
@@ -129,7 +131,7 @@ fun PaymentAmountScreen(
                             .padding(top = 16.dp)
                             .weight(2f),
                         title = if (useAmount) stringResource(R.string.nc_fixed_amount)
-                        else stringResource(R.string.nc_please_enter_a_percentage),
+                        else stringResource(R.string.nc_enter_a_percentage),
                         value = amount,
                         onValueChange = { s -> onAmountChange(CurrencyFormatter.format(s, 2)) },
                         allowDecimal = unit != SpendingCurrencyUnit.sat && useAmount,
