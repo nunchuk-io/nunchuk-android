@@ -69,7 +69,13 @@ class RecurringPaymentRequestReviewFragment : Fragment() {
                         )
                         findNavController().popBackStack(R.id.groupDashboardFragment, false)
                     },
-                    deleteRecurringPayment = viewModel::deleteDummyTransaction)
+                    deleteRecurringPayment = viewModel::deleteDummyTransaction,
+                    openQRDetailScreen = { address ->
+                        findNavController().navigate(
+                            RecurringPaymentRequestReviewFragmentDirections.actionRecurringPaymentRequestReviewFragmentToQrDetailFragment(address)
+                        )
+                    }
+                )
             }
         }
     }
@@ -97,6 +103,7 @@ private fun RecurringPaymentRequestReviewContent(
     pendingSignatures: Int = 0,
     openDummyTransactionScreen: () -> Unit = {},
     deleteRecurringPayment: () -> Unit = {},
+    openQRDetailScreen: (address: String) -> Unit,
 ) {
     NunchukTheme {
         Scaffold(
@@ -141,7 +148,10 @@ private fun RecurringPaymentRequestReviewContent(
                 modifier = Modifier.padding(innerPadding),
                 isCosign = recurringPayment.allowCosigning,
                 name = recurringPayment.name,
-                amount = recurringPayment.amount.formatDecimal(minFractionDigits = 0, maxFractionDigits = MIN_FRACTION_DIGITS),
+                amount = recurringPayment.amount.formatDecimal(
+                    minFractionDigits = 0,
+                    maxFractionDigits = MIN_FRACTION_DIGITS
+                ),
                 frequency = recurringPayment.frequency,
                 startDate = recurringPayment.startDate,
                 noEndDate = recurringPayment.endDate == 0L,
@@ -151,6 +161,7 @@ private fun RecurringPaymentRequestReviewContent(
                 note = recurringPayment.note,
                 currency = recurringPayment.currency,
                 useAmount = recurringPayment.paymentType == RecurringPaymentType.FIXED_AMOUNT,
+                openQRDetailScreen = openQRDetailScreen
             )
         }
     }
@@ -161,5 +172,5 @@ private fun RecurringPaymentRequestReviewContent(
 private fun RecurringPaymentRequestReviewScreenPreview(
     @PreviewParameter(RecurringPaymentProvider::class) recurringPayment: RecurringPayment,
 ) {
-    RecurringPaymentRequestReviewContent(recurringPayment = recurringPayment)
+    RecurringPaymentRequestReviewContent(recurringPayment = recurringPayment, openQRDetailScreen = {})
 }

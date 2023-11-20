@@ -316,6 +316,22 @@
         <argument
             android:name="recurring_payment"
             app:argType="com.nunchuk.android.model.payment.RecurringPayment" />
+        <action
+            android:id="@+id/action_recurringPaymentRequestReviewFragment_to_qrDetailFragment"
+            app:destination="@id/qrDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            />
+    </fragment>
+    <fragment
+        android:id="@+id/qrDetailFragment"
+        android:name="com.nunchuk.android.main.membership.byzantine.groupdashboard.payment.QrDetailFragment"
+        android:label="QrDetailFragment" >
+        <argument
+            android:name="address"
+            app:argType="string" />
     </fragment>
 
 
