@@ -627,14 +627,24 @@ private fun ConfigItem(
                 text = item.type.getLabel(LocalContext.current),
                 style = NunchukTheme.typography.body
             )
-            if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) {
-                NcTag(
-                    modifier = Modifier.padding(top = 4.dp),
-                    label = stringResource(R.string.nc_inheritance),
-                    backgroundColor = colorResource(
-                        id = R.color.nc_whisper_color
-                    ),
-                )
+            Row (modifier = Modifier.padding(top = 4.dp)) {
+                if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) {
+                    NcTag(
+                        label = stringResource(R.string.nc_inheritance),
+                        backgroundColor = colorResource(
+                            id = R.color.nc_whisper_color
+                        ),
+                    )
+                }
+                if (item.signer?.isShowAcctX() == true) {
+                    NcTag(
+                        modifier = Modifier.padding(start = if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) 4.dp else 0.dp),
+                        label = stringResource(R.string.nc_acct_x, item.signer.index),
+                        backgroundColor = colorResource(
+                            id = R.color.nc_whisper_color
+                        ),
+                    )
+                }
             }
         }
         if (onAddClicked != null) {
