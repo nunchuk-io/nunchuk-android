@@ -44,4 +44,6 @@ data class PayloadResponse(
     val claimKey: Boolean = false,
     @SerializedName("key_xfp")
     val keyXfp: String? = null,
+    @SerializedName("payment_name")
+    val paymentName: String? = null
 )

@@ -2,6 +2,7 @@ package com.nunchuk.android.core.data.model.payment
 
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.payment.RecurringPayment
+import com.nunchuk.android.model.payment.RecurringPaymentType
 import com.nunchuk.android.model.payment.toPaymentCalculationMethod
 import com.nunchuk.android.model.payment.toPaymentDestinationType
 import com.nunchuk.android.model.payment.toPaymentFrequency
@@ -55,21 +56,27 @@ internal data class DestinationPayload(
     val currentIndex: Int = 0,
 )
 
-internal fun RecurringPaymentDto.toModel() = RecurringPayment(
-    name = name.orEmpty(),
-    paymentType = paymentType.toRecurringPaymentType,
-    destinationType = destinationType.toPaymentDestinationType,
-    frequency = frequency.toPaymentFrequency,
-    startDate = startDateMillis,
-    endDate = endDateMillis ?: 0L,
-    allowCosigning = allowCosigning ?: false,
-    note = transactionNote.orEmpty(),
-    amount = paymentPayload?.value ?: 0.0,
-    currency = paymentPayload?.currency,
-    calculationMethod = paymentPayload?.calculationMethod.toPaymentCalculationMethod,
-    addresses = destinationPayload?.addresses.orEmpty(),
-    bsms = destinationPayload?.bsms,
-    id = id,
-    feeRate = feeRate.toFeeRate
-)
+internal fun RecurringPaymentDto.toModel() : RecurringPayment {
+    val amount = paymentPayload?.value ?: 0.0
+    val paymentType = paymentType.toRecurringPaymentType
+    val formatAmount =
+        if (paymentType == RecurringPaymentType.PERCENTAGE) amount.times(100.0) else amount
+    return RecurringPayment(
+        name = name.orEmpty(),
+        paymentType = paymentType,
+        destinationType = destinationType.toPaymentDestinationType,
+        frequency = frequency.toPaymentFrequency,
+        startDate = startDateMillis,
+        endDate = endDateMillis ?: 0L,
+        allowCosigning = allowCosigning,
+        note = transactionNote.orEmpty(),
+        amount = formatAmount,
+        currency = paymentPayload?.currency,
+        calculationMethod = paymentPayload?.calculationMethod.toPaymentCalculationMethod,
+        addresses = destinationPayload?.addresses.orEmpty(),
+        bsms = destinationPayload?.bsms,
+        id = id,
+        feeRate = feeRate.toFeeRate
+    )
+}
 

@@ -32,7 +32,7 @@ import java.util.Date
 @Composable
 fun PaymentSummaryContent(
     modifier: Modifier = Modifier,
-    isCosign: Boolean,
+    isCosign: Boolean?,
     name: String,
     amount: String,
     frequency: PaymentFrequency,
@@ -51,7 +51,7 @@ fun PaymentSummaryContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        if (isCosign) {
+        if (isCosign == true) {
             NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_payment_cosign_enable_warning))))
         }
         NcTextField(
@@ -123,17 +123,19 @@ fun PaymentSummaryContent(
             disableBackgroundColor = MaterialTheme.colorScheme.greyLight,
         )
 
-        NcTextField(
-            modifier = Modifier
-                .padding(top = 24.dp)
-                .fillMaxWidth(),
-            title = stringResource(R.string.nc_allow_platform_key_to_co_sign),
-            value = if (isCosign) stringResource(id = R.string.nc_text_yes)
-            else stringResource(id = R.string.nc_text_no),
-            onValueChange = {},
-            enabled = false,
-            disableBackgroundColor = MaterialTheme.colorScheme.greyLight,
-        )
+        if (isCosign != null) {
+            NcTextField(
+                modifier = Modifier
+                    .padding(top = 24.dp)
+                    .fillMaxWidth(),
+                title = stringResource(R.string.nc_allow_platform_key_to_co_sign),
+                value = if (isCosign) stringResource(id = R.string.nc_text_yes)
+                else stringResource(id = R.string.nc_text_no),
+                onValueChange = {},
+                enabled = false,
+                disableBackgroundColor = MaterialTheme.colorScheme.greyLight,
+            )
+        }
 
         if (addresses.isNotEmpty()) {
             Text(

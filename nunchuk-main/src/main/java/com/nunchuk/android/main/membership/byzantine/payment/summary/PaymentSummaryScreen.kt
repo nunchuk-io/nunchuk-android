@@ -55,7 +55,7 @@ fun PaymentSummaryRoute(
     }
 
     PaymentSummaryScreen(
-        isCosign = config.isCosign == true,
+        isCosign = config.isCosign,
         name = config.name,
         amount = config.amount,
         frequency = config.frequency ?: PaymentFrequency.DAILY,
@@ -75,7 +75,7 @@ fun PaymentSummaryRoute(
 @Composable
 fun PaymentSummaryScreen(
     onSubmit: () -> Unit = {},
-    isCosign: Boolean = false,
+    isCosign: Boolean? = null,
     name: String = "",
     amount: String = "",
     frequency: PaymentFrequency = PaymentFrequency.DAILY,

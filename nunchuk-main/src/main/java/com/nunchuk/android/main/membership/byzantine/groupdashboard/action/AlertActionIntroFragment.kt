@@ -172,6 +172,10 @@ private fun AlertActionIntroContent(
             state.requester?.user?.name ?: "Someone",
             state.walletName
         )
+        AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> stringResource(
+            id = R.string.nc_recurring_payment_cancelation_pending_desc,
+            alert.payload.paymentName.orEmpty()
+        )
 
         else -> alert.body
     }

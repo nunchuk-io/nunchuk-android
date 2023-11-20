@@ -133,8 +133,19 @@ fun PaymentAmountScreen(
                         title = if (useAmount) stringResource(R.string.nc_fixed_amount)
                         else stringResource(R.string.nc_enter_a_percentage),
                         value = amount,
-                        onValueChange = { s -> onAmountChange(CurrencyFormatter.format(s, 2)) },
-                        allowDecimal = unit != SpendingCurrencyUnit.sat && useAmount,
+                        onValueChange = { s ->
+                            val s = CurrencyFormatter.format(s, 2)
+                            if (useAmount) {
+                                onAmountChange(s)
+                            } else {
+                                if ((s.toDoubleOrNull() ?: 0.0) > 100.0) {
+                                    onAmountChange("100")
+                                } else {
+                                    onAmountChange(s)
+                                }
+                            }
+                        },
+                        allowDecimal = unit != SpendingCurrencyUnit.sat && useAmount || !useAmount,
                         suffix = if (useAmount) "" else "%",
                         placeholder = {
                             Text(

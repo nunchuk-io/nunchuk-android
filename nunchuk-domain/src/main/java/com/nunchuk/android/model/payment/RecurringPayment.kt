@@ -13,7 +13,7 @@ data class RecurringPayment(
     val frequency: PaymentFrequency,
     val startDate: Long,
     val endDate: Long,
-    val allowCosigning: Boolean,
+    val allowCosigning: Boolean?,
     val note: String,
     val amount: Double,
     val feeRate: FeeRate,

@@ -18,4 +18,6 @@ data class AlertPayload(
     val claimKey: Boolean,
     @SerializedName("key_xfp")
     val keyXfp: String,
+    @SerializedName("payment_name")
+    val paymentName: String? = null
 ): Parcelable

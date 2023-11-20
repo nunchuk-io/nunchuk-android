@@ -2,6 +2,7 @@ package com.nunchuk.android.core.data.model.payment
 
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.payment.RecurringPayment
+import com.nunchuk.android.model.payment.RecurringPaymentType
 
 internal data class CreateRecurringPaymentRequest(
     @SerializedName("nonce") val nonce: String? = null,
@@ -15,7 +16,7 @@ internal fun RecurringPayment.toRequest(nonce: String): CreateRecurringPaymentRe
             name = name,
             paymentType = paymentType.name,
             paymentPayload = PaymentPayload(
-                value = amount,
+                value = if (paymentType == RecurringPaymentType.PERCENTAGE) amount.div(100.0) else amount,
                 currency = currency,
                 calculationMethod = calculationMethod?.name,
             ),
