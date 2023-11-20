@@ -133,7 +133,11 @@ fun ConfirmChangeScreenContent(
                 NcTopAppBar(
                     title = title,
                     textStyle = NunchukTheme.typography.titleLarge,
-                    actions = {})
+                    actions = {
+                        if (action != TargetAction.UPDATE_SECURITY_QUESTIONS.name) {
+                            Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                        }
+                    })
             }
         ) { innerPadding ->
             Column(
