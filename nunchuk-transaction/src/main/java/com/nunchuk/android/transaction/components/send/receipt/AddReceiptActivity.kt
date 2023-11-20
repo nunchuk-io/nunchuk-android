@@ -214,7 +214,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     )
                 }
             }
-            TransactionConfirmEvent.LoadingEvent -> showLoading()
+            is TransactionConfirmEvent.LoadingEvent -> showLoading(message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else null)
             is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
             is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
             is TransactionConfirmEvent.UpdateChangeAddress -> {}

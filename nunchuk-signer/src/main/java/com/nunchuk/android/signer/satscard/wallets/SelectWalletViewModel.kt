@@ -123,7 +123,7 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     fun createInheritanceTransaction() = viewModelScope.launch {
-        _event.emit(SelectWalletEvent.Loading(true))
+        _event.emit(SelectWalletEvent.Loading(isLoading = true, isClaimInheritance = true))
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
                 address = _state.value.selectWalletAddress,
@@ -155,7 +155,7 @@ class SelectWalletViewModel @Inject constructor(
 sealed class SelectWalletEvent {
     data class GetAddressSuccess(val address: String, val isCreateTransaction: Boolean) : SelectWalletEvent()
     data class GetFeeRateSuccess(val estimateFeeRates: EstimateFeeRates) : SelectWalletEvent()
-    data class Loading(val isLoading: Boolean) : SelectWalletEvent()
+    data class Loading(val isLoading: Boolean, val isClaimInheritance: Boolean = false) : SelectWalletEvent()
     data class Error(val e: Throwable?) : SelectWalletEvent()
     data class CreateTransactionSuccessEvent(val transaction: Transaction) : SelectWalletEvent()
 }

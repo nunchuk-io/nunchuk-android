@@ -674,4 +674,5 @@
     <string name="nc_cancel_inheritance_plan_group_change_by">%1$s is requesting to cancel the inheritance plan for %1$s.</string>
     <string name="nc_no_internet_connection_try_again_later">No Internet connection. Please try again later.</string>
     <string name="nc_acct_x">Acct %1$s</string>
+    <string name="nc_withdrawal_in_progress">Withdrawal in progress...</string>
 </resources>

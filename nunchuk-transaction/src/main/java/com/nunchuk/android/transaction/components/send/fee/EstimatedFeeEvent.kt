@@ -28,7 +28,7 @@ import com.nunchuk.android.model.defaultRate
 
 sealed class EstimatedFeeEvent {
     class Loading(val isLoading: Boolean) : EstimatedFeeEvent()
-    object InvalidManualFee : EstimatedFeeEvent()
+    data object InvalidManualFee : EstimatedFeeEvent()
     data class GetFeeRateSuccess(val estimateFeeRates: EstimateFeeRates) : EstimatedFeeEvent()
     data class EstimatedFeeErrorEvent(val message: String) : EstimatedFeeEvent()
     data class EstimatedFeeCompletedEvent(
@@ -36,7 +36,7 @@ sealed class EstimatedFeeEvent {
         val subtractFeeFromAmount: Boolean,
         val manualFeeRate: Int
     ) : EstimatedFeeEvent()
-    object DraftTransactionSuccess : EstimatedFeeEvent()
+    data object DraftTransactionSuccess : EstimatedFeeEvent()
 }
 
 data class EstimatedFeeState(
