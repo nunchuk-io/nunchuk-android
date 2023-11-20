@@ -11,11 +11,13 @@ const val paymentSummaryRoute = "payment_summary"
 fun NavGraphBuilder.addPaymentSummary(
     recurringPaymentViewModel: RecurringPaymentViewModel,
     openDummyTransactionScreen: (DummyTransactionPayload) -> Unit,
+    openQRDetailScreen: (address: String) -> Unit,
 ) {
     composable(paymentSummaryRoute) {
         PaymentSummaryRoute(
             recurringPaymentViewModel = recurringPaymentViewModel,
-            openDummyTransactionScreen = openDummyTransactionScreen
+            openDummyTransactionScreen = openDummyTransactionScreen,
+            openQRDetailScreen = openQRDetailScreen
         )
     }
 }

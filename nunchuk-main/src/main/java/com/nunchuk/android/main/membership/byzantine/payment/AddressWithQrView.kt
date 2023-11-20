@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,6 +27,7 @@ import com.nunchuk.android.core.qr.convertToQRCode
 @Composable
 fun AddressWithQrView(
     address: String = "",
+    openQRDetailScreen: (address: String) -> Unit = {},
 ) {
     val qrSize = with(LocalDensity.current) { 40.dp.toPx().toInt() }
     val qrCode = produceState<Bitmap?>(initialValue = null, address) {
@@ -38,6 +40,7 @@ fun AddressWithQrView(
                 color = MaterialTheme.colorScheme.greyLight,
                 shape = NunchukTheme.shape.medium
             )
+            .clickable { openQRDetailScreen(address) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

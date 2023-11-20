@@ -44,6 +44,7 @@ fun PaymentSummaryContent(
     note: String,
     currency: String?,
     useAmount: Boolean,
+    openQRDetailScreen: (address: String) -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -144,7 +145,7 @@ fun PaymentSummaryContent(
                 style = NunchukTheme.typography.title,
             )
             addresses.forEach { address ->
-                AddressWithQrView(address)
+                AddressWithQrView(address, openQRDetailScreen = openQRDetailScreen)
             }
         } else {
 

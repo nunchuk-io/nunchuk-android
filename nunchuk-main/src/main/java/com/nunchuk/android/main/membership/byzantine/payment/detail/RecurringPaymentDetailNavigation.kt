@@ -12,6 +12,7 @@ const val recurringPaymentDetailRoute =
 
 fun NavGraphBuilder.addRecurringPaymentDetail(
     onOpenDummyTransaction: (DummyTransactionPayload) -> Unit,
+    openQRDetailScreen: (address: String) -> Unit = {},
 ) {
     composable(
         recurringPaymentDetailRoute,
@@ -27,7 +28,7 @@ fun NavGraphBuilder.addRecurringPaymentDetail(
             },
         )
     ) {
-        RecurringPaymentDetailRoute(onOpenDummyTransaction = onOpenDummyTransaction)
+        RecurringPaymentDetailRoute(onOpenDummyTransaction = onOpenDummyTransaction, openQRDetailScreen = openQRDetailScreen)
     }
 }
 

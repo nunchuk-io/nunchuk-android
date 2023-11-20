@@ -31,6 +31,8 @@ import com.nunchuk.android.main.membership.byzantine.payment.note.addPaymentNote
 import com.nunchuk.android.main.membership.byzantine.payment.note.navigateToPaymentNote
 import com.nunchuk.android.main.membership.byzantine.payment.paymentpercentage.addPaymentPercentageCalculation
 import com.nunchuk.android.main.membership.byzantine.payment.paymentpercentage.navigateToPaymentPercentageCalculation
+import com.nunchuk.android.main.membership.byzantine.payment.qr.addQRDetail
+import com.nunchuk.android.main.membership.byzantine.payment.qr.navigateToQRDetail
 import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.addPaymentSelectAddressType
 import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.navigateToPaymentSelectAddressType
 import com.nunchuk.android.main.membership.byzantine.payment.summary.addPaymentSummary
@@ -154,13 +156,18 @@ class RecurringPaymentActivity : AppCompatActivity() {
                                 }
                             },
                         )
+                        addQRDetail()
                         addPaymentSummary(
                             recurringPaymentViewModel = viewModel,
                             openDummyTransactionScreen = ::openWalletAuthentication,
+                            openQRDetailScreen = { navController.navigateToQRDetail(it) }
                         )
                         addRecurringPaymentDetail(
                             onOpenDummyTransaction = ::openWalletAuthentication,
+                            openQRDetailScreen = {navController.navigateToQRDetail(it)}
+
                         )
+
                     }
                 }
             }

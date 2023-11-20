@@ -45,22 +45,24 @@ fun PaymentNameScreen(
     openPaymentAmountScreen: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                title = stringResource(R.string.nc_add_recurring_payments),
-                textStyle = NunchukTheme.typography.titleLarge,
-            )
-        }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                onClick = openPaymentAmountScreen,
-                enabled = name.isNotEmpty()
-            ) {
-                Text(text = stringResource(R.string.nc_text_continue))
-            }
-        }) { innerPadding ->
+        Scaffold(
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_add_recurring_payments),
+                    textStyle = NunchukTheme.typography.titleLarge,
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    onClick = openPaymentAmountScreen,
+                    enabled = name.isNotEmpty()
+                ) {
+                    Text(text = stringResource(R.string.nc_text_continue))
+                }
+            }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -81,7 +83,10 @@ fun PaymentNameScreen(
                     title = stringResource(R.string.nc_payment_name),
                     value = name,
                     onValueChange = onNameChange,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
                 )
             }
         }

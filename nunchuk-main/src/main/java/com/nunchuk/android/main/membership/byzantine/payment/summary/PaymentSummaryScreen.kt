@@ -32,6 +32,7 @@ import com.nunchuk.android.model.payment.PaymentFrequency
 fun PaymentSummaryRoute(
     recurringPaymentViewModel: RecurringPaymentViewModel,
     openDummyTransactionScreen: (DummyTransactionPayload) -> Unit,
+    openQRDetailScreen: (address: String) -> Unit,
 ) {
     val config by recurringPaymentViewModel.config.collectAsStateWithLifecycle()
     val state by recurringPaymentViewModel.state.collectAsStateWithLifecycle()
@@ -69,6 +70,7 @@ fun PaymentSummaryRoute(
         unit = config.unit,
         useAmount = config.useAmount,
         snackState = snackState,
+        openQRDetailScreen = openQRDetailScreen,
     )
 }
 
@@ -88,6 +90,7 @@ fun PaymentSummaryScreen(
     unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     useAmount: Boolean = false,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
+    openQRDetailScreen: (address: String) -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(topBar = {
@@ -121,6 +124,7 @@ fun PaymentSummaryScreen(
                 note = note,
                 currency = unit.toRecurringPaymentType(),
                 useAmount = useAmount,
+                openQRDetailScreen = openQRDetailScreen,
             )
         }
     }

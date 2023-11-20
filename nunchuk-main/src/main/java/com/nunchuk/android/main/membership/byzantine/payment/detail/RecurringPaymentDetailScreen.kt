@@ -34,6 +34,7 @@ import com.nunchuk.android.model.payment.RecurringPaymentType
 fun RecurringPaymentDetailRoute(
     viewModel: RecurringPaymentDetailViewModel = hiltViewModel(),
     onOpenDummyTransaction: (DummyTransactionPayload) -> Unit = {},
+    openQRDetailScreen: (address: String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -45,7 +46,8 @@ fun RecurringPaymentDetailRoute(
     RecurringPaymentDetailScreen(
         recurringPayment = state.recurringPayment,
         onCancelPayment = viewModel::onCancelPayment,
-        isLoading = state.isLoading
+        isLoading = state.isLoading,
+        openQRDetailScreen = openQRDetailScreen
     )
 }
 
@@ -54,6 +56,7 @@ fun RecurringPaymentDetailScreen(
     onCancelPayment: () -> Unit = {},
     recurringPayment: RecurringPayment? = null,
     isLoading: Boolean = false,
+    openQRDetailScreen: (address: String) -> Unit = {},
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     NunchukTheme {
@@ -88,6 +91,7 @@ fun RecurringPaymentDetailScreen(
                     note = recurringPayment.note,
                     currency = recurringPayment.currency,
                     useAmount = recurringPayment.paymentType == RecurringPaymentType.FIXED_AMOUNT,
+                    openQRDetailScreen = openQRDetailScreen
                 )
             }
         }
