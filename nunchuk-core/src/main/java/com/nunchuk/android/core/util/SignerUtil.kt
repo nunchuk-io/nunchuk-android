@@ -45,7 +45,7 @@ val SingleSigner.isColdCard: Boolean
 fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String {
     if (isPrimaryKey) return context.getString(R.string.nc_signer_type_primary_key)
     return when (this) {
-        AIRGAP -> context.getString(R.string.nc_signer_type_air_gapped)
+        AIRGAP -> context.getString(R.string.nc_signer_type_airgapped)
         SOFTWARE -> context.getString(R.string.nc_signer_type_software)
         HARDWARE -> context.getString(R.string.nc_signer_type_hardware)
         FOREIGN_SOFTWARE -> context.getString(R.string.nc_signer_type_foreign_software)

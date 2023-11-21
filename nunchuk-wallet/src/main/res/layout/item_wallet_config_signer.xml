@@ -75,7 +75,8 @@
         android:layout_marginTop="6dp"
         android:background="@drawable/nc_rounded_tag_whisper_background"
         android:paddingHorizontal="@dimen/nc_padding_8"
-        android:text="@string/nc_signer_air_gapped"
+        android:text="@string/nc_signer_airgapped"
+        app:layout_constraintBottom_toTopOf="@+id/xpf"
         app:layout_constraintStart_toEndOf="@+id/signerPrimaryKeyType"
         app:layout_constraintTop_toBottomOf="@+id/signerName"
         app:layout_goneMarginStart="0dp" />
@@ -91,6 +92,8 @@
         android:paddingHorizontal="@dimen/nc_padding_8"
         app:layout_constraintStart_toEndOf="@+id/signerType"
         app:layout_constraintTop_toBottomOf="@+id/signerName"
+        app:layout_constraintBottom_toTopOf="@+id/xpf"
+        app:layout_constraintBaseline_toBaselineOf="@+id/signerType"
         app:layout_goneMarginStart="0dp"
         tools:text="Acct X" />
 
