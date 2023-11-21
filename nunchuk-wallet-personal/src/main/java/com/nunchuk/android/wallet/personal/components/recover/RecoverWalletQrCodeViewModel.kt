@@ -21,6 +21,7 @@ package com.nunchuk.android.wallet.personal.components.recover
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.wallet.ParseKeystoneWalletUseCase
 import com.nunchuk.android.usecase.ImportKeystoneWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +35,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class RecoverWalletQrCodeViewModel @Inject constructor(
-    private val importKeystoneWalletUseCase: ImportKeystoneWalletUseCase
+    private val importKeystoneWalletUseCase: ImportKeystoneWalletUseCase,
+    private val parseKeystoneWalletUseCase: ParseKeystoneWalletUseCase,
 ) : NunchukViewModel<Unit, RecoverWalletQrCodeEvent>() {
 
     private var isProcessing = false
@@ -43,17 +45,28 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
 
     override val initialState = Unit
 
-    fun updateQRCode(qrData: String, description: String) {
+    fun updateQRCode(isParseOnly: Boolean, qrData: String, description: String) {
         qrDataList.add(qrData)
         if (!isProcessing) {
-            viewModelScope.launch {
-                importKeystoneWalletUseCase.execute(description = description, qrData = qrDataList.toList())
-                    .onStart { isProcessing = true }
-                    .flowOn(IO)
-                    .onException { }
-                    .flowOn(Main)
-                    .onCompletion { isProcessing = false }
-                    .collect { event(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it)) }
+            if (isParseOnly) {
+                viewModelScope.launch {
+                    parseKeystoneWalletUseCase(qrDataList.toList())
+                        .onSuccess {
+                            setEvent(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it))
+                        }
+                }
+            } else {
+                viewModelScope.launch {
+                    importKeystoneWalletUseCase.execute(
+                        description = description,
+                        qrData = qrDataList.toList()
+                    ).onStart { isProcessing = true }
+                        .flowOn(IO)
+                        .onException { }
+                        .flowOn(Main)
+                        .onCompletion { isProcessing = false }
+                        .collect { event(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it)) }
+                }
             }
         }
     }

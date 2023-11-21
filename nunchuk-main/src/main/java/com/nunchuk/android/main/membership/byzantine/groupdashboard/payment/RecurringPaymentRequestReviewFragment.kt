@@ -161,7 +161,8 @@ private fun RecurringPaymentRequestReviewContent(
                 note = recurringPayment.note,
                 currency = recurringPayment.currency,
                 useAmount = recurringPayment.paymentType == RecurringPaymentType.FIXED_AMOUNT,
-                openQRDetailScreen = openQRDetailScreen
+                openQRDetailScreen = openQRDetailScreen,
+                bsms = recurringPayment.bsms,
             )
         }
     }

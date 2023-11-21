@@ -36,5 +36,4 @@ internal class ImportKeystoneWalletUseCaseImpl @Inject constructor(
     override fun execute(qrData: List<String>, description: String) = flow {
         emit(nativeSdk.importKeystoneWallet(qrData = qrData, description = description))
     }
-
 }

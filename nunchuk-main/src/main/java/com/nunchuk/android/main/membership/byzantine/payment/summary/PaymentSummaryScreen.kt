@@ -38,9 +38,11 @@ fun PaymentSummaryRoute(
     val state by recurringPaymentViewModel.state.collectAsStateWithLifecycle()
     val snackState = remember { SnackbarHostState() }
 
-    state.openDummyTransactionScreen?.let {
-        openDummyTransactionScreen(it)
-        recurringPaymentViewModel.onOpenDummyTransactionScreenComplete()
+    LaunchedEffect(state.openDummyTransactionScreen) {
+        state.openDummyTransactionScreen?.let {
+            openDummyTransactionScreen(it)
+            recurringPaymentViewModel.onOpenDummyTransactionScreenComplete()
+        }
     }
 
     LaunchedEffect(state.errorMessage) {
@@ -71,6 +73,7 @@ fun PaymentSummaryRoute(
         useAmount = config.useAmount,
         snackState = snackState,
         openQRDetailScreen = openQRDetailScreen,
+        bsms = config.bsms,
     )
 }
 
@@ -89,6 +92,7 @@ fun PaymentSummaryScreen(
     note: String = "",
     unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     useAmount: Boolean = false,
+    bsms: String? = null,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     openQRDetailScreen: (address: String) -> Unit = {},
 ) {
@@ -125,6 +129,7 @@ fun PaymentSummaryScreen(
                 currency = unit.toRecurringPaymentType(),
                 useAmount = useAmount,
                 openQRDetailScreen = openQRDetailScreen,
+                bsms = bsms,
             )
         }
     }

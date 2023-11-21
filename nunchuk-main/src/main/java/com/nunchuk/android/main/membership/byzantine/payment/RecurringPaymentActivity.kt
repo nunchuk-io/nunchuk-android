@@ -12,6 +12,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.addPaymentWalletAddress
+import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.navigateToPaymentWalletAddress
 import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.addWhitelistAddress
 import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.navigateToWhitelistAddress
 import com.nunchuk.android.main.membership.byzantine.payment.amount.addPaymentAmount
@@ -38,8 +40,11 @@ import com.nunchuk.android.main.membership.byzantine.payment.selectmethod.naviga
 import com.nunchuk.android.main.membership.byzantine.payment.summary.addPaymentSummary
 import com.nunchuk.android.main.membership.byzantine.payment.summary.navigateToPaymentSummary
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -60,6 +65,15 @@ class RecurringPaymentActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 finish()
+            }
+        }
+
+    private val scanWalletQrLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                result.data?.parcelable<Wallet>(GlobalResultKey.WALLET)?.let { wallet ->
+                    viewModel.getBsms(wallet)
+                }
             }
         }
     @Inject
@@ -110,10 +124,13 @@ class RecurringPaymentActivity : AppCompatActivity() {
                                 navController.navigateToWhitelistAddress()
                             },
                             openScanQRCodeScreen = {
-                                navigator.openRecoverWalletQRCodeScreen(
-                                    this@RecurringPaymentActivity,
-                                    false
+                                navigator.openParseWalletQRCodeScreen(
+                                    launcher = scanWalletQrLauncher,
+                                    activityContext = this@RecurringPaymentActivity
                                 )
+                            },
+                            openBsmsScreen = {
+                                navController.navigateToPaymentWalletAddress()
                             },
                         )
                         addPaymentPercentageCalculation(
@@ -167,7 +184,13 @@ class RecurringPaymentActivity : AppCompatActivity() {
                             openQRDetailScreen = {navController.navigateToQRDetail(it)}
 
                         )
-
+                        addPaymentWalletAddress(
+                            recurringPaymentViewModel = viewModel,
+                            openPaymentFrequencyScreen = {
+                                navController.navigateToPaymentFrequency()
+                            },
+                            onOpenQrDetailScreen = { navController.navigateToQRDetail(it) }
+                        )
                     }
                 }
             }

@@ -27,6 +27,7 @@ import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.wallet.personal.databinding.ActivityImportWalletQrcodeBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -59,7 +60,7 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
-        binding.barcodeView.decodeContinuous { viewModel.updateQRCode(it.text, "") }
+        binding.barcodeView.decodeContinuous { viewModel.updateQRCode(isParseOnly, it.text, "") }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
@@ -75,7 +76,11 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
 
     private fun onImportQRCodeSuccess(event: RecoverWalletQrCodeEvent.ImportQRCodeSuccess) {
         hideLoading()
-        if (isCollaborativeWallet) {
+        if (isParseOnly) {
+            setResult(RESULT_OK, Intent().apply {
+                putExtra(GlobalResultKey.WALLET, event.wallet)
+            })
+        } else if (isCollaborativeWallet) {
             navigator.openAddRecoverSharedWalletScreen(this, event.wallet)
         } else {
             navigator.openAddRecoverWalletScreen(
@@ -106,12 +111,21 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
     private val isCollaborativeWallet: Boolean
         get() = intent.getBooleanExtra(EXTRA_COLLABORATIVE_WALLET, false)
 
+    private val isParseOnly: Boolean
+        get() = intent.getBooleanExtra(EXTRA_PARSE_ONLY, false)
+
     companion object {
         private const val EXTRA_COLLABORATIVE_WALLET = "_a"
+        private const val EXTRA_PARSE_ONLY = "_b"
         fun start(activityContext: Context, isCollaborativeWallet: Boolean) {
-            activityContext.startActivity(Intent(activityContext, RecoverWalletQrCodeActivity::class.java).apply {
+            activityContext.startActivity(buildIntent(activityContext, isCollaborativeWallet, false))
+        }
+
+        fun buildIntent(activityContext: Context, isCollaborativeWallet: Boolean, isParseOnly: Boolean): Intent {
+            return Intent(activityContext, RecoverWalletQrCodeActivity::class.java).apply {
                 putExtra(EXTRA_COLLABORATIVE_WALLET, isCollaborativeWallet)
-            })
+                putExtra(EXTRA_PARSE_ONLY, isParseOnly)
+            }
         }
     }
 

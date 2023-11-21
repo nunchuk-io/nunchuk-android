@@ -7,11 +7,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.base.MutableSaveStateFlow
 import com.nunchuk.android.core.base.update
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
+import com.nunchuk.android.core.domain.wallet.GetAddressWalletUseCase
+import com.nunchuk.android.core.domain.wallet.GetWalletBsmsUseCase
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.byzantine.key.toRecurringPaymentType
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.payment.PaymentCalculationMethod
 import com.nunchuk.android.model.payment.PaymentDestinationType
 import com.nunchuk.android.model.payment.PaymentFrequency
@@ -34,6 +38,9 @@ class RecurringPaymentViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val createRecurringPaymentUseCase: CreateRecurringPaymentUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
+    private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
+    private val getAddressWalletUseCase: GetAddressWalletUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val groupId = savedStateHandle.get<String>(RecurringPaymentActivity.GROUP_ID).orEmpty()
@@ -56,7 +63,7 @@ class RecurringPaymentViewModel @Inject constructor(
                     it.copy(
                         hasServerKey = wallet.signers.any { signer -> signer.type == SignerType.SERVER },
                     )
-                 }
+                }
             }
         }
     }
@@ -88,7 +95,54 @@ class RecurringPaymentViewModel @Inject constructor(
     fun openBsms(uri: Uri) {
         viewModelScope.launch(ioDispatcher) {
             getFileFromUri(application.contentResolver, uri, application.cacheDir)?.let {
+                val content = it.readText()
+                parseWalletDescriptorUseCase(content).onSuccess { wallet ->
+                    getBsms(wallet)
+                }.onFailure { e ->
+                    _state.update { state ->
+                        state.copy(
+                            errorMessage = e.message.orEmpty(),
+                        )
+                    }
+                }
+            }
+        }
+    }
 
+    fun getBsms(wallet: Wallet) {
+        viewModelScope.launch {
+            getWalletBsmsUseCase(wallet).onSuccess { bsms ->
+                _config.update {
+                    it.copy(bsms = bsms)
+                }
+                _state.update {
+                    it.copy(
+                        openBsmsScreen = bsms,
+                    )
+                }
+            }.onFailure { e ->
+                _state.update { state ->
+                    state.copy(
+                        errorMessage = e.message.orEmpty(),
+                    )
+                }
+            }
+            getAddressWalletUseCase(
+                GetAddressWalletUseCase.Params(
+                    wallet,
+                    0,
+                    0
+                )
+            ).onSuccess { addresses ->
+                _config.update {
+                    it.copy(addresses = addresses)
+                }
+            }.onFailure { e ->
+                _state.update { state ->
+                    state.copy(
+                        errorMessage = e.message.orEmpty(),
+                    )
+                }
             }
         }
     }
@@ -211,6 +265,14 @@ class RecurringPaymentViewModel @Inject constructor(
         _state.update {
             it.copy(
                 errorMessage = null,
+            )
+        }
+    }
+
+    fun onOpenBsmsScreenComplete() {
+        _state.update {
+            it.copy(
+                openBsmsScreen = null,
             )
         }
     }

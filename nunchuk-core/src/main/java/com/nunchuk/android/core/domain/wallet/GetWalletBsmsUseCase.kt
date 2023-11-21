@@ -17,7 +17,7 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.domain
+package com.nunchuk.android.core.domain.wallet
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Wallet
@@ -25,12 +25,12 @@ import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
-class ParseWalletDescriptorUseCase @Inject constructor(
+class GetWalletBsmsUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<String, Wallet>(ioDispatcher) {
+) : UseCase<Wallet, String>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String): Wallet {
-        return nunchukNativeSdk.parseWalletDescriptor(parameters)
+    override suspend fun execute(parameters: Wallet): String {
+        return nunchukNativeSdk.exportWalletToBsms(parameters)
     }
 }

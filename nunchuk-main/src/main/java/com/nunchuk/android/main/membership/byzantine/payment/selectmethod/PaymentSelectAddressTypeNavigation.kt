@@ -12,12 +12,14 @@ fun NavGraphBuilder.addPaymentSelectAddressType(
     recurringPaymentViewModel: RecurringPaymentViewModel,
     openWhiteListAddressScreen: () -> Unit,
     openScanQRCodeScreen: () -> Unit,
+    openBsmsScreen: () -> Unit,
 ) {
     composable(paymentSelectAddressTypeRoute) {
         PaymentSelectAddressTypeRoute(
             recurringPaymentViewModel = recurringPaymentViewModel,
             openWhiteListAddressScreen = openWhiteListAddressScreen,
             openScanQRCodeScreen = openScanQRCodeScreen,
+            openBsmsScreen = openBsmsScreen,
         )
     }
 }

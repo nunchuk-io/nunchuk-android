@@ -44,6 +44,7 @@ fun PaymentSummaryContent(
     note: String,
     currency: String?,
     useAmount: Boolean,
+    bsms: String?,
     openQRDetailScreen: (address: String) -> Unit = {},
 ) {
     Column(
@@ -138,7 +139,9 @@ fun PaymentSummaryContent(
             )
         }
 
-        if (addresses.isNotEmpty()) {
+        if (!bsms.isNullOrEmpty()) {
+
+        } else {
             Text(
                 modifier = Modifier.padding(top = 24.dp),
                 text = stringResource(R.string.nc_destination_whitelisted_addresses),
@@ -147,8 +150,6 @@ fun PaymentSummaryContent(
             addresses.forEach { address ->
                 AddressWithQrView(address, openQRDetailScreen = openQRDetailScreen)
             }
-        } else {
-
         }
 
         if (note.isNotEmpty()) {

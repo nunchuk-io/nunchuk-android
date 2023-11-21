@@ -17,20 +17,27 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.domain
+package com.nunchuk.android.core.domain.wallet
 
+import android.nfc.NdefRecord
+import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
-class ParseWalletDescriptorUseCase @Inject constructor(
+class ParseMk4WalletUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
+    private val getAppSettingUseCase: GetAppSettingUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<String, Wallet>(ioDispatcher) {
+) : UseCase<List<NdefRecord>, Wallet?>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String): Wallet {
-        return nunchukNativeSdk.parseWalletDescriptor(parameters)
+    override suspend fun execute(parameters: List<NdefRecord>): Wallet? {
+        val chain = getAppSettingUseCase(Unit).getOrThrow().chain
+        return nunchukNativeSdk.parseWalletFromMk4(
+            chain.ordinal,
+            parameters.toTypedArray(),
+        )
     }
 }
