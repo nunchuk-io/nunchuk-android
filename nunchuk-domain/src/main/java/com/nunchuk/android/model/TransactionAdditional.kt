@@ -19,10 +19,13 @@
 
 package com.nunchuk.android.model
 
+import com.nunchuk.android.type.TransactionStatus
+
 data class TransactionAdditional(
     val psbt: String,
     val subAmount: Double = 0.0,
     val fee: Double = 0.0,
     val feeRate: Double = 0.0,
-    val txId: String = ""
+    val txId: String = "",
+    val status: TransactionStatus,
 )

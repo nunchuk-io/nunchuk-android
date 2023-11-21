@@ -68,6 +68,7 @@ import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toExternalModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
+import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.manager.UserWalletApiManager
@@ -843,7 +844,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             psbt = transaction.psbt.orEmpty(),
             subAmount = response.data.subAmount ?: 0.0,
             fee = response.data.txFee ?: 0.0,
-            feeRate = response.data.txFeeRate ?: 0.0
+            feeRate = response.data.txFeeRate ?: 0.0,
+            status = transaction.status.toTransactionStatus()
         )
     }
 
@@ -994,7 +996,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val transaction =
             response.data.transaction ?: throw NullPointerException("transaction from server null")
-        return TransactionAdditional(psbt = transaction.psbt.orEmpty())
+        return TransactionAdditional(psbt = transaction.psbt.orEmpty(), status = transaction.status.toTransactionStatus())
     }
 
     override suspend fun inheritanceCheck(): InheritanceCheck {
