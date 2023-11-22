@@ -415,17 +415,11 @@ class ServicesTabViewModel @Inject constructor(
     fun getWallets(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
         val wallets =
             if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
-        return if (state.value.plan.isByzantine()) {
-            wallets.filter {
-                state.value.groups2of4Multisig.find { group ->
+        return wallets.filter {
+                it.groupId.isEmpty() || (state.value.groups2of4Multisig.find { group ->
                     group.id == it.groupId
-                } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
+                } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited)
             }
-        } else {
-            wallets.filter {
-                it.groupId.isEmpty() || byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited
-            }
-        }
     }
 
     private fun isInheritanceOwner(inheritanceOwnerId: String?): Boolean {
