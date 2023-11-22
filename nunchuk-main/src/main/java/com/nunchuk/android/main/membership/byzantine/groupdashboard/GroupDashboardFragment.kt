@@ -263,13 +263,16 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 is GroupDashboardEvent.Error -> showError(message = event.message)
                 is GroupDashboardEvent.Loading -> showOrHideLoading(event.loading)
                 is GroupDashboardEvent.GetHistoryPeriodSuccess -> {
-                    findNavController().navigate(
-                        GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
-                            periods = event.periods.toTypedArray(),
-                            groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
-                            historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty()
+                    viewModel.groupChat()?.roomId?.let { roomId ->
+                        findNavController().navigate(
+                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
+                                periods = event.periods.toTypedArray(),
+                                groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
+                                historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty(),
+                                roomId = roomId
+                            )
                         )
-                    )
+                    }
                 }
 
                 is GroupDashboardEvent.GetHealthCheckPayload -> {}
