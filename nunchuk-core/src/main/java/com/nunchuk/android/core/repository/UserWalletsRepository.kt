@@ -1749,13 +1749,25 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             val key = request?.key
             if (request?.status == "COMPLETED" && key != null) {
                 val type = nunchukNativeSdk.signerTypeFromStr(key.type.orEmpty())
-                nunchukNativeSdk.createSigner(name = key.name.orEmpty(),
-                    xpub = key.xpub.orEmpty(),
-                    publicKey = key.pubkey.orEmpty(),
-                    derivationPath = key.derivationPath.orEmpty(),
-                    masterFingerprint = key.xfp.orEmpty(),
-                    type = type,
-                    tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
+
+                val hasSigner = nunchukNativeSdk.hasSigner(
+                    SingleSigner(
+                        name = key.name.orEmpty(),
+                        xpub = key.xpub.orEmpty(),
+                        publicKey = key.pubkey.orEmpty(),
+                        derivationPath = key.derivationPath.orEmpty(),
+                        masterFingerprint = key.xfp.orEmpty(),
+                    )
+                )
+                if (!hasSigner) {
+                    nunchukNativeSdk.createSigner(name = key.name.orEmpty(),
+                        xpub = key.xpub.orEmpty(),
+                        publicKey = key.pubkey.orEmpty(),
+                        derivationPath = key.derivationPath.orEmpty(),
+                        masterFingerprint = key.xfp.orEmpty(),
+                        type = type,
+                        tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
+                }
                 membershipRepository.saveStepInfo(
                     MembershipStepInfo(
                         step = localRequest.step,
