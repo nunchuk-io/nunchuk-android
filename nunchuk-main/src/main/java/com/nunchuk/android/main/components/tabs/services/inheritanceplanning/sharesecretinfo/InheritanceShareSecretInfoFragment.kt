@@ -90,27 +90,41 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
             setContent {
                 InheritanceShareSecretInfoScreen(viewModel, args) {
                     if (args.planFlow == InheritancePlanFlow.SETUP) {
-                        showDialogInfo(args.sourceFlow)
+                        showDialogInfo()
+                    } else {
+                        handleBack()
                     }
                 }
             }
         }
     }
 
-    private fun showDialogInfo(sourceFlow: Int) {
+    private fun showDialogInfo() {
         NCInfoDialog(requireActivity()).showDialog(
             message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
             onYesClick = {
-                if (sourceFlow == InheritanceSourceFlow.GROUP_DASHBOARD) {
-                    ActivityManager.popUntil(GroupDashboardActivity::class.java)
+                handleBack()
+            }
+        )
+    }
+
+    private fun handleBack() {
+        when (args.sourceFlow) {
+            InheritanceSourceFlow.GROUP_DASHBOARD -> {
+                if (requireActivity() is GroupDashboardActivity) {
+                    findNavController().popBackStack(R.id.groupDashboardFragment, false)
                 } else {
-                    ActivityManager.popUntilRoot()
+                    ActivityManager.popUntil(GroupDashboardActivity::class.java)
                 }
-                if (sourceFlow != InheritanceSourceFlow.WIZARD) {
+            }
+            InheritanceSourceFlow.SERVICE_TAB -> requireActivity().finish()
+            else -> {
+                ActivityManager.popUntilRoot()
+                if (args.planFlow == InheritancePlanFlow.SETUP && args.sourceFlow == InheritanceSourceFlow.WIZARD) {
                     navigator.openWalletDetailsScreen(requireContext(), args.walletId)
                 }
             }
-        )
+        }
     }
 }
 
