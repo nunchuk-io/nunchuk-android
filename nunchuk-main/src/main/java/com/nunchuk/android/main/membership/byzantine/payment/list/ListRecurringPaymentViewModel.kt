@@ -22,6 +22,7 @@ class ListRecurringPaymentViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(ListRecurringPaymentUiState())
     val state = _state.asStateFlow()
+    private val _payments: MutableList<RecurringPayment> = mutableListOf()
 
     init {
         viewModelScope.launch {
@@ -31,12 +32,27 @@ class ListRecurringPaymentViewModel @Inject constructor(
                     groupId = groupId,
                 )
             ).onSuccess { payments ->
-                _state.update { it.copy(payments = payments,) }
+                _payments.addAll(payments.toMutableList())
+                _state.update { it.copy(payments = _payments) }
             }
         }
+    }
+
+    fun sort(sortBy: SortBy) {
+        val newPayments = when (sortBy) {
+            SortBy.OLDEST -> _payments.sortedBy { it.startDate }
+            SortBy.NEWEST -> _payments.sortedByDescending { it.startDate }
+            SortBy.AZ -> _payments.sortedBy { it.name }
+            SortBy.ZA -> _payments.sortedByDescending { it.name }
+            SortBy.NONE -> _payments
+
+        }
+        _state.update { state -> state.copy(payments = newPayments, sortBy = sortBy) }
+
     }
 }
 
 data class ListRecurringPaymentUiState(
     val payments: List<RecurringPayment> = emptyList(),
+    val sortBy: SortBy = SortBy.NONE,
 )

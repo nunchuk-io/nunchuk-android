@@ -281,4 +281,7 @@
     <string name="nc_recurring_payment_cancelation_pending_desc">Continue to cancel the recurring payment %1$s.</string>
     <string name="nc_authorize_this_payment">To authorize this recurring payment</string>
     <string name="nc_authorize_this_cancellation">To cancel this recurring payment</string>
+    <string name="nc_sort_title">Sort</string>
+    <string name="nc_clear_all">Clear all</string>
+    <string name="nc_sort_by_start_date">Sort by start date</string>
 </resources>
