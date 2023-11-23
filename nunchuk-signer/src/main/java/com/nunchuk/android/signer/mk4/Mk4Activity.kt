@@ -52,7 +52,9 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             ColdcardAction.CREATE -> graph.setStartDestination(R.id.mk4InfoFragment)
             ColdcardAction.RECOVER_KEY -> graph.setStartDestination(R.id.coldcardRecoverFragment)
             ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
-            ColdcardAction.RECOVER_MULTI_SIG_WALLET, -> graph.setStartDestination(R.id.mk4IntroFragment)
+            ColdcardAction.RECOVER_MULTI_SIG_WALLET,
+            ColdcardAction.PARSE_SINGLE_SIG_WALLET,
+            ColdcardAction.PARSE_MULTISIG_WALLET -> graph.setStartDestination(R.id.mk4IntroFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -73,11 +75,15 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
         private const val EXTRA_ACTION = "action"
         private const val EXTRA_GROUP_ID = "group_id"
         fun navigate(activity: Activity, isMembershipFlow: Boolean, action: ColdcardAction, groupId: String) {
-            activity.startActivity(Intent(activity, Mk4Activity::class.java).apply {
+            activity.startActivity(buildIntent(activity, isMembershipFlow, action, groupId))
+        }
+
+        fun buildIntent(activity: Activity, isMembershipFlow: Boolean, action: ColdcardAction, groupId: String): Intent {
+            return Intent(activity, Mk4Activity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
                 putExtra(EXTRA_ACTION, action)
                 putExtra(EXTRA_GROUP_ID, groupId)
-            })
+            }
         }
     }
 }

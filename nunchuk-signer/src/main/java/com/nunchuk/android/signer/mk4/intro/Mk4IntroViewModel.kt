@@ -29,6 +29,7 @@ import com.nunchuk.android.core.domain.GetMk4SingersUseCase
 import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
 import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
+import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
@@ -64,6 +65,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val importWalletFromMk4UseCase: ImportWalletFromMk4UseCase,
+    private val parseMk4WalletUseCase: ParseMk4WalletUseCase,
     private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
     private val createWallet2UseCase: CreateWallet2UseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
@@ -178,6 +180,18 @@ class Mk4IntroViewModel @Inject constructor(
             } else {
                 _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    fun parseWalletFromMk4(records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _event.emit(Mk4IntroViewEvent.NfcLoading(true))
+            parseMk4WalletUseCase(records).onSuccess {
+                _event.emit(Mk4IntroViewEvent.ParseWalletFromMk4Success(it))
+            }.onFailure {
+                _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
+            }
+            _event.emit(Mk4IntroViewEvent.NfcLoading(false))
         }
     }
 

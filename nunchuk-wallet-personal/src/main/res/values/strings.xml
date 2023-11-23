@@ -21,5 +21,6 @@
     <string name="nc_type_of_assisted_wallet">What type of assisted wallet do you want to create?</string>
     <string name="nc_group_wallet">Group wallet</string>
     <string name="nc_personal_honey_badger_wallet">Personal Honey Badger wallet</string>
+    <string name="nc_invalid_qr">Invalid QR</string>
 
 </resources>

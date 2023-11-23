@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.signer.mk4.intro
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -70,6 +72,7 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.widget.NCInfoDialog
@@ -106,7 +109,11 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         if (option.type >= WALLET_OFFSET) {
-            viewModel.createWallet(option.id.orEmpty())
+            if (action == ColdcardAction.PARSE_MULTISIG_WALLET) {
+                parseWalletSuccess(viewModel.state.value.wallets.find { it.id == option.id })
+            } else {
+                viewModel.createWallet(option.id.orEmpty())
+            }
         } else if (option.type >= SIGNER_OFFSET) {
             val signer = viewModel.mk4Signers.getOrNull(option.type - SIGNER_OFFSET) ?: return
             findNavController().navigate(
@@ -139,17 +146,29 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 is Mk4IntroViewEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
                 is Mk4IntroViewEvent.ExtractWalletsFromColdCard -> showWallets(it.wallets)
                 is Mk4IntroViewEvent.NfcLoading -> showOrHideNfcLoading(it.isLoading)
+                is Mk4IntroViewEvent.ParseWalletFromMk4Success -> parseWalletSuccess(it.wallet)
             }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4 }) {
-            viewModel.importWalletFromMk4(it.records)
+            if (action == ColdcardAction.PARSE_MULTISIG_WALLET) {
+                viewModel.parseWalletFromMk4(it.records)
+            } else {
+                viewModel.importWalletFromMk4(it.records)
+            }
             nfcViewModel.clearScanInfo()
         }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4 }) {
             viewModel.getWalletsFromColdCard(it.records)
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    private fun parseWalletSuccess(wallet: Wallet?) {
+        requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+            putExtra(GlobalResultKey.WALLET, wallet)
+        })
+        requireActivity().finish()
     }
 
     private fun showWallets(wallets: List<Wallet>) {
@@ -174,9 +193,11 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun onContinueClicked() {
-       val type = when((requireActivity() as Mk4Activity).action) {
-            ColdcardAction.RECOVER_MULTI_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
-            ColdcardAction.RECOVER_SINGLE_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
+       val type = when(action) {
+            ColdcardAction.RECOVER_MULTI_SIG_WALLET,
+            ColdcardAction.PARSE_MULTISIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
+            ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
+            ColdcardAction.PARSE_SINGLE_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
            else -> BaseNfcActivity.REQUEST_MK4_ADD_KEY
         }
         (requireActivity() as NfcActionListener).startNfcFlow(type)
@@ -192,6 +213,9 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
             fragment.show(childFragmentManager, "BottomSheetOption")
         }
     }
+
+    private val action: ColdcardAction
+        get() = (requireActivity() as Mk4Activity).action
 
     companion object {
         private const val WALLET_OFFSET = 1000000
