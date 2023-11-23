@@ -25,7 +25,6 @@ import com.google.gson.Gson
 import com.nunchuk.android.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.core.domain.membership.CreateServerWalletUseCase
 import com.nunchuk.android.core.util.isColdCard
-import com.nunchuk.android.core.util.isRemoteSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.ServerKeyExtra
@@ -37,7 +36,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
-import com.nunchuk.android.usecase.GetRemoteSignerUseCase
+import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.byzantine.CreateGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
@@ -46,13 +45,12 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
@@ -69,7 +67,7 @@ class CreateWalletViewModel @Inject constructor(
     private val gson: Gson,
     private val createServerWalletUseCase: CreateServerWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
-    private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
+    private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
     private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
     private val createGroupWalletUseCase: CreateGroupWalletUseCase,
@@ -180,10 +178,11 @@ class CreateWalletViewModel @Inject constructor(
         val serverKeyId = serverKeyId ?: return
         if (createWalletJob?.isActive == true) return
         createWalletJob = viewModelScope.launch {
+            val remoteSigners = getRemoteSignersUseCase.execute().firstOrNull().orEmpty()
             val addressType = AddressType.NATIVE_SEGWIT
             _event.emit(CreateWalletEvent.Loading(true))
             val masterSigners =
-                signers.filter { it.value.signerType == SignerType.NFC }.map { it.key }
+                signers.filter { entry -> !remoteSigners.any { it.masterFingerprint == entry.key } }.map { it.key }
             val getSingleSingerResult = getDefaultSignerFromMasterSignerUseCase(
                 GetDefaultSignerFromMasterSignerUseCase.Params(
                     masterSigners,
@@ -200,23 +199,7 @@ class CreateWalletViewModel @Inject constructor(
                 _event.emit(CreateWalletEvent.Loading(false))
                 return@launch
             }
-            val remoteSignerResults =
-                signers.filter { it.value.signerType.isRemoteSigner }
-                    .map {
-                        async {
-                            getRemoteSignerUseCase(
-                                GetRemoteSignerUseCase.Data(
-                                    it.key,
-                                    it.value.derivationPath
-                                )
-                            )
-                        }
-                    }.awaitAll()
-            if (remoteSignerResults.any { it.isFailure }) {
-                _event.emit(CreateWalletEvent.ShowError("Can not get remote signer"))
-                _event.emit(CreateWalletEvent.Loading(false))
-                return@launch
-            }
+            val remoteSigner = remoteSigners.filter { signers.containsKey(it.masterFingerprint) }
             val createServerSignerResult = createSignerUseCase(
                 CreateSignerUseCase.Params(
                     name = serverKey.name,
@@ -238,7 +221,7 @@ class CreateWalletViewModel @Inject constructor(
             val wallet = Wallet(
                 name = _state.value.walletName,
                 totalRequireSigns = 2,
-                signers = getSingleSingerResult.getOrThrow() + remoteSignerResults.mapNotNull { it.getOrNull() } + createServerSignerResult.getOrThrow(),
+                signers = getSingleSingerResult.getOrThrow() + remoteSigner + createServerSignerResult.getOrThrow(),
                 addressType = addressType,
                 escrow = false,
             )
@@ -249,7 +232,7 @@ class CreateWalletViewModel @Inject constructor(
                 createWalletUseCase.execute(
                     name = _state.value.walletName,
                     totalRequireSigns = 2,
-                    signers = getSingleSingerResult.getOrThrow() + remoteSignerResults.mapNotNull { it.getOrNull() } + createServerSignerResult.getOrThrow(),
+                    signers = getSingleSingerResult.getOrThrow() + remoteSigner + createServerSignerResult.getOrThrow(),
                     addressType = addressType,
                     isEscrow = false
                 ).flowOn(Dispatchers.IO)
