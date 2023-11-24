@@ -68,7 +68,7 @@ class RecurringPaymentActivity : AppCompatActivity() {
             }
         }
 
-    private val scanWalletQrLauncher =
+    private val scanWalletLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK && result.data != null) {
                 result.data?.parcelable<Wallet>(GlobalResultKey.WALLET)?.let { wallet ->
@@ -76,6 +76,8 @@ class RecurringPaymentActivity : AppCompatActivity() {
                 }
             }
         }
+
+
     @Inject
     lateinit var navigator: NunchukNavigator
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,6 +93,7 @@ class RecurringPaymentActivity : AppCompatActivity() {
                     ) {
                         recurringPaymentsList(
                             onOpenAddRecurringPayment = {
+                                viewModel.init()
                                 navController.navigateToPaymentName()
                             },
                             groupId = groupId,
@@ -125,12 +128,20 @@ class RecurringPaymentActivity : AppCompatActivity() {
                             },
                             openScanQRCodeScreen = {
                                 navigator.openParseWalletQRCodeScreen(
-                                    launcher = scanWalletQrLauncher,
+                                    launcher = scanWalletLauncher,
                                     activityContext = this@RecurringPaymentActivity
                                 )
                             },
                             openBsmsScreen = {
                                 navController.navigateToPaymentWalletAddress()
+                            },
+                            openScanMk4 = {
+                                navigator.startSetupMk4ForResult(
+                                    launcher = scanWalletLauncher,
+                                    activity = this@RecurringPaymentActivity,
+                                    action = it,
+                                    fromMembershipFlow = false,
+                                )
                             },
                         )
                         addPaymentPercentageCalculation(

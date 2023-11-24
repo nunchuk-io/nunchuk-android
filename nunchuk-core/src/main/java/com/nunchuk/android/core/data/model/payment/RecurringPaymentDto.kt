@@ -73,7 +73,7 @@ internal fun RecurringPaymentDto.toModel() : RecurringPayment {
         amount = formatAmount,
         currency = paymentPayload?.currency,
         calculationMethod = paymentPayload?.calculationMethod.toPaymentCalculationMethod,
-        addresses = destinationPayload?.addresses.orEmpty(),
+        addresses = destinationPayload?.addresses ?: destinationPayload?.firstAddress?.let { listOf(it) } ?: emptyList(),
         bsms = destinationPayload?.bsms,
         id = id,
         feeRate = feeRate.toFeeRate

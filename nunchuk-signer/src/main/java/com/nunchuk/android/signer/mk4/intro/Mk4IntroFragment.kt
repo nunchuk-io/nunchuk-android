@@ -71,6 +71,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
+import com.nunchuk.android.share.isParseAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
@@ -109,7 +110,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         if (option.type >= WALLET_OFFSET) {
-            if (action == ColdcardAction.PARSE_MULTISIG_WALLET) {
+            if (action.isParseAction) {
                 parseWalletSuccess(viewModel.state.value.wallets.find { it.id == option.id })
             } else {
                 viewModel.createWallet(option.id.orEmpty())
@@ -151,7 +152,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4 }) {
-            if (action == ColdcardAction.PARSE_MULTISIG_WALLET) {
+            if (action.isParseAction) {
                 viewModel.parseWalletFromMk4(it.records)
             } else {
                 viewModel.importWalletFromMk4(it.records)

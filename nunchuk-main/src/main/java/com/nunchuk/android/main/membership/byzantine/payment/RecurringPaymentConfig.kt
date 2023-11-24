@@ -13,7 +13,7 @@ data class RecurringPaymentConfig(
     val amount: String = "",
     val unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     val useAmount: Boolean = true,
-    val calculatePercentageJustInTime: Boolean? = false,
+    val calculatePercentageJustInTime: Boolean? = null,
     val bsms: String? = null,
     val addresses: List<String> = emptyList(),
     val frequency: PaymentFrequency? = null,

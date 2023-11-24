@@ -22,3 +22,6 @@ package com.nunchuk.android.share
 enum class ColdcardAction {
     CREATE, RECOVER_KEY, RECOVER_MULTI_SIG_WALLET, RECOVER_SINGLE_SIG_WALLET, PARSE_MULTISIG_WALLET, PARSE_SINGLE_SIG_WALLET
 }
+
+val ColdcardAction.isParseAction: Boolean
+    get() = this == ColdcardAction.PARSE_MULTISIG_WALLET || this == ColdcardAction.PARSE_SINGLE_SIG_WALLET

@@ -68,6 +68,10 @@ class RecurringPaymentViewModel @Inject constructor(
         }
     }
 
+    fun init() {
+        _config.value = RecurringPaymentConfig()
+    }
+
     fun onNameChange(name: String) {
         _config.update {
             it.copy(name = name)
@@ -216,7 +220,7 @@ class RecurringPaymentViewModel @Inject constructor(
             val recurringPayment = RecurringPayment(
                 name = config.value.name,
                 paymentType = if (config.value.useAmount) RecurringPaymentType.FIXED_AMOUNT else RecurringPaymentType.PERCENTAGE,
-                destinationType = if (config.value.addresses.isNotEmpty()) PaymentDestinationType.WHITELISTED_ADDRESSES else PaymentDestinationType.DESTINATION_WALLET,
+                destinationType = if (config.value.bsms.isNullOrEmpty()) PaymentDestinationType.WHITELISTED_ADDRESSES else PaymentDestinationType.DESTINATION_WALLET,
                 frequency = config.value.frequency!!,
                 startDate = config.value.startDate,
                 endDate = config.value.endDate,

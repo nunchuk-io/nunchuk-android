@@ -23,7 +23,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +58,6 @@ fun NcSelectableBottomSheet(
                         onClick = {
                             selectedIndex = index
                             scope.launch {
-                                delay(300L)
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 onSelected(index)

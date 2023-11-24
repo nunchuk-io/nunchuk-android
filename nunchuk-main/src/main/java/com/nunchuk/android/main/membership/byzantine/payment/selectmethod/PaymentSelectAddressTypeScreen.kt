@@ -30,6 +30,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
+import com.nunchuk.android.share.ColdcardAction
 
 @Composable
 fun PaymentSelectAddressTypeRoute(
@@ -37,6 +38,7 @@ fun PaymentSelectAddressTypeRoute(
     openWhiteListAddressScreen: () -> Unit,
     openScanQRCodeScreen: () -> Unit,
     openBsmsScreen: () -> Unit,
+    openScanMk4: (ColdcardAction) -> Unit,
 ) {
     val state by recurringPaymentViewModel.state.collectAsStateWithLifecycle()
 
@@ -52,6 +54,7 @@ fun PaymentSelectAddressTypeRoute(
         openScanQRCodeScreen = openScanQRCodeScreen,
         openBsms = recurringPaymentViewModel::openBsms,
         clearAddressInfo = recurringPaymentViewModel::clearAddressInfo,
+        openScanMk4 = openScanMk4,
     )
 }
 
@@ -61,12 +64,16 @@ private fun PaymentSelectAddressTypeScreen(
     openWhiteListAddressScreen: () -> Unit = {},
     openScanQRCodeScreen: () -> Unit = {},
     openBsms: (Uri) -> Unit = {},
+    openScanMk4: (ColdcardAction) -> Unit = {},
     clearAddressInfo: () -> Unit = {},
 ) {
     var useWallet by rememberSaveable {
         mutableStateOf<Boolean?>(null)
     }
     var showImportSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showMk4TypeSheet by rememberSaveable {
         mutableStateOf(false)
     }
     val openBsmsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
@@ -144,12 +151,30 @@ private fun PaymentSelectAddressTypeScreen(
                     onSelected = { pos ->
                         when (pos) {
                             0 -> openBsmsLauncher.launch("*/*")
-                            1 -> Unit
+                            1 -> showMk4TypeSheet = true
                             2 -> openScanQRCodeScreen()
                         }
                     },
                     onDismiss = {
                         showImportSheet = false
+                    }
+                )
+            }
+            if (showMk4TypeSheet) {
+                NcSelectableBottomSheet(
+                    title = stringResource(R.string.nc_which_type_wallet_you_want_import),
+                    options = listOf(
+                        stringResource(R.string.nc_single_sig_wallet),
+                        stringResource(R.string.nc_multisig_wallet),
+                    ),
+                    onSelected = { pos ->
+                        when (pos) {
+                            0 -> openScanMk4(ColdcardAction.PARSE_SINGLE_SIG_WALLET)
+                            1 -> openScanMk4(ColdcardAction.PARSE_MULTISIG_WALLET)
+                        }
+                    },
+                    onDismiss = {
+                        showMk4TypeSheet = false
                     }
                 )
             }

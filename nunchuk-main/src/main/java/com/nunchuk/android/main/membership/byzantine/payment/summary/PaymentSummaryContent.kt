@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.payment.summary
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcExpandableText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
@@ -140,7 +142,31 @@ fun PaymentSummaryContent(
         }
 
         if (!bsms.isNullOrEmpty()) {
+            Text(
+                modifier = Modifier.padding(top = 16.dp),
+                text = stringResource(R.string.nc_first_address_of_wallet),
+                style = NunchukTheme.typography.title
+            )
+            AddressWithQrView(address = addresses.first(), openQRDetailScreen)
 
+            Text(
+                modifier = Modifier.padding(top = 16.dp),
+                text = stringResource(R.string.nc_configuration_details),
+                style = NunchukTheme.typography.title,
+            )
+
+            NcExpandableText(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.greyLight,
+                        shape = NunchukTheme.shape.medium
+                    )
+                    .padding(16.dp),
+                text = bsms,
+                style = NunchukTheme.typography.body,
+                maxLines = 6
+            )
         } else {
             Text(
                 modifier = Modifier.padding(top = 24.dp),

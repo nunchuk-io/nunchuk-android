@@ -23,7 +23,7 @@ internal fun RecurringPayment.toRequest(nonce: String): CreateRecurringPaymentRe
             destinationType = destinationType.name,
             destinationPayload = DestinationPayload(
                 bsms = bsms,
-                addresses = addresses,
+                addresses = addresses.takeIf { bsms.isNullOrEmpty() },
             ),
             frequency = frequency.name,
             startDateMillis = startDate,
