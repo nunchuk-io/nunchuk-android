@@ -40,8 +40,8 @@ class ListRecurringPaymentViewModel @Inject constructor(
 
     fun sort(sortBy: SortBy) {
         val newPayments = when (sortBy) {
-            SortBy.OLDEST -> _payments.sortedBy { it.startDate }
-            SortBy.NEWEST -> _payments.sortedByDescending { it.startDate }
+            SortBy.OLDEST -> _payments.sortedByDescending { it.startDate }
+            SortBy.NEWEST -> _payments.sortedBy { it.startDate }
             SortBy.AZ -> _payments.sortedBy { it.name }
             SortBy.ZA -> _payments.sortedByDescending { it.name }
             SortBy.NONE -> _payments

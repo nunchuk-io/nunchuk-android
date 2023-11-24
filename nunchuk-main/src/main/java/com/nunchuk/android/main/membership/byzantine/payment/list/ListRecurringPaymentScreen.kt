@@ -1,14 +1,19 @@
 package com.nunchuk.android.main.membership.byzantine.payment.list
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -54,7 +60,6 @@ fun ListRecurringPaymentScreen(
     onOpenAddRecurringPayment: () -> Unit = {},
     onOpenRecurringPaymentDetail: (String) -> Unit = {},
     sortRecurringpaymentItem: (sortBy: SortBy) -> Unit = {},
-
 ) {
     var showSortOptionBottomSheet by remember {
         mutableStateOf(false)
@@ -67,11 +72,22 @@ fun ListRecurringPaymentScreen(
                     isBack = false,
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
-                        IconButton(onClick = { showSortOptionBottomSheet = true }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_sort_dark),
-                                contentDescription = " Sort Dark"
-                            )
+                        Box {
+                            IconButton(onClick = { showSortOptionBottomSheet = true }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_sort_dark),
+                                    contentDescription = " Sort Dark"
+                                )
+                            }
+                            if (uiState.sortBy != SortBy.NONE) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(top = 8.dp, end = 8.dp)
+                                        .size(12.dp)
+                                        .background(color = MaterialTheme.colorScheme.error, shape = CircleShape)
+                                        .align(Alignment.TopEnd)
+                                )
+                            }
                         }
                     },
                 )
@@ -134,5 +150,9 @@ fun ListRecurringPaymentScreen(
 @Preview(showBackground = true)
 @Composable
 private fun ListRecurringPaymentScreenPreview() {
-    ListRecurringPaymentScreen()
+    ListRecurringPaymentScreen(
+        uiState = ListRecurringPaymentUiState(
+            sortBy = SortBy.AZ,
+        )
+    )
 }
