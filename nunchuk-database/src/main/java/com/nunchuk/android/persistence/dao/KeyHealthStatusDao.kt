@@ -11,13 +11,16 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface KeyHealthStatusDao : BaseDao<KeyHealthStatusEntity> {
-    @Query("SELECT * FROM $TABLE_KEY_HEALTH_STATUS WHERE group_id = :groupId AND wallet_id = :walletId AND chat_id = :chatId AND chain = :chain")
-    fun getKeys(
-        groupId: String,
-        walletId: String,
-        chatId: String,
-        chain: Chain
-    ): Flow<List<KeyHealthStatusEntity>>
+
+    companion object {
+        const val GET_KEY_HEALTH_STATUS_STATEMENT = "SELECT * FROM $TABLE_KEY_HEALTH_STATUS WHERE group_id = :groupId AND wallet_id = :walletId AND chat_id = :chatId AND chain = :chain"
+    }
+
+    @Query(GET_KEY_HEALTH_STATUS_STATEMENT)
+    fun getKeysFlow(groupId: String, walletId: String, chatId: String, chain: Chain): Flow<List<KeyHealthStatusEntity>>
+
+    @Query(GET_KEY_HEALTH_STATUS_STATEMENT)
+    fun getKeys(groupId: String, walletId: String, chatId: String, chain: Chain): List<KeyHealthStatusEntity>
 
     @Transaction
     suspend fun updateData(

@@ -38,18 +38,9 @@ data class KeyRecoveryState(
 ) {
     fun initRowItems(): List<KeyRecoveryActionItem> {
         val items = mutableListOf<KeyRecoveryActionItem>()
-        when (plan) {
-            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
-                items.add(KeyRecoveryActionItem.StartKeyRecovery)
-                if (myUserRole == AssistedWalletRole.MASTER.name) {
-                    items.add(KeyRecoveryActionItem.UpdateRecoveryQuestion)
-                }
-            }
-
-            else -> {
-                items.add(KeyRecoveryActionItem.StartKeyRecovery)
-                items.add(KeyRecoveryActionItem.UpdateRecoveryQuestion)
-            }
+        items.add(KeyRecoveryActionItem.StartKeyRecovery)
+        if (plan == MembershipPlan.HONEY_BADGER || plan == MembershipPlan.IRON_HAND || myUserRole == AssistedWalletRole.MASTER.name) {
+            items.add(KeyRecoveryActionItem.UpdateRecoveryQuestion)
         }
         return items
     }

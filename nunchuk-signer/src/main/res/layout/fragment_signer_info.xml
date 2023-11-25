@@ -74,7 +74,7 @@
             android:layout_marginStart="@dimen/nc_padding_8"
             android:layout_marginTop="@dimen/nc_padding_4"
             android:background="@drawable/nc_rounded_tag_whisper_background"
-            android:text="@string/nc_signer_type_air_gapped"
+            android:text="@string/nc_signer_type_airgapped"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/signerPrimaryKeyType"
             app:layout_constraintTop_toBottomOf="@+id/signerName" />

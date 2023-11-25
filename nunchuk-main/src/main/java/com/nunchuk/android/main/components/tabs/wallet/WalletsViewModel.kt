@@ -610,6 +610,7 @@ internal class WalletsViewModel @Inject constructor(
     fun denyInviteMember(groupId: String) = viewModelScope.launch {
         val result = groupMemberDenyRequestUseCase(groupId)
         if (result.isSuccess) {
+            retrieveData()
             event(WalletsEvent.DenyWalletInvitationSuccess)
         } else {
             event(ShowErrorEvent(result.exceptionOrNull()))

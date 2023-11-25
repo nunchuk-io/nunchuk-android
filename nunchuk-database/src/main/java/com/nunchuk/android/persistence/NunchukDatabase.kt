@@ -26,7 +26,6 @@ import androidx.room.TypeConverters
 import com.nunchuk.android.persistence.dao.*
 import com.nunchuk.android.persistence.entity.*
 import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
-import com.nunchuk.android.persistence.spec.AutoMigrationSpec16to17
 
 @Database(
     entities = [
@@ -56,7 +55,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec16to17
         AutoMigration(from = 13, to = 14),
         AutoMigration(from = 14, to = 15),
         AutoMigration(from = 15, to = 16),
-        AutoMigration(from = 16, to = 17, AutoMigrationSpec16to17::class),
+        AutoMigration(from = 16, to = 17),
     ]
 )
 @TypeConverters(Converters::class)

@@ -27,6 +27,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
@@ -195,7 +196,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         when (event) {
             is TransactionConfirmEvent.CreateTxErrorEvent -> showCreateTransactionError(event.message)
             is TransactionConfirmEvent.CreateTxSuccessEvent -> {
+                hideLoading()
                 if (transactionConfirmViewModel.isInheritanceClaimingFlow()) {
+                    ActivityManager.popUntilRoot()
                     navigator.openTransactionDetailsScreen(
                         activityContext = this,
                         walletId = "",
@@ -214,7 +217,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     )
                 }
             }
-            TransactionConfirmEvent.LoadingEvent -> showLoading()
+            is TransactionConfirmEvent.LoadingEvent -> showLoading(message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else null)
             is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
             is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
             is TransactionConfirmEvent.UpdateChangeAddress -> {}

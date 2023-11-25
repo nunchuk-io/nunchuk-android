@@ -163,6 +163,9 @@
             android:defaultValue=""
             app:argType="string" />
 
+        <argument android:name="room_id"
+            app:argType="string" />
+
     </dialog>
 
     <fragment

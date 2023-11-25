@@ -28,6 +28,7 @@ import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
@@ -114,14 +115,16 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     verifyToken = event.token,
                     inheritance = event.inheritance,
                     flowInfo = InheritancePlanFlow.VIEW,
-                    groupId = event.groupId
+                    groupId = event.groupId,
+                    sourceFlow = InheritanceSourceFlow.SERVICE_TAB
                 )
 
                 is ServicesTabEvent.OpenSetupInheritancePlan -> navigator.openInheritancePlanningScreen(
                     walletId = event.walletId,
                     activityContext = requireContext(),
                     flowInfo = InheritancePlanFlow.SETUP,
-                    groupId = event.groupId
+                    groupId = event.groupId,
+                    sourceFlow = InheritanceSourceFlow.SERVICE_TAB
                 )
 
                 is ServicesTabEvent.CalculateRequiredSignaturesSuccess -> navigator.openWalletAuthentication(

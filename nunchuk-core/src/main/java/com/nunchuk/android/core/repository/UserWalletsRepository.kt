@@ -68,6 +68,7 @@ import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toExternalModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
+import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.manager.UserWalletApiManager
@@ -843,7 +844,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             psbt = transaction.psbt.orEmpty(),
             subAmount = response.data.subAmount ?: 0.0,
             fee = response.data.txFee ?: 0.0,
-            feeRate = response.data.txFeeRate ?: 0.0
+            feeRate = response.data.txFeeRate ?: 0.0,
+            status = transaction.status.toTransactionStatus()
         )
     }
 
@@ -994,7 +996,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val transaction =
             response.data.transaction ?: throw NullPointerException("transaction from server null")
-        return TransactionAdditional(psbt = transaction.psbt.orEmpty())
+        return TransactionAdditional(psbt = transaction.psbt.orEmpty(), status = transaction.status.toTransactionStatus())
     }
 
     override suspend fun inheritanceCheck(): InheritanceCheck {
@@ -1467,7 +1469,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>> {
-        return assistedWalletDao.getAssistedWallets().map { list ->
+        return assistedWalletDao.getAssistedWalletsFlow().map { list ->
             list.map { wallet ->
                 AssistedWalletBrief(
                     localId = wallet.localId,
@@ -1747,13 +1749,25 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             val key = request?.key
             if (request?.status == "COMPLETED" && key != null) {
                 val type = nunchukNativeSdk.signerTypeFromStr(key.type.orEmpty())
-                nunchukNativeSdk.createSigner(name = key.name.orEmpty(),
-                    xpub = key.xpub.orEmpty(),
-                    publicKey = key.pubkey.orEmpty(),
-                    derivationPath = key.derivationPath.orEmpty(),
-                    masterFingerprint = key.xfp.orEmpty(),
-                    type = type,
-                    tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
+
+                val hasSigner = nunchukNativeSdk.hasSigner(
+                    SingleSigner(
+                        name = key.name.orEmpty(),
+                        xpub = key.xpub.orEmpty(),
+                        publicKey = key.pubkey.orEmpty(),
+                        derivationPath = key.derivationPath.orEmpty(),
+                        masterFingerprint = key.xfp.orEmpty(),
+                    )
+                )
+                if (!hasSigner) {
+                    nunchukNativeSdk.createSigner(name = key.name.orEmpty(),
+                        xpub = key.xpub.orEmpty(),
+                        publicKey = key.pubkey.orEmpty(),
+                        derivationPath = key.derivationPath.orEmpty(),
+                        masterFingerprint = key.xfp.orEmpty(),
+                        type = type,
+                        tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
+                }
                 membershipRepository.saveStepInfo(
                     MembershipStepInfo(
                         step = localRequest.step,
@@ -1842,7 +1856,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getGroups(): Flow<List<ByzantineGroup>> =
-        groupDao.getGroups(chatId = accountManager.getAccount().chatId, chain = chain.value)
+        groupDao.getGroupsFlow(chatId = accountManager.getAccount().chatId, chain = chain.value)
             .map { group ->
                 val groups = group.map { group ->
                     group.toByzantineGroup()
@@ -1858,6 +1872,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.groupWalletApi.getGroups()
         val groupAssistedKeys = mutableSetOf<String>()
         val groups = response.data.groups.orEmpty()
+        val groupIds = groups.asSequence().map { it.id.orEmpty() }.toSet()
         if (groups.isNotEmpty()) {
             groups.forEach {
                 when (it.status) {
@@ -1871,10 +1886,23 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
+        val isDeletedWallet = deleteAssistedWallets(groupIds)
         ncDataStore.setGroupAssistedKey(groupAssistedKeys)
         syncer.syncGroups(groups)
 
-        return groups.isNotEmpty()
+        return groups.isNotEmpty() || isDeletedWallet
+    }
+
+    private suspend fun deleteAssistedWallets(groupIds: Set<String>): Boolean {
+        val localGroupWallets = assistedWalletDao.getAssistedWallets().filter { it.groupId.isNotEmpty() }
+        val deleteGroupIds = localGroupWallets.map { it.groupId }.filter { groupId -> groupIds.isEmpty() || groupIds.contains(groupId).not() }
+        assistedWalletDao.deletes(localGroupWallets.filter { deleteGroupIds.contains(it.groupId) })
+
+        localGroupWallets.filter { deleteGroupIds.contains(it.groupId) }
+            .map { it.localId }.forEach { localId ->
+                nunchukNativeSdk.deleteWallet(localId)
+            }
+        return deleteGroupIds.isNotEmpty()
     }
 
     override fun getGroup(groupId: String): Flow<ByzantineGroup> {
@@ -2008,7 +2036,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getAlerts(groupId: String): Flow<List<Alert>> {
-        return alertDao.getAlerts(groupId, chatId = accountManager.getAccount().chatId, chain.value)
+        return alertDao.getAlertsFlow(groupId, chatId = accountManager.getAccount().chatId, chain.value)
             .map { alerts ->
                 alerts.map { alert ->
                     alert.toAlert()

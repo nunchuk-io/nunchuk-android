@@ -65,6 +65,7 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
@@ -88,26 +89,42 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
             setContent {
                 InheritanceShareSecretInfoScreen(viewModel, args) {
-                    showDialogInfo(args.sourceFlow)
+                    if (args.planFlow == InheritancePlanFlow.SETUP) {
+                        showDialogInfo()
+                    } else {
+                        handleBack()
+                    }
                 }
             }
         }
     }
 
-    private fun showDialogInfo(sourceFlow: Int) {
+    private fun showDialogInfo() {
         NCInfoDialog(requireActivity()).showDialog(
             message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
             onYesClick = {
-                if (sourceFlow == InheritanceSourceFlow.GROUP_DASHBOARD) {
+                handleBack()
+            }
+        )
+    }
+
+    private fun handleBack() {
+        when (args.sourceFlow) {
+            InheritanceSourceFlow.GROUP_DASHBOARD -> {
+                if (requireActivity() is GroupDashboardActivity) {
                     findNavController().popBackStack(R.id.groupDashboardFragment, false)
                 } else {
-                    ActivityManager.popUntilRoot()
+                    ActivityManager.popUntil(GroupDashboardActivity::class.java)
                 }
-                if (sourceFlow != InheritanceSourceFlow.NONE) {
+            }
+            InheritanceSourceFlow.SERVICE_TAB -> requireActivity().finish()
+            else -> {
+                ActivityManager.popUntilRoot()
+                if (args.planFlow == InheritancePlanFlow.SETUP && args.sourceFlow == InheritanceSourceFlow.WIZARD) {
                     navigator.openWalletDetailsScreen(requireContext(), args.walletId)
                 }
             }
-        )
+        }
     }
 }
 

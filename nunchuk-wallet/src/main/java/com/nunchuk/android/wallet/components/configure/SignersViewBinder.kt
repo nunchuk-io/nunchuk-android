@@ -66,5 +66,9 @@ internal class SignersViewBinder(
             )
         }
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
+        binding.acctX.apply {
+            isVisible = model.isShowAcctX()
+            text = String.format(context.getString(R.string.nc_acct_x), model.index)
+        }
     }
 }

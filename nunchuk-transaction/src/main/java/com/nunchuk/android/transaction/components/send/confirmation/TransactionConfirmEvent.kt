@@ -25,7 +25,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 
 sealed class TransactionConfirmEvent {
-    object LoadingEvent : TransactionConfirmEvent()
+    data class LoadingEvent(val isClaimInheritance: Boolean = false) : TransactionConfirmEvent()
     data class CreateTxSuccessEvent(val transaction: Transaction) : TransactionConfirmEvent()
     data class AssignTagEvent(
         val walletId: String,

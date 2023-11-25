@@ -28,7 +28,6 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
-import com.nunchuk.android.core.util.isRemoteSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipPlan
@@ -41,14 +40,12 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.GetCompoundSignersUseCase
-import com.nunchuk.android.usecase.GetMasterSignerUseCase
-import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.ReuseKeyWalletUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,18 +57,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class AddKeyListViewModel @Inject constructor(
-    private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
+    private val getAllSignersUseCase: GetAllSignersUseCase,
     private val savedStateHandle: SavedStateHandle,
     getMembershipStepUseCase: GetMembershipStepUseCase,
-    private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val nfcFileManager: NfcFileManager,
     private val masterSignerMapper: MasterSignerMapper,
-    private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
     private val reuseKeyWalletUseCase: ReuseKeyWalletUseCase,
@@ -85,9 +81,10 @@ class AddKeyListViewModel @Inject constructor(
     private val currentStep =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
-    private val membershipStepState = getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.plan, ""))
-        .map { it.getOrElse { emptyList() } }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    private val membershipStepState =
+        getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.plan, ""))
+            .map { it.getOrElse { emptyList() } }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _keys = MutableStateFlow(listOf<AddKeyData>())
     val key = _keys.asStateFlow()
@@ -114,41 +111,20 @@ class AddKeyListViewModel @Inject constructor(
                 AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
             )
         }
-        loadSigners()
+        viewModelScope.launch {
+            loadSigners()
+        }
         viewModelScope.launch {
             membershipStepState.collect {
                 val news = _keys.value.map { addKeyData ->
                     val info = getStepInfo(addKeyData.type)
                     if (addKeyData.signer == null && info.masterSignerId.isNotEmpty()) {
-                        val extra = runCatching {
-                            gson.fromJson(
-                                info.extraData,
-                                SignerExtra::class.java
-                            )
-                        }.getOrNull()
-                        if (extra?.signerType?.isRemoteSigner == true) {
-                            val result = getRemoteSignerUseCase(
-                                GetRemoteSignerUseCase.Data(
-                                    info.masterSignerId,
-                                    extra.derivationPath
-                                )
-                            )
-                            if (result.isSuccess) {
-                                return@map addKeyData.copy(
-                                    signer = result.getOrThrow().toModel(),
-                                    verifyType = info.verifyType
-                                )
-                            }
-                        } else {
-                            val result = getMasterSignerUseCase(info.masterSignerId)
-                            if (result.isSuccess) {
-                                return@map addKeyData.copy(
-                                    signer = masterSignerMapper(
-                                        result.getOrThrow(),
-                                    ),
-                                    verifyType = info.verifyType
-                                )
-                            }
+                        loadSigners()
+                        return@map addKeyData.copy(
+                            signer = _state.value.signers.find { it.fingerPrint == info.masterSignerId },
+                            verifyType = info.verifyType
+                        ).also {
+                            Timber.d("CongHai: ${it.signer?.fingerPrint}")
                         }
                     }
                     addKeyData.copy(verifyType = info.verifyType)
@@ -157,24 +133,26 @@ class AddKeyListViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            checkRequestAddDesktopKeyStatusUseCase(CheckRequestAddDesktopKeyStatusUseCase.Param(membershipStepManager.plan))
+            checkRequestAddDesktopKeyStatusUseCase(
+                CheckRequestAddDesktopKeyStatusUseCase.Param(
+                    membershipStepManager.plan
+                )
+            )
         }
     }
 
-    private fun loadSigners() {
-        viewModelScope.launch {
-            getCompoundSignersUseCase.execute().collect { pair ->
-                _state.update {
-                    singleSigners.apply {
-                        clear()
-                        addAll(pair.second)
-                    }
-                    it.copy(
-                        signers = pair.first.map { signer ->
-                            masterSignerMapper(signer)
-                        } + pair.second.map { signer -> signer.toModel() }
-                    )
+    private suspend fun loadSigners() {
+        getAllSignersUseCase(Unit).onSuccess { pair ->
+            _state.update {
+                singleSigners.apply {
+                    clear()
+                    addAll(pair.second)
                 }
+                it.copy(
+                    signers = pair.first.map { signer ->
+                        masterSignerMapper(signer)
+                    } + pair.second.map { signer -> signer.toModel() }
+                )
             }
         }
     }
@@ -235,7 +213,8 @@ class AddKeyListViewModel @Inject constructor(
         }
     }
 
-    private fun isSignerExist(masterSignerId: String) = membershipStepManager.isKeyExisted(masterSignerId)
+    private fun isSignerExist(masterSignerId: String) =
+        membershipStepManager.isKeyExisted(masterSignerId)
 
     fun onVerifyClicked(data: AddKeyData) {
         data.signer?.let { signer ->
@@ -277,7 +256,8 @@ class AddKeyListViewModel @Inject constructor(
 
     fun reuseKeyFromWallet(id: String) {
         viewModelScope.launch {
-            val result = reuseKeyWalletUseCase(ReuseKeyWalletUseCase.Param(id, membershipStepManager.plan))
+            val result =
+                reuseKeyWalletUseCase(ReuseKeyWalletUseCase.Param(id, membershipStepManager.plan))
             if (result.isFailure) {
                 _event.emit(AddKeyListEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }

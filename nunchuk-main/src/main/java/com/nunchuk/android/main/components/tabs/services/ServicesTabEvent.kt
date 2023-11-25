@@ -181,7 +181,9 @@ data class ServicesTabState(
                     add(ServiceTabRowCategory.Emergency)
                     add(ServiceTabRowItem.KeyRecovery)
                     add(ServiceTabRowCategory.Inheritance)
-                    add(ServiceTabRowItem.ViewInheritancePlan)
+                    if (isHasSetupInheritanceWallet()) {
+                        add(ServiceTabRowItem.ViewInheritancePlan)
+                    }
                     add(ServiceTabRowItem.ClaimInheritance)
                     showOption2Of4Multisig {
                         add(ServiceTabRowCategory.Subscription)
@@ -202,7 +204,7 @@ data class ServicesTabState(
                             .all { wallet -> wallet.isSetupInheritance.not() }
                     ) {
                         add(ServiceTabRowItem.SetUpInheritancePlan)
-                    } else {
+                    } else if (isHasSetupInheritanceWallet()) {
                         add(ServiceTabRowItem.ViewInheritancePlan)
                     }
                     add(ServiceTabRowItem.ClaimInheritance)
@@ -318,6 +320,10 @@ data class ServicesTabState(
         if (groups2of4Multisig.isNotEmpty() && assistedWallets.any { wallet -> groups2of4Multisig.find { wallet.groupId == it.id } != null }) {
             block.invoke()
         }
+    }
+
+    private fun isHasSetupInheritanceWallet(): Boolean {
+        return assistedWallets.any { it.isSetupInheritance }
     }
 }
 

@@ -147,7 +147,7 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun initRoomTransaction() {
-        event(LoadingEvent)
+        event(LoadingEvent())
         viewModelScope.launch {
             val roomId = sessionHolder.getActiveRoomId()
             initRoomTransactionUseCase.execute(
@@ -176,7 +176,7 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun draftNormalTransaction() {
-        event(LoadingEvent)
+        event(LoadingEvent())
         viewModelScope.launch {
             when (val result = draftTransactionUseCase.execute(
                 walletId = walletId,
@@ -192,7 +192,7 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun draftSatsCardTransaction() {
-        event(LoadingEvent)
+        event(LoadingEvent())
         viewModelScope.launch {
             val result = draftSatsCardTransactionUseCase(
                 DraftSatsCardTransactionUseCase.Data(
@@ -210,7 +210,7 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun draftInheritanceTransaction() {
-        event(LoadingEvent)
+        event(LoadingEvent())
         viewModelScope.launch {
            val result = inheritanceClaimCreateTransactionUseCase(
                 InheritanceClaimCreateTransactionUseCase.Param(
@@ -262,7 +262,7 @@ class TransactionConfirmViewModel @Inject constructor(
 
     private fun createNewTransaction(isQuickCreateTransaction: Boolean) {
         viewModelScope.launch {
-            event(LoadingEvent)
+            event(LoadingEvent())
             val result = createTransactionUseCase(
                 CreateTransactionUseCase.Param(
                     groupId = assistedWalletManager.getGroupId(walletId),
@@ -305,7 +305,7 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun createInheritanceTransaction() = viewModelScope.launch {
-        event(LoadingEvent)
+        event(LoadingEvent(isClaimInheritance = true))
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
                 address = txReceipts.first().address,

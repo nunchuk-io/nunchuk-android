@@ -57,7 +57,6 @@
         style="@style/NCText.Badges"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
         android:background="@drawable/nc_rounded_tag_primary_key_background"
         android:paddingHorizontal="@dimen/nc_padding_8"
         android:text="@string/nc_signer_type_primary_key"
@@ -76,11 +75,27 @@
         android:layout_marginTop="6dp"
         android:background="@drawable/nc_rounded_tag_whisper_background"
         android:paddingHorizontal="@dimen/nc_padding_8"
-        android:text="@string/nc_signer_air_gapped"
+        android:text="@string/nc_signer_airgapped"
         app:layout_constraintBottom_toTopOf="@+id/xpf"
         app:layout_constraintStart_toEndOf="@+id/signerPrimaryKeyType"
         app:layout_constraintTop_toBottomOf="@+id/signerName"
         app:layout_goneMarginStart="0dp" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/acct_x"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_4"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        app:layout_constraintStart_toEndOf="@+id/signerType"
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
+        app:layout_constraintBottom_toTopOf="@+id/xpf"
+        app:layout_constraintBaseline_toBaselineOf="@+id/signerType"
+        app:layout_goneMarginStart="0dp"
+        tools:text="Acct X" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/xpf"

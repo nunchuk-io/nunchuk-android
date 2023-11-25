@@ -171,7 +171,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                 transaction = if (viewModel.isInheritanceClaimingFlow()) event.transaction else null
             )
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
-            LoadingEvent -> showLoading()
+            is LoadingEvent -> showLoading(message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else null)
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
             is InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
             is AssignTagEvent -> {

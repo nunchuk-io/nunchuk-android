@@ -258,7 +258,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     }
 
     private fun handleFlow() {
-        if (viewModel.isCreateOrUpdateFlow().not()) {
+        if (viewModel.reviewFlow == InheritanceReviewPlanViewModel.ReviewFlow.CANCEL) {
             NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
             handleResult()
         } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.SETUP) {
@@ -294,7 +294,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         if (option.type == SheetOptionType.TYPE_CANCEL) {
-            viewModel.calculateRequiredSignatures(isCreateOrUpdateFlow = false)
+            viewModel.calculateRequiredSignatures(flow = InheritanceReviewPlanViewModel.ReviewFlow.CANCEL)
         }
     }
 
@@ -330,7 +330,7 @@ fun InheritanceReviewPlanScreen(
         groupId = inheritanceViewModel.setupOrReviewParam.groupId,
         state = state,
         onContinueClicked = {
-            viewModel.calculateRequiredSignatures(isCreateOrUpdateFlow = true)
+            viewModel.calculateRequiredSignatures(flow = InheritanceReviewPlanViewModel.ReviewFlow.CREATE_OR_UPDATE)
         },
         onEditActivationDateClick = {
             onEditActivationDateClick(state.activationDate)

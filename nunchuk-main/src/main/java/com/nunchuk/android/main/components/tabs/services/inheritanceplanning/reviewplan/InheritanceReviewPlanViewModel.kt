@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
@@ -37,7 +38,6 @@ import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,10 +62,14 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
-    private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase
+    private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private lateinit var param: InheritancePlanningParam.SetupOrReview
+
+    internal val reviewFlow: ReviewFlow?
+        get() = savedStateHandle.get<ReviewFlow>(EXTRA_REVIEW_FLOW)
 
     private val _event = MutableSharedFlow<InheritanceReviewPlanEvent>()
     val event = _event.asSharedFlow()
@@ -110,7 +114,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             }
     }
 
-    fun calculateRequiredSignatures(isCreateOrUpdateFlow: Boolean) = viewModelScope.launch {
+    fun calculateRequiredSignatures(flow: ReviewFlow) = viewModelScope.launch {
+        savedStateHandle[EXTRA_REVIEW_FLOW] = flow
         val stateValue = _state.value
         val walletId = stateValue.walletId ?: return@launch
         _event.emit(InheritanceReviewPlanEvent.Loading(true))
@@ -122,7 +127,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 notifyToday = stateValue.isNotifyToday,
                 activationTimeMilis = stateValue.activationDate,
                 bufferPeriodId = stateValue.bufferPeriod?.id,
-                action = if (isCreateOrUpdateFlow) CalculateRequiredSignaturesAction.CREATE_OR_UPDATE else CalculateRequiredSignaturesAction.CANCEL,
+                action = if (flow == ReviewFlow.CREATE_OR_UPDATE) CalculateRequiredSignaturesAction.CREATE_OR_UPDATE else CalculateRequiredSignaturesAction.CANCEL,
                 groupId = param.groupId
             )
         )
@@ -140,16 +145,17 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     )
                 )
             } else {
-                calculateRequiredSignaturesByzantine(resultCalculate.getOrThrow(), userData, isCreateOrUpdateFlow)
+                calculateRequiredSignaturesByzantine(resultCalculate.getOrThrow(), userData)
             }
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
-    private suspend fun calculateRequiredSignaturesByzantine(signatures: CalculateRequiredSignatures, userData: String, isCreateOrUpdateFlow: Boolean) {
+    private suspend fun calculateRequiredSignaturesByzantine(signatures: CalculateRequiredSignatures, userData: String) {
+        if (reviewFlow == null) return
         if (signatures.type == VerificationType.SIGN_DUMMY_TX) {
-            if (isCreateOrUpdateFlow) {
+            if (reviewFlow == ReviewFlow.CREATE_OR_UPDATE) {
                 createOrUpdateInheritanceUseCase(
                     CreateOrUpdateInheritanceUseCase.Param(
                         signatures = hashMapOf(),
@@ -213,7 +219,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     }
 
     private suspend fun getUserData(): String {
-        val resultUserData = if (isCreateOrUpdateFlow().not()) {
+        val resultUserData = if (reviewFlow == ReviewFlow.CANCEL) {
             cancelInheritanceUserDataUseCase(
                 CancelInheritanceUserDataUseCase.Param(
                     walletId = param.walletId,
@@ -237,8 +243,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         _state.update {
             it.copy(
                 userData = userData,
-                walletId = param.walletId,
-                isCreateOrUpdateFlow = isCreateOrUpdateFlow()
+                walletId = param.walletId
             )
         }
         return userData
@@ -274,14 +279,13 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         signatures: HashMap<String, String>,
         securityQuestionToken: String
     ) {
-        if (_state.value.isCreateOrUpdateFlow) {
+        if (reviewFlow == null) return
+        if (reviewFlow == ReviewFlow.CREATE_OR_UPDATE) {
             createOrUpdateInheritance(signatures, securityQuestionToken)
         } else {
             cancelInheritance(signatures, securityQuestionToken)
         }
     }
-
-    fun isCreateOrUpdateFlow() = _state.value.isCreateOrUpdateFlow
 
     private fun createOrUpdateInheritance(
         signatures: HashMap<String, String>,
@@ -304,6 +308,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
         if (result.isSuccess) {
             _state.update { it.copy(isDataChanged = true) }
+            markSetupInheritance()
             _event.emit(InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess)
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
@@ -331,6 +336,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
         if (result.isSuccess) {
             _state.update { it.copy(isDataChanged = true) }
+            markSetupInheritance()
             _event.emit(InheritanceReviewPlanEvent.CancelInheritanceSuccess)
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
@@ -341,10 +347,17 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         markSetupInheritanceUseCase(
             MarkSetupInheritanceUseCase.Param(
                 walletId = param.walletId,
-                isSetupInheritance = isCreateOrUpdateFlow()
+                isSetupInheritance = reviewFlow == ReviewFlow.CREATE_OR_UPDATE
             )
         )
         _event.emit(InheritanceReviewPlanEvent.MarkSetupInheritance)
     }
 
+    enum class ReviewFlow {
+        CREATE_OR_UPDATE, CANCEL
+    }
+
+    companion object {
+        private const val EXTRA_REVIEW_FLOW = "review_flow"
+    }
 }

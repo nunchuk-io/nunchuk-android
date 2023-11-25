@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,7 +40,7 @@ class GroupChatHistoryViewModel @Inject constructor(
             val historyPeriod = _state.value.historyPeriods.find { it.id == _state.value.selectedHistoryPeriodId} ?: return@launch
             _event.emit(GroupChatHistoryEvent.Loading(true))
             val result = createOrUpdateGroupChatUseCase(
-                CreateOrUpdateGroupChatUseCase.Param(args.groupId, _state.value.selectedHistoryPeriodId)
+                CreateOrUpdateGroupChatUseCase.Param(groupId = args.groupId, roomId = args.roomId, historyPeriodId = _state.value.selectedHistoryPeriodId)
             )
             _event.emit(GroupChatHistoryEvent.Loading(false))
             if (result.isSuccess) {
@@ -51,8 +52,10 @@ class GroupChatHistoryViewModel @Inject constructor(
     }
 
     fun setHistoryPeriod(periodId: String) {
-        _state.value = _state.value.copy(
-            selectedHistoryPeriodId = periodId
-        )
+        _state.update {
+            it.copy(
+                selectedHistoryPeriodId = periodId
+            )
+        }
     }
 }

@@ -21,6 +21,7 @@ package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.type.TransactionStatus
 
 data class TransactionResponse(
     @SerializedName("transaction") val transaction: TransactionServerDto? = null
@@ -61,3 +62,15 @@ internal fun TransactionServerDto.toServerTransaction() = ServerTransaction(
     signedInMilis = signedAtMilis,
     isCosigning = isCosigning
 )
+
+fun String?.toTransactionStatus(): TransactionStatus {
+    return when (this) {
+        "PENDING_SIGNATURES" -> TransactionStatus.PENDING_SIGNATURES
+        "READY_TO_BROADCAST" -> TransactionStatus.READY_TO_BROADCAST
+        "NETWORK_REJECTED" -> TransactionStatus.NETWORK_REJECTED
+        "PENDING_CONFIRMATION" -> TransactionStatus.PENDING_CONFIRMATION
+        "REPLACED" -> TransactionStatus.REPLACED
+        "CONFIRMED" -> TransactionStatus.CONFIRMED
+        else -> TransactionStatus.CONFIRMED
+    }
+}

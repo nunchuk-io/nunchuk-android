@@ -29,7 +29,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AssistedWalletDao : BaseDao<AssistedWalletEntity> {
     @Query("SELECT * FROM $TABLE_ASSISTED_WALLET ORDER BY id")
-    fun getAssistedWallets(): Flow<List<AssistedWalletEntity>>
+    fun getAssistedWalletsFlow(): Flow<List<AssistedWalletEntity>>
+
+    @Query("SELECT * FROM $TABLE_ASSISTED_WALLET ORDER BY id")
+    fun getAssistedWallets(): List<AssistedWalletEntity>
 
     @Query("DELETE FROM $TABLE_ASSISTED_WALLET where local_id in (:ids)")
     suspend fun deleteBatch(ids: List<String>) : Int

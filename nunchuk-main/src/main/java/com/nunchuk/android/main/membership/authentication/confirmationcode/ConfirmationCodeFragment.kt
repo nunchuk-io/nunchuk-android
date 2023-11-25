@@ -134,7 +134,9 @@ fun ConfirmChangeScreenContent(
                     title = title,
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
-                        Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                        if (action != TargetAction.UPDATE_SECURITY_QUESTIONS.name) {
+                            Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                        }
                     })
             }
         ) { innerPadding ->

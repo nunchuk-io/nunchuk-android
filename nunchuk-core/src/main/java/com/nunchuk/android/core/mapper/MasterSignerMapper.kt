@@ -24,6 +24,7 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.SignerType
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +32,8 @@ import javax.inject.Singleton
 @Singleton
 class MasterSignerMapper @Inject constructor(
     private val accountManager: AccountManager,
-    private val cardIdManager: CardIdManager
+    private val cardIdManager: CardIdManager,
+    private val nunchukNativeSdk: NunchukNativeSdk
 ) {
     suspend operator fun invoke(from: MasterSigner, derivationPath: String = ""): SignerModel {
         val accountInfo = accountManager.getAccount()
@@ -49,7 +51,8 @@ class MasterSignerMapper @Inject constructor(
             cardId = cardId,
             tags = from.tags,
             isVisible = from.isVisible,
-            isMasterSigner = true
+            isMasterSigner = true,
+            index = nunchukNativeSdk.getIndexFromPath(derivationPath.ifEmpty { from.device.path })
         )
     }
 }

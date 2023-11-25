@@ -24,8 +24,6 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
-import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -63,11 +61,11 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             isDraft = parameters.isDraft,
         )
         if (parameters.isDraft) return transaction
-        userWalletRepository.inheritanceClaimingClaim(
+        val transactionAdditional = userWalletRepository.inheritanceClaimingClaim(
             magic = parameters.magic,
             psbt = transaction.psbt
         )
-        return transaction
+        return transaction.copy(status = transactionAdditional.status)
     }
 
     data class Param(

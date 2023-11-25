@@ -98,7 +98,7 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
                             member = AssistedMember(
                                 role = member.role,
                                 email = member.emailOrUsername,
-                                name = member.user?.name,
+                                name = member.user?.name ?: member.emailOrUsername,
                                 membershipId = member.membershipId
                             ),
                             spendingPolicy = policy,

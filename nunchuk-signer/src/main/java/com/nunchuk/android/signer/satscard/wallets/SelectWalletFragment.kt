@@ -124,11 +124,13 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     private fun handleEvent(event: SelectWalletEvent) {
         when (event) {
             is SelectWalletEvent.Error -> showError(event.e?.message.orUnknownError())
-            is SelectWalletEvent.Loading -> showOrHideLoading(
-                event.isLoading,
-                title = getString(R.string.nc_sweeping_is_progress),
-                message = getString(R.string.nc_make_sure_internet)
-            )
+            is SelectWalletEvent.Loading -> {
+                showOrHideLoading(
+                    event.isLoading,
+                    title = if (event.isClaimInheritance) getString(R.string.nc_please_wait) else getString(R.string.nc_sweeping_is_progress),
+                    message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else getString(R.string.nc_make_sure_internet)
+                )
+            }
             is SelectWalletEvent.GetAddressSuccess -> if (event.isCreateTransaction) {
                 viewModel.getEstimateFeeRates()
             } else {

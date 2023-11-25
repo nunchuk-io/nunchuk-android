@@ -461,6 +461,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
+        binding.confirmTime.isVisible = args.isInheritanceClaimingFlow.not()
         binding.confirmTime.text = transaction.getFormatDate()
         binding.status.bindTransactionStatus(transaction)
         binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
@@ -568,7 +569,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             is TransactionDetailsError -> handleSignError(event)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
             is PromptTransactionOptions -> promptTransactionOptions(event)
-            LoadingEvent -> showLoading()
+            LoadingEvent -> if (args.isInheritanceClaimingFlow.not()) showLoading()
             is NfcLoadingEvent -> showOrHideNfcLoading(true, event.isColdcard)
             is ExportToFileSuccess -> showExportToFileSuccess(event)
             is TransactionError -> showExportToFileError(event)

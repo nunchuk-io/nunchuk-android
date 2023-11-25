@@ -263,13 +263,16 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 is GroupDashboardEvent.Error -> showError(message = event.message)
                 is GroupDashboardEvent.Loading -> showOrHideLoading(event.loading)
                 is GroupDashboardEvent.GetHistoryPeriodSuccess -> {
-                    findNavController().navigate(
-                        GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
-                            periods = event.periods.toTypedArray(),
-                            groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
-                            historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty()
+                    viewModel.groupChat()?.roomId?.let { roomId ->
+                        findNavController().navigate(
+                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
+                                periods = event.periods.toTypedArray(),
+                                groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
+                                historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty(),
+                                roomId = roomId
+                            )
                         )
-                    )
+                    }
                 }
 
                 is GroupDashboardEvent.GetHealthCheckPayload -> {}
@@ -293,7 +296,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 verifyToken = event.token,
                                 inheritance = event.inheritance,
                                 flowInfo = InheritancePlanFlow.VIEW,
-                                groupId = args.groupId
+                                groupId = args.groupId,
+                                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                             )
                         } else if (event.inheritance.status == InheritanceStatus.PENDING_APPROVAL) {
                             viewModel.calculateRequiredSignatures()
@@ -302,7 +306,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 walletId = viewModel.getWalletId(),
                                 activityContext = requireContext(),
                                 flowInfo = InheritancePlanFlow.SETUP,
-                                groupId = args.groupId
+                                groupId = args.groupId,
+                                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                             )
                         }
                     }
@@ -351,6 +356,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         GroupDashboardFragmentDirections.actionGroupDashboardFragmentToBackupDownloadFragment(
                             backupKey = event.backupKey
                         )
+                    )
+                }
+
+                is GroupDashboardEvent.GroupDummyTransactionPayloadSuccess -> {
+                    openWalletAuthentication(
+                        dummyTransactionId = event.dummyTransactionPayload.dummyTransactionId,
+                        requiredSignatures = event.dummyTransactionPayload.requiredSignatures,
                     )
                 }
             }
@@ -434,19 +446,24 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 viewModel.handleRegisterSigners(alert.payload.xfps)
             }
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-            findNavController().navigate(
-                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                    args.groupId,
-                    viewModel.getWalletId(),
-                    alert
+            if (viewModel.isInheritanceOwner()) {
+                viewModel.getGroupDummyTransactionPayload(alert.payload.dummyTransactionId)
+            } else {
+                findNavController().navigate(
+                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
+                        args.groupId,
+                        viewModel.getWalletId(),
+                        alert
+                    )
                 )
-            )
+            }
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
             navigator.openInheritancePlanningScreen(
                 walletId = viewModel.getWalletId(),
                 activityContext = requireContext(),
                 flowInfo = InheritancePlanFlow.SETUP,
-                groupId = args.groupId
+                groupId = args.groupId,
+                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
             )
         } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST) {
             findNavController().navigate(

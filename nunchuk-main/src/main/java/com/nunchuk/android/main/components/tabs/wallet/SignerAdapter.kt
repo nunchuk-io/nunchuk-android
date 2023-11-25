@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.wallet
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -84,6 +85,10 @@ class SingerViewHolder(
         binding.signerName.text = model.name
         binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(binding.root.context)
+        binding.acctX.apply {
+            isVisible = model.isShowAcctX()
+            text = String.format(getString(R.string.nc_acct_x), model.index)
+        }
         binding.icPin.setImageDrawable(
             model.toReadableDrawable(
                 binding.root.context,

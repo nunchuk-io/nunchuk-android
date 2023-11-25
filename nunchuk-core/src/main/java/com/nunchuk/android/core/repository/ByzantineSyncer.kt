@@ -23,7 +23,6 @@ import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
 import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -62,8 +61,7 @@ internal class ByzantineSyncer @Inject constructor(
 
         val updateOrInsertList = mutableListOf<AlertEntity>()
 
-        val localMap = alertDao.getAlerts(groupId, getChatId(), chain.value).firstOrNull().orEmpty()
-            .associateByTo(mutableMapOf()) { it.id }
+        val localMap = alertDao.getAlerts(groupId, getChatId(), chain.value).associateByTo(mutableMapOf()) { it.id }
 
         remoteList.forEach { remote ->
             val local = localMap[remote.id]
@@ -96,8 +94,7 @@ internal class ByzantineSyncer @Inject constructor(
             val finalGroups =
                 groups.ifEmpty { userWalletApiManager.groupWalletApi.getGroups().data.groups.orEmpty() }
             val groupLocals =
-                groupDao.getGroups(accountManager.getAccount().chatId, chain.value).firstOrNull()
-                    ?: emptyList()
+                groupDao.getGroups(accountManager.getAccount().chatId, chain.value)
             val allGroupIds = groupLocals.map { it.groupId }.toHashSet()
             val addGroupIds = HashSet<String>()
             val chatId = accountManager.getAccount().chatId
@@ -133,8 +130,7 @@ internal class ByzantineSyncer @Inject constructor(
 
     suspend fun syncKeyHealthStatus(groupId: String, walletId: String): List<KeyHealthStatus>? {
         runCatching {
-            val localMap = keyHealthStatusDao.getKeys(groupId, walletId, getChatId(), chain.value)
-                .firstOrNull().orEmpty().associateByTo(mutableMapOf()) { it.xfp }
+            val localMap = keyHealthStatusDao.getKeys(groupId, walletId, getChatId(), chain.value).associateByTo(mutableMapOf()) { it.xfp }
             val response =
                 userWalletApiManager.groupWalletApi.getWalletHealthStatus(groupId, walletId)
             val remoteList = arrayListOf<KeyHealthStatusDto>()

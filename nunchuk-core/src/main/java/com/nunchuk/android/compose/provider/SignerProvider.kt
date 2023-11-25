@@ -11,14 +11,16 @@ class SignersModelProvider : CollectionPreviewParameterProvider<List<SignerModel
                 "Tom’s TAPSIGNER",
                 fingerPrint = "79EB35F4",
                 derivationPath = "",
-                isMasterSigner = false
+                isMasterSigner = false,
+                index = 10
             ),
             SignerModel(
                 "123",
                 "Tom’s TAPSIGNER 2",
                 fingerPrint = "79EB35F4",
                 derivationPath = "",
-                isMasterSigner = false
+                isMasterSigner = false,
+                index = 10
             ),
         )
     )
@@ -31,7 +33,8 @@ class SignerModelProvider : CollectionPreviewParameterProvider<SignerModel>(
                 "Tom’s TAPSIGNER",
                 fingerPrint = "79EB35F4",
                 derivationPath = "",
-                isMasterSigner = false
+                isMasterSigner = false,
+                index = 10
             ),
     )
 )

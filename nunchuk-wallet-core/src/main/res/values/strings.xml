@@ -33,6 +33,7 @@
     <string name="nc_wallet_name_hint_text">Wallet name</string>
 
     <string name="nc_signer_air_gapped">Air-gapped</string>
+    <string name="nc_signer_airgapped">Airgapped</string>
     <string name="nc_wallet_save_wallet_configuration">Export wallet configuration</string>
 
     <string name="nc_text_change_wallet_success">The wallet has been changed successfully</string>

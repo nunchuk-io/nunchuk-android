@@ -64,6 +64,10 @@ internal class SignersViewBinder(
         } else {
             binding.xpf.text = model.getXfpOrCardIdLabel()
         }
+        binding.acctX.apply {
+            text = String.format(context.getString(R.string.nc_acct_x), model.index)
+            isVisible = model.isShowAcctX()
+        }
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isServerKey.not()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
