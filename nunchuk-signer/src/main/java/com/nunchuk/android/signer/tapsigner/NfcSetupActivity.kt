@@ -116,6 +116,9 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     val groupId: String
             by lazy(LazyThreadSafetyMode.NONE) {  intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
+    val signerIndex: Int
+            by lazy(LazyThreadSafetyMode.NONE) {  intent.getIntExtra(EXTRA_SIGNER_INDEX, 0) }
+
     companion object {
         private const val EXTRA_ACTION = "EXTRA_ACTION"
         private const val EXTRA_HAS_WALLET = "EXTRA_HAS_WALLET"
@@ -123,6 +126,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         private const val EXTRA_BACKUP_FILE_PATH = "EXTRA_BACKUP_FILE_PATH"
         const val EXTRA_SATSCARD_SLOT = "EXTRA_SATSCARD_SLOT"
         const val EXTRA_GROUP_ID = "group_id"
+        const val EXTRA_SIGNER_INDEX = "signer_index"
 
         /**
          * Setup action
@@ -170,6 +174,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             hasWallet: Boolean = false,
             slot: SatsCardSlot? = null,
             groupId: String = "",
+            signerIndex: Int = 0,
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
@@ -178,6 +183,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_BACKUP_FILE_PATH, backUpFilePath)
             putExtra(EXTRA_SATSCARD_SLOT, slot)
             putExtra(EXTRA_GROUP_ID, groupId)
+            putExtra(EXTRA_SIGNER_INDEX, signerIndex)
         }
     }
 }

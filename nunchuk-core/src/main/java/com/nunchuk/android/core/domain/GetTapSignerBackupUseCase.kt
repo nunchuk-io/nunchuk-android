@@ -23,6 +23,8 @@ import android.nfc.tech.IsoDep
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
@@ -31,7 +33,7 @@ class GetTapSignerBackupUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk,
     private val nfcFileManager: NfcFileManager,
-    waitAutoCardUseCase: WaitAutoCardUseCase
+    waitAutoCardUseCase: WaitAutoCardUseCase,
 ) : BaseNfcUseCase<GetTapSignerBackupUseCase.Data, String>(dispatcher, waitAutoCardUseCase) {
 
     override suspend fun executeNfc(parameters: Data): String {
@@ -40,9 +42,24 @@ class GetTapSignerBackupUseCase @Inject constructor(
             cvc = parameters.cvc,
             masterSignerId = parameters.masterSignerId
         )
+        if (parameters.index >= 0) {
+            nunchukNativeSdk.getSignerFromTapsignerMasterSigner(
+                isoDep = parameters.isoDep,
+                cvc = parameters.cvc,
+                masterSignerId = parameters.masterSignerId,
+                walletType = WalletType.MULTI_SIG.ordinal,
+                addressType = AddressType.NATIVE_SEGWIT.ordinal,
+                index = parameters.index,
+            )
+        }
         if (tapStatus.backupKey?.isEmpty() == true) throw IllegalArgumentException("Can not get back up key")
         return nfcFileManager.storeBackupKeyToFile(tapStatus)
     }
 
-    class Data(isoDep: IsoDep, val cvc: String, val masterSignerId: String) : BaseNfcUseCase.Data(isoDep)
+    class Data(
+        isoDep: IsoDep,
+        val cvc: String,
+        val masterSignerId: String,
+        val index: Int = -1,
+    ) : BaseNfcUseCase.Data(isoDep)
 }

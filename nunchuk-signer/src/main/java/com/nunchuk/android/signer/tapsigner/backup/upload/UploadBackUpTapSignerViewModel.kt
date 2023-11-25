@@ -31,7 +31,11 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.UploadBackupFileKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,10 +56,12 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
 
     private var isAddNewKey = true
     private var groupId = ""
+    private var signerIndex = 0
 
-    fun init(isAddNewKey: Boolean, groupId: String) {
+    fun init(isAddNewKey: Boolean, groupId: String, signerIndex: Int) {
         this.isAddNewKey = isAddNewKey
         this.groupId = groupId
+        this.signerIndex = signerIndex
     }
 
     fun upload() {
@@ -71,7 +77,8 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                     filePath = args.filePath,
                     isAddNewKey = isAddNewKey,
                     plan = membershipStepManager.plan,
-                    groupId = groupId
+                    groupId = groupId,
+                    signerIndex = signerIndex,
                 )
             ).collect {
                 if (it.isSuccess) {

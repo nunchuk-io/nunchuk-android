@@ -82,7 +82,8 @@ internal class KeyRepositoryImpl @Inject constructor(
         filePath: String,
         isAddNewKey: Boolean,
         plan: MembershipPlan,
-        groupId: String
+        groupId: String,
+        newIndex: Int
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -135,11 +136,12 @@ internal class KeyRepositoryImpl @Inject constructor(
                     val isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
                     val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
                     val signer =
-                        nativeSdk.getDefaultSignerFromMasterSigner(
+                        nativeSdk.getSignerByIndex(
                             xfp,
                             WalletType.MULTI_SIG.ordinal,
-                            AddressType.NATIVE_SEGWIT.ordinal
-                        )
+                            AddressType.NATIVE_SEGWIT.ordinal,
+                            newIndex
+                        ) ?: throw NullPointerException("Can not get signer by index $newIndex")
                     val keyResponse = userWalletApiManager.groupWalletApi.addKeyToServer(
                         groupId = groupId,
                         payload = SignerServerDto(

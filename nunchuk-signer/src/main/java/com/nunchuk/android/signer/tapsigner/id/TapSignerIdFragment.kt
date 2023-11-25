@@ -63,6 +63,7 @@ import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -111,8 +112,9 @@ class TapSignerIdFragment : MembershipFragment() {
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY }) {
             viewModel.getTapSignerBackup(
-                IsoDep.get(it.tag) ?: return@flowObserver,
-                nfcViewModel.inputCvc.orEmpty(),
+                isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
+                cvc = nfcViewModel.inputCvc.orEmpty(),
+                index = (requireActivity() as NfcSetupActivity).signerIndex
             )
             nfcViewModel.clearScanInfo()
         }
@@ -162,7 +164,7 @@ private fun TapSignerIdContent(
                     .padding(innerPadding)
             ) {
                 Text(
-                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                     text = if (isExist) stringResource(R.string.nc_tap_signer_already_existed) else stringResource(
                         R.string.nc_scan_your_card_title
                     ),

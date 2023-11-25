@@ -59,5 +59,6 @@ interface NfcNavigator {
         fromMembershipFlow: Boolean,
         masterSignerId: String,
         groupId: String = "",
+        signerIndex: Int = 0,
     )
 }

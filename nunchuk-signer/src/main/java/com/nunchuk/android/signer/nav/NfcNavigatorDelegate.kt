@@ -97,7 +97,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         activity: Activity,
         fromMembershipFlow: Boolean,
         masterSignerId: String,
-        groupId: String
+        groupId: String,
+        signerIndex: Int
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -106,6 +107,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 fromMembershipFlow = fromMembershipFlow,
                 masterSignerId = masterSignerId,
                 groupId = groupId,
+                signerIndex = signerIndex,
             )
         )
     }

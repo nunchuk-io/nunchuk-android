@@ -79,7 +79,8 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
         nfcViewModel.updateMasterSigner(args.masterSignerId)
         viewModel.init(
             isAddNewKey = (requireActivity() as NfcSetupActivity).isAddNewSigner,
-            groupId = (requireActivity() as NfcSetupActivity).groupId
+            groupId = (requireActivity() as NfcSetupActivity).groupId,
+            signerIndex = (requireActivity() as NfcSetupActivity).signerIndex,
         )
     }
 
