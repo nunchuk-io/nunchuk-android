@@ -62,7 +62,7 @@ fun RecurringPaymentDetailScreen(
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(
-                title = stringResource(R.string.nc_add_recurring_payments),
+                title = stringResource(R.string.nc_recurring_payment),
                 textStyle = NunchukTheme.typography.titleLarge,
             )
         }, bottomBar = {
@@ -81,7 +81,10 @@ fun RecurringPaymentDetailScreen(
                     modifier = Modifier.padding(innerPadding),
                     isCosign = recurringPayment.allowCosigning,
                     name = recurringPayment.name,
-                    amount = recurringPayment.amount.formatDecimal(minFractionDigits = 0, maxFractionDigits = MIN_FRACTION_DIGITS),
+                    amount = recurringPayment.amount.formatDecimal(
+                        minFractionDigits = 0,
+                        maxFractionDigits = MIN_FRACTION_DIGITS
+                    ),
                     frequency = recurringPayment.frequency,
                     startDate = recurringPayment.startDate,
                     noEndDate = recurringPayment.endDate == 0L,
