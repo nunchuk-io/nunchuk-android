@@ -577,16 +577,16 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openSignerInfoScreen(signer: SignerModel) {
-        val isInWallet = walletsViewModel.isInWallet(signer)
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
+            isMasterSigner = signer.isMasterSigner,
             id = signer.id,
             masterFingerprint = signer.fingerPrint,
             name = signer.name,
             type = signer.type,
             derivationPath = signer.derivationPath,
-            isInWallet = isInWallet,
-            isMasterSigner = signer.isMasterSigner,
+            isInWallet = walletsViewModel.isInWallet(signer),
+            isInAssistedWallet = walletsViewModel.isInAssistedWallet(signer),
         )
     }
 

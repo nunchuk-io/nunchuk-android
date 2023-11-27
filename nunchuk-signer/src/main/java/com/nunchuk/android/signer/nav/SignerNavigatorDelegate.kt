@@ -61,6 +61,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         justAdded: Boolean,
         setPassphrase: Boolean,
         isInWallet: Boolean,
+        isInAssistedWallet: Boolean,
         isReplacePrimaryKey: Boolean,
         customMessage: String
     ) {
@@ -73,6 +74,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             type = type,
             setPassphrase = setPassphrase,
             isInWallet = isInWallet,
+            isInAssistedWallet = isInAssistedWallet,
             derivationPath = derivationPath,
             masterFingerprint = masterFingerprint,
             isReplacePrimaryKey = isReplacePrimaryKey,
