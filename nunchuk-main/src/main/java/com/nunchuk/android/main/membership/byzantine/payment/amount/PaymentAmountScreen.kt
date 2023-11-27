@@ -149,7 +149,11 @@ fun PaymentAmountScreen(
                         suffix = if (useAmount) "" else "%",
                         placeholder = {
                             Text(
-                                text = if (unit != SpendingCurrencyUnit.sat) "0.00" else "0",
+                                text = if (useAmount) {
+                                    if (unit != SpendingCurrencyUnit.sat) "0.00" else "0"
+                                } else {
+                                    "0.00%"
+                                },
                                 style = NunchukTheme.typography.body,
                                 color = colorResource(id = R.color.nc_boulder_color)
                             )
