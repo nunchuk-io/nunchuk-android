@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -370,11 +371,15 @@ private fun CoinCollectionDetailContent(
                                     )
                                 }
 
+                                val textValue = stringResource(id = R.string.nc_num_coins_data, coins.size)
+                                val totalAmount = coins.sumOf { it.amount.value }
+                                val amountTotalText = if (LocalView.current.isInEditMode)
+                                    "$totalAmount sats"
+                                else
+                                    Amount(totalAmount).getBTCAmount()
+
                                 Text(
-                                    text = stringResource(
-                                        id = R.string.nc_num_coins_data,
-                                        coins.size
-                                    ), style = NunchukTheme.typography.bodySmall,
+                                    text = "$textValue ($amountTotalText)", style = NunchukTheme.typography.bodySmall,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
                             }
