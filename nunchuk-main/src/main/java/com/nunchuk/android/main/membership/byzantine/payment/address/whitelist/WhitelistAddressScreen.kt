@@ -77,10 +77,34 @@ fun WhitelistAddressRoute(
             whitelistAddressViewModel.onInvalidAddressEventConsumed()
         }
     }
+    LaunchedEffect(state.isMyWallet) {
+        if(state.isMyWallet) {
+            snackState.showSnackbar(
+                NcSnackbarVisuals(
+                    type = NcToastType.ERROR,
+                    message = "${context.getString( R.string.nc_destination_cannot_be_the_same_wallet)}",
+                )
+            )
+            whitelistAddressViewModel.onIsMyWalletEventConsumed()
+        }
+    }
+    LaunchedEffect(state.errorMessage) {
+       state.errorMessage?.let {
+            snackState.showSnackbar(
+                NcSnackbarVisuals(
+                    type = NcToastType.ERROR,
+                    message = it,
+                )
+            )
+            whitelistAddressViewModel.onErrorMessageEventConsumed()
+        }
+    }
     WhitelistAddressScreen(
         uiState = state,
         snackState = snackState,
-        checkAddress = whitelistAddressViewModel::checkAddressValid,
+        checkAddress = {
+            whitelistAddressViewModel.checkAddressValid(it, recurringPaymentViewModel.walletId)
+        },
         parseBtcUri = whitelistAddressViewModel::parseBtcUri,
         onParseAddressEventConsumed = whitelistAddressViewModel::onParseAddressEventConsumed,
     )

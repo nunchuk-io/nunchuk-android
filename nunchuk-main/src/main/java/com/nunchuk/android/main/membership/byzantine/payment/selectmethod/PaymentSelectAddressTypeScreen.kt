@@ -11,14 +11,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,6 +29,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioOption
 import com.nunchuk.android.compose.NcSelectableBottomSheet
+import com.nunchuk.android.compose.NcSnackBarHost
+import com.nunchuk.android.compose.NcSnackbarVisuals
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
@@ -41,11 +47,34 @@ fun PaymentSelectAddressTypeRoute(
     openScanMk4: (ColdcardAction) -> Unit,
 ) {
     val state by recurringPaymentViewModel.state.collectAsStateWithLifecycle()
-
+    val snackState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     LaunchedEffect(state.openBsmsScreen) {
         if (state.openBsmsScreen != null) {
             openBsmsScreen()
             recurringPaymentViewModel.onOpenBsmsScreenComplete()
+        }
+    }
+    LaunchedEffect(state.isMyWallet) {
+        if (state.isMyWallet) {
+            snackState.showSnackbar(
+                NcSnackbarVisuals(
+                    type = NcToastType.ERROR,
+                    message = "${context.getString(R.string.nc_destination_cannot_be_the_same_wallet)}",
+                )
+            )
+            recurringPaymentViewModel.onIsMyWallet()
+        }
+    }
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            snackState.showSnackbar(
+                NcSnackbarVisuals(
+                    type = NcToastType.ERROR,
+                    message = it,
+                )
+            )
+            recurringPaymentViewModel.onErrorMessageShown()
         }
     }
 
@@ -55,6 +84,7 @@ fun PaymentSelectAddressTypeRoute(
         openBsms = recurringPaymentViewModel::openBsms,
         clearAddressInfo = recurringPaymentViewModel::clearAddressInfo,
         openScanMk4 = openScanMk4,
+        snackState = snackState
     )
 }
 
@@ -66,6 +96,7 @@ private fun PaymentSelectAddressTypeScreen(
     openBsms: (Uri) -> Unit = {},
     openScanMk4: (ColdcardAction) -> Unit = {},
     clearAddressInfo: () -> Unit = {},
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     var useWallet by rememberSaveable {
         mutableStateOf<Boolean?>(null)
@@ -83,29 +114,33 @@ private fun PaymentSelectAddressTypeScreen(
     }
 
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                title = stringResource(R.string.nc_add_recurring_payments),
-                textStyle = NunchukTheme.typography.titleLarge,
-            )
-        }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                onClick = {
-                    clearAddressInfo()
-                    if (useWallet == true) {
-                        showImportSheet = true
-                    } else {
-                        openWhiteListAddressScreen()
-                    }
-                },
-                enabled = useWallet != null
-            ) {
-                Text(text = stringResource(R.string.nc_text_continue))
-            }
-        }) { innerPadding ->
+        Scaffold(
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_add_recurring_payments),
+                    textStyle = NunchukTheme.typography.titleLarge,
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    onClick = {
+                        clearAddressInfo()
+                        if (useWallet == true) {
+                            showImportSheet = true
+                        } else {
+                            openWhiteListAddressScreen()
+                        }
+                    },
+                    enabled = useWallet != null
+                ) {
+                    Text(text = stringResource(R.string.nc_text_continue))
+                }
+            },
+            snackbarHost = { NcSnackBarHost(state = snackState) }
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)

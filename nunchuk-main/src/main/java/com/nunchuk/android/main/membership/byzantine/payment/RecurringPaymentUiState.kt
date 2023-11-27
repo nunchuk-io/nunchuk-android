@@ -7,4 +7,5 @@ data class RecurringPaymentUiState(
     val openDummyTransactionScreen: DummyTransactionPayload? = null,
     val openBsmsScreen: String? = null,
     val errorMessage: String? = null,
+    val isMyWallet: Boolean = false,
 )

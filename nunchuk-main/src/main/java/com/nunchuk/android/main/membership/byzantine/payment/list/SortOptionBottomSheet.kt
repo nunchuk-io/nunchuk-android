@@ -51,8 +51,7 @@ fun SortOptionButtonSheet(
     onDismiss: () -> Unit,
     initValue: SortBy = SortBy.NONE,
     sortRecurringpaymentItem: (sortBy: SortBy) -> Unit = {},
-
-    ) {
+) {
     ModalBottomSheet(
         modifier = Modifier.height((LocalConfiguration.current.screenHeightDp * 9 / 10).dp),
         sheetState = sheetState,
@@ -160,7 +159,7 @@ fun SortRadioButtonItem(
     Row(
         modifier = modifier
             .clickable(onClick = onClick)
-            .padding( vertical = 12.dp)
+            .padding(vertical = 12.dp)
     ) {
         Text(
             modifier = Modifier.weight(1f),

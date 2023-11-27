@@ -43,8 +43,8 @@ class RecurringPaymentViewModel @Inject constructor(
     private val getAddressWalletUseCase: GetAddressWalletUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val groupId = savedStateHandle.get<String>(RecurringPaymentActivity.GROUP_ID).orEmpty()
-    private val walletId =
+    val groupId = savedStateHandle.get<String>(RecurringPaymentActivity.GROUP_ID).orEmpty()
+    val walletId =
         savedStateHandle.get<String>(RecurringPaymentActivity.WALLET_ID).orEmpty()
     private val _config = MutableSaveStateFlow(
         savedStateHandle = savedStateHandle,
@@ -114,6 +114,14 @@ class RecurringPaymentViewModel @Inject constructor(
     }
 
     fun getBsms(wallet: Wallet) {
+        if (wallet.id == walletId) {
+            _state.update { state ->
+                state.copy(
+                    isMyWallet = true,
+                )
+            }
+            return
+        }
         viewModelScope.launch {
             getWalletBsmsUseCase(wallet).onSuccess { bsms ->
                 _config.update {
@@ -269,6 +277,14 @@ class RecurringPaymentViewModel @Inject constructor(
         _state.update {
             it.copy(
                 errorMessage = null,
+            )
+        }
+    }
+
+    fun onIsMyWallet() {
+        _state.update {
+            it.copy(
+                isMyWallet = false,
             )
         }
     }
