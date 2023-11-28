@@ -12,6 +12,8 @@ import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUser
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.CardIdManager
@@ -62,6 +64,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -106,6 +109,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase,
     private val recoverKeyUseCase: RecoverKeyUseCase,
     private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
+    private val pushEventManager: PushEventManager,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -204,6 +208,14 @@ class GroupDashboardViewModel @Inject constructor(
             ).onSuccess { inheritance ->
                 _state.update {
                     it.copy(isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty(), inheritanceOwnerId = inheritance.ownerId)
+                }
+            }
+        }
+        viewModelScope.launch {
+            pushEventManager.event.filterIsInstance<PushEvent.OpenRegisterWallet>().collect {
+                val groupWalletSetupAlert = _state.value.alerts.find { alert -> alert.type == AlertType.GROUP_WALLET_SETUP }
+                if (groupWalletSetupAlert != null && getWalletId().isNotEmpty()) {
+                    dismissAlert(groupWalletSetupAlert.id, silentLoading = true)
                 }
             }
         }
@@ -372,13 +384,13 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun dismissCurrentAlert() {
+    fun dismissCurrentAlert(silentLoading: Boolean = false) {
         currentSelectedAlert?.let { alert ->
-            dismissAlert(alert.id)
+            dismissAlert(alert.id, silentLoading)
         }
     }
 
-    fun dismissAlert(alertId: String) {
+    fun dismissAlert(alertId: String, silentLoading: Boolean = false) {
         viewModelScope.launch {
             val result = dismissAlertUseCase(DismissAlertUseCase.Param(alertId, args.groupId))
             if (result.isSuccess) {
@@ -386,7 +398,7 @@ class GroupDashboardViewModel @Inject constructor(
                     it.copy(alerts = it.alerts.filterNot { alert -> alert.id == alertId })
                 }
             } else {
-                _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+                if (silentLoading.not()) _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
