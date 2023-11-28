@@ -12,6 +12,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.addPaymentWalletAddress
 import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.navigateToPaymentWalletAddress
 import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.addWhitelistAddress
@@ -46,6 +48,7 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -82,6 +85,12 @@ class RecurringPaymentActivity : AppCompatActivity() {
     lateinit var navigator: NunchukNavigator
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportFragmentManager.setFragmentResultListener(
+            AssistedWalletBottomSheet.TAG, this
+        ) { _, bundle ->
+            val selectedWalletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
+            viewModel.getWalletDetail(selectedWalletId)
+        }
         setContentView(
             ComposeView(this).apply {
                 setContent {
@@ -143,6 +152,13 @@ class RecurringPaymentActivity : AppCompatActivity() {
                                     fromMembershipFlow = false,
                                 )
                             },
+                            openSellectWallet = {
+                                AssistedWalletBottomSheet.show(
+                                    supportFragmentManager,
+                                    assistedWalletIds = state.otherwallets.map { wallet -> wallet.id },
+                                    title = context.getString(R.string.nc_select_a_wallet),
+                                )
+                            }
                         )
                         addPaymentPercentageCalculation(
                             recurringPaymentViewModel = viewModel,
@@ -192,7 +208,7 @@ class RecurringPaymentActivity : AppCompatActivity() {
                         )
                         addRecurringPaymentDetail(
                             onOpenDummyTransaction = ::openWalletAuthentication,
-                            openQRDetailScreen = {navController.navigateToQRDetail(it)}
+                            openQRDetailScreen = { navController.navigateToQRDetail(it) }
 
                         )
                         addPaymentWalletAddress(

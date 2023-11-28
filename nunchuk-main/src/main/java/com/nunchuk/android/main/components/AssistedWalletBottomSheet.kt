@@ -49,7 +49,8 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
         super.onViewCreated(view, savedInstanceState)
         val binding = BottomSheetAssistedWalletBinding.bind(view)
         val assistedWalletIds = requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty()
-        val lockdownWalletIds = requireArguments().getStringArrayList(EXTRA_LOCKDOWN_WALLET_IDS).orEmpty()
+        val lockdownWalletIds =
+            requireArguments().getStringArrayList(EXTRA_LOCKDOWN_WALLET_IDS).orEmpty()
         val title = requireArguments().getString(EXTRA_TITLE)
         if (!title.isNullOrEmpty()) {
             binding.tvTitle.text = title
@@ -79,7 +80,12 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_LOCKDOWN_WALLET_IDS = "lockdown_wallet_ids"
 
-        fun show(fragmentManager: FragmentManager, assistedWalletIds: List<String>, title: String? = null, lockdownWalletIds: List<String> = emptyList()) = AssistedWalletBottomSheet().apply {
+        fun show(
+            fragmentManager: FragmentManager,
+            assistedWalletIds: List<String>,
+            title: String? = null,
+            lockdownWalletIds: List<String> = emptyList()
+        ) = AssistedWalletBottomSheet().apply {
             arguments = Bundle().apply {
                 putStringArrayList(EXTRA_WALLET_IDS, ArrayList(assistedWalletIds))
                 putStringArrayList(EXTRA_LOCKDOWN_WALLET_IDS, ArrayList(lockdownWalletIds))

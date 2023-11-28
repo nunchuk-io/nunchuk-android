@@ -24,6 +24,7 @@ import com.nunchuk.android.model.payment.RecurringPaymentType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.premier.CreateRecurringPaymentUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
+import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +42,7 @@ class RecurringPaymentViewModel @Inject constructor(
     private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
     private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
     private val getAddressWalletUseCase: GetAddressWalletUseCase,
+    private val getWallets2UseCase: GetWallets2UseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val groupId = savedStateHandle.get<String>(RecurringPaymentActivity.GROUP_ID).orEmpty()
@@ -66,6 +68,7 @@ class RecurringPaymentViewModel @Inject constructor(
                 }
             }
         }
+        getWallets()
     }
 
     fun init() {
@@ -154,6 +157,30 @@ class RecurringPaymentViewModel @Inject constructor(
                     state.copy(
                         errorMessage = e.message.orEmpty(),
                     )
+                }
+            }
+        }
+    }
+
+    fun getWalletDetail(walletId: String) {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                getBsms(wallet)
+            }.onFailure { e ->
+                _state.update { state ->
+                    state.copy(errorMessage = e.message.orEmpty())
+                }
+            }
+        }
+    }
+
+    fun getWallets() {
+        viewModelScope.launch {
+            getWallets2UseCase(Unit).onSuccess { wallets ->
+                _state.update { it.copy(otherwallets = wallets.filterNot { it.id == walletId }) }
+            }.onFailure { e ->
+                _state.update { state ->
+                    state.copy(errorMessage = e.message.orEmpty())
                 }
             }
         }

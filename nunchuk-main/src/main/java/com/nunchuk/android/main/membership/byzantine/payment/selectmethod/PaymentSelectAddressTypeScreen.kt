@@ -43,10 +43,12 @@ fun PaymentSelectAddressTypeRoute(
     recurringPaymentViewModel: RecurringPaymentViewModel,
     openWhiteListAddressScreen: () -> Unit,
     openScanQRCodeScreen: () -> Unit,
+    openSellectWallet: () -> Unit,
     openBsmsScreen: () -> Unit,
     openScanMk4: (ColdcardAction) -> Unit,
 ) {
     val state by recurringPaymentViewModel.state.collectAsStateWithLifecycle()
+    val isExistingOtherWallet = state.otherwallets.isNotEmpty()
     val snackState = remember { SnackbarHostState() }
     val context = LocalContext.current
     LaunchedEffect(state.openBsmsScreen) {
@@ -84,7 +86,9 @@ fun PaymentSelectAddressTypeRoute(
         openBsms = recurringPaymentViewModel::openBsms,
         clearAddressInfo = recurringPaymentViewModel::clearAddressInfo,
         openScanMk4 = openScanMk4,
-        snackState = snackState
+        snackState = snackState,
+        openSellectWallet = openSellectWallet,
+        isExistingOtherWallet = isExistingOtherWallet
     )
 }
 
@@ -93,10 +97,12 @@ fun PaymentSelectAddressTypeRoute(
 private fun PaymentSelectAddressTypeScreen(
     openWhiteListAddressScreen: () -> Unit = {},
     openScanQRCodeScreen: () -> Unit = {},
+    openSellectWallet: () -> Unit = {},
     openBsms: (Uri) -> Unit = {},
     openScanMk4: (ColdcardAction) -> Unit = {},
     clearAddressInfo: () -> Unit = {},
     snackState: SnackbarHostState = remember { SnackbarHostState() },
+    isExistingOtherWallet: Boolean = false
 ) {
     var useWallet by rememberSaveable {
         mutableStateOf<Boolean?>(null)
@@ -178,16 +184,26 @@ private fun PaymentSelectAddressTypeScreen(
             if (showImportSheet) {
                 NcSelectableBottomSheet(
                     title = stringResource(R.string.nc_select_import_format),
-                    options = listOf(
-                        stringResource(R.string.nc_bsms),
-                        stringResource(R.string.nc_coldcard),
-                        stringResource(R.string.nc_text_wallet_qr_code),
-                    ),
+                    options = if (isExistingOtherWallet) {
+                        listOf(
+                            stringResource(R.string.nc_bsms),
+                            stringResource(R.string.nc_coldcard),
+                            stringResource(R.string.nc_text_wallet_qr_code),
+                            stringResource(R.string.nc_existing_nunchuk_wallet),
+                        )
+                    } else {
+                        listOf(
+                            stringResource(R.string.nc_bsms),
+                            stringResource(R.string.nc_coldcard),
+                            stringResource(R.string.nc_text_wallet_qr_code),
+                        )
+                    },
                     onSelected = { pos ->
                         when (pos) {
                             0 -> openBsmsLauncher.launch("*/*")
                             1 -> showMk4TypeSheet = true
                             2 -> openScanQRCodeScreen()
+                            3 -> openSellectWallet()
                         }
                     },
                     onDismiss = {

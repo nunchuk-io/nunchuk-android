@@ -15,6 +15,7 @@ fun NavGraphBuilder.addPaymentSelectAddressType(
     openScanQRCodeScreen: () -> Unit,
     openBsmsScreen: () -> Unit,
     openScanMk4: (ColdcardAction) -> Unit,
+    openSellectWallet: () -> Unit,
 ) {
     composable(paymentSelectAddressTypeRoute) {
         PaymentSelectAddressTypeRoute(
@@ -23,6 +24,7 @@ fun NavGraphBuilder.addPaymentSelectAddressType(
             openScanQRCodeScreen = openScanQRCodeScreen,
             openBsmsScreen = openBsmsScreen,
             openScanMk4 = openScanMk4,
+            openSellectWallet = openSellectWallet
         )
     }
 }
