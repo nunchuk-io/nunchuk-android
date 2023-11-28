@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
@@ -212,6 +213,7 @@ private fun CosigningPolicyContent(
     onSaveChangeClicked: () -> Unit = {},
     onDiscardChangeClicked: () -> Unit = {},
 ) {
+
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
@@ -345,10 +347,35 @@ private fun CosigningPolicyContent(
                             text = stringResource(R.string.nc_enable_co_signing_delay),
                             style = NunchukTheme.typography.body
                         )
+                        val delayTime = if (keyPolicy.getSigningDelayInHours() == 0 && keyPolicy.getSigningDelayInMinutes() == 0) {
+                            stringResource(R.string.nc_off)
+                        } else if (keyPolicy.getSigningDelayInHours() == 0) {
+                            pluralStringResource(
+                                R.plurals.nc_plural_minute,
+                                keyPolicy.getSigningDelayInMinutes(),
+                                keyPolicy.getSigningDelayInMinutes()
+                            )
+                        } else if (keyPolicy.getSigningDelayInMinutes() == 0) {
+                            pluralStringResource(
+                                R.plurals.nc_plural_hour,
+                                keyPolicy.getSigningDelayInHours(),
+                                keyPolicy.getSigningDelayInHours()
+                            )
+                        } else {
+                            "${pluralStringResource(
+                                R.plurals.nc_plural_hour,
+                                keyPolicy.getSigningDelayInHours(),
+                                keyPolicy.getSigningDelayInHours()
+                            )} ${pluralStringResource(
+                                R.plurals.nc_plural_minute,
+                                keyPolicy.getSigningDelayInMinutes(),
+                                keyPolicy.getSigningDelayInMinutes()
+                            )}"
+                        }
                         Text(
                             modifier = Modifier.weight(1.0f),
                             textAlign = TextAlign.End,
-                            text = "${keyPolicy.getSigningDelayInHours()} hours ${keyPolicy.getSigningDelayInMinutes()} minutes",
+                            text = delayTime,
                             style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold)
                         )
                     }

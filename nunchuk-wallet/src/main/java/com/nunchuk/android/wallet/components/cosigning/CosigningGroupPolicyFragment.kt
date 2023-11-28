@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -219,6 +220,7 @@ private fun CosigningGroupPolicyContent(
             uiState.members.find { it.userId == uiState.requestByUserId }
         }
     }
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -373,10 +375,39 @@ private fun CosigningGroupPolicyContent(
                             text = stringResource(R.string.nc_enable_co_signing_delay),
                             style = NunchukTheme.typography.body
                         )
+                        val delayTime = if (uiState.keyPolicy.getSigningDelayInHours() == 0 && uiState.keyPolicy.getSigningDelayInMinutes() == 0) {
+                            stringResource(R.string.nc_off)
+                        } else if (uiState.keyPolicy.getSigningDelayInHours() == 0) {
+                            pluralStringResource(
+                                R.plurals.nc_plural_minute,
+                                uiState.keyPolicy.getSigningDelayInMinutes(),
+                                uiState.keyPolicy.getSigningDelayInMinutes()
+                            )
+                        } else if (uiState.keyPolicy.getSigningDelayInMinutes() == 0) {
+                            pluralStringResource(
+                                R.plurals.nc_plural_hour,
+                                uiState.keyPolicy.getSigningDelayInHours(),
+                                uiState.keyPolicy.getSigningDelayInHours()
+                            )
+                        } else {
+                            "${
+                                pluralStringResource(
+                                    R.plurals.nc_plural_hour,
+                                    uiState.keyPolicy.getSigningDelayInHours(),
+                                    uiState.keyPolicy.getSigningDelayInHours()
+                                )
+                            } ${
+                                pluralStringResource(
+                                    R.plurals.nc_plural_minute,
+                                    uiState.keyPolicy.getSigningDelayInMinutes(),
+                                    uiState.keyPolicy.getSigningDelayInMinutes()
+                                )
+                            }"
+                        }
                         Text(
                             modifier = Modifier.weight(1.0f),
                             textAlign = TextAlign.End,
-                            text = "${uiState.keyPolicy.getSigningDelayInHours()} hours ${uiState.keyPolicy.getSigningDelayInMinutes()} minutes",
+                            text = delayTime,
                             style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold)
                         )
                     }
