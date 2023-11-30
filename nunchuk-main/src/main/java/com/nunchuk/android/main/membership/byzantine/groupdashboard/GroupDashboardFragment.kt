@@ -621,6 +621,8 @@ private fun GroupDashboardScreen(
         uiState = state,
         onDismissClick = viewModel::dismissAlert,
         isEnableStartGroupChat = viewModel.isEnableStartGroupChat(),
+        refresh = viewModel::refresh,
+        isRefreshing = state.isRefreshing,
         onEditClick = onEditClick,
         onWalletClick = onWalletClick,
         onAlertClick = { alert, role ->

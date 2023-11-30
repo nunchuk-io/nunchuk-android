@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
+import androidx.core.app.NotificationCompat.getGroup
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,6 +25,9 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroEvent
+import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.main.membership.model.toGroupWalletType
+import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.Alert
@@ -59,6 +63,7 @@ import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -219,34 +224,44 @@ class GroupDashboardViewModel @Inject constructor(
                 }
             }
         }
-        getGroup()
+        viewModelScope.launch {
+            getGroupUseCase()
+        }
         getAlerts()
     }
 
     fun getKeysStatus() {
         if (walletId.value.isNullOrEmpty()) return
         viewModelScope.launch {
-            getGroupWalletKeyHealthStatusRemoteUseCase(
-                GetGroupWalletKeyHealthStatusRemoteUseCase.Params(
-                    args.groupId,
-                    walletId.value.orEmpty(),
-                )
-            ).onSuccess { result ->
-                _state.update { state ->
-                    state.copy(keyStatus = result.associateBy { it.xfp })
-                }
+            getKeysStatusUseCase()
+        }
+    }
+
+    private suspend fun getKeysStatusUseCase() {
+        getGroupWalletKeyHealthStatusRemoteUseCase(
+            GetGroupWalletKeyHealthStatusRemoteUseCase.Params(
+                args.groupId,
+                walletId.value.orEmpty(),
+            )
+        ).onSuccess { result ->
+            _state.update { state ->
+                state.copy(keyStatus = result.associateBy { it.xfp })
             }
         }
     }
 
     fun getAlerts() {
         viewModelScope.launch {
-            getAlertGroupRemoteUseCase(
-                GetAlertGroupRemoteUseCase.Params(
-                    groupId = args.groupId
-                )
-            )
+            getAlertsUseCase()
         }
+    }
+
+    private suspend fun getAlertsUseCase() {
+        getAlertGroupRemoteUseCase(
+            GetAlertGroupRemoteUseCase.Params(
+                groupId = args.groupId
+            )
+        )
     }
 
     private fun getGroupChat() = viewModelScope.launch {
@@ -275,16 +290,12 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    private fun getGroup() {
-        viewModelScope.launch {
-            _event.emit(GroupDashboardEvent.Loading(true))
-            getGroupRemoteUseCase(
-                GetGroupRemoteUseCase.Params(
-                    args.groupId
-                )
+    private suspend fun getGroupUseCase() {
+        getGroupRemoteUseCase(
+            GetGroupRemoteUseCase.Params(
+                args.groupId
             )
-            _event.emit(GroupDashboardEvent.Loading(false))
-        }
+        )
     }
 
     fun isEnableStartGroupChat(): Boolean {
@@ -320,7 +331,11 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        events.findLast(TimelineEvent::isGroupMembershipRequestEvent)?.let { getGroup() }
+        events.findLast(TimelineEvent::isGroupMembershipRequestEvent)?.let {
+            viewModelScope.launch {
+                getGroupUseCase()
+            }
+        }
     }
 
     fun getMembers(): List<ByzantineMember> {
@@ -634,6 +649,19 @@ class GroupDashboardViewModel @Inject constructor(
             )
         ).onSuccess {
             _event.emit(GroupDashboardEvent.GroupDummyTransactionPayloadSuccess(it))
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _state.update { it.copy(isRefreshing = true) }
+            val groupDeferred = viewModelScope.async { getGroupUseCase() }
+            val keysStatus = viewModelScope.async { getKeysStatusUseCase() }
+            val alerts = viewModelScope.async { getAlertsUseCase() }
+            groupDeferred.await()
+            keysStatus.await()
+            alerts.await()
+            _state.update { it.copy(isRefreshing = false) }
         }
     }
 
