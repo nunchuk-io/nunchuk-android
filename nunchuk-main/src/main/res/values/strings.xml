@@ -287,4 +287,5 @@
     <string name="nc_destination_cannot_be_the_same_wallet">Destination cannot be the same wallet.</string>
     <string name="nc_existing_nunchuk_wallet">Existing Nunchuk wallet</string>
     <string name="nc_select_a_wallet">Select a wallet</string>
+    <string name="nc_remove_wallet_configuration">Remove wallet configuration</string>
 </resources>

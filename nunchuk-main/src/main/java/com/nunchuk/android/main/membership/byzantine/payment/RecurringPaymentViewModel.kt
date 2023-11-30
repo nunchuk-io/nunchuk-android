@@ -246,6 +246,7 @@ class RecurringPaymentViewModel @Inject constructor(
                 addresses = emptyList(),
                 note = "",
                 isCosign = null,
+                bsms = null,
             )
         }
     }
@@ -258,7 +259,7 @@ class RecurringPaymentViewModel @Inject constructor(
                 destinationType = if (config.value.bsms.isNullOrEmpty()) PaymentDestinationType.WHITELISTED_ADDRESSES else PaymentDestinationType.DESTINATION_WALLET,
                 frequency = config.value.frequency!!,
                 startDate = config.value.startDate,
-                endDate = config.value.endDate,
+                endDate = config.value.endDate.takeIf { !config.value.noEndDate } ?: 0L,
                 allowCosigning = config.value.isCosign,
                 note = config.value.note,
                 amount = config.value.amount.toDoubleOrNull() ?: 0.0,

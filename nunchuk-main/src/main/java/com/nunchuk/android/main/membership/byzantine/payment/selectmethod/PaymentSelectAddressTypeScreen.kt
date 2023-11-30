@@ -105,7 +105,7 @@ private fun PaymentSelectAddressTypeScreen(
     isExistingOtherWallet: Boolean = false
 ) {
     var useWallet by rememberSaveable {
-        mutableStateOf<Boolean?>(null)
+        mutableStateOf(true)
     }
     var showImportSheet by rememberSaveable {
         mutableStateOf(false)

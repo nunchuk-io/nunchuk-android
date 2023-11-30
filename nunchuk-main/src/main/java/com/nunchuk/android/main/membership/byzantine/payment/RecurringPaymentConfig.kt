@@ -16,7 +16,7 @@ data class RecurringPaymentConfig(
     val calculatePercentageJustInTime: Boolean? = null,
     val bsms: String? = null,
     val addresses: List<String> = emptyList(),
-    val frequency: PaymentFrequency? = null,
+    val frequency: PaymentFrequency = PaymentFrequency.MONTHLY,
     val startDate: Long = 0,
     val endDate: Long = 0,
     val note: String = "",
