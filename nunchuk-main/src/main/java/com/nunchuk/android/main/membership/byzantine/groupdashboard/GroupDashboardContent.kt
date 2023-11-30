@@ -189,7 +189,7 @@ fun GroupDashboardContent(
                                     ),
                                     text = {
                                         Text(
-                                            text = "Start group chat",
+                                            text = stringResource(id = R.string.nc_start_group_chat),
                                             color = if (isEnableStartGroupChat) Color.White else colorResource(
                                                 id = R.color.nc_grey_dark_color
                                             )

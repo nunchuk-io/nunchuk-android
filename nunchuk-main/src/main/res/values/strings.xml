@@ -210,4 +210,5 @@
     <string name="nc_key_recovery_approved_desc">The keyholder can now continue with the key recovery process on their device.</string>
     <string name="nc_key_recovery_request_sent_desc">For security, the key recovery request needs to be approved by at least another keyholder. Please resume once the request has been approved.</string>
     <string name="nc_key_recovery_requested">Key recovery requested</string>
+    <string name="nc_start_group_chat">Start group chat</string>
 </resources>
