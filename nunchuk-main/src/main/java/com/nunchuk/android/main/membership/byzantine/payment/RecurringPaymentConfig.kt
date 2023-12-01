@@ -20,7 +20,7 @@ data class RecurringPaymentConfig(
     val startDate: Long = 0,
     val endDate: Long = 0,
     val note: String = "",
-    val noEndDate: Boolean = false,
+    val noEndDate: Boolean = true,
     val isCosign: Boolean? = null,
     val feeRate: FeeRate = FeeRate.PRIORITY,
 ) : Parcelable
