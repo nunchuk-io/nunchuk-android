@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -84,7 +85,10 @@ fun ListRecurringPaymentScreen(
                                     modifier = Modifier
                                         .padding(top = 8.dp, end = 8.dp)
                                         .size(12.dp)
-                                        .background(color = MaterialTheme.colorScheme.error, shape = CircleShape)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.error,
+                                            shape = CircleShape
+                                        )
                                         .align(Alignment.TopEnd)
                                 )
                             }
@@ -93,12 +97,24 @@ fun ListRecurringPaymentScreen(
                 )
             },
             bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(), onClick = onOpenAddRecurringPayment
-                ) {
-                    Text(text = stringResource(R.string.nc_add_recurring_payments))
+                if (uiState.payments.isEmpty()) {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        onClick = onOpenAddRecurringPayment
+                    ) {
+                        Text(text = stringResource(R.string.nc_add_recurring_payments))
+                    }
+                } else {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        onClick = onOpenAddRecurringPayment
+                    ) {
+                        Text(text = stringResource(R.string.nc_add_recurring_payments))
+                    }
                 }
             },
         ) { innerPadding ->
