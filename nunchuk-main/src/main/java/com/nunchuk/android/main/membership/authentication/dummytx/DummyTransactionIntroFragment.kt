@@ -142,7 +142,7 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.HEALTH_CHECK_PENDING,
         -> stringResource(R.string.nc_health_check_procedure)
         DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_key_recovery_requested)
-
+        DummyTransactionType.CANCEL_RECURRING_PAYMENT -> stringResource(R.string.nc_cancel_recurring_payment)
         else -> stringResource(R.string.nc_signatures_required)
     }
     val firstSentence = when (dummyTransactionType) {
