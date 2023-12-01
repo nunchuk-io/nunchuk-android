@@ -34,12 +34,14 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
 import com.nunchuk.android.main.membership.byzantine.payment.toResId
 import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.utils.simpleGlobalDateFormat
+import java.util.Calendar
 import java.util.Date
 
 @Composable
@@ -74,11 +76,16 @@ fun PaymentFrequentScreen(
     onFrequencyChange: (PaymentFrequency) -> Unit = {},
     openPaymentFeeRateScreen: () -> Unit = {},
 ) {
+    val calendar = Calendar.getInstance()
+    var selectedDate: Long = 0L
     var showDatePicker by rememberSaveable {
         mutableStateOf(false)
     }
     var isStartDate by rememberSaveable {
         mutableStateOf(true)
+    }
+    var isShowDateInvalidDialog by rememberSaveable {
+        mutableStateOf(false)
     }
     NunchukTheme {
         Scaffold(topBar = {
@@ -144,7 +151,9 @@ fun PaymentFrequentScreen(
                             .padding(top = 16.dp)
                             .fillMaxSize(),
                         title = stringResource(R.string.nc_start_date),
-                        value = if (startDate > 0) Date(startDate).simpleGlobalDateFormat() else stringResource(id = R.string.nc_activation_date_holder),
+                        value = if (startDate > 0) Date(startDate).simpleGlobalDateFormat() else stringResource(
+                            id = R.string.nc_activation_date_holder
+                        ),
                         onValueChange = {},
                         enabled = false,
                         onClick = {
@@ -158,7 +167,9 @@ fun PaymentFrequentScreen(
                             .padding(top = 16.dp)
                             .fillMaxSize(),
                         title = stringResource(R.string.nc_end_date),
-                        value = if (endDate > 0) Date(endDate).simpleGlobalDateFormat() else stringResource(id = R.string.nc_activation_date_holder),
+                        value = if (endDate > 0) Date(endDate).simpleGlobalDateFormat() else stringResource(
+                            id = R.string.nc_activation_date_holder
+                        ),
                         onValueChange = {},
                         enabled = false,
                         onClick = {
@@ -191,12 +202,34 @@ fun PaymentFrequentScreen(
                 NcDatePickerDialog(
                     onDismissRequest = { showDatePicker = false },
                     onConfirm = { date ->
+                        showDatePicker = false
                         if (isStartDate) {
-                            onStartDateChange(date)
+                            if (calendar.apply { timeInMillis = date }
+                                    .get(Calendar.DAY_OF_MONTH) in listOf(29,30,31)) {
+                                selectedDate = date
+                                isShowDateInvalidDialog = true
+                            } else {
+                                isShowDateInvalidDialog = false
+                                onStartDateChange(date)
+                            }
                         } else {
                             onEndDateChange(date)
                         }
-                        showDatePicker = false
+                    }
+                )
+            }
+            if (isShowDateInvalidDialog) {
+                NcConfirmationDialog(
+                    title = stringResource(R.string.info),
+                    message = stringResource(R.string.invalid_start_date_message),
+                    positiveButtonText = stringResource(R.string.nc_change_date),
+                    negativeButtonText = stringResource(id = R.string.nc_text_got_it),
+                    onPositiveClick = {
+                        showDatePicker = true
+                    },
+                    onDismiss = {
+                        onStartDateChange(selectedDate)
+                        isShowDateInvalidDialog = false
                     }
                 )
             }
