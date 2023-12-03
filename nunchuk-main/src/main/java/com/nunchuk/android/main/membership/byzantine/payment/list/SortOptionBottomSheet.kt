@@ -63,6 +63,7 @@ fun SortOptionButtonSheet(
                 initValue = initValue,
             )
         },
+        dragHandle = {}
     )
 }
 
@@ -75,7 +76,7 @@ fun SortOptionsBottomSheetScreen(
         mutableStateOf(initValue)
     }
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp),
     ) {
         CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
             Box(modifier = Modifier.fillMaxWidth()) {
