@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.gson
+import com.nunchuk.android.core.util.isValidColdcardPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
@@ -87,7 +88,8 @@ class ColdcardRecoverViewModel @Inject constructor(
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
-                val signer = parseResult.getOrThrow().first()
+                val signer =
+                    parseResult.getOrThrow().first { it.derivationPath.isValidColdcardPath }
                 if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                     _event.emit(ColdcardRecoverEvent.AddSameKey)
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))

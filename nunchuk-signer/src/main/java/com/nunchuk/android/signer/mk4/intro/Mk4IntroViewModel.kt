@@ -32,8 +32,8 @@ import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
-import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.core.util.gson
+import com.nunchuk.android.core.util.isValidColdcardPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
@@ -100,11 +100,7 @@ class Mk4IntroViewModel @Inject constructor(
             if (result.isSuccess) {
                 if (args.isMembershipFlow) {
                     val sortedSigner = result.getOrThrow().sortedBy { it.derivationPath }
-                    val signer =
-                        sortedSigner.find { it.derivationPath == if (chain == Chain.MAIN) SIGNER_PATH else SIGNER_TESTNET_PATH }
-                            ?: run {
-                                sortedSigner.find { it.derivationPath.contains(SIGNER_PATH_PREFIX) }
-                            } ?: return@launch
+                    val signer = sortedSigner.find { it.derivationPath.isValidColdcardPath } ?: throw NullPointerException("Can not parse signer")
                     if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                         _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
                         _event.emit(Mk4IntroViewEvent.Loading(false))
@@ -119,7 +115,8 @@ class Mk4IntroViewModel @Inject constructor(
                     )
                     if (createSignerResult.isSuccess) {
                         // force type coldcard nfc in case we import hardware key first
-                        val coldcardSigner = createSignerResult.getOrThrow().copy(type = SignerType.COLDCARD_NFC)
+                        val coldcardSigner =
+                            createSignerResult.getOrThrow().copy(type = SignerType.COLDCARD_NFC)
                         saveMembershipStepUseCase(
                             MembershipStepInfo(
                                 step = membershipStepManager.currentStep
