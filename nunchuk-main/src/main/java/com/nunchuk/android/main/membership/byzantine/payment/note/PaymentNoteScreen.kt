@@ -59,7 +59,6 @@ fun PaymentNoteScreen(
                         .padding(16.dp)
                         .fillMaxWidth(),
                     onClick = openSummaryScreen,
-                    enabled = note.isNotEmpty()
                 ) {
                     Text(text = stringResource(R.string.nc_text_continue))
                 }
