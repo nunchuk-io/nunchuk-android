@@ -135,17 +135,12 @@ private fun FilterByCollectionContent(
     val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     val isSelectAll = selectedCollectionIds.size == collections.size
     NunchukTheme {
-        Scaffold {
+        Scaffold { paddingValues ->
             Column(
                 modifier = Modifier
-                    .padding(it)
                     .statusBarsPadding()
                     .navigationBarsPadding()
                     .imePadding()
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                    )
             ) {
                 Box(
                     modifier = Modifier

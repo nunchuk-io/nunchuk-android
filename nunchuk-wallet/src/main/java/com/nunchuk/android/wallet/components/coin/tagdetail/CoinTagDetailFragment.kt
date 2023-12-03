@@ -308,7 +308,6 @@ private fun CoinTagDetailContent(
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(innerPadding)
                     ) {
                         item {
                             Column(

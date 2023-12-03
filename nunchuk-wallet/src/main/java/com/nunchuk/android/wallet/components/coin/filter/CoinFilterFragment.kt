@@ -264,12 +264,7 @@ private fun CoinFilterContent(
             Column(
                 modifier = Modifier.padding(innerPadding)
             ) {
-                Column(
-                    modifier = Modifier.background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                    )
-                ) {
+                Column {
                     LazyColumn(modifier = Modifier.weight(1.0f)) {
                         if (isSearchTransaction.not()) {
                             item {
