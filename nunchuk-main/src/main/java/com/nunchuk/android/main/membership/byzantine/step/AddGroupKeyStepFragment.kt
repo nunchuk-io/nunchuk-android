@@ -24,7 +24,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -181,28 +180,43 @@ fun AddKeyStepContent(
             else -> R.drawable.nc_bg_let_s_add_keys
         }
 
-    Scaffold(topBar = {
-        NcImageAppBar(
-            backgroundRes = imageBannerId,
-            actions = {
-                if (isShowMoreOption) {
-                    IconButton(onClick = onMoreClicked) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
-                        )
+    Scaffold(
+        modifier = Modifier.navigationBarsPadding(),
+        topBar = {
+            NcImageAppBar(
+                backgroundRes = imageBannerId,
+                actions = {
+                    if (isShowMoreOption) {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
                     }
-                }
-            },
-            backIconRes = R.drawable.ic_close,
-        )
-    }) { innerPadding ->
+                },
+                backIconRes = R.drawable.ic_close,
+            )
+        }, bottomBar = {
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                onClick = onContinueClicked
+            ) {
+                Text(
+                    text = if (isConfigKeyDone.not()) stringResource(R.string.nc_start) else stringResource(
+                        id = R.string.nc_text_continue
+                    )
+                )
+            }
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
         ) {
             StepWithEstTime(
                 1,
@@ -213,7 +227,9 @@ fun AddKeyStepContent(
             )
             if (isConfigKeyDone.not()) {
                 NcHintMessage(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp, end = 16.dp, start = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, end = 16.dp, start = 16.dp),
                     messages = listOf(ClickAbleText(stringResource(R.string.nc_this_step_require_hardware_key)))
                 )
             }
@@ -233,19 +249,6 @@ fun AddKeyStepContent(
                 isCreateWalletDone,
                 isConfigKeyDone && isSetupRecoverKeyDone && isCreateWalletDone.not()
             )
-            Spacer(modifier = Modifier.weight(1.0f))
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                onClick = onContinueClicked
-            ) {
-                Text(
-                    text = if (isConfigKeyDone.not()) stringResource(R.string.nc_start) else stringResource(
-                        id = R.string.nc_text_continue
-                    )
-                )
-            }
         }
     }
 }

@@ -24,7 +24,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -85,17 +84,27 @@ class IntroAssistedWalletFragment : Fragment() {
 fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewModel()) =
     NunchukTheme {
         NunchukTheme {
-            Scaffold(topBar = {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_intro_assisted_wallet,
-                    backIconRes = R.drawable.ic_close
-                )
-            }) { innerPadding ->
+            Scaffold(
+                modifier = Modifier.navigationBarsPadding(),
+                topBar = {
+                    NcImageAppBar(
+                        backgroundRes = R.drawable.nc_bg_intro_assisted_wallet,
+                        backIconRes = R.drawable.ic_close
+                    )
+                },
+                bottomBar = {
+                    NcPrimaryDarkButton(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                        onClick = { viewModel.onContinueClicked() }) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
+                },
+            ) { innerPadding ->
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
                         .fillMaxSize()
-                        .navigationBarsPadding()
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(
@@ -108,13 +117,6 @@ fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewMode
                         text = stringResource(R.string.nc_welcome_assisted_wallet_desc),
                         style = NunchukTheme.typography.body
                     )
-                    Spacer(modifier = Modifier.weight(1.0f))
-                    NcPrimaryDarkButton(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                        onClick = { viewModel.onContinueClicked() }) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
-                    }
                 }
             }
         }

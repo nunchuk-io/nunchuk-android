@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -434,13 +433,9 @@ fun AddKeyListContent(
     remainingTime: Int,
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-            ) {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
                 NcTopAppBar(
                     title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
                     actions = {
@@ -450,54 +445,10 @@ fun AddKeyListContent(
                                 contentDescription = "More icon"
                             )
                         }
-                    })
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.nc_let_add_your_keys),
-                            style = NunchukTheme.typography.heading
-                        )
-                        Text(
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                            text = buildAnnotatedString {
-                                append(
-                                    stringResource(
-                                        id = R.string.nc_add_key_list_desc_one,
-                                        keys.size
-                                    )
-                                )
-                                append(" ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                                    append(stringResource(id = R.string.nc_add_key_list_desc_two))
-                                }
-                                if (keys.size > 3) {
-                                    append(stringResource(id = R.string.nc_honey_add_key_list_desc_three))
-                                } else {
-                                    append(stringResource(id = R.string.nc_add_key_list_desc_three))
-                                }
-                                if (keys.size > 3) {
-                                    append("\n\n")
-                                    append(stringResource(R.string.nc_among_three_key_select_inheritance))
-                                }
-                            },
-                            style = NunchukTheme.typography.body
-                        )
-                    }
-
-                    items(keys) { key ->
-                        AddKeyCard(
-                            item = key,
-                            onAddClicked = onAddClicked,
-                            onVerifyClicked = onVerifyClicked,
-                        )
-                    }
-                }
+                    },
+                )
+            },
+            bottomBar = {
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -506,6 +457,55 @@ fun AddKeyListContent(
                     enabled = keys.all { it.isVerifyOrAddKey }
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
+                }
+            },
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .padding(top = 16.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.nc_let_add_your_keys),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                        text = buildAnnotatedString {
+                            append(
+                                stringResource(
+                                    id = R.string.nc_add_key_list_desc_one,
+                                    keys.size
+                                )
+                            )
+                            append(" ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
+                                append(stringResource(id = R.string.nc_add_key_list_desc_two))
+                            }
+                            if (keys.size > 3) {
+                                append(stringResource(id = R.string.nc_honey_add_key_list_desc_three))
+                            } else {
+                                append(stringResource(id = R.string.nc_add_key_list_desc_three))
+                            }
+                            if (keys.size > 3) {
+                                append("\n\n")
+                                append(stringResource(R.string.nc_among_three_key_select_inheritance))
+                            }
+                        },
+                        style = NunchukTheme.typography.body
+                    )
+                }
+
+                items(keys) { key ->
+                    AddKeyCard(
+                        item = key,
+                        onAddClicked = onAddClicked,
+                        onVerifyClicked = onVerifyClicked,
+                    )
                 }
             }
         }
@@ -625,7 +625,7 @@ private fun ConfigItem(
                 text = item.type.getLabel(LocalContext.current),
                 style = NunchukTheme.typography.body
             )
-            Row (modifier = Modifier.padding(top = 4.dp)) {
+            Row(modifier = Modifier.padding(top = 4.dp)) {
                 if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) {
                     NcTag(
                         label = stringResource(R.string.nc_inheritance),
