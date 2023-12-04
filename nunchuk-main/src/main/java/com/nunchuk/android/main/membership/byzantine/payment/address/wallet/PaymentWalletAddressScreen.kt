@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.payment.address.wallet
 
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,12 +39,16 @@ fun PaymentWalletAddressRoute(
     onOpenQrDetailScreen: (address: String) -> Unit,
 ) {
     val config by viewModel.config.collectAsStateWithLifecycle()
+    val onBackPressDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     PaymentWalletAddressScreen(
         openPaymentFrequencyScreen = openPaymentFrequencyScreen,
         address = config.addresses.firstOrNull().orEmpty(),
         bsms = config.bsms.orEmpty(),
         onOpenQrDetailScreen = onOpenQrDetailScreen,
-        onRemoveWalletConfig = viewModel::clearAddressInfo,
+        onRemoveWalletConfig = {
+            viewModel.clearAddressInfo()
+            onBackPressDispatcher?.onBackPressed()
+        },
     )
 }
 
