@@ -54,6 +54,7 @@ private val LightColors = lightColorScheme(
     error = ErrorColor,
     background = Color.White,
     surfaceVariant = Color.White,
+    surface = Color.White,
 )
 
 private val defaultTypography = Typography()

@@ -271,7 +271,6 @@ private fun Mk4IntroContent(
                     modifier = Modifier
                         .padding(innerPadding)
                         .fillMaxSize()
-                        .navigationBarsPadding()
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(

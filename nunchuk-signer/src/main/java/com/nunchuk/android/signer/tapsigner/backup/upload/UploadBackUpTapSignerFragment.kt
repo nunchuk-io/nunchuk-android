@@ -154,7 +154,6 @@ private fun UploadBackUpTapSignerContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
         ) {
             Text(

@@ -81,7 +81,6 @@ private fun UniversalNfcIntroScreen(viewModel: UniversalNfcIntroViewModel = view
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(backgroundRes = R.drawable.nc_bg_universal_nfc_intro)

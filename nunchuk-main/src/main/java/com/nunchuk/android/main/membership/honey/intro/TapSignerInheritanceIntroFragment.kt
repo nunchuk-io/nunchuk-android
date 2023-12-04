@@ -192,7 +192,6 @@ private fun TapSignerInheritanceIntroContent(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(

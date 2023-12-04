@@ -84,7 +84,6 @@ private fun InheritanceClaimBufferPeriodContent(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(

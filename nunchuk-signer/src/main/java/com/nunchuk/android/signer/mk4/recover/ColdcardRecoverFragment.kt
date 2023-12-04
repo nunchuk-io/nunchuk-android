@@ -157,9 +157,8 @@ private fun ColdcardRecoverContent(
         }) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
                     .padding(innerPadding)
-                    .navigationBarsPadding()
+                    .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(

@@ -191,7 +191,6 @@ private fun CheckBackUpByAppContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .navigationBarsPadding()
                     .imePadding()
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())

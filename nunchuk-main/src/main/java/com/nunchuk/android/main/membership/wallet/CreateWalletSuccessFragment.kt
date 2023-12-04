@@ -139,7 +139,6 @@ fun CreateWalletSuccessScreenContent(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(

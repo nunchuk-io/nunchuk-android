@@ -135,7 +135,6 @@ private fun WalletSecurityCreatePinContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .navigationBarsPadding()
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
