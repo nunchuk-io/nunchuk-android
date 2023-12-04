@@ -224,7 +224,7 @@ fun GroupDashboardContent(
                             onAlertClick = onAlertClick,
                             onDismissClick = onDismissClick
                         )
-                        if (uiState.keyStatus.isNotEmpty()) {
+                        if (uiState.keyStatus.isNotEmpty() && signers.any { it.type != SignerType.SERVER }) {
                             HealthCheckStatusView(
                                 onOpenHealthCheckScreen = onOpenHealthCheckScreen,
                                 signers = signers,
