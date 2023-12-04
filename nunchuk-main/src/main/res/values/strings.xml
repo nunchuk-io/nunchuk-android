@@ -292,4 +292,5 @@
     <string name="info">Info</string>
     <string name="nc_change_date">Change date</string>
     <string name="nc_cancel_recurring_payment">Cancel recurring payment</string>
+    <string name="nc_no_transaction_note">No transaction note</string>
 </resources>

@@ -178,17 +178,15 @@ fun PaymentSummaryContent(
             }
         }
 
-        if (note.isNotEmpty()) {
-            NcTextField(
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth(),
-                title = stringResource(R.string.nc_note),
-                value = note,
-                onValueChange = {},
-                enabled = false,
-                disableBackgroundColor = MaterialTheme.colorScheme.greyLight,
-            )
-        }
+        NcTextField(
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
+            title = stringResource(R.string.nc_note),
+            value = note.ifEmpty { stringResource(R.string.nc_no_transaction_note) },
+            onValueChange = {},
+            enabled = false,
+            disableBackgroundColor = MaterialTheme.colorScheme.greyLight,
+        )
     }
 }
