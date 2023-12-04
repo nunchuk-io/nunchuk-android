@@ -186,15 +186,15 @@ private fun PaymentSelectAddressTypeScreen(
                     title = stringResource(R.string.nc_select_import_format),
                     options = if (isExistingOtherWallet) {
                         listOf(
-                            stringResource(R.string.nc_bsms),
-                            stringResource(R.string.nc_coldcard),
+                            stringResource(R.string.nc_bsms_descriptors),
+                            stringResource(R.string.nc_coldcard_nfc),
                             stringResource(R.string.nc_text_wallet_qr_code),
                             stringResource(R.string.nc_existing_nunchuk_wallet),
                         )
                     } else {
                         listOf(
-                            stringResource(R.string.nc_bsms),
-                            stringResource(R.string.nc_coldcard),
+                            stringResource(R.string.nc_bsms_descriptors),
+                            stringResource(R.string.nc_coldcard_nfc),
                             stringResource(R.string.nc_text_wallet_qr_code),
                         )
                     },

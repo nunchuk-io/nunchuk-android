@@ -12,6 +12,7 @@ import com.nunchuk.android.core.domain.wallet.GetAddressWalletUseCase
 import com.nunchuk.android.core.domain.wallet.GetWalletBsmsUseCase
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.key.toRecurringPaymentType
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
@@ -105,10 +106,10 @@ class RecurringPaymentViewModel @Inject constructor(
                 val content = it.readText()
                 parseWalletDescriptorUseCase(content).onSuccess { wallet ->
                     getBsms(wallet)
-                }.onFailure { e ->
+                }.onFailure {
                     _state.update { state ->
                         state.copy(
-                            errorMessage = e.message.orEmpty(),
+                            errorMessage = application.getString(R.string.nc_invalid_wallet_configuration),
                         )
                     }
                 }
