@@ -161,7 +161,7 @@ fun WhitelistAddressScreen(
                         if (selectedTabIndex == 0) {
                             checkAddress(addresses)
                         } else {
-                            checkAddress(batchAddress.split(",").map { it.trim() })
+                            checkAddress(batchAddress.split("\n").map { it.trim() })
                         }
                     },
                     enabled = (addresses.isNotEmpty() && addresses.all { it.isNotEmpty() }) || batchAddress.isNotEmpty()
