@@ -66,6 +66,8 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
@@ -463,8 +465,8 @@ internal class WalletsViewModel @Inject constructor(
         event(AddWalletEvent)
     }
 
-    fun isInWallet(signer: SignerModel): Boolean {
-        return getState().wallets.any {
+    private fun checkSignerExistence(signer: SignerModel, walletExtendeds: List<WalletExtended>): Boolean {
+        return walletExtendeds.any {
             it.wallet.signers.any anyLast@{ singleSigner ->
                 if (singleSigner.hasMasterSigner) {
                     return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
@@ -473,6 +475,17 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
     }
+
+    fun isInWallet(signer: SignerModel): Boolean {
+        return checkSignerExistence(signer, getState().wallets)
+    }
+
+    fun isInAssistedWallet(signer: SignerModel): Boolean {
+        val assistedWalletSet = getState().assistedWallets.map { it.localId }.toHashSet()
+        val assistedWallets = getState().wallets.filter { it.wallet.id in assistedWalletSet }
+        return checkSignerExistence(signer, assistedWallets)
+    }
+
 
     fun hasSigner() = getState().signers.isNotEmpty()
 

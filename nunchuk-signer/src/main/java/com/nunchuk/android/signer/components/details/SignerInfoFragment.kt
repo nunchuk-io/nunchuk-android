@@ -122,9 +122,20 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
     }
 
     private fun handleRemoveKey() {
-        if (args.isInWallet) {
+        if (args.isInAssistedWallet) {
             NCInfoDialog(requireActivity()).showDialog(
+                title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_warning_key_use_in_assisted_wallet),
+            )
+        } else if (args.isInWallet) {
+            NCWarningDialog(requireActivity()).showDialog(
+                title = getString(R.string.nc_confirmation),
                 message = getString(R.string.nc_warning_key_use_in_wallet),
+                btnYes = getString(R.string.nc_text_yes),
+                btnNo = getString(R.string.nc_cancel),
+                onYesClick = {
+                    viewModel.handleRemoveSigner()
+                }
             )
         } else if (args.signerType == SignerType.FOREIGN_SOFTWARE) {
             NCInfoDialog(requireActivity()).showDialog(

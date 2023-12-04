@@ -114,7 +114,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             } else {
                 val step = when (key.index) {
-                    0 -> if (draftWallet.walletConfig?.n == 4) MembershipStep.BYZANTINE_ADD_TAP_SIGNER else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
+                    0 -> if (draftWallet.walletConfig?.n == 4 && draftWallet.walletConfig.allowInheritance) MembershipStep.BYZANTINE_ADD_TAP_SIGNER else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
                     1 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
                     2 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
                     3 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3

@@ -68,6 +68,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sha
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -207,7 +208,7 @@ private fun InheritanceShareSecretInfoContent(
                             ) {
                                 Text(
                                     modifier = Modifier.fillMaxWidth(),
-                                    text = magicalPhrase,
+                                    text = magicalPhrase.ifEmpty { Utils.maskValue("", isMask = true) },
                                     style = NunchukTheme.typography.body,
                                     textAlign = TextAlign.Center
                                 )

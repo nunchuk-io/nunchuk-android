@@ -40,6 +40,8 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -78,10 +80,15 @@ import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDetailsBinding>(),
     BottomSheetOptionListener {
+
+    @Inject
+    lateinit var pushEventManager: PushEventManager
+
     private val viewModel: DummyTransactionDetailsViewModel by viewModels()
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
@@ -266,6 +273,9 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                     btnNeutral = getString(R.string.nc_text_do_this_later),
                     onPositiveClick = {},
                     onNegativeClick = {
+                        lifecycleScope.launch {
+                            pushEventManager.push(PushEvent.OpenRegisterWallet)
+                        }
                         startActivity(
                             MembershipActivity.openRegisterWalletIntent(
                                 activity = requireActivity(),

@@ -74,7 +74,8 @@
     <string name="nc_recover_nfc_key_from_backup">Recover TAPSIGNER key from backup</string>
     <string name="nc_enter_decryption_key">Enter backup password</string>
     <string name="nc_backup_password">Backup Password</string>
-    <string name="nc_warning_key_use_in_wallet">Oops, your key is currently being used in a wallet. Please remove the wallet first.</string>
+    <string name="nc_warning_key_use_in_wallet">This key is currently being used in a wallet. Are you sure you want to delete it?</string>
+    <string name="nc_warning_key_use_in_assisted_wallet">This key is currently being used in a wallet. Please remove the wallet first.</string>
     <string name="nc_please_remove_on_added_device">Please remove this key on the device that it was added to.</string>
     <string name="nc_backup_key_failed">Backup key failed</string>
     <string name="nc_topup_xpub_failed">Topup Xpub failed</string>

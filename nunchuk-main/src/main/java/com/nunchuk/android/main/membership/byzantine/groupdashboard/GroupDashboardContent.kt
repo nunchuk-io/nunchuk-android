@@ -30,6 +30,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExtendedFloatingActionButton
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -39,6 +40,9 @@ import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
@@ -46,7 +50,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,10 +85,12 @@ import com.nunchuk.android.type.SignerType
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun GroupDashboardContent(
     uiState: GroupDashboardState = GroupDashboardState(),
     isEnableStartGroupChat: Boolean = false,
+    isRefreshing: Boolean = false,
     onGroupChatClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onAlertClick: (alert: Alert, role: AssistedWalletRole) -> Unit = { _, _ -> },
@@ -90,7 +98,9 @@ fun GroupDashboardContent(
     onWalletClick: () -> Unit = {},
     onDismissClick: (String) -> Unit = {},
     onOpenHealthCheckScreen: () -> Unit = {},
+    refresh: () -> Unit = { },
 ) {
+    val state = rememberPullRefreshState(isRefreshing, refresh)
     val master = uiState.group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
     val listState = rememberLazyListState()
     val isKeyholderLimited = uiState.myRole == AssistedWalletRole.KEYHOLDER_LIMITED
@@ -179,7 +189,7 @@ fun GroupDashboardContent(
                                     ),
                                     text = {
                                         Text(
-                                            text = "Start group chat",
+                                            text = stringResource(id = R.string.nc_start_group_chat),
                                             color = if (isEnableStartGroupChat) Color.White else colorResource(
                                                 id = R.color.nc_grey_dark_color
                                             )
@@ -203,47 +213,50 @@ fun GroupDashboardContent(
             }
         ) { innerPadding ->
             if (uiState.group == null) return@Scaffold
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxHeight()
-            ) {
-                LazyColumn(
+            Box(Modifier.pullRefresh(state)) {
+                Column(
                     modifier = Modifier
-                        .background(colorResource(id = R.color.nc_grey_light))
-                        .padding(top = 16.dp),
-                    state = listState
+                        .padding(innerPadding)
+                        .fillMaxHeight()
                 ) {
-                    alertListView(
-                        alerts = uiState.alerts,
-                        currentUserRole = uiState.myRole,
-                        onAlertClick = onAlertClick,
-                        onDismissClick = onDismissClick
-                    )
-                    if (uiState.keyStatus.isNotEmpty()) {
-                        HealthCheckStatusView(
-                            onOpenHealthCheckScreen = onOpenHealthCheckScreen,
-                            signers = signers,
-                            status = uiState.keyStatus
-                        )
-                    }
-                    if (isKeyholderLimited.not()) {
-                        memberListView(
-                            group = uiState.group,
+                    LazyColumn(
+                        modifier = Modifier
+                            .background(colorResource(id = R.color.nc_grey_light))
+                            .padding(top = 16.dp),
+                        state = listState
+                    ) {
+                        alertListView(
+                            alerts = uiState.alerts,
                             currentUserRole = uiState.myRole,
-                            master = master,
-                            padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
-                            onEditClick = onEditClick
+                            onAlertClick = onAlertClick,
+                            onDismissClick = onDismissClick
                         )
+                        if (uiState.keyStatus.isNotEmpty()) {
+                            HealthCheckStatusView(
+                                onOpenHealthCheckScreen = onOpenHealthCheckScreen,
+                                signers = signers,
+                                status = uiState.keyStatus
+                            )
+                        }
+                        if (isKeyholderLimited.not()) {
+                            memberListView(
+                                group = uiState.group,
+                                currentUserRole = uiState.myRole,
+                                master = master,
+                                padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
+                                onEditClick = onEditClick
+                            )
+                        }
                     }
-                }
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .background(color = MaterialTheme.colors.surface)
-                )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .background(color = MaterialTheme.colors.surface)
+                    )
+                }
+                PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
             }
         }
     }

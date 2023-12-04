@@ -78,10 +78,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceReviewPlanGroupScreen(
-                    viewModel,
-                    inheritanceViewModel
-                )
+                InheritanceReviewPlanGroupScreen(viewModel)
             }
         }
     }
@@ -111,7 +108,6 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
 @Composable
 fun InheritanceReviewPlanGroupScreen(
     viewModel: InheritanceReviewPlanGroupViewModel = viewModel(),
-    inheritanceViewModel: InheritancePlanningViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     InheritanceReviewPlanGroupScreenContent(
