@@ -26,6 +26,7 @@ import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentVie
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.payment.PaymentCalculationMethod
 import com.nunchuk.android.model.payment.PaymentFrequency
 
 @Composable
@@ -61,7 +62,10 @@ fun PaymentSummaryRoute(
         isCosign = config.isCosign,
         name = config.name,
         amount = config.amount,
-        frequency = config.frequency ?: PaymentFrequency.DAILY,
+        frequency = config.frequency,
+        calculationMethod = config.calculatePercentageJustInTime?.let {
+            if (it) PaymentCalculationMethod.JUST_IN_TIME else PaymentCalculationMethod.RUNNING_AVERAGE
+        },
         startDate = config.startDate,
         endDate = config.endDate,
         noEndDate = config.noEndDate,
@@ -84,6 +88,7 @@ fun PaymentSummaryScreen(
     name: String = "",
     amount: String = "",
     frequency: PaymentFrequency = PaymentFrequency.DAILY,
+    calculationMethod: PaymentCalculationMethod? = null,
     startDate: Long = 0,
     endDate: Long = 0,
     noEndDate: Boolean = false,
@@ -120,6 +125,7 @@ fun PaymentSummaryScreen(
                 name = name,
                 amount = amount,
                 frequency = frequency,
+                calculationMethod = calculationMethod,
                 startDate = startDate,
                 noEndDate = noEndDate,
                 endDate = endDate,

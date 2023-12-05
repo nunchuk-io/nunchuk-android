@@ -27,6 +27,7 @@ import com.nunchuk.android.main.membership.byzantine.payment.AddressWithQrView
 import com.nunchuk.android.main.membership.byzantine.payment.feerate.toTitle
 import com.nunchuk.android.main.membership.byzantine.payment.toResId
 import com.nunchuk.android.model.FeeRate
+import com.nunchuk.android.model.payment.PaymentCalculationMethod
 import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import java.util.Date
@@ -38,6 +39,7 @@ fun PaymentSummaryContent(
     name: String,
     amount: String,
     frequency: PaymentFrequency,
+    calculationMethod: PaymentCalculationMethod?,
     startDate: Long,
     noEndDate: Boolean,
     endDate: Long,
@@ -74,11 +76,23 @@ fun PaymentSummaryContent(
                 .padding(top = 24.dp)
                 .fillMaxWidth(),
             title = stringResource(id = R.string.nc_amount),
-            value = "$amount ${if (useAmount) currency.orEmpty() else "%"}",
+            value = "$amount ${if (useAmount) currency.orEmpty() else "% of wallet balance (*)"}",
             onValueChange = {},
             enabled = false,
             disableBackgroundColor = MaterialTheme.colorScheme.greyLight,
         )
+
+        calculationMethod?.let {
+            Text(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth(),
+                text = if (calculationMethod == PaymentCalculationMethod.RUNNING_AVERAGE)
+                    stringResource(R.string.nc_run_in_average_desc)
+                else stringResource(R.string.nc_just_in_time_desc),
+                style = NunchukTheme.typography.body,
+            )
+        }
 
         NcTextField(
             modifier = Modifier

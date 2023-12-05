@@ -296,4 +296,6 @@
     <string name="nc_invalid_wallet_configuration">Invalid wallet configuration</string>
     <string name="nc_bsms_descriptors">BSMS/descriptors</string>
     <string name="nc_coldcard_nfc">Coldcard NFC</string>
+    <string name="nc_run_in_average_desc">* The percentage will be calculated based on the daily average of the wallet balance over the previous period.</string>
+    <string name="nc_just_in_time_desc">* The percentage will be calculated based on the daily average of the wallet balance over the previous period.</string>
 </resources>
