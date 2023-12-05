@@ -48,7 +48,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.mk4_navigation)
-        when (intent.serializable<ColdcardAction>(EXTRA_ACTION)!!) {
+        when (action) {
             ColdcardAction.CREATE -> graph.setStartDestination(R.id.mk4InfoFragment)
             ColdcardAction.RECOVER_KEY -> graph.setStartDestination(R.id.coldcardRecoverFragment)
             ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
@@ -66,7 +66,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     }
 
     val action : ColdcardAction by lazy(LazyThreadSafetyMode.NONE) {
-        intent.serializable(EXTRA_ACTION)!!
+        intent.serializable(EXTRA_ACTION) ?: ColdcardAction.CREATE
     }
     val groupId : String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 

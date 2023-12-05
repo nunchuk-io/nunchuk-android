@@ -549,12 +549,14 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openWalletDetailsScreen(walletId: String) {
-        findNavController().navigate(
-            WalletsFragmentDirections.actionNavigationWalletsToWalletDetailsFragment(
-                walletId = walletId,
-                keyPolicy = walletsViewModel.getKeyPolicy(walletId)
+        runCatching {
+            findNavController().navigate(
+                WalletsFragmentDirections.actionNavigationWalletsToWalletDetailsFragment(
+                    walletId = walletId,
+                    keyPolicy = walletsViewModel.getKeyPolicy(walletId)
+                )
             )
-        )
+        }
     }
 
     private fun showSigners(signers: List<SignerModel>) {

@@ -19,6 +19,9 @@
 
 package com.nunchuk.android.share
 
+import io.realm.internal.Keep
+
+@Keep
 enum class ColdcardAction {
     CREATE, RECOVER_KEY, RECOVER_MULTI_SIG_WALLET, RECOVER_SINGLE_SIG_WALLET, PARSE_MULTISIG_WALLET, PARSE_SINGLE_SIG_WALLET
 }
