@@ -3,6 +3,7 @@
     <string name="nc_title_message">Messages</string>
     <string name="nc_title_contacts">Contacts</string>
     <string name="nc_title_wallets">Wallets</string>
+    <string name="nc_title_home">Home</string>
     <string name="nc_title_signers">Keys</string>
     <string name="nc_title_account">Profile</string>
 
@@ -184,7 +185,7 @@
     <string name="nc_add_tap_signer_intro_desc">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.\n\nOn the next screen, place and hold your card as close as possible to the NFC chip on your phone. Please make sure you hold it until there is a success notification.\n\nIf you are unsure where the chip is, please refer to your phone manual.</string>
     <string name="nc_coldcard_nfc_intro_desc">On the next screen, bring your phone as close as possible to the COLDCARD’s NFC chip, which is centered around number 8 on the keypad.</string>
     <string name="nc_universal_nfc_intro_desc">Interacting with NFC devices will require bringing them as close as possible to the phone’s NFC chip. Please take a moment to locate where the chip is. If you are unsure, refer to your device manual.</string>
-    <string name="nc_back_up_tap_signer_desc">An encrypted backup for the TAPSIGNER will be stored on our server.</string>
+    <string name="nc_back_up_tap_signer_desc">An encrypted backup for the TAPSIGNER will be stored on the server.</string>
     <string name="nc_verify_back_up_app_desc">Enter your Backup Password below and the app will check it for you.\n\nAll verification data will stay locally on the device and will be erased immediately afterward.</string>
     <string name="nc_tap_signer_back_up_explain_desc">The encrypted backup that we just saved will be used to recover the TAPSIGNER’s private key in case you lose the card, or the card malfunctions.\n\nIn order to unlock the backup later, you will need the Backup Password printed on the back of the card (it might be listed under “Backup key”).</string>
     <string name="nc_coldcard_nfc_tip">COLDCARD NFC tip</string>
@@ -264,7 +265,7 @@
     <string name="nc_confirm_restart_wizard">Are you sure you want to restart the wizard? All wizard data will be cleared.</string>
     <string name="nc_assisted">Assisted</string>
     <string name="nc_your_inheritance_key">Your inheritance key</string>
-    <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key. Once you have set up an inheritance plan, a Beneficiary or Trustee will be able to recover this TAPSIGNER’s private key at a later date to access your wallet and claim the inheritance.\n\nPlease take a moment to mark or label this key.</string>
+    <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key.\n\nPlease take a moment to mark or label this key.</string>
     <string name="nc_inheritance_key_tip_desc">The inheritance key can function as a backup signing key on a day-to-day basis.\n\nHowever, since the TAPSIGNER used as the inheritance key contains sensitive information with regards to the inheritance (i.e., the Backup Password), [B]we recommend that you exercise extra caution when storing and accessing it.[/B]</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_set_up_inheritance_plan_wallet">Set up an inheritance plan for this wallet</string>
@@ -320,7 +321,7 @@
     <string name="nc_get_additional_wallet">Get additional wallets</string>
     <string name="nc_start_key_recovery">Start key recovery</string>
     <string name="nc_update_recovery_question">Update security questions</string>
-    <string name="nc_key_recovery_intro_desc">If you lost a TAPSIGNER or the card malfunctions, this procedure will recover the TAPSIGNER’s private key using the encrypted backup from our server. Please note the following:</string>
+    <string name="nc_key_recovery_intro_desc">If you lost a TAPSIGNER or the card malfunctions, this procedure will recover the TAPSIGNER’s private key using the encrypted backup from the server. Please note the following:</string>
     <string name="nc_key_recovery_intro_notice">The key recovery procedure currently only supports TAPSIGNER.</string>
     <string name="nc_key_recovery_intro_info_1">The Backup Password is required, please have it ready. The password is printed on the back of the TAPSIGNER. You should have had a copy of this when setting the TAPSIGNER up for the first time.</string>
     <string name="nc_key_recovery_intro_info_2">This procedure will convert the TAPSIGNER into a software key managed by this device.</string>
