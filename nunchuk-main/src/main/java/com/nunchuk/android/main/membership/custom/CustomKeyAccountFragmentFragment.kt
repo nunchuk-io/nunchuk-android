@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.membership.custom
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,26 +47,45 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignerModelProvider
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.isAirgapTag
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.component.SignerCard
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class CustomKeyAccountFragmentFragment : MembershipFragment() {
+class CustomKeyAccountFragmentFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: CustomKeyAccountFragmentViewModel by viewModels()
     private val args: CustomKeyAccountFragmentFragmentArgs by navArgs()
 
     @Inject
     lateinit var navigator: NunchukNavigator
+    
+    private val coldcardOrAirgapLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            findNavController().popBackStack()
+        } else if (it.resultCode == GlobalResult.RESULT_INDEX_NOT_MATCH) {
+            showError(getString(R.string.nc_coldcard_index_not_match, viewModel.getNewIndex()))
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -88,11 +109,42 @@ class CustomKeyAccountFragmentFragment : MembershipFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
-                    when(event) {
+                    when (event) {
                         is CustomKeyAccountFragmentEvent.CheckSigner -> handleCheckSigner(event.signer)
-                        is CustomKeyAccountFragmentEvent.OpenScanTapSigner -> openCreateBackUpTapSigner(event.index)
+                        is CustomKeyAccountFragmentEvent.OpenScanTapSigner -> openCreateBackUpTapSigner(
+                            event.index
+                        )
                     }
                 }
+        }
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
+        when (option.type) {
+            SheetOptionType.TYPE_ADD_COLDCARD_NFC -> {
+                navigator.startSetupMk4ForResult(
+                    launcher = coldcardOrAirgapLauncher,
+                    activity = requireActivity(),
+                    fromMembershipFlow = true,
+                    action = ColdcardAction.CREATE,
+                    groupId = (activity as MembershipActivity).groupId,
+                    newIndex = viewModel.getNewIndex(),
+                    xfp = args.signer.fingerPrint,
+                )
+            }
+
+            SheetOptionType.TYPE_ADD_COLDCARD_FILE -> {
+                navigator.startSetupMk4ForResult(
+                    launcher = coldcardOrAirgapLauncher,
+                    activity = requireActivity(),
+                    fromMembershipFlow = true,
+                    action = ColdcardAction.RECOVER_KEY,
+                    groupId = (activity as MembershipActivity).groupId,
+                    newIndex = viewModel.getNewIndex(),
+                    xfp = args.signer.fingerPrint,
+                )
+            }
         }
     }
 
@@ -109,23 +161,69 @@ class CustomKeyAccountFragmentFragment : MembershipFragment() {
 
     private fun handleCheckSigner(signer: SingleSigner?) {
         if (signer == null) {
-            NCWarningDialog(requireActivity()).showDialog(
-                message = getString(R.string.nc_master_signer_new_index_not_available),
-                btnNo = getString(R.string.nc_cancel),
-                btnYes = getString(R.string.nc_text_got_it),
-                onYesClick = {
-                    findNavController().popBackStack()
+            when {
+                args.signer.type == SignerType.COLDCARD_NFC || args.signer.tags.contains(SignerTag.COLDCARD) -> {
+                    showAddColdcardOptions()
                 }
-            )
+
+                args.signer.type == SignerType.AIRGAP -> {
+                    NCInfoDialog(requireActivity()).showDialog(
+                        message = getString(R.string.nc_new_account_needed_airgap),
+                        btnInfo = getString(R.string.nc_cancel),
+                        btnYes = getString(R.string.nc_text_continue),
+                        onYesClick = {
+                            args.signer.tags.find { it.isAirgapTag }?.let { tag ->
+                                navigator.openAddAirSignerScreenForResult(
+                                    launcher = coldcardOrAirgapLauncher,
+                                    activityContext = requireActivity(),
+                                    isMembershipFlow = true,
+                                    tag = tag,
+                                    groupId = (activity as MembershipActivity).groupId,
+                                    xfp = args.signer.fingerPrint,
+                                    newIndex = viewModel.getNewIndex(),
+                                )
+                            }
+                        }
+                    )
+                }
+
+                else -> {
+                    NCWarningDialog(requireActivity()).showDialog(
+                        message = getString(R.string.nc_master_signer_new_index_not_available),
+                        btnNo = getString(R.string.nc_cancel),
+                        btnYes = getString(R.string.nc_text_got_it),
+                        onYesClick = {
+                            findNavController().popBackStack()
+                        }
+                    )
+                }
+            }
         } else {
             setFragmentResult(
                 REQUEST_KEY,
                 Bundle().apply {
                     putParcelable(GlobalResultKey.EXTRA_SIGNER, signer)
-                }
+                },
             )
             findNavController().popBackStack()
         }
+    }
+
+    private fun showAddColdcardOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_NFC,
+                    label = getString(R.string.nc_add_coldcard_via_nfc),
+                    resId = R.drawable.ic_nfc_indicator_small
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_FILE,
+                    label = getString(R.string.nc_add_coldcard_via_file),
+                    resId = R.drawable.ic_import
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
     }
 
     companion object {
@@ -166,31 +264,31 @@ private fun CustomKeyAccountFragmentContent(
         Scaffold(
             modifier = Modifier.systemBarsPadding(),
             topBar = {
-            NcTopAppBar(
-                title = stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainingTime
-                ),
-                actions = {
-                    IconButton(onClick = onShowMoreOptions) {
-                        Icon(
-                            painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                            contentDescription = "More icon"
-                        )
+                NcTopAppBar(
+                    title = stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainingTime
+                    ),
+                    actions = {
+                        IconButton(onClick = onShowMoreOptions) {
+                            Icon(
+                                painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
                     }
+                )
+            }, bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = { onContinueClicked(newIndex.toInt()) },
+                    enabled = newIndex.isNotEmpty()
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
                 }
-            )
-        }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                onClick = { onContinueClicked(newIndex.toInt()) },
-                enabled = newIndex.isNotEmpty()
-            ) {
-                Text(text = stringResource(id = R.string.nc_text_continue))
-            }
-        }) { innerPadding ->
+            }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -253,7 +351,7 @@ private fun CustomKeyAccountFragmentContent(
 
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
-                    text =  getPath(newIndex, isTestNet),
+                    text = getPath(newIndex, isTestNet),
                     style = NunchukTheme.typography.bodySmall,
                 )
             }

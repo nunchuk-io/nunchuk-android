@@ -33,7 +33,7 @@ import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.core.util.gson
-import com.nunchuk.android.core.util.isValidColdcardPath
+import com.nunchuk.android.core.util.isRecommendedPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
@@ -93,14 +93,34 @@ class Mk4IntroViewModel @Inject constructor(
     val mk4Signers: List<SingleSigner>
         get() = _mk4Signers
 
-    fun getMk4Signer(records: List<NdefRecord>, groupId: String) {
+    fun getMk4Signer(
+        records: List<NdefRecord>,
+        groupId: String,
+        newIndex: Int,
+        xfp: String?,
+    ) {
         viewModelScope.launch {
             _event.emit(Mk4IntroViewEvent.Loading(true))
             val result = getMk4SingersUseCase(records.toTypedArray())
             if (result.isSuccess) {
                 if (args.isMembershipFlow) {
                     val sortedSigner = result.getOrThrow().sortedBy { it.derivationPath }
-                    val signer = sortedSigner.find { it.derivationPath.isValidColdcardPath } ?: throw NullPointerException("Can not parse signer")
+                    val signer = sortedSigner.find { it.derivationPath.isRecommendedPath }
+                    if (signer == null) {
+                        _event.emit(Mk4IntroViewEvent.ShowError("XPUBs file is invalid"))
+                        _event.emit(Mk4IntroViewEvent.Loading(false))
+                        return@launch
+                    }
+                    if (!xfp.isNullOrEmpty() && signer.masterFingerprint != xfp) {
+                        _event.emit(Mk4IntroViewEvent.XfpNotMatchException)
+                        _event.emit(Mk4IntroViewEvent.Loading(false))
+                        return@launch
+                    }
+                    if (newIndex >= 0 && !signer.derivationPath.endsWith("${newIndex}h/2h")) {
+                        _event.emit(Mk4IntroViewEvent.NewIndexNotMatchException)
+                        _event.emit(Mk4IntroViewEvent.Loading(false))
+                        return@launch
+                    }
                     if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                         _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
                         _event.emit(Mk4IntroViewEvent.Loading(false))

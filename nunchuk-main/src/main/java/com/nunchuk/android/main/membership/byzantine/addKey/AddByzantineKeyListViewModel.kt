@@ -29,7 +29,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.isValidColdcardPath
+import com.nunchuk.android.core.util.isRecommendedPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.toGroupWalletType
@@ -146,8 +146,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 addAll(pair.second)
             }
             val signers = pair.first.map { signer ->
-                    masterSignerMapper(signer)
-                } + pair.second.map { signer -> signer.toModel() }
+                masterSignerMapper(signer)
+            } + pair.second.map { signer -> signer.toModel() }
             _state.update { it.copy(signers = signers) }
             updateKeyData()
         }
@@ -166,47 +166,10 @@ class AddByzantineKeyListViewModel @Inject constructor(
         _keys.value = news
     }
 
-    // COLDCARD or Airgap
-    fun onSelectedExistingHardwareSigner(signer: SignerModel) {
+    fun requestAddAirgapTag(signer: SignerModel) {
         viewModelScope.launch {
-            val hasTag =
-                signer.tags.any { it == SignerTag.SEEDSIGNER || it == SignerTag.KEYSTONE || it == SignerTag.PASSPORT || it == SignerTag.JADE }
-            if (hasTag || signer.type == SignerType.COLDCARD_NFC) {
-                singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
-                    ?.let { signer ->
-                        syncKeyToGroupUseCase(
-                            SyncKeyToGroupUseCase.Param(
-                                groupId = args.groupId,
-                                step = membershipStepManager.currentStep
-                                    ?: throw IllegalArgumentException("Current step empty"),
-                                signer = signer
-                            )
-                        ).onFailure {
-                            _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
-                            return@launch
-                        }
-                    }
-                saveMembershipStepUseCase(
-                    MembershipStepInfo(
-                        step = membershipStepManager.currentStep
-                            ?: throw IllegalArgumentException("Current step empty"),
-                        masterSignerId = signer.fingerPrint,
-                        plan = membershipStepManager.plan,
-                        verifyType = VerifyType.APP_VERIFIED,
-                        extraData = gson.toJson(
-                            SignerExtra(
-                                derivationPath = signer.derivationPath,
-                                isAddNew = false,
-                                signerType = signer.type
-                            )
-                        ),
-                        groupId = args.groupId
-                    )
-                )
-            } else {
-                savedStateHandle[KEY_CURRENT_SIGNER] = signer
-                _event.emit(AddKeyListEvent.SelectAirgapType)
-            }
+            savedStateHandle[KEY_CURRENT_SIGNER] = signer
+            _event.emit(AddKeyListEvent.SelectAirgapType)
         }
     }
 
@@ -219,7 +182,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
                     if (result is Result.Success) {
                         savedStateHandle[KEY_CURRENT_SIGNER] = null
                         loadSigners()
-                        onSelectedExistingHardwareSigner(signer.copy(tags = listOf(tag)))
+                        _event.emit(AddKeyListEvent.UpdateSignerTag(signer.copy(tags = listOf(tag))))
                     } else {
                         _event.emit(AddKeyListEvent.ShowError((result as Result.Error).exception.message.orUnknownError()))
                     }
@@ -270,7 +233,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     fun getColdcard() = _state.value.signers.filter {
         it.type == SignerType.COLDCARD_NFC
-                && it.derivationPath.isValidColdcardPath
+                && it.derivationPath.isRecommendedPath
                 && isSignerExist(it.fingerPrint).not()
     }
 
@@ -359,6 +322,7 @@ sealed class AddKeyListEvent {
     data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
     data class LoadSimilarGroup(val similarWalletIds: List<String>) : AddKeyListEvent()
+    data class UpdateSignerTag(val signer: SignerModel) : AddKeyListEvent()
 }
 
 data class AddKeyListState(

@@ -32,11 +32,12 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.isRecommendedPath
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
@@ -45,7 +46,6 @@ import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AirgapSign
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.InvalidAirgapSignerSpecEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
-import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSigner
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
 import com.nunchuk.android.signer.databinding.FragmentAddSignerBinding
 import com.nunchuk.android.utils.parcelableArrayList
@@ -123,36 +123,32 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
                 AirgapSignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
                 is LoadingEventAirgap -> showOrHideLoading(it.isLoading)
                 is ParseKeystoneAirgapSignerSuccess -> handleResult(it.signers)
-                is ParseKeystoneAirgapSigner -> openSignerSheet(it.signers)
                 AddSameKey -> showError(getString(R.string.nc_error_add_same_key))
                 ErrorMk4TestNet -> NCInfoDialog(requireActivity())
                     .showDialog(
                         title = getString(R.string.nc_invalid_network),
                         message = getString(R.string.nc_error_device_in_testnet_msg)
                     )
-            }
-        }
-    }
 
-    private fun openSignerSheet(signers: List<SingleSigner>) {
-        if (signers.isNotEmpty()) {
-            val fragment = BottomSheetOption.newInstance(signers.mapIndexed { index, singleSigner ->
-                SheetOption(
-                    type = index,
-                    label = singleSigner.derivationPath
-                )
-            }, title = getString(R.string.nc_signer_select_key_dialog_title))
-            fragment.show(childFragmentManager, "BottomSheetOption")
+                AddAirgapSignerEvent.NewIndexNotMatchException -> {
+                    requireActivity().apply {
+                        setResult(GlobalResult.RESULT_INDEX_NOT_MATCH)
+                        finish()
+                    }
+                }
+                AddAirgapSignerEvent.XfpNotMatchException -> showError(getString(R.string.nc_airgap_xfp_does_not_match))
+            }
         }
     }
 
     private fun onAddAirSignerError(message: String) {
         hideLoading()
-        showWarning(message)
+        showError(message)
     }
 
     private fun openSignerInfo(singleSigner: SingleSigner) {
         hideLoading()
+        requireActivity().setResult(Activity.RESULT_OK)
         requireActivity().finish()
         if ((requireActivity() as AddAirgapSignerActivity).isMembershipFlow.not()) {
             navigator.openSignerInfoScreen(
@@ -171,6 +167,8 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
     private fun setupViews() {
         val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
         val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
+        val xfp = (requireActivity() as AddAirgapSignerActivity).xfp
+        val newIndex = (requireActivity() as AddAirgapSignerActivity).newIndex
         binding.signerName.setMaxLength(MAX_LENGTH)
         updateCounter(0)
         with(isMembershipFlow) {
@@ -202,7 +200,9 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
                 signerName = binding.signerName.getEditText(),
                 signerSpec = binding.signerSpec.getEditText(),
                 isMembershipFlow = isMembershipFlow,
-                signerTag
+                signerTag = signerTag,
+                xfp = xfp,
+                newIndex = newIndex,
             )
         }
         binding.toolbar.setNavigationOnClickListener {
@@ -219,7 +219,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
             if (keys.size == 1) {
                 bindKey(keys.first())
             } else {
-                showSelectKeysDialog(keys, ::bindKey)
+                showSelectKeysDialog(keys)
             }
         }
     }
@@ -229,10 +229,15 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
     }
 
     private fun showSelectKeysDialog(
-        keys: List<SingleSigner>, onKeySelected: (SingleSigner) -> Unit
+        signers: List<SingleSigner>
     ) {
-        SelectKeyBottomSheet.show(fragmentManager = childFragmentManager, keys)
-            .setListener(onKeySelected)
+        val fragment = BottomSheetOption.newInstance(signers.mapIndexed { index, singleSigner ->
+            SheetOption(
+                type = index,
+                label = if (singleSigner.derivationPath.isRecommendedPath) "${singleSigner.derivationPath} (${getString(R.string.nc_recommended)})" else singleSigner.derivationPath
+            )
+        }, title = getString(R.string.nc_signer_select_key_dialog_title))
+        fragment.show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun updateCounter(length: Int) {

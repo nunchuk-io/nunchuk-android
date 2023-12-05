@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -73,6 +72,7 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.isParseAction
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
@@ -91,7 +91,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     private val args: Mk4IntroFragmentArgs by navArgs()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -127,7 +127,12 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private fun observer() {
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_ADD_KEY }) {
-            viewModel.getMk4Signer(it.records, (activity as Mk4Activity).groupId)
+            viewModel.getMk4Signer(
+                records = it.records,
+                groupId = (activity as Mk4Activity).groupId,
+                newIndex = (activity as Mk4Activity).newIndex,
+                xfp = (activity as Mk4Activity).xfp
+            )
             nfcViewModel.clearScanInfo()
         }
 
@@ -137,17 +142,31 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 is Mk4IntroViewEvent.Loading -> showOrHideLoading(it.isLoading)
                 is Mk4IntroViewEvent.ShowError -> showError(it.message)
                 Mk4IntroViewEvent.OnContinueClicked -> onContinueClicked()
-                Mk4IntroViewEvent.OnCreateSignerSuccess -> requireActivity().finish()
+                Mk4IntroViewEvent.OnCreateSignerSuccess -> {
+                    requireActivity().setResult(Activity.RESULT_OK)
+                    requireActivity().finish()
+                }
+
                 Mk4IntroViewEvent.OnSignerExistInAssistedWallet -> showError(getString(R.string.nc_error_add_same_key))
                 Mk4IntroViewEvent.ErrorMk4TestNet -> NCInfoDialog(requireActivity())
                     .showDialog(
                         title = getString(R.string.nc_invalid_network),
                         message = getString(R.string.nc_error_device_in_testnet_msg)
                     )
+
                 is Mk4IntroViewEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
                 is Mk4IntroViewEvent.ExtractWalletsFromColdCard -> showWallets(it.wallets)
                 is Mk4IntroViewEvent.NfcLoading -> showOrHideNfcLoading(it.isLoading)
                 is Mk4IntroViewEvent.ParseWalletFromMk4Success -> parseWalletSuccess(it.wallet)
+                Mk4IntroViewEvent.NewIndexNotMatchException -> {
+                    requireActivity().apply {
+                        setResult(GlobalResult.RESULT_INDEX_NOT_MATCH)
+                        finish()
+                    }
+                }
+                Mk4IntroViewEvent.XfpNotMatchException -> {
+                    showError(getString(R.string.nc_coldcard_xfp_does_not_match))
+                }
             }
         }
 
@@ -194,12 +213,16 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun onContinueClicked() {
-       val type = when(action) {
+        val type = when (action) {
             ColdcardAction.RECOVER_MULTI_SIG_WALLET,
-            ColdcardAction.PARSE_MULTISIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
+            ColdcardAction.PARSE_MULTISIG_WALLET,
+            -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
+
             ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
-            ColdcardAction.PARSE_SINGLE_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
-           else -> BaseNfcActivity.REQUEST_MK4_ADD_KEY
+            ColdcardAction.PARSE_SINGLE_SIG_WALLET,
+            -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
+
+            else -> BaseNfcActivity.REQUEST_MK4_ADD_KEY
         }
         (requireActivity() as NfcActionListener).startNfcFlow(type)
     }
@@ -244,7 +267,7 @@ private fun Mk4IntroContent(
     remainTime: Int = 0,
     isMembershipFlow: Boolean = true,
     onMoreClicked: () -> Unit = {},
-    onContinueClicked: () -> Unit = {}
+    onContinueClicked: () -> Unit = {},
 ) =
     NunchukTheme {
         NunchukTheme {

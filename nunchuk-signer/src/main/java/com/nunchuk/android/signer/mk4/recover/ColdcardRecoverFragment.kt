@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.recover
 
+import android.app.Activity.RESULT_OK
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,7 +29,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -62,6 +62,7 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,12 +75,16 @@ class ColdcardRecoverFragment : MembershipFragment() {
 
     private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            viewModel.parseColdcardSigner(uri, (activity as Mk4Activity).groupId)
+            viewModel.parseColdcardSigner(
+                uri = uri,
+                groupId = (activity as Mk4Activity).groupId,
+                newIndex = (activity as Mk4Activity).newIndex
+            )
         }
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -99,12 +104,25 @@ class ColdcardRecoverFragment : MembershipFragment() {
                         ColdcardRecoverEvent.OnOpenGuide -> requireActivity().openExternalLink(
                             COLDCARD_GUIDE_URL
                         )
+
                         ColdcardRecoverEvent.OnContinue -> launcher.launch("*/*")
-                        ColdcardRecoverEvent.CreateSignerSuccess -> requireActivity().finish()
+                        ColdcardRecoverEvent.CreateSignerSuccess -> {
+                            requireActivity().apply {
+                                setResult(RESULT_OK)
+                                finish()
+                            }
+                        }
+
                         is ColdcardRecoverEvent.LoadingEvent -> showOrHideLoading(event.isLoading)
                         is ColdcardRecoverEvent.ShowError -> showError(event.message)
                         ColdcardRecoverEvent.AddSameKey -> showError(getString(R.string.nc_error_add_same_key))
                         ColdcardRecoverEvent.ParseFileError -> showError(getString(R.string.nc_xpubs_file_invalid))
+                        ColdcardRecoverEvent.NewIndexNotMatchException -> {
+                            requireActivity().apply {
+                                setResult(GlobalResult.RESULT_INDEX_NOT_MATCH)
+                                finish()
+                            }
+                        }
                     }
                 }
         }
@@ -115,7 +133,7 @@ class ColdcardRecoverFragment : MembershipFragment() {
 private fun ColdcardRecoverScreen(
     viewModel: ColdcardRecoverViewModel = viewModel(),
     onMoreClicked: () -> Unit = {},
-    isMembershipFlow: Boolean
+    isMembershipFlow: Boolean,
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     ColdcardRecoverContent(

@@ -33,12 +33,16 @@ interface NfcNavigatorDelegate : NfcNavigator {
         fromMembershipFlow: Boolean,
         action: ColdcardAction,
         groupId: String,
+        newIndex: Int,
+        xfp: String?,
     ) {
         Mk4Activity.navigate(
             activity = activity,
             isMembershipFlow = fromMembershipFlow,
             action = action,
-            groupId = groupId
+            groupId = groupId,
+            newIndex = newIndex,
+            xfp = xfp,
         )
     }
 
@@ -47,7 +51,9 @@ interface NfcNavigatorDelegate : NfcNavigator {
         activity: Activity,
         fromMembershipFlow: Boolean,
         action: ColdcardAction,
-        groupId: String
+        groupId: String,
+        newIndex: Int,
+        xfp: String?,
     ) {
         launcher.launch(
             Mk4Activity.buildIntent(
@@ -55,6 +61,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 isMembershipFlow = fromMembershipFlow,
                 action = action,
                 groupId = groupId,
+                newIndex = newIndex,
+                xfp = xfp,
             )
         )
     }

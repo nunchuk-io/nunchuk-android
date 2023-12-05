@@ -27,12 +27,13 @@ sealed class Mk4IntroViewEvent {
     data class LoadMk4SignersSuccess(val signers: List<SingleSigner>) : Mk4IntroViewEvent()
     data class ShowError(val message: String) : Mk4IntroViewEvent()
     class NfcLoading(val isLoading: Boolean) : Mk4IntroViewEvent()
-
-    object OnContinueClicked : Mk4IntroViewEvent()
-    object ErrorMk4TestNet : Mk4IntroViewEvent()
-    object OnCreateSignerSuccess : Mk4IntroViewEvent()
-    object OnSignerExistInAssistedWallet : Mk4IntroViewEvent()
+    data object OnContinueClicked : Mk4IntroViewEvent()
+    data object ErrorMk4TestNet : Mk4IntroViewEvent()
+    data object OnCreateSignerSuccess : Mk4IntroViewEvent()
+    data object OnSignerExistInAssistedWallet : Mk4IntroViewEvent()
     data class ImportWalletFromMk4Success(val walletId: String) : Mk4IntroViewEvent()
     data class ExtractWalletsFromColdCard(val wallets: List<Wallet>) : Mk4IntroViewEvent()
     data class ParseWalletFromMk4Success(val wallet: Wallet?) : Mk4IntroViewEvent()
+    data object NewIndexNotMatchException : Mk4IntroViewEvent()
+    data object XfpNotMatchException : Mk4IntroViewEvent()
 }

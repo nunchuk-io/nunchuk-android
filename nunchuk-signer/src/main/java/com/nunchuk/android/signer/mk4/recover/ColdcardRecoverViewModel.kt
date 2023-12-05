@@ -26,7 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.gson
-import com.nunchuk.android.core.util.isValidColdcardPath
+import com.nunchuk.android.core.util.isRecommendedPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
@@ -74,7 +74,7 @@ class ColdcardRecoverViewModel @Inject constructor(
         }
     }
 
-    fun parseColdcardSigner(uri: Uri, groupId: String) {
+    fun parseColdcardSigner(uri: Uri, groupId: String, newIndex: Int) {
         viewModelScope.launch {
             _event.emit(ColdcardRecoverEvent.LoadingEvent(true))
             withContext(ioDispatcher) {
@@ -89,7 +89,17 @@ class ColdcardRecoverViewModel @Inject constructor(
                     return@launch
                 }
                 val signer =
-                    parseResult.getOrThrow().first { it.derivationPath.isValidColdcardPath }
+                    parseResult.getOrThrow().find { it.derivationPath.isRecommendedPath }
+                if (signer == null) {
+                    _event.emit(ColdcardRecoverEvent.ShowError("Can not find valid signer path"))
+                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                    return@launch
+                }
+                if (newIndex >= 0 && !signer.derivationPath.endsWith("${newIndex}h/2h")) {
+                    _event.emit(ColdcardRecoverEvent.NewIndexNotMatchException)
+                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                    return@launch
+                }
                 if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                     _event.emit(ColdcardRecoverEvent.AddSameKey)
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
@@ -150,9 +160,10 @@ class ColdcardRecoverViewModel @Inject constructor(
 sealed class ColdcardRecoverEvent {
     class LoadingEvent(val isLoading: Boolean) : ColdcardRecoverEvent()
     class ShowError(val message: String) : ColdcardRecoverEvent()
-    object OnOpenGuide : ColdcardRecoverEvent()
-    object OnContinue : ColdcardRecoverEvent()
-    object CreateSignerSuccess : ColdcardRecoverEvent()
-    object AddSameKey : ColdcardRecoverEvent()
-    object ParseFileError : ColdcardRecoverEvent()
+    data object OnOpenGuide : ColdcardRecoverEvent()
+    data object OnContinue : ColdcardRecoverEvent()
+    data object CreateSignerSuccess : ColdcardRecoverEvent()
+    data object AddSameKey : ColdcardRecoverEvent()
+    data object ParseFileError : ColdcardRecoverEvent()
+    data object NewIndexNotMatchException : ColdcardRecoverEvent()
 }

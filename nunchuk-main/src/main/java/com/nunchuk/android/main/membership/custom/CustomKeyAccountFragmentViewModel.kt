@@ -63,6 +63,7 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
                 _event.emit(CustomKeyAccountFragmentEvent.OpenScanTapSigner(index))
                 return@launch
             }
+            _state.update { state -> state.copy(newIndex = index) }
             getSignerFromMasterSignerUseCase(
                 GetSignerFromMasterSignerUseCase.Param(
                     xfp = args.signer.fingerPrint,
@@ -77,6 +78,8 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
             }
         }
     }
+
+    fun getNewIndex(): Int = state.value.newIndex
 }
 
 sealed class CustomKeyAccountFragmentEvent {
@@ -84,5 +87,9 @@ sealed class CustomKeyAccountFragmentEvent {
     data class OpenScanTapSigner(val index: Int) : CustomKeyAccountFragmentEvent()
 }
 
-data class CustomKeyAccountUiState(val currentIndex: Int = 0, val isTestNet: Boolean = false)
+data class CustomKeyAccountUiState(
+    val currentIndex: Int = 0,
+    val isTestNet: Boolean = false,
+    val newIndex: Int = -1,
+)
 

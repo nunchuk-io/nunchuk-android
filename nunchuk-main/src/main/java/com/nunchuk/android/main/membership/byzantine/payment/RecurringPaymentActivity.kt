@@ -144,8 +144,8 @@ class RecurringPaymentActivity : BaseComposeActivity() {
                                 navigator.startSetupMk4ForResult(
                                     launcher = scanWalletLauncher,
                                     activity = this@RecurringPaymentActivity,
-                                    action = it,
                                     fromMembershipFlow = false,
+                                    action = it,
                                 )
                             },
                             openSellectWallet = {

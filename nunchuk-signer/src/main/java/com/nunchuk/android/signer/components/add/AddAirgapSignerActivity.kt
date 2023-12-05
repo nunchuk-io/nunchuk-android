@@ -41,33 +41,47 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         navHostFragment.navController.setGraph(R.navigation.airgap_navigation)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
-            when(destination.id) {
-                R.id.addAirgapSignerFragment ->  WindowCompat.setDecorFitsSystemWindows(window, true)
-                else ->  WindowCompat.setDecorFitsSystemWindows(window, false)
+            when (destination.id) {
+                R.id.addAirgapSignerFragment -> WindowCompat.setDecorFitsSystemWindows(window, true)
+                else -> WindowCompat.setDecorFitsSystemWindows(window, false)
             }
         }
     }
 
-    val isMembershipFlow : Boolean by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
-    val signerTag : SignerTag? by lazy { intent.serializable(EXTRA_SIGNER_TAG) }
-    val groupId : String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
+    val isMembershipFlow: Boolean by lazy {
+        intent.getBooleanExtra(
+            EXTRA_IS_MEMBERSHIP_FLOW,
+            false
+        )
+    }
+    val signerTag: SignerTag? by lazy { intent.serializable(EXTRA_SIGNER_TAG) }
+    val groupId: String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
+    val xfp: String? by lazy { intent.getStringExtra(EXTRA_XFP) }
+    val newIndex: Int by lazy { intent.getIntExtra(EXTRA_NEW_INDEX, 0) }
 
     companion object {
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
         private const val EXTRA_SIGNER_TAG = "signer_tag"
         private const val EXTRA_GROUP_ID = "group_id"
+        private const val EXTRA_XFP = "xfp"
+        private const val EXTRA_NEW_INDEX = "new_index"
 
-        fun start(activityContext: Context, isMembershipFlow: Boolean, tag: SignerTag?, groupId: String) {
-            activityContext.startActivity(
-                Intent(
-                    activityContext,
-                    AddAirgapSignerActivity::class.java
-                ).apply {
-                    putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
-                    putExtra(EXTRA_SIGNER_TAG, tag)
-                    putExtra(EXTRA_GROUP_ID, groupId)
-                }
-            )
+        fun buildIntent(
+            activityContext: Context,
+            isMembershipFlow: Boolean,
+            tag: SignerTag?,
+            groupId: String,
+            xfp: String?,
+            newIndex: Int,
+        ) = Intent(
+            activityContext,
+            AddAirgapSignerActivity::class.java
+        ).apply {
+            putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+            putExtra(EXTRA_SIGNER_TAG, tag)
+            putExtra(EXTRA_GROUP_ID, groupId)
+            putExtra(EXTRA_XFP, xfp)
+            putExtra(EXTRA_NEW_INDEX, newIndex)
         }
     }
 

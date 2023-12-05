@@ -38,3 +38,7 @@ object GlobalResultKey {
     const val SECURITY_QUESTION_EXTRA_INFO = "_p"
     const val WALLET = "_q"
 }
+
+object GlobalResult {
+    const val RESULT_INDEX_NOT_MATCH = 100
+}

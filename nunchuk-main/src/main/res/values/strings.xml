@@ -304,4 +304,7 @@
     <string name="nc_recurring_payment_denied">Recurring payment denied</string>
     <string name="nc_pending_cancellation_has_been_canceled">Pending cancellation has been canceled</string>
     <string name="nc_the_end_date_should_be_after_the_start_date">The end date should be after the start date.</string>
+    <string name="nc_approve">Approve</string>
+    <string name="nc_coldcard_index_not_match">The account imported does not match the account that you entered (%1$d). Please try again.</string>
+    <string name="nc_new_account_needed_airgap">New account data needed. Please import your key again using the given account.</string>
 </resources>

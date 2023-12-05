@@ -162,6 +162,6 @@ fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     else -> getString(R.string.nc_currency_btc)
 }
 
-val String.isValidColdcardPath: Boolean
+val String.isRecommendedPath: Boolean
     get() = this.startsWith(SIGNER_PATH_PREFIX) && this.endsWith("2h")
 

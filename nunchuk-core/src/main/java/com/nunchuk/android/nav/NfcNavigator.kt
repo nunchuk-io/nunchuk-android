@@ -29,7 +29,9 @@ interface NfcNavigator {
         activity: Activity,
         fromMembershipFlow: Boolean,
         action: ColdcardAction = ColdcardAction.CREATE,
-        groupId: String = ""
+        groupId: String = "",
+        newIndex: Int = -1,
+        xfp: String? = null,
     )
 
     fun startSetupMk4ForResult(
@@ -37,7 +39,9 @@ interface NfcNavigator {
         activity: Activity,
         fromMembershipFlow: Boolean,
         action: ColdcardAction = ColdcardAction.CREATE,
-        groupId: String = ""
+        groupId: String = "",
+        newIndex: Int = -1,
+        xfp: String? = null,
     )
 
     fun openSetupTapSigner(

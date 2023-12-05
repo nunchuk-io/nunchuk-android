@@ -54,7 +54,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
             ColdcardAction.RECOVER_MULTI_SIG_WALLET,
             ColdcardAction.PARSE_SINGLE_SIG_WALLET,
-            ColdcardAction.PARSE_MULTISIG_WALLET -> graph.setStartDestination(R.id.mk4IntroFragment)
+            ColdcardAction.PARSE_MULTISIG_WALLET,
+            -> graph.setStartDestination(R.id.mk4IntroFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -65,24 +66,54 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
         }
     }
 
-    val action : ColdcardAction by lazy(LazyThreadSafetyMode.NONE) {
+    val action: ColdcardAction by lazy(LazyThreadSafetyMode.NONE) {
         intent.serializable(EXTRA_ACTION) ?: ColdcardAction.CREATE
     }
-    val groupId : String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
+    val groupId: String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
+    val newIndex by lazy { intent.getIntExtra(EXTRA_INDEX, -1) }
+    val xfp by lazy { intent.getStringExtra(EXTRA_XFP) }
+
 
     companion object {
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
         private const val EXTRA_ACTION = "action"
         private const val EXTRA_GROUP_ID = "group_id"
-        fun navigate(activity: Activity, isMembershipFlow: Boolean, action: ColdcardAction, groupId: String) {
-            activity.startActivity(buildIntent(activity, isMembershipFlow, action, groupId))
+        private const val EXTRA_INDEX = "index"
+        private const val EXTRA_XFP = "xfp"
+        fun navigate(
+            activity: Activity,
+            isMembershipFlow: Boolean,
+            action: ColdcardAction,
+            groupId: String,
+            newIndex: Int = -1,
+            xfp: String? = null,
+        ) {
+            activity.startActivity(
+                buildIntent(
+                    activity = activity,
+                    isMembershipFlow = isMembershipFlow,
+                    action = action,
+                    groupId = groupId,
+                    newIndex = newIndex,
+                    xfp = xfp
+                )
+            )
         }
 
-        fun buildIntent(activity: Activity, isMembershipFlow: Boolean, action: ColdcardAction, groupId: String): Intent {
+        fun buildIntent(
+            activity: Activity,
+            isMembershipFlow: Boolean,
+            action: ColdcardAction,
+            groupId: String,
+            newIndex: Int = -1,
+            xfp: String? = null,
+        ): Intent {
             return Intent(activity, Mk4Activity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
                 putExtra(EXTRA_ACTION, action)
                 putExtra(EXTRA_GROUP_ID, groupId)
+                putExtra(EXTRA_INDEX, newIndex)
+                putExtra(EXTRA_XFP, xfp)
             }
         }
     }

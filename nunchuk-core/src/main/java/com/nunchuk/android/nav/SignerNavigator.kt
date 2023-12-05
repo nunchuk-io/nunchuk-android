@@ -20,6 +20,8 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.model.PrimaryKey
@@ -42,10 +44,27 @@ interface SignerNavigator {
         isInWallet: Boolean = false,
         isInAssistedWallet: Boolean = false,
         isReplacePrimaryKey: Boolean = false,
-        customMessage: String = ""
+        customMessage: String = "",
     )
 
-    fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean, tag: SignerTag? = null, groupId: String = "")
+    fun openAddAirSignerScreen(
+        activityContext: Context,
+        isMembershipFlow: Boolean,
+        tag: SignerTag? = null,
+        groupId: String = "",
+        xfp: String? = null,
+        newIndex : Int = -1,
+    )
+
+    fun openAddAirSignerScreenForResult(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context,
+        isMembershipFlow: Boolean,
+        tag: SignerTag? = null,
+        groupId: String = "",
+        xfp: String? = null,
+        newIndex : Int = -1,
+    )
 
     /**
      * @param passphrase only need for replacing primary key
@@ -53,7 +72,7 @@ interface SignerNavigator {
     fun openAddSoftwareSignerScreen(
         activityContext: Context,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE
+        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
     )
 
     /**
@@ -62,7 +81,7 @@ interface SignerNavigator {
     fun openCreateNewSeedScreen(
         activityContext: Context,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE
+        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
     )
 
     fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
@@ -73,7 +92,7 @@ interface SignerNavigator {
     fun openRecoverSeedScreen(
         activityContext: Context,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE
+        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
     )
 
     /**
@@ -83,7 +102,7 @@ interface SignerNavigator {
         activityContext: Context,
         mnemonic: String,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE
+        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
     )
 
     /**
@@ -97,7 +116,7 @@ interface SignerNavigator {
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         username: String? = null,
         passphrase: String = "",
-        address: String? = null
+        address: String? = null,
     )
 
     /**
@@ -108,7 +127,7 @@ interface SignerNavigator {
         mnemonic: String,
         signerName: String,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE
+        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
     )
 
     fun openPrimaryKeyIntroScreen(activityContext: Context)
@@ -116,13 +135,13 @@ interface SignerNavigator {
     fun openAddPrimaryKeyScreen(
         activityContext: Context,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE
+        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
     )
 
     fun openPrimaryKeyChooseUserNameScreen(
         activityContext: Context, mnemonic: String,
         passphrase: String,
-        signerName: String
+        signerName: String,
     )
 
     fun openPrimaryKeySignInIntroScreen(activityContext: Context)
@@ -131,7 +150,7 @@ interface SignerNavigator {
 
     fun openPrimaryKeySignInScreen(
         activityContext: Context,
-        primaryKey: PrimaryKey
+        primaryKey: PrimaryKey,
     )
 
     fun openPrimaryKeyEnterPassphraseScreen(
@@ -146,6 +165,6 @@ interface SignerNavigator {
 
     fun openPrimaryKeyReplaceIntroScreen(
         activityContext: Context,
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE
+        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
     )
 }
