@@ -13,6 +13,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -30,6 +34,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatDecimal
@@ -72,7 +77,9 @@ class RecurringPaymentRequestReviewFragment : Fragment() {
                     deleteRecurringPayment = viewModel::deleteDummyTransaction,
                     openQRDetailScreen = { address ->
                         findNavController().navigate(
-                            RecurringPaymentRequestReviewFragmentDirections.actionRecurringPaymentRequestReviewFragmentToQrDetailFragment(address)
+                            RecurringPaymentRequestReviewFragmentDirections.actionRecurringPaymentRequestReviewFragmentToQrDetailFragment(
+                                address
+                            )
                         )
                     }
                 )
@@ -105,6 +112,7 @@ private fun RecurringPaymentRequestReviewContent(
     deleteRecurringPayment: () -> Unit = {},
     openQRDetailScreen: (address: String) -> Unit,
 ) {
+    var showDeletePaymentDialog by rememberSaveable { mutableStateOf(false) }
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -137,9 +145,9 @@ private fun RecurringPaymentRequestReviewContent(
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth(),
-                        onClick = deleteRecurringPayment,
+                        onClick = { showDeletePaymentDialog = true },
                     ) {
-                        Text(text = stringResource(R.string.nc_delete_this_payment))
+                        Text(text = stringResource(R.string.nc_deny))
                     }
                 }
             }
@@ -166,6 +174,18 @@ private fun RecurringPaymentRequestReviewContent(
                 bsms = recurringPayment.bsms,
             )
         }
+
+        if (showDeletePaymentDialog) {
+            NcConfirmationDialog(
+                message = stringResource(R.string.nc_delete_payment_desc),
+                onPositiveClick = {
+                    deleteRecurringPayment()
+                    showDeletePaymentDialog = false
+                },
+            ) {
+                showDeletePaymentDialog = false
+            }
+        }
     }
 }
 
@@ -174,5 +194,7 @@ private fun RecurringPaymentRequestReviewContent(
 private fun RecurringPaymentRequestReviewScreenPreview(
     @PreviewParameter(RecurringPaymentProvider::class) recurringPayment: RecurringPayment,
 ) {
-    RecurringPaymentRequestReviewContent(recurringPayment = recurringPayment, openQRDetailScreen = {})
+    RecurringPaymentRequestReviewContent(
+        recurringPayment = recurringPayment,
+        openQRDetailScreen = {})
 }
