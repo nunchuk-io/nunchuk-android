@@ -39,6 +39,7 @@ import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
@@ -92,6 +93,7 @@ class RecurringPaymentRequestReviewFragment : Fragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is RecurringPaymentRequestReviewEvent.DeleteDummyTransaction -> {
+                    showSuccess(getString(R.string.nc_recurring_payment_denied))
                     findNavController().popBackStack(R.id.groupDashboardFragment, false)
                 }
 

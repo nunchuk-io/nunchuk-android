@@ -301,4 +301,5 @@
     <string name="nc_delete_payment_desc">Are you sure you want to deny this recurring payment?</string>
     <string name="nc_sent_to_first_available_address">Payments will be sent to the first available addresses in the wallet.</string>
     <string name="nc_destination_wallet">Destination (wallet)</string>
+    <string name="nc_recurring_payment_denied">Recurring payment denied</string>
 </resources>

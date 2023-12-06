@@ -65,6 +65,7 @@ fun PaymentSummaryContent(
                 .padding(top = 24.dp)
                 .fillMaxWidth(),
             title = stringResource(id = R.string.nc_payment_name),
+            titleStyle = NunchukTheme.typography.title,
             value = name,
             onValueChange = {},
             enabled = false,
@@ -76,6 +77,7 @@ fun PaymentSummaryContent(
                 .padding(top = 24.dp)
                 .fillMaxWidth(),
             title = stringResource(id = R.string.nc_amount),
+            titleStyle = NunchukTheme.typography.title,
             value = "$amount ${if (useAmount) currency.orEmpty() else "% of wallet balance (*)"}",
             onValueChange = {},
             enabled = false,
@@ -99,6 +101,7 @@ fun PaymentSummaryContent(
                 .padding(top = 24.dp)
                 .fillMaxWidth(),
             title = stringResource(id = R.string.nc_repeat),
+            titleStyle = NunchukTheme.typography.title,
             value = stringResource(id = frequency.toResId()),
             onValueChange = {},
             enabled = false,
@@ -111,6 +114,7 @@ fun PaymentSummaryContent(
                     .padding(top = 24.dp)
                     .weight(1f),
                 title = stringResource(id = R.string.nc_start_date),
+                titleStyle = NunchukTheme.typography.title,
                 value = Date(startDate).simpleGlobalDateFormat(),
                 onValueChange = {},
                 enabled = false,
@@ -122,6 +126,7 @@ fun PaymentSummaryContent(
                     .padding(top = 24.dp)
                     .weight(1f),
                 title = stringResource(id = R.string.nc_end_date),
+                titleStyle = NunchukTheme.typography.title,
                 value = if (noEndDate) stringResource(id = R.string.nc_no_end_date)
                 else Date(endDate).simpleGlobalDateFormat(),
                 onValueChange = {},
@@ -135,6 +140,7 @@ fun PaymentSummaryContent(
                 .padding(top = 24.dp)
                 .fillMaxWidth(),
             title = stringResource(R.string.nc_fee_rate),
+            titleStyle = NunchukTheme.typography.title,
             value = stringResource(id = feeRate.toTitle()),
             onValueChange = {},
             enabled = false,
@@ -147,6 +153,7 @@ fun PaymentSummaryContent(
                     .padding(top = 24.dp)
                     .fillMaxWidth(),
                 title = stringResource(R.string.nc_allow_platform_key_to_co_sign),
+                titleStyle = NunchukTheme.typography.title,
                 value = if (isCosign) stringResource(id = R.string.nc_text_yes)
                 else stringResource(id = R.string.nc_text_no),
                 onValueChange = {},
@@ -207,6 +214,7 @@ fun PaymentSummaryContent(
                 .padding(top = 16.dp)
                 .fillMaxWidth(),
             title = stringResource(R.string.nc_transaction_note),
+            titleStyle = NunchukTheme.typography.title,
             value = note.ifEmpty { stringResource(R.string.nc_no_transaction_note) },
             onValueChange = {},
             enabled = false,
