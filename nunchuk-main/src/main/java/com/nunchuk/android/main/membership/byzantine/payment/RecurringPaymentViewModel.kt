@@ -62,9 +62,15 @@ class RecurringPaymentViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                val hasServerKey = wallet.signers.any { signer -> signer.type == SignerType.SERVER }
                 _state.update {
                     it.copy(
-                        hasServerKey = wallet.signers.any { signer -> signer.type == SignerType.SERVER },
+                        hasServerKey = hasServerKey,
+                    )
+                }
+                _config.update {
+                    it.copy(
+                        isCosign = hasServerKey,
                     )
                 }
             }
@@ -73,7 +79,7 @@ class RecurringPaymentViewModel @Inject constructor(
     }
 
     fun init() {
-        _config.value = RecurringPaymentConfig()
+        _config.value = RecurringPaymentConfig(isCosign = _state.value.hasServerKey)
     }
 
     fun onNameChange(name: String) {
@@ -175,10 +181,10 @@ class RecurringPaymentViewModel @Inject constructor(
         }
     }
 
-    fun getWallets() {
+    private fun getWallets() {
         viewModelScope.launch {
             getWallets2UseCase(Unit).onSuccess { wallets ->
-                _state.update { it.copy(otherwallets = wallets.filterNot { it.id == walletId }) }
+                _state.update { it.copy(otherwallets = wallets.filterNot { wallet -> wallet.id == walletId }) }
             }.onFailure { e ->
                 _state.update { state ->
                     state.copy(errorMessage = e.message.orEmpty())
@@ -246,7 +252,6 @@ class RecurringPaymentViewModel @Inject constructor(
             it.copy(
                 addresses = emptyList(),
                 note = "",
-                isCosign = null,
                 bsms = null,
             )
         }
@@ -258,7 +263,7 @@ class RecurringPaymentViewModel @Inject constructor(
                 name = config.value.name,
                 paymentType = if (config.value.useAmount) RecurringPaymentType.FIXED_AMOUNT else RecurringPaymentType.PERCENTAGE,
                 destinationType = if (config.value.bsms.isNullOrEmpty()) PaymentDestinationType.WHITELISTED_ADDRESSES else PaymentDestinationType.DESTINATION_WALLET,
-                frequency = config.value.frequency!!,
+                frequency = config.value.frequency,
                 startDate = config.value.startDate,
                 endDate = config.value.endDate.takeIf { !config.value.noEndDate } ?: 0L,
                 allowCosigning = config.value.isCosign,

@@ -157,16 +157,26 @@ fun PaymentSummaryContent(
 
         if (!bsms.isNullOrEmpty()) {
             Text(
+                modifier = Modifier.padding(top = 24.dp),
+                text = stringResource(R.string.nc_destination_wallet),
+                style = NunchukTheme.typography.title
+            )
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = stringResource(R.string.nc_sent_to_first_available_address),
+                style = NunchukTheme.typography.body
+            )
+            Text(
                 modifier = Modifier.padding(top = 16.dp),
                 text = stringResource(R.string.nc_first_address_of_wallet),
-                style = NunchukTheme.typography.title
+                style = NunchukTheme.typography.titleSmall
             )
             AddressWithQrView(address = addresses.first(), openQRDetailScreen)
 
             Text(
                 modifier = Modifier.padding(top = 16.dp),
                 text = stringResource(R.string.nc_configuration_details),
-                style = NunchukTheme.typography.title,
+                style = NunchukTheme.typography.titleSmall,
             )
 
             NcExpandableText(
@@ -196,7 +206,7 @@ fun PaymentSummaryContent(
             modifier = Modifier
                 .padding(top = 16.dp)
                 .fillMaxWidth(),
-            title = stringResource(R.string.nc_note),
+            title = stringResource(R.string.nc_transaction_note),
             value = note.ifEmpty { stringResource(R.string.nc_no_transaction_note) },
             onValueChange = {},
             enabled = false,

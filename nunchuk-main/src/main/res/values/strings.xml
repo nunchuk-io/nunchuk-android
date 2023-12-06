@@ -299,4 +299,6 @@
     <string name="nc_run_in_average_desc">* The percentage will be calculated based on the daily average of the wallet balance over the previous period.</string>
     <string name="nc_just_in_time_desc">* The percentage will be calculated based on the wallet balance on the day of the payment.</string>
     <string name="nc_delete_payment_desc">Are you sure you want to deny this recurring payment?</string>
+    <string name="nc_sent_to_first_available_address">Payments will be sent to the first available addresses in the wallet.</string>
+    <string name="nc_destination_wallet">Destination (wallet)</string>
 </resources>
