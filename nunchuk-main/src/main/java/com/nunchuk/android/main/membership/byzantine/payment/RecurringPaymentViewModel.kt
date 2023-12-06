@@ -17,6 +17,7 @@ import com.nunchuk.android.main.membership.byzantine.key.toRecurringPaymentType
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.payment.PaymentCalculationMethod
 import com.nunchuk.android.model.payment.PaymentDestinationType
 import com.nunchuk.android.model.payment.PaymentFrequency
@@ -49,6 +50,7 @@ class RecurringPaymentViewModel @Inject constructor(
     val groupId = savedStateHandle.get<String>(RecurringPaymentActivity.GROUP_ID).orEmpty()
     val walletId =
         savedStateHandle.get<String>(RecurringPaymentActivity.WALLET_ID).orEmpty()
+    val myRole = savedStateHandle.get<AssistedWalletRole>(RecurringPaymentActivity.ROLE) ?: AssistedWalletRole.NONE
     private val _config = MutableSaveStateFlow(
         savedStateHandle = savedStateHandle,
         key = "recurring_payment_config",

@@ -521,7 +521,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 RecurringPaymentActivity.navigate(
                     activity = requireActivity(),
                     groupId = args.groupId,
-                    walletId = viewModel.getWalletId()
+                    walletId = viewModel.getWalletId(),
+                    role = viewModel.state.value.myRole,
                 )
             }
 

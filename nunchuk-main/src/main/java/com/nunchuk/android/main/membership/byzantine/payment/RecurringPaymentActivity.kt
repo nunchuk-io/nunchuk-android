@@ -43,12 +43,12 @@ import com.nunchuk.android.main.membership.byzantine.payment.summary.addPaymentS
 import com.nunchuk.android.main.membership.byzantine.payment.summary.navigateToPaymentSummary
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -107,6 +107,7 @@ class RecurringPaymentActivity : AppCompatActivity() {
                             },
                             groupId = groupId,
                             walletId = walletId,
+                            myRole = viewModel.myRole,
                             onOpenRecurringPaymentDetail = { recurringPaymentId ->
                                 navController.navigateToRecurringPaymentDetail(
                                     groupId = groupId,
@@ -240,15 +241,18 @@ class RecurringPaymentActivity : AppCompatActivity() {
     companion object {
         internal const val GROUP_ID = "group_id"
         internal const val WALLET_ID = "wallet_id"
+        internal const val ROLE = "role"
 
         fun navigate(
             activity: Context,
             groupId: String,
             walletId: String?,
+            role: AssistedWalletRole,
         ) {
             val intent = Intent(activity, RecurringPaymentActivity::class.java).apply {
                 putExtra(GROUP_ID, groupId)
                 putExtra(WALLET_ID, walletId)
+                putExtra(ROLE, role)
             }
             activity.startActivity(intent)
         }

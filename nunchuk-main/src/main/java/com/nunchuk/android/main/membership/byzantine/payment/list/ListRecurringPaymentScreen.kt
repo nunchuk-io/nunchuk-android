@@ -36,6 +36,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 
 
 @Composable
@@ -43,11 +45,13 @@ fun ListRecurringPaymentRoute(
     viewModel: ListRecurringPaymentViewModel = hiltViewModel(),
     onOpenAddRecurringPayment: () -> Unit = {},
     onOpenRecurringPaymentDetail: (String) -> Unit = {},
+    myRole: AssistedWalletRole = AssistedWalletRole.NONE,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ListRecurringPaymentScreen(
         uiState = state,
+        myRole = myRole,
         onOpenAddRecurringPayment = onOpenAddRecurringPayment,
         onOpenRecurringPaymentDetail = onOpenRecurringPaymentDetail,
         sortRecurringpaymentItem = viewModel::sort,
@@ -58,6 +62,7 @@ fun ListRecurringPaymentRoute(
 @Composable
 fun ListRecurringPaymentScreen(
     uiState: ListRecurringPaymentUiState = ListRecurringPaymentUiState(),
+    myRole: AssistedWalletRole = AssistedWalletRole.NONE,
     onOpenAddRecurringPayment: () -> Unit = {},
     onOpenRecurringPaymentDetail: (String) -> Unit = {},
     sortRecurringpaymentItem: (sortBy: SortBy) -> Unit = {},
@@ -97,23 +102,25 @@ fun ListRecurringPaymentScreen(
                 )
             },
             bottomBar = {
-                if (uiState.payments.isEmpty()) {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        onClick = onOpenAddRecurringPayment
-                    ) {
-                        Text(text = stringResource(R.string.nc_add_recurring_payments))
-                    }
-                } else {
-                    NcOutlineButton(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        onClick = onOpenAddRecurringPayment
-                    ) {
-                        Text(text = stringResource(R.string.nc_add_recurring_payments))
+                if (myRole.isMasterOrAdmin) {
+                    if (uiState.payments.isEmpty()) {
+                        NcPrimaryDarkButton(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            onClick = onOpenAddRecurringPayment
+                        ) {
+                            Text(text = stringResource(R.string.nc_add_recurring_payments))
+                        }
+                    } else {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            onClick = onOpenAddRecurringPayment
+                        ) {
+                            Text(text = stringResource(R.string.nc_add_recurring_payments))
+                        }
                     }
                 }
             },
