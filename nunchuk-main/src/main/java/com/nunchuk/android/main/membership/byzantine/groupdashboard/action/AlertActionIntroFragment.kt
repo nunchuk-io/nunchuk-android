@@ -105,14 +105,23 @@ class AlertActionIntroFragment : Fragment() {
                 .collect { event ->
                     when (event) {
                         is AlertActionIntroEvent.DeleteDummyTransactionSuccess -> {
-                            if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-                                showSuccess(
-                                    message = getString(R.string.nc_inheritance_request_denied),
-                                )
-                            } else if (args.alert.type == AlertType.HEALTH_CHECK_REQUEST || args.alert.type == AlertType.HEALTH_CHECK_PENDING) {
-                                showSuccess(
-                                    message = getString(R.string.nc_health_check_has_been_canceled),
-                                )
+                            when (args.alert.type) {
+                                AlertType.REQUEST_INHERITANCE_PLANNING -> {
+                                    showSuccess(
+                                        message = getString(R.string.nc_inheritance_request_denied),
+                                    )
+                                }
+                                AlertType.HEALTH_CHECK_REQUEST, AlertType.HEALTH_CHECK_PENDING -> {
+                                    showSuccess(
+                                        message = getString(R.string.nc_health_check_has_been_canceled),
+                                    )
+                                }
+                                AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> {
+                                    showSuccess(
+                                        message = getString(R.string.nc_pending_cancellation_has_been_canceled),
+                                    )
+                                }
+                                else -> Unit
                             }
                             hideLoading()
                             goBack()

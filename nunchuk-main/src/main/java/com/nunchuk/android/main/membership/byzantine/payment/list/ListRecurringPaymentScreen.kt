@@ -78,24 +78,26 @@ fun ListRecurringPaymentScreen(
                     isBack = false,
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
-                        Box {
-                            IconButton(onClick = { showSortOptionBottomSheet = true }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_sort_dark),
-                                    contentDescription = " Sort Dark"
-                                )
-                            }
-                            if (uiState.sortBy != SortBy.NONE) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(top = 8.dp, end = 8.dp)
-                                        .size(12.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.error,
-                                            shape = CircleShape
-                                        )
-                                        .align(Alignment.TopEnd)
-                                )
+                        if (uiState.payments.isNotEmpty()) {
+                            Box {
+                                IconButton(onClick = { showSortOptionBottomSheet = true }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_sort_dark),
+                                        contentDescription = " Sort Dark"
+                                    )
+                                }
+                                if (uiState.sortBy != SortBy.NONE) {
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(top = 8.dp, end = 8.dp)
+                                            .size(12.dp)
+                                            .background(
+                                                color = MaterialTheme.colorScheme.error,
+                                                shape = CircleShape
+                                            )
+                                            .align(Alignment.TopEnd)
+                                    )
+                                }
                             }
                         }
                     },
