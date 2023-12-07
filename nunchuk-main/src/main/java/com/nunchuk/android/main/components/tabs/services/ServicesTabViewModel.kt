@@ -192,11 +192,13 @@ class ServicesTabViewModel @Inject constructor(
     fun getRowItems() = _state.value.initRowItems()
 
     fun getInheritance(walletId: String, token: String, groupId: String?) = viewModelScope.launch {
+        _event.emit(ServicesTabEvent.Loading(true))
         getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId)).onSuccess {
             _event.emit(ServicesTabEvent.GetInheritanceSuccess(walletId, it, token, groupId))
         }.onFailure {
             _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
         }
+        _event.emit(ServicesTabEvent.Loading(false))
     }
 
     private fun getNonSubscriberPageContent() = viewModelScope.launch {
