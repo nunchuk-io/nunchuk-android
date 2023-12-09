@@ -32,6 +32,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmFragment
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
@@ -250,16 +251,28 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             clearFragmentResult(GroupChatHistoryIntroFragment.REQUEST_KEY)
         }
         setFragmentResultListener(AlertActionIntroFragment.REQUEST_KEY) { _, bundle ->
-            val dummyTransactionId =
-                bundle.getString(AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID).orEmpty()
-            val requiredSignatures = bundle.getInt(AlertActionIntroFragment.EXTRA_REQUIRE_KEY)
-            if (dummyTransactionId.isNotEmpty()) {
-                openWalletAuthentication(
-                    dummyTransactionId = dummyTransactionId,
-                    requiredSignatures = requiredSignatures,
-                )
+            if (bundle.containsKey(AlertActionIntroFragment.EXTRA_APPROVE_INHERITANCE_REQUEST)) {
+                if (bundle.getBoolean(AlertActionIntroFragment.EXTRA_APPROVE_INHERITANCE_REQUEST)) {
+                    showSuccess(message = getString(R.string.nc_inheritance_request_approved))
+                } else {
+                    showSuccess(message = getString(R.string.nc_inheritance_request_denied))
+                }
+            } else {
+                val dummyTransactionId =
+                    bundle.getString(AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID).orEmpty()
+                val requiredSignatures = bundle.getInt(AlertActionIntroFragment.EXTRA_REQUIRE_KEY)
+                if (dummyTransactionId.isNotEmpty()) {
+                    openWalletAuthentication(
+                        dummyTransactionId = dummyTransactionId,
+                        requiredSignatures = requiredSignatures,
+                    )
+                }
             }
             clearFragmentResult(AlertActionIntroFragment.REQUEST_KEY)
+        }
+        setFragmentResultListener(InheritanceRequestPlanningConfirmFragment.REQUEST_KEY) { _, bundle ->
+            viewModel.setInheritanceRequestByMe()
+            clearFragmentResult(InheritanceRequestPlanningConfirmFragment.REQUEST_KEY)
         }
         flowObserver(viewModel.event) { event ->
             when (event) {
@@ -346,11 +359,14 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 }
 
                 is GroupDashboardEvent.CalculateRequiredSignaturesSuccess -> {
-                    openWalletAuthentication(
-                        dummyTransactionId = event.dummyTransactionId,
-                        requiredSignatures = event.requiredSignatures,
-                        userData = event.userData
-                    )
+                    if (event.type == "NONE") {
+                        findNavController().navigate(
+                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToInheritanceRequestPlanningConfirmFragment(
+                                groupId = args.groupId,
+                                walletId = viewModel.getWalletId(),
+                            )
+                        )
+                    }
                 }
 
                 GroupDashboardEvent.RestartWizardSuccess -> requireActivity().finish()
@@ -459,7 +475,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 viewModel.handleRegisterSigners(alert.payload.xfps)
             }
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-            viewModel.getGroupDummyTransactionPayload(alert)
+            findNavController().navigate(
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
+                    args.groupId,
+                    viewModel.getWalletId(),
+                    alert
+                )
+            )
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
             navigator.openInheritancePlanningScreen(
                 walletId = viewModel.getWalletId(),
@@ -502,7 +524,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.SET_UP_INHERITANCE -> {
-                if (viewModel.state.value.isSetupInheritance) {
+                if (viewModel.state.value.isAlreadySetupInheritance) {
                     enterPasswordDialog(TargetAction.UPDATE_INHERITANCE_PLAN)
                 } else {
                     viewModel.getInheritance("", false)
@@ -548,7 +570,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         if (viewModel.isPendingCreateWallet().not()) {
             if (uiState.group?.walletConfig?.allowInheritance == true) {
                 if (uiState.myRole.isMasterOrAdmin) {
-                    if (uiState.isSetupInheritance) {
+                    if (uiState.isAlreadySetupInheritance) {
                         options.add(
                             SheetOption(
                                 type = SheetOptionType.SET_UP_INHERITANCE,
@@ -563,7 +585,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                             ),
                         )
                     }
-                } else if (uiState.isSetupInheritance) {
+                } else if (uiState.isAlreadySetupInheritance) {
                     options.add(
                         SheetOption(
                             type = SheetOptionType.SET_UP_INHERITANCE,

@@ -38,6 +38,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimClaimRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
+import com.nunchuk.android.core.data.model.InheritanceRequestPlanningPayload
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
@@ -2231,6 +2232,34 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun markKeyAsRecovered(xfp: String, status: String) {
         val response = userWalletApiManager.walletApi.markRecoverStatus(xfp, MarkRecoverStatusRequest(status))
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun denyInheritanceRequestPlanning(
+        requestId: String,
+        groupId: String,
+        walletId: String
+    ) {
+        val response = userWalletApiManager.walletApi.denyInheritanceRequestPlanning(
+            requestId = requestId,
+            query = mapOf("group_id" to groupId, "wallet" to walletId)
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun approveInheritanceRequestPlanning(
+        requestId: String,
+        groupId: String,
+        walletId: String
+    ) {
+        val response = userWalletApiManager.walletApi.approveInheritanceRequestPlanning(
+            requestId = requestId,
+            query = mapOf("group_id" to groupId, "wallet" to walletId)
+        )
         if (response.isSuccess.not()) {
             throw response.error
         }

@@ -377,4 +377,14 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Query("offset") offset: Int
     ): Data<TransactionNoteResponse>
+
+    @PUT("/v1.1/user-wallets/inheritance/request-planning/{request_id}/deny")
+    suspend fun denyInheritanceRequestPlanning(
+        @Path("request_id") requestId: String, @QueryMap query: Map<String, String>
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/inheritance/request-planning/{request_id}/approve")
+    suspend fun approveInheritanceRequestPlanning(
+        @Path("request_id") requestId: String, @QueryMap query: Map<String, String>
+    ): Data<Unit>
 }

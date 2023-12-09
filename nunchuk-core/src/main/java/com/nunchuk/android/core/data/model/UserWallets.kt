@@ -268,3 +268,13 @@ data class MarkRecoverStatusRequest(
 )
 
 class EmptyRequest
+
+data class InheritanceRequestPlanningPayload(
+    @SerializedName("request_id")
+    val requestId: String? = null,
+    @SerializedName("wallet")
+    val walletId: String? = null,
+    @SerializedName("group_id")
+    val groupId: String? = null
+)
+

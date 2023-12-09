@@ -3,6 +3,9 @@ package com.nunchuk.android.main.membership.byzantine.groupdashboard.action
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.membership.ApproveInheritanceRequestPlanningUseCase
+import com.nunchuk.android.core.domain.membership.DenyInheritanceRequestPlanningUseCase
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
@@ -27,6 +30,8 @@ class AlertActionIntroViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
     private val getGroupUseCase: GetGroupUseCase,
+    private val denyInheritanceRequestPlanningUseCase: DenyInheritanceRequestPlanningUseCase,
+    private val approveInheritanceRequestPlanningUseCase: ApproveInheritanceRequestPlanningUseCase,
     saveStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = AlertActionIntroFragmentArgs.fromSavedStateHandle(saveStateHandle)
@@ -37,20 +42,21 @@ class AlertActionIntroViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            getGroupDummyTransactionPayloadUseCase(
-                GetGroupDummyTransactionPayloadUseCase.Param(
-                    groupId = args.groupId,
-                    walletId = args.walletId,
-                    transactionId = args.alert.payload.dummyTransactionId
-                )
-            ).onSuccess {
-                _state.update { state ->
-                    state.copy(dummyTransaction = it)
-                }
-                if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-                    getWallet()
-                    getGroup(it.requestByUserId)
+        if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
+            getWallet()
+            getGroup(args.alert.payload.membershipId)
+        } else {
+            viewModelScope.launch {
+                getGroupDummyTransactionPayloadUseCase(
+                    GetGroupDummyTransactionPayloadUseCase.Param(
+                        groupId = args.groupId,
+                        walletId = args.walletId,
+                        transactionId = args.alert.payload.dummyTransactionId
+                    )
+                ).onSuccess {
+                    _state.update { state ->
+                        state.copy(dummyTransaction = it)
+                    }
                 }
             }
         }
@@ -64,7 +70,7 @@ class AlertActionIntroViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getGroup(requestByUserId: String) {
+    private fun getGroup(requestByUserId: String) = viewModelScope.launch {
         getGroupUseCase(
             GetGroupUseCase.Params(
                 args.groupId
@@ -93,11 +99,52 @@ class AlertActionIntroViewModel @Inject constructor(
             _event.emit(AlertActionIntroEvent.Loading(false))
         }
     }
+
+    fun denyInheritanceRequestPlanning() {
+        viewModelScope.launch {
+            _event.emit(AlertActionIntroEvent.Loading(true))
+            denyInheritanceRequestPlanningUseCase(
+                DenyInheritanceRequestPlanningUseCase.Param(
+                    requestId = args.alert.payload.requestId,
+                    groupId = args.groupId,
+                    walletId = args.walletId,
+                )
+            ).onSuccess {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.DenyInheritanceRequestPlanningSuccess)
+            }.onFailure {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.Error(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun approveInheritanceRequestPlanning() {
+        viewModelScope.launch {
+            _event.emit(AlertActionIntroEvent.Loading(true))
+            approveInheritanceRequestPlanningUseCase(
+                ApproveInheritanceRequestPlanningUseCase.Param(
+                    requestId = args.alert.payload.requestId,
+                    groupId = args.groupId,
+                    walletId = args.walletId,
+                )
+            ).onSuccess {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.ApproveInheritanceRequestPlanningSuccess)
+            }.onFailure {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.Error(it.message.orUnknownError()))
+            }
+        }
+    }
 }
 
 sealed class AlertActionIntroEvent {
+    data object DenyInheritanceRequestPlanningSuccess : AlertActionIntroEvent()
+    data object ApproveInheritanceRequestPlanningSuccess : AlertActionIntroEvent()
     data object DeleteDummyTransactionSuccess : AlertActionIntroEvent()
     data class Loading(val isLoading: Boolean) : AlertActionIntroEvent()
+    data class Error(val message: String) : AlertActionIntroEvent()
 }
 
 data class AlertActionIntroUiState(
