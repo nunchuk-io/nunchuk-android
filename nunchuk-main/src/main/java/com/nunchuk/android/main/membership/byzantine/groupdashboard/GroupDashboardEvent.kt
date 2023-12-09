@@ -37,7 +37,7 @@ sealed class GroupDashboardEvent {
 
     data object RestartWizardSuccess: GroupDashboardEvent()
     data class DownloadBackupKeySuccess(val backupKey: BackupKey) : GroupDashboardEvent()
-    data class GroupDummyTransactionPayloadSuccess(val dummyTransactionPayload: DummyTransactionPayload) : GroupDashboardEvent()
+    data class GroupDummyTransactionPayloadSuccess(val dummyTransactionPayload: DummyTransactionPayload, val alert: Alert) : GroupDashboardEvent()
 }
 
 data class GroupDashboardState(

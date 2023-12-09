@@ -640,15 +640,18 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun getGroupDummyTransactionPayload(dummyTransactionId: String) = viewModelScope.launch {
+    fun getGroupDummyTransactionPayload(alert: Alert) = viewModelScope.launch {
         getGroupDummyTransactionPayloadUseCase(
             GetGroupDummyTransactionPayloadUseCase.Param(
                 groupId = args.groupId,
                 walletId = getWalletId(),
-                transactionId = dummyTransactionId
+                transactionId = alert.payload.dummyTransactionId
             )
         ).onSuccess {
-            _event.emit(GroupDashboardEvent.GroupDummyTransactionPayloadSuccess(it))
+            _event.emit(GroupDashboardEvent.GroupDummyTransactionPayloadSuccess(
+                dummyTransactionPayload = it,
+                alert = alert
+            ))
         }
     }
 
@@ -665,8 +668,16 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun isInheritanceOwner(): Boolean {
-        return  _state.value.inheritanceOwnerId.isNullOrEmpty() || _state.value.inheritanceOwnerId == accountManager.getAccount().id
+    private fun isInheritanceOwner(): Boolean {
+        return  _state.value.inheritanceOwnerId == accountManager.getAccount().id
+    }
+
+    fun isShowSetupInheritanceOption(): Boolean {
+        return (_state.value.inheritanceOwnerId.isNullOrEmpty() || isInheritanceOwner()) && state.value.isHasPendingRequestInheritance.not()
+    }
+
+    fun getUserId(): String {
+        return accountManager.getAccount().id
     }
 
     private val currentSelectedAlert: Alert?
