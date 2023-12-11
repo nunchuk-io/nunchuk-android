@@ -47,6 +47,8 @@ fun String?.orUnknownError() = this ?: UNKNOWN_ERROR
 
 fun String.isValidCvc() = length in MIN_CVC_LENGTH..MAX_CVC_LENGTH
 
+const val MAX_NOTE_LENGTH = 280
+
 const val MAX_CVC_LENGTH = 32
 const val MIN_CVC_LENGTH = 6
 
@@ -68,7 +70,7 @@ const val TAPSIGNER_INHERITANCE_NAME = "TAPSIGNER (inh.)"
 
 const val ONE_HOUR_TO_SECONDS = 60 * 60
 
-const val SIGNER_PATH_PREFIX = "m/48h"
+private const val SIGNER_PATH_PREFIX = "m/48h"
 const val COLDCARD_GUIDE_URL = "https://coldcard.com/docs/quick"
 const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
 
@@ -89,7 +91,7 @@ const val USD_CURRENCY = "USD"
 
 var LOCAL_CURRENCY = USD_CURRENCY
 
-fun Int.densityToLevel() : Float = when(this) {
+fun Int.densityToLevel(): Float = when (this) {
     LOW_DENSITY -> 0f
     MEDIUM_DENSITY -> 1f
     else -> 2f
@@ -100,7 +102,7 @@ fun Double.formatRoundDecimal(): String {
     return df.format(this)
 }
 
-fun String.fixAfterDecimal(count: Int = 2) : String{
+fun String.fixAfterDecimal(count: Int = 2): String {
     val decimalIndex = indexOf(".")
     return if (decimalIndex > 0) {
         substring(0, minOf(length, decimalIndex + count + 1))
@@ -111,9 +113,12 @@ fun String.fixAfterDecimal(count: Int = 2) : String{
 
 fun Double.roundDecimal(): Double = formatRoundDecimal().toDoubleOrNull() ?: 0.0
 
-fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
+fun Long.formatDate(): String =
+    SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
-fun Transaction.getFormatDate(): String = if (blockTime <= 0) "--/--/--" else (blockTime).formatDate()
+fun Transaction.getFormatDate(): String =
+    if (blockTime <= 0) "--/--/--" else (blockTime).formatDate()
+
 fun Long.getBtcFormatDate(): String = if (this <= 0) "--/--/--" else (this).formatDate()
 
 fun String.fromMxcUriToMatrixDownloadUrl(): String {
@@ -154,6 +159,9 @@ fun Context.copyToClipboard(label: String, text: String) {
 
 fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> getString(R.string.nc_currency_sat)
-    else ->getString(R.string.nc_currency_btc)
+    else -> getString(R.string.nc_currency_btc)
 }
+
+val String.isValidColdcardPath: Boolean
+    get() = this.startsWith(SIGNER_PATH_PREFIX) && this.endsWith("2h")
 

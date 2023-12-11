@@ -12,9 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -104,7 +104,7 @@ fun GroupChatHistoryScreenContent(
     Column(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colors.surface,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             )
             .padding(horizontal = 12.dp, vertical = 24.dp)

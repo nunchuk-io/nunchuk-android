@@ -24,8 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AlertActionIntroViewModel @Inject constructor(
     private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
-    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
     private val getGroupUseCase: GetGroupUseCase,
     saveStateHandle: SavedStateHandle,
 ) : ViewModel() {

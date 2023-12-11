@@ -20,10 +20,20 @@
 package com.nunchuk.android.nav
 
 import android.app.Activity
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.share.ColdcardAction
 
 interface NfcNavigator {
     fun openSetupMk4(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+        action: ColdcardAction = ColdcardAction.CREATE,
+        groupId: String = ""
+    )
+
+    fun startSetupMk4ForResult(
+        launcher: ActivityResultLauncher<Intent>,
         activity: Activity,
         fromMembershipFlow: Boolean,
         action: ColdcardAction = ColdcardAction.CREATE,
@@ -49,5 +59,6 @@ interface NfcNavigator {
         fromMembershipFlow: Boolean,
         masterSignerId: String,
         groupId: String = "",
+        signerIndex: Int = 0,
     )
 }

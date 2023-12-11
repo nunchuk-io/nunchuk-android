@@ -31,12 +31,17 @@ import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.components.tabs.AssistedWalletViewModel
 import com.nunchuk.android.main.databinding.BottomSheetAssistedWalletBinding
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBinding>() {
     private val viewModel by viewModels<AssistedWalletViewModel>()
+
+    @Inject
+    lateinit var assistedWalletManager: AssistedWalletManager
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -49,7 +54,8 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
         super.onViewCreated(view, savedInstanceState)
         val binding = BottomSheetAssistedWalletBinding.bind(view)
         val assistedWalletIds = requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty()
-        val lockdownWalletIds = requireArguments().getStringArrayList(EXTRA_LOCKDOWN_WALLET_IDS).orEmpty()
+        val lockdownWalletIds =
+            requireArguments().getStringArrayList(EXTRA_LOCKDOWN_WALLET_IDS).orEmpty()
         val title = requireArguments().getString(EXTRA_TITLE)
         if (!title.isNullOrEmpty()) {
             binding.tvTitle.text = title
@@ -59,7 +65,7 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
             WalletsViewBinder(
                 container = binding.walletList,
                 wallets = wallets,
-                assistedWalletIds = assistedWalletIds.toSet(),
+                assistedWalletIds = assistedWalletManager::isActiveAssistedWallet,
                 lockdownWalletIds = lockdownWalletIds.toSet(),
                 callback = {
                     if (lockdownWalletIds.isEmpty() || lockdownWalletIds.contains(it).not()) {
@@ -79,7 +85,12 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_LOCKDOWN_WALLET_IDS = "lockdown_wallet_ids"
 
-        fun show(fragmentManager: FragmentManager, assistedWalletIds: List<String>, title: String? = null, lockdownWalletIds: List<String> = emptyList()) = AssistedWalletBottomSheet().apply {
+        fun show(
+            fragmentManager: FragmentManager,
+            assistedWalletIds: List<String>,
+            title: String? = null,
+            lockdownWalletIds: List<String> = emptyList()
+        ) = AssistedWalletBottomSheet().apply {
             arguments = Bundle().apply {
                 putStringArrayList(EXTRA_WALLET_IDS, ArrayList(assistedWalletIds))
                 putStringArrayList(EXTRA_LOCKDOWN_WALLET_IDS, ArrayList(lockdownWalletIds))

@@ -21,8 +21,18 @@ package com.nunchuk.android.wallet.components.coin.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.AppBarDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,10 +82,10 @@ fun CoinListTopBarSelectMode(
     onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
     onSelectDone: () -> Unit
 ) {
-    Surface(elevation = AppBarDefaults.TopAppBarElevation) {
+    Surface(tonalElevation = AppBarDefaults.TopAppBarElevation) {
         Row(
             modifier = Modifier
-                .background(color = MaterialTheme.colors.background)
+                .background(color = MaterialTheme.colorScheme.background)
                 .fillMaxWidth()
                 .height(56.dp),
             verticalAlignment = Alignment.CenterVertically,

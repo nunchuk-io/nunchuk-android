@@ -26,9 +26,9 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -53,9 +53,9 @@ fun NcPrimaryButton(
         onClick = onClick,
         interactionSource = interactionSource,
         content = content,
-        border = BorderStroke(2.dp, MaterialTheme.colors.primary),
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
         shape = RoundedCornerShape(48.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = color)
+        colors = ButtonDefaults.buttonColors(containerColor = color)
     )
 }
 
@@ -77,11 +77,11 @@ fun NcPrimaryDarkButton(
         onClick = onClick,
         interactionSource = interactionSource,
         content = content,
-        border = if (enabled) BorderStroke(2.dp, MaterialTheme.colors.primary) else null,
+        border = if (enabled) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         shape = RoundedCornerShape(48.dp),
         colors = ButtonDefaults.buttonColors(
-            backgroundColor = color,
-            disabledBackgroundColor = colorResource(id = R.color.nc_whisper_color)
+            containerColor = color,
+            disabledContainerColor = colorResource(id = R.color.nc_whisper_color)
         )
     )
 }

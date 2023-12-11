@@ -31,8 +31,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -130,17 +130,17 @@ fun CreateWalletSuccessScreenContent(
     plan: MembershipPlan = MembershipPlan.IRON_HAND,
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.nc_bg_wallet_done,
+            )
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_wallet_done,
-                )
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_create_wallet_success),

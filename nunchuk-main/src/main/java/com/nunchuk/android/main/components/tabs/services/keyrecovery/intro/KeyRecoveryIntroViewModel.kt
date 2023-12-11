@@ -92,7 +92,7 @@ class KeyRecoveryIntroViewModel @Inject constructor(
             }.map {
                 val (masterSigners, wallets) = it
                 val signers = masterSigners
-                    .filter { it.device.isTapsigner }
+                    .filter { it.device.isTapsigner && it.isVisible }
                     .map { signer ->
                         masterSignerMapper(signer)
                     }.map {

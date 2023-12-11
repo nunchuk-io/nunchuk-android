@@ -32,7 +32,7 @@ class CheckAddressValidUseCase @Inject constructor(
     override suspend fun execute(parameters: Params): List<String> {
         val invalidAddressList = arrayListOf<String>()
         parameters.addresses.forEach {
-            if (nativeSdk.isValidAddress(it).not()) invalidAddressList.add(it)
+            if (runCatching { nativeSdk.isValidAddress(it) }.getOrDefault(false).not()) invalidAddressList.add(it)
         }
         return invalidAddressList
     }

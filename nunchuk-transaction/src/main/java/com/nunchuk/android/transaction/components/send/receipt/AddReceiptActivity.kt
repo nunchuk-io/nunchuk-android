@@ -32,6 +32,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.qr.startQRCodeScan
+import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
@@ -301,7 +302,6 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
     }
 
     companion object {
-        private const val MAX_NOTE_LENGTH = 280
 
         fun start(
             activityContext: Context,

@@ -17,11 +17,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -156,7 +156,7 @@ private fun SelectGroupContent(
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
             }, topBar = {
-                NcTopAppBar(title = "", elevation = 0.dp, actions = {
+                NcTopAppBar(title = "", actions = {
                     IconButton(onClick = onMoreClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_more),
@@ -237,14 +237,14 @@ fun ProBadgePlan(modifier: Modifier, text: String) {
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_check_badge),
-            tint = MaterialTheme.colors.surface,
+            tint = MaterialTheme.colorScheme.surface,
             contentDescription = "Badge Icon"
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),
             text = text,
             style = NunchukTheme.typography.bold.copy(
-                color = MaterialTheme.colors.surface,
+                color = MaterialTheme.colorScheme.surface,
                 fontSize = 10.sp
             )
         )
@@ -256,7 +256,7 @@ fun StandardBadgePlan(modifier: Modifier) {
     Row(
         modifier = modifier
             .border(
-                color = MaterialTheme.colors.border,
+                color = MaterialTheme.colorScheme.border,
                 shape = RoundedCornerShape(20.dp),
                 width = 1.dp,
             )
@@ -265,7 +265,7 @@ fun StandardBadgePlan(modifier: Modifier) {
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_check_badge),
-            tint = MaterialTheme.colors.primary,
+            tint = MaterialTheme.colorScheme.primary,
             contentDescription = "Badge Icon"
         )
         Text(

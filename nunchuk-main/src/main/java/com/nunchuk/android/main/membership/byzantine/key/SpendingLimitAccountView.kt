@@ -17,9 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,7 +72,7 @@ fun SpendingLimitAccountView(
             modifier = Modifier
                 .padding(top = 12.dp)
                 .fillMaxWidth()
-                .background(MaterialTheme.colors.greyLight, shape = RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(12.dp))
                 .padding(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -162,13 +162,13 @@ fun SpendingLimitAccountView(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     enabled = isNotKeyHolderLimited,
                     readOnly = !isNotKeyHolderLimited,
-                    disableBackgroundColor = MaterialTheme.colors.whisper,
+                    disableBackgroundColor = MaterialTheme.colorScheme.whisper,
                 )
                 Row(
                     modifier = Modifier
                         .fillMaxHeight()
                         .background(
-                            color = if (isNotKeyHolderLimited) MaterialTheme.colors.background else MaterialTheme.colors.whisper,
+                            color = if (isNotKeyHolderLimited) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.whisper,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .border(
@@ -201,7 +201,7 @@ fun SpendingLimitAccountView(
                     .clickable(enabled = isNotKeyHolderLimited) { onShowTimeUnitOption(member.member?.email) }
                     .fillMaxWidth()
                     .background(
-                        color = if (isNotKeyHolderLimited) MaterialTheme.colors.background else MaterialTheme.colors.whisper,
+                        color = if (isNotKeyHolderLimited) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.whisper,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .border(

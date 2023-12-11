@@ -33,12 +33,11 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
-import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroFragmentDirections
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
-import com.nunchuk.android.main.membership.byzantine.recurringpayment.RecurringPaymentActivity
+import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.GroupChat
@@ -95,12 +94,15 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
     private val inheritanceLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                val dummyTransactionId = it.data?.getStringExtra(GlobalResultKey.DUMMY_TX_ID).orEmpty()
-                val requiredSignatures = it.data?.getIntExtra(GlobalResultKey.REQUIRED_SIGNATURES, 0) ?: 0
+                val dummyTransactionId =
+                    it.data?.getStringExtra(GlobalResultKey.DUMMY_TX_ID).orEmpty()
+                val requiredSignatures =
+                    it.data?.getIntExtra(GlobalResultKey.REQUIRED_SIGNATURES, 0) ?: 0
                 if (dummyTransactionId.isNotEmpty()) {
                     openWalletAuthentication(
                         dummyTransactionId = dummyTransactionId,
-                        requiredSignatures = requiredSignatures,)
+                        requiredSignatures = requiredSignatures,
+                    )
                 }
             }
         }
@@ -109,7 +111,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val dummyTransactionType = data.parcelable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
+                val dummyTransactionType =
+                    data.parcelable<DummyTransactionType>(GlobalResultKey.EXTRA_DUMMY_TX_TYPE)
                 if (dummyTransactionType != null) {
                     if (dummyTransactionType.isInheritanceFlow()) {
                         viewModel.markSetupInheritance(dummyTransactionType)
@@ -126,7 +129,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         }
 
     private fun showInheritanceMessage(dummyTransactionType: DummyTransactionType) {
-        val message = when(dummyTransactionType) {
+        val message = when (dummyTransactionType) {
             DummyTransactionType.CREATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_created)
             DummyTransactionType.UPDATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_updated)
             DummyTransactionType.CANCEL_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_canlled)
@@ -360,10 +363,20 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 }
 
                 is GroupDashboardEvent.GroupDummyTransactionPayloadSuccess -> {
-                    openWalletAuthentication(
-                        dummyTransactionId = event.dummyTransactionPayload.dummyTransactionId,
-                        requiredSignatures = event.dummyTransactionPayload.requiredSignatures,
-                    )
+                    if (event.dummyTransactionPayload.requestByUserId == viewModel.getUserId()) {
+                        openWalletAuthentication(
+                            dummyTransactionId = event.dummyTransactionPayload.dummyTransactionId,
+                            requiredSignatures = event.dummyTransactionPayload.requiredSignatures,
+                        )
+                    } else {
+                        findNavController().navigate(
+                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
+                                args.groupId,
+                                viewModel.getWalletId(),
+                                event.alert
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -446,17 +459,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 viewModel.handleRegisterSigners(alert.payload.xfps)
             }
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-            if (viewModel.isInheritanceOwner()) {
-                viewModel.getGroupDummyTransactionPayload(alert.payload.dummyTransactionId)
-            } else {
-                findNavController().navigate(
-                    GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                        args.groupId,
-                        viewModel.getWalletId(),
-                        alert
-                    )
-                )
-            }
+            viewModel.getGroupDummyTransactionPayload(alert)
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
             navigator.openInheritancePlanningScreen(
                 walletId = viewModel.getWalletId(),
@@ -465,7 +468,9 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 groupId = args.groupId,
                 sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
             )
-        } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST) {
+        } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST
+            || alert.type == AlertType.RECURRING_PAYMENT_CANCELATION_PENDING
+        ) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
                     args.groupId,
@@ -475,6 +480,14 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             )
         } else if (alert.type == AlertType.KEY_RECOVERY_APPROVED) {
             viewModel.recoverKey(alert.payload.keyXfp)
+        } else if (alert.type == AlertType.RECURRING_PAYMENT_REQUEST) {
+            findNavController().navigate(
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToRecurringPaymentRequestFragment(
+                    args.groupId,
+                    viewModel.getWalletId(),
+                    alert.payload.dummyTransactionId
+                )
+            )
         }
     }
 
@@ -508,7 +521,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 RecurringPaymentActivity.navigate(
                     activity = requireActivity(),
                     groupId = args.groupId,
-                    walletId = viewModel.getWalletId()
+                    walletId = viewModel.getWalletId(),
+                    role = viewModel.state.value.myRole,
                 )
             }
 
@@ -541,7 +555,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 stringId = R.string.nc_view_inheritance_plan
                             ),
                         )
-                    } else if (viewModel.isInheritanceOwner() && uiState.isHasPendingRequestInheritance.not()) {
+                    } else if (viewModel.isShowSetupInheritanceOption()) {
                         options.add(
                             SheetOption(
                                 type = SheetOptionType.SET_UP_INHERITANCE,
@@ -621,6 +635,8 @@ private fun GroupDashboardScreen(
         uiState = state,
         onDismissClick = viewModel::dismissAlert,
         isEnableStartGroupChat = viewModel.isEnableStartGroupChat(),
+        refresh = viewModel::refresh,
+        isRefreshing = state.isRefreshing,
         onEditClick = onEditClick,
         onWalletClick = onWalletClick,
         onAlertClick = { alert, role ->

@@ -29,11 +29,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -97,7 +97,7 @@ fun PreviewCoinCard(
                         modifier = Modifier
                             .padding(start = 4.dp)
                             .background(
-                                color = MaterialTheme.colors.background,
+                                color = MaterialTheme.colorScheme.background,
                                 shape = RoundedCornerShape(24.dp)
                             )
                             .border(
@@ -121,7 +121,7 @@ fun PreviewCoinCard(
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .size(12.dp),
                         painter = painterResource(id = R.drawable.ic_lock),
-                        tint = MaterialTheme.colors.primary,
+                        tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "Lock"
                     )
                 }
@@ -136,7 +136,7 @@ fun PreviewCoinCard(
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .size(12.dp),
                         painter = painterResource(id = R.drawable.ic_schedule),
-                        tint = MaterialTheme.colors.primary,
+                        tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "Schedule"
                     )
                 }
@@ -192,7 +192,7 @@ fun PreviewCoinCard(
                     .align(Alignment.TopEnd)
                     .padding(top = 8.dp),
                 onClick = { onViewCoinDetail(output) }) {
-                Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "", tint = MaterialTheme.colors.primary)
+                Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "", tint = MaterialTheme.colorScheme.primary)
             }
         }
     }

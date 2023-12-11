@@ -29,10 +29,11 @@ import com.nunchuk.android.core.domain.GetMk4SingersUseCase
 import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
 import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
+import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
-import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.core.util.gson
+import com.nunchuk.android.core.util.isValidColdcardPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
@@ -64,6 +65,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val importWalletFromMk4UseCase: ImportWalletFromMk4UseCase,
+    private val parseMk4WalletUseCase: ParseMk4WalletUseCase,
     private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
     private val createWallet2UseCase: CreateWallet2UseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
@@ -98,11 +100,7 @@ class Mk4IntroViewModel @Inject constructor(
             if (result.isSuccess) {
                 if (args.isMembershipFlow) {
                     val sortedSigner = result.getOrThrow().sortedBy { it.derivationPath }
-                    val signer =
-                        sortedSigner.find { it.derivationPath == if (chain == Chain.MAIN) SIGNER_PATH else SIGNER_TESTNET_PATH }
-                            ?: run {
-                                sortedSigner.find { it.derivationPath.contains(SIGNER_PATH_PREFIX) }
-                            } ?: return@launch
+                    val signer = sortedSigner.find { it.derivationPath.isValidColdcardPath } ?: throw NullPointerException("Can not parse signer")
                     if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                         _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
                         _event.emit(Mk4IntroViewEvent.Loading(false))
@@ -117,7 +115,8 @@ class Mk4IntroViewModel @Inject constructor(
                     )
                     if (createSignerResult.isSuccess) {
                         // force type coldcard nfc in case we import hardware key first
-                        val coldcardSigner = createSignerResult.getOrThrow().copy(type = SignerType.COLDCARD_NFC)
+                        val coldcardSigner =
+                            createSignerResult.getOrThrow().copy(type = SignerType.COLDCARD_NFC)
                         saveMembershipStepUseCase(
                             MembershipStepInfo(
                                 step = membershipStepManager.currentStep
@@ -178,6 +177,18 @@ class Mk4IntroViewModel @Inject constructor(
             } else {
                 _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    fun parseWalletFromMk4(records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _event.emit(Mk4IntroViewEvent.NfcLoading(true))
+            parseMk4WalletUseCase(records).onSuccess {
+                _event.emit(Mk4IntroViewEvent.ParseWalletFromMk4Success(it))
+            }.onFailure {
+                _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
+            }
+            _event.emit(Mk4IntroViewEvent.NfcLoading(false))
         }
     }
 

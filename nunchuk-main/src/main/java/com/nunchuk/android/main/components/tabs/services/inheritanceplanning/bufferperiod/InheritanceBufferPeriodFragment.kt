@@ -28,7 +28,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -147,7 +147,6 @@ private fun InheritanceBufferPeriodContent(
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
                 .statusBarsPadding()
                 .navigationBarsPadding()
         ) {
@@ -156,7 +155,7 @@ private fun InheritanceBufferPeriodContent(
                 id = R.string.nc_estimate_remain_time,
                 remainTime
             ) else ""
-            NcTopAppBar(title = title, elevation = 0.dp)
+            NcTopAppBar(title = title)
             LazyColumn(
                 modifier = Modifier.weight(1F),
                 contentPadding = PaddingValues(16.dp),
@@ -202,7 +201,7 @@ private fun InheritanceBufferPeriodContent(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OptionItem(
     modifier: Modifier = Modifier,

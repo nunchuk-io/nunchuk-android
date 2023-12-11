@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,18 +47,24 @@ import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.component.SignerCard
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class CustomKeyAccountFragmentFragment : MembershipFragment() {
     private val viewModel: CustomKeyAccountFragmentViewModel by viewModels()
     private val args: CustomKeyAccountFragmentFragmentArgs by navArgs()
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -84,9 +90,21 @@ class CustomKeyAccountFragmentFragment : MembershipFragment() {
                 .collect { event ->
                     when(event) {
                         is CustomKeyAccountFragmentEvent.CheckSigner -> handleCheckSigner(event.signer)
+                        is CustomKeyAccountFragmentEvent.OpenScanTapSigner -> openCreateBackUpTapSigner(event.index)
                     }
                 }
         }
+    }
+
+    private fun openCreateBackUpTapSigner(index: Int) {
+        findNavController().popBackStack()
+        navigator.openCreateBackUpTapSigner(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            masterSignerId = args.signer.fingerPrint,
+            groupId = (activity as MembershipActivity).groupId,
+            signerIndex = index,
+        )
     }
 
     private fun handleCheckSigner(signer: SingleSigner?) {
@@ -205,7 +223,7 @@ private fun CustomKeyAccountFragmentContent(
                     modifier = Modifier
                         .padding(top = 4.dp)
                         .background(
-                            MaterialTheme.colors.greyLight,
+                            MaterialTheme.colorScheme.greyLight,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(16.dp)

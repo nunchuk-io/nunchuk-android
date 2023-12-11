@@ -35,6 +35,7 @@ interface KeyRepository {
         isAddNewKey: Boolean,
         plan: MembershipPlan,
         groupId: String,
+        newIndex: Int
     ): Flow<KeyUpload>
 
     suspend fun setKeyVerified(

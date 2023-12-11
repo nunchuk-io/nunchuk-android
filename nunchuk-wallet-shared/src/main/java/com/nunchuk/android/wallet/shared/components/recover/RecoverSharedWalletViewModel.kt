@@ -23,10 +23,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -59,13 +61,11 @@ internal class RecoverSharedWalletViewModel @Inject constructor(
 
     fun parseWalletDescriptor(content: String) {
         viewModelScope.launch {
-            parseWalletDescriptorUseCase.execute(content)
-                .flowOn(Dispatchers.IO)
-                .onException { _event.emit(RecoverSharedWalletEvent.ShowError(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    _event.emit(RecoverSharedWalletEvent.RecoverSharedWalletSuccess(it))
-                }
+            parseWalletDescriptorUseCase(content).onSuccess {
+                _event.emit(RecoverSharedWalletEvent.RecoverSharedWalletSuccess(it))
+            }.onFailure {
+                _event.emit(RecoverSharedWalletEvent.ShowError(it.message.orUnknownError()))
+            }
         }
     }
 }

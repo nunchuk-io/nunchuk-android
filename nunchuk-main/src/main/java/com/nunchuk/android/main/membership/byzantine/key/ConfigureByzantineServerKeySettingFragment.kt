@@ -37,12 +37,12 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Switch
-import androidx.compose.material.SwitchDefaults
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -179,7 +179,6 @@ fun ConfigureServerKeySettingScreenContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
                     .fillMaxSize()
@@ -190,7 +189,6 @@ fun ConfigureServerKeySettingScreenContent(
                         R.string.nc_estimate_remain_time,
                         remainTime
                     ) else "",
-                    elevation = 0.dp,
                     actions = {
                         if (isCreateAssistedWalletFlow) {
                             IconButton(onClick = onMoreClicked) {

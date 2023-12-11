@@ -42,11 +42,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -91,8 +91,6 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.buf
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
 import com.nunchuk.android.model.Period
-import com.nunchuk.android.model.byzantine.DummyTransactionType
-import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.nav.NunchukNavigator
@@ -366,7 +364,7 @@ fun InheritanceReviewPlanScreenContent(
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
 ) {
-    val isAccountSetupInheritance = groupId.isEmpty() || magicalPhrase.isEmpty().not()
+    val isEditable = groupId.isEmpty() || magicalPhrase.isEmpty().not()
     val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
         Utils.maskValue("", isMask = true)
     } else { magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) } }
@@ -375,7 +373,6 @@ fun InheritanceReviewPlanScreenContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 Column(
@@ -390,7 +387,6 @@ fun InheritanceReviewPlanScreenContent(
                     NcTopAppBar(
                         backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
                         title = title,
-                        elevation = 0.dp,
                         isBack = planFlow != InheritancePlanFlow.VIEW,
                         actions = {
                             IconButton(onClick = {
@@ -406,7 +402,7 @@ fun InheritanceReviewPlanScreenContent(
                                         showMoreIcon = true
                                     }
                                 }
-                                if (showMoreIcon && isAccountSetupInheritance) {
+                                if (showMoreIcon && isEditable) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_more_horizontal),
                                         contentDescription = "More"
@@ -481,7 +477,7 @@ fun InheritanceReviewPlanScreenContent(
                                         iconId = R.drawable.ic_calendar_light,
                                         titleId = R.string.nc_activation_date,
                                         content = Date(state.activationDate).simpleGlobalDateFormat(),
-                                        editable = isAccountSetupInheritance,
+                                        editable = isEditable,
                                         onClick = {
                                             onEditActivationDateClick()
                                         }
@@ -500,7 +496,7 @@ fun InheritanceReviewPlanScreenContent(
                                         content = stringResource(id = R.string.nc_backup_password_desc),
                                         editable = false
                                     )
-                                    if (isAccountSetupInheritance && planFlow == InheritancePlanFlow.VIEW) {
+                                    if (isEditable && planFlow == InheritancePlanFlow.VIEW) {
                                         Spacer(modifier = Modifier.height(24.dp))
                                         NcOutlineButton(
                                             modifier = Modifier
@@ -543,7 +539,7 @@ fun InheritanceReviewPlanScreenContent(
                                     style = NunchukTheme.typography.title
                                 )
                                 Spacer(modifier = Modifier.weight(weight = 1f))
-                                if (isAccountSetupInheritance) {
+                                if (isEditable) {
                                     Text(
                                         text = stringResource(id = R.string.nc_edit),
                                         style = NunchukTheme.typography.title,
@@ -589,7 +585,7 @@ fun InheritanceReviewPlanScreenContent(
                                     style = NunchukTheme.typography.title
                                 )
                                 Spacer(modifier = Modifier.weight(weight = 1f))
-                                if (isAccountSetupInheritance) {
+                                if (isEditable) {
                                     Text(
                                         text = stringResource(id = R.string.nc_edit),
                                         style = NunchukTheme.typography.title,
@@ -637,7 +633,7 @@ fun InheritanceReviewPlanScreenContent(
                                     style = NunchukTheme.typography.title,
                                 )
                                 Spacer(modifier = Modifier.weight(weight = 1f))
-                                if (isAccountSetupInheritance) {
+                                if (isEditable) {
                                     Text(
                                         text = stringResource(id = R.string.nc_edit),
                                         style = NunchukTheme.typography.title,
@@ -707,7 +703,7 @@ fun InheritanceReviewPlanScreenContent(
                 } else {
                     stringResource(id = R.string.nc_continue_to_finalize_changes)
                 }
-                if (isAccountSetupInheritance) {
+                if (isEditable) {
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth()

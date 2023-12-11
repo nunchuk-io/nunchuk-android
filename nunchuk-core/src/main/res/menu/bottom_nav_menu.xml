@@ -4,7 +4,7 @@
     <item
         android:id="@+id/navigation_wallets"
         android:icon="@drawable/ic_wallets"
-        android:title="@string/nc_title_wallets" />
+        android:title="@string/nc_title_home" />
 
     <item
         android:id="@+id/navigation_services"

@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -31,7 +31,6 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.nav.NunchukNavigator
@@ -95,7 +94,7 @@ fun KeyRecoverySuccessStateScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(title = "", elevation = 0.dp)
+                NcTopAppBar(title = "")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center

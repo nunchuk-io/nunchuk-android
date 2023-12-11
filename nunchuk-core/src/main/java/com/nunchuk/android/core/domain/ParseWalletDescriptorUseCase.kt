@@ -19,28 +19,18 @@
 
 package com.nunchuk.android.core.domain
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
+class ParseWalletDescriptorUseCase @Inject constructor(
+    private val nunchukNativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<String, Wallet>(ioDispatcher) {
 
-interface ParseWalletDescriptorUseCase {
-    fun execute(
-        content: String
-    ): Flow<Wallet>
-}
-
-internal class ParseWalletDescriptorUseCaseImpl @Inject constructor(
-    private val nunchukNativeSdk: NunchukNativeSdk
-) : ParseWalletDescriptorUseCase {
-
-    override fun execute(
-        content: String
-    ) = flow {
-        emit(
-            nunchukNativeSdk.parseWalletDescriptor(content)
-        )
+    override suspend fun execute(parameters: String): Wallet {
+        return nunchukNativeSdk.parseWalletDescriptor(parameters)
     }
-
 }

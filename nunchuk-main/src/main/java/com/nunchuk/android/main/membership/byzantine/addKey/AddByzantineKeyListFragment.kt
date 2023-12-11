@@ -100,7 +100,11 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 val signer = data.signers.first()
                 when (signer.type) {
                     SignerType.NFC -> {
-                        openCreateBackUpTapSigner(signer.id)
+                        findNavController().navigate(
+                            AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
+                                signer
+                            )
+                        )
                     }
                     SignerType.AIRGAP,
                     SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(signer)
@@ -429,15 +433,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             activity = requireActivity(),
             fromMembershipFlow = true,
             groupId = (activity as MembershipActivity).groupId,
-        )
-    }
-
-    private fun openCreateBackUpTapSigner(masterSignerId: String) {
-        navigator.openCreateBackUpTapSigner(
-            activity = requireActivity(),
-            fromMembershipFlow = true,
-            masterSignerId = masterSignerId,
-            groupId = (activity as MembershipActivity).groupId
         )
     }
 }

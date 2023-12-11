@@ -24,14 +24,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,7 +39,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -233,6 +231,7 @@ private fun CoinDetailScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CoinDetailContent(
     output: UnspentOutput = UnspentOutput(),
@@ -249,8 +248,7 @@ private fun CoinDetailContent(
     onLockOrUnlock: (isLocked: Boolean) -> Unit = {},
     onViewCoinAncestry: (output: UnspentOutput) -> Unit = {},
 ) {
-    val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
-    val backgroundColor = if (isSpentCoin) MaterialTheme.colors.whisper else MaterialTheme.colors.denimTint
+    val backgroundColor = if (isSpentCoin) MaterialTheme.colorScheme.whisper else MaterialTheme.colorScheme.denimTint
     NunchukTheme {
         Scaffold(topBar = {
             Box(
@@ -258,24 +256,9 @@ private fun CoinDetailContent(
                     .background(color = backgroundColor)
                     .statusBarsPadding()
             ) {
-                TopAppBar(
-                    elevation = 0.dp,
-                    navigationIcon = {
-                        IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_back),
-                                contentDescription = "Back"
-                            )
-                        }
-                    },
-                    title = {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            text = stringResource(R.string.nc_coin_detail)
-                        )
-                    },
-                    backgroundColor = backgroundColor,
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_coin_detail),
+                    textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         IconButton(onClick = onShowMore) {
                             Icon(
@@ -284,7 +267,8 @@ private fun CoinDetailContent(
                             )
                         }
                     },
-                )
+                    backgroundColor = backgroundColor
+                    )
             }
         }) { innerPadding ->
             Column(

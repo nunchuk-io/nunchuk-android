@@ -13,8 +13,8 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -54,12 +54,12 @@ fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}
                     .padding(top = 12.dp)
                     .border(
                         width = 1.dp,
-                        color = MaterialTheme.colors.border,
+                        color = MaterialTheme.colorScheme.border,
                         shape = RoundedCornerShape(size = 8.dp)
                     )
                     .fillMaxWidth()
                     .background(
-                        color = MaterialTheme.colors.surface,
+                        color = MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(size = 8.dp)
                     )
                     .clickable(onClick = onOpenHealthCheckScreen)

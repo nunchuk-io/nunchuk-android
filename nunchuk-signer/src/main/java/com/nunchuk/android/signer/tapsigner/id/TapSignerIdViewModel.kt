@@ -26,7 +26,11 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.util.CardIdManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,14 +54,15 @@ class TapSignerIdViewModel @Inject constructor(
         }
     }
 
-    fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
+    fun getTapSignerBackup(isoDep: IsoDep, cvc: String, index: Int) {
         viewModelScope.launch {
             _event.emit(TapSignerIdEvent.NfcLoading(true))
             val result = getTapSignerBackupUseCase(
                 GetTapSignerBackupUseCase.Data(
-                    isoDep,
-                    cvc,
-                    args.masterSignerId
+                    isoDep = isoDep,
+                    cvc = cvc,
+                    masterSignerId = args.masterSignerId,
+                    index = index,
                 )
             )
             _event.emit(TapSignerIdEvent.NfcLoading(false))

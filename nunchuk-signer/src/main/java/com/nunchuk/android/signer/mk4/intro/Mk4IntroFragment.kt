@@ -19,17 +19,24 @@
 
 package com.nunchuk.android.signer.mk4.intro
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -64,7 +71,9 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
+import com.nunchuk.android.share.isParseAction
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.widget.NCInfoDialog
@@ -101,7 +110,11 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         if (option.type >= WALLET_OFFSET) {
-            viewModel.createWallet(option.id.orEmpty())
+            if (action.isParseAction) {
+                parseWalletSuccess(viewModel.state.value.wallets.find { it.id == option.id })
+            } else {
+                viewModel.createWallet(option.id.orEmpty())
+            }
         } else if (option.type >= SIGNER_OFFSET) {
             val signer = viewModel.mk4Signers.getOrNull(option.type - SIGNER_OFFSET) ?: return
             findNavController().navigate(
@@ -134,17 +147,29 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 is Mk4IntroViewEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
                 is Mk4IntroViewEvent.ExtractWalletsFromColdCard -> showWallets(it.wallets)
                 is Mk4IntroViewEvent.NfcLoading -> showOrHideNfcLoading(it.isLoading)
+                is Mk4IntroViewEvent.ParseWalletFromMk4Success -> parseWalletSuccess(it.wallet)
             }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4 }) {
-            viewModel.importWalletFromMk4(it.records)
+            if (action.isParseAction) {
+                viewModel.parseWalletFromMk4(it.records)
+            } else {
+                viewModel.importWalletFromMk4(it.records)
+            }
             nfcViewModel.clearScanInfo()
         }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4 }) {
             viewModel.getWalletsFromColdCard(it.records)
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    private fun parseWalletSuccess(wallet: Wallet?) {
+        requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+            putExtra(GlobalResultKey.WALLET, wallet)
+        })
+        requireActivity().finish()
     }
 
     private fun showWallets(wallets: List<Wallet>) {
@@ -169,9 +194,11 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun onContinueClicked() {
-       val type = when((requireActivity() as Mk4Activity).action) {
-            ColdcardAction.RECOVER_MULTI_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
-            ColdcardAction.RECOVER_SINGLE_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
+       val type = when(action) {
+            ColdcardAction.RECOVER_MULTI_SIG_WALLET,
+            ColdcardAction.PARSE_MULTISIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
+            ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
+            ColdcardAction.PARSE_SINGLE_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
            else -> BaseNfcActivity.REQUEST_MK4_ADD_KEY
         }
         (requireActivity() as NfcActionListener).startNfcFlow(type)
@@ -187,6 +214,9 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
             fragment.show(childFragmentManager, "BottomSheetOption")
         }
     }
+
+    private val action: ColdcardAction
+        get() = (requireActivity() as Mk4Activity).action
 
     companion object {
         private const val WALLET_OFFSET = 1000000
@@ -218,31 +248,31 @@ private fun Mk4IntroContent(
 ) =
     NunchukTheme {
         NunchukTheme {
-            Scaffold { innerPadding ->
+            Scaffold(topBar = {
+                NcImageAppBar(
+                    backgroundRes = R.drawable.nc_bg_coldcard_intro,
+                    title = if (isMembershipFlow) stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else "",
+                    actions = {
+                        if (isMembershipFlow) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    }
+                )
+            }) { innerPadding ->
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
                         .fillMaxSize()
-                        .navigationBarsPadding()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    NcImageAppBar(
-                        backgroundRes = R.drawable.nc_bg_coldcard_intro,
-                        title = if (isMembershipFlow) stringResource(
-                            id = R.string.nc_estimate_remain_time,
-                            remainTime
-                        ) else "",
-                        actions = {
-                            if (isMembershipFlow) {
-                                IconButton(onClick = onMoreClicked) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_more),
-                                        contentDescription = "More icon"
-                                    )
-                                }
-                            }
-                        }
-                    )
                     Text(
                         modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                         text = stringResource(R.string.nc_coldcard_nfc_tip),

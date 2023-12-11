@@ -35,9 +35,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -118,6 +118,7 @@ class DummyTransactionIntroFragment : Fragment() {
                     })
                     requireActivity().finish()
                 } else {
+                    requireActivity().setResult(Activity.RESULT_OK)
                     findNavController().navigate(
                         DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
                     )
@@ -141,7 +142,7 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.HEALTH_CHECK_PENDING,
         -> stringResource(R.string.nc_health_check_procedure)
         DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_key_recovery_requested)
-
+        DummyTransactionType.CANCEL_RECURRING_PAYMENT -> stringResource(R.string.nc_cancel_recurring_payment)
         else -> stringResource(R.string.nc_signatures_required)
     }
     val firstSentence = when (dummyTransactionType) {
@@ -150,6 +151,8 @@ fun DummyTransactionIntroContent(
         -> stringResource(R.string.nc_complete_a_health_check)
         DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_authorize_inheritance_planning_request)
         DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_approve_key_recovery)
+        DummyTransactionType.CREATE_RECURRING_PAYMENT -> stringResource(R.string.nc_authorize_this_payment)
+        DummyTransactionType.CANCEL_RECURRING_PAYMENT -> stringResource(R.string.nc_authorize_this_cancellation)
         else -> stringResource(R.string.nc_authorize_these_change)
     }
     val lastSentences = when {
@@ -169,7 +172,7 @@ fun DummyTransactionIntroContent(
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcTopAppBar(title = "", elevation = 0.dp)
+                NcTopAppBar(title = "")
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = title,

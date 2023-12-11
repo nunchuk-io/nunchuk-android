@@ -17,26 +17,28 @@
  *                                                                        *
  **************************************************************************/
 
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.nunchuk.android.compose
 
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 
 @Composable
@@ -46,13 +48,7 @@ fun NcImageAppBar(
     @DrawableRes backIconRes: Int = R.drawable.ic_back,
     onClosedClicked: (() -> Unit)? = null,
     title: String? = null,
-    actions: @Composable RowScope.() -> Unit = {
-        Spacer(
-            modifier = Modifier.size(
-                LocalViewConfiguration.current.minimumTouchTargetSize,
-            )
-        )
-    },
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     val defaultClosedClick = {
@@ -68,31 +64,26 @@ fun NcImageAppBar(
                 contentScale = ContentScale.Crop,
                 contentDescription = "Background"
             )
-            TopAppBar(
-                modifier = Modifier.statusBarsPadding(),
-                backgroundColor = Color.Transparent,
-                elevation = 0.dp,
-            ) {
-                IconButton(onClick = onClick) {
-                    Icon(
-                        painter = painterResource(id = backIconRes),
-                        contentDescription = "Back Icon"
-                    )
-                }
+            CenterAlignedTopAppBar(title = {
                 if (title != null) {
                     Text(
-                        modifier = Modifier.weight(1.0f),
                         textAlign = TextAlign.Center,
                         text = title,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
                         style = NunchukTheme.typography.titleSmall
                     )
-                } else {
-                    Spacer(modifier = Modifier.weight(1.0f))
                 }
-                actions()
-            }
+            }, navigationIcon = {
+                IconButton(onClick = onClick) {
+                    Icon(
+                        painter = painterResource(id = backIconRes),
+                        contentDescription = "Back Icon"
+                    )
+                }
+            }, actions = actions,
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
+            )
         }
     }
 }

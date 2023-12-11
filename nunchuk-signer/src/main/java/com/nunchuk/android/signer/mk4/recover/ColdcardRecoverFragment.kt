@@ -32,10 +32,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -136,31 +136,31 @@ private fun ColdcardRecoverContent(
     isMembershipFlow: Boolean = false,
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(innerPadding)
-                    .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
-                    title = if (isMembershipFlow) stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ) else "",
-                    actions = {
-                        if (isMembershipFlow) {
-                            IconButton(onClick = onMoreClicked) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_more),
-                                    contentDescription = "More icon"
-                                )
-                            }
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
+                title = if (isMembershipFlow) stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ) else "",
+                actions = {
+                    if (isMembershipFlow) {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
                         }
                     }
-                )
+                }
+            )
+        }) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+            ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_add_your_coldcard),

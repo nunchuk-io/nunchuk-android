@@ -21,10 +21,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -219,12 +220,13 @@ private fun CosigningGroupPolicyContent(
             uiState.members.find { it.userId == uiState.requestByUserId }
         }
     }
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier
                 .statusBarsPadding()
                 .navigationBarsPadding(),
-            topBar = { NcTopAppBar(title = "", elevation = 0.dp) }) { innerPadding ->
+            topBar = { NcTopAppBar(title = "") }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -373,10 +375,39 @@ private fun CosigningGroupPolicyContent(
                             text = stringResource(R.string.nc_enable_co_signing_delay),
                             style = NunchukTheme.typography.body
                         )
+                        val delayTime = if (uiState.keyPolicy.getSigningDelayInHours() == 0 && uiState.keyPolicy.getSigningDelayInMinutes() == 0) {
+                            stringResource(R.string.nc_off)
+                        } else if (uiState.keyPolicy.getSigningDelayInHours() == 0) {
+                            pluralStringResource(
+                                R.plurals.nc_plural_minute,
+                                uiState.keyPolicy.getSigningDelayInMinutes(),
+                                uiState.keyPolicy.getSigningDelayInMinutes()
+                            )
+                        } else if (uiState.keyPolicy.getSigningDelayInMinutes() == 0) {
+                            pluralStringResource(
+                                R.plurals.nc_plural_hour,
+                                uiState.keyPolicy.getSigningDelayInHours(),
+                                uiState.keyPolicy.getSigningDelayInHours()
+                            )
+                        } else {
+                            "${
+                                pluralStringResource(
+                                    R.plurals.nc_plural_hour,
+                                    uiState.keyPolicy.getSigningDelayInHours(),
+                                    uiState.keyPolicy.getSigningDelayInHours()
+                                )
+                            } ${
+                                pluralStringResource(
+                                    R.plurals.nc_plural_minute,
+                                    uiState.keyPolicy.getSigningDelayInMinutes(),
+                                    uiState.keyPolicy.getSigningDelayInMinutes()
+                                )
+                            }"
+                        }
                         Text(
                             modifier = Modifier.weight(1.0f),
                             textAlign = TextAlign.End,
-                            text = "${uiState.keyPolicy.getSigningDelayInHours()} hours ${uiState.keyPolicy.getSigningDelayInMinutes()} minutes",
+                            text = delayTime,
                             style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold)
                         )
                     }

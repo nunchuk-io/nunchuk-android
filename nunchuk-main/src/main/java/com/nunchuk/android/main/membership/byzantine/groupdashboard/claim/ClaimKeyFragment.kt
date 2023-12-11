@@ -17,9 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -55,6 +56,7 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.core.util.toReadableDrawableResId
+import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.nav.NunchukNavigator
@@ -214,6 +216,7 @@ private fun SignerCard(
     onSignerSelected: (signer: SignerModel) -> Unit = {},
     isSelected: Boolean = false,
 ) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier.clickable { onSignerSelected(signer) },
         verticalAlignment = Alignment.CenterVertically,
@@ -228,7 +231,7 @@ private fun SignerCard(
             NcTag(
                 modifier = Modifier
                     .padding(top = 4.dp),
-                label = stringResource(id = R.string.nc_nfc),
+                label = signer.toReadableSignerType(context = context),
             )
             Text(
                 modifier = Modifier.padding(top = 4.dp),

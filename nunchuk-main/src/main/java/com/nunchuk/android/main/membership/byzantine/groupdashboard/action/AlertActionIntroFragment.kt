@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -36,7 +36,6 @@ import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
-import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -80,6 +79,9 @@ class AlertActionIntroFragment : Fragment() {
                             AlertType.KEY_RECOVERY_REQUEST -> {
                                 getString(R.string.nc_cancel_this_change)
                             }
+                            AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> {
+                               getString(R.string.nc_cancel_recurring_payment_desc)
+                            }
                             else -> {
                                 getString(R.string.nc_cancel_health_check_request)
                             }
@@ -103,14 +105,23 @@ class AlertActionIntroFragment : Fragment() {
                 .collect { event ->
                     when (event) {
                         is AlertActionIntroEvent.DeleteDummyTransactionSuccess -> {
-                            if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-                                showSuccess(
-                                    message = getString(R.string.nc_inheritance_request_denied),
-                                )
-                            } else if (args.alert.type == AlertType.HEALTH_CHECK_REQUEST || args.alert.type == AlertType.HEALTH_CHECK_PENDING) {
-                                showSuccess(
-                                    message = getString(R.string.nc_health_check_has_been_canceled),
-                                )
+                            when (args.alert.type) {
+                                AlertType.REQUEST_INHERITANCE_PLANNING -> {
+                                    showSuccess(
+                                        message = getString(R.string.nc_inheritance_request_denied),
+                                    )
+                                }
+                                AlertType.HEALTH_CHECK_REQUEST, AlertType.HEALTH_CHECK_PENDING -> {
+                                    showSuccess(
+                                        message = getString(R.string.nc_health_check_has_been_canceled),
+                                    )
+                                }
+                                AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> {
+                                    showSuccess(
+                                        message = getString(R.string.nc_pending_cancellation_has_been_canceled),
+                                    )
+                                }
+                                else -> Unit
                             }
                             hideLoading()
                             goBack()
@@ -159,7 +170,8 @@ private fun AlertActionIntroContent(
     val cancelButton = when (alert.type) {
         AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
         AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_deny)
-        AlertType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_cancel)
+        AlertType.KEY_RECOVERY_REQUEST, AlertType.RECURRING_PAYMENT_CANCELATION_PENDING
+        -> stringResource(R.string.nc_cancel)
         else -> stringResource(id = R.string.nc_cancel_request)
     }
 
@@ -168,6 +180,10 @@ private fun AlertActionIntroContent(
             id = R.string.nc_inheritance_planning_request_desc,
             state.requester?.user?.name ?: "Someone",
             state.walletName
+        )
+        AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> stringResource(
+            id = R.string.nc_recurring_payment_cancelation_pending_desc,
+            alert.payload.paymentName.orEmpty()
         )
 
         else -> alert.body

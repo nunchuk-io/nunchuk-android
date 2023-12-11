@@ -30,7 +30,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme.colors
+import androidx.compose.material.SnackbarDefaults.backgroundColor
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -48,6 +50,7 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.wallet.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchCoinTopAppBar(
     modifier: Modifier = Modifier,
@@ -63,7 +66,7 @@ fun SearchCoinTopAppBar(
     val isShowClearSearch by remember(query) {
         derivedStateOf { query.isNotEmpty() }
     }
-    TopAppBar(
+    CenterAlignedTopAppBar(
         modifier = modifier,
         navigationIcon = {
             IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
@@ -97,7 +100,7 @@ fun SearchCoinTopAppBar(
                         modifier = Modifier
                             .padding(top = 8.dp, end = 8.dp)
                             .size(12.dp)
-                            .background(color = MaterialTheme.colors.error, shape = CircleShape)
+                            .background(color = MaterialTheme.colorScheme.error, shape = CircleShape)
                             .align(Alignment.TopEnd)
                     )
                 }
@@ -106,7 +109,7 @@ fun SearchCoinTopAppBar(
         title = {
             TextField(
                 modifier = Modifier
-                    .background(color = MaterialTheme.colors.background)
+                    .background(color = MaterialTheme.colorScheme.background)
                     .border(
                         color = NcColor.border,
                         width = 1.dp,
@@ -120,8 +123,8 @@ fun SearchCoinTopAppBar(
                 placeholder = {
                     Text(text = stringResource(R.string.nc_search_coins))
                 },
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = MaterialTheme.colors.background,
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
@@ -141,7 +144,7 @@ fun SearchCoinTopAppBar(
                     }
                 }
             )
-        }, elevation = 0.dp,
-        backgroundColor = MaterialTheme.colors.background
+        },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
     )
 }

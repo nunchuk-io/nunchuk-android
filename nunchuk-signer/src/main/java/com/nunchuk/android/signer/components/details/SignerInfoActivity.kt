@@ -55,6 +55,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             justAdded: Boolean = false,
             setPassphrase: Boolean = false,
             isInWallet: Boolean,
+            isInAssistedWallet: Boolean,
             isReplacePrimaryKey: Boolean = false,
             customMessage: String
         ) {
@@ -68,6 +69,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                     setPassphrase = setPassphrase,
                     masterFingerprint = masterFingerprint,
                     isInWallet = isInWallet,
+                    isInAssistedWallet = isInAssistedWallet,
                     isReplacePrimaryKey = isReplacePrimaryKey,
                     customMessage = customMessage,
                     isMasterSigner = isMasterSigner

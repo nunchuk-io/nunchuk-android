@@ -42,8 +42,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -78,6 +78,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
+import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.nav.NunchukNavigator
@@ -218,10 +219,6 @@ class BatchTransactionFragment : Fragment() {
             inputs = args.unspentOutputs.toList()
         )
     }
-
-    companion object {
-        const val LIMIT_NOTE = 280
-    }
 }
 
 @Composable
@@ -283,7 +280,7 @@ private fun BatchTransactionContent(
     val coroutineScope = rememberCoroutineScope()
     NunchukTheme {
         Scaffold { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
+            Column(modifier = Modifier) {
                 NcTopAppBar(
                     title = stringResource(id = R.string.nc_batched_transaction),
                     textStyle = NunchukTheme.typography.titleLarge,
@@ -350,11 +347,11 @@ private fun BatchTransactionContent(
                                 .padding(horizontal = 16.dp),
                             title = stringResource(id = R.string.nc_transaction_note),
                             value = note,
-                            maxLength = BatchTransactionFragment.LIMIT_NOTE,
+                            maxLength = MAX_NOTE_LENGTH,
                             enableMaxLength = true,
-                            visualTransformation = MaxLengthTransformation(maxLength = BatchTransactionFragment.LIMIT_NOTE),
+                            visualTransformation = MaxLengthTransformation(maxLength = MAX_NOTE_LENGTH),
                             onValueChange = {
-                                if (it.length <= BatchTransactionFragment.LIMIT_NOTE) {
+                                if (it.length <= MAX_NOTE_LENGTH) {
                                     onInputNoteChange(it)
                                 }
                             },

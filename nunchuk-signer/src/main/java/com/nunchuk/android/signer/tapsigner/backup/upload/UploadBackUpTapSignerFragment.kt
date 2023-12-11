@@ -23,14 +23,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -73,7 +79,8 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
         nfcViewModel.updateMasterSigner(args.masterSignerId)
         viewModel.init(
             isAddNewKey = (requireActivity() as NfcSetupActivity).isAddNewSigner,
-            groupId = (requireActivity() as NfcSetupActivity).groupId
+            groupId = (requireActivity() as NfcSetupActivity).groupId,
+            signerIndex = (requireActivity() as NfcSetupActivity).signerIndex,
         )
     }
 
@@ -137,18 +144,18 @@ private fun UploadBackUpTapSignerContent(
     isError: Boolean = false,
     remainTime: Int = 0,
 ) = NunchukTheme {
-    Scaffold { innerPadding ->
+    Scaffold(topBar = {
+        NcImageAppBar(
+            backgroundRes = R.drawable.nc_bg_upload_back_up_tapsinger,
+            title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+        )
+    }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
         ) {
-            NcImageAppBar(
-                backgroundRes = R.drawable.nc_bg_upload_back_up_tapsinger,
-                title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
-            )
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                 text = stringResource(R.string.nc_back_up_tapsigner),
@@ -166,8 +173,8 @@ private fun UploadBackUpTapSignerContent(
                     .clip(RoundedCornerShape(24.dp))
                     .height(8.dp)
                     .fillMaxWidth(),
-                color = MaterialTheme.colors.primary,
-                backgroundColor = colorResource(id = R.color.nc_whisper_color),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = colorResource(id = R.color.nc_whisper_color),
             )
             val label = when {
                 isError -> stringResource(R.string.nc_upload_failed)
@@ -180,7 +187,7 @@ private fun UploadBackUpTapSignerContent(
                     .align(alignment = Alignment.CenterHorizontally),
                 text = label,
                 style = NunchukTheme.typography.body.copy(
-                    color = if (isError) MaterialTheme.colors.error else MaterialTheme.colors.primary
+                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
             )
             Spacer(modifier = Modifier.weight(1.0f))

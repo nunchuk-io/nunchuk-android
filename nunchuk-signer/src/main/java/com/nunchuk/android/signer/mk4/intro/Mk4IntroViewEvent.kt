@@ -34,4 +34,5 @@ sealed class Mk4IntroViewEvent {
     object OnSignerExistInAssistedWallet : Mk4IntroViewEvent()
     data class ImportWalletFromMk4Success(val walletId: String) : Mk4IntroViewEvent()
     data class ExtractWalletsFromColdCard(val wallets: List<Wallet>) : Mk4IntroViewEvent()
+    data class ParseWalletFromMk4Success(val wallet: Wallet?) : Mk4IntroViewEvent()
 }

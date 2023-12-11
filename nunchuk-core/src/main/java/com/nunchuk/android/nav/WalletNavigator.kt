@@ -22,7 +22,12 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.RecoverWalletData
+import com.nunchuk.android.model.RoomWalletData
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 
@@ -35,6 +40,10 @@ interface PersonalWalletNavigator {
     fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData)
 
     fun openRecoverWalletQRCodeScreen(activityContext: Context, isCollaborativeWallet: Boolean)
+    fun openParseWalletQRCodeScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context,
+    )
 
     fun openReviewWalletScreen(
         activityContext: Context,
@@ -43,7 +52,7 @@ interface PersonalWalletNavigator {
         addressType: AddressType,
         totalRequireSigns: Int,
         masterSigners: List<SingleSigner>,
-        remoteSigners: List<SingleSigner>
+        remoteSigners: List<SingleSigner>,
     )
 }
 
@@ -55,7 +64,7 @@ interface SharedWalletNavigator {
         activityContext: Context,
         walletName: String,
         walletType: WalletType,
-        addressType: AddressType
+        addressType: AddressType,
     )
 
     fun openReviewSharedWalletScreen(
@@ -65,7 +74,7 @@ interface SharedWalletNavigator {
         addressType: AddressType,
         totalSigns: Int,
         requireSigns: Int,
-        signers: List<SingleSigner>
+        signers: List<SingleSigner>,
     )
 
     fun openAssignSignerSharedWalletScreen(
@@ -75,21 +84,21 @@ interface SharedWalletNavigator {
         addressType: AddressType,
         totalSigns: Int,
         requireSigns: Int,
-        signers: List<SingleSigner>
+        signers: List<SingleSigner>,
     )
 
     fun openSharedWalletConfigScreen(
         activityContext: Context,
-        roomWalletData: RoomWalletData
+        roomWalletData: RoomWalletData,
     )
 
     fun openRecoverSharedWalletScreen(
-        activityContext: Context
+        activityContext: Context,
     )
 
     fun openAddRecoverSharedWalletScreen(
         activityContext: Context,
-        wallet: Wallet
+        wallet: Wallet,
     )
 }
 
@@ -99,14 +108,14 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         activityContext: Context,
         walletName: String,
         walletType: WalletType,
-        addressType: AddressType
+        addressType: AddressType,
     )
 
     fun openBackupWalletScreen(
         activityContext: Context,
         walletId: String,
         numberOfSignKey: Int,
-        isQuickWallet: Boolean = false
+        isQuickWallet: Boolean = false,
     )
 
     fun openUploadConfigurationScreen(activityContext: Context, walletId: String)
@@ -114,20 +123,20 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
     fun openWalletConfigScreen(
         activityContext: Context,
         walletId: String,
-        keyPolicy: KeyPolicy? = null
+        keyPolicy: KeyPolicy? = null,
     )
 
     fun openWalletConfigScreen(
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Context,
         walletId: String,
-        keyPolicy: KeyPolicy? = null
+        keyPolicy: KeyPolicy? = null,
     )
 
     fun openDynamicQRScreen(
         activityContext: Context,
         launcher: ActivityResultLauncher<Intent>,
-        walletId: String
+        walletId: String,
     )
 
     fun openWalletDetailsScreen(activityContext: Context, walletId: String)
@@ -138,7 +147,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         activityContext: Context,
         walletName: String,
         walletType: WalletType,
-        addressType: AddressType
+        addressType: AddressType,
     )
 
     fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context)
@@ -156,11 +165,11 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         launcher: ActivityResultLauncher<Intent>? = null,
         context: Context,
         walletId: String,
-        output: UnspentOutput
+        output: UnspentOutput,
     )
 
     fun openSearchTransaction(
         context: Context,
-        walletId: String, roomId: String
+        walletId: String, roomId: String,
     )
 }
