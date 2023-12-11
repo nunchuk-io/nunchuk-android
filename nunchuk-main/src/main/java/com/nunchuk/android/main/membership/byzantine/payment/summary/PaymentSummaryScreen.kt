@@ -27,6 +27,7 @@ import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.payment.PaymentCalculationMethod
+import com.nunchuk.android.model.payment.PaymentDestinationType
 import com.nunchuk.android.model.payment.PaymentFrequency
 
 @Composable
@@ -102,29 +103,34 @@ fun PaymentSummaryScreen(
     openQRDetailScreen: (address: String) -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                title = stringResource(R.string.nc_add_recurring_payments),
-                textStyle = NunchukTheme.typography.titleLarge,
-            )
-        }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                onClick = onSubmit,
-            ) {
-                Text(text = stringResource(R.string.nc_text_continue))
-            }
-        }, snackbarHost = {
-            NcSnackBarHost(snackState)
-        }) { innerPadding ->
+        Scaffold(
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_add_recurring_payments),
+                    textStyle = NunchukTheme.typography.titleLarge,
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    onClick = onSubmit,
+                ) {
+                    Text(text = stringResource(R.string.nc_text_continue))
+                }
+            },
+            snackbarHost = {
+                NcSnackBarHost(snackState)
+            },
+        ) { innerPadding ->
             PaymentSummaryContent(
                 modifier = Modifier.padding(innerPadding),
                 isCosign = isCosign,
                 name = name,
                 amount = amount,
                 frequency = frequency,
+                destinationType = if (!bsms.isNullOrEmpty()) PaymentDestinationType.DESTINATION_WALLET else PaymentDestinationType.WHITELISTED_ADDRESSES,
                 calculationMethod = calculationMethod,
                 startDate = startDate,
                 noEndDate = noEndDate,

@@ -28,6 +28,7 @@ import com.nunchuk.android.main.membership.byzantine.payment.feerate.toTitle
 import com.nunchuk.android.main.membership.byzantine.payment.toResId
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.payment.PaymentCalculationMethod
+import com.nunchuk.android.model.payment.PaymentDestinationType
 import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import java.util.Date
@@ -39,6 +40,7 @@ fun PaymentSummaryContent(
     name: String,
     amount: String,
     frequency: PaymentFrequency,
+    destinationType: PaymentDestinationType,
     calculationMethod: PaymentCalculationMethod?,
     startDate: Long,
     noEndDate: Boolean,
@@ -162,7 +164,7 @@ fun PaymentSummaryContent(
             )
         }
 
-        if (!bsms.isNullOrEmpty()) {
+        if (destinationType == PaymentDestinationType.DESTINATION_WALLET) {
             Text(
                 modifier = Modifier.padding(top = 24.dp),
                 text = stringResource(R.string.nc_destination_wallet),
@@ -180,24 +182,26 @@ fun PaymentSummaryContent(
             )
             AddressWithQrView(address = addresses.first(), openQRDetailScreen)
 
-            Text(
-                modifier = Modifier.padding(top = 16.dp),
-                text = stringResource(R.string.nc_configuration_details),
-                style = NunchukTheme.typography.titleSmall,
-            )
+            if (!bsms.isNullOrEmpty()) {
+                Text(
+                    modifier = Modifier.padding(top = 16.dp),
+                    text = stringResource(R.string.nc_configuration_details),
+                    style = NunchukTheme.typography.titleSmall,
+                )
 
-            NcExpandableText(
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.greyLight,
-                        shape = NunchukTheme.shape.medium
-                    )
-                    .padding(16.dp),
-                text = bsms,
-                style = NunchukTheme.typography.body,
-                maxLines = 6
-            )
+                NcExpandableText(
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.greyLight,
+                            shape = NunchukTheme.shape.medium
+                        )
+                        .padding(16.dp),
+                    text = bsms,
+                    style = NunchukTheme.typography.body,
+                    maxLines = 6
+                )
+            }
         } else {
             Text(
                 modifier = Modifier.padding(top = 24.dp),

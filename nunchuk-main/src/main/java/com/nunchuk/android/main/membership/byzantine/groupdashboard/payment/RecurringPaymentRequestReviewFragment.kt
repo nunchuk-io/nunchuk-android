@@ -163,6 +163,7 @@ private fun RecurringPaymentRequestReviewContent(
                     maxFractionDigits = MIN_FRACTION_DIGITS
                 ),
                 frequency = recurringPayment.frequency,
+                destinationType = recurringPayment.destinationType,
                 calculationMethod = recurringPayment.calculationMethod,
                 startDate = recurringPayment.startDate,
                 noEndDate = recurringPayment.endDate == 0L,
