@@ -22,8 +22,17 @@ package com.nunchuk.android.settings.network
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Typeface
 import android.os.Bundle
 import android.text.InputType
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
+import android.view.View
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -33,6 +42,7 @@ import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
 import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
 import com.nunchuk.android.type.Chain
@@ -252,6 +262,37 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.edtExploreAddressSigNetHost.addTextChangedCallback {
             handleExplorerHostTextChange()
         }
+
+        showGuideText()
+    }
+
+    private fun showGuideText() {
+        val fullText = getString(R.string.nc_network_setting_guide)
+        val clickableText = "this guide"
+        val spannableString = SpannableString(fullText)
+
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                openExternalLink("https://github.com/nunchuk-io/resources/tree/main/docs/connection-guide")
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = true
+                ds.color = ContextCompat.getColor(this@NetworkSettingActivity, R.color.nc_black_color)
+            }
+        }
+
+        val clickableTextStart = fullText.indexOf(clickableText)
+        val clickableTextEnd = clickableTextStart + clickableText.length
+
+        spannableString.setSpan(StyleSpan(Typeface.BOLD), clickableTextStart, clickableTextEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableString.setSpan(UnderlineSpan(), clickableTextStart, clickableTextEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableString.setSpan(clickableSpan, clickableTextStart, clickableTextEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        binding.guideText.text = spannableString
+        binding.guideText.movementMethod = LinkMovementMethod.getInstance()
+        binding.guideText.highlightColor = ContextCompat.getColor(this@NetworkSettingActivity, android.R.color.transparent)
     }
 
     private fun handleExplorerHostTextChange() {
