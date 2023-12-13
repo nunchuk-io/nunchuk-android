@@ -16,22 +16,29 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSnackBarHost
+import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
@@ -41,6 +48,7 @@ import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentVie
 import com.nunchuk.android.main.membership.byzantine.payment.toResId
 import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.utils.simpleGlobalDateFormat
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 
@@ -87,23 +95,45 @@ fun PaymentFrequentScreen(
     var isShowDateInvalidDialog by rememberSaveable {
         mutableStateOf(false)
     }
+    val snackState: SnackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                title = stringResource(R.string.nc_add_recurring_payments),
-                textStyle = NunchukTheme.typography.titleLarge,
-            )
-        }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                onClick = openPaymentFeeRateScreen,
-                enabled = frequency != null && startDate > 0L && (endDate > 0L || noEndDate),
-            ) {
-                Text(text = stringResource(R.string.nc_text_continue))
-            }
-        }) { innerPadding ->
+        Scaffold(
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_add_recurring_payments),
+                    textStyle = NunchukTheme.typography.titleLarge,
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    onClick = {
+                        if (!noEndDate && endDate < startDate) {
+                            coroutineScope.launch {
+                                snackState.showSnackbar(
+                                    NcSnackbarVisuals(
+                                        type = NcToastType.ERROR,
+                                        message = context.getString(R.string.nc_the_end_date_should_be_after_the_start_date),
+                                    )
+                                )
+                            }
+                        } else {
+                            openPaymentFeeRateScreen()
+                        }
+                    },
+                    enabled = frequency != null && startDate > 0L && (endDate > 0L || noEndDate),
+                ) {
+                    Text(text = stringResource(R.string.nc_text_continue))
+                }
+            },
+            snackbarHost = {
+                NcSnackBarHost(snackState)
+            },
+        ) { innerPadding ->
             CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
                 Column(
                     modifier = Modifier
@@ -205,7 +235,7 @@ fun PaymentFrequentScreen(
                         showDatePicker = false
                         if (isStartDate) {
                             if (calendar.apply { timeInMillis = date }
-                                    .get(Calendar.DAY_OF_MONTH) in listOf(29,30,31)) {
+                                    .get(Calendar.DAY_OF_MONTH) in listOf(29, 30, 31)) {
                                 selectedDate = date
                                 isShowDateInvalidDialog = true
                             } else {

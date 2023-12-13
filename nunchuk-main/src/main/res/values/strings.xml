@@ -303,4 +303,5 @@
     <string name="nc_destination_wallet">Destination (wallet)</string>
     <string name="nc_recurring_payment_denied">Recurring payment denied</string>
     <string name="nc_pending_cancellation_has_been_canceled">Pending cancellation has been canceled</string>
+    <string name="nc_the_end_date_should_be_after_the_start_date">The end date should be after the start date.</string>
 </resources>

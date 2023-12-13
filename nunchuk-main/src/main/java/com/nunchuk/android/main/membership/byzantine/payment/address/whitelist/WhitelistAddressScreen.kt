@@ -171,8 +171,7 @@ fun WhitelistAddressScreen(
             },
             snackbarHost = {
                 NcSnackBarHost(snackState)
-            }
-            ,
+            },
         ) { innerPadding ->
             Column(
                 modifier = Modifier
