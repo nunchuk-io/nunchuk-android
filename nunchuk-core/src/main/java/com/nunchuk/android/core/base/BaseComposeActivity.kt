@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.base
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.account.AccountManager
@@ -28,6 +29,7 @@ import com.nunchuk.android.core.network.UnauthorizedException
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCLoadingDialogCreator
+import java.util.Locale
 import javax.inject.Inject
 
 abstract class BaseComposeActivity : AppCompatActivity() {
@@ -54,6 +56,14 @@ abstract class BaseComposeActivity : AppCompatActivity() {
 
     fun showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
         if (loading) showLoading(title = title, message = message) else hideLoading()
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        newBase.resources.configuration.apply {
+            setLocale(Locale.US)
+        }
+        Locale.setDefault(Locale.US)
+        super.attachBaseContext(newBase)
     }
 
     override fun onResume() {

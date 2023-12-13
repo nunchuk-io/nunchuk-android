@@ -134,14 +134,14 @@ fun PaymentAmountScreen(
                         else stringResource(R.string.nc_enter_a_percentage),
                         value = amount,
                         onValueChange = { s ->
-                            val s = CurrencyFormatter.format(s, 2)
+                            val format = CurrencyFormatter.format(s, 2)
                             if (useAmount) {
-                                onAmountChange(s)
+                                onAmountChange(format)
                             } else {
-                                if ((s.toDoubleOrNull() ?: 0.0) > 100.0) {
+                                if ((format.toDoubleOrNull() ?: 0.0) > 100.0) {
                                     onAmountChange("100")
                                 } else {
-                                    onAmountChange(s)
+                                    onAmountChange(format)
                                 }
                             }
                         },

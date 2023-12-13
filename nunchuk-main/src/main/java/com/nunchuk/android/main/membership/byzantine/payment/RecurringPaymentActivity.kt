@@ -6,12 +6,12 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.addPaymentWalletAddress
@@ -45,14 +45,12 @@ import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class RecurringPaymentActivity : AppCompatActivity() {
+class RecurringPaymentActivity : BaseComposeActivity() {
 
     private val viewModel: RecurringPaymentViewModel by viewModels()
 
@@ -80,9 +78,6 @@ class RecurringPaymentActivity : AppCompatActivity() {
             }
         }
 
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportFragmentManager.setFragmentResultListener(

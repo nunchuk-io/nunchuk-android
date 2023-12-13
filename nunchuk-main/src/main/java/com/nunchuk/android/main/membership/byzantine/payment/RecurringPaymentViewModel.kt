@@ -98,7 +98,7 @@ class RecurringPaymentViewModel @Inject constructor(
 
     fun onUnitChange(unit: SpendingCurrencyUnit) {
         _config.update {
-            it.copy(unit = unit)
+            it.copy(unit = unit, amount = "")
         }
     }
 
