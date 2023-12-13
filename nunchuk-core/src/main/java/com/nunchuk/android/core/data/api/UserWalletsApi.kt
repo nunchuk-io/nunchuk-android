@@ -282,7 +282,7 @@ internal interface UserWalletsApi {
         @Body payload: InheritanceCheckRequest
     ): Data<InheritanceCheckResponse>
 
-    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=PENDING_SIGNATURES,READY_TO_BROADCAST&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=PENDING_SIGNATURES,READY_TO_BROADCAST&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
     suspend fun getTransactionsToSync(
         @Path("wallet_id_or_local_id") walletId: String, @Query("offset") offset: Int
     ): Data<TransactionsResponse>
@@ -327,7 +327,7 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<CoinDataContent>
 
-    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
     suspend fun getTransactionsToDelete(
         @Path("wallet_id_or_local_id") walletId: String, @Query("offset") offset: Int
     ): Data<TransactionsResponse>
