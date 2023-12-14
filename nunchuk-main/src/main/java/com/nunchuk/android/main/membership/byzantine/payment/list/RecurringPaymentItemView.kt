@@ -21,10 +21,14 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
+import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.formatAmount
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.toResId
 import com.nunchuk.android.model.payment.RecurringPayment
+import com.nunchuk.android.model.payment.RecurringPaymentType
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import java.util.Date
 
@@ -53,16 +57,32 @@ fun RecurringPaymentItemView(
                 overflow = TextOverflow.Ellipsis,
             )
 
-            Text(
-                text = "${recurringPayment.currency} ${recurringPayment.amount} / ${
-                    stringResource(
-                        recurringPayment.frequency.toResId()
-                    )
-                }",
-                style = NunchukTheme.typography.title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (recurringPayment.paymentType == RecurringPaymentType.PERCENTAGE) {
+                Text(
+                    text = "${recurringPayment.amount.formatDecimal(
+                        minFractionDigits = 0,
+                        maxFractionDigits = MIN_FRACTION_DIGITS
+                    )}% / ${
+                        stringResource(
+                            recurringPayment.frequency.toResId()
+                        ).removePrefix("Every ")
+                    }",
+                    style = NunchukTheme.typography.title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            } else {
+                Text(
+                    text = "${recurringPayment.currency} ${recurringPayment.formatAmount} / ${
+                        stringResource(
+                            recurringPayment.frequency.toResId()
+                        ).removePrefix("Every ")
+                    }",
+                    style = NunchukTheme.typography.title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
 
             Text(
                 text = "Start date: ${Date(recurringPayment.startDate).simpleGlobalDateFormat()}",

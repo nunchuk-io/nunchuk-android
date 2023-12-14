@@ -134,7 +134,8 @@ fun PaymentAmountScreen(
                         else stringResource(R.string.nc_enter_a_percentage),
                         value = amount,
                         onValueChange = { s ->
-                            val format = CurrencyFormatter.format(s, 2)
+                            val numberOfDigit = if (unit == SpendingCurrencyUnit.BTC) 8 else 2
+                            val format = CurrencyFormatter.format(s, numberOfDigit)
                             if (useAmount) {
                                 onAmountChange(format)
                             } else {

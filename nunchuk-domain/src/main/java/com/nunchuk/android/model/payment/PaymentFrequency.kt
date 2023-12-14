@@ -13,4 +13,4 @@ enum class PaymentFrequency {
 }
 
 val String?.toPaymentFrequency: PaymentFrequency
-    get() = PaymentFrequency.values().find { it.name == this } ?: PaymentFrequency.DAILY
+    get() = PaymentFrequency.entries.find { it.name == this } ?: PaymentFrequency.DAILY

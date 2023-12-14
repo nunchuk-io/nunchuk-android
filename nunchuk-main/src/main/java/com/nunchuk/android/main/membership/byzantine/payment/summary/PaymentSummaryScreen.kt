@@ -20,6 +20,9 @@ import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.getBTCAmountWithoutSat
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.key.toRecurringPaymentType
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
@@ -102,6 +105,14 @@ fun PaymentSummaryScreen(
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     openQRDetailScreen: (address: String) -> Unit = {},
 ) {
+    val formatAmount = if (unit == SpendingCurrencyUnit.BTC) {
+        amount.toDouble().getBTCAmountWithoutSat()
+    } else {
+        amount.toDouble().formatDecimal(
+            minFractionDigits = 0,
+            maxFractionDigits = MIN_FRACTION_DIGITS
+        )
+    }
     NunchukTheme {
         Scaffold(
             topBar = {
@@ -128,7 +139,7 @@ fun PaymentSummaryScreen(
                 modifier = Modifier.padding(innerPadding),
                 isCosign = isCosign,
                 name = name,
-                amount = amount,
+                amount = formatAmount,
                 frequency = frequency,
                 destinationType = if (!bsms.isNullOrEmpty()) PaymentDestinationType.DESTINATION_WALLET else PaymentDestinationType.WHITELISTED_ADDRESSES,
                 calculationMethod = calculationMethod,

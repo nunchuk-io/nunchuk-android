@@ -4,7 +4,11 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.getBTCAmountWithoutSat
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.payment.RecurringPayment
 import java.util.Calendar
 
 @Composable
@@ -39,3 +43,13 @@ fun Long?.healthCheckLabel(context: Context): String {
         else -> context.getString(R.string.nc_last_checked_more_than_1_year_ago)
     }
 }
+
+val RecurringPayment.formatAmount: String
+    get() = if (currency == "BTC") {
+        amount.getBTCAmountWithoutSat()
+    } else {
+        amount.formatDecimal(
+            minFractionDigits = 0,
+            maxFractionDigits = MIN_FRACTION_DIGITS
+        )
+    }

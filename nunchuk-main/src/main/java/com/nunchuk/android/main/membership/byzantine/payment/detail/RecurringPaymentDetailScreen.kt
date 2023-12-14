@@ -21,9 +21,8 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
-import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
-import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.formatAmount
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
@@ -81,10 +80,7 @@ fun RecurringPaymentDetailScreen(
                     modifier = Modifier.padding(innerPadding),
                     isCosign = recurringPayment.allowCosigning,
                     name = recurringPayment.name,
-                    amount = recurringPayment.amount.formatDecimal(
-                        minFractionDigits = 0,
-                        maxFractionDigits = MIN_FRACTION_DIGITS
-                    ),
+                    amount = recurringPayment.formatAmount,
                     frequency = recurringPayment.frequency,
                     destinationType = recurringPayment.destinationType,
                     calculationMethod = recurringPayment.calculationMethod,
