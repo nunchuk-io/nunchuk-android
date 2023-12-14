@@ -21,12 +21,12 @@ package com.nunchuk.android.main
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
 import com.nunchuk.android.core.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.SyncStateHolder
 import com.nunchuk.android.core.matrix.SyncStateMatrixUseCase
-import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
@@ -47,10 +47,10 @@ import javax.inject.Inject
 internal class SyncRoomViewModel @Inject constructor(
     private val createRoomWithTagUseCase: CreateRoomWithTagUseCase,
     private val syncStateMatrixUseCase: SyncStateMatrixUseCase,
-    private val getUserProfileUseCase: GetUserProfileUseCase,
     private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
     private val syncStateHolder: SyncStateHolder,
-    private val sessionHolder: SessionHolder
+    private val accountManager: AccountManager,
+    private val sessionHolder: SessionHolder,
 ) : NunchukViewModel<Unit, SyncRoomEvent>() {
 
     override val initialState = Unit
@@ -113,12 +113,13 @@ internal class SyncRoomViewModel @Inject constructor(
         return mapSyncRooms?.map { it.key }?.firstOrNull()
     }
 
-    fun setupMatrix(token: String, encryptedDeviceId: String) {
+    fun setupMatrixIfNeeded(token: String, encryptedDeviceId: String) {
         fileLog("Start setup matrix")
         viewModelScope.launch {
-            getUserProfileUseCase(Unit).onSuccess {
+            val account = accountManager.getAccount()
+            if (sessionHolder.getSafeActiveSession()?.myUserId != account.chatId) {
                 loginWithMatrix(
-                    userName = it,
+                    userName = account.chatId,
                     password = token,
                     encryptedDeviceId = encryptedDeviceId
                 ).onStart {
@@ -135,7 +136,7 @@ internal class SyncRoomViewModel @Inject constructor(
     private fun loginWithMatrix(
         userName: String,
         password: String,
-        encryptedDeviceId: String
+        encryptedDeviceId: String,
     ) = loginWithMatrixUseCase.execute(
         userName = userName,
         password = password,
