@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -214,12 +215,14 @@ class RecurringPaymentViewModel @Inject constructor(
     }
 
     fun onStartDateChange(startDate: Long) {
+        Timber.d("onStartDateChange: $startDate")
         _config.update {
             it.copy(startDate = startDate)
         }
     }
 
     fun onEndDateChange(endDate: Long) {
+        Timber.d("onEndDateChange: $endDate")
         _config.update {
             it.copy(endDate = endDate)
         }

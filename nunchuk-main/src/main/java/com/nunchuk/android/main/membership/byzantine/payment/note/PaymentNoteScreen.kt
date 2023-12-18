@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.payment.note
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -70,7 +72,10 @@ fun PaymentNoteScreen(
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
-                        onClick = openSummaryScreen,
+                        onClick = {
+                            onNoteChange("")
+                            openSummaryScreen()
+                        },
                     ) {
                         Text(text = stringResource(R.string.nc_text_skip))
                     }
@@ -90,19 +95,26 @@ fun PaymentNoteScreen(
                     style = NunchukTheme.typography.body,
                 )
 
-                NcTextField(
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .fillMaxSize(),
-                    title = stringResource(R.string.nc_transaction_note),
-                    value = note,
-                    onValueChange = { onNoteChange(it.take(MAX_NOTE_LENGTH)) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
-                    ),
-                    minLines = 3
-                )
+                Box(Modifier.padding(top = 16.dp)) {
+                    NcTextField(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        title = stringResource(R.string.nc_transaction_note),
+                        value = note,
+                        onValueChange = { onNoteChange(it.take(MAX_NOTE_LENGTH)) },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        minLines = 3
+                    )
+
+                    Text(
+                        text = "${note.length}/$MAX_NOTE_LENGTH",
+                        modifier = Modifier.align(Alignment.TopEnd),
+                        style = NunchukTheme.typography.bodySmall,
+                    )
+                }
             }
         }
     }

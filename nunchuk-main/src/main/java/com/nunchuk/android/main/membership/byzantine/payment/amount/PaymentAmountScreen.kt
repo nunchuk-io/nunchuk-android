@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -134,7 +133,14 @@ fun PaymentAmountScreen(
                         else stringResource(R.string.nc_enter_a_percentage),
                         value = amount,
                         onValueChange = { s ->
-                            val numberOfDigit = if (unit == SpendingCurrencyUnit.BTC) 8 else 2
+                            val numberOfDigit =
+                                if (!useAmount) {
+                                    4
+                                } else if (unit == SpendingCurrencyUnit.BTC) {
+                                    8
+                                } else {
+                                    2
+                                }
                             val format = CurrencyFormatter.format(s, numberOfDigit)
                             if (useAmount) {
                                 onAmountChange(format)
@@ -148,17 +154,6 @@ fun PaymentAmountScreen(
                         },
                         allowDecimal = unit != SpendingCurrencyUnit.sat && useAmount || !useAmount,
                         suffix = if (useAmount) "" else "%",
-                        placeholder = {
-                            Text(
-                                text = if (useAmount) {
-                                    if (unit != SpendingCurrencyUnit.sat) "0.00" else "0"
-                                } else {
-                                    "0.00%"
-                                },
-                                style = NunchukTheme.typography.body,
-                                color = colorResource(id = R.color.nc_boulder_color)
-                            )
-                        }
                     )
 
                     if (useAmount) {

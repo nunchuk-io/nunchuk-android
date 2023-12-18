@@ -112,7 +112,7 @@ fun PaymentFrequentScreen(
                         .padding(16.dp)
                         .fillMaxWidth(),
                     onClick = {
-                        if (!noEndDate && endDate < startDate) {
+                        if (!noEndDate && endDate <= startDate) {
                             coroutineScope.launch {
                                 snackState.showSnackbar(
                                     NcSnackbarVisuals(
@@ -154,7 +154,7 @@ fun PaymentFrequentScreen(
                         style = NunchukTheme.typography.title,
                     )
 
-                    PaymentFrequency.values().forEach {
+                    PaymentFrequency.entries.forEach {
                         FrequencyOption(
                             modifier = Modifier,
                             text = stringResource(id = it.toResId()),
