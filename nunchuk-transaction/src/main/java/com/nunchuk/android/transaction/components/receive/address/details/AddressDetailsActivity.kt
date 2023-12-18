@@ -21,6 +21,8 @@ package com.nunchuk.android.transaction.components.receive.address.details
 
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.transaction.databinding.ActivityAddressDetailsBinding
@@ -34,11 +36,24 @@ class AddressDetailsActivity : BaseActivity<ActivityAddressDetailsBinding>() {
 
     override fun initializeBinding() = ActivityAddressDetailsBinding.inflate(layoutInflater)
 
+    private val viewModel: AddressDetailsViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        viewModel.init(args)
         setLightStatusBar()
         setupViews()
+        observeEvent()
+    }
+
+    private fun observeEvent() {
+        viewModel.state.observe(this, ::handleState)
+    }
+
+    private fun handleState(state: AddressDetailsState) {
+        binding.derivationPath.isVisible = state.derivationPath.isNotEmpty()
+        binding.derivationPath.text = "Path: ${state.derivationPath}"
     }
 
     private fun setupViews() {
@@ -50,8 +65,8 @@ class AddressDetailsActivity : BaseActivity<ActivityAddressDetailsBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context, address: String, balance: String) {
-            val intent = AddressDetailsArgs(address = address, balance = balance).buildIntent(activityContext)
+        fun start(activityContext: Context, address: String, balance: String, walletId: String) {
+            val intent = AddressDetailsArgs(address = address, balance = balance, walletId = walletId).buildIntent(activityContext)
             activityContext.startActivity(intent)
         }
     }

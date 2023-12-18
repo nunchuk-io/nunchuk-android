@@ -77,6 +77,7 @@
     <string name="checking_balance">Checking balance…</string>
     <string name="nc_slot">Slot</string>
     <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
+    <string name="nc_address_derivation_path_have_been_copied">Address derivation path have been copied</string>
     <string name="nc_view_unsealed_slots">View unsealed slots</string>
     <string name="nc_satscard_unsealed_slots">SATSCARD unsealed slots</string>
     <string name="nc_unconfirmed">Unconfirmed</string>
@@ -686,4 +687,6 @@
         <item quantity="one">%1$s minute</item>
         <item quantity="other">%1$s minutes</item>
     </plurals>
+    <string name="nc_verify_address_on_device">Verify address on device</string>
+    <string name="nc_copy_address_derivation_path">Copy address derivation path</string>
 </resources>

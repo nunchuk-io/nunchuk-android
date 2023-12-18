@@ -28,6 +28,10 @@ import androidx.fragment.app.viewModels
 import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.TextUtils
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.receive.TabCountChangeListener
@@ -35,11 +39,13 @@ import com.nunchuk.android.transaction.components.receive.address.AddressFragmen
 import com.nunchuk.android.transaction.components.receive.address.AddressTab
 import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding>() {
+internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding>(),
+    BottomSheetOptionListener {
 
     @Inject
     lateinit var textUtils: TextUtils
@@ -82,6 +88,9 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         binding.btnShare.setOnClickListener {
             handleShareAddress()
         }
+        binding.more.setOnDebounceClickListener {
+            showMoreOptions()
+        }
     }
 
     private fun handleItemClicked(address: String?) {
@@ -97,6 +106,11 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_copy_to_clipboard))
     }
 
+    private fun copyDerivationPath(address: String) {
+        textUtils.copyText(text = address)
+        NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_derivation_path_have_been_copied))
+    }
+
     private fun handleShareAddress() {
         getCurrentAddress()?.let(controller::shareText)
     }
@@ -109,10 +123,23 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
 
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
+        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
     }
 
     private fun handleState(state: UnusedAddressState) {
         bindAddresses(state.addresses)
+    }
+
+    private fun handleEvent(event: UnusedAddressEvent) {
+        when (event) {
+            is UnusedAddressEvent.GetAddressPathSuccessEvent -> {
+                copyDerivationPath(event.address)
+            }
+
+            else -> {
+                // do nothing
+            }
+        }
     }
 
     private fun bindAddresses(addresses: List<String>) {
@@ -137,6 +164,41 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         binding.btnShare.isVisible = hasUnusedAddresses
         binding.btnCopy.isVisible = hasUnusedAddresses
         binding.more.isVisible = hasUnusedAddresses
+    }
+
+    private fun showMoreOptions() {
+        val options = mutableListOf<SheetOption>()
+        options.add(
+            SheetOption(
+            type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
+            resId = R.drawable.ic_show_pass,
+            label = getString(R.string.nc_verify_address_on_device),
+        )
+        )
+        if (viewModel.isSingleSignWallet()) {
+            options.add(
+                SheetOption(
+                type = SheetOptionType.TYPE_ADDRESS_DERIVATION_PATH,
+                resId = R.drawable.ic_copy,
+                label = getString(R.string.nc_copy_address_derivation_path),
+            )
+            )
+        }
+        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        when (option.type) {
+            SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE -> {
+
+            }
+            SheetOptionType.TYPE_ADDRESS_DERIVATION_PATH -> {
+                viewModel.getAddressPath(getCurrentAddress().orEmpty())
+            }
+            else -> {
+                // do nothing
+            }
+        }
     }
 
     companion object {

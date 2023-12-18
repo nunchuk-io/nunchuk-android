@@ -39,7 +39,8 @@ interface TransactionNavigator {
     fun openAddressDetailsScreen(
         activityContext: Activity,
         address: String,
-        balance: String
+        balance: String,
+        walletId: String
     )
 
     fun openInputAmountScreen(

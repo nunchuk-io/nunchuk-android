@@ -56,12 +56,14 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     override fun openAddressDetailsScreen(
         activityContext: Activity,
         address: String,
-        balance: String
+        balance: String,
+        walletId: String
     ) {
         AddressDetailsActivity.start(
             activityContext = activityContext,
             address = address,
-            balance = balance
+            balance = balance,
+            walletId = walletId
         )
     }
 

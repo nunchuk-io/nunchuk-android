@@ -62,7 +62,8 @@ internal class UsedAddressFragment : BaseFragment<FragmentUsedAddressBinding>() 
             navigator.openAddressDetailsScreen(
                 activityContext = requireActivity(),
                 address = it.address,
-                balance = it.balance.getBTCAmount()
+                balance = it.balance.getBTCAmount(),
+                walletId = args.walletId
             )
         }
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)

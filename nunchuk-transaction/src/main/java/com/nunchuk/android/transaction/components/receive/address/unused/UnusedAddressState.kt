@@ -19,8 +19,11 @@
 
 package com.nunchuk.android.transaction.components.receive.address.unused
 
+import com.nunchuk.android.model.Wallet
+
 sealed class UnusedAddressEvent {
     data class GenerateAddressErrorEvent(val message: String) : UnusedAddressEvent()
+    data class GetAddressPathSuccessEvent(val address: String) : UnusedAddressEvent()
 }
 
-data class UnusedAddressState(val addresses: List<String> = emptyList())
+data class UnusedAddressState(val addresses: List<String> = emptyList(), val wallet: Wallet = Wallet())
