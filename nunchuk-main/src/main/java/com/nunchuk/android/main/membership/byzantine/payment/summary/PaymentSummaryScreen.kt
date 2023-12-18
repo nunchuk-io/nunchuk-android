@@ -105,8 +105,13 @@ fun PaymentSummaryScreen(
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     openQRDetailScreen: (address: String) -> Unit = {},
 ) {
-    val formatAmount = if (unit == SpendingCurrencyUnit.BTC) {
+    val formatAmount = if (useAmount && unit == SpendingCurrencyUnit.BTC) {
         amount.toDouble().getBTCAmountWithoutSat()
+    } else if (!useAmount) {
+        amount.toDouble().formatDecimal(
+            minFractionDigits = 0,
+            maxFractionDigits = 4
+        )
     } else {
         amount.toDouble().formatDecimal(
             minFractionDigits = 0,

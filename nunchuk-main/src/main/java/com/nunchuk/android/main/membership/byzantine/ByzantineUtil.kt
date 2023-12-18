@@ -9,6 +9,7 @@ import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.getBTCAmountWithoutSat
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.payment.RecurringPayment
+import com.nunchuk.android.model.payment.RecurringPaymentType
 import java.util.Calendar
 
 @Composable
@@ -47,6 +48,11 @@ fun Long?.healthCheckLabel(context: Context): String {
 val RecurringPayment.formatAmount: String
     get() = if (currency == "BTC") {
         amount.getBTCAmountWithoutSat()
+    } else if (paymentType == RecurringPaymentType.PERCENTAGE) {
+        amount.formatDecimal(
+            minFractionDigits = 0,
+            maxFractionDigits = 4
+        )
     } else {
         amount.formatDecimal(
             minFractionDigits = 0,
