@@ -46,12 +46,17 @@ fun Long?.healthCheckLabel(context: Context): String {
 }
 
 val RecurringPayment.formatAmount: String
-    get() = if (currency == "BTC") {
-        amount.getBTCAmountWithoutSat()
-    } else if (paymentType == RecurringPaymentType.PERCENTAGE) {
+    get() = if (paymentType == RecurringPaymentType.PERCENTAGE) {
         amount.formatDecimal(
             minFractionDigits = 0,
             maxFractionDigits = 4
+        )
+    } else if (currency == "BTC") {
+        amount.getBTCAmountWithoutSat()
+    } else if (currency == "USD") {
+        amount.formatDecimal(
+            minFractionDigits = MIN_FRACTION_DIGITS,
+            maxFractionDigits = MIN_FRACTION_DIGITS
         )
     } else {
         amount.formatDecimal(

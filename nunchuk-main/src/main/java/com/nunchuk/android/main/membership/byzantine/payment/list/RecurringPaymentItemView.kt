@@ -21,8 +21,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
-import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
-import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.formatAmount
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
@@ -59,10 +57,7 @@ fun RecurringPaymentItemView(
 
             if (recurringPayment.paymentType == RecurringPaymentType.PERCENTAGE) {
                 Text(
-                    text = "${recurringPayment.amount.formatDecimal(
-                        minFractionDigits = 0,
-                        maxFractionDigits = MIN_FRACTION_DIGITS
-                    )}% / ${
+                    text = "${recurringPayment.formatAmount}% / ${
                         stringResource(
                             recurringPayment.frequency.toResId()
                         ).removePrefix("Every ")
