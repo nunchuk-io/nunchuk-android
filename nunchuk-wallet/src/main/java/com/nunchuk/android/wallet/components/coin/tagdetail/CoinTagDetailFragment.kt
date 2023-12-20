@@ -30,7 +30,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -273,7 +275,6 @@ private fun CoinTagDetailContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 Column(
@@ -286,7 +287,6 @@ private fun CoinTagDetailContent(
                         backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
                         textStyle = NunchukTheme.typography.titleLarge,
                         isBack = true,
-                        elevation = 0.dp,
                         actions = {
                             if (coins.isEmpty().not()) {
                                 Text(
@@ -308,7 +308,6 @@ private fun CoinTagDetailContent(
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(innerPadding)
                     ) {
                         item {
                             Column(
@@ -357,12 +356,15 @@ private fun CoinTagDetailContent(
                                             }
                                     )
                                 }
-
+                                
+                                val textValue = stringResource(id = R.string.nc_num_coins_data, coins.size)
+                                val totalAmount = coins.sumOf { it.amount.value }
+                                val amountTotalText = if (LocalView.current.isInEditMode)
+                                    "$totalAmount sats"
+                                else
+                                    Amount(totalAmount).getBTCAmount()
                                 Text(
-                                    text = stringResource(
-                                        id = R.string.nc_num_coins_data,
-                                        coins.size
-                                    ), style = NunchukTheme.typography.bodySmall,
+                                    text = "$textValue ($amountTotalText)", style = NunchukTheme.typography.bodySmall,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
                             }

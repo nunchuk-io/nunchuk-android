@@ -19,9 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,11 +79,11 @@ fun PendingWalletView(
     onWalletClick: () -> Unit = {},
 ) {
     val colors = if (inviterName.isNotEmpty() || walletsExtended == null) {
-        listOf(MaterialTheme.colors.yellowishOrange, MaterialTheme.colors.yellowishOrange)
+        listOf(MaterialTheme.colorScheme.yellowishOrange, MaterialTheme.colorScheme.yellowishOrange)
     } else if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name || isLocked) {
         listOf(NcColor.greyDark, NcColor.greyDark)
     } else if (group != null || isAssistedWallet) {
-        listOf(MaterialTheme.colors.ming, MaterialTheme.colors.everglade)
+        listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
     } else {
         listOf(
             colorResource(id = R.color.nc_primary_light_color),
@@ -111,13 +111,13 @@ fun PendingWalletView(
                 Text(
                     text = stringResource(R.string.nc_wallet_invitation),
                     style = NunchukTheme.typography.title,
-                    color = MaterialTheme.colors.primary
+                    color = MaterialTheme.colorScheme.primary
                 )
             } else if (walletsExtended == null) {
                 Text(
                     text = stringResource(R.string.nc_pending_wallet),
                     style = NunchukTheme.typography.title,
-                    color = MaterialTheme.colors.primary
+                    color = MaterialTheme.colorScheme.primary
                 )
             } else {
                 ActiveWallet(
@@ -227,7 +227,7 @@ fun RowScope.BottomContent(
             Text(
                 text = stringResource(R.string.nc_observing),
                 style = NunchukTheme.typography.bodySmall,
-                color = MaterialTheme.colors.onSurface,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(start = 4.dp)
             )
         }
@@ -239,7 +239,7 @@ fun RowScope.BottomContent(
             Text(
                 text = stringResource(R.string.nc_dashboard),
                 style = NunchukTheme.typography.bodySmall,
-                color = MaterialTheme.colors.onSurface,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .padding(start = 4.dp)
                     .weight(1f, fill = true)
@@ -404,7 +404,7 @@ internal fun ActiveWallet(
 @Composable
 internal fun Badge(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colors.background,
+    backgroundColor: Color = MaterialTheme.colorScheme.background,
     content: @Composable RowScope.() -> Unit,
 ) {
     Row(

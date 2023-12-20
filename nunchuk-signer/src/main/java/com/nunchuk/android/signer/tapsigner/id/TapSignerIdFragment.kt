@@ -28,12 +28,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -65,6 +63,7 @@ import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -113,8 +112,9 @@ class TapSignerIdFragment : MembershipFragment() {
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY }) {
             viewModel.getTapSignerBackup(
-                IsoDep.get(it.tag) ?: return@flowObserver,
-                nfcViewModel.inputCvc.orEmpty(),
+                isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
+                cvc = nfcViewModel.inputCvc.orEmpty(),
+                index = (requireActivity() as NfcSetupActivity).signerIndex
             )
             nfcViewModel.clearScanInfo()
         }
@@ -156,16 +156,15 @@ private fun TapSignerIdContent(
     isExist: Boolean = false,
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .statusBarsPadding()
-                    .navigationBarsPadding(),
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
                 Text(
-                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                     text = if (isExist) stringResource(R.string.nc_tap_signer_already_existed) else stringResource(
                         R.string.nc_scan_your_card_title
                     ),

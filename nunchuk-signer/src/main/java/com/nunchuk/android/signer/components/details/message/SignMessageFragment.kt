@@ -28,10 +28,10 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -182,7 +182,6 @@ private fun SignMessageContent(
                     title = stringResource(id = R.string.nc_signer_sign_message),
                     textStyle = NunchukTheme.typography.titleLarge,
                     isBack = false,
-                    elevation = 0.dp
                 )
             },
             bottomBar = {
@@ -236,7 +235,7 @@ private fun SignMessageContent(
                             .padding(vertical = 16.dp)
                             .height(1.dp)
                             .fillMaxWidth()
-                            .background(color = MaterialTheme.colors.whisper)
+                            .background(color = MaterialTheme.colorScheme.whisper)
                     )
 
                     Text(
@@ -248,12 +247,12 @@ private fun SignMessageContent(
                         modifier = Modifier
                             .padding(top = 4.dp)
                             .background(
-                                color = MaterialTheme.colors.greyLight,
+                                color = MaterialTheme.colorScheme.greyLight,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .border(
                                 width = 1.dp,
-                                color = MaterialTheme.colors.border,
+                                color = MaterialTheme.colorScheme.border,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .combinedClickable(
@@ -283,12 +282,12 @@ private fun SignMessageContent(
                         modifier = Modifier
                             .padding(top = 4.dp)
                             .background(
-                                color = MaterialTheme.colors.greyLight,
+                                color = MaterialTheme.colorScheme.greyLight,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .border(
                                 width = 1.dp,
-                                color = MaterialTheme.colors.border,
+                                color = MaterialTheme.colorScheme.border,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .fillMaxWidth()

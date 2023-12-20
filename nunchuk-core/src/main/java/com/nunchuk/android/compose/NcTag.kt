@@ -22,8 +22,8 @@ package com.nunchuk.android.compose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,7 +45,7 @@ fun NcTag(modifier: Modifier = Modifier, label: String, backgroundColor: Color =
             .padding(horizontal = 8.dp),
         text = label,
         style = TextStyle(
-            color = MaterialTheme.colors.primary,
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 10.sp, fontWeight = FontWeight.W900, fontFamily = latoBold
         )
     )

@@ -7,6 +7,7 @@ import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.signer.GetCurrentIndexFromMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerUseCase
@@ -58,6 +59,11 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
 
     fun checkSignerIndex(index: Int) {
         viewModelScope.launch {
+            if (args.signer.type == SignerType.NFC) {
+                _event.emit(CustomKeyAccountFragmentEvent.OpenScanTapSigner(index))
+                return@launch
+            }
+            _state.update { state -> state.copy(newIndex = index) }
             getSignerFromMasterSignerUseCase(
                 GetSignerFromMasterSignerUseCase.Param(
                     xfp = args.signer.fingerPrint,
@@ -72,11 +78,18 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
             }
         }
     }
+
+    fun getNewIndex(): Int = state.value.newIndex
 }
 
 sealed class CustomKeyAccountFragmentEvent {
     data class CheckSigner(val signer: SingleSigner?) : CustomKeyAccountFragmentEvent()
+    data class OpenScanTapSigner(val index: Int) : CustomKeyAccountFragmentEvent()
 }
 
-data class CustomKeyAccountUiState(val currentIndex: Int = 0, val isTestNet: Boolean = false)
+data class CustomKeyAccountUiState(
+    val currentIndex: Int = 0,
+    val isTestNet: Boolean = false,
+    val newIndex: Int = -1,
+)
 

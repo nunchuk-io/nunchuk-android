@@ -28,10 +28,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,15 +76,15 @@ fun CoinAncestryRow(
             Box(
                 modifier = circleModifier
                     .background(
-                        color = MaterialTheme.colors.primary,
+                        color = MaterialTheme.colorScheme.primary,
                         shape = CircleShape
                     )
-                    .border(width = 2.dp, shape = CircleShape, color = MaterialTheme.colors.border)
+                    .border(width = 2.dp, shape = CircleShape, color = MaterialTheme.colorScheme.border)
             )
         } else {
             Box(
                 modifier = circleModifier.background(
-                    color = MaterialTheme.colors.border,
+                    color = MaterialTheme.colorScheme.border,
                     shape = CircleShape
                 )
             )
@@ -98,7 +98,7 @@ fun CoinAncestryRow(
                 bottom.linkTo(circle.top)
                 start.linkTo(parent.start)
                 end.linkTo(list.start)
-            }, color = MaterialTheme.colors.border)
+            }, color = MaterialTheme.colorScheme.border)
         }
 
         if (showBottomLine) {
@@ -109,7 +109,7 @@ fun CoinAncestryRow(
                 bottom.linkTo(parent.bottom)
                 start.linkTo(parent.start)
                 end.linkTo(list.start)
-            }, color = MaterialTheme.colors.border)
+            }, color = MaterialTheme.colorScheme.border)
         }
 
         LazyRow(
@@ -127,7 +127,7 @@ fun CoinAncestryRow(
                         enabled = isRootCoin.not(),
                         onClick = { onCoinClick(coin) }),
                     shape = NunchukTheme.shape.medium,
-                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.border)
+                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.border)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -141,7 +141,7 @@ fun CoinAncestryRow(
                                     .border(
                                         width = 1.dp,
                                         shape = RoundedCornerShape(20.dp),
-                                        color = MaterialTheme.colors.border
+                                        color = MaterialTheme.colorScheme.border
                                     )
                                     .padding(horizontal = 8.dp),
                                 text = if (isRootCoin) stringResource(R.string.nc_wallet_this_coin)

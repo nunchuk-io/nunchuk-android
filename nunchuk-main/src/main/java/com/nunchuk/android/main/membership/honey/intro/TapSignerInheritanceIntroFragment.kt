@@ -23,13 +23,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -124,15 +128,17 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
     }
 
     private fun handleAddTapSigner() {
-        if (viewModel.getTapSigners().isNotEmpty()) {
-            findNavController().navigate(
-                TapSignerInheritanceIntroFragmentDirections.actionTapSignerInheritanceIntroFragmentToTapSignerListBottomSheetFragment(
-                    signers = viewModel.getTapSigners().toTypedArray(),
-                    type = SignerType.NFC
+        runCatching {
+            if (viewModel.getTapSigners().isNotEmpty()) {
+                findNavController().navigate(
+                    TapSignerInheritanceIntroFragmentDirections.actionTapSignerInheritanceIntroFragmentToTapSignerListBottomSheetFragment(
+                        signers = viewModel.getTapSigners().toTypedArray(),
+                        type = SignerType.NFC
+                    )
                 )
-            )
-        } else {
-            openSetupTapSigner()
+            } else {
+                openSetupTapSigner()
+            }
         }
     }
 
@@ -166,29 +172,29 @@ private fun TapSignerInheritanceIntroContent(
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.bg_inheritance_key,
+                title = stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ),
+                actions = {
+                    IconButton(onClick = onMoreClicked) {
+                        Icon(
+                            painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                            contentDescription = "More icon"
+                        )
+                    }
+                }
+            )
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.bg_inheritance_key,
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
-                    actions = {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
-                        }
-                    }
-                )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_your_inheritance_key),

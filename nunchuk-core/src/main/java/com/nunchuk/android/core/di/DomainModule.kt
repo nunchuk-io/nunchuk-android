@@ -71,8 +71,5 @@ internal interface DomainModule {
     fun bindDeleteSyncFileUseCase(useCase: DeleteSyncFileUseCaseImpl): DeleteSyncFileUseCase
 
     @Binds
-    fun bindParseWalletDescriptorUseCase(useCase: ParseWalletDescriptorUseCaseImpl): ParseWalletDescriptorUseCase
-
-    @Binds
     fun bindHasSignerUseCase(useCase: HasSignerUseCaseImpl): HasSignerUseCase
 }

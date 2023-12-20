@@ -17,6 +17,8 @@
  *                                                                        *
  **************************************************************************/
 
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.nunchuk.android.compose
 
 import androidx.compose.foundation.background
@@ -28,7 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -46,7 +48,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NcPasswordTextField(
     modifier: Modifier = Modifier,
@@ -59,12 +60,12 @@ fun NcPasswordTextField(
     enabled: Boolean = true,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
-    colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
+    colors: TextFieldColors = TextFieldDefaults.colors(),
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: String) -> Unit,
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    val hasError = error != null && error.isNotEmpty()
+    val hasError = !error.isNullOrEmpty()
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
@@ -78,7 +79,7 @@ fun NcPasswordTextField(
             BasicTextField(
                 modifier = Modifier
                     .background(
-                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colors.surface,
+                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .onFocusEvent(onFocusEvent)
@@ -97,7 +98,7 @@ fun NcPasswordTextField(
                 visualTransformation = if (passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                 decorationBox = @Composable { innerTextField ->
                     // places leading icon, text field with label and placeholder, trailing icon
-                    TextFieldDefaults.OutlinedTextFieldDecorationBox(
+                    TextFieldDefaults.DecorationBox(
                         value = value,
                         visualTransformation = VisualTransformation.None,
                         innerTextField = innerTextField,
@@ -123,7 +124,7 @@ fun NcPasswordTextField(
                         interactionSource = interactionSource,
                         colors = colors,
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
-                        border = {
+                        container = {
                             Box(
                                 Modifier.border(
                                     width = 1.dp,
@@ -163,7 +164,6 @@ fun NcPasswordTextField(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NcPasswordTextField(
     modifier: Modifier = Modifier,
@@ -176,13 +176,13 @@ fun NcPasswordTextField(
     enabled: Boolean = true,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
-    colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
+    colors: TextFieldColors = TextFieldDefaults.colors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: TextFieldValue) -> Unit,
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    val hasError = error != null && error.isNotEmpty()
+    val hasError = !error.isNullOrEmpty()
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
@@ -196,7 +196,7 @@ fun NcPasswordTextField(
             BasicTextField(
                 modifier = Modifier
                     .background(
-                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colors.surface,
+                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .onFocusEvent(onFocusEvent)
@@ -214,7 +214,7 @@ fun NcPasswordTextField(
                 visualTransformation = visualTransformation,
                 decorationBox = @Composable { innerTextField ->
                     // places leading icon, text field with label and placeholder, trailing icon
-                    TextFieldDefaults.OutlinedTextFieldDecorationBox(
+                    TextFieldDefaults.DecorationBox(
                         value = value.text,
                         visualTransformation = VisualTransformation.None,
                         innerTextField = innerTextField,
@@ -240,7 +240,7 @@ fun NcPasswordTextField(
                         interactionSource = interactionSource,
                         colors = colors,
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
-                        border = {
+                        container = {
                             Box(
                                 Modifier.border(
                                     width = 1.dp,

@@ -36,9 +36,6 @@ import com.nunchuk.android.type.SignerType.SERVER
 import com.nunchuk.android.type.SignerType.SOFTWARE
 import com.nunchuk.android.type.SignerType.UNKNOWN
 
-val SignerType.isRemoteSigner: Boolean
-    get() = this == AIRGAP || this == COLDCARD_NFC || this == HARDWARE
-
 val SingleSigner.isColdCard: Boolean
     get() = type == COLDCARD_NFC || tags.contains(SignerTag.COLDCARD)
 
@@ -103,3 +100,6 @@ fun SingleSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = fa
     context,
     toReadableDrawableResId(type, tags, isPrimaryKey)
 ) ?: throw NullPointerException("Nunchuk can not get drawable")
+
+val SignerTag.isAirgapTag: Boolean
+    get() = this == SignerTag.JADE || this == SignerTag.SEEDSIGNER || this == SignerTag.PASSPORT || this == SignerTag.KEYSTONE

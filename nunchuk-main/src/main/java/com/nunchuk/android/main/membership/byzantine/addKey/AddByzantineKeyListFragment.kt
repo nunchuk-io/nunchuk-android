@@ -40,6 +40,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
@@ -100,10 +101,31 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 val signer = data.signers.first()
                 when (signer.type) {
                     SignerType.NFC -> {
-                        openCreateBackUpTapSigner(signer.id)
+                        findNavController().navigate(
+                            AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
+                                signer
+                            )
+                        )
                     }
-                    SignerType.AIRGAP,
-                    SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(signer)
+                    SignerType.AIRGAP -> {
+                        val hasTag = signer.tags.any { it.isAirgapTag || it == SignerTag.COLDCARD }
+                        if (hasTag) {
+                            findNavController().navigate(
+                                AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
+                                    signer
+                                )
+                            )
+                        } else {
+                            viewModel.requestAddAirgapTag(signer)
+                        }
+                    }
+                    SignerType.COLDCARD_NFC -> {
+                        findNavController().navigate(
+                            AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
+                                signer
+                            )
+                        )
+                    }
                     SignerType.HARDWARE -> {
                         findNavController().navigate(
                             AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
@@ -310,6 +332,11 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                         )
                     }
                 )
+                is AddKeyListEvent.UpdateSignerTag -> findNavController().navigate(
+                    AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
+                        event.signer
+                    )
+                )
             }
         }
         flowObserver(viewModel.state) {
@@ -429,15 +456,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             activity = requireActivity(),
             fromMembershipFlow = true,
             groupId = (activity as MembershipActivity).groupId,
-        )
-    }
-
-    private fun openCreateBackUpTapSigner(masterSignerId: String) {
-        navigator.openCreateBackUpTapSigner(
-            activity = requireActivity(),
-            fromMembershipFlow = true,
-            masterSignerId = masterSignerId,
-            groupId = (activity as MembershipActivity).groupId
         )
     }
 }

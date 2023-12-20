@@ -50,7 +50,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
@@ -178,11 +178,12 @@ class CreateWalletViewModel @Inject constructor(
         val serverKeyId = serverKeyId ?: return
         if (createWalletJob?.isActive == true) return
         createWalletJob = viewModelScope.launch {
-            val remoteSigners = getRemoteSignersUseCase.execute().firstOrNull().orEmpty()
+            val remoteSigners = getRemoteSignersUseCase.execute().first()
             val addressType = AddressType.NATIVE_SEGWIT
             _event.emit(CreateWalletEvent.Loading(true))
+            val walletRemoteSigners = signers.mapNotNull { entry -> remoteSigners.find { it.masterFingerprint == entry.key && it.derivationPath == entry.value.derivationPath } }
             val masterSigners =
-                signers.filter { entry -> !remoteSigners.any { it.masterFingerprint == entry.key } }.map { it.key }
+                signers.filter { entry -> !walletRemoteSigners.any { it.masterFingerprint == entry.key } }.map { it.key }
             val getSingleSingerResult = getDefaultSignerFromMasterSignerUseCase(
                 GetDefaultSignerFromMasterSignerUseCase.Params(
                     masterSigners,

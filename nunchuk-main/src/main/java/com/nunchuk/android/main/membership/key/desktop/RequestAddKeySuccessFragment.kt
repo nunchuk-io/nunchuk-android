@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -90,7 +90,6 @@ private fun RequestAddKeySuccessContent(
             },
             topBar = {
                 NcTopAppBar(
-                    elevation = 0.dp,
                     title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
                     actions = {
                         IconButton(onClick = onMoreClicked) {

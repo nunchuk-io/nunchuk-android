@@ -36,7 +36,14 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AirgapSignerNameRequiredEvent
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.InvalidAirgapSignerSpecEvent
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
@@ -53,7 +60,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -100,7 +114,9 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         signerName: String,
         signerSpec: String,
         isMembershipFlow: Boolean,
-        signerTag: SignerTag?
+        signerTag: SignerTag?,
+        xfp: String?,
+        newIndex: Int,
     ) {
         val newSignerName = if (isMembershipFlow) "Hardware key${
             membershipStepManager.getNextKeySuffixByType(
@@ -108,7 +124,14 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             )
         }" else signerName
         validateInput(newSignerName, signerSpec) {
-            doAfterValidate(newSignerName, it, isMembershipFlow, signerTag)
+            doAfterValidate(
+                signerName = newSignerName,
+                signerInput = it,
+                isMembershipFlow = isMembershipFlow,
+                signerTag = signerTag,
+                xfp = xfp,
+                newIndex = newIndex
+            )
         }
     }
 
@@ -116,11 +139,21 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         signerName: String,
         signerInput: SignerInput,
         isMembershipFlow: Boolean,
-        signerTag: SignerTag?
+        signerTag: SignerTag?,
+        xfp: String?,
+        newIndex: Int,
     ) {
         viewModelScope.launch {
             if (membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
                 setEvent(AddSameKey)
+                return@launch
+            }
+            if (!xfp.isNullOrEmpty() && signerInput.fingerPrint != xfp) {
+                setEvent(AddAirgapSignerEvent.XfpNotMatchException)
+                return@launch
+            }
+            if (newIndex >= 0 && !signerInput.derivationPath.endsWith("${newIndex}h/2h")) {
+                setEvent(AddAirgapSignerEvent.NewIndexNotMatchException)
                 return@launch
             }
             setEvent(LoadingEventAirgap(true))
@@ -240,7 +273,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         setEvent(ParseKeystoneAirgapSignerSuccess(result.getOrThrow()))
                     }
                 } else {
-                    setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                    setEvent(AddAirgapSignerErrorEvent("XPUBs file is invalid"))
                 }
             }
             setEvent(LoadingEventAirgap(false))

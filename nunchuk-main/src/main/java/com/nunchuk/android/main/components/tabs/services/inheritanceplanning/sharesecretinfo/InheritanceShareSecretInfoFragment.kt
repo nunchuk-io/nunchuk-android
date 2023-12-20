@@ -33,8 +33,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -68,6 +68,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sha
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -157,7 +158,6 @@ private fun InheritanceShareSecretInfoContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 LazyColumn(modifier = Modifier.weight(1f)) {
@@ -207,7 +207,7 @@ private fun InheritanceShareSecretInfoContent(
                             ) {
                                 Text(
                                     modifier = Modifier.fillMaxWidth(),
-                                    text = magicalPhrase,
+                                    text = magicalPhrase.ifEmpty { Utils.maskValue("", isMask = true) },
                                     style = NunchukTheme.typography.body,
                                     textAlign = TextAlign.Center
                                 )

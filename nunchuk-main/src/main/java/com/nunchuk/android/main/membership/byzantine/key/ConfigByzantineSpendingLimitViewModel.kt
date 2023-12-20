@@ -242,6 +242,11 @@ fun SpendingCurrencyUnit.toLabel(context: Context) = when (this) {
     SpendingCurrencyUnit.sat -> context.getString(R.string.nc_currency_sat)
 }
 
+fun SpendingCurrencyUnit.toRecurringPaymentType() = when (this) {
+    SpendingCurrencyUnit.CURRENCY_UNIT -> "USD"
+    else -> this.name
+}
+
 fun SpendingTimeUnit.toLabel(context: Context) = when (this) {
     SpendingTimeUnit.DAILY -> context.getString(R.string.nc_daily)
     SpendingTimeUnit.MONTHLY -> context.getString(R.string.nc_monthly)

@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.util
 
 import com.nunchuk.android.core.domain.data.BTC
+import com.nunchuk.android.core.domain.data.BTC_AND_FIXED_PRECISION
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.domain.di.NativeSdkProvider
@@ -27,7 +28,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 import kotlin.math.roundToLong
 
 fun Wallet.getBTCAmount() = balance.getBTCAmount()
@@ -60,6 +61,12 @@ fun Double.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     BTC -> "${formatDecimal()} BTC"
     else -> "${formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)} BTC"
 }
+
+fun Double.getBTCAmountWithoutSat() = when (CURRENT_DISPLAY_UNIT_TYPE) {
+    BTC_AND_FIXED_PRECISION -> formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)
+    else -> formatDecimal()
+}
+
 
 fun Double.getCurrencyAmount() = "${getDisplayCurrency()}${fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
 

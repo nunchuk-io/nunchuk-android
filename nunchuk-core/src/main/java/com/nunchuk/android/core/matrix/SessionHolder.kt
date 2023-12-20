@@ -49,6 +49,7 @@ class SessionHolder @Inject constructor(
         fileLog(message = "storeActiveSession of ${session.myUserId}")
         getSafeActiveSession()?.apply {
             removeListener(sessionListener)
+            close()
         }
         session.apply {
             activeSessionReference.set(this)

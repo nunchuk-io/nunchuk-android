@@ -74,7 +74,8 @@
     <string name="nc_recover_nfc_key_from_backup">Recover TAPSIGNER key from backup</string>
     <string name="nc_enter_decryption_key">Enter backup password</string>
     <string name="nc_backup_password">Backup Password</string>
-    <string name="nc_warning_key_use_in_wallet">Oops, your key is currently being used in a wallet. Please remove the wallet first.</string>
+    <string name="nc_warning_key_use_in_wallet">This key is currently being used in a wallet. Are you sure you want to delete it?</string>
+    <string name="nc_warning_key_use_in_assisted_wallet">This key is currently being used in a wallet. Please remove the wallet first.</string>
     <string name="nc_please_remove_on_added_device">Please remove this key on the device that it was added to.</string>
     <string name="nc_backup_key_failed">Backup key failed</string>
     <string name="nc_topup_xpub_failed">Topup Xpub failed</string>
@@ -110,8 +111,8 @@
     <string name="nc_yes_use_this_tapsigner">Yes, use this TAPSIGNER</string>
     <string name="nc_no_add_a_new_one">No, I want to add a new one</string>
     <string name="nc_add_your_coldcard">Add your COLDCARD</string>
-    <string name="nc_export_xpub_coldcard_desc">Navigate to Advanced/Tools → Export Wallet → Generic JSON → OK.</string>
-    <string name="nc_import_xpub_into_app_desc">Import the file from step 3 on the next screen.</string>
+    <string name="nc_export_xpub_coldcard_desc">Navigate to Advanced/Tools → Export Wallet → Generic JSON → 1 → Enter Account # (0 if first time) → OK.</string>
+    <string name="nc_import_xpub_into_app_desc">Next, import the file from step 3.</string>
     <string name="nc_self_verify_hint">For details on how to use openssl for verification, visit</string>
     <string name="nc_share_your_secrets">Share your secrets</string>
     <string name="nc_view_claiming_instructions">View claiming instructions</string>
@@ -130,4 +131,6 @@
     <string name="nc_signer_copy_signature">Copy signature</string>
     <string name="nc_signer_export_signature">Export signature</string>
     <string name="nc_health_check_is_unavailable_for_this_key">Health check is unavailable for this key.</string>
+    <string name="nc_coldcard_xfp_does_not_match">Key fingerprint (XFP) does not match. Please try a different COLDCARD.</string>
+    <string name="nc_airgap_xfp_does_not_match">Key fingerprint (XFP) does not match. Please try a different Airgap.</string>
 </resources>

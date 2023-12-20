@@ -130,13 +130,13 @@ internal class TransactionAdapter(
                     "- ${data.transaction.totalAmount.getCurrencyAmount()}",
                     hideWalletDetail
                 )
-                val output = if (data.transaction.changeIndex >= 0) data.transaction.outputs.size - 1 else data.transaction.outputs.size
-                if (output > 1) {
+                val outputs = data.transaction.outputs.filterIndexed { index, _ -> index != data.transaction.changeIndex }
+                if (outputs.size > 1) {
                     binding.receiverName.text = getString(R.string.nc_multiple_addresses)
                 } else {
                     binding.receiverName.text =
                         Utils.maskValue(
-                            data.transaction.outputs.firstOrNull()?.first.orEmpty()
+                            outputs.firstOrNull()?.first.orEmpty()
                                 .truncatedAddress(),
                             hideWalletDetail
                         )

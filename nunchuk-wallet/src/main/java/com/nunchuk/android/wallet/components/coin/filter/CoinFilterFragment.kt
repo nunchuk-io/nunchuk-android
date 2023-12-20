@@ -31,7 +31,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -264,12 +264,7 @@ private fun CoinFilterContent(
             Column(
                 modifier = Modifier.padding(innerPadding)
             ) {
-                Column(
-                    modifier = Modifier.background(
-                        color = MaterialTheme.colors.surface,
-                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                    )
-                ) {
+                Column {
                     LazyColumn(modifier = Modifier.weight(1.0f)) {
                         if (isSearchTransaction.not()) {
                             item {
@@ -525,7 +520,7 @@ private fun SwitchAmount(isBtc: Boolean, onSwitchBtcAndCurrency: (Boolean) -> Un
         Icon(
             painter = painterResource(id = R.drawable.ic_switch),
             contentDescription = "Switch",
-            tint = MaterialTheme.colors.primary
+            tint = MaterialTheme.colorScheme.primary
         )
         Text(
             modifier = Modifier.padding(horizontal = 8.dp),

@@ -13,9 +13,11 @@ class GroupWalletIntroFragment : BaseIntroFragment() {
         get() = getString(R.string.nc_group_wallet_intro)
 
     override fun onContinueClicked() {
-        findNavController().navigate(
-            GroupWalletIntroFragmentDirections.actionGroupWalletIntroFragmentToSecurityTradeOffFragment()
-        )
+        runCatching {
+            findNavController().navigate(
+                GroupWalletIntroFragmentDirections.actionGroupWalletIntroFragmentToSecurityTradeOffFragment()
+            )
+        }
     }
 
     override val isCountdown: Boolean = false

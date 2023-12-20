@@ -165,7 +165,8 @@ internal fun AlertResponse.toAlert(): Alert {
             dummyTransactionId = payload?.dummyTransactionId.orEmpty(),
             xfps = payload?.xfps.orEmpty(),
             claimKey = payload?.claimKey.orFalse(),
-            keyXfp = payload?.keyXfp.orEmpty()
+            keyXfp = payload?.keyXfp.orEmpty(),
+            paymentName = payload?.paymentName.orEmpty()
         )
     )
 }

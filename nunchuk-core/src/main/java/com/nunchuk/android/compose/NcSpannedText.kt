@@ -1,8 +1,8 @@
 package com.nunchuk.android.compose
 
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -88,7 +88,7 @@ private const val ANNOTATION_TAG = "tag"
 fun NcSpannedTextPreviewOne() {
     NcSpannedText(
         text = "<b>Google Pay</b> (subscription)",
-        baseStyle = MaterialTheme.typography.subtitle1,
+        baseStyle = MaterialTheme.typography.titleSmall,
         styles = hashMapOf(
             SpanIndicator('b') to SpanStyle(color = Color.Red)
         )

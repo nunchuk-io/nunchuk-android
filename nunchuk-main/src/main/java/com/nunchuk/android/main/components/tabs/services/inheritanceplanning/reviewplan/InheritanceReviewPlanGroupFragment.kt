@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,9 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -38,12 +37,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orDefault
@@ -56,7 +53,6 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
@@ -78,10 +74,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceReviewPlanGroupScreen(
-                    viewModel,
-                    inheritanceViewModel
-                )
+                InheritanceReviewPlanGroupScreen(viewModel)
             }
         }
     }
@@ -111,7 +104,6 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
 @Composable
 fun InheritanceReviewPlanGroupScreen(
     viewModel: InheritanceReviewPlanGroupViewModel = viewModel(),
-    inheritanceViewModel: InheritancePlanningViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     InheritanceReviewPlanGroupScreenContent(
@@ -183,12 +175,11 @@ fun InheritanceReviewPlanGroupScreenContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
                     .fillMaxSize()
             ) {
-                NcTopAppBar(title = "", elevation = 0.dp)
+                NcTopAppBar(title = "")
                 LazyColumn(
                     modifier = Modifier.weight(1.0f),
                 ) {

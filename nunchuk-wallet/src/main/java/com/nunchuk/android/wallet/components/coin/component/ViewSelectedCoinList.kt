@@ -25,8 +25,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +58,7 @@ fun ViewSelectedCoinList(
         Spacer(modifier = Modifier.height(64.dp))
         Column(
             modifier = Modifier.weight(1f).background(
-                color = MaterialTheme.colors.background,
+                color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             )
         ) {

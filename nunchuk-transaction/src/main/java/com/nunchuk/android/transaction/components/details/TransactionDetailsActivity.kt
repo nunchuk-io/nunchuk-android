@@ -508,11 +508,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         if (coins.size >= 2) {
             binding.sendingTo.text = getString(R.string.nc_multiple_addresses)
         } else {
-            val output = if (transaction.isReceive) {
-                transaction.receiveOutputs.firstOrNull()
-            } else {
-                transaction.outputs.firstOrNull()
-            }
+            val output = coins.firstOrNull()
             binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
         }
         if (transaction.isReceive) {

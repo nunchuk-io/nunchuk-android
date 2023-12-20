@@ -74,7 +74,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private val walletViewModel: WalletsViewModel by viewModels()
 
-    private val syncInfoViewModel : SyncInfoViewModel by viewModels()
+    private val syncInfoViewModel: SyncInfoViewModel by viewModels()
 
     private val loginHalfToken
         get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
@@ -137,8 +137,8 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     }
 
     private fun setupData() {
-        if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty() && sessionHolder.hasActiveSession().not()) {
-            syncRoomViewModel.setupMatrix(loginHalfToken, deviceId)
+        if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
+            syncRoomViewModel.setupMatrixIfNeeded(loginHalfToken, deviceId)
         }
         if (sessionHolder.getSafeActiveSession() != null) {
             pushNotificationHelper.retrieveFcmToken(
@@ -156,7 +156,8 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     }
 
     private fun handleRoomState(state: RoomsState) {
-        val count = state.rooms.sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
+        val count =
+            state.rooms.sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
         messageBadge.apply {
             isVisible = count > 0
             number = count
@@ -182,6 +183,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
                 )
                 syncRoomViewModel.findSyncRoom()
             }
+
             is SyncRoomEvent.FindSyncRoomFailedEvent -> if (event.syncRoomSize == 0) {
                 syncRoomViewModel.createRoomWithTagSync()
             }
@@ -205,7 +207,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     private fun showUpdateRecommendedDialog(
         title: String,
         message: String,
-        btnCTAText: String
+        btnCTAText: String,
     ) {
         if (dialogUpdateRecommend == null) {
             dialogUpdateRecommend = NCInfoDialog(this).init(
@@ -246,7 +248,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             deviceId: String? = null,
             position: Int? = null,
             messages: ArrayList<String>? = null,
-            isClearTask: Boolean = false
+            isClearTask: Boolean = false,
         ) {
             activityContext.startActivity(
                 createIntent(
@@ -267,7 +269,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             deviceId: String? = null,
             @IdRes bottomNavViewPosition: Int? = null,
             messages: ArrayList<String>? = null,
-            isClearTask: Boolean = false
+            isClearTask: Boolean = false,
         ): Intent {
             return Intent(activityContext, MainActivity::class.java).apply {
                 if (isClearTask) {

@@ -31,7 +31,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -157,11 +157,10 @@ private fun LockdownPeriodContent(
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
                 .statusBarsPadding()
                 .navigationBarsPadding(),
         ) {
-            NcTopAppBar(title = "", elevation = 0.dp)
+            NcTopAppBar(title = "")
             LazyColumn(
                 modifier = Modifier.weight(1F),
                 contentPadding = PaddingValues(16.dp),
@@ -203,7 +202,7 @@ private fun LockdownPeriodContent(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OptionItem(
     modifier: Modifier = Modifier,

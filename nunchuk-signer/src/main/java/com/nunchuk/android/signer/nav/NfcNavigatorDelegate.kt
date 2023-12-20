@@ -20,6 +20,8 @@
 package com.nunchuk.android.signer.nav
 
 import android.app.Activity
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.nav.NfcNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.mk4.Mk4Activity
@@ -31,8 +33,38 @@ interface NfcNavigatorDelegate : NfcNavigator {
         fromMembershipFlow: Boolean,
         action: ColdcardAction,
         groupId: String,
+        newIndex: Int,
+        xfp: String?,
     ) {
-        Mk4Activity.navigate(activity, fromMembershipFlow, action, groupId)
+        Mk4Activity.navigate(
+            activity = activity,
+            isMembershipFlow = fromMembershipFlow,
+            action = action,
+            groupId = groupId,
+            newIndex = newIndex,
+            xfp = xfp,
+        )
+    }
+
+    override fun startSetupMk4ForResult(
+        launcher: ActivityResultLauncher<Intent>,
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+        action: ColdcardAction,
+        groupId: String,
+        newIndex: Int,
+        xfp: String?,
+    ) {
+        launcher.launch(
+            Mk4Activity.buildIntent(
+                activity = activity,
+                isMembershipFlow = fromMembershipFlow,
+                action = action,
+                groupId = groupId,
+                newIndex = newIndex,
+                xfp = xfp,
+            )
+        )
     }
 
     override fun openSetupTapSigner(
@@ -73,7 +105,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         activity: Activity,
         fromMembershipFlow: Boolean,
         masterSignerId: String,
-        groupId: String
+        groupId: String,
+        signerIndex: Int
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -82,6 +115,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 fromMembershipFlow = fromMembershipFlow,
                 masterSignerId = masterSignerId,
                 groupId = groupId,
+                signerIndex = signerIndex,
             )
         )
     }

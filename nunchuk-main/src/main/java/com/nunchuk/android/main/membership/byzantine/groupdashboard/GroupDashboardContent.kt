@@ -29,24 +29,25 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.ExtendedFloatingActionButton
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.LocalContentAlpha
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,6 +66,9 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
+import com.nunchuk.android.compose.pullrefresh.pullRefresh
+import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
@@ -83,6 +87,7 @@ import com.skydoves.landscapist.glide.GlideImage
 fun GroupDashboardContent(
     uiState: GroupDashboardState = GroupDashboardState(),
     isEnableStartGroupChat: Boolean = false,
+    isRefreshing: Boolean = false,
     onGroupChatClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onAlertClick: (alert: Alert, role: AssistedWalletRole) -> Unit = { _, _ -> },
@@ -90,7 +95,9 @@ fun GroupDashboardContent(
     onWalletClick: () -> Unit = {},
     onDismissClick: (String) -> Unit = {},
     onOpenHealthCheckScreen: () -> Unit = {},
+    refresh: () -> Unit = { },
 ) {
+    val state = rememberPullRefreshState(isRefreshing, refresh)
     val master = uiState.group?.members?.find { it.role == AssistedWalletRole.MASTER.name }
     val listState = rememberLazyListState()
     val isKeyholderLimited = uiState.myRole == AssistedWalletRole.KEYHOLDER_LIMITED
@@ -116,7 +123,6 @@ fun GroupDashboardContent(
     NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
         Scaffold(
             modifier = Modifier
-                .navigationBarsPadding()
                 .statusBarsPadding(),
             topBar = {
                 NcTopAppBar(
@@ -127,7 +133,6 @@ fun GroupDashboardContent(
                         )
                     },
                     textStyle = NunchukTheme.typography.titleLarge,
-                    elevation = 0.dp,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                         if (isKeyholderLimited.not()) {
@@ -164,22 +169,22 @@ fun GroupDashboardContent(
                                     if (isEnableStartGroupChat) LocalRippleTheme.current else NoRippleTheme
                         ) {
                             if (uiState.groupChat != null) {
-                                FloatingActionButton(onClick = onGroupChatClick) {
+                                FloatingActionButton(shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary, onClick = onGroupChatClick) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_messages),
                                         contentDescription = "Search"
                                     )
                                 }
                             } else {
-                                ExtendedFloatingActionButton(onClick = {
+                                ExtendedFloatingActionButton(shape = RoundedCornerShape(50) ,onClick = {
                                     if (isEnableStartGroupChat) onGroupChatClick()
                                 },
-                                    backgroundColor = if (isEnableStartGroupChat) MaterialTheme.colors.secondary else colorResource(
+                                    containerColor = if (isEnableStartGroupChat) MaterialTheme.colorScheme.secondary else colorResource(
                                         id = R.color.nc_whisper_color
                                     ),
                                     text = {
                                         Text(
-                                            text = "Start group chat",
+                                            text = stringResource(id = R.string.nc_start_group_chat),
                                             color = if (isEnableStartGroupChat) Color.White else colorResource(
                                                 id = R.color.nc_grey_dark_color
                                             )
@@ -189,9 +194,7 @@ fun GroupDashboardContent(
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_create_message),
                                             contentDescription = "Search",
-                                            tint = if (isEnableStartGroupChat) LocalContentColor.current.copy(
-                                                alpha = LocalContentAlpha.current
-                                            ) else colorResource(
+                                            tint = if (isEnableStartGroupChat) LocalContentColor.current else colorResource(
                                                 id = R.color.nc_grey_dark_color
                                             )
                                         )
@@ -203,47 +206,50 @@ fun GroupDashboardContent(
             }
         ) { innerPadding ->
             if (uiState.group == null) return@Scaffold
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxHeight()
-            ) {
-                LazyColumn(
+            Box(Modifier.pullRefresh(state)) {
+                Column(
                     modifier = Modifier
-                        .background(colorResource(id = R.color.nc_grey_light))
-                        .padding(top = 16.dp),
-                    state = listState
+                        .padding(innerPadding)
+                        .fillMaxHeight()
                 ) {
-                    alertListView(
-                        alerts = uiState.alerts,
-                        currentUserRole = uiState.myRole,
-                        onAlertClick = onAlertClick,
-                        onDismissClick = onDismissClick
-                    )
-                    if (uiState.keyStatus.isNotEmpty()) {
-                        HealthCheckStatusView(
-                            onOpenHealthCheckScreen = onOpenHealthCheckScreen,
-                            signers = signers,
-                            status = uiState.keyStatus
-                        )
-                    }
-                    if (isKeyholderLimited.not()) {
-                        memberListView(
-                            group = uiState.group,
+                    LazyColumn(
+                        modifier = Modifier
+                            .background(colorResource(id = R.color.nc_grey_light))
+                            .padding(top = 16.dp),
+                        state = listState
+                    ) {
+                        alertListView(
+                            alerts = uiState.alerts,
                             currentUserRole = uiState.myRole,
-                            master = master,
-                            padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
-                            onEditClick = onEditClick
+                            onAlertClick = onAlertClick,
+                            onDismissClick = onDismissClick
                         )
+                        if (uiState.keyStatus.isNotEmpty() && signers.any { it.type != SignerType.SERVER }) {
+                            HealthCheckStatusView(
+                                onOpenHealthCheckScreen = onOpenHealthCheckScreen,
+                                signers = signers,
+                                status = uiState.keyStatus
+                            )
+                        }
+                        if (isKeyholderLimited.not()) {
+                            memberListView(
+                                group = uiState.group,
+                                currentUserRole = uiState.myRole,
+                                master = master,
+                                padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
+                                onEditClick = onEditClick
+                            )
+                        }
                     }
-                }
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .background(color = MaterialTheme.colors.surface)
-                )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .background(color = MaterialTheme.colorScheme.surface)
+                    )
+                }
+                PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
             }
         }
     }

@@ -23,11 +23,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -80,18 +84,29 @@ class IntroAssistedWalletFragment : Fragment() {
 fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewModel()) =
     NunchukTheme {
         NunchukTheme {
-            Scaffold { innerPadding ->
-                Column(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                        .navigationBarsPadding()
-                        .verticalScroll(rememberScrollState())
-                ) {
+            Scaffold(
+                modifier = Modifier.navigationBarsPadding(),
+                topBar = {
                     NcImageAppBar(
                         backgroundRes = R.drawable.nc_bg_intro_assisted_wallet,
                         backIconRes = R.drawable.ic_close
                     )
+                },
+                bottomBar = {
+                    NcPrimaryDarkButton(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                        onClick = { viewModel.onContinueClicked() }) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
+                },
+            ) { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                ) {
                     Text(
                         modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                         text = stringResource(R.string.nc_welcome_assisted_wallet_title),
@@ -102,13 +117,6 @@ fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewMode
                         text = stringResource(R.string.nc_welcome_assisted_wallet_desc),
                         style = NunchukTheme.typography.body
                     )
-                    Spacer(modifier = Modifier.weight(1.0f))
-                    NcPrimaryDarkButton(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                        onClick = { viewModel.onContinueClicked() }) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
-                    }
                 }
             }
         }

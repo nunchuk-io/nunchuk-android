@@ -35,7 +35,7 @@ import com.nunchuk.android.widget.util.AbsViewBinder
 internal class WalletsViewBinder(
     container: ViewGroup,
     wallets: List<WalletExtended>,
-    val assistedWalletIds: Set<String>,
+    val assistedWalletIds: (String) -> Boolean = {false},
     val lockdownWalletIds: Set<String>,
     private val hideWalletDetail: Boolean = false,
     val callback: (String) -> Unit = {}
@@ -44,7 +44,7 @@ internal class WalletsViewBinder(
     override fun initializeBinding() = ItemWalletBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: WalletExtended) {
-        val isAssistedWallet = assistedWalletIds.contains(model.wallet.id)
+      val isAssistedWallet = assistedWalletIds(model.wallet.id)
         val wallet = model.wallet
         val balance = "(${wallet.getCurrencyAmount()})"
         val binding = ItemWalletBinding.bind(container[position])

@@ -34,10 +34,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -160,7 +160,7 @@ private fun TapSignerListContent(
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
     Column(
         modifier = Modifier.background(
-            color = MaterialTheme.colors.surface,
+            color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
         ).nestedScroll(rememberNestedScrollInteropConnection())
     ) {

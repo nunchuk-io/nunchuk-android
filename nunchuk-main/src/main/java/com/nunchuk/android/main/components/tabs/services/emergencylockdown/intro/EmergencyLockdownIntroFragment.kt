@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.emergencylockdown.intro
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,8 +29,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -52,7 +53,6 @@ import com.nunchuk.android.main.R
 class EmergencyLockdownIntroFragment : Fragment() {
 
     private val viewModel: EmergencyLockdownIntroViewModel by viewModels()
-    private val args: EmergencyLockdownIntroFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -93,6 +93,7 @@ fun EmergencyLockdownIntroScreen(
 }
 
 @Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun EmergencyLockdownIntroScreenContent(
     onContinueClicked: () -> Unit = {}
 ) {
@@ -100,7 +101,6 @@ fun EmergencyLockdownIntroScreenContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
                 LazyColumn(modifier = Modifier.weight(1f)) {
