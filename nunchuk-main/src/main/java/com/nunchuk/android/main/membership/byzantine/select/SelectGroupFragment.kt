@@ -200,7 +200,10 @@ fun GroupWalletTypeOptionView(
 ) {
     NcRadioOption(modifier = modifier.fillMaxWidth(), isSelected = isSelected, onClick = onClick) {
         Row {
-            if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG || type == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE) {
+            if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG
+                || type == GroupWalletType.THREE_OF_FIVE_INHERITANCE
+                || type == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY
+                ) {
                 ProBadgePlan(
                     modifier = Modifier.padding(end = 4.dp),
                     text = stringResource(id = type.shortName)

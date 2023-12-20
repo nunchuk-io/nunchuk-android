@@ -204,7 +204,7 @@
     <string name="nc_security_tip">Security tip</string>
     <string name="nc_security_tip_desc">For maximum security, keep your keys geographically distributed.</string>
     <string name="nc_master_signer_new_index_not_available">New account data needed. Please use the desktop app to connect your device so that the new account can be loaded.</string>
-    <string name="nc__2_of_4_multisig_without_inheritance_planning">2-of-4 multisig without inheritance planning</string>
+    <string name="nc_2_of_4_multisig_without_inheritance_planning">2-of-4 multisig without inheritance planning</string>
     <string name="nc_2_of_4_no_inheritance_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key.</string>
     <string name="nc_key_recovery_approved">Key recovery approved</string>
     <string name="nc_key_recovery_request_sent">Key recovery request sent</string>
@@ -307,4 +307,8 @@
     <string name="nc_approve">Approve</string>
     <string name="nc_coldcard_index_not_match">The account imported does not match the account that you entered (%1$d). Please try again.</string>
     <string name="nc_new_account_needed_airgap">New account data needed. Please import your key again using the given account.</string>
+    <string name="nc_3_of_5_multisig_with_inheritance_planning">3-of-5 multisig with inheritance planning</string>
+    <string name="nc_3_of_5_multisig_without_inheritance_planning">3-of-5 multisig without inheritance planning</string>
+    <string name="nc_3_of_5_multisig_with_inheritance_planning_desc">A master account and secondary account(s) control four keys; Nunchuk holds the fifth key on a secure server to assist in inheritance planning and daily wallet operation.</string>
+    <string name="nc_3_of_5_multisig_without_inheritance_planning_desc">A master account and secondary account(s) control four keys; Nunchuk holds the fifth key on a secure server to assist in daily wallet operation.</string>
 </resources>

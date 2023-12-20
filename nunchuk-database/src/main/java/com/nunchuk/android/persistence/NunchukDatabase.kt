@@ -23,8 +23,28 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.nunchuk.android.persistence.dao.*
-import com.nunchuk.android.persistence.entity.*
+import com.nunchuk.android.persistence.dao.AlertDao
+import com.nunchuk.android.persistence.dao.AssistedWalletDao
+import com.nunchuk.android.persistence.dao.ContactDao
+import com.nunchuk.android.persistence.dao.DummyTransactionDao
+import com.nunchuk.android.persistence.dao.GroupDao
+import com.nunchuk.android.persistence.dao.HandledEventDao
+import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
+import com.nunchuk.android.persistence.dao.MembershipStepDao
+import com.nunchuk.android.persistence.dao.RequestAddKeyDao
+import com.nunchuk.android.persistence.dao.SyncEventDao
+import com.nunchuk.android.persistence.dao.SyncFileDao
+import com.nunchuk.android.persistence.entity.AlertEntity
+import com.nunchuk.android.persistence.entity.AssistedWalletEntity
+import com.nunchuk.android.persistence.entity.ContactEntity
+import com.nunchuk.android.persistence.entity.DummyTransactionEntity
+import com.nunchuk.android.persistence.entity.GroupEntity
+import com.nunchuk.android.persistence.entity.HandledEventEntity
+import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
+import com.nunchuk.android.persistence.entity.MembershipStepEntity
+import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
+import com.nunchuk.android.persistence.entity.SyncEventEntity
+import com.nunchuk.android.persistence.entity.SyncFileEntity
 import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
 
 @Database(
@@ -56,6 +76,8 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         AutoMigration(from = 14, to = 15),
         AutoMigration(from = 15, to = 16),
         AutoMigration(from = 16, to = 17),
+        AutoMigration(from = 17, to = 18),
+        AutoMigration(from = 18, to = 19),
     ]
 )
 @TypeConverters(Converters::class)

@@ -147,6 +147,7 @@ internal fun GroupResponse.toByzantineGroup(): ByzantineGroup {
                     )
                 })
         } ?: emptyList(),
+        slug = slug.orEmpty()
     )
 }
 
@@ -272,7 +273,8 @@ internal fun GroupResponse.toGroupEntity(chatId: String, chain: Chain, groupDao:
         chain = chain,
         setupPreference = setupPreference.orEmpty(),
         walletConfig = gson.toJson(walletConfig),
-        isLocked = isLocked.orFalse()
+        isLocked = isLocked.orFalse(),
+        slug = slug.orEmpty()
     )
 }
 
@@ -289,6 +291,7 @@ internal fun GroupEntity.toByzantineGroup(): ByzantineGroup {
         isViewPendingWallet = isViewPendingWallet,
         setupPreference = setupPreference,
         walletConfig = walletConfig,
-        isLocked = isLocked
+        isLocked = isLocked,
+        slug = slug
     )
 }

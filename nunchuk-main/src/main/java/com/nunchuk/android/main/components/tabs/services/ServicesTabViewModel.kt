@@ -44,11 +44,9 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
-import com.nunchuk.android.model.byzantine.isPremier
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.model.membership.AssistedWalletBrief
-import com.nunchuk.android.model.toGroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetGroupsUseCase
@@ -435,7 +433,7 @@ class ServicesTabViewModel @Inject constructor(
 
     fun isShowClaimInheritanceLayout(): Boolean {
         if (state.value.plan == MembershipPlan.HONEY_BADGER || state.value.plan == MembershipPlan.IRON_HAND) return false
-        if (state.value.allGroups.any { it.walletConfig.toGroupWalletType()?.isPremier() == true } || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
+        if (state.value.allGroups.any { it.isPremier() } || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
         if (state.value.userRole.toRole == AssistedWalletRole.OBSERVER) return true
         if (isNoByzantineWallet()) return true
         if (state.value.plan == MembershipPlan.NONE && state.value.joinedGroups.isEmpty()) return true

@@ -13,5 +13,5 @@ data class ByzantineWalletConfig(
 ) : Parcelable
 
 fun ByzantineWalletConfig.toGroupWalletType(): GroupWalletType? {
-    return GroupWalletType.values().find { it.m == m && it.n == n && it.requiredServerKey == requiredServerKey && it.allowInheritance == allowInheritance }
+    return GroupWalletType.entries.find { it.m == m && it.n == n && it.requiredServerKey == requiredServerKey && it.allowInheritance == allowInheritance }
 }

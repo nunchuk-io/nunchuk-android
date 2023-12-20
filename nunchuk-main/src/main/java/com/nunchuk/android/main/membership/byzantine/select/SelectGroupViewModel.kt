@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SelectGroupViewModel @Inject constructor(
     private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
-    membershipStepManager: MembershipStepManager,
+    private val membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SelectGroupUiState(plan = membershipStepManager.plan))
     val state = _state.asStateFlow()
@@ -46,8 +46,16 @@ class SelectGroupViewModel @Inject constructor(
     }
 
     fun checkGroupTypeAvailable(groupWalletType: GroupWalletType): Boolean {
+        if (membershipStepManager.plan == MembershipPlan.BYZANTINE_PREMIER) {
+            return (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG && state.value.remainingByzantineProWallet > 0)
+                    || (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE && state.value.remainingByzantineProWallet > 0)
+                    || (groupWalletType == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY && state.value.remainingByzantinePremier > 0)
+                    || (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE && state.value.remainingByzantinePremier > 0)
+                    || state.value.remainingByzantineWallet > 0
+        }
         return (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG && state.value.remainingByzantineProWallet > 0)
-                || (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE && state.value.remainingByzantinePremier > 0)
+                || (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE && state.value.remainingByzantineProWallet > 0)
+                || (groupWalletType == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY && state.value.remainingByzantineProWallet > 0)
                 || state.value.remainingByzantineWallet > 0
     }
 }

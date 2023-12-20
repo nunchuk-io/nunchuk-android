@@ -29,9 +29,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.byzantine.isPremier
 import com.nunchuk.android.model.membership.AssistedWalletBrief
-import com.nunchuk.android.model.toGroupWalletType
 import kotlinx.parcelize.Parcelize
 
 sealed class ServicesTabEvent {
@@ -303,7 +301,7 @@ data class ServicesTabState(
     }
 
     private fun hasPremierGroupWallet(): Boolean {
-        return allGroups.any { group -> group.walletConfig.toGroupWalletType()?.isPremier() == true }
+        return allGroups.any { group -> group.isPremier() }
     }
 
     private fun isShowEmptyState(): Boolean {

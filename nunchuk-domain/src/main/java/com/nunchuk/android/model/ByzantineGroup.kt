@@ -14,11 +14,14 @@ data class ByzantineGroup(
     val status: String,
     val walletConfig: ByzantineWalletConfig,
     val isViewPendingWallet: Boolean,
-    val isLocked: Boolean
+    val isLocked: Boolean,
+    val slug: String,
 ) : Parcelable {
     fun isPendingWallet() = status == GroupStatus.PENDING_WALLET.name
 
     fun isSinglePersonSetup() = setupPreference == ByzantinePreferenceSetup.SINGLE_PERSON.name
 
     fun getMasterName() : String = members.find { it.role == AssistedWalletRole.MASTER.name }?.user?.name.orEmpty()
+
+    fun isPremier() = slug.toMembershipPlan() == MembershipPlan.BYZANTINE_PREMIER
 }

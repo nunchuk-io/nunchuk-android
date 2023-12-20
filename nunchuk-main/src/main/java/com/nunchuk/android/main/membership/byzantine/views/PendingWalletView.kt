@@ -52,6 +52,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.User
 import com.nunchuk.android.model.Wallet
@@ -567,7 +568,8 @@ fun PendingWalletViewPreview() {
         isLocked = false,
         walletConfig = ByzantineWalletConfig(
             m = 2, n = 4, requiredServerKey = true, allowInheritance = true
-        )
+        ),
+        slug = MembershipPlan.BYZANTINE_PREMIER.name
     )
     val members = group.members.map {
         ByzantineMember(
@@ -592,7 +594,8 @@ fun PendingWalletViewPreview() {
                     isViewPendingWallet = true,
                     walletConfig = group.walletConfig,
                     setupPreference = group.setupPreference,
-                    isLocked = false
+                    isLocked = false,
+                    slug = MembershipPlan.BYZANTINE_PREMIER.name
                 ),
             )
         }
