@@ -38,7 +38,6 @@ import com.nunchuk.android.core.data.model.InheritanceClaimClaimRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
-import com.nunchuk.android.core.data.model.InheritanceRequestPlanningPayload
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
@@ -132,6 +131,7 @@ import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.toGroupWalletType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletBriefExt
 import com.nunchuk.android.model.membership.AssistedWalletConfig
@@ -1694,7 +1694,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ) {
         val index = step.toIndex()
         val signerDto = mapToServerSignerDto(
-            signer, step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+            signer, step.isAddInheritanceKey
         ).copy(index = index)
         val response = userWalletApiManager.groupWalletApi.addKeyToServer(groupId, signerDto)
         if (response.isSuccess.not()) {

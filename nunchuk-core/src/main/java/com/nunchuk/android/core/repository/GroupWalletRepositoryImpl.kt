@@ -23,6 +23,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.SimilarGroup
 import com.nunchuk.android.model.toVerifyType
@@ -114,8 +115,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             } else {
                 val step = when (key.index) {
-                    0 -> if (draftWallet.walletConfig?.n == 4 && draftWallet.walletConfig.allowInheritance) MembershipStep.BYZANTINE_ADD_TAP_SIGNER else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
-                    1 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
+                    0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_TAP_SIGNER else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
+                    1 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
                     2 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
                     3 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
                     4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4

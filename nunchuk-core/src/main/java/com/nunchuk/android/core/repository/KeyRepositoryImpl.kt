@@ -33,6 +33,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
@@ -145,7 +146,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 )
                 if (groupId.isNotEmpty()) {
                     if (signer == null) throw NullPointerException("Can not get signer by index $newIndex")
-                    val isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+                    val isInheritance = step.isAddInheritanceKey
                     val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
                     val keyResponse = userWalletApiManager.groupWalletApi.addKeyToServer(
                         groupId = groupId,
@@ -161,7 +162,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                                 version = status.version.orEmpty(),
                                 birthHeight = status.birthHeight,
                                 isTestnet = status.isTestNet,
-                                isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+                                isInheritance = isInheritance
                             ),
                             tags = if (isInheritance) listOf(
                                 SignerTag.INHERITANCE.name
