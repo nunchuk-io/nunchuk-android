@@ -79,6 +79,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
+import com.nunchuk.android.core.util.toReadableSignerType
+import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
@@ -545,19 +547,22 @@ fun AddKeyCard(
                         text = item.signer.name,
                         style = NunchukTheme.typography.body
                     )
-                    if (item.signer.type == SignerType.NFC) {
-                        val label = when (item.verifyType) {
-                            VerifyType.NONE -> stringResource(id = R.string.nc_un_verify_backup)
-                            VerifyType.APP_VERIFIED -> stringResource(id = R.string.nc_verified_backup)
-                            VerifyType.SELF_VERIFIED -> stringResource(id = R.string.nc_self_verified_backup)
-                        }
+                    Row(modifier = Modifier.padding(top = 4.dp)) {
                         NcTag(
-                            modifier = Modifier.padding(top = 4.dp),
-                            label = label,
+                            label = item.signer.toReadableSignerType(context = LocalContext.current),
                             backgroundColor = colorResource(
                                 id = R.color.nc_whisper_color
                             ),
                         )
+                        if (item.signer.isShowAcctX()) {
+                            NcTag(
+                                modifier = Modifier.padding(start = 4.dp),
+                                label = stringResource(R.string.nc_acct_x, item.signer.index),
+                                backgroundColor = colorResource(
+                                    id = R.color.nc_whisper_color
+                                ),
+                            )
+                        }
                     }
                     Text(
                         modifier = Modifier.padding(top = 4.dp),

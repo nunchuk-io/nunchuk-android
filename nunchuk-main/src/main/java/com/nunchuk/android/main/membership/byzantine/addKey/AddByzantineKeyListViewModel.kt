@@ -44,6 +44,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.FindSimilarGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.ReuseGroupWalletUseCase
@@ -83,6 +84,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val reuseGroupWalletUseCase: ReuseGroupWalletUseCase,
     private val pushEventManager: PushEventManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
+    private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -153,13 +155,20 @@ class AddByzantineKeyListViewModel @Inject constructor(
         }
     }
 
-    private fun updateKeyData() {
+    private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
-        val signers = _state.value.signers
+        val signers = _state.value.`signers`
         val news = key.value.map { addKeyData ->
             val info = getStepInfo(addKeyData.type)
+            var signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null
+            if (signer != null) {
+                runCatching {
+                    val extra = gson.fromJson(info.extraData, SignerExtra::class.java)
+                    signer = signer?.copy(index = getIndexFromPathUseCase(extra.derivationPath).getOrDefault(0))
+                }
+            }
             addKeyData.copy(
-                signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null,
+                signer = signer,
                 verifyType = info.verifyType
             )
         }
