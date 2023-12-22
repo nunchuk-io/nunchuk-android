@@ -106,6 +106,7 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                     viewModel.setKeyVerified((requireActivity() as NfcSetupActivity).groupId)
                                 },
                             )
+
                         is ShowError -> showError(event.e?.message.orUnknownError())
                         is GetBackUpKeySuccess -> IntentSharingController.from(requireActivity())
                             .shareFile(event.filePath)
@@ -136,13 +137,19 @@ private fun CheckBackUpBySelfContent(
     onLinkClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            modifier = Modifier
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
+            }
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding(),
+                    .fillMaxWidth()
+                    .padding(innerPadding)
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_verify_the_backup_yourself),

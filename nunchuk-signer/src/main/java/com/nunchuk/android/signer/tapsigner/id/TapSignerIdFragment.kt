@@ -124,7 +124,8 @@ class TapSignerIdFragment : MembershipFragment() {
         findNavController().navigate(
             TapSignerIdFragmentDirections.actionTapSignerIdFragmentToUploadBackUpTapSignerFragment(
                 filePath = filePath,
-                masterSignerId = args.masterSignerId
+                masterSignerId = args.masterSignerId,
+                isOldKey = true
             )
         )
     }

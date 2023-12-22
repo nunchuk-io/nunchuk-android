@@ -483,6 +483,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 description = walletServer.description.orEmpty()
             }
             nunchukNativeSdk.createWallet2(wallet)
+        } else {
+            walletServer.signerServerDtos.forEach { signer ->
+                saveServerSignerIfNeed(signer)
+            }
         }
         val wallet = nunchukNativeSdk.getWallet(walletServer.localId.orEmpty())
         walletServer.signerServerDtos.forEach { signer ->
@@ -1918,8 +1922,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     private suspend fun deleteAssistedWallets(groupIds: Set<String>): Boolean {
-        val localGroupWallets = assistedWalletDao.getAssistedWallets().filter { it.groupId.isNotEmpty() }
-        val deleteGroupIds = localGroupWallets.map { it.groupId }.filter { groupId -> groupIds.isEmpty() || groupIds.contains(groupId).not() }
+        val localGroupWallets =
+            assistedWalletDao.getAssistedWallets().filter { it.groupId.isNotEmpty() }
+        val deleteGroupIds = localGroupWallets.map { it.groupId }
+            .filter { groupId -> groupIds.isEmpty() || groupIds.contains(groupId).not() }
         assistedWalletDao.deletes(localGroupWallets.filter { deleteGroupIds.contains(it.groupId) })
 
         localGroupWallets.filter { deleteGroupIds.contains(it.groupId) }
@@ -2060,7 +2066,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getAlerts(groupId: String): Flow<List<Alert>> {
-        return alertDao.getAlertsFlow(groupId, chatId = accountManager.getAccount().chatId, chain.value)
+        return alertDao.getAlertsFlow(
+            groupId,
+            chatId = accountManager.getAccount().chatId,
+            chain.value
+        )
             .map { alerts ->
                 alerts.map { alert ->
                     alert.toAlert()
@@ -2239,7 +2249,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             securityQuestionToken = securityQuestionToken,
             confirmCodeToken = confirmCodeToken
         )
-        val response = userWalletApiManager.walletApi.requestRecoverKey(headers, id = xfp, payload = request)
+        val response =
+            userWalletApiManager.walletApi.requestRecoverKey(headers, id = xfp, payload = request)
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -2254,7 +2265,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun markKeyAsRecovered(xfp: String, status: String) {
-        val response = userWalletApiManager.walletApi.markRecoverStatus(xfp, MarkRecoverStatusRequest(status))
+        val response =
+            userWalletApiManager.walletApi.markRecoverStatus(xfp, MarkRecoverStatusRequest(status))
         if (response.isSuccess.not()) {
             throw response.error
         }

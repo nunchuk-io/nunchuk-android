@@ -138,6 +138,7 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
                 )
             } else {
                 openSetupTapSigner()
+                findNavController().popBackStack()
             }
         }
     }
@@ -148,7 +149,6 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
             fromMembershipFlow = true,
             groupId = (activity as MembershipActivity).groupId
         )
-        findNavController().popBackStack()
     }
 }
 
