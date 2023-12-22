@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.byzantine.groupdashboard
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
@@ -33,6 +34,7 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.transaction.AlertPayload
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
@@ -104,8 +106,8 @@ class GroupDashboardViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase,
     private val recoverKeyUseCase: RecoverKeyUseCase,
-    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
     private val pushEventManager: PushEventManager,
+    private val gson: Gson,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)

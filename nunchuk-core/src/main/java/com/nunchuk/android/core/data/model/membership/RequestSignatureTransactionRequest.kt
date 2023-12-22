@@ -17,16 +17,11 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.share.model
+package com.nunchuk.android.core.data.model.membership
 
-enum class TransactionOption {
-    CANCEL,
-    EXPORT_TRANSACTION,
-    IMPORT_TRANSACTION,
-    REQUEST_SIGNATURE,
-    REPLACE_BY_FEE,
-    COPY_TRANSACTION_ID,
-    COPY_RAW_TRANSACTION_HEX,
-    REMOVE_TRANSACTION,
-    SCHEDULE_BROADCAST,
-}
+import com.google.gson.annotations.SerializedName
+
+class RequestSignatureTransactionRequest(
+    @SerializedName("membership_id")
+    val membershipId: String,
+)

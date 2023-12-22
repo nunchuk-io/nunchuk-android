@@ -168,7 +168,8 @@ internal fun AlertResponse.toAlert(): Alert {
             keyXfp = payload?.keyXfp.orEmpty(),
             paymentName = payload?.paymentName.orEmpty(),
             requestId = payload?.requestId.orEmpty(),
-            membershipId = payload?.membershipId.orEmpty()
+            membershipId = payload?.membershipId.orEmpty(),
+            transactionId = payload?.transactionId.orEmpty(),
         )
     )
 }

@@ -35,6 +35,7 @@ import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.data.model.membership.PermissionResponse
 import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
+import com.nunchuk.android.core.data.model.membership.RequestSignatureTransactionRequest
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
@@ -319,6 +320,14 @@ internal interface GroupWalletApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: ScheduleTransactionRequest,
     ): Data<TransactionResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/request-signature")
+    suspend fun requestSignatureTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: RequestSignatureTransactionRequest,
+    ): Data<*>
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/sync")
     suspend fun syncTransaction(

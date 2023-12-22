@@ -24,4 +24,6 @@ data class AlertPayload(
     val requestId: String,
     @SerializedName("membership_id")
     val membershipId: String,
+    @SerializedName("transaction_id")
+    val transactionId: String,
 ): Parcelable

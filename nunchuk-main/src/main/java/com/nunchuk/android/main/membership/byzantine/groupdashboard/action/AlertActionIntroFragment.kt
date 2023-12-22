@@ -283,7 +283,8 @@ private fun AlertActionIntroScreenPreview() {
                 claimKey = false,
                 keyXfp = "keyXfp",
                 requestId = "123",
-                membershipId = "123"
+                membershipId = "123",
+                transactionId = "123"
             ),
             body = "There is a health check request for [key name].",
             createdTimeMillis = 0,

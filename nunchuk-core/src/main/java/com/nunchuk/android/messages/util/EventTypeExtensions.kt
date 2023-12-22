@@ -58,7 +58,7 @@ const val GROUP_EMERGENCY_LOCKDOWN_STARTED = "io.nunchuk.custom.group_emergency_
 const val WALLET_INHERITANCE_PLANNING_REQUEST_DENIED = "io.nunchuk.custom.wallet_inheritance_planning_request_denied"
 const val KEY_RECOVERY_REQUEST = "io.nunchuk.custom.key_recovery_request"
 const val KEY_RECOVERY_APPROVED = "io.nunchuk.custom.key_recovery_approved"
-const val KEY_RECOVERY_SUCCESS = "io.nunchuk.custom.key_recovery_success"
+const val TRANSACTION_SIGNATURE_REQUEST = "io.nunchuk.custom.transaction_signature_request"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
     return if (isSupportRoom.not()) {
@@ -136,6 +136,8 @@ fun TimelineEvent.getTransactionId() = root.getClearContent()?.get("transaction_
 
 fun TimelineEvent.getWalletId() = root.getClearContent()?.get("wallet_local_id")?.toString()
 fun TimelineEvent.getGroupId() = root.getClearContent()?.get("group_id")?.toString()
+fun TimelineEvent.getTitle() = root.getClearContent()?.get("title")?.toString()
+fun TimelineEvent.getContent() = root.getClearContent()?.get("content")?.toString()
 
 fun TimelineEvent.isGroupMembershipRequestEvent() =
     getMsgType() == GROUP_MEMBERSHIP_REQUEST_ACCEPTED || getMsgType() == GROUP_MEMBERSHIP_REQUEST_DENIED
@@ -160,3 +162,6 @@ fun TimelineEvent.isKeyRecoveryRequest() =
 
 fun TimelineEvent.isKeyRecoveryApproved() =
     getMsgType() == KEY_RECOVERY_APPROVED
+
+fun TimelineEvent.isTransactionSignatureRequest() =
+    getMsgType() == TRANSACTION_SIGNATURE_REQUEST

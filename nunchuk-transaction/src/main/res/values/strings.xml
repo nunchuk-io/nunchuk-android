@@ -72,4 +72,6 @@
     <string name="nc_estimated_fee_tooltip">The estimated fee is calculated using current market conditions. You can set your own fee via the fee settings below.</string>
     <string name="nc_transaction_include_unconfirmed_coins">This transaction includes unconfirmed coins.</string>
     <string name="nc_co_signing_in_progress">Co-signing in progress…</string>
+    <string name="nc_request_signature_dialog_title">Whom do you like to request signature from?</string>
+    <string name="nc_request_signature_sent">Signature request sent</string>
 </resources>

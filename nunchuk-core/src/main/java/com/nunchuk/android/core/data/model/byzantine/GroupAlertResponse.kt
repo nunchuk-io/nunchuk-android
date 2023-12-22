@@ -50,4 +50,6 @@ data class PayloadResponse(
     val requestId: String? = null,
     @SerializedName("membership_id")
     val membershipId: String? = null,
+    @SerializedName("transaction_id")
+    val transactionId: String? = null,
 )

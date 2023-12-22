@@ -39,6 +39,7 @@ import com.nunchuk.android.share.model.TransactionOption.EXPORT_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.IMPORT_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
+import com.nunchuk.android.share.model.TransactionOption.REQUEST_SIGNATURE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
@@ -88,6 +89,12 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
         binding.btnImport.isVisible = args.isPending
         binding.btnImport.setOnClickListener {
             listener(IMPORT_TRANSACTION)
+            dismiss()
+        }
+
+        binding.btnRequestSignature.isVisible = args.isPending
+        binding.btnRequestSignature.setOnClickListener {
+            listener(REQUEST_SIGNATURE)
             dismiss()
         }
 

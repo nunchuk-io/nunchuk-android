@@ -28,9 +28,11 @@ import com.nunchuk.android.core.domain.message.HandlePushMessageUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.isAtLeastStarted
+import com.nunchuk.android.messages.util.getContent
 import com.nunchuk.android.messages.util.getGroupId
 import com.nunchuk.android.messages.util.getLastMessageContentSafe
 import com.nunchuk.android.messages.util.getMsgBody
+import com.nunchuk.android.messages.util.getTitle
 import com.nunchuk.android.messages.util.getTransactionId
 import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.isContactUpdateEvent
@@ -44,6 +46,7 @@ import com.nunchuk.android.messages.util.isNunchukWalletEvent
 import com.nunchuk.android.messages.util.isTransactionReceived
 import com.nunchuk.android.messages.util.isTransactionScheduleMissingSignaturesEvent
 import com.nunchuk.android.messages.util.isTransactionScheduleNetworkRejectedEvent
+import com.nunchuk.android.messages.util.isTransactionSignatureRequest
 import com.nunchuk.android.messages.util.isWalletInheritancePlanningRequestDenied
 import com.nunchuk.android.messages.util.lastMessageContent
 import com.nunchuk.android.messages.util.lastMessageSender
@@ -53,7 +56,9 @@ import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.trySafe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -299,6 +304,15 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 id = localId,
                 title = getString(R.string.nc_notification_key_recovery_approved),
                 message = message,
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        isTransactionSignatureRequest() -> {
+            PushNotificationData(
+                id = localId,
+                title = getTitle().orEmpty(),
+                message = getContent().orEmpty(),
                 intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
             )
         }

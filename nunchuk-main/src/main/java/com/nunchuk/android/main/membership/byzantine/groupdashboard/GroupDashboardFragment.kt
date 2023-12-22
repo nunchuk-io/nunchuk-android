@@ -379,19 +379,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 }
 
                 is GroupDashboardEvent.GroupDummyTransactionPayloadSuccess -> {
-                    if (event.dummyTransactionPayload.requestByUserId == viewModel.getUserId()) {
-                        openWalletAuthentication(
-                            dummyTransactionId = event.dummyTransactionPayload.dummyTransactionId,
-                            requiredSignatures = event.dummyTransactionPayload.requiredSignatures,
-                        )
-                    } else {
-                        findNavController().navigate(
-                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                                args.groupId,
-                                viewModel.getWalletId(),
-                                event.alert
-                            )
-                        )
+                    if (event.alert.type ==  AlertType.TRANSACTION_SIGNATURE_REQUEST) {
+
                     }
                 }
             }
@@ -509,6 +498,12 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     viewModel.getWalletId(),
                     alert.payload.dummyTransactionId
                 )
+            )
+        } else if (alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST) {
+            navigator.openTransactionDetailsScreen(
+                activityContext = requireActivity(),
+                walletId = viewModel.getWalletId(),
+                txId = alert.payload.transactionId,
             )
         }
     }

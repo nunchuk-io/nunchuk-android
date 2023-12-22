@@ -36,6 +36,7 @@ import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
 import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransactionUseCase
+import com.nunchuk.android.core.domain.membership.RequestSignatureTransactionUseCase
 import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
@@ -160,6 +161,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val getRawTransactionUseCase: GetRawTransactionUseCase,
+    private val requestSignatureTransactionUseCase: RequestSignatureTransactionUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
@@ -775,6 +777,20 @@ internal class TransactionDetailsViewModel @Inject constructor(
             setEvent(GetRawTransactionSuccess(result.getOrThrow()))
         } else {
             setEvent(TransactionError(result.exceptionOrNull()?.readableMessage().orUnknownError()))
+        }
+    }
+
+    fun requestSignatureTransaction(membershipId: String) = viewModelScope.launch {
+        setEvent(LoadingEvent)
+        val result = requestSignatureTransactionUseCase(RequestSignatureTransactionUseCase.Param(
+            groupId = assistedWalletManager.getGroupId(walletId).orEmpty(),
+            walletId = walletId,
+            transactionId = txId,
+            membershipId = membershipId
+        )).onSuccess {
+            setEvent(TransactionDetailsEvent.RequestSignatureTransactionSuccess)
+        }.onFailure {
+            setEvent(TransactionError(it.readableMessage().orUnknownError()))
         }
     }
 

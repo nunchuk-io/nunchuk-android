@@ -17,16 +17,32 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.share.model
+package com.nunchuk.android.core.domain.membership
 
-enum class TransactionOption {
-    CANCEL,
-    EXPORT_TRANSACTION,
-    IMPORT_TRANSACTION,
-    REQUEST_SIGNATURE,
-    REPLACE_BY_FEE,
-    COPY_TRANSACTION_ID,
-    COPY_RAW_TRANSACTION_HEX,
-    REMOVE_TRANSACTION,
-    SCHEDULE_BROADCAST,
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
+
+class RequestSignatureTransactionUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletRepository: PremiumWalletRepository,
+) : UseCase<RequestSignatureTransactionUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        return userWalletRepository.requestSignatureTransaction(
+            parameters.groupId,
+            parameters.walletId,
+            parameters.transactionId,
+            parameters.membershipId
+        )
+    }
+
+    class Param(
+        val groupId: String,
+        val walletId: String,
+        val transactionId: String,
+        val membershipId: String
+    )
 }

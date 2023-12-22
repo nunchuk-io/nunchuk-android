@@ -431,4 +431,5 @@ interface PremiumWalletRepository {
     suspend fun markKeyAsRecovered(xfp: String, status: String)
     suspend fun denyInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
     suspend fun approveInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
+    suspend fun requestSignatureTransaction(groupId: String, walletId: String, transactionId: String, membershipId: String)
 }

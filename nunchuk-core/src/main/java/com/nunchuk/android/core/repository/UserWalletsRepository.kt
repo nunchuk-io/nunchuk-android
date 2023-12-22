@@ -60,6 +60,7 @@ import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransa
 import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
+import com.nunchuk.android.core.data.model.membership.RequestSignatureTransactionRequest
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
@@ -997,7 +998,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val transaction =
             response.data.transaction ?: throw NullPointerException("transaction from server null")
-        return TransactionAdditional(psbt = transaction.psbt.orEmpty(), status = transaction.status.toTransactionStatus())
+        return TransactionAdditional(
+            psbt = transaction.psbt.orEmpty(),
+            status = transaction.status.toTransactionStatus()
+        )
     }
 
     override suspend fun inheritanceCheck(): InheritanceCheck {
@@ -1321,6 +1325,25 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             ?: throw NullPointerException("Schedule transaction does not return server transaction")
         updateScheduleTransactionIfNeed(walletId, transactionId, serverTransaction)
         return serverTransaction.toServerTransaction()
+    }
+
+    override suspend fun requestSignatureTransaction(
+        groupId: String,
+        walletId: String,
+        transactionId: String,
+        membershipId: String
+    ) {
+        val response = userWalletApiManager.groupWalletApi.requestSignatureTransaction(
+            groupId = groupId,
+            walletId = walletId,
+            transactionId = transactionId,
+            payload = RequestSignatureTransactionRequest(
+                membershipId = membershipId
+            )
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
     }
 
     override suspend fun deleteScheduleTransaction(

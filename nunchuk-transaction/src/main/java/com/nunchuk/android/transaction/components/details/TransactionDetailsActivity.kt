@@ -29,6 +29,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.core.manager.NcToastManager
@@ -56,11 +57,13 @@ import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
 import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
 import com.nunchuk.android.share.model.TransactionOption.COPY_TRANSACTION_ID
@@ -70,6 +73,7 @@ import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.details.RequestSignatureMemberFragment.Companion.EXTRA_MEMBER_ID
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.DeleteTransactionSuccess
@@ -91,6 +95,8 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
+import com.nunchuk.android.transaction.components.schedule.timezone.SelectTimeZoneFragment
+import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerTag
@@ -345,6 +351,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.switchShowInputCoin.setOnClickListener {
             viewModel.toggleShowInputCoin()
         }
+
+        supportFragmentManager.setFragmentResultListener(
+            RequestSignatureMemberFragment.REQUEST_KEY,
+            this
+        ) { requestKey, result ->
+            if (requestKey == RequestSignatureMemberFragment.REQUEST_KEY) {
+                val memberId = result.getString(EXTRA_MEMBER_ID)
+                viewModel.requestSignatureTransaction(memberId.orEmpty())
+            }
+        }
     }
 
     private fun handleMenuMore() {
@@ -580,6 +596,10 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             ImportTransactionSuccess -> NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
             NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
             is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
+            TransactionDetailsEvent.RequestSignatureTransactionSuccess -> {
+                hideLoading()
+                NCToastMessage(this).show(getString(R.string.nc_request_signature_sent))
+            }
         }
     }
 
@@ -656,6 +676,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                             args.walletId,
                             args.txId,
                         )
+                    )
+                }
+
+                TransactionOption.REQUEST_SIGNATURE -> {
+                    RequestSignatureMemberFragment.show(
+                        supportFragmentManager,
+                        args.walletId
                     )
                 }
             }
