@@ -635,10 +635,6 @@ class GroupDashboardViewModel @Inject constructor(
         return (_state.value.inheritanceOwnerId.isNullOrEmpty() || isInheritanceOwner()) && state.value.isHasPendingRequestInheritance.not()
     }
 
-    fun getUserId(): String {
-        return accountManager.getAccount().id
-    }
-
     fun setInheritanceRequestByMe() {
         _state.update { state ->
             state.copy(

@@ -32,6 +32,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmFragment
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.membership.MembershipActivity
@@ -95,15 +96,19 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
     private val inheritanceLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                val dummyTransactionId =
-                    it.data?.getStringExtra(GlobalResultKey.DUMMY_TX_ID).orEmpty()
-                val requiredSignatures =
-                    it.data?.getIntExtra(GlobalResultKey.REQUIRED_SIGNATURES, 0) ?: 0
-                if (dummyTransactionId.isNotEmpty()) {
-                    openWalletAuthentication(
-                        dummyTransactionId = dummyTransactionId,
-                        requiredSignatures = requiredSignatures,
-                    )
+                if (it.data?.getBooleanExtra(InheritancePlanningActivity.RESULT_REQUEST_PLANNING, false) == true) {
+                    viewModel.setInheritanceRequestByMe()
+                } else {
+                    val dummyTransactionId =
+                        it.data?.getStringExtra(GlobalResultKey.DUMMY_TX_ID).orEmpty()
+                    val requiredSignatures =
+                        it.data?.getIntExtra(GlobalResultKey.REQUIRED_SIGNATURES, 0) ?: 0
+                    if (dummyTransactionId.isNotEmpty()) {
+                        openWalletAuthentication(
+                            dummyTransactionId = dummyTransactionId,
+                            requiredSignatures = requiredSignatures,
+                        )
+                    }
                 }
             }
         }
@@ -270,10 +275,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             }
             clearFragmentResult(AlertActionIntroFragment.REQUEST_KEY)
         }
-        setFragmentResultListener(InheritanceRequestPlanningConfirmFragment.REQUEST_KEY) { _, bundle ->
-            viewModel.setInheritanceRequestByMe()
-            clearFragmentResult(InheritanceRequestPlanningConfirmFragment.REQUEST_KEY)
-        }
+
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is GroupDashboardEvent.Error -> showError(message = event.message)
@@ -360,11 +362,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
 
                 is GroupDashboardEvent.CalculateRequiredSignaturesSuccess -> {
                     if (event.type == "NONE") {
-                        findNavController().navigate(
-                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToInheritanceRequestPlanningConfirmFragment(
-                                groupId = args.groupId,
-                                walletId = viewModel.getWalletId(),
-                            )
+                        navigator.openInheritancePlanningScreen(
+                            walletId = viewModel.getWalletId(),
+                            activityContext = requireContext(),
+                            flowInfo = InheritancePlanFlow.REQUEST,
+                            groupId = args.groupId,
+                            sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
+                            launcher = inheritanceLauncher
                         )
                     }
                 }
@@ -376,12 +380,6 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                             backupKey = event.backupKey
                         )
                     )
-                }
-
-                is GroupDashboardEvent.GroupDummyTransactionPayloadSuccess -> {
-                    if (event.alert.type ==  AlertType.TRANSACTION_SIGNATURE_REQUEST) {
-
-                    }
                 }
             }
         }

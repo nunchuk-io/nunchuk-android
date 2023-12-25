@@ -28,13 +28,15 @@ object InheritancePlanFlow {
     const val VIEW = 2
     const val CLAIM = 3
     const val SIGN_DUMMY_TX = 4
+    const val REQUEST = 5
 
     @IntDef(
         NONE,
         SETUP,
         VIEW,
         CLAIM,
-        SIGN_DUMMY_TX
+        SIGN_DUMMY_TX,
+        REQUEST
     )
     @Retention(AnnotationRetention.SOURCE)
     annotation class InheritancePlanFlowInfo

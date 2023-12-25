@@ -66,10 +66,7 @@ sealed class ServicesTabEvent {
     data class CalculateRequiredSignaturesSuccess(
         val type: String,
         val walletId: String,
-        val groupId: String,
-        val userData: String,
-        val requiredSignatures: Int,
-        val dummyTransactionId: String
+        val groupId: String
     ) : ServicesTabEvent()
 }
 

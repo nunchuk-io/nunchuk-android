@@ -31,6 +31,7 @@ import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUser
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardEvent
 import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
@@ -92,7 +93,6 @@ class ServicesTabViewModel @Inject constructor(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
-    private val requestPlanningInheritanceUseCase: RequestPlanningInheritanceUseCase,
     private val requestPlanningInheritanceUserDataUseCase: RequestPlanningInheritanceUserDataUseCase,
 ) : ViewModel() {
 
@@ -331,12 +331,6 @@ class ServicesTabViewModel @Inject constructor(
     private fun calculateRequiredSignatures(walletId: String, groupId: String) {
         viewModelScope.launch {
             _event.emit(ServicesTabEvent.Loading(true))
-            val userData = requestPlanningInheritanceUserDataUseCase(
-                RequestPlanningInheritanceUserDataUseCase.Param(
-                    walletId = walletId,
-                    groupId = groupId
-                )
-            )
             calculateRequiredSignaturesInheritanceUseCase(
                 CalculateRequiredSignaturesInheritanceUseCase.Param(
                     walletId = walletId,
@@ -344,26 +338,7 @@ class ServicesTabViewModel @Inject constructor(
                     groupId = groupId
                 )
             ).onSuccess { resultCalculate ->
-                requestPlanningInheritanceUseCase(
-                    RequestPlanningInheritanceUseCase.Param(
-                        userData = userData.getOrThrow(),
-                        walletId = walletId,
-                        groupId = groupId
-                    )
-                ).onSuccess {
-                    _event.emit(
-                        ServicesTabEvent.CalculateRequiredSignaturesSuccess(
-                            type = resultCalculate.type,
-                            walletId = walletId,
-                            groupId = groupId,
-                            userData = userData.getOrThrow(),
-                            requiredSignatures = resultCalculate.requiredSignatures,
-                            dummyTransactionId = it
-                        )
-                    )
-                }.onFailure {
-                    _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
-                }
+                _event.emit(ServicesTabEvent.CalculateRequiredSignaturesSuccess(type = resultCalculate.type, walletId = walletId, groupId = groupId))
             }.onFailure {
                 _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
             }

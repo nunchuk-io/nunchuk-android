@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -34,6 +36,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -72,10 +75,9 @@ class InheritanceRequestPlanningConfirmFragment : Fragment() {
                         }
 
                         InheritanceRequestPlanningConfirmEvent.RequestInheritanceSuccess -> {
-                            setFragmentResult(
-                                REQUEST_KEY,
-                                bundleOf(EXTRA_REQUEST_SUCCESS to true)
-                            )
+                            requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                                putExtra(InheritancePlanningActivity.RESULT_REQUEST_PLANNING, true)
+                            })
                             findNavController().navigate(
                                 InheritanceRequestPlanningConfirmFragmentDirections
                                     .actionInheritanceRequestPlanningConfirmFragmentToInheritanceRequestPlanningSentSuccessFragment()

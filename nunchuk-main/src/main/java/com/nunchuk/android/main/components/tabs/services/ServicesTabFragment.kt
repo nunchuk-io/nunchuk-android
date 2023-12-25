@@ -127,15 +127,17 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     sourceFlow = InheritanceSourceFlow.SERVICE_TAB
                 )
 
-                is ServicesTabEvent.CalculateRequiredSignaturesSuccess -> navigator.openWalletAuthentication(
-                    walletId = event.walletId,
-                    userData = event.userData,
-                    requiredSignatures = event.requiredSignatures,
-                    type = event.type,
-                    groupId = event.groupId,
-                    dummyTransactionId = event.dummyTransactionId,
-                    activityContext = requireActivity()
-                )
+                is ServicesTabEvent.CalculateRequiredSignaturesSuccess -> {
+                    if (event.type == "NONE") {
+                        navigator.openInheritancePlanningScreen(
+                            walletId = event.walletId,
+                            activityContext = requireContext(),
+                            flowInfo = InheritancePlanFlow.REQUEST,
+                            groupId = event.groupId,
+                            sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
+                        )
+                    }
+                }
             }
         }
         flowObserver(viewModel.state) { state ->

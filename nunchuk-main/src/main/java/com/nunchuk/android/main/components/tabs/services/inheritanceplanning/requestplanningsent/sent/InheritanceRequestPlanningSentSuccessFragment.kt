@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -48,7 +50,9 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -66,7 +70,7 @@ class InheritanceRequestPlanningSentSuccessFragment : Fragment() {
 
             setContent {
                 InheritanceRequestPlanningSentSuccessScreen(onGotItClick = {
-                    findNavController().popBackStack(R.id.groupDashboardFragment, false)
+                    requireActivity().finish()
                 })
             }
         }
@@ -84,9 +88,6 @@ fun InheritanceRequestPlanningSentSuccessScreen(
 
 @Composable
 fun InheritanceRequestPlanningSentSuccessScreenContent(
-    period: String = "",
-    walletName: String = "",
-    groupId: String = "",
     onGotItClick: () -> Unit = {},
 ) {
     NunchukTheme {
