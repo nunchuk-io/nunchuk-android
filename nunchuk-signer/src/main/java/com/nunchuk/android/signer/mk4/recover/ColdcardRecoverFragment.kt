@@ -123,6 +123,8 @@ class ColdcardRecoverFragment : MembershipFragment() {
                                 finish()
                             }
                         }
+
+                        ColdcardRecoverEvent.ErrorMk4TestNet -> showError(getString(R.string.nc_error_device_in_testnet_msg))
                     }
                 }
         }
