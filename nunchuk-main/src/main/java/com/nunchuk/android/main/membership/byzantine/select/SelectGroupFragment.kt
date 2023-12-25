@@ -84,7 +84,7 @@ class SelectGroupFragment : MembershipFragment() {
                             NCInfoDialog(requireActivity()).init(
                                 message = getString(
                                     R.string.nc_run_out_of_byzantine_wallet,
-                                    getString(groupType.shortName)
+                                    getString(groupType.shortName(uiState.plan))
                                 ),
                                 btnYes = getString(R.string.nc_take_me_there),
                                 btnInfo = getString(R.string.nc_text_got_it),
@@ -130,14 +130,8 @@ private fun SelectGroupContent(
     onContinueClicked: (GroupWalletType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
-    var selectedType by rememberSaveable(uiState.plan) {
-        mutableStateOf(
-            when (uiState.plan) {
-                MembershipPlan.BYZANTINE_PRO -> GroupWalletType.TWO_OF_FOUR_MULTISIG
-                MembershipPlan.BYZANTINE_PREMIER -> GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE
-                else -> GroupWalletType.TWO_OF_THREE
-            }
-        )
+    var selectedType by rememberSaveable(uiState.options) {
+        mutableStateOf(uiState.options.firstOrNull() ?: GroupWalletType.TWO_OF_FOUR_MULTISIG)
     }
     NunchukTheme {
         Scaffold(modifier = Modifier
@@ -181,7 +175,11 @@ private fun SelectGroupContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(uiState.options) {
-                        GroupWalletTypeOptionView(type = it, isSelected = selectedType == it) {
+                        GroupWalletTypeOptionView(
+                            type = it,
+                            isSelected = selectedType == it,
+                            plan = uiState.plan,
+                        ) {
                             selectedType = it
                         }
                     }
@@ -195,6 +193,7 @@ private fun SelectGroupContent(
 fun GroupWalletTypeOptionView(
     modifier: Modifier = Modifier,
     isSelected: Boolean,
+    plan: MembershipPlan,
     type: GroupWalletType,
     onClick: () -> Unit = {},
 ) {
@@ -203,15 +202,17 @@ fun GroupWalletTypeOptionView(
             if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG
                 || type == GroupWalletType.THREE_OF_FIVE_INHERITANCE
                 || type == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY
-                ) {
+            ) {
                 ProBadgePlan(
                     modifier = Modifier.padding(end = 4.dp),
-                    text = stringResource(id = type.shortName)
+                    text = stringResource(id = type.shortName(plan))
                 )
             } else {
                 StandardBadgePlan(modifier = Modifier.padding(end = 4.dp))
             }
-            if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG || type == GroupWalletType.TWO_OF_THREE || type == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE) {
+            if ((type == GroupWalletType.THREE_OF_FIVE_INHERITANCE && plan == MembershipPlan.BYZANTINE_PRO)
+                || type == GroupWalletType.TWO_OF_THREE
+                || (type == GroupWalletType.THREE_OF_FIVE_INHERITANCE && plan == MembershipPlan.BYZANTINE_PREMIER)) {
                 NcTag(
                     modifier = Modifier.padding(bottom = 4.dp),
                     label = stringResource(id = R.string.nc_recommended)

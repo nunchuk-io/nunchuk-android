@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.model
 import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.byzantine.GroupWalletType
 
@@ -20,18 +21,15 @@ val GroupWalletType.title: Int
         }
     }
 
-val GroupWalletType.shortName: Int
-    get() = when (this) {
-        GroupWalletType.TWO_OF_FOUR_MULTISIG,
-        GroupWalletType.THREE_OF_FIVE_INHERITANCE,
-        GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY,
-        -> R.string.nc_pro
+fun GroupWalletType.shortName(plan: MembershipPlan): Int =
+    when {
+        this == GroupWalletType.TWO_OF_FOUR_MULTISIG -> R.string.nc_pro
+        this == GroupWalletType.THREE_OF_FIVE_INHERITANCE && plan == MembershipPlan.BYZANTINE_PRO -> R.string.nc_pro
+        this == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> R.string.nc_pro
 
-        GroupWalletType.TWO_OF_THREE,
-        GroupWalletType.THREE_OF_FIVE,
-        -> R.string.nc_standard
-
-        GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> R.string.nc_premier
+        this == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> R.string.nc_premier
+        this == GroupWalletType.THREE_OF_FIVE_INHERITANCE && plan == MembershipPlan.BYZANTINE_PREMIER -> R.string.nc_premier
+        else -> R.string.nc_standard
     }
 
 @get:StringRes
