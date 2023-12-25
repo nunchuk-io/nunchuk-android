@@ -27,7 +27,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.DELAY_DYNAMIC_QR
+import com.nunchuk.android.core.util.HIGH_DENSITY
+import com.nunchuk.android.core.util.LOW_DENSITY
+import com.nunchuk.android.core.util.MEDIUM_DENSITY
+import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.LoadingEvent
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
@@ -37,7 +41,9 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>() {
@@ -71,6 +77,13 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         viewModel.init(args)
     }
 
+    override fun onDestroy() {
+        viewModel.state.value?.qrCodeBitmap?.forEach {
+            it.recycle()
+        }
+        super.onDestroy()
+    }
+
     private fun bindQrCodes() {
         calculateIndex()
         binding.qrCode.setImageBitmap(bitmaps[index])
@@ -92,6 +105,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY)
         binding.slider.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
+                showQrJob?.cancel()
                 viewModel.setQrDensity(densities[value.toInt()])
             }
         }
@@ -110,6 +124,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             showQrJob?.cancel()
             showQrJob = lifecycleScope.launch {
                 repeat(Int.MAX_VALUE) {
+                    ensureActive()
                     bindQrCodes()
                     delay(DELAY_DYNAMIC_QR)
                 }

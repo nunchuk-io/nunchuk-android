@@ -35,6 +35,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -53,6 +54,8 @@ internal class ExportTransactionViewModel @Inject constructor(
     private lateinit var args: ExportTransactionArgs
 
     override val initialState = ExportTransactionState()
+
+    private var exportTransactionJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -81,14 +84,18 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     private fun exportDummyKeystoneTransaction() {
         val qrSize = getQrSize()
-        viewModelScope.launch {
+        exportTransactionJob?.cancel()
+        exportTransactionJob = viewModelScope.launch {
             val result = exportKeystoneDummyTransaction(ExportKeystoneDummyTransaction.Param(args.txToSign, getState().density))
             if (result.isSuccess) {
                 val bitmaps = withContext(ioDispatcher) {
                     result.getOrThrow()
                         .mapNotNull { it.convertToQRCode(qrSize, qrSize) }
                 }
-                updateState { copy(qrCodeBitmap = bitmaps) }
+                updateState {
+                    getState().qrCodeBitmap.forEach { it.recycle() }
+                    copy(qrCodeBitmap = bitmaps)
+                }
             } else {
                 setEvent(ExportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
             }
@@ -97,18 +104,22 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     private fun exportTransactionToQRs() {
         val qrSize = getQrSize()
-        viewModelScope.launch {
+        exportTransactionJob?.cancel()
+        exportTransactionJob = viewModelScope.launch {
             exportKeystoneTransactionUseCase.execute(args.walletId, args.txId, getState().density)
                 .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
                 .flowOn(IO)
                 .onException { event(ExportTransactionError(it.message.orUnknownError())) }
                 .flowOn(Main)
-                .collect { updateState { copy(qrCodeBitmap = it) } }
+                .collect {
+                    getState().qrCodeBitmap.forEach { it.recycle() }
+                    updateState { copy(qrCodeBitmap = it) }
+                }
         }
     }
 
     private fun getQrSize(): Int {
-        return Resources.getSystem().displayMetrics.widthPixels
+        return minOf(Resources.getSystem().displayMetrics.widthPixels, Resources.getSystem().displayMetrics.heightPixels).coerceAtMost(1080)
     }
 
     private val isDummyTxFlow: Boolean
