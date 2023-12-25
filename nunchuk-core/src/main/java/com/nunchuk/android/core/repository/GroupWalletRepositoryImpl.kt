@@ -25,7 +25,6 @@ import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
-import com.nunchuk.android.model.byzantine.SimilarGroup
 import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
@@ -54,25 +53,6 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
 ) : GroupWalletRepository {
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
-
-    override suspend fun findSimilarGroup(groupId: String): List<SimilarGroup> {
-        return userWalletApiManager.groupWalletApi.findSimilar(groupId).data.similar.map {
-            SimilarGroup(
-                walletLocalId = it.walletLocalId.orEmpty(),
-                groupId = it.groupId.orEmpty(),
-            )
-        }.toList()
-    }
-
-    override suspend fun reuseGroupWallet(groupId: String, fromGroupId: String): DraftWallet {
-        val response = userWalletApiManager.groupWalletApi.reuseFromGroup(
-            groupId,
-            ReuseFromGroupRequest(fromGroupId)
-        )
-        val draftWallet =
-            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
-        return handleDraftWallet(draftWallet, groupId)
-    }
 
     override suspend fun syncGroupDraftWallet(groupId: String): DraftWallet {
         val response = userWalletApiManager.groupWalletApi.getDraftWallet(groupId)

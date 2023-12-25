@@ -306,8 +306,6 @@ interface PremiumWalletRepository {
 
     suspend fun clearLocalData()
 
-    suspend fun reuseKeyWallet(walletId: String, plan: MembershipPlan)
-
     suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
         walletId: String,
         groupId: String?

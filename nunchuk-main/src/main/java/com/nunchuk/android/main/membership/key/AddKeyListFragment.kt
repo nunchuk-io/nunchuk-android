@@ -82,7 +82,6 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
@@ -92,15 +91,12 @@ import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.model.isByzantine
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Collections.emptyList
 import javax.inject.Inject
@@ -111,22 +107,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel by activityViewModels<AddKeyListViewModel>()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (membershipStepManager.assistedWallets.any { !it.plan.isByzantine() } && membershipStepManager.isNotConfig()) {
-            NCWarningDialog(requireActivity()).showDialog(
-                title = getString(R.string.nc_key_resuse),
-                message = getString(R.string.nc_key_reuse_desc),
-                onYesClick = {
-                    AssistedWalletBottomSheet.show(
-                        childFragmentManager,
-                        membershipStepManager.assistedWallets.map { it.localId },
-                    )
-                }
-            )
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -163,13 +143,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
-        }
-        childFragmentManager.setFragmentResultListener(
-            AssistedWalletBottomSheet.TAG,
-            viewLifecycleOwner
-        ) { _, bundle ->
-            val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
-            viewModel.reuseKeyFromWallet(walletId)
         }
     }
 

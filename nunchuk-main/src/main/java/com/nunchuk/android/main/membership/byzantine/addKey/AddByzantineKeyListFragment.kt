@@ -60,7 +60,6 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -159,13 +158,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 viewModel.handleSignerNewIndex(signer)
             }
             clearFragmentResult(CustomKeyAccountFragmentFragment.REQUEST_KEY)
-        }
-        childFragmentManager.setFragmentResultListener(
-            AssistedWalletBottomSheet.TAG,
-            viewLifecycleOwner
-        ) { _, bundle ->
-            val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
-            viewModel.reuseKeyFromWallet(walletId)
         }
     }
 
@@ -328,17 +320,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
-                is AddKeyListEvent.LoadSimilarGroup -> NCWarningDialog(requireActivity()).showDialog(
-                    title = getString(R.string.nc_key_resuse),
-                    message = getString(R.string.nc_group_key_reuse_desc),
-                    onYesClick = {
-                        AssistedWalletBottomSheet.show(
-                            fragmentManager = childFragmentManager,
-                            assistedWalletIds = event.similarWalletIds,
-                            title = getString(R.string.nc_select_a_group_wallet)
-                        )
-                    }
-                )
 
                 is AddKeyListEvent.UpdateSignerTag -> findNavController().navigate(
                     AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(

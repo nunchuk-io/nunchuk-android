@@ -1518,69 +1518,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         assistedWalletDao.deleteAll()
     }
 
-    override suspend fun reuseKeyWallet(walletId: String, plan: MembershipPlan) {
-        val wallet = nunchukNativeSdk.getWallet(walletId)
-        val verifyMap = coroutineScope {
-            wallet.signers.filter { it.type == SignerType.NFC }.map { key ->
-                async {
-                    userWalletApiManager.walletApi.getKey(
-                        key.masterFingerprint, key.derivationPath
-                    )
-                }
-            }.awaitAll().associateBy { it.data.keyXfp }
-                .mapValues { it.value.data.verificationType }
-        }
-        var inheritanceKey: SingleSigner? = null
-        if (plan == MembershipPlan.HONEY_BADGER) {
-            inheritanceKey = wallet.signers.find {
-                it.type == SignerType.NFC && nunchukNativeSdk.getMasterSigner(it.masterFingerprint).tags.contains(
-                    SignerTag.INHERITANCE
-                )
-            } ?: throw NullPointerException("Can not find inheritance key")
-            membershipRepository.saveStepInfo(
-                MembershipStepInfo(
-                    step = MembershipStep.HONEY_ADD_TAP_SIGNER,
-                    masterSignerId = inheritanceKey.masterFingerprint,
-                    plan = plan,
-                    verifyType = verifyMap[inheritanceKey.masterFingerprint].toVerifyType(),
-                    extraData = gson.toJson(
-                        SignerExtra(
-                            derivationPath = inheritanceKey.derivationPath,
-                            isAddNew = false,
-                            signerType = inheritanceKey.type
-                        )
-                    ),
-                    groupId = ""
-                )
-            )
-        }
-
-        val steps = if (plan == MembershipPlan.IRON_HAND) {
-            listOf(MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2)
-        } else {
-            listOf(MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.HONEY_ADD_HARDWARE_KEY_2)
-        }
-        wallet.signers.filter { it.type != SignerType.SERVER && it != inheritanceKey }
-            .forEachIndexed { index, singleSigner ->
-                membershipRepository.saveStepInfo(
-                    MembershipStepInfo(
-                        step = steps[index],
-                        masterSignerId = singleSigner.masterFingerprint,
-                        plan = plan,
-                        verifyType = if (singleSigner.type == SignerType.NFC) verifyMap[singleSigner.masterFingerprint].toVerifyType() else VerifyType.APP_VERIFIED,
-                        extraData = gson.toJson(
-                            SignerExtra(
-                                derivationPath = singleSigner.derivationPath,
-                                isAddNew = false,
-                                signerType = singleSigner.type
-                            )
-                        ),
-                        groupId = ""
-                    )
-                )
-            }
-    }
-
     override suspend fun getCoinControlData(groupId: String?, walletId: String): String {
         return if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.getCoinControlData(

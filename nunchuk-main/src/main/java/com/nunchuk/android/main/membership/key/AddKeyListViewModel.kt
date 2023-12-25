@@ -43,7 +43,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
-import com.nunchuk.android.usecase.membership.ReuseKeyWalletUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -70,7 +69,6 @@ class AddKeyListViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
-    private val reuseKeyWalletUseCase: ReuseKeyWalletUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val checkRequestAddDesktopKeyStatusUseCase: CheckRequestAddDesktopKeyStatusUseCase,
 ) : ViewModel() {
@@ -253,16 +251,6 @@ class AddKeyListViewModel @Inject constructor(
 
     fun getAirgap() =
         _state.value.signers.filter { it.type == SignerType.AIRGAP && isSignerExist(it.fingerPrint).not() }
-
-    fun reuseKeyFromWallet(id: String) {
-        viewModelScope.launch {
-            val result =
-                reuseKeyWalletUseCase(ReuseKeyWalletUseCase.Param(id, membershipStepManager.plan))
-            if (result.isFailure) {
-                _event.emit(AddKeyListEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
-    }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
