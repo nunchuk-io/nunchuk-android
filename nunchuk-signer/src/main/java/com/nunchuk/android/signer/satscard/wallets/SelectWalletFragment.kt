@@ -29,6 +29,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -163,7 +164,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             initEventId = "",
             roomId = "",
             transaction = transaction,
-            isInheritanceClaimingFlow = args.magicalPhrase.isNotBlank() && args.masterSignerId.isNotBlank()
+            isInheritanceClaimingFlow = args.claimInheritanceTxParam.isInheritanceClaimFlow()
         )
     }
 
@@ -189,9 +190,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             subtractFeeFromAmount = true,
             sweepType = type,
             slots = args.slots.toList(),
-            masterSignerId = args.masterSignerId,
-            magicalPhrase = args.magicalPhrase,
-            derivationPath = args.derivationPath
+            claimInheritanceTxParam = args.claimInheritanceTxParam,
         )
     }
 

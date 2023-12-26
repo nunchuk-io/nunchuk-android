@@ -298,6 +298,7 @@
     <string name="nc_magical_phrase">Magic Phrase</string>
     <string name="nc_a_magical_phrase">A Magic Phrase</string>
     <string name="nc_a_backup_password">A Backup Password</string>
+    <string name="nc_two_backup_password">Two Backup Passwords</string>
     <string name="nc_give_app_permission">Please give app the permission to use this feature</string>
     <string name="nc_start">Start</string>
     <string name="nc_among_three_key_select_inheritance">Among your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.</string>
@@ -332,6 +333,7 @@
     <string name="nc_enter_backup_password_desc">Please enter the Backup Password for [B]%1$s[/B] (card ID: [B]%2$s[/B].)</string>
     <string name="nc_enter_backup_password_notice">The password is printed on the back of the TAPSIGNER. You should have had a copy of this when setting up the TAPSIGNER for the first time.</string>
     <string name="nc_backup_download">Backup Password</string>
+    <string name="nc_backup_download_optional">Backup Password #%1$s (optional)</string>
     <string name="nc_invalid_backup_password">Invalid Backup Password. Please try again.</string>
     <string name="nc_incorrect_answer">Incorrect answer</string>
     <string name="nc_tapsigner_recovered">TAPSIGNER recovered</string>
@@ -443,6 +445,7 @@
     <string name="nc_no_listed">(None listed)</string>
     <string name="nc_no_buffer">(No buffer)</string>
     <string name="nc_backup_password_desc">(The Backup Password is printed on the back of the inheritance key)</string>
+    <string name="nc_backup_passwords_desc">(The Backup Passwords are printed on the back of the inheritance keys)</string>
     <string name="nc_inheritance_notify_pref_hint">To include multiple email addresses, separate them by commas or spaces.</string>
     <string name="nc_inheritance_create_success">The inheritance plan has been set up!</string>
     <string name="nc_share_your_secrets">Share your secrets</string>

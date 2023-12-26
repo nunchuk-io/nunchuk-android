@@ -235,14 +235,14 @@ interface PremiumWalletRepository {
 
     suspend fun inheritanceClaimStatus(
         userData: String,
-        masterFingerprint: String,
-        signature: String
+        masterFingerprints: List<String>,
+        signatures: List<String>
     ): InheritanceAdditional
 
     suspend fun inheritanceClaimCreateTransaction(
         userData: String,
-        masterFingerprint: String,
-        signature: String
+        masterFingerprints: List<String>,
+        signatures: List<String>
     ): TransactionAdditional
 
     suspend fun generateCancelInheritanceUserData(
@@ -292,7 +292,7 @@ interface PremiumWalletRepository {
         groupId: String
     ): String
 
-    suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey
+    suspend fun inheritanceClaimDownloadBackup(magic: String): List<BackupKey>
 
     suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
 

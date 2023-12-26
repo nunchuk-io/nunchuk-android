@@ -28,3 +28,7 @@ fun String.toGroupWalletType(): GroupWalletType? {
         else -> null
     }
 }
+
+fun GroupWalletType.isAllowInheritance(): Boolean {
+    return GroupWalletType.entries.find { it == this }?.allowInheritance ?: false
+}

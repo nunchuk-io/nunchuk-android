@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
@@ -61,17 +62,10 @@ interface TransactionNavigator {
         subtractFeeFromAmount: Boolean = false,
         slots: List<SatsCardSlot> = emptyList(),
         sweepType: SweepType = SweepType.NONE,
-        masterSignerId: String = "",
-        magicalPhrase: String = "",
-        derivationPath: String = "",
         inputs: List<UnspentOutput> = emptyList(),
+        claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     )
 
-    /**
-     * @param masterSignerId inheritance claiming flow
-     * @param magicalPhrase inheritance claiming flow
-     * @param derivationPath inheritance claiming flow
-     */
     fun openEstimatedFeeScreen(
         activityContext: Activity,
         walletId: String,
@@ -81,16 +75,10 @@ interface TransactionNavigator {
         subtractFeeFromAmount: Boolean = false,
         sweepType: SweepType = SweepType.NONE,
         slots: List<SatsCardSlot> = emptyList(),
-        masterSignerId: String = "",
-        magicalPhrase: String = "",
-        derivationPath: String = "",
         inputs: List<UnspentOutput> = emptyList(),
+        claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     )
 
-    /**
-     * @param masterSignerId inheritance claiming flow
-     * @param magicalPhrase inheritance claiming flow
-     */
     fun openTransactionConfirmScreen(
         activityContext: Activity,
         walletId: String,
@@ -102,10 +90,8 @@ interface TransactionNavigator {
         manualFeeRate: Int = 0,
         sweepType: SweepType = SweepType.NONE,
         slots: List<SatsCardSlot> = emptyList(),
-        masterSignerId: String = "",
-        magicalPhrase: String = "",
-        derivationPath: String = "",
         inputs: List<UnspentOutput> = emptyList(),
+        claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     )
 
     /**

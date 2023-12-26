@@ -91,6 +91,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.buf
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.nav.NunchukNavigator
@@ -326,6 +327,7 @@ fun InheritanceReviewPlanScreen(
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
         groupId = inheritanceViewModel.setupOrReviewParam.groupId,
+        groupWalletType = inheritanceViewModel.getGroupWalletType(),
         state = state,
         onContinueClicked = {
             viewModel.calculateRequiredSignatures(flow = InheritanceReviewPlanViewModel.ReviewFlow.CREATE_OR_UPDATE)
@@ -353,6 +355,7 @@ fun InheritanceReviewPlanScreenContent(
     planFlow: Int = InheritancePlanFlow.VIEW,
     magicalPhrase: String = "",
     groupId: String = "",
+    groupWalletType: GroupWalletType? = null,
     state: InheritanceReviewPlanState = InheritanceReviewPlanState(),
     onContinueClicked: () -> Unit = {},
     onShareSecretClicked: () -> Unit = {},
@@ -493,7 +496,7 @@ fun InheritanceReviewPlanScreenContent(
                                     DetailPlanItem(
                                         iconId = R.drawable.ic_password_light,
                                         titleId = R.string.nc_backup_password,
-                                        content = stringResource(id = R.string.nc_backup_password_desc),
+                                        content = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(id = R.string.nc_backup_passwords_desc) else stringResource(id = R.string.nc_backup_password_desc),
                                         editable = false
                                     )
                                     if (isEditable && planFlow == InheritancePlanFlow.VIEW) {

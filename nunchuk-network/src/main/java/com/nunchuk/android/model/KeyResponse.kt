@@ -48,3 +48,8 @@ data class KeyResponseData(
     @SerializedName("key")
     val key: KeyResponse? = null,
 )
+
+data class DownloadBackupKeyResponseData(
+    @SerializedName("keys")
+    val keys: List<KeyResponse>? = null,
+)

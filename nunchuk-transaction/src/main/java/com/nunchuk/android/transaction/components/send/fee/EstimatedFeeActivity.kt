@@ -26,6 +26,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
@@ -234,9 +235,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             manualFeeRate = manualFeeRate,
             sweepType = args.sweepType,
             slots = args.slots,
-            masterSignerId = args.masterSignerId,
-            magicalPhrase = args.magicalPhrase,
-            derivationPath = args.derivationPath,
+            claimInheritanceTxParam = args.claimInheritanceTxParam,
             inputs = viewModel.getSelectedCoins()
         )
     }
@@ -252,9 +251,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             subtractFeeFromAmount: Boolean = false,
             sweepType: SweepType = SweepType.NONE,
             slots: List<SatsCardSlot>,
-            masterSignerId: String = "",
-            magicalPhrase: String = "",
-            derivationPath: String = "",
+            claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             inputs: List<UnspentOutput> = emptyList()
         ) {
             activityContext.startActivity(
@@ -266,9 +263,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     sweepType = sweepType,
                     slots = slots,
-                    masterSignerId = masterSignerId,
-                    magicalPhrase = magicalPhrase,
-                    derivationPath = derivationPath,
+                    claimInheritanceTxParam = claimInheritanceTxParam,
                     inputs = inputs
                 ).buildIntent(activityContext)
             )

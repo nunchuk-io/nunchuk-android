@@ -39,8 +39,8 @@
         android:label="InheritanceClaimNoteFragment">
 
         <argument
-            android:name="signer"
-            app:argType="com.nunchuk.android.core.signer.SignerModel" />
+            android:name="signers"
+            app:argType="com.nunchuk.android.core.signer.SignerModel[]" />
         <argument
             android:name="magic"
             app:argType="string" />
@@ -48,8 +48,8 @@
             android:name="inheritance_additional"
             app:argType="com.nunchuk.android.model.InheritanceAdditional" />
         <argument
-            android:name="derivation_path"
-            app:argType="string" />
+            android:name="derivation_paths"
+            app:argType="string[]" />
 
         <action
             android:id="@+id/action_inheritanceClaimNoteFragment_to_selectWalletFragment"
@@ -73,19 +73,10 @@
                 app:argType="float" />
 
             <argument
-                android:name="master_signer_id"
-                android:defaultValue=""
-                app:argType="string" />
-
-            <argument
-                android:name="magical_phrase"
-                android:defaultValue=""
-                app:argType="string" />
-
-            <argument
-                android:name="derivation_path"
-                app:argType="string"
-                android:defaultValue=""/>
+                android:name="claim_inheritance_tx_param"
+                android:defaultValue="@null"
+                app:nullable="true"
+                app:argType="com.nunchuk.android.core.data.model.ClaimInheritanceTxParam" />
         </action>
     </fragment>
 
@@ -285,6 +276,13 @@
         <action
             android:id="@+id/action_findBackupPasswordFragment_to_inheritanceKeyTipFragment"
             app:destination="@id/inheritanceKeyTipFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_findBackupPasswordFragment_to_inheritanceActivationDateFragment"
+            app:destination="@id/inheritanceActivationDateFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"

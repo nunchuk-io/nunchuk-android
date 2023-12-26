@@ -99,10 +99,10 @@ class InheritanceClaimInputFragment : Fragment() {
                     if (event.inheritanceAdditional.bufferPeriodCountdown == null) {
                         findNavController().navigate(
                             InheritanceClaimInputFragmentDirections.actionInheritanceClaimInputFragmentToInheritanceClaimNoteFragment(
-                                signer = event.signer,
+                                signers = event.signers.toTypedArray(),
                                 magic = event.magic,
                                 inheritanceAdditional = event.inheritanceAdditional,
-                                derivationPath = event.derivationPath
+                                derivationPaths = event.derivationPaths.toTypedArray()
                             )
                         )
                     } else {
@@ -144,13 +144,13 @@ fun InheritanceClaimScreen(
 
     InheritanceClaimInputContent(suggestions = state.suggestions,
         magicalPhrase = state.magicalPhrase,
-        backupDownload = state.backupPassword,
+        backupDownloads = state.backupPasswords,
         onMagicalPhraseTextChange = {
             viewModel.handleInputEvent(it)
         }, onSuggestClick = {
             viewModel.handleSelectWord(it)
-        }, onBackupDownloadTextChange = {
-            viewModel.updateBackupPassword(it)
+        }, onBackupDownloadTextChange = { text, index ->
+            viewModel.updateBackupPassword(text, index)
         }, onContinueClick = {
             viewModel.downloadBackupKey()
         })
@@ -160,12 +160,12 @@ fun InheritanceClaimScreen(
 @Composable
 private fun InheritanceClaimInputContent(
     magicalPhrase: String = "",
-    backupDownload: String = "",
+    backupDownloads: List<String> = emptyList(),
     suggestions: List<String> = emptyList(),
     onContinueClick: () -> Unit = {},
     onSuggestClick: (String) -> Unit = {},
     onMagicalPhraseTextChange: (String) -> Unit = {},
-    onBackupDownloadTextChange: (String) -> Unit = {},
+    onBackupDownloadTextChange: (String, Int) -> Unit = { _, _ -> },
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -231,22 +231,28 @@ private fun InheritanceClaimInputContent(
                         }
                     }
                 }
-                NcTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    title = stringResource(id = R.string.nc_backup_download),
-                    value = backupDownload,
-                    onValueChange = onBackupDownloadTextChange
-                )
+
+                backupDownloads.forEachIndexed { index, backupDownload ->
+                    NcTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp)
+                            .padding(horizontal = 16.dp),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        title = if (index == 0) stringResource(id = R.string.nc_backup_download) else stringResource(id = R.string.nc_backup_download_optional, index + 1),
+                        value = backupDownload,
+                        onValueChange = {
+                            onBackupDownloadTextChange(it, index)
+                        }
+                    )
+                }
+
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = magicalPhrase.countWords() >= 1 && backupDownload.isNotBlank(),
+                    enabled = magicalPhrase.countWords() >= 1 && backupDownloads.any { it.countWords() >= 1 },
                     onClick = onContinueClick,
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))

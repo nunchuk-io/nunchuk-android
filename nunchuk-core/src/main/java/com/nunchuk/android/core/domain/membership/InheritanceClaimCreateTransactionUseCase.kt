@@ -21,6 +21,7 @@ package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
@@ -41,19 +42,25 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             address = parameters.address,
             feeRate = nunchukNativeSdk.valueFromAmount(parameters.feeRate)
         )
-        val signer = nunchukNativeSdk.getSignerFromMasterSigner(
-            masterSignerId = parameters.masterSignerId,
-            path = parameters.derivationPath
-        )
-        val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
-        val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
+        val signatures = arrayListOf<String>()
+        val singleSigners = arrayListOf<SingleSigner>()
+        parameters.masterSignerIds.forEachIndexed { index, masterSignerId ->
+            val signer = nunchukNativeSdk.getSignerFromMasterSigner(
+                masterSignerId = masterSignerId,
+                path = parameters.derivationPaths[index]
+            )
+            val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
+            val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
+            signatures.add(signature)
+            singleSigners.add(signer)
+        }
         val transactionResponse = userWalletRepository.inheritanceClaimCreateTransaction(
             userData = userData,
-            masterFingerprint = signer.masterFingerprint,
-            signature = signature
+            masterFingerprints = singleSigners.map { it.masterFingerprint },
+            signatures = signatures,
         )
         val transaction = nunchukNativeSdk.createInheritanceClaimTransaction(
-            signer = signer,
+            signers = singleSigners,
             psbt = transactionResponse.psbt,
             subAmount = transactionResponse.subAmount.toString(),
             fee = transactionResponse.fee.toString(),
@@ -70,10 +77,10 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
 
     data class Param(
         val isDraft: Boolean,
-        val masterSignerId: String,
+        val masterSignerIds: List<String>,
         val address: String,
         val magic: String,
         val feeRate: Amount = Amount(-1),
-        val derivationPath: String
+        val derivationPaths: List<String>
     )
 }

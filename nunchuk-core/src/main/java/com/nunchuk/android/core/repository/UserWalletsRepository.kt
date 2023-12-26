@@ -138,7 +138,6 @@ import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.model.toMembershipPlan
-import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
@@ -159,9 +158,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -807,11 +803,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun inheritanceClaimStatus(
-        userData: String, masterFingerprint: String, signature: String,
+        userData: String, masterFingerprints: List<String>, signatures: List<String>
     ): InheritanceAdditional {
         val headers = mutableMapOf<String, String>()
-        val signerToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
-        headers["$AUTHORIZATION_X-1"] = signerToken
+        masterFingerprints.forEachIndexed { index, masterFingerprint ->
+            val signerToken = nunchukNativeSdk.createRequestToken(signatures[index], masterFingerprint)
+            headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
+        }
         val request = gson.fromJson(userData, InheritanceClaimStatusRequest::class.java)
         val response =
             userWalletApiManager.walletApi.inheritanceClaimingStatus(headers, request).data
@@ -836,11 +834,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun inheritanceClaimCreateTransaction(
-        userData: String, masterFingerprint: String, signature: String,
+        userData: String, masterFingerprints: List<String>, signatures: List<String>,
     ): TransactionAdditional {
         val headers = mutableMapOf<String, String>()
-        val signerToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
-        headers["$AUTHORIZATION_X-1"] = signerToken
+        masterFingerprints.forEachIndexed { index, masterFingerprint ->
+            val signerToken = nunchukNativeSdk.createRequestToken(signatures[index], masterFingerprint)
+            headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
+        }
         val request = gson.fromJson(userData, InheritanceClaimCreateTransactionRequest::class.java)
         val response =
             userWalletApiManager.walletApi.inheritanceClaimingCreateTransaction(headers, request)
@@ -987,11 +987,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.dummyTransaction?.id.orEmpty()
     }
 
-    override suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey {
-        val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackup(
+    override suspend fun inheritanceClaimDownloadBackup(magic: String): List<BackupKey> {
+        val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackups(
             InheritanceClaimDownloadBackupRequest(magic = magic)
         )
-        return response.data.toBackupKey()
+        return response.data.keys?.map { it.toBackupKey() }.orEmpty()
     }
 
     override suspend fun inheritanceClaimingClaim(

@@ -24,6 +24,7 @@ import com.nunchuk.android.core.data.model.byzantine.*
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.network.Data
+import com.nunchuk.android.model.DownloadBackupKeyResponseData
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.KeyResponseData
 import com.nunchuk.android.model.KeyVerifiedRequest
@@ -242,10 +243,10 @@ internal interface UserWalletsApi {
         @HeaderMap headers: Map<String, String>, @Body payload: InheritanceClaimStatusRequest
     ): Data<InheritanceClaimStatusResponse>
 
-    @POST("/v1.1/user-wallets/inheritance/claiming/download-backup")
-    suspend fun inheritanceClaimingDownloadBackup(
+    @POST("/v1.1/user-wallets/inheritance/claiming/download-backups")
+    suspend fun inheritanceClaimingDownloadBackups(
         @Body payload: InheritanceClaimDownloadBackupRequest
-    ): Data<KeyResponse>
+    ): Data<DownloadBackupKeyResponseData>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/create-transaction")
     suspend fun inheritanceClaimingCreateTransaction(
@@ -257,11 +258,6 @@ internal interface UserWalletsApi {
     suspend fun inheritanceClaimingClaim(
         @Body payload: InheritanceClaimClaimRequest
     ): Data<TransactionResponse>
-
-    @POST("/v1.1/user-wallets/inheritance/claiming/check-valid")
-    suspend fun inheritanceClaimingCheckValid(
-        @Body payload: InheritanceClaimCheckValidRequest
-    ): Data<InheritanceClaimCheckValidResponse>
 
     @HTTP(method = "DELETE", path = "/v1.1/user-wallets/inheritance", hasBody = true)
     suspend fun inheritanceCancel(

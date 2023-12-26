@@ -127,21 +127,16 @@ class ServicesTabViewModel @Inject constructor(
 
     private fun updateGroupInfo(groups: List<ByzantineGroup>) = viewModelScope.launch(Dispatchers.IO) {
         val joinedGroups = groups.filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
-        val group2of4Multisigs =
-            groups.filter { it.walletConfig.m == GroupWalletType.TWO_OF_FOUR_MULTISIG.m && it.walletConfig.n == GroupWalletType.TWO_OF_FOUR_MULTISIG.n }
-        val group2Of3Or3of5Multisigs: List<ByzantineGroup>
+        val allowInheritanceMultisigs = groups.filter { it.walletConfig.allowInheritance }
+        val groupNotAllowInheritanceMultisigs: List<ByzantineGroup>
         val sortedGroups: List<ByzantineGroup>
-        if (group2of4Multisigs.isEmpty()) {
-            group2Of3Or3of5Multisigs =
-                groups.filter {
-                    it.walletConfig.m == GroupWalletType.TWO_OF_THREE.m && it.walletConfig.n == GroupWalletType.TWO_OF_THREE.n
-                            || it.walletConfig.m == GroupWalletType.THREE_OF_FIVE.m && it.walletConfig.n == GroupWalletType.THREE_OF_FIVE.n
-                }
-            sortedGroups = group2Of3Or3of5Multisigs.sortedWith(compareBy { group ->
+        if (allowInheritanceMultisigs.isEmpty()) {
+            groupNotAllowInheritanceMultisigs = groups.filter { it.walletConfig.allowInheritance.not() }
+            sortedGroups = groupNotAllowInheritanceMultisigs.sortedWith(compareBy { group ->
                 AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
             })
         } else {
-            sortedGroups = group2of4Multisigs.sortedWith(compareBy { group ->
+            sortedGroups = allowInheritanceMultisigs.sortedWith(compareBy { group ->
                 AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
             })
         }
@@ -149,7 +144,7 @@ class ServicesTabViewModel @Inject constructor(
         withContext(Dispatchers.Main) {
             _state.update { state ->
                 state.copy(
-                    groups2of4Multisig = if (group2of4Multisigs.isEmpty()) emptyList() else sortedGroups,
+                    allowInheritanceMultisigs = if (allowInheritanceMultisigs.isEmpty()) emptyList() else sortedGroups,
                     userRole = byzantineGroupUtils.getCurrentUserRole(sortedGroups.firstOrNull()),
                     joinedGroups = joinedGroups.associateBy { it.id },
                     isMasterHasNotCreatedWallet = isMasterHasNotCreatedWallet,
@@ -376,7 +371,7 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     private fun isAllowSetupInheritance(wallet: AssistedWalletBrief): Boolean {
-        return state.value.groups2of4Multisig.find { group -> group.id == wallet.groupId } != null
+        return state.value.allowInheritanceMultisigs.find { group -> group.id == wallet.groupId } != null
                 && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[wallet.groupId]).toRole.isMasterOrAdmin
                 && state.value.joinedGroups[wallet.groupId]?.walletConfig?.allowInheritance == true
     }
@@ -391,7 +386,7 @@ class ServicesTabViewModel @Inject constructor(
         val wallets =
             if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
         return wallets.filter {
-                it.groupId.isEmpty() || (state.value.groups2of4Multisig.find { group ->
+                it.groupId.isEmpty() || (state.value.allowInheritanceMultisigs.find { group ->
                     group.id == it.groupId
                 } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited)
             }

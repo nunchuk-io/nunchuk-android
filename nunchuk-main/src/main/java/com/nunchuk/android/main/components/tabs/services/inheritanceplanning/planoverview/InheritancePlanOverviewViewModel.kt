@@ -32,18 +32,5 @@ import javax.inject.Inject
 class InheritancePlanOverviewViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
-    private val _event = MutableSharedFlow<InheritancePlanOverviewEvent>()
-    val event = _event.asSharedFlow()
-
     val remainTime = membershipStepManager.remainingTime
-
-    fun onContinueClicked() {
-        viewModelScope.launch {
-            _event.emit(InheritancePlanOverviewEvent.OnContinueClicked)
-        }
-    }
-}
-
-sealed class InheritancePlanOverviewEvent {
-    object OnContinueClicked : InheritancePlanOverviewEvent()
 }

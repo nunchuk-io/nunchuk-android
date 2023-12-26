@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
@@ -93,10 +94,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         subtractFeeFromAmount: Boolean,
         slots: List<SatsCardSlot>,
         sweepType: SweepType,
-        masterSignerId: String,
-        magicalPhrase: String,
-        derivationPath: String,
-        inputs: List<UnspentOutput>
+        inputs: List<UnspentOutput>,
+        claimInheritanceTxParam: ClaimInheritanceTxParam?,
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -108,9 +107,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             privateNote = privateNote,
             slots = slots,
             sweepType = sweepType,
-            masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase,
-            derivationPath = derivationPath,
+            claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs
         )
     }
@@ -124,10 +121,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         subtractFeeFromAmount: Boolean,
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
-        masterSignerId: String,
-        magicalPhrase: String,
-        derivationPath: String,
-        inputs: List<UnspentOutput>
+        inputs: List<UnspentOutput>,
+        claimInheritanceTxParam: ClaimInheritanceTxParam?,
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -138,9 +133,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = sweepType,
             slots = slots,
-            masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase,
-            derivationPath = derivationPath,
+            claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs,
         )
     }
@@ -156,10 +149,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         manualFeeRate: Int,
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
-        masterSignerId: String,
-        magicalPhrase: String,
-        derivationPath: String,
-        inputs: List<UnspentOutput>
+        inputs: List<UnspentOutput>,
+        claimInheritanceTxParam: ClaimInheritanceTxParam?,
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -172,9 +163,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             manualFeeRate = manualFeeRate,
             sweepType = sweepType,
             slots = slots,
-            masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase,
-            derivationPath = derivationPath,
+            claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs
         )
     }

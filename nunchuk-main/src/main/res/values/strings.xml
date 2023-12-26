@@ -31,7 +31,9 @@
     <string name="nc_activation_date">Activation Date</string>
     <string name="nc_plan_overview_bottom_desc">We will now go through them one-by-one.</string>
     <string name="nc_find_backup_password_desc">In your wallet, you have designated a TAPSIGNER to be the inheritance key. An encrypted backup of this key is stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_find_two_backup_password_desc">In your wallet, you have designated two TAPSIGNERs to be the inheritance keys. The encrypted backups of these keys are stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover these keys using the Backup Passwords printed on the back of the TAPSIGNERs.\n\n[B]Make note of the two Backup Passwords[/B]. You will need to share them with the Beneficiary or Trustee.</string>
     <string name="nc_find_backup_password">Find your Backup Password</string>
+    <string name="nc_find_backup_passwords">Find your Backup Passwords</string>
     <string name="nc_set_up_inheritance_hint">[B]Beneficiary[/B]: an individual who will inherit your bitcoins.\n\n[B]Trustee[/B]: an individual who will help manage and distribute your bitcoins to the Beneficiary.</string>
     <string name="nc_here_is_plan_magical_phrase">Here is your plan’s Magic Phrase</string>
     <string name="nc_inheritance_key_tip">Inheritance key tip</string>

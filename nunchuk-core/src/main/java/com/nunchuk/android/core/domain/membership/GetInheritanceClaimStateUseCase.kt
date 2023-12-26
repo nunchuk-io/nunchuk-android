@@ -22,6 +22,7 @@ package com.nunchuk.android.core.domain.membership
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
@@ -37,15 +38,21 @@ class GetInheritanceClaimStateUseCase @Inject constructor(
 ) {
     override suspend fun execute(parameters: Param): InheritanceAdditional {
         val userData = userWalletRepository.generateInheritanceClaimStatusUserData(parameters.magic)
-        val signer = nunchukNativeSdk.getSignerFromMasterSigner(
-            masterSignerId = parameters.signer.id, path = parameters.derivationPath
-        )
-        val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
-        val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
+        val signatures = arrayListOf<String>()
+        val singleSigners = arrayListOf<SingleSigner>()
+        parameters.signerModels.forEachIndexed { index, signerModel ->
+            val signer = nunchukNativeSdk.getSignerFromMasterSigner(
+                masterSignerId = signerModel.id, path = parameters.derivationPaths[index]
+            )
+            val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
+            val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
+            signatures.add(signature)
+            singleSigners.add(signer)
+        }
         return userWalletRepository.inheritanceClaimStatus(
-            userData = userData, masterFingerprint = signer.masterFingerprint, signature = signature
+            userData = userData, masterFingerprints = singleSigners.map { it.masterFingerprint }, signatures = signatures
         )
     }
 
-    data class Param(val signer: SignerModel, val magic: String, val derivationPath: String)
+    data class Param(val signerModels: List<SignerModel>, val magic: String, val derivationPaths: List<String>)
 }
