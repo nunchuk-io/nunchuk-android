@@ -66,6 +66,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.GetContactsUseCase
@@ -103,6 +104,7 @@ import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.SignTransactionUseCase
 import com.nunchuk.android.usecase.UpdateTransactionMemo
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
@@ -120,7 +122,10 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -162,6 +167,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val getRawTransactionUseCase: GetRawTransactionUseCase,
     private val requestSignatureTransactionUseCase: RequestSignatureTransactionUseCase,
+    private val getGroupUseCase: GetGroupUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
@@ -240,6 +246,26 @@ internal class TransactionDetailsViewModel @Inject constructor(
         listenTransactionChanged()
         getAllTags()
         getAllCoins()
+        getGroupMembers()
+    }
+
+    private fun getGroupMembers() {
+        viewModelScope.launch {
+            getGroupUseCase(
+                GetGroupUseCase.Params(
+                    assistedWalletManager.getGroupId(walletId).orEmpty()
+                )
+            )
+                .map { it.getOrElse { null } }
+                .distinctUntilChanged()
+                .collect { group ->
+                    val members = group?.members.orEmpty()
+                        .filter { it.role != AssistedWalletRole.OBSERVER.name
+                                && isMatchingEmailOrUserName(it.emailOrUsername).not()
+                                && it.isPendingRequest().not()}
+                    updateState { copy(members = members) }
+                }
+        }
     }
 
     fun getAllTags() {
@@ -747,6 +773,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
 
+    fun getMembers() = getState().members
+
     fun isInheritanceSigner(xfp: String): Boolean =
         masterSigners.find { it.device.masterFingerprint == xfp }?.tags?.contains(SignerTag.INHERITANCE) == true
 
@@ -813,6 +841,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun convertInputs(inputs: List<TxInput>) =
         inputs.mapNotNull { txInput -> allCoins.find { it.txid == txInput.first && it.vout == txInput.second } }
+
+    private fun isMatchingEmailOrUserName(emailOrUsername: String) =
+        emailOrUsername == accountManager.getAccount().email
+                || emailOrUsername == accountManager.getAccount().username
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1

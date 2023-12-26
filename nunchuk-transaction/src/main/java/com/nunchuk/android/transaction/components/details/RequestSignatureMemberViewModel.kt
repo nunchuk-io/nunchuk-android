@@ -2,6 +2,7 @@ package com.nunchuk.android.transaction.components.details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -16,30 +17,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RequestSignatureMemberViewModel @Inject constructor(
-    private val getGroupUseCase: GetGroupUseCase,
-    private val assistedWalletManager: AssistedWalletManager
-) : ViewModel() {
+class RequestSignatureMemberViewModel @Inject constructor() : ViewModel() {
 
     private val _state = MutableStateFlow(RequestSignatureMemberState())
     val state = _state.asStateFlow()
 
-
-    fun init(walletId: String) {
-        viewModelScope.launch {
-            getGroupUseCase(
-                GetGroupUseCase.Params(
-                    assistedWalletManager.getGroupId(walletId).orEmpty()
-                )
-            )
-                .map { it.getOrElse { null } }
-                .distinctUntilChanged()
-                .collect { group ->
-                    val members = group?.members.orEmpty()
-                        .filter { it.role != AssistedWalletRole.OBSERVER.name && it.role != AssistedWalletRole.MASTER.name && it.isPendingRequest().not()}
-                    _state.update { it.copy(members = members) }
-                }
-        }
+    fun init(members: List<ByzantineMember>) {
+        _state.update { it.copy(members = members) }
     }
 }
 

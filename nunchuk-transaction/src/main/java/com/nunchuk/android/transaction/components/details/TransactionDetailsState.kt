@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.details
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
@@ -33,4 +34,5 @@ data class TransactionDetailsState(
     val coins: List<UnspentOutput> = emptyList(),
     val tags: Map<Int, CoinTag> = emptyMap(),
     val isShowInputCoin: Boolean = false,
+    val members: List<ByzantineMember> = emptyList(),
 )

@@ -92,7 +92,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             dismiss()
         }
 
-        binding.btnRequestSignature.isVisible = args.isPending
+        binding.btnRequestSignature.isVisible = args.isPending && args.isShowRequestSignature
         binding.btnRequestSignature.setOnClickListener {
             listener(REQUEST_SIGNATURE)
             dismiss()
@@ -149,7 +149,8 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             isRejected: Boolean,
             isAssistedWallet: Boolean,
             isScheduleBroadcast: Boolean,
-            canBroadcast: Boolean
+            canBroadcast: Boolean,
+            isShowRequestSignature: Boolean,
         ): TransactionOptionsBottomSheet {
             return TransactionOptionsBottomSheet().apply {
                 arguments =
@@ -159,7 +160,8 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
                         isRejected,
                         isAssistedWallet,
                         isScheduleBroadcast,
-                        canBroadcast
+                        canBroadcast,
+                        isShowRequestSignature
                     ).buildBundle()
                 show(fragmentManager, TAG)
             }
@@ -175,6 +177,7 @@ data class TransactionOptionsArgs(
     val isAssistedWallet: Boolean,
     val isScheduleBroadcast: Boolean,
     val canBroadcast: Boolean,
+    val isShowRequestSignature: Boolean,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
@@ -184,6 +187,7 @@ data class TransactionOptionsArgs(
         putBoolean(EXTRA_IS_ASSISTED_WALLET, isAssistedWallet)
         putBoolean(EXTRA_IS_SCHEDULE_BROADCAST, isScheduleBroadcast)
         putBoolean(EXTRA_CAN_BROADCAST, canBroadcast)
+        putBoolean(EXTRA_SHOW_REQUEST_SIGNATURE, isShowRequestSignature)
     }
 
     companion object {
@@ -193,6 +197,7 @@ data class TransactionOptionsArgs(
         private const val EXTRA_IS_ASSISTED_WALLET = "EXTRA_IS_ASSISTED_WALLET"
         private const val EXTRA_IS_SCHEDULE_BROADCAST = "EXTRA_IS_SCHEDULE_BROADCAST"
         private const val EXTRA_CAN_BROADCAST = "EXTRA_CAN_BROADCAST"
+        private const val EXTRA_SHOW_REQUEST_SIGNATURE = "EXTRA_SHOW_REQUEST_SIGNATURE"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
@@ -201,6 +206,7 @@ data class TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_ASSISTED_WALLET).orFalse(),
             data?.getBooleanValue(EXTRA_IS_SCHEDULE_BROADCAST).orFalse(),
             data?.getBooleanValue(EXTRA_CAN_BROADCAST).orFalse(),
+            data?.getBooleanValue(EXTRA_SHOW_REQUEST_SIGNATURE).orFalse(),
         )
     }
 }

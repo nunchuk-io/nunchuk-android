@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,11 +46,11 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
-import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.utils.parcelableArrayList
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
@@ -65,7 +64,7 @@ class RequestSignatureMemberFragment : BaseComposeBottomSheet() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.init(args.walletId)
+        viewModel.init(args.members)
     }
 
     override fun onCreateView(
@@ -91,10 +90,6 @@ class RequestSignatureMemberFragment : BaseComposeBottomSheet() {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-    }
-
     companion object {
         const val REQUEST_KEY = "RequestSignatureMemberFragment"
         const val EXTRA_MEMBER_ID = "EXTRA_MEMBER_ID"
@@ -102,28 +97,28 @@ class RequestSignatureMemberFragment : BaseComposeBottomSheet() {
 
         private const val TAG = "RequestSignatureMemberFragment"
 
-        private fun newInstance(roomId: String) = RequestSignatureMemberFragment().apply {
-            arguments = RequestSignatureMemberFragmentArgs(roomId).buildBundle()
+        private fun newInstance(members: List<ByzantineMember>) = RequestSignatureMemberFragment().apply {
+            arguments = RequestSignatureMemberFragmentArgs(members).buildBundle()
         }
 
-        fun show(fragmentManager: FragmentManager, groupId: String): RequestSignatureMemberFragment {
-            return newInstance(groupId).apply { show(fragmentManager, TAG) }
+        fun show(fragmentManager: FragmentManager, members: List<ByzantineMember>): RequestSignatureMemberFragment {
+            return newInstance(members).apply { show(fragmentManager, TAG) }
         }
 
     }
 }
 
-data class RequestSignatureMemberFragmentArgs(val walletId: String) : FragmentArgs {
+data class RequestSignatureMemberFragmentArgs(val members: List<ByzantineMember>) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
-        putString(EXTRA_WALLET_ID, walletId)
+        putParcelableArrayList(EXTRA_MEMBERS, members.toCollection(ArrayList()))
     }
 
     companion object {
-        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_MEMBERS = "EXTRA_MEMBERS"
 
         fun deserializeFrom(data: Bundle?) = RequestSignatureMemberFragmentArgs(
-            data?.getString(EXTRA_WALLET_ID).orEmpty()
+            data?.parcelableArrayList<ByzantineMember>(EXTRA_MEMBERS).orEmpty()
         )
     }
 }

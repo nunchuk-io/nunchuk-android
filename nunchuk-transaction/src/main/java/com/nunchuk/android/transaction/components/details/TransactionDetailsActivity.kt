@@ -657,7 +657,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isRejected = event.isRejected,
             isAssistedWallet = viewModel.isAssistedWallet(),
             isScheduleBroadcast = viewModel.isScheduleBroadcast(),
-            canBroadcast = event.canBroadcast
+            canBroadcast = event.canBroadcast,
+            isShowRequestSignature = viewModel.getMembers().isNotEmpty(),
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
@@ -682,7 +683,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 TransactionOption.REQUEST_SIGNATURE -> {
                     RequestSignatureMemberFragment.show(
                         supportFragmentManager,
-                        args.walletId
+                        viewModel.getMembers(),
                     )
                 }
             }
