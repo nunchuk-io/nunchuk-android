@@ -25,10 +25,11 @@ fun GroupWalletType.shortName(plan: MembershipPlan): Int =
     when {
         this == GroupWalletType.TWO_OF_FOUR_MULTISIG -> R.string.nc_pro
         this == GroupWalletType.THREE_OF_FIVE_INHERITANCE && plan == MembershipPlan.BYZANTINE_PRO -> R.string.nc_pro
-        this == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> R.string.nc_pro
+        this == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY && plan == MembershipPlan.BYZANTINE_PRO -> R.string.nc_pro
 
         this == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> R.string.nc_premier
         this == GroupWalletType.THREE_OF_FIVE_INHERITANCE && plan == MembershipPlan.BYZANTINE_PREMIER -> R.string.nc_premier
+        this == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY && plan == MembershipPlan.BYZANTINE_PREMIER -> R.string.nc_premier
         else -> R.string.nc_standard
     }
 

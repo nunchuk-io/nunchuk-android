@@ -202,6 +202,7 @@ fun GroupWalletTypeOptionView(
             if (type == GroupWalletType.TWO_OF_FOUR_MULTISIG
                 || type == GroupWalletType.THREE_OF_FIVE_INHERITANCE
                 || type == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY
+                || type == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE
             ) {
                 ProBadgePlan(
                     modifier = Modifier.padding(end = 4.dp),
