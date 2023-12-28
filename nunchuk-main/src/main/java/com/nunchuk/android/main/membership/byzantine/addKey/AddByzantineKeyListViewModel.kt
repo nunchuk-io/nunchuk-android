@@ -129,13 +129,14 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     private suspend fun loadSigners() {
         getAllSignersUseCase(Unit).onSuccess { pair ->
+            val singleSigner = pair.second.distinctBy { it.masterFingerprint }
             singleSigners.apply {
                 clear()
-                addAll(pair.second)
+                addAll(singleSigner)
             }
             val signers = pair.first.map { signer ->
                 masterSignerMapper(signer)
-            } + pair.second.map { signer -> signer.toModel() }
+            } + singleSigner.map { signer -> signer.toModel() }
             _state.update { it.copy(signers = signers) }
             updateKeyData()
         }
