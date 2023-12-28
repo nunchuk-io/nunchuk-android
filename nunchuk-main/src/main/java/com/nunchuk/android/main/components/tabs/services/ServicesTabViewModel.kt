@@ -41,7 +41,6 @@ import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
@@ -144,7 +143,7 @@ class ServicesTabViewModel @Inject constructor(
         withContext(Dispatchers.Main) {
             _state.update { state ->
                 state.copy(
-                    allowInheritanceMultisigs = if (allowInheritanceMultisigs.isEmpty()) emptyList() else sortedGroups,
+                    allowInheritanceGroups = if (allowInheritanceMultisigs.isEmpty()) emptyList() else sortedGroups,
                     userRole = byzantineGroupUtils.getCurrentUserRole(sortedGroups.firstOrNull()),
                     joinedGroups = joinedGroups.associateBy { it.id },
                     isMasterHasNotCreatedWallet = isMasterHasNotCreatedWallet,
@@ -371,11 +370,20 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     private fun isAllowSetupInheritance(wallet: AssistedWalletBrief): Boolean {
-        return state.value.allowInheritanceMultisigs.find { group -> group.id == wallet.groupId } != null
+        return state.value.allowInheritanceGroups.find { group -> group.id == wallet.groupId } != null
                 && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[wallet.groupId]).toRole.isMasterOrAdmin
                 && state.value.joinedGroups[wallet.groupId]?.walletConfig?.allowInheritance == true
     }
 
+    fun getConfigServerKeyWallets(): List<AssistedWalletBrief> {
+        val wallets = state.value.assistedWallets
+        val allowCoSigningPolicyGroups = state.value.getGroupsAllowCoSigningPolicies()
+        return wallets.filter { walletBrief ->
+            walletBrief.groupId.isEmpty() || (allowCoSigningPolicyGroups.find { group ->
+                group.id == walletBrief.groupId
+            } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[walletBrief.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited)
+        }
+    }
     /**
      * Get wallets that are able to setup inheritance or config server key policy
      * Limit to 2 of 4 multisig group if plan is byzantine
@@ -386,7 +394,7 @@ class ServicesTabViewModel @Inject constructor(
         val wallets =
             if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
         return wallets.filter {
-                it.groupId.isEmpty() || (state.value.allowInheritanceMultisigs.find { group ->
+                it.groupId.isEmpty() || (state.value.allowInheritanceGroups.find { group ->
                     group.id == it.groupId
                 } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited)
             }

@@ -266,7 +266,16 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                 }
             }
-            ServiceTabRowItem.CoSigningPolicies,
+            ServiceTabRowItem.CoSigningPolicies -> {
+                val wallets = viewModel.getConfigServerKeyWallets()
+                if (wallets.isEmpty()) return
+                if (wallets.size == 1) {
+                    enterPasswordDialog(item = item, walletId = wallets.first().localId)
+                } else {
+                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
+                }
+            }
+
             ServiceTabRowItem.ViewInheritancePlan -> {
                 val wallets = viewModel.getWallets(ignoreSetupInheritance = item != ServiceTabRowItem.ViewInheritancePlan)
                 if (wallets.isEmpty()) return

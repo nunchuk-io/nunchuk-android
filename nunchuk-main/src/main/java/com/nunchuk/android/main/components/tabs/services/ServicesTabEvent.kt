@@ -76,7 +76,7 @@ data class ServicesTabState(
     val bannerPage: BannerPage? = null,
     val allGroups : List<ByzantineGroup> = emptyList(),
     val joinedGroups: Map<String, ByzantineGroup> = mutableMapOf(),
-    val allowInheritanceMultisigs: List<ByzantineGroup> = emptyList(),
+    val allowInheritanceGroups: List<ByzantineGroup> = emptyList(),
     val userRole: String = AssistedWalletRole.NONE.name,
     val isMasterHasNotCreatedWallet: Boolean = false,
 ) {
@@ -161,7 +161,7 @@ data class ServicesTabState(
             items.add(ObserverRole)
             return items
         } else if (userRole == AssistedWalletRole.KEYHOLDER_LIMITED.name ||
-            userRole == AssistedWalletRole.KEYHOLDER.name && allowInheritanceMultisigs.isEmpty()
+            userRole == AssistedWalletRole.KEYHOLDER.name && allowInheritanceGroups.isEmpty()
         ) {
             items.apply {
                 add(ServiceTabRowCategory.Emergency)
@@ -170,7 +170,7 @@ data class ServicesTabState(
                 add(ServiceTabRowItem.ClaimInheritance)
             }
             return items
-        } else if (allowInheritanceMultisigs.isNotEmpty()) {
+        } else if (allowInheritanceGroups.isNotEmpty()) {
             if (userRole == AssistedWalletRole.KEYHOLDER.name) {
                 items.apply {
                     add(ServiceTabRowCategory.Emergency)
@@ -180,7 +180,7 @@ data class ServicesTabState(
                         add(ServiceTabRowItem.ViewInheritancePlan)
                     }
                     add(ServiceTabRowItem.ClaimInheritance)
-                    showOfAllowInheritanceMultisig {
+                    showCoSigningPolicies {
                         add(ServiceTabRowCategory.Subscription)
                         add(ServiceTabRowItem.CoSigningPolicies)
                     }
@@ -195,7 +195,7 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.KeyRecovery)
                     add(ServiceTabRowCategory.Inheritance)
                     if (assistedWallets.isEmpty() ||
-                        assistedWallets.filter { wallet -> allowInheritanceMultisigs.find { wallet.groupId == it.id } != null }
+                        assistedWallets.filter { wallet -> allowInheritanceGroups.find { wallet.groupId == it.id } != null }
                             .all { wallet -> wallet.isSetupInheritance.not() }
                     ) {
                         add(ServiceTabRowItem.SetUpInheritancePlan)
@@ -205,14 +205,14 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.ClaimInheritance)
                     if (userRole == AssistedWalletRole.MASTER.name) {
                         add(ServiceTabRowCategory.Subscription)
-                        showOfAllowInheritanceMultisig {
+                        showCoSigningPolicies {
                             add(ServiceTabRowItem.CoSigningPolicies)
                         }
                         add(ServiceTabRowItem.GetAdditionalWallets)
                         add(ServiceTabRowItem.RollOverAssistedWallet)
                         add(ServiceTabRowItem.ManageSubscription)
                     } else {
-                        showOfAllowInheritanceMultisig {
+                        showCoSigningPolicies {
                             add(ServiceTabRowCategory.Subscription)
                             add(ServiceTabRowItem.CoSigningPolicies)
                         }
@@ -228,6 +228,10 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.KeyRecovery)
                     add(ServiceTabRowCategory.Inheritance)
                     add(ServiceTabRowItem.ClaimInheritance)
+                    showCoSigningPolicies {
+                        add(ServiceTabRowCategory.Subscription)
+                        add(ServiceTabRowItem.CoSigningPolicies)
+                    }
                 }
                 return items
             } else if (userRole == AssistedWalletRole.MASTER.name) {
@@ -238,6 +242,9 @@ data class ServicesTabState(
                     add(ServiceTabRowCategory.Inheritance)
                     add(ServiceTabRowItem.ClaimInheritance)
                     add(ServiceTabRowCategory.Subscription)
+                    showCoSigningPolicies {
+                        add(ServiceTabRowItem.CoSigningPolicies)
+                    }
                     add(ServiceTabRowItem.GetAdditionalWallets)
                     add(ServiceTabRowItem.RollOverAssistedWallet)
                     add(ServiceTabRowItem.ManageSubscription)
@@ -266,7 +273,7 @@ data class ServicesTabState(
             items.apply {
                 add(ServiceTabRowCategory.Emergency)
                 add(ServiceTabRowItem.KeyRecovery)
-                showOfAllowInheritanceMultisig {
+                showCoSigningPolicies {
                     add(ServiceTabRowCategory.Subscription)
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
@@ -278,7 +285,7 @@ data class ServicesTabState(
                 add(ServiceTabRowItem.EmergencyLockdown)
                 add(ServiceTabRowItem.KeyRecovery)
                 add(ServiceTabRowCategory.Subscription)
-                showOfAllowInheritanceMultisig {
+                showCoSigningPolicies {
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
                 add(ServiceTabRowItem.RollOverAssistedWallet)
@@ -290,7 +297,7 @@ data class ServicesTabState(
                 add(ServiceTabRowCategory.Emergency)
                 add(ServiceTabRowItem.EmergencyLockdown)
                 add(ServiceTabRowItem.KeyRecovery)
-                showOfAllowInheritanceMultisig {
+                showCoSigningPolicies {
                     add(ServiceTabRowCategory.Subscription)
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
@@ -312,9 +319,20 @@ data class ServicesTabState(
     }
 
     private fun showOfAllowInheritanceMultisig(block: () -> Unit) {
-        if (allowInheritanceMultisigs.isNotEmpty() && assistedWallets.any { wallet -> allowInheritanceMultisigs.find { wallet.groupId == it.id } != null }) {
+        if (allowInheritanceGroups.isNotEmpty() && assistedWallets.any { wallet -> allowInheritanceGroups.find { wallet.groupId == it.id } != null }) {
             block.invoke()
         }
+    }
+
+    private fun showCoSigningPolicies(block: () -> Unit) {
+        if (joinedGroups.isNotEmpty() && assistedWallets.any { wallet -> joinedGroups[wallet.groupId]?.walletConfig?.requiredServerKey == true }) {
+            block.invoke()
+        }
+    }
+
+    fun getGroupsAllowCoSigningPolicies(): List<ByzantineGroup> {
+        return joinedGroups.filter { it.value.walletConfig.requiredServerKey }
+            .map { it.value }
     }
 
     private fun isHasSetupInheritanceWallet(): Boolean {
