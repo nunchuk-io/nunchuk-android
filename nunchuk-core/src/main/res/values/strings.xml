@@ -130,7 +130,7 @@
     <string name="nc_enable_nfc">Enable NFC</string>
     <string name="nc_refer_to">Refer to</string>
     <string name="nc_hint_import_wallet_from_mk4">On COLDCARD, go to Settings → Multisig Wallets → &lt;Select wallet&gt; → Coldcard Export → Press 3.</string>
-    <string name="nc_hint_import_single_sig_wallet_from_mk4">On COLDCARD, go to Advanced/Tools → Export Wallet → Generic JSON → OK (x2)→ Press 3.</string>
+    <string name="nc_hint_import_single_sig_wallet_from_mk4">On COLDCARD, go to Advanced/Tools → Export Wallet → Generic JSON → OK → Enter Account # (0 if first time) → Press 3.</string>
     <string name="nc_hint_health_check_coldcard">On COLDCARD, go to Advanced/Tools → NFC Tools → Sign Message.</string>
     <string name="nc_create_transaction">Create transaction</string>
     <string name="nc_customize_fee_settings">Customize fee settings</string>
