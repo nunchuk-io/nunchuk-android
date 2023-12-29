@@ -58,7 +58,6 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEve
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPassphraseSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
-import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -66,7 +65,6 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
-import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -88,6 +86,7 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher

@@ -53,6 +53,7 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
+import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -107,7 +108,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase,
     private val recoverKeyUseCase: RecoverKeyUseCase,
     private val pushEventManager: PushEventManager,
-    private val gson: Gson,
+    private val syncTransactionUseCase: SyncTransactionUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -214,12 +215,25 @@ class GroupDashboardViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            pushEventManager.event.filterIsInstance<PushEvent.OpenRegisterWallet>().collect {
-                val groupWalletSetupAlert =
-                    _state.value.alerts.find { alert -> alert.type == AlertType.GROUP_WALLET_SETUP }
-                if (groupWalletSetupAlert != null && getWalletId().isNotEmpty()) {
-                    dismissAlert(groupWalletSetupAlert.id, silentLoading = true)
+            pushEventManager.event.collect { event ->
+                when(event) {
+                    PushEvent.OpenRegisterWallet -> {
+                        val groupWalletSetupAlert =
+                            _state.value.alerts.find { alert -> alert.type == AlertType.GROUP_WALLET_SETUP }
+                        if (groupWalletSetupAlert != null && getWalletId().isNotEmpty()) {
+                            dismissAlert(groupWalletSetupAlert.id, silentLoading = true)
+                        }
+                    }
+                    is PushEvent.SignedTxSuccess -> {
+                        val alert = _state.value.alerts.find { alert -> alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST &&  alert.payload.transactionId == event.txId  }
+                        if (alert != null) {
+                            dismissAlert(alert.id, silentLoading = true)
+                        }
+                    }
+
+                    else -> {}
                 }
+
             }
         }
         viewModelScope.launch {
@@ -624,6 +638,17 @@ class GroupDashboardViewModel @Inject constructor(
             keysStatus.await()
             alerts.await()
             _state.update { it.copy(isRefreshing = false) }
+        }
+    }
+
+    fun syncTransaction(txId: String) = viewModelScope.launch {
+        _event.emit(GroupDashboardEvent.Loading(true))
+        val result = syncTransactionUseCase(SyncTransactionUseCase.Params(args.groupId, getWalletId()))
+        _event.emit(GroupDashboardEvent.Loading(false))
+        if (result.isSuccess) {
+            _event.emit(GroupDashboardEvent.SyncTransactionSuccess(txId))
+        } else {
+            _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

@@ -30,7 +30,6 @@ import com.nunchuk.android.core.domain.membership.GetInheritanceUserDataUseCase
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
-import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.Period
@@ -39,6 +38,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

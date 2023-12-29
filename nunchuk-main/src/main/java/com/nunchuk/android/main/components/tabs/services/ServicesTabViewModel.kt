@@ -26,13 +26,9 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
-import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUseCase
-import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUserDataUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardEvent
-import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.model.ByzantineGroup
@@ -55,6 +51,7 @@ import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.banner.SubmitEmailUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -90,7 +87,6 @@ class ServicesTabViewModel @Inject constructor(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
-    private val requestPlanningInheritanceUserDataUseCase: RequestPlanningInheritanceUserDataUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()

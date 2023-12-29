@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.util
+package com.nunchuk.android.utils
 
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager

@@ -31,6 +31,7 @@ sealed class GroupDashboardEvent {
     ) : GroupDashboardEvent()
 
     data object RestartWizardSuccess: GroupDashboardEvent()
+    data class SyncTransactionSuccess(val txId: String): GroupDashboardEvent()
     data class DownloadBackupKeySuccess(val backupKey: BackupKey) : GroupDashboardEvent()
 }
 

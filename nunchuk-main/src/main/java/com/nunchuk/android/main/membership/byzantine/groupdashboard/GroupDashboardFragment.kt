@@ -381,6 +381,14 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         )
                     )
                 }
+
+                is GroupDashboardEvent.SyncTransactionSuccess -> {
+                    navigator.openTransactionDetailsScreen(
+                        activityContext = requireActivity(),
+                        walletId = viewModel.getWalletId(),
+                        txId = event.txId,
+                    )
+                }
             }
         }
     }
@@ -498,11 +506,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
         } else if (alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST) {
-            navigator.openTransactionDetailsScreen(
-                activityContext = requireActivity(),
-                walletId = viewModel.getWalletId(),
-                txId = alert.payload.transactionId,
-            )
+            viewModel.syncTransaction(alert.payload.transactionId)
         }
     }
 

@@ -67,6 +67,7 @@ import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.GetContactsUseCase
@@ -112,6 +113,7 @@ import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.TransactionException
 import com.nunchuk.android.utils.onException
@@ -168,6 +170,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getRawTransactionUseCase: GetRawTransactionUseCase,
     private val requestSignatureTransactionUseCase: RequestSignatureTransactionUseCase,
     private val getGroupUseCase: GetGroupUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
@@ -250,12 +253,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun getGroupMembers() {
+        val groupId = assistedWalletManager.getGroupId(walletId) ?: return
         viewModelScope.launch {
-            getGroupUseCase(
-                GetGroupUseCase.Params(
-                    assistedWalletManager.getGroupId(walletId).orEmpty()
-                )
-            )
+            getGroupUseCase(GetGroupUseCase.Params(groupId = groupId))
                 .map { it.getOrElse { null } }
                 .distinctUntilChanged()
                 .collect { group ->
@@ -263,7 +263,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         .filter { it.role != AssistedWalletRole.OBSERVER.name
                                 && isMatchingEmailOrUserName(it.emailOrUsername).not()
                                 && it.isPendingRequest().not()}
-                    updateState { copy(members = members) }
+                    updateState { copy(members = members, userRole = byzantineGroupUtils.getCurrentUserRole(group).toRole) }
                 }
         }
     }
@@ -825,10 +825,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun allTags() = getState().tags
     fun coins() = getState().coins
 
-    fun isMyCoin(output: TxOutput) =
-        runBlocking { isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, output.first)) }.getOrDefault(
-            false
-        )
+    fun getUserRole() = getState().userRole
 
     private fun isSignByServerKey(transaction: Transaction): Boolean {
         val fingerPrint =

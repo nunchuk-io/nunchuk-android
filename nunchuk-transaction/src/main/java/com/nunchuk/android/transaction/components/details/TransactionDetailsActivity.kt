@@ -25,15 +25,16 @@ import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import android.os.Bundle
+import android.view.Menu
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -57,10 +58,12 @@ import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideNfcLoading
-import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.isObserver
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.share.model.TransactionOption
@@ -95,8 +98,6 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
-import com.nunchuk.android.transaction.components.schedule.timezone.SelectTimeZoneFragment
-import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerTag
@@ -249,6 +250,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         shouldReload = true
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        if (viewModel.getUserRole().isObserver.not()) menuInflater.inflate(R.menu.menu_transaction_details, menu)
+        return true
+    }
+
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.EXPORT_TX_TO_Mk4 -> startNfcFlow(REQUEST_MK4_EXPORT_TRANSACTION)
@@ -315,7 +321,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             }
         }
         binding.changeAddressLabel.setOnLongClickListener {
-            handleCopyContent(binding.changeAddressLabel.text.toString())
+            if (viewModel.getUserRole().isKeyHolderLimited.not()) {
+                handleCopyContent(binding.changeAddressLabel.text.toString())
+            }
             true
         }
         binding.noteContent.setOnLongClickListener {
@@ -391,12 +399,19 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
         }
         handleServerTransaction(state.transaction, state.serverTransaction)
-        handleManageCoin(state.transaction.status, state.coins)
+        handleManageCoin(state.transaction.status, state.coins, state.userRole)
         hideLoading()
         handleShowInputCoin(state)
     }
 
     private fun handleShowInputCoin(state: TransactionDetailsState) {
+        if (state.userRole.isKeyHolderLimited) {
+            binding.switchShowInputCoin.apply {
+                isEnabled = false
+                isChecked = false
+                isClickable = false
+            }
+        }
         binding.switchShowInputCoin.isChecked = state.isShowInputCoin
         binding.inputCoin.isVisible = state.isShowInputCoin
         if (state.isShowInputCoin) {
@@ -407,8 +422,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
     }
 
-    private fun handleManageCoin(status: TransactionStatus, coins: List<UnspentOutput>) {
-        binding.tvManageCoin.isVisible = coins.isNotEmpty() && status.hadBroadcast()
+    private fun handleManageCoin(status: TransactionStatus, coins: List<UnspentOutput>, role: AssistedWalletRole) {
+        binding.tvManageCoin.isVisible = coins.isNotEmpty() && status.hadBroadcast() && role.isKeyHolderLimited.not()
     }
 
     private fun handleServerTransaction(
@@ -442,6 +457,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             signers = signers,
             txStatus = status,
             serverTransaction = serverTransaction,
+            userRole = viewModel.getUserRole(),
             listener = { signer ->
                 viewModel.setCurrentSigner(signer)
                 when {
@@ -487,6 +503,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not()
         binding.btnViewBlockChain.isVisible =
             transaction.isReceive || transaction.status.hadBroadcast()
+        if (transaction.status.canBroadCast()) {
+            lifecycleScope.launch {
+                pushEventManager.push(PushEvent.SignedTxSuccess(args.txId))
+            }
+        }
 
         bindAddress(transaction)
         bindChangeAddress(transaction, coins)
@@ -518,7 +539,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             TransactionAddressViewBinder(
                 binding.containerAddress, coins.take(30),
             ) {
-                handleCopyContent(it)
+                if (viewModel.getUserRole().isKeyHolderLimited.not()) {
+                    handleCopyContent(it)
+                }
             }.bindItems()
         }
         if (coins.size >= 2) {
