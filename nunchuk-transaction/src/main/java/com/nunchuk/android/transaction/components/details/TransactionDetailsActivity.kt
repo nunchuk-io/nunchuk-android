@@ -250,11 +250,6 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         shouldReload = true
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        if (viewModel.getUserRole().isObserver.not()) menuInflater.inflate(R.menu.menu_transaction_details, menu)
-        return true
-    }
-
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.EXPORT_TX_TO_Mk4 -> startNfcFlow(REQUEST_MK4_EXPORT_TRANSACTION)
@@ -388,6 +383,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
 
         binding.transactionDetailsContainer.isVisible = state.viewMore
+        if (viewModel.getUserRole().isObserver) {
+            binding.toolbar.menu.clear()
+        }
 
         bindTransaction(state.transaction, state.coins)
         if (state.transaction.isReceive.not()) {
@@ -500,7 +498,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.signersContainer.isVisible =
             !transaction.isReceive && args.isInheritanceClaimingFlow.not()
         binding.btnBroadcast.isVisible =
-            transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not()
+            transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not() && viewModel.getUserRole().isObserver.not()
         binding.btnViewBlockChain.isVisible =
             transaction.isReceive || transaction.status.hadBroadcast()
         if (transaction.status.canBroadCast()) {
