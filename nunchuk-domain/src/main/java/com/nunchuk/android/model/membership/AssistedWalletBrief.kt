@@ -32,5 +32,6 @@ data class AssistedWalletBrief(
 )
 
 data class AssistedWalletBriefExt(
-    val inheritanceOwnerId: String? = null
+    val inheritanceOwnerId: String? = null,
+    val isPlanningRequest: Boolean = false,
 )

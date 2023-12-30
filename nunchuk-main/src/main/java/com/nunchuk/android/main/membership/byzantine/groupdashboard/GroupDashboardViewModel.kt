@@ -660,13 +660,14 @@ class GroupDashboardViewModel @Inject constructor(
         return (_state.value.inheritanceOwnerId.isNullOrEmpty() || isInheritanceOwner()) && state.value.isHasPendingRequestInheritance.not()
     }
 
-    fun setInheritanceRequestByMe() {
+    fun setInheritanceRequestByMe() = viewModelScope.launch {
         _state.update { state ->
             state.copy(
                 isHasPendingRequestInheritance = true,
                 inheritanceOwnerId = accountManager.getAccount().id
             )
         }
+        getInheritanceUseCase(GetInheritanceUseCase.Param(walletId.value.orEmpty(), args.groupId))
     }
 
     private val currentSelectedAlert: Alert?

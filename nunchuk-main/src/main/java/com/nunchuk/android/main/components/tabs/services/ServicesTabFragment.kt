@@ -40,7 +40,7 @@ import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.isByzantine
+import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
@@ -138,15 +138,20 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                         )
                     }
                 }
+
+                is ServicesTabEvent.RowItems -> {
+                    adapter.submitList(event.items)
+                    viewModel.isPremiumUser()?.let { it ->
+                        binding.supportFab.isVisible = it || viewModel.isByzantine()
+                        binding.actionGroup.isVisible = it.not() && event.items.any { it is NonSubHeader }
+                        binding.claimLayout.isVisible = viewModel.isShowClaimInheritanceLayout() && event.items.none { it is ServiceTabRowItem.ClaimInheritance }
+                    }
+                }
             }
         }
-        flowObserver(viewModel.state) { state ->
-            adapter.submitList(viewModel.getRowItems())
-            state.isPremiumUser?.let {
-                binding.supportFab.isVisible = state.isPremiumUser || viewModel.isByzantine()
-                binding.actionGroup.isVisible = state.isPremiumUser.not() && viewModel.getRowItems().any { it is NonSubHeader }
-                binding.claimLayout.isVisible = viewModel.isShowClaimInheritanceLayout() && viewModel.getRowItems().none { it is ServiceTabRowItem.ClaimInheritance }
-            }
+        flowObserver(viewModel.state) {
+            viewModel.getRowItems()
+
         }
     }
 
@@ -244,15 +249,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     )
                     return
                 }
-                if (wallets.size == 1) {
-                    enterPasswordDialog(item = item, walletId = wallets.first().localId)
-                } else {
-                    AssistedWalletBottomSheet.show(
-                        childFragmentManager,
-                        assistedWalletIds = wallets.map { it.localId },
-                        lockdownWalletIds = viewModel.getLockdownWalletsIds()
-                    )
-                }
+                showWalletsSheetOrEnterPassword(item, wallets)
             }
             ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext(), viewModel.state.value.userRole)
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
@@ -260,33 +257,27 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.RollOverAssistedWallet -> {}
             ServiceTabRowItem.SetUpInheritancePlan -> {
                 val wallets = viewModel.getUnSetupInheritanceWallets()
+                if (wallets.isEmpty()) return
                 if (wallets.size == 1) {
                     viewModel.openSetupInheritancePlan(wallets.first().localId)
                 } else {
                     AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
                 }
             }
-            ServiceTabRowItem.CoSigningPolicies -> {
-                val wallets = viewModel.getConfigServerKeyWallets()
-                if (wallets.isEmpty()) return
-                if (wallets.size == 1) {
-                    enterPasswordDialog(item = item, walletId = wallets.first().localId)
-                } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
-                }
-            }
+            ServiceTabRowItem.CoSigningPolicies -> showWalletsSheetOrEnterPassword(item, viewModel.getConfigServerKeyWallets())
 
-            ServiceTabRowItem.ViewInheritancePlan -> {
-                val wallets = viewModel.getWallets(ignoreSetupInheritance = item != ServiceTabRowItem.ViewInheritancePlan)
-                if (wallets.isEmpty()) return
-                if (wallets.size == 1) {
-                    enterPasswordDialog(item = item, walletId = wallets.first().localId)
-                } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
-                }
-            }
+            ServiceTabRowItem.ViewInheritancePlan -> showWalletsSheetOrEnterPassword(item, viewModel.getViewClaimInheritanceWallets())
 
             ServiceTabRowItem.GetAdditionalWallets -> {}
+        }
+    }
+
+    private fun showWalletsSheetOrEnterPassword(item: ServiceTabRowItem, wallets: List<AssistedWalletBrief>) {
+        if (wallets.isEmpty()) return
+        if (wallets.size == 1) {
+            enterPasswordDialog(item = item, walletId = wallets.first().localId)
+        } else {
+            AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
         }
     }
 

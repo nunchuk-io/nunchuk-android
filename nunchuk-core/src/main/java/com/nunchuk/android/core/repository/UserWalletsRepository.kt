@@ -940,7 +940,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             val inheritance = response.data.inheritance
             inheritance?.walletLocalId?.also { walletLocalId ->
                 markSetupInheritance(walletId = walletLocalId, isSetupInheritance = true)
-                updateAssistedWalletBriefExt(walletLocalId, inheritance.ownerId)
+                updateAssistedWalletBriefExt(walletLocalId, inheritance.toInheritance())
             }
         }
         return response.data.dummyTransaction?.id.orEmpty()
@@ -963,7 +963,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request, draft)
         if (response.isSuccess && request.body?.groupId == null) {
-            updateAssistedWalletBriefExt(walletId, "")
+            updateAssistedWalletBriefExt(walletId, null)
             markSetupInheritance(walletId, false)
         }
         return response.data.dummyTransaction?.id.orEmpty()
@@ -1198,11 +1198,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getInheritance(walletId: String, groupId: String?): Inheritance {
         val response = userWalletApiManager.walletApi.getInheritance(walletId, groupId)
-        if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
+        if (response.data.inheritance == null) throw IllegalStateException("Can not get inheritance")
         else {
             val inheritance = response.data.inheritance!!.toInheritance()
             inheritance.walletLocalId.also { walletLocalId ->
-                updateAssistedWalletBriefExt(walletLocalId, inheritance.ownerId)
+                updateAssistedWalletBriefExt(walletLocalId, inheritance)
             }
             return inheritance.also {
                 markSetupInheritance(
@@ -1220,12 +1220,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun updateAssistedWalletBriefExt(walletId: String, ownerId: String?) {
+    private suspend fun updateAssistedWalletBriefExt(walletId: String, inheritance: Inheritance?) {
         val entity = assistedWalletDao.getById(walletId) ?: return
         val ext = entity.ext?.run {
             gson.fromJson(this, AssistedWalletBriefExt::class.java)
         } ?: AssistedWalletBriefExt()
-        assistedWalletDao.updateOrInsert(entity.copy(ext = gson.toJson(ext.copy(inheritanceOwnerId = ownerId))))
+        assistedWalletDao.updateOrInsert(entity.copy(ext = gson.toJson(ext.copy(inheritanceOwnerId = inheritance?.ownerId.orEmpty(), isPlanningRequest = inheritance?.pendingRequests?.isNotEmpty() == true))))
     }
 
     private suspend fun handleServerTransaction(

@@ -29,6 +29,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import kotlinx.parcelize.Parcelize
 
@@ -66,6 +67,7 @@ sealed class ServicesTabEvent {
         val walletId: String,
         val groupId: String
     ) : ServicesTabEvent()
+    data class RowItems(val items: List<Any>) : ServicesTabEvent()
 }
 
 data class ServicesTabState(
@@ -74,11 +76,13 @@ data class ServicesTabState(
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null,
-    val allGroups : List<ByzantineGroup> = emptyList(),
+    val allGroups : Map<ByzantineGroup, AssistedWalletRole> = mutableMapOf(),
     val joinedGroups: Map<String, ByzantineGroup> = mutableMapOf(),
     val allowInheritanceGroups: List<ByzantineGroup> = emptyList(),
     val userRole: String = AssistedWalletRole.NONE.name,
     val isMasterHasNotCreatedWallet: Boolean = false,
+    val accountId: String = "",
+    val rowItems: List<Any> = emptyList(),
 ) {
     fun initRowItems(): List<Any> {
         val items = mutableListOf<Any>()
@@ -176,7 +180,7 @@ data class ServicesTabState(
                     add(ServiceTabRowCategory.Emergency)
                     add(ServiceTabRowItem.KeyRecovery)
                     add(ServiceTabRowCategory.Inheritance)
-                    if (isHasSetupInheritanceWallet()) {
+                    if (hasWalletAlreadySetupInheritance()) {
                         add(ServiceTabRowItem.ViewInheritancePlan)
                     }
                     add(ServiceTabRowItem.ClaimInheritance)
@@ -194,12 +198,9 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.EmergencyLockdown)
                     add(ServiceTabRowItem.KeyRecovery)
                     add(ServiceTabRowCategory.Inheritance)
-                    if (assistedWallets.isEmpty() ||
-                        assistedWallets.filter { wallet -> allowInheritanceGroups.find { wallet.groupId == it.id } != null }
-                            .all { wallet -> wallet.isSetupInheritance.not() }
-                    ) {
+                    if (isShowSetupInheritancePlan()) {
                         add(ServiceTabRowItem.SetUpInheritancePlan)
-                    } else if (isHasSetupInheritanceWallet()) {
+                    } else if (hasWalletAlreadySetupInheritance()) {
                         add(ServiceTabRowItem.ViewInheritancePlan)
                     }
                     add(ServiceTabRowItem.ClaimInheritance)
@@ -308,20 +309,13 @@ data class ServicesTabState(
     }
 
     private fun hasPremierGroupWallet(): Boolean {
-        return allGroups.any { group -> group.isPremier() }
+        return allGroups.keys.any { group -> group.isPremier() }
     }
 
     private fun isShowEmptyState(): Boolean {
        if (plan == MembershipPlan.NONE && allGroups.isNotEmpty() && joinedGroups.isEmpty()) return true
         if (allGroups.isEmpty()) return true
-        if (isMasterHasNotCreatedWallet) return true
-        return false
-    }
-
-    private fun showOfAllowInheritanceMultisig(block: () -> Unit) {
-        if (allowInheritanceGroups.isNotEmpty() && assistedWallets.any { wallet -> allowInheritanceGroups.find { wallet.groupId == it.id } != null }) {
-            block.invoke()
-        }
+        return isMasterHasNotCreatedWallet
     }
 
     private fun showCoSigningPolicies(block: () -> Unit) {
@@ -335,8 +329,30 @@ data class ServicesTabState(
             .map { it.value }
     }
 
-    private fun isHasSetupInheritanceWallet(): Boolean {
+    private fun isShowSetupInheritancePlan(): Boolean {
+        if (hasWalletAlreadySetupInheritance()) return false
+        return getUnSetupInheritanceWallets().isNotEmpty()
+    }
+
+    private fun hasWalletAlreadySetupInheritance(): Boolean {
         return assistedWallets.any { it.isSetupInheritance }
+    }
+
+    fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
+        val wallets = assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId) && it.ext.isPlanningRequest.not() }
+        return wallets.filter {
+            it.groupId.isEmpty() || isAllowSetupInheritance(it)
+        }
+    }
+
+    private fun isAllowSetupInheritance(wallet: AssistedWalletBrief): Boolean {
+        return allowInheritanceGroups.find { group -> group.id == wallet.groupId } != null
+                && joinedGroups[wallet.groupId].run { allGroups[this]?.isMasterOrAdmin == true }
+                && joinedGroups[wallet.groupId]?.walletConfig?.allowInheritance == true
+    }
+
+    private fun isInheritanceOwner(inheritanceOwnerId: String?): Boolean {
+        return inheritanceOwnerId.isNullOrEmpty() || inheritanceOwnerId == accountId
     }
 }
 

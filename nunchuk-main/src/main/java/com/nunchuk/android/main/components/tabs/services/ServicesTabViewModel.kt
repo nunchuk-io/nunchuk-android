@@ -29,6 +29,7 @@ import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseC
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.model.ByzantineGroup
@@ -55,6 +56,7 @@ import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,6 +73,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ServicesTabViewModel @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getWalletUseCase: GetWalletUseCase,
     private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
@@ -114,13 +117,13 @@ class ServicesTabViewModel @Inject constructor(
             getGroupsUseCase(Unit)
                 .collect { result ->
                     val groups = result.getOrDefault(emptyList())
-                    _state.update { it.copy(allGroups = groups) }
+                    _state.update { it -> it.copy(accountId = accountManager.getAccount().id, allGroups = groups.associateWith { byzantineGroupUtils.getCurrentUserRole(it).toRole }) }
                     updateGroupInfo(groups)
                 }
         }
     }
 
-    private fun updateGroupInfo(groups: List<ByzantineGroup>) = viewModelScope.launch(Dispatchers.IO) {
+    private fun updateGroupInfo(groups: List<ByzantineGroup>) = viewModelScope.launch(ioDispatcher) {
         val joinedGroups = groups.filter { byzantineGroupUtils.isPendingAcceptInvite(it).not() }
         val allowInheritanceMultisigs = groups.filter { it.walletConfig.allowInheritance }
         val groupNotAllowInheritanceMultisigs: List<ByzantineGroup>
@@ -177,7 +180,14 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
-    fun getRowItems() = _state.value.initRowItems()
+    fun getRowItems() = viewModelScope.launch(ioDispatcher) {
+        _event.emit(ServicesTabEvent.RowItems(_state.value.rowItems))
+        val rowItems = _state.value.initRowItems()
+        _event.emit(ServicesTabEvent.RowItems(rowItems))
+        _state.update { it.copy(rowItems = rowItems) }
+    }
+
+    fun isPremiumUser() = state.value.isPremiumUser
 
     fun getInheritance(walletId: String, token: String, groupId: String?) = viewModelScope.launch {
         _event.emit(ServicesTabEvent.Loading(true))
@@ -359,16 +369,7 @@ class ServicesTabViewModel @Inject constructor(
     fun getEmail() = accountManager.getAccount().email
 
     fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
-        val wallets = state.value.assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId) }
-        return wallets.filter {
-                it.groupId.isEmpty() || isAllowSetupInheritance(it)
-            }
-    }
-
-    private fun isAllowSetupInheritance(wallet: AssistedWalletBrief): Boolean {
-        return state.value.allowInheritanceGroups.find { group -> group.id == wallet.groupId } != null
-                && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[wallet.groupId]).toRole.isMasterOrAdmin
-                && state.value.joinedGroups[wallet.groupId]?.walletConfig?.allowInheritance == true
+        return _state.value.getUnSetupInheritanceWallets()
     }
 
     fun getConfigServerKeyWallets(): List<AssistedWalletBrief> {
@@ -380,24 +381,14 @@ class ServicesTabViewModel @Inject constructor(
             } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[walletBrief.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited)
         }
     }
-    /**
-     * Get wallets that are able to setup inheritance or config server key policy
-     * Limit to 2 of 4 multisig group if plan is byzantine
-     * Limit to master or admin or keyholder
-     * @param ignoreSetupInheritance: ignore setup inheritance or not
-     */
-    fun getWallets(ignoreSetupInheritance: Boolean = true): List<AssistedWalletBrief> {
-        val wallets =
-            if (ignoreSetupInheritance.not()) state.value.assistedWallets.filter { it.isSetupInheritance } else state.value.assistedWallets
+
+    fun getViewClaimInheritanceWallets(): List<AssistedWalletBrief> {
+        val wallets = state.value.assistedWallets.filter { it.isSetupInheritance }
         return wallets.filter {
                 it.groupId.isEmpty() || (state.value.allowInheritanceGroups.find { group ->
                     group.id == it.groupId
                 } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited)
             }
-    }
-
-    private fun isInheritanceOwner(inheritanceOwnerId: String?): Boolean {
-        return inheritanceOwnerId.isNullOrEmpty() || inheritanceOwnerId == accountManager.getAccount().id
     }
 
     /**
@@ -432,10 +423,9 @@ class ServicesTabViewModel @Inject constructor(
 
     fun isShowClaimInheritanceLayout(): Boolean {
         if (state.value.plan == MembershipPlan.HONEY_BADGER || state.value.plan == MembershipPlan.IRON_HAND) return false
-        if (state.value.allGroups.any { it.isPremier() } || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
+        if (state.value.allGroups.keys.any { it.isPremier() } || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
         if (state.value.userRole.toRole == AssistedWalletRole.OBSERVER) return true
         if (isNoByzantineWallet()) return true
-        if (state.value.plan == MembershipPlan.NONE && state.value.joinedGroups.isEmpty()) return true
-        return false
+        return state.value.plan == MembershipPlan.NONE && state.value.joinedGroups.isEmpty()
     }
 }

@@ -79,7 +79,7 @@ class AlertActionIntroViewModel @Inject constructor(
             .map { it.getOrElse { null } }
             .distinctUntilChanged()
             .collect { group ->
-                val requester = group?.members.orEmpty().find { it.user?.id == requestByUserId }
+                val requester = group?.members.orEmpty().find { it.membershipId == requestByUserId }
                 _state.update { it.copy(requester = requester) }
             }
     }
