@@ -70,7 +70,7 @@
     <string name="nc_2_of_4_multisig_title">2-of-4 multisig with inheritance planning</string>
     <string name="nc_2_of_3_multisig_title">2-of-3 multisig without inheritance planning</string>
     <string name="nc_3_of_5_multisig_title">3-of-5 multisig without inheritance planning</string>
-    <string name="nc_2_of_4_multisig_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key on our secure server to assist in inheritance planning and daily wallet operation.</string>
+    <string name="nc_2_of_4_multisig_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key on a secure server to assist in inheritance planning and daily wallet operation.</string>
     <string name="nc_2_of_3_multisig_desc">A master account and secondary account(s) control three keys; Nunchuk does not control any keys.</string>
     <string name="nc_3_of_5_multisig_desc">A master account and secondary account(s) control five keys; Nunchuk does not control any keys.</string>
     <string name="nc_main_select_group_wallet_type">Select group wallet type</string>
