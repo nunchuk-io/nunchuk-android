@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 internal class ExportTransactionViewModel @Inject constructor(
@@ -67,6 +68,7 @@ internal class ExportTransactionViewModel @Inject constructor(
             }
         }
     }
+
     fun init(args: ExportTransactionArgs) {
         this.args = args
         handleExportTransactionQRs()
@@ -86,18 +88,23 @@ internal class ExportTransactionViewModel @Inject constructor(
         val qrSize = getQrSize()
         exportTransactionJob?.cancel()
         exportTransactionJob = viewModelScope.launch {
-            val result = exportKeystoneDummyTransaction(ExportKeystoneDummyTransaction.Param(args.txToSign, getState().density))
-            if (result.isSuccess) {
+            exportKeystoneDummyTransaction(
+                ExportKeystoneDummyTransaction.Param(
+                    args.txToSign,
+                    getState().density
+                )
+            ).onSuccess {
                 val bitmaps = withContext(ioDispatcher) {
-                    result.getOrThrow()
-                        .mapNotNull { it.convertToQRCode(qrSize, qrSize) }
+                    it.mapNotNull { it.convertToQRCode(qrSize, qrSize) }
                 }
                 updateState {
                     getState().qrCodeBitmap.forEach { it.recycle() }
                     copy(qrCodeBitmap = bitmaps)
                 }
-            } else {
-                setEvent(ExportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
+            }.onFailure {
+                if (it !is CancellationException) {
+                    setEvent(ExportTransactionError(it.message.orUnknownError()))
+                }
             }
         }
     }
@@ -119,7 +126,10 @@ internal class ExportTransactionViewModel @Inject constructor(
     }
 
     private fun getQrSize(): Int {
-        return minOf(Resources.getSystem().displayMetrics.widthPixels, Resources.getSystem().displayMetrics.heightPixels).coerceAtMost(1080)
+        return minOf(
+            Resources.getSystem().displayMetrics.widthPixels,
+            Resources.getSystem().displayMetrics.heightPixels
+        ).coerceAtMost(1080)
     }
 
     private val isDummyTxFlow: Boolean
