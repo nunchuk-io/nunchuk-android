@@ -680,6 +680,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isScheduleBroadcast = viewModel.isScheduleBroadcast(),
             canBroadcast = event.canBroadcast,
             isShowRequestSignature = viewModel.getMembers().isNotEmpty(),
+            userRole = viewModel.getUserRole().name,
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()

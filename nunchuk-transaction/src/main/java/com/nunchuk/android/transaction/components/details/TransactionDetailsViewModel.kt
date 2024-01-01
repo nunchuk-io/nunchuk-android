@@ -810,7 +810,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun requestSignatureTransaction(membershipId: String) = viewModelScope.launch {
         setEvent(LoadingEvent)
-        val result = requestSignatureTransactionUseCase(RequestSignatureTransactionUseCase.Param(
+        requestSignatureTransactionUseCase(RequestSignatureTransactionUseCase.Param(
             groupId = assistedWalletManager.getGroupId(walletId).orEmpty(),
             walletId = walletId,
             transactionId = txId,

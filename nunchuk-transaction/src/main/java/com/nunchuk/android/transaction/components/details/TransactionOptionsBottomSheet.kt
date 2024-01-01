@@ -23,13 +23,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import androidx.core.view.allViews
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
@@ -133,6 +138,20 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             listener(SCHEDULE_BROADCAST)
             dismiss()
         }
+
+        hideOptionsIfRoleIsKeyHolderLimited()
+    }
+
+    private fun hideOptionsIfRoleIsKeyHolderLimited() {
+        val bottomSheet = binding.bottomSheet
+        if (args.userRole.toRole.isKeyHolderLimited) {
+            for (i in 0 until bottomSheet.childCount) {
+                val child = bottomSheet.getChildAt(i)
+                if (child.id != R.id.btnExport && child.id != R.id.btnImport) {
+                    child.visibility = View.GONE
+                }
+            }
+        }
     }
 
     fun setListener(listener: (TransactionOption) -> Unit) {
@@ -151,6 +170,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             isScheduleBroadcast: Boolean,
             canBroadcast: Boolean,
             isShowRequestSignature: Boolean,
+            userRole: String,
         ): TransactionOptionsBottomSheet {
             return TransactionOptionsBottomSheet().apply {
                 arguments =
@@ -161,7 +181,8 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
                         isAssistedWallet,
                         isScheduleBroadcast,
                         canBroadcast,
-                        isShowRequestSignature
+                        isShowRequestSignature,
+                        userRole
                     ).buildBundle()
                 show(fragmentManager, TAG)
             }
@@ -178,6 +199,7 @@ data class TransactionOptionsArgs(
     val isScheduleBroadcast: Boolean,
     val canBroadcast: Boolean,
     val isShowRequestSignature: Boolean,
+    val userRole: String,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
@@ -188,6 +210,7 @@ data class TransactionOptionsArgs(
         putBoolean(EXTRA_IS_SCHEDULE_BROADCAST, isScheduleBroadcast)
         putBoolean(EXTRA_CAN_BROADCAST, canBroadcast)
         putBoolean(EXTRA_SHOW_REQUEST_SIGNATURE, isShowRequestSignature)
+        putString(EXTRA_USER_ROLE, userRole)
     }
 
     companion object {
@@ -198,6 +221,7 @@ data class TransactionOptionsArgs(
         private const val EXTRA_IS_SCHEDULE_BROADCAST = "EXTRA_IS_SCHEDULE_BROADCAST"
         private const val EXTRA_CAN_BROADCAST = "EXTRA_CAN_BROADCAST"
         private const val EXTRA_SHOW_REQUEST_SIGNATURE = "EXTRA_SHOW_REQUEST_SIGNATURE"
+        private const val EXTRA_USER_ROLE = "EXTRA_USER_ROLE"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
@@ -207,6 +231,7 @@ data class TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_SCHEDULE_BROADCAST).orFalse(),
             data?.getBooleanValue(EXTRA_CAN_BROADCAST).orFalse(),
             data?.getBooleanValue(EXTRA_SHOW_REQUEST_SIGNATURE).orFalse(),
+            data?.getString(EXTRA_USER_ROLE).orEmpty(),
         )
     }
 }
