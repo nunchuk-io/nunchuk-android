@@ -262,6 +262,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 } else {
                     showSuccess(message = getString(R.string.nc_inheritance_request_denied))
                 }
+                viewModel.getInheritance(silentLoading = true)
             } else {
                 val dummyTransactionId =
                     bundle.getString(AlertActionIntroFragment.EXTRA_DUMMY_TRANSACTION_ID).orEmpty()
@@ -457,7 +458,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
         } else if (alert.type == AlertType.CREATE_INHERITANCE_PLAN_SUCCESS) {
-            viewModel.getInheritance("", true)
+            viewModel.getInheritance(isAlertFlow = true)
         } else if (alert.type == AlertType.GROUP_WALLET_SETUP) {
             if (alert.payload.claimKey) {
                 findNavController().navigate(
@@ -524,7 +525,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 if (viewModel.state.value.isAlreadySetupInheritance) {
                     enterPasswordDialog(TargetAction.UPDATE_INHERITANCE_PLAN)
                 } else {
-                    viewModel.getInheritance("", false)
+                    viewModel.getInheritance()
                 }
             }
 

@@ -53,7 +53,7 @@ class InheritanceRequestPlanningConfirmFragment : Fragment() {
             setContent {
                 InheritanceRequestPlanningConfirmScreen(
                     onCancel = {
-                        findNavController().popBackStack()
+                        requireActivity().finish()
                     },
                 )
             }

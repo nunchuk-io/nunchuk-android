@@ -200,19 +200,7 @@ class GroupDashboardViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getInheritanceUseCase(
-                GetInheritanceUseCase.Param(
-                    walletId.value.orEmpty(),
-                    args.groupId
-                )
-            ).onSuccess { inheritance ->
-                _state.update {
-                    it.copy(
-                        isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty(),
-                        inheritanceOwnerId = inheritance.ownerId
-                    )
-                }
-            }
+            getInheritance(silentLoading = true)
         }
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
@@ -454,7 +442,7 @@ class GroupDashboardViewModel @Inject constructor(
         if (result.isSuccess) {
             val token = result.getOrThrow().orEmpty()
             when (targetAction) {
-                TargetAction.UPDATE_INHERITANCE_PLAN -> getInheritance(token, false)
+                TargetAction.UPDATE_INHERITANCE_PLAN -> getInheritance(token)
                 TargetAction.UPDATE_SERVER_KEY -> {
                     state.value.signers.find { it.type == SignerType.SERVER }?.let { signer ->
                         _event.emit(
@@ -480,7 +468,7 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun getInheritance(token: String, isAlertFlow: Boolean) = viewModelScope.launch {
+    fun getInheritance(token: String = "", isAlertFlow: Boolean = false, silentLoading: Boolean = false) = viewModelScope.launch {
         getInheritanceUseCase(
             GetInheritanceUseCase.Param(
                 walletId.value.orEmpty(),
@@ -493,9 +481,9 @@ class GroupDashboardViewModel @Inject constructor(
                     isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty()
                 )
             }
-            _event.emit(GroupDashboardEvent.GetInheritanceSuccess(inheritance, token, isAlertFlow))
+            if (silentLoading.not()) _event.emit(GroupDashboardEvent.GetInheritanceSuccess(inheritance, token, isAlertFlow))
         }.onFailure {
-            _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
+            if (silentLoading.not()) _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
         }
     }
 
@@ -537,6 +525,7 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun getWalletId() = walletId.value.orEmpty()
+
     fun handleRegisterSigners(xfps: List<String>) {
         viewModelScope.launch {
             val signers = _state.value.wallet.signers.filter { it.masterFingerprint in xfps }
@@ -667,7 +656,7 @@ class GroupDashboardViewModel @Inject constructor(
                 inheritanceOwnerId = accountManager.getAccount().id
             )
         }
-        getInheritanceUseCase(GetInheritanceUseCase.Param(walletId.value.orEmpty(), args.groupId))
+        getInheritance(silentLoading = true)
     }
 
     private val currentSelectedAlert: Alert?
