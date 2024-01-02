@@ -104,7 +104,8 @@ interface TransactionNavigator {
         initEventId: String = "",
         roomId: String = "",
         transaction: Transaction? = null,
-        isInheritanceClaimingFlow: Boolean = false
+        isInheritanceClaimingFlow: Boolean = false,
+        isRequestSignatureFlow: Boolean = false,
     )
 
     fun openTransactionDetailsScreen(

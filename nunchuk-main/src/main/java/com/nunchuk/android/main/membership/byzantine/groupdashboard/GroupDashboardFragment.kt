@@ -388,6 +388,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         activityContext = requireActivity(),
                         walletId = viewModel.getWalletId(),
                         txId = event.txId,
+                        isRequestSignatureFlow = true,
                     )
                 }
             }

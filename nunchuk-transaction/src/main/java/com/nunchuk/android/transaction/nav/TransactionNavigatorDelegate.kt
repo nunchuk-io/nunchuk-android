@@ -175,7 +175,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         initEventId: String,
         roomId: String,
         transaction: Transaction?,
-        isInheritanceClaimingFlow: Boolean
+        isInheritanceClaimingFlow: Boolean,
+        isRequestSignatureFlow: Boolean
     ) {
         activityContext.startActivity(
             TransactionDetailsActivity.buildIntent(
@@ -185,7 +186,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
                 initEventId = initEventId,
                 roomId = roomId,
                 transaction = transaction,
-                isInheritanceClaimingFlow = isInheritanceClaimingFlow
+                isInheritanceClaimingFlow = isInheritanceClaimingFlow,
+                isRequestSignatureFlow = isRequestSignatureFlow
             )
         )
     }

@@ -55,6 +55,8 @@ import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.isPendingConfirm
+import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideNfcLoading
@@ -501,10 +503,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not() && viewModel.getUserRole().isObserver.not()
         binding.btnViewBlockChain.isVisible =
             transaction.isReceive || transaction.status.hadBroadcast()
-        if (transaction.status.canBroadCast()) {
-            lifecycleScope.launch {
-                pushEventManager.push(PushEvent.SignedTxSuccess(args.txId))
-            }
+        if (transaction.status.canBroadCast() || transaction.status.isPendingConfirm() || transaction.status.isConfirmed()) {
+            handleSignRequestSignature(false)
         }
 
         bindAddress(transaction)
@@ -614,7 +614,10 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 getString(R.string.nc_schedule_broadcast_has_been_canceled)
             )
 
-            ImportTransactionSuccess -> NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
+            ImportTransactionSuccess -> {
+                NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
+                handleSignRequestSignature()
+            }
             NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
             is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
             TransactionDetailsEvent.RequestSignatureTransactionSuccess -> {
@@ -633,6 +636,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     private fun handleImportTransactionFromMk4Success() {
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_signed_transaction))
+        handleSignRequestSignature()
     }
 
     private fun handleUpdateTransactionFailed(event: UpdateTransactionMemoFailed) {
@@ -769,6 +773,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         if (event.roomId.isNotEmpty()) {
             returnActiveRoom()
         }
+        handleSignRequestSignature()
     }
 
     private fun showBroadcastTransactionSuccess(roomId: String) {
@@ -803,6 +808,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     private fun handleCopyContent(content: String) {
         copyToClipboard(label = "Nunchuk", text = content)
         NCToastMessage(this).showMessage(getString(R.string.nc_copied_to_clipboard))
+    }
+
+    private fun handleSignRequestSignature(isBack: Boolean = true) {
+        if (args.isRequestSignatureFlow.not()) return
+        lifecycleScope.launch {
+            pushEventManager.push(PushEvent.SignedTxSuccess(args.txId))
+        }
+        if (isBack) finish()
     }
 
     private fun showSignByMk4Options() {
@@ -884,6 +897,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isInheritanceClaimingFlow: Boolean = false,
             isCancelBroadcast: Boolean = false,
             errorMessage: String = "",
+            isRequestSignatureFlow: Boolean = false,
         ): Intent {
             return TransactionDetailsArgs(
                 walletId = walletId,
@@ -893,7 +907,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 transaction = transaction,
                 isInheritanceClaimingFlow = isInheritanceClaimingFlow,
                 isCancelBroadcast = isCancelBroadcast,
-                errorMessage = errorMessage
+                errorMessage = errorMessage,
+                isRequestSignatureFlow = isRequestSignatureFlow,
             ).buildIntent(activityContext)
         }
     }
