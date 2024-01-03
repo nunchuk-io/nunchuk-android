@@ -281,9 +281,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                                 activity = requireActivity(),
                                 walletId = activityArgs.walletId,
                                 groupId = activityArgs.groupId.orEmpty(),
-                                index = if (singleSigner.type == SignerType.COLDCARD_NFC) 1 else 0,
                                 airgapIndex = if (singleSigner.type == SignerType.AIRGAP) 1 else 0,
-                                singleRegister = true
                             )
                         )
                     },

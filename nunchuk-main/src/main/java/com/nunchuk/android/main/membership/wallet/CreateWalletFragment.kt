@@ -26,9 +26,8 @@ import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -105,18 +104,7 @@ class CreateWalletFragment : MembershipFragment() {
     }
 
     private fun handleCreateWalletSuccess(event: CreateWalletEvent.OnCreateWalletSuccess) {
-        if (event.coldcardCount > 0) {
-            findNavController().navigate(
-                CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToColdcardFragment(
-                    event.walletId,
-                    event.coldcardCount,
-                    event.airgapCount
-                ),
-                NavOptions.Builder()
-                    .setPopUpTo(findNavController().graph.startDestinationId, true)
-                    .build()
-            )
-        } else if (event.airgapCount > 0) {
+        if (event.airgapCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
                     event.walletId,
@@ -166,12 +154,9 @@ fun CreateWalletScreenContent(
     walletName: String = "",
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-            ) {
+        Scaffold(
+            modifier = Modifier.systemBarsPadding(),
+            topBar = {
                 NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime),
                     actions = {
                         IconButton(onClick = onMoreClicked) {
@@ -182,7 +167,11 @@ fun CreateWalletScreenContent(
                         }
                     }
                 )
-
+            },
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier.padding(innerPadding)
+            ) {
                 Text(
                     modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_let_create_your_wallet),

@@ -40,7 +40,6 @@ import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.byzantine.CreateGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
-import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +67,6 @@ class CreateWalletViewModel @Inject constructor(
     private val createServerWalletUseCase: CreateServerWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
-    private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
     private val createGroupWalletUseCase: CreateGroupWalletUseCase,
 ) : ViewModel() {
@@ -149,10 +147,6 @@ class CreateWalletViewModel @Inject constructor(
                     groupId = groupId
                 )
             ).onSuccess {
-                val totalColdcard = it.signers.count { signer -> signer.isColdCard }
-                if (totalColdcard > 0) {
-                    setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, totalColdcard))
-                }
                 val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
                 if (totalAirgap > 0) {
                     setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
@@ -160,7 +154,6 @@ class CreateWalletViewModel @Inject constructor(
                 _event.emit(
                     CreateWalletEvent.OnCreateWalletSuccess(
                         walletId = it.id,
-                        coldcardCount = totalColdcard,
                         airgapCount = totalAirgap
                     )
                 )
@@ -243,10 +236,6 @@ class CreateWalletViewModel @Inject constructor(
                         _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
                     }
                     .collect {
-                        val totalColdcard = it.signers.count { signer -> signer.isColdCard }
-                        if (totalColdcard > 0) {
-                            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, totalColdcard))
-                        }
                         val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
                         if (totalAirgap > 0) {
                             setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
@@ -254,7 +243,6 @@ class CreateWalletViewModel @Inject constructor(
                         _event.emit(
                             CreateWalletEvent.OnCreateWalletSuccess(
                                 walletId = it.id,
-                                coldcardCount = totalColdcard,
                                 airgapCount = totalAirgap
                             )
                         )

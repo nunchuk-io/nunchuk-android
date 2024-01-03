@@ -33,7 +33,6 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmFragment
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
@@ -96,7 +95,11 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
     private val inheritanceLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                if (it.data?.getBooleanExtra(InheritancePlanningActivity.RESULT_REQUEST_PLANNING, false) == true) {
+                if (it.data?.getBooleanExtra(
+                        InheritancePlanningActivity.RESULT_REQUEST_PLANNING,
+                        false
+                    ) == true
+                ) {
                     viewModel.setInheritanceRequestByMe()
                 } else {
                     val dummyTransactionId =
@@ -338,7 +341,6 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                             activity = requireActivity(),
                             groupId = args.groupId,
                             walletId = viewModel.getWalletId(),
-                            index = event.totalColdcard,
                             airgapIndex = event.totalAirgap
                         )
                     )
@@ -469,7 +471,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     )
                 )
             } else {
-                viewModel.handleRegisterSigners(alert.payload.xfps)
+                viewModel.handleRegisterSigners(alert.id, alert.payload.xfps)
             }
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
             findNavController().navigate(

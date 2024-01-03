@@ -32,7 +32,6 @@ interface MembershipRepository {
     suspend fun restart(plan: MembershipPlan, groupId: String)
     fun getLocalCurrentPlan(): Flow<MembershipPlan>
     fun isHideUpsellBanner(): Flow<Boolean>
-    suspend fun setRegisterColdcard(walletId: String, value: Int)
     suspend fun setRegisterAirgap(walletId: String, value: Int)
     suspend fun setHideUpsellBanner()
     suspend fun setViewPendingWallet(groupId: String)

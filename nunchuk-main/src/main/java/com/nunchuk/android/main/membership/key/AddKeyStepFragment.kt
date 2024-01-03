@@ -96,20 +96,9 @@ class AddKeyStepFragment : MembershipFragment() {
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
                 AddKeyStepEvent.OpenInheritanceSetup -> handleOpenInheritanceSetup()
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
-                is AddKeyStepEvent.OpenRegisterColdCard -> handleOpenRegisterColdcard(event.walletId,)
                 AddKeyStepEvent.SetupInheritanceSetupDone -> requireActivity().finish()
             }
         }
-    }
-
-    private fun handleOpenRegisterColdcard(walletId: String) {
-        findNavController().navigate(
-            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToRegisterWalletToColdcardFragment(
-                walletId,
-                viewModel.getRegisterColdcardIndex(),
-                viewModel.getRegisterAirgapIndex(),
-            )
-        )
     }
 
     private fun handleOpenRegisterAirgap(walletId: String) {
@@ -151,14 +140,13 @@ fun AddKeyStepScreen(viewModel: AddKeyStepViewModel) {
     val isSetupRecoverKeyDone by viewModel.isSetupRecoverKeyDone.collectAsStateWithLifecycle()
     val isCreateWalletDone by viewModel.isCreateWalletDone.collectAsStateWithLifecycle()
     val isRegisterAirgap by viewModel.isRegisterAirgap.collectAsStateWithLifecycle()
-    val isRegisterColdcard by viewModel.isRegisterColdcard.collectAsStateWithLifecycle()
     val isSetupInheritanceDone by viewModel.isSetupInheritanceDone.collectAsStateWithLifecycle()
     val groupRemainTime by viewModel.groupRemainTime.collectAsStateWithLifecycle()
 
     AddKeyStepContent(
         isConfigKeyDone = isConfigKeyDone,
         isSetupRecoverKeyDone = isSetupRecoverKeyDone,
-        isCreateWalletDone = isCreateWalletDone && isRegisterAirgap && isRegisterColdcard,
+        isCreateWalletDone = isCreateWalletDone && isRegisterAirgap,
         isShowMoreOption = isCreateWalletDone.not(),
         isSetupInheritanceDone = isSetupInheritanceDone,
         groupRemainTime = groupRemainTime,

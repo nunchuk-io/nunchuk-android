@@ -24,7 +24,7 @@ sealed class GroupDashboardEvent {
         val token: String = "",
         val isAlertFlow: Boolean = false
     ) : GroupDashboardEvent()
-    data class RegisterSignersSuccess(val totalColdcard: Int, val totalAirgap: Int) : GroupDashboardEvent()
+    data class RegisterSignersSuccess(val totalAirgap: Int) : GroupDashboardEvent()
     data class UpdateServerKey(val token: String, val signer: SignerModel, val groupId: String) : GroupDashboardEvent()
     data class CalculateRequiredSignaturesSuccess(
         val type: String

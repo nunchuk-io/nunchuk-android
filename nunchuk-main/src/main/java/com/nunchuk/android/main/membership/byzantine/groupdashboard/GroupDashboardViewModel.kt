@@ -3,7 +3,6 @@ package com.nunchuk.android.main.membership.byzantine.groupdashboard
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
@@ -34,10 +33,8 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.model.transaction.AlertPayload
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusRemoteUseCase
@@ -55,7 +52,6 @@ import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
-import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -65,7 +61,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -100,7 +95,6 @@ class GroupDashboardViewModel @Inject constructor(
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-    private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
@@ -526,19 +520,10 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun getWalletId() = walletId.value.orEmpty()
 
-    fun handleRegisterSigners(xfps: List<String>) {
+    fun handleRegisterSigners(id: String, xfps: List<String>) {
         viewModelScope.launch {
             val signers = _state.value.wallet.signers.filter { it.masterFingerprint in xfps }
-            val totalColdcard = signers.count { it.isColdCard }
             val totalAirgap = signers.count { it.type == SignerType.AIRGAP && !it.isColdCard }
-            if (totalColdcard > 0) {
-                setRegisterColdcardUseCase(
-                    SetRegisterColdcardUseCase.Params(
-                        walletId.value.orEmpty(),
-                        totalColdcard
-                    )
-                )
-            }
             if (totalAirgap > 0) {
                 setRegisterAirgapUseCase(
                     SetRegisterAirgapUseCase.Params(
@@ -547,8 +532,10 @@ class GroupDashboardViewModel @Inject constructor(
                     )
                 )
             }
-            if (totalColdcard > 0 || totalAirgap > 0) {
-                _event.emit(GroupDashboardEvent.RegisterSignersSuccess(totalColdcard, totalAirgap))
+            if (totalAirgap > 0) {
+                _event.emit(GroupDashboardEvent.RegisterSignersSuccess(totalAirgap))
+            } else {
+                dismissAlert(alertId = id, silentLoading = true)
             }
         }
     }

@@ -1504,7 +1504,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     plan = wallet.plan,
                     isSetupInheritance = wallet.isSetupInheritance,
                     registerAirgapCount = wallet.registerAirgapCount,
-                    registerColdcardCount = wallet.registerColdcardCount,
                     groupId = wallet.groupId,
                     ext = wallet.ext?.run {
                         gson.fromJson(this, AssistedWalletBriefExt::class.java)
