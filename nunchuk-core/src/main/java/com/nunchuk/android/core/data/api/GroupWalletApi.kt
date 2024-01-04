@@ -20,7 +20,6 @@ import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.RecurringPaymentListResponse
 import com.nunchuk.android.core.data.model.byzantine.RecurringPaymentResponse
-import com.nunchuk.android.core.data.model.byzantine.ReuseFromGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
@@ -387,7 +386,7 @@ internal interface GroupWalletApi {
         @Query("offset") offset: Int,
     ): Data<TransactionsResponse>
 
-    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
     suspend fun getTransactionsToDelete(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
