@@ -71,8 +71,14 @@ class PKeyChooseUsernameActivity : BaseActivity<ActivityPkeyChooseUsernameBindin
             is PKeyChooseUsernameEvent.LoadingEvent -> showOrHideLoading(event.loading)
             is PKeyChooseUsernameEvent.GetDefaultUsernameSuccess -> binding.usernameInput.getEditTextView()
                 .setText(event.username)
-            is PKeyChooseUsernameEvent.ProcessFailure -> NCToastMessage(this).showError(event.message)
-            is PKeyChooseUsernameEvent.SignUpSuccess -> viewModel.getTurnOnNotification()
+            is PKeyChooseUsernameEvent.ProcessFailure -> {
+                hideLoading()
+                NCToastMessage(this).showError(event.message)
+            }
+            is PKeyChooseUsernameEvent.SignUpSuccess -> {
+                hideLoading()
+                viewModel.getTurnOnNotification()
+            }
             is PKeyChooseUsernameEvent.GetTurnOnNotificationSuccess -> openNextScreen(event.isTurnOn)
             PKeyChooseUsernameEvent.InvalidUsername -> NCToastMessage(this).showError(getString(R.string.nc_primary_key_invalid_username))
         }

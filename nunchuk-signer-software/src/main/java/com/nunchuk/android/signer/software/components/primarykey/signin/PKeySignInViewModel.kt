@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.SignInPrimaryKeyUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import dagger.assisted.Assisted
@@ -40,7 +41,8 @@ internal class PKeySignInViewModel @AssistedInject constructor(
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
     private val signInPrimaryKeyUseCase: SignInPrimaryKeyUseCase,
     private val signInModeHolder: SignInModeHolder,
-) : NunchukViewModel<PKeySignInState, PKeySignInEvent>() {
+    private val getUserProfileUseCase: GetUserProfileUseCase,
+    ) : NunchukViewModel<PKeySignInState, PKeySignInEvent>() {
 
     override val initialState: PKeySignInState = PKeySignInState(primaryKey = args.primaryKey)
 
@@ -78,15 +80,15 @@ internal class PKeySignInViewModel @AssistedInject constructor(
         )
         val appSettings = state.value?.appSettings
         if (result.isFailure || appSettings == null) {
-            setEvent(PKeySignInEvent.LoadingEvent(false))
             setEvent(PKeySignInEvent.ProcessErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         } else {
             try {
                 updateAppSettingUseCase(appSettings).getOrThrow()
                 initNunchukUseCase(InitNunchukUseCase.Param(accountId = args.primaryKey.account)).getOrThrow()
-                setEvent(PKeySignInEvent.LoadingEvent(false))
-                signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
-                setEvent(PKeySignInEvent.SignInSuccessEvent)
+                getUserProfileUseCase(Unit).onSuccess {
+                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
+                    setEvent(PKeySignInEvent.SignInSuccessEvent)
+                }
             } catch (e: Exception) {
                 setEvent(PKeySignInEvent.InitFailure(e.message.orUnknownError()))
             }

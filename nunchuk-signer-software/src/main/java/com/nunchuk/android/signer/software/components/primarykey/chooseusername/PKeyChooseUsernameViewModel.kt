@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.SignUpPrimaryKeyUseCase
 import com.nunchuk.android.core.domain.UpdateTurnOnNotificationStoreUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
@@ -43,7 +44,8 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
     private val initNunchukUseCase: InitNunchukUseCase,
     private val signInModeHolder: SignInModeHolder,
     private val getTurnOnNotificationStoreUseCase: GetTurnOnNotificationStoreUseCase,
-    private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase
+    private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase
 ) : NunchukViewModel<PKeyChooseUsernameEventState, PKeyChooseUsernameEvent>() {
 
     override val initialState = PKeyChooseUsernameEventState()
@@ -106,10 +108,11 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
                 staySignedIn = true
             )
         )
-        setEvent(PKeyChooseUsernameEvent.LoadingEvent(false))
         if (resultSignUp.isSuccess) {
-            signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
-            setEvent(PKeyChooseUsernameEvent.SignUpSuccess)
+            getUserProfileUseCase(Unit).onSuccess {
+                signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
+                setEvent(PKeyChooseUsernameEvent.SignUpSuccess)
+            }
         } else {
             setEvent(PKeyChooseUsernameEvent.ProcessFailure(resultSignUp.exceptionOrNull()?.message.orUnknownError()))
         }
