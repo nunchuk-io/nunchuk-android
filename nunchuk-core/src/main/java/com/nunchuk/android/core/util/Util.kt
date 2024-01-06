@@ -165,3 +165,6 @@ fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
 val String.isRecommendedPath: Boolean
     get() = this.startsWith(SIGNER_PATH_PREFIX) && this.endsWith("2h")
 
+val String.isValidPathForAssistedWallet: Boolean
+    get() = this.startsWith(SIGNER_PATH_PREFIX)
+

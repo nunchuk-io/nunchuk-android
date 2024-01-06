@@ -76,7 +76,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
                 val keys = it.data?.parcelableArrayList<SingleSigner>(PASSPORT_EXTRA_KEYS).orEmpty()
-                handleResult(keys)
+                handleResult(viewModel.updateSigners(keys))
             }
         }
 
@@ -101,7 +101,10 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
-        viewModel.init((activity as AddAirgapSignerActivity).groupId)
+        viewModel.init(
+            (activity as AddAirgapSignerActivity).groupId,
+            (activity as AddAirgapSignerActivity).isMembershipFlow
+        )
     }
 
     override fun onOptionClicked(option: SheetOption) {

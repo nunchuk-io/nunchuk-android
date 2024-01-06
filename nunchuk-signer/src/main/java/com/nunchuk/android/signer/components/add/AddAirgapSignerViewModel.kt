@@ -29,6 +29,7 @@ import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.isValidPathForAssistedWallet
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
@@ -92,6 +93,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     override val initialState = Unit
     private var chain: Chain = Chain.MAIN
     private var groupId: String = ""
+    private var isMembershipFlow = false
 
     private val _state = MutableStateFlow(AddAirgapSignerState())
     val uiState = _state.asStateFlow()
@@ -102,8 +104,9 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         }
     }
 
-    fun init(groupId: String) {
+    fun init(groupId: String, isMembershipFlow: Boolean) {
         this.groupId = groupId
+        this.isMembershipFlow = isMembershipFlow
     }
 
     private val _signers = mutableListOf<SingleSigner>()
@@ -209,7 +212,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private fun validateInput(
         signerName: String,
         signerSpec: String,
-        doAfterValidate: (SignerInput) -> Unit = {}
+        doAfterValidate: (SignerInput) -> Unit = {},
     ) {
         if (signerName.isEmpty()) {
             event(AirgapSignerNameRequiredEvent)
@@ -263,14 +266,12 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     ParseJsonSignerUseCase.Params(content, SignerType.AIRGAP)
                 )
                 if (result.isSuccess) {
-                    _signers.apply {
-                        clear()
-                        addAll(result.getOrThrow())
-                    }
+                    val signers = result.getOrThrow()
+                    updateSigners(signers)
                     if (chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
                         setEvent(ErrorMk4TestNet)
                     } else {
-                        setEvent(ParseKeystoneAirgapSignerSuccess(result.getOrThrow()))
+                        setEvent(ParseKeystoneAirgapSignerSuccess(_signers))
                     }
                 } else {
                     setEvent(AddAirgapSignerErrorEvent("XPUBs file is invalid"))
@@ -278,6 +279,18 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
             setEvent(LoadingEventAirgap(false))
         }
+    }
+
+    fun updateSigners(signers: List<SingleSigner>): List<SingleSigner> {
+        _signers.apply {
+            clear()
+            if (isMembershipFlow) {
+                addAll(signers.filter { it.derivationPath.isValidPathForAssistedWallet })
+            } else {
+                addAll(signers)
+            }
+        }
+        return _signers
     }
 
     companion object {
