@@ -367,7 +367,7 @@ fun InheritanceReviewPlanScreenContent(
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
 ) {
-    val isEditable = groupId.isEmpty() || magicalPhrase.isEmpty().not()
+    val isEditable = groupId.isEmpty() || state.currentUserRole.toRole.isMasterOrAdmin
     val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
         Utils.maskValue("", isMask = true)
     } else { magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) } }
