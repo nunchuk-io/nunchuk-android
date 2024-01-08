@@ -45,6 +45,7 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
@@ -317,6 +318,12 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
                 else -> false
             }
+        }
+        binding.estimatedFeeLabel.setOnClickListener {
+            BottomSheetTooltip.newInstance(
+                title = getString(R.string.nc_text_info),
+                message = getString(R.string.nc_estimated_fee_tooltip),
+            ).show(childFragmentManager, "BottomSheetTooltip")
         }
     }
 

@@ -33,6 +33,7 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
@@ -152,6 +153,13 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         }
         binding.inputCoin.isVisible = args.inputs.isNotEmpty()
         binding.composeCoin.isVisible = args.inputs.isNotEmpty()
+
+        binding.estimatedFeeLabel.setOnClickListener {
+            BottomSheetTooltip.newInstance(
+                title = getString(R.string.nc_text_info),
+                message = getString(R.string.nc_estimated_fee_tooltip),
+            ).show(supportFragmentManager, "BottomSheetTooltip")
+        }
     }
 
     private fun handleCopyContent(content: String) {

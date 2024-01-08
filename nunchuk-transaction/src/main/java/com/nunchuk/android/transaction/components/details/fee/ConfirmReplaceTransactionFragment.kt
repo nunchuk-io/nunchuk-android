@@ -27,8 +27,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.FragmentTransactionConfirmBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -50,6 +52,12 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
         updateTransaction(activityArgs.transaction)
         registerEvents()
         viewModel.draftTransaction(activityArgs.walletId, activityArgs.transaction, args.newFee)
+        binding.estimatedFeeLabel.setOnClickListener {
+            BottomSheetTooltip.newInstance(
+                title = getString(R.string.nc_text_info),
+                message = getString(R.string.nc_estimated_fee_tooltip),
+            ).show(childFragmentManager, "BottomSheetTooltip")
+        }
     }
 
     private fun registerEvents() {
