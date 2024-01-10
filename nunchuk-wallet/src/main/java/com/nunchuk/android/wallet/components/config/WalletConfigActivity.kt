@@ -147,11 +147,19 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun showForceRefreshWalletDialog() {
-        NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
-            message = getString(R.string.nc_force_refresh_desc),
-            onYesClick = {
-                viewModel.forceRefreshWallet()
-            })
+        if (viewModel.isAssistedWallet()) {
+            NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_force_refresh_desc),
+                onYesClick = {
+                    viewModel.forceRefreshWallet()
+                })
+        } else {
+            NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_force_refresh_free_user_desc),
+                onYesClick = {
+                    viewModel.forceRefreshWallet()
+                })
+        }
     }
 
     private fun handleDeleteWallet() {
