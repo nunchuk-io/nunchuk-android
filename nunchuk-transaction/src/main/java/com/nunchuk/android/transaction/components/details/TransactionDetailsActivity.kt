@@ -25,7 +25,6 @@ import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import android.os.Bundle
-import android.view.Menu
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -56,7 +55,6 @@ import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.core.util.isPendingConfirm
-import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideNfcLoading
@@ -415,9 +413,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.switchShowInputCoin.isChecked = state.isShowInputCoin
         binding.inputCoin.isVisible = state.isShowInputCoin
         if (state.isShowInputCoin) {
-            val coins = viewModel.convertInputs(state.transaction.inputs)
             binding.inputCoin.setContent {
-                TransactionConfirmCoinList(inputs = coins, allTags = state.tags)
+                TransactionConfirmCoinList(inputs = state.txInputCoins, allTags = state.tags)
             }
         }
     }

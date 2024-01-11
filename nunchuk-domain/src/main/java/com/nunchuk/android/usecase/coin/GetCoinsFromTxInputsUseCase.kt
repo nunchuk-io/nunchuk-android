@@ -17,25 +17,29 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.details
+package com.nunchuk.android.usecase.coin
 
-import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class TransactionDetailsState(
-    val viewMore: Boolean = false,
-    val transaction: Transaction = Transaction(),
-    val serverTransaction: ServerTransaction? = null,
-    val signers: List<SignerModel> = emptyList(),
-    val coins: List<UnspentOutput> = emptyList(),
-    val tags: Map<Int, CoinTag> = emptyMap(),
-    val isShowInputCoin: Boolean = false,
-    val members: List<ByzantineMember> = emptyList(),
-    val userRole: AssistedWalletRole = AssistedWalletRole.NONE,
-    val txInputCoins: List<UnspentOutput> = emptyList(),
-)
+class GetCoinsFromTxInputsUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk,
+) : UseCase<GetCoinsFromTxInputsUseCase.Params, List<UnspentOutput>>(ioDispatcher) {
+    override suspend fun execute(parameters: Params): List<UnspentOutput> {
+        return nunchukNativeSdk.getCoinsFromTxInputs(
+            parameters.walletId,
+            parameters.txInputs,
+        )
+    }
+
+    data class Params(
+        val walletId : String,
+        val txInputs: List<TxInput>
+    )
+}
