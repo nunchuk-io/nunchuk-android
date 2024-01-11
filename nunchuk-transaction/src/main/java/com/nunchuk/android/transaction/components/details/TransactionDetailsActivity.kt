@@ -410,6 +410,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 isClickable = false
             }
         }
+        binding.switchShowInputCoin.isVisible = state.txInputCoins.isNotEmpty()
+        binding.tvShowInputCoin.isVisible = state.txInputCoins.isNotEmpty()
         binding.switchShowInputCoin.isChecked = state.isShowInputCoin
         binding.inputCoin.isVisible = state.isShowInputCoin
         if (state.isShowInputCoin) {
