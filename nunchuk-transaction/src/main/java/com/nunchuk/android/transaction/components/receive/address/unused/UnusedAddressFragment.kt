@@ -77,7 +77,6 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
                 val size = adapter.items.size
-                showAddresses(position < size)
                 bindCount(size)
             }
         })
@@ -168,13 +167,6 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
 
     private fun showMoreOptions() {
         val options = mutableListOf<SheetOption>()
-        options.add(
-            SheetOption(
-            type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
-            resId = R.drawable.ic_show_pass,
-            label = getString(R.string.nc_verify_address_on_device),
-        )
-        )
         if (viewModel.isSingleSignWallet()) {
             options.add(
                 SheetOption(
@@ -184,6 +176,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
             )
             )
         }
+        if (options.isEmpty()) return
         BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 
