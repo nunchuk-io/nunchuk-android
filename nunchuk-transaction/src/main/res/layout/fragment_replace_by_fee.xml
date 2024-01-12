@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:text="@string/nc_your_old_fee_rate"
+        android:text="@string/nc_old_fee_rate"
         app:layout_constraintBottom_toBottomOf="@id/tv_old_fee_btc"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tv_old_fee_sat" />

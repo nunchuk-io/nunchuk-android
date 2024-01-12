@@ -23,15 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import androidx.core.view.allViews
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.orFalse
-import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
@@ -79,7 +76,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     }
 
     private fun setupViews() {
-        binding.btnCancel.isVisible = args.isPending
+        binding.btnCancel.isVisible = true
         binding.btnCancel.setOnClickListener {
             listener(CANCEL)
             dismiss()

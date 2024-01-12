@@ -25,6 +25,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
@@ -263,9 +264,10 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         launcher: ActivityResultLauncher<Intent>,
         context: Context,
         walletId: String,
-        transaction: Transaction
+        transaction: Transaction,
+        type: RbfType,
     ) {
-        ReplaceFeeActivity.start(launcher, context, walletId, transaction)
+        ReplaceFeeActivity.start(launcher, context, walletId, transaction, type)
     }
 
     override fun openBatchTransactionScreen(

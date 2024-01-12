@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
-import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.usecase.coin.IsMyWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +16,6 @@ import javax.inject.Inject
 class WhitelistAddressViewModel @Inject constructor(
     private val checkAddressValidUseCase: CheckAddressValidUseCase,
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
-    private val isMyCoinUseCase: IsMyCoinUseCase,
     private val isMyWalletUseCase: IsMyWalletUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WhitelistAddressUiState())
@@ -25,7 +23,7 @@ class WhitelistAddressViewModel @Inject constructor(
     fun checkAddressValid(addresses: List<String>, walletId: String) {
         viewModelScope.launch {
             checkAddressValidUseCase(CheckAddressValidUseCase.Params(addresses = addresses))
-                .onSuccess { it ->
+                .onSuccess {
                     if (it.isEmpty()) {
                         isMyWalletUseCase(
                             IsMyWalletUseCase.Param(

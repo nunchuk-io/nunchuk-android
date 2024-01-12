@@ -33,6 +33,7 @@ import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -54,6 +55,7 @@ import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.isPendingConfirm
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.setUnderline
@@ -665,12 +667,22 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         controller.shareFile(event.filePath)
     }
 
-    private fun promptCancelTransactionConfirmation() {
-        NCWarningDialog(this).showDialog(
-            title = getString(R.string.nc_text_confirmation),
-            message = getString(R.string.nc_transaction_confirmation),
-            onYesClick = viewModel::handleDeleteTransactionEvent
-        )
+    private fun handleCancelTransaction() {
+        if (viewModel.getTransaction().status.isPending()) {
+            NCWarningDialog(this).showDialog(
+                title = getString(R.string.nc_text_confirmation),
+                message = getString(R.string.nc_transaction_confirmation),
+                onYesClick = viewModel::handleDeleteTransactionEvent
+            )
+        } else {
+            navigator.openReplaceTransactionFee(
+                replaceByFeeLauncher,
+                this,
+                walletId = args.walletId,
+                transaction = viewModel.getTransaction(),
+                type = RbfType.CancelTransaction
+            )
+        }
     }
 
     private fun promptTransactionOptions(event: PromptTransactionOptions) {
@@ -686,7 +698,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             userRole = viewModel.getUserRole().name,
         ).setListener {
             when (it) {
-                CANCEL -> promptCancelTransactionConfirmation()
+                CANCEL -> handleCancelTransaction()
                 EXPORT_TRANSACTION -> showExportTransactionOptions()
                 IMPORT_TRANSACTION -> showImportTransactionOptions()
                 REPLACE_BY_FEE -> handleOpenEditFee()
@@ -720,7 +732,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             replaceByFeeLauncher,
             this,
             walletId = args.walletId,
-            transaction = viewModel.getTransaction()
+            transaction = viewModel.getTransaction(),
+            type = RbfType.ReplaceFee
         )
     }
 
