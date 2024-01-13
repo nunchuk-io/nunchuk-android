@@ -155,8 +155,6 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     activityContext = this,
                     walletId = result.walletId,
                     txId = result.transaction.txId,
-                    initEventId = "",
-                    roomId = ""
                 )
                 NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
                 finish()

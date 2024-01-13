@@ -69,6 +69,14 @@ class RbfCancelTransactionFragment : Fragment() {
                                 newFeeRate
                             )
                         )
+                    },
+                    onContinueClick = { newFeeRate ->
+                        findNavController().navigate(
+                            RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToConfirmReplaceTransactionFragment(
+                                newFee = newFeeRate,
+                                address = viewModel.state.value.address,
+                            )
+                        )
                     }
                 )
             }
@@ -79,7 +87,7 @@ class RbfCancelTransactionFragment : Fragment() {
 @Composable
 private fun RbfCancelTransactionScreen(
     viewModel: RbfCancelTransactionViewModel = viewModel(),
-    onContinueClick: () -> Unit = {},
+    onContinueClick: (Int) -> Unit = {},
     onCustomizeDestinationClick: (Int) -> Unit = {},
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -93,7 +101,7 @@ private fun RbfCancelTransactionScreen(
 @Composable
 private fun RbfCancelTransactionContent(
     uiState: RbfCancelTransactionUiState = RbfCancelTransactionUiState(),
-    onContinueClick: () -> Unit = {},
+    onContinueClick: (Int) -> Unit = {},
     onCustomizeDestinationClick: (Int) -> Unit = {},
 ) {
     var newFeeRate by rememberSaveable {
@@ -114,7 +122,7 @@ private fun RbfCancelTransactionContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     enabled = newFeeRate.isNotEmpty(),
-                    onClick = onContinueClick,
+                    onClick = { onContinueClick(newFeeRate.toInt()) },
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }

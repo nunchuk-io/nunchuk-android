@@ -28,7 +28,12 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.FragmentTransactionConfirmBinding
@@ -39,10 +44,17 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfirmBinding>() {
     private val viewModel by viewModels<ConfirmReplaceTransactionViewModel>()
-    private val activityArgs: ReplaceFeeArgs by lazy { ReplaceFeeArgs.deserializeFrom(requireActivity().intent) }
+    private val activityArgs: ReplaceFeeArgs by lazy {
+        ReplaceFeeArgs.deserializeFrom(
+            requireActivity().intent
+        )
+    }
     private val args by navArgs<ConfirmReplaceTransactionFragmentArgs>()
-    
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentTransactionConfirmBinding {
+
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): FragmentTransactionConfirmBinding {
         return FragmentTransactionConfirmBinding.inflate(inflater, container, false)
     }
 
@@ -51,7 +63,12 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
         observer()
         updateTransaction(activityArgs.transaction)
         registerEvents()
-        viewModel.draftTransaction(activityArgs.walletId, activityArgs.transaction, args.newFee)
+        viewModel.draftTransaction(
+            activityArgs.walletId,
+            activityArgs.transaction,
+            args.newFee,
+            args.address
+        )
         binding.estimatedFeeLabel.setOnClickListener {
             BottomSheetTooltip.newInstance(
                 title = getString(R.string.nc_text_info),
@@ -65,7 +82,20 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
             activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.btnConfirm.setOnDebounceClickListener {
-            viewModel.replaceTransaction(activityArgs.walletId, activityArgs.transaction.txId, args.newFee)
+            if (args.address.isNullOrEmpty()) {
+                viewModel.replaceTransaction(
+                    walletId = activityArgs.walletId,
+                    txId = activityArgs.transaction.txId,
+                    newFee = args.newFee
+                )
+            } else {
+                viewModel.createTransaction(
+                    walletId = activityArgs.walletId,
+                    oldTx = activityArgs.transaction,
+                    newFee = args.newFee,
+                    address = args.address.orEmpty()
+                )
+            }
         }
     }
 
@@ -99,9 +129,14 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
             when (it) {
                 is ReplaceFeeEvent.Loading -> showOrHideLoading(it.isLoading)
                 is ReplaceFeeEvent.ReplaceTransactionSuccess -> {
-                    requireActivity().setResult(Activity.RESULT_OK, activityArgs.copy(transaction = activityArgs.transaction.copy(txId = it.newTxId)).buildIntent(requireActivity()))
+                    requireActivity().setResult(
+                        Activity.RESULT_OK,
+                        activityArgs.copy(transaction = activityArgs.transaction.copy(txId = it.newTxId))
+                            .buildIntent(requireActivity())
+                    )
                     requireActivity().finish()
                 }
+
                 is ReplaceFeeEvent.ShowError -> NCToastMessage(requireActivity()).showError(it.e?.message.orUnknownError())
             }
         }
