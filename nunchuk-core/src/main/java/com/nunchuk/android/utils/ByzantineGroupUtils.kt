@@ -3,6 +3,7 @@ package com.nunchuk.android.utils
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import javax.inject.Inject
 
@@ -32,5 +33,12 @@ class ByzantineGroupUtils @Inject constructor(private val accountManager: Accoun
 
     fun isPendingAcceptInvite(group: ByzantineGroup): Boolean {
         return group.members.any { it.isPendingRequest() && isMatchingEmailOrUserName(it.emailOrUsername) }
+    }
+
+    fun getPrimaryOwnerMember(
+        group: ByzantineGroup,
+        primaryMembershipId: String?
+    ): ByzantineMember? {
+        return group.members.firstOrNull { it.membershipId == primaryMembershipId }
     }
 }

@@ -378,7 +378,7 @@ interface PremiumWalletRepository {
         confirmCodeNonce: String
     ): ByzantineGroup
 
-    suspend fun createGroupWallet(groupId: String, name: String): Wallet
+    suspend fun createGroupWallet(groupId: String, name: String, primaryMembershipId: String?): Wallet
     suspend fun groupMemberAcceptRequest(groupId: String)
     suspend fun groupMemberDenyRequest(groupId: String)
     suspend fun syncGroupWallet(
@@ -430,4 +430,5 @@ interface PremiumWalletRepository {
     suspend fun denyInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
     suspend fun approveInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
     suspend fun requestSignatureTransaction(groupId: String, walletId: String, transactionId: String, membershipId: String)
+    suspend fun updatePrimaryOwner(groupId: String, walletId: String, primaryMembershipId: String)
 }

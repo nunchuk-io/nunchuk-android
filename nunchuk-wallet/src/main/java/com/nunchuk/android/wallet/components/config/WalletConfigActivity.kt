@@ -33,9 +33,11 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
@@ -131,6 +133,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
             SheetOptionType.TYPE_CONFIGURE_GAP_LIMIT -> {
                 showConfigureGapLimitDialog()
+            }
+            SheetOptionType.TYPE_EDIT_PRIMARY_OWNER -> {
+                navigator.openPrimaryOwnerScreen(
+                    activityContext = this,
+                    walletId = args.walletId,
+                    groupId = viewModel.getGroupId().orEmpty(),
+                    flowInfo = PrimaryOwnerFlow.EDIT
+                )
             }
         }
     }
@@ -358,6 +368,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 R.string.nc_configure_gap_limit
             )
         )
+        if (viewModel.getRole().isMasterOrAdmin) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_EDIT_PRIMARY_OWNER,
+                    R.drawable.ic_account_member,
+                    R.string.nc_edit_primary_owner,
+                ),
+            )
+        }
+
         if (viewModel.isShowDeleteWallet()) {
             options.add(
                 SheetOption(

@@ -53,6 +53,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -79,7 +80,20 @@ class CreateWalletFragment : MembershipFragment() {
                     viewModel = viewModel,
                     onMoreClicked = ::handleShowMore,
                     membershipStepManager = membershipStepManager,
-                    groupId = groupId,
+                    onContinueClicked = {
+                        if (groupId.isNotEmpty()) {
+                            findNavController().navigate(
+                                CreateWalletFragmentDirections.actionCreateWalletFragmentToPrimaryOwnerFragment(
+                                    groupId = groupId,
+                                    flow = PrimaryOwnerFlow.SETUP,
+                                    walletName = viewModel.state.value.walletName,
+                                    walletId = "",
+                                ),
+                            )
+                        } else {
+                            viewModel.createQuickWallet()
+                        }
+                    }
                 )
             }
         }
@@ -130,14 +144,14 @@ class CreateWalletFragment : MembershipFragment() {
 fun CreateWalletScreen(
     viewModel: CreateWalletViewModel = viewModel(),
     onMoreClicked: () -> Unit = {},
+    onContinueClicked: () -> Unit = {},
     membershipStepManager: MembershipStepManager,
-    groupId: String,
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CreateWalletScreenContent(
-        onContinueClicked = { viewModel.onContinueClicked(groupId) },
+        onContinueClicked = onContinueClicked,
         onMoreClicked = onMoreClicked,
         onWalletNameTextChange = viewModel::updateWalletName,
         remainTime = remainTime,

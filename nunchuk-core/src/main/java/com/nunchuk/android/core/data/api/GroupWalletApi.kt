@@ -6,6 +6,7 @@ import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
+import com.nunchuk.android.core.data.model.byzantine.CreateDraftGroupWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
@@ -40,6 +41,7 @@ import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TransactionNoteResponse
 import com.nunchuk.android.core.data.model.membership.TransactionResponse
 import com.nunchuk.android.core.data.model.membership.TransactionsResponse
+import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.payment.CreateRecurringPaymentRequest
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
@@ -154,7 +156,7 @@ internal interface GroupWalletApi {
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/create-from-draft")
     suspend fun createGroupWallet(
         @Path("group_id") groupId: String,
-        @Body payload: Map<String, String>,
+        @Body payload: CreateDraftGroupWalletRequest,
     ): Data<CreateOrUpdateWalletResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/current")
@@ -452,4 +454,11 @@ internal interface GroupWalletApi {
         @Path("recurring_payment_id") recurringPaymentId: String,
         @Body request: CreateRecurringPaymentRequest,
     ): Data<DummyTransactionResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/primary-owner")
+    suspend fun updatePrimaryOwner(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: UpdatePrimaryOwnerRequest,
+    ): Data<Unit>
 }

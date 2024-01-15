@@ -40,6 +40,8 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.ExportFormat
@@ -50,11 +52,13 @@ import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
 import com.nunchuk.android.usecase.membership.ImportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ImportTxCoinControlUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
@@ -63,10 +67,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -90,6 +96,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val exportTxCoinControlUseCase: ExportTxCoinControlUseCase,
     private val importCoinControlBIP329UseCase: ImportCoinControlBIP329UseCase,
     private val exportCoinControlBIP329UseCase: ExportCoinControlBIP329UseCase,
+    private val getGroupUseCase: GetGroupUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils,
     getContactsUseCase: GetContactsUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
@@ -101,6 +109,7 @@ internal class WalletConfigViewModel @Inject constructor(
     fun init(walletId: String) {
         this.walletId = walletId
         getWalletDetails()
+        getUserRole()
     }
 
     private fun getWalletDetails() {
@@ -125,7 +134,20 @@ internal class WalletConfigViewModel @Inject constructor(
                     if (isAssistedWallet() && it.walletExtended.wallet.balance.pureBTC() == 0.0) {
                         getTransactionHistory()
                     }
-                    updateState { it }
+                    updateState { copy(walletExtended = it.walletExtended, signers = it.signers, isAssistedWallet = it.isAssistedWallet) }
+                }
+        }
+    }
+
+    private fun getUserRole() {
+        viewModelScope.launch {
+            val groupId = getGroupId() ?: return@launch
+            getGroupUseCase(GetGroupUseCase.Params(groupId = groupId))
+                .map { it.getOrElse { null } }
+                .distinctUntilChanged()
+                .collect { group ->
+                    val role = byzantineGroupUtils.getCurrentUserRole(group)
+                    updateState { copy(role = role) }
                 }
         }
     }
@@ -438,9 +460,15 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(walletId)
 
+    fun getGroupId() = assistedWalletManager.getGroupId(walletId)
+
     fun walletName() = getState().walletExtended.wallet.name
 
     fun walletGapLimit() = getState().walletExtended.wallet.gapLimit
+
+    fun getRole(): AssistedWalletRole {
+      return getState().role.toRole
+    }
 
     override val initialState: WalletConfigState
         get() = WalletConfigState()

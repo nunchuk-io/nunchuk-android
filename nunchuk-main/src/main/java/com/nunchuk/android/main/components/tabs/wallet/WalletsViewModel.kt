@@ -230,21 +230,11 @@ internal class WalletsViewModel @Inject constructor(
                         }
                     }
 
-                    is PushEvent.GroupEmergencyLockdownStarted -> {
-                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
-                                if (shouldReload) retrieveData()
-                            }
-                        }
-                    }
+                    is PushEvent.GroupEmergencyLockdownStarted -> syncGroupWallets(event.walletId)
 
-                    is PushEvent.GroupWalletCreated -> {
-                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
-                                if (shouldReload) retrieveData()
-                            }
-                        }
-                    }
+                    is PushEvent.GroupWalletCreated -> syncGroupWallets(event.walletId)
+
+                    is PushEvent.PrimaryOwnerUpdated -> syncGroupWallets(event.walletId)
 
                     else -> {}
                 }
@@ -286,6 +276,16 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             delay(1000L)
             checkMemberMembership()
+        }
+    }
+
+    private fun syncGroupWallets(walletId: String) {
+        viewModelScope.launch {
+            if (!getState().wallets.any { it.wallet.id == walletId }) {
+                syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                    if (shouldReload) retrieveData()
+                }
+            }
         }
     }
 
@@ -386,7 +386,8 @@ internal class WalletsViewModel @Inject constructor(
             val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()
             val pendingGroup = groups.filter { it.isPendingWallet() }
             wallets.forEach { wallet ->
-                val groupId = assistedWallets.find { it.localId == wallet.wallet.id }?.groupId
+                val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
+                val groupId = assistedWallet?.groupId
                 val group = groups.firstOrNull { it.id == groupId }
                 var groupWalletUi = GroupWalletUi(
                     wallet = wallet,
@@ -403,6 +404,7 @@ internal class WalletsViewModel @Inject constructor(
                         wallet = if (inviterName.isNotEmpty()) null else wallet,
                         group = group,
                         role = role,
+                        primaryOwnerMember = byzantineGroupUtils.getPrimaryOwnerMember(group, assistedWallet?.primaryMembershipId),
                         inviterName = inviterName
                     )
                 }

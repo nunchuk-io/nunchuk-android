@@ -32,4 +32,5 @@ internal data class WalletDto(
     @SerializedName("signers") val signerServerDtos: List<SignerServerDto> = emptyList(),
     @SerializedName("status") val status: String? = null,
     @SerializedName("created_time_milis") val createdTimeMilis: Long = 0L,
+    @SerializedName("primary_membership_id") val primaryMembershipId: String? = null,
 )

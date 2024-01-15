@@ -68,7 +68,6 @@ class CreateWalletViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
-    private val createGroupWalletUseCase: CreateGroupWalletUseCase,
 ) : ViewModel() {
     private val signers = hashMapOf<String, SignerExtra>()
     private var serverKeyExtra: ServerKeyExtra? = null
@@ -130,43 +129,7 @@ class CreateWalletViewModel @Inject constructor(
         }
     }
 
-    fun onContinueClicked(groupId: String) {
-        if (groupId.isNotEmpty()) {
-            createGroupWallet(groupId)
-        } else {
-            createQuickWallet()
-        }
-    }
-
-    private fun createGroupWallet(groupId: String) {
-        viewModelScope.launch {
-            _event.emit(CreateWalletEvent.Loading(true))
-            createGroupWalletUseCase(
-                CreateGroupWalletUseCase.Param(
-                    name = _state.value.walletName,
-                    groupId = groupId
-                )
-            ).onSuccess {
-                val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
-                if (totalAirgap > 0) {
-                    setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
-                }
-                _event.emit(
-                    CreateWalletEvent.OnCreateWalletSuccess(
-                        walletId = it.id,
-                        airgapCount = totalAirgap
-                    )
-                )
-            }.onFailure {
-                _event.emit(
-                    CreateWalletEvent.ShowError(it.message.orUnknownError())
-                )
-            }
-            _event.emit(CreateWalletEvent.Loading(false))
-        }
-    }
-
-    private fun createQuickWallet() {
+    fun createQuickWallet() {
         val serverKey = serverKeyExtra ?: return
         val serverKeyId = serverKeyId ?: return
         if (createWalletJob?.isActive == true) return

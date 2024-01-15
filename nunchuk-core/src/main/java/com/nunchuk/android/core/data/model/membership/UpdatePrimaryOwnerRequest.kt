@@ -17,19 +17,11 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.persistence
+package com.nunchuk.android.core.data.model.membership
 
-const val DATABASE_NAME = "NunchukDatabase.db"
-const val DATABASE_VERSION = 20
+import com.google.gson.annotations.SerializedName
 
-const val TABLE_CONTACT = "contact"
-const val TABLE_SYNC_FILE = "sync_file"
-const val TABLE_SYNC_EVENT = "sync_event"
-const val TABLE_ADD_DESKTOP_KEY = "add_desktop_key"
-const val TABLE_HANDLED_EVENT = "handled_event"
-const val TABLE_MEMBERSHIP_STEP = "membership_flow"
-const val TABLE_ASSISTED_WALLET = "assisted_wallet"
-const val TABLE_GROUP = "byzantine_group"
-const val TABLE_ALERT = "byzantine_alert"
-const val TABLE_DUMMY_TRANSACTION = "dummy_transaction"
-const val TABLE_KEY_HEALTH_STATUS = "key_health_status"
+data class UpdatePrimaryOwnerRequest(
+    @SerializedName("primary_membership_id")
+    val primaryMembershipId: String? = null,
+)

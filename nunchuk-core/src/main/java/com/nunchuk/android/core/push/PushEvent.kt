@@ -33,4 +33,5 @@ sealed class PushEvent {
     data object KeyAddedToGroup : PushEvent()
     data object OpenRegisterWallet : PushEvent()
     data class SignedTxSuccess(val txId: String) : PushEvent()
+    data class PrimaryOwnerUpdated(val walletId: String) : PushEvent()
 }

@@ -691,4 +691,7 @@
     </plurals>
     <string name="nc_verify_address_on_device">Verify address on device</string>
     <string name="nc_copy_address_derivation_path">Copy address derivation path</string>
+    <string name="nc_primary_owner">Primary owner</string>
+    <string name="nc_primary_owner_desc">Who is the primary owner of this wallet?</string>
+    <string name="nc_primary_owner_hint">The name of primary owner will be used to index and organize your wallets.</string>
 </resources>

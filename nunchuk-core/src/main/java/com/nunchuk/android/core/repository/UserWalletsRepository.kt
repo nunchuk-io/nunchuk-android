@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.repository
 
+import android.util.Log
 import android.util.LruCache
 import com.google.gson.Gson
 import com.nunchuk.android.api.key.MembershipApi
@@ -47,6 +48,7 @@ import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
+import com.nunchuk.android.core.data.model.byzantine.CreateDraftGroupWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
@@ -65,6 +67,7 @@ import com.nunchuk.android.core.data.model.membership.SignServerTransactionReque
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.data.model.membership.TransactionServerDto
+import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toExternalModel
@@ -1225,7 +1228,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val ext = entity.ext?.run {
             gson.fromJson(this, AssistedWalletBriefExt::class.java)
         } ?: AssistedWalletBriefExt()
-        assistedWalletDao.updateOrInsert(entity.copy(ext = gson.toJson(ext.copy(inheritanceOwnerId = inheritance?.ownerId.orEmpty(), isPlanningRequest = inheritance?.pendingRequests?.isNotEmpty() == true))))
+        assistedWalletDao.updateOrInsert(entity.copy(ext = gson.toJson(ext.copy(inheritanceOwnerId = inheritance?.ownerId.orEmpty(),
+            isPlanningRequest = inheritance?.pendingRequests?.isNotEmpty() == true))))
     }
 
     private suspend fun handleServerTransaction(
@@ -1347,6 +1351,26 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         if (response.isSuccess.not()) {
             throw response.error
+        }
+    }
+
+    override suspend fun updatePrimaryOwner(
+        groupId: String,
+        walletId: String,
+        primaryMembershipId: String
+    ) {
+        val response = userWalletApiManager.groupWalletApi.updatePrimaryOwner(
+            groupId = groupId,
+            walletId = walletId,
+            payload = UpdatePrimaryOwnerRequest(
+                primaryMembershipId = primaryMembershipId
+            )
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        assistedWalletDao.getById(walletId)?.let {
+            assistedWalletDao.updateOrInsert(it.copy(primaryMembershipId = primaryMembershipId))
         }
     }
 
@@ -1505,6 +1529,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     isSetupInheritance = wallet.isSetupInheritance,
                     registerAirgapCount = wallet.registerAirgapCount,
                     groupId = wallet.groupId,
+                    primaryMembershipId = wallet.primaryMembershipId,
                     ext = wallet.ext?.run {
                         gson.fromJson(this, AssistedWalletBriefExt::class.java)
                     } ?: AssistedWalletBriefExt()
@@ -1965,9 +1990,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createGroupWallet(groupId: String, name: String): Wallet {
+    override suspend fun createGroupWallet(groupId: String, name: String, primaryMembershipId: String?): Wallet {
         val response =
-            userWalletApiManager.groupWalletApi.createGroupWallet(groupId, mapOf("name" to name))
+            userWalletApiManager.groupWalletApi.createGroupWallet(groupId,
+                CreateDraftGroupWalletRequest(name = name, primaryMembershipId = primaryMembershipId))
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
         assistedWalletDao.insert(
@@ -1975,7 +2001,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 localId = wallet.localId.orEmpty(),
                 plan = wallet.slug.toMembershipPlan(),
                 id = wallet.id?.toLongOrNull() ?: 0L,
-                groupId = groupId
+                groupId = groupId,
+                primaryMembershipId = primaryMembershipId.orEmpty()
             )
         )
         membershipStepDao.deleteStepByGroupId(groupId)
@@ -1990,12 +2017,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         membershipStepDao.deleteStepByGroupId(groupId)
         requestAddKeyDao.deleteRequests(groupId)
-        assistedWalletDao.insert(
+        assistedWalletDao.updateOrInsert(
             AssistedWalletEntity(
                 localId = wallet.localId.orEmpty(),
                 plan = wallet.slug.toMembershipPlan(),
                 id = wallet.id?.toLongOrNull() ?: 0L,
-                groupId = groupId
+                groupId = groupId,
+                primaryMembershipId = wallet.primaryMembershipId.orEmpty()
             )
         )
         return saveWalletToLib(wallet, groupAssistedKeys)

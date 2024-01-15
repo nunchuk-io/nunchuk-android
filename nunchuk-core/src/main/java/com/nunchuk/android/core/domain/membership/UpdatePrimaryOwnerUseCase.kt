@@ -17,19 +17,30 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.persistence
+package com.nunchuk.android.core.domain.membership
 
-const val DATABASE_NAME = "NunchukDatabase.db"
-const val DATABASE_VERSION = 20
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-const val TABLE_CONTACT = "contact"
-const val TABLE_SYNC_FILE = "sync_file"
-const val TABLE_SYNC_EVENT = "sync_event"
-const val TABLE_ADD_DESKTOP_KEY = "add_desktop_key"
-const val TABLE_HANDLED_EVENT = "handled_event"
-const val TABLE_MEMBERSHIP_STEP = "membership_flow"
-const val TABLE_ASSISTED_WALLET = "assisted_wallet"
-const val TABLE_GROUP = "byzantine_group"
-const val TABLE_ALERT = "byzantine_alert"
-const val TABLE_DUMMY_TRANSACTION = "dummy_transaction"
-const val TABLE_KEY_HEALTH_STATUS = "key_health_status"
+class UpdatePrimaryOwnerUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletRepository: PremiumWalletRepository,
+) : UseCase<UpdatePrimaryOwnerUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        return userWalletRepository.updatePrimaryOwner(
+            parameters.groupId,
+            parameters.walletId,
+            parameters.primaryMembershipId
+        )
+    }
+
+    class Param(
+        val groupId: String,
+        val walletId: String,
+        val primaryMembershipId: String
+    )
+}

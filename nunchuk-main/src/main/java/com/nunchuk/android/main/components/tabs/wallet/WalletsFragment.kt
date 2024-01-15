@@ -495,6 +495,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             hideWalletDetail = hideWalletDetail,
                             badgeCount = it.badgeCount,
                             isLocked = it.group?.isLocked.orFalse(),
+                            primaryOwnerMember = it.primaryOwnerMember,
                             role = it.role,
                             onAccept = {
                                 it.group?.id?.let {

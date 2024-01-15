@@ -43,5 +43,7 @@ data class AssistedWalletEntity(
     @ColumnInfo(name = "register_airgap_count", defaultValue = "0")
     val registerAirgapCount: Int = 0,
     @ColumnInfo(name = "ext")
-    val ext: String? = null, // AssistedWalletBriefExt
+    val ext: String? = null, // AssistedWalletBriefExt,
+    @ColumnInfo(name = "primary_membership_id", defaultValue = "")
+    val primaryMembershipId: String = "",
 )
