@@ -99,21 +99,17 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     fun createTransaction(walletId: String, oldTx: Transaction, newFee: Int, address: String) {
         viewModelScope.launch {
             _event.emit(ReplaceFeeEvent.Loading(true))
-            val outputs = if (address.isNullOrEmpty()) {
-                oldTx.userOutputs.associate { it.first to it.second }
-            } else {
-                mapOf(address to oldTx.subAmount)
-            }
             createTransactionUseCase(
                 CreateTransactionUseCase.Param(
                     groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
-                    outputs = outputs,
+                    outputs = mapOf(address to oldTx.subAmount),
                     memo = oldTx.memo,
                     inputs = oldTx.inputs,
                     feeRate = newFee.toManualFeeRate(),
                     subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                    replaceTxId = oldTx.txId
                 )
             ).onSuccess {
                 _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(it.txId))

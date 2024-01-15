@@ -76,7 +76,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     }
 
     private fun setupViews() {
-        binding.btnCancel.isVisible = true
+        binding.btnCancel.isVisible = args.isPending || args.isPendingConfirm
         binding.btnCancel.setOnClickListener {
             listener(CANCEL)
             dismiss()
