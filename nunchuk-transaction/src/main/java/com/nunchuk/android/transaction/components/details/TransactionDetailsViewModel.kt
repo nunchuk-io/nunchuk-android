@@ -213,6 +213,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     if (event.transactionId == txId) {
                         setEvent(DeleteTransactionSuccess(true))
                     }
+                } else if (event is PushEvent.SignedChanged) {
+                    if (getState().signers.any { signer -> signer.fingerPrint == event.xfp }) {
+                        loadWallet()
+                    }
                 }
             }
         }

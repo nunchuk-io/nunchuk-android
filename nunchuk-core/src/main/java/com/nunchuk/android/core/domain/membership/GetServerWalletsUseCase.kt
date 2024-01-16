@@ -26,7 +26,7 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetServerWalletUseCase @Inject constructor(
+class GetServerWalletsUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletsRepository: PremiumWalletRepository,
 ) : UseCase<Unit, WalletServerSync>(dispatcher) {

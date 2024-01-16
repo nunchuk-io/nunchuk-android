@@ -30,7 +30,7 @@ import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
-import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
+import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
@@ -118,7 +118,7 @@ internal class WalletsViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val accountManager: AccountManager,
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
-    private val getServerWalletUseCase: GetServerWalletUseCase,
+    private val getServerWalletsUseCase: GetServerWalletsUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
@@ -208,7 +208,7 @@ internal class WalletsViewModel @Inject constructor(
                 when (event) {
                     is PushEvent.WalletCreate -> {
                         if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                            getServerWalletUseCase(Unit).onSuccess {
+                            getServerWalletsUseCase(Unit).onSuccess {
                                 if (it.isNeedReload) {
                                     retrieveData()
                                 }
@@ -236,7 +236,7 @@ internal class WalletsViewModel @Inject constructor(
 
                     is PushEvent.PrimaryOwnerUpdated -> syncGroupWallets(event.walletId)
 
-                    is PushEvent.WalletChanged -> {
+                    is PushEvent.WalletChanged, is PushEvent.SignedChanged -> {
                         retrieveData()
                     }
 
@@ -315,7 +315,7 @@ internal class WalletsViewModel @Inject constructor(
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
                 val subscription = result.getOrThrow()
-                val getServerWalletResult = getServerWalletUseCase(Unit)
+                val getServerWalletResult = getServerWalletsUseCase(Unit)
                 if (getServerWalletResult.isFailure) return@launch
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())

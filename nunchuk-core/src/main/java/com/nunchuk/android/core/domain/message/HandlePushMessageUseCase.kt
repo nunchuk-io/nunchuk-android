@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.domain.message
 
+import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -13,8 +14,6 @@ import com.nunchuk.android.messages.util.isGroupEmergencyLockdownStarted
 import com.nunchuk.android.messages.util.isGroupMembershipRequestCreatedEvent
 import com.nunchuk.android.messages.util.isGroupNameChanged
 import com.nunchuk.android.messages.util.isGroupWalletCreatedEvent
-import com.nunchuk.android.messages.util.isGroupWalletPrimaryOwnerUpdated
-import com.nunchuk.android.messages.util.isKeyNameChanged
 import com.nunchuk.android.messages.util.isServerTransactionEvent
 import com.nunchuk.android.messages.util.isTransactionCancelled
 import com.nunchuk.android.messages.util.isTransactionHandleErrorMessageEvent
@@ -23,6 +22,7 @@ import com.nunchuk.android.usecase.IsHandledEventUseCase
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -35,6 +35,8 @@ class HandlePushMessageUseCase @Inject constructor(
     private val saveHandledEventUseCase: SaveHandledEventUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
+    private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
+    private val getServerWalletsUseCase: GetServerWalletsUseCase
 ) : UseCase<TimelineEvent, Unit>(dispatcher) {
     override suspend fun execute(parameters: TimelineEvent) {
         when {
@@ -126,7 +128,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     )
                 }
             }
-            parameters.isGroupNameChanged() || parameters.isKeyNameChanged() -> {
+            parameters.isGroupNameChanged() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
                     saveHandledEventUseCase.invoke(parameters.eventId)
@@ -148,6 +150,20 @@ class HandlePushMessageUseCase @Inject constructor(
                     pushEventManager.push(
                         PushEvent.PrimaryOwnerUpdated(
                             parameters.getWalletId().orEmpty()
+                        )
+                    )
+                }
+            }
+
+            parameters.isKeyNameChanged() -> {
+                val result = isHandledEventUseCase.invoke(parameters.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(parameters.eventId)
+                    syncGroupWalletsUseCase(Unit)
+                    getServerWalletsUseCase(Unit)
+                    pushEventManager.push(
+                        PushEvent.SignedChanged(
+                            parameters.getXfp().orEmpty()
                         )
                     )
                 }
