@@ -17,6 +17,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -26,7 +27,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResult
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.findNavController
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSnackBarHost
@@ -36,6 +40,7 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.qr.startQRCodeScan
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -49,13 +54,27 @@ class RbfCustomizeDestinationFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val viewModel: RbfCustomizeDestinationViewModel = hiltViewModel()
+                val uiState by viewModel.state.collectAsStateWithLifecycle()
                 RbfCustomizeDestinationContent(
+                    uiState = uiState,
                     parseBtcUri = viewModel::parseBtcUri,
                     onAddressChange = viewModel::onAddressChange,
                     onHandledMessage = viewModel::onHandledMessage,
+                    onHandledCheckAddressSuccess = viewModel::onHandledCheckAddressSuccess,
+                    onContinue = viewModel::checkAddressValid,
+                    sendResult = { address ->
+                        setFragmentResult(REQUEST_KEY, Bundle().apply {
+                            putString(GlobalResultKey.ADDRESS, address)
+                        })
+                        findNavController().popBackStack()
+                    }
                 )
             }
         }
+    }
+
+    companion object {
+        const val REQUEST_KEY = "RbfCustomizeDestinationFragment"
     }
 }
 
@@ -65,6 +84,9 @@ private fun RbfCustomizeDestinationContent(
     onAddressChange: (String) -> Unit = {},
     parseBtcUri: (String) -> Unit = {},
     onHandledMessage: () -> Unit = {},
+    onHandledCheckAddressSuccess: () -> Unit = {},
+    onContinue: () -> Unit = {},
+    sendResult: (String) -> Unit = {},
 ) {
     val qrLauncher = rememberLauncherForActivityResult(contract = ScanContract()) { result ->
         result.contents?.let { content ->
@@ -73,7 +95,7 @@ private fun RbfCustomizeDestinationContent(
     }
     val snackState: SnackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.errorMessage) {
-        if (uiState.errorMessage.isNotEmpty()) {
+        if (!uiState.errorMessage.isNullOrEmpty()) {
             snackState.showSnackbar(
                 NcSnackbarVisuals(
                     message = uiState.errorMessage,
@@ -81,6 +103,12 @@ private fun RbfCustomizeDestinationContent(
                 )
             )
             onHandledMessage()
+        }
+    }
+    LaunchedEffect(uiState.checkAddressSuccess) {
+        if (uiState.checkAddressSuccess) {
+            sendResult(uiState.address)
+            onHandledCheckAddressSuccess()
         }
     }
     NunchukTheme {
@@ -93,7 +121,8 @@ private fun RbfCustomizeDestinationContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = { /*TODO*/ },
+                    enabled = uiState.address.isNotEmpty(),
+                    onClick = onContinue,
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }

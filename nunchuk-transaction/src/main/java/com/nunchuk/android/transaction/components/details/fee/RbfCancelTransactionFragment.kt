@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,6 +47,7 @@ import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.wallet.AddressWithQrView
 import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
@@ -82,6 +84,14 @@ class RbfCancelTransactionFragment : Fragment() {
             }
         }
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setFragmentResultListener(RbfCustomizeDestinationFragment.REQUEST_KEY) { _, bundle ->
+            val address = bundle.getString(GlobalResultKey.ADDRESS).orEmpty()
+            viewModel.onAddressChange(address)
+        }
+    }
 }
 
 @Composable
@@ -107,6 +117,9 @@ private fun RbfCancelTransactionContent(
     var newFeeRate by rememberSaveable {
         mutableStateOf("")
     }
+    var showWarning by rememberSaveable {
+        mutableStateOf(false)
+    }
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(title = "")
@@ -122,7 +135,13 @@ private fun RbfCancelTransactionContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     enabled = newFeeRate.isNotEmpty(),
-                    onClick = { onContinueClick(newFeeRate.toInt()) },
+                    onClick = {
+                        if (newFeeRate.toInt().times(1000) > uiState.previousFeeRate) {
+                            onContinueClick(newFeeRate.toInt())
+                        } else {
+                            showWarning = true
+                        }
+                    },
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
@@ -230,11 +249,16 @@ private fun RbfCancelTransactionContent(
                             title = "",
                             value = newFeeRate,
                             onValueChange = {
-                                if (it.lastOrNull()?.isDigit() == true) {
+                                if (it.isEmpty() || it.last().isDigit()) {
+                                    showWarning = false
                                     newFeeRate = it
                                 }
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                            error = stringResource(R.string.nc_new_fee_rate_invalid).takeIf { showWarning },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done
+                            ),
                         )
 
                         Text(
@@ -243,12 +267,6 @@ private fun RbfCancelTransactionContent(
                             modifier = Modifier.padding(start = 12.dp)
                         )
                     }
-
-                    Text(
-                        text = (newFeeRate.toIntOrNull() ?: 0).toFeeRateInBtc(),
-                        style = NunchukTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
 
                     Text(
                         text = stringResource(id = R.string.nc_transaction_processing_speed),

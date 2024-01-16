@@ -38,6 +38,10 @@ class RbfCancelTransactionViewModel @Inject constructor(
             }
         }
     }
+
+    fun onAddressChange(address: String) {
+        _state.update { it.copy(address = address) }
+    }
 }
 
 data class RbfCancelTransactionUiState(

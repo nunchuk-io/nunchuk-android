@@ -156,7 +156,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     walletId = result.walletId,
                     txId = result.transaction.txId,
                 )
-                NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
+                if (result.rbfType == RbfType.CancelTransaction) {
+                    NcToastManager.scheduleShowMessage(getString(R.string.nc_the_transaction_has_been_replaced))
+                } else {
+                    NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
+                }
                 finish()
             }
         }

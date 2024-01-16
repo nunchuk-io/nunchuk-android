@@ -80,4 +80,6 @@
     <string name="nc_wallet_address">Wallet address</string>
     <string name="nc_new_fee_rate_desc">The new fee rate must be higher than the old fee rate.</string>
     <string name="nc_new_recipient_s_address">New recipient’s address</string>
+    <string name="nc_new_fee_rate_invalid">New fee rate must be higher than old fee rate</string>
+    <string name="nc_the_transaction_has_been_replaced">The transaction has been replaced</string>
 </resources>

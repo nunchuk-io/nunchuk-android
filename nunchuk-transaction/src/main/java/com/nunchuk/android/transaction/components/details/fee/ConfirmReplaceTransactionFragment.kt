@@ -63,12 +63,20 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
         observer()
         updateTransaction(activityArgs.transaction)
         registerEvents()
-        viewModel.draftTransaction(
-            activityArgs.walletId,
-            activityArgs.transaction,
-            args.newFee,
-            args.address
-        )
+        if (args.address.isNullOrEmpty()) {
+            viewModel.draftTransaction(
+                activityArgs.walletId,
+                activityArgs.transaction,
+                args.newFee,
+            )
+        } else {
+            viewModel.draftCancelTransaction(
+                activityArgs.walletId,
+                activityArgs.transaction,
+                args.newFee,
+                args.address.orEmpty()
+            )
+        }
         binding.estimatedFeeLabel.setOnClickListener {
             BottomSheetTooltip.newInstance(
                 title = getString(R.string.nc_text_info),

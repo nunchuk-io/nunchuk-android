@@ -22,12 +22,15 @@ package com.nunchuk.android.transaction.components.details.fee
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.ReplaceTransactionUseCase
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,6 +46,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     private val replaceTransactionUseCase: ReplaceTransactionUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
+    private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
     private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ReplaceFeeEvent>()
@@ -50,19 +54,14 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     val state = _state.asStateFlow().filterIsInstance<ConfirmReplaceTransactionState>()
     val event = _event.asSharedFlow()
 
-    fun draftTransaction(walletId: String, oldTx: Transaction, newFee: Int, address: String?) {
+    fun draftTransaction(walletId: String, oldTx: Transaction, newFee: Int) {
         viewModelScope.launch {
             delay(150) // work around shared flow not show loading
             _event.emit(ReplaceFeeEvent.Loading(true))
-            val outputs = if (address.isNullOrEmpty()) {
-                oldTx.userOutputs.associate { it.first to it.second }
-            } else {
-                mapOf(address to oldTx.subAmount)
-            }
             when (val result = draftTransactionUseCase.execute(
                 walletId = walletId,
                 inputs = oldTx.inputs,
-                outputs = outputs,
+                outputs = oldTx.userOutputs.associate { it.first to it.second },
                 subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
                 feeRate = newFee.toManualFeeRate()
             )) {
@@ -70,6 +69,35 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                 is Result.Error -> {
                     _event.emit(ReplaceFeeEvent.ShowError(result.exception))
                 }
+            }
+            _event.emit(ReplaceFeeEvent.Loading(false))
+        }
+    }
+
+    fun draftCancelTransaction(walletId: String, oldTx: Transaction, newFee: Int, address: String) {
+        viewModelScope.launch {
+            delay(150) // work around shared flow not show loading
+            _event.emit(ReplaceFeeEvent.Loading(true))
+            getCoinsFromTxInputsUseCase(
+                GetCoinsFromTxInputsUseCase.Params(
+                    walletId = walletId,
+                    txInputs = oldTx.inputs
+                )
+            ).onSuccess { coins ->
+                when (val result = draftTransactionUseCase.execute(
+                    walletId = walletId,
+                    inputs = coins.map { TxInput(it.txid, it.vout) },
+                    outputs = mapOf(address to coins.sumOf { it.amount.value }.toAmount()),
+                    subtractFeeFromAmount = true,
+                    feeRate = newFee.toManualFeeRate()
+                )) {
+                    is Result.Success -> _state.value = ConfirmReplaceTransactionState(result.data)
+                    is Result.Error -> {
+                        _event.emit(ReplaceFeeEvent.ShowError(result.exception))
+                    }
+                }
+            }.onFailure {
+                _event.emit(ReplaceFeeEvent.ShowError(it))
             }
             _event.emit(ReplaceFeeEvent.Loading(false))
         }
@@ -99,20 +127,29 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     fun createTransaction(walletId: String, oldTx: Transaction, newFee: Int, address: String) {
         viewModelScope.launch {
             _event.emit(ReplaceFeeEvent.Loading(true))
-            createTransactionUseCase(
-                CreateTransactionUseCase.Param(
-                    groupId = assistedWalletManager.getGroupId(walletId),
+            getCoinsFromTxInputsUseCase(
+                GetCoinsFromTxInputsUseCase.Params(
                     walletId = walletId,
-                    outputs = mapOf(address to oldTx.subAmount),
-                    memo = oldTx.memo,
-                    inputs = oldTx.inputs,
-                    feeRate = newFee.toManualFeeRate(),
-                    subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
-                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
-                    replaceTxId = oldTx.txId
+                    txInputs = oldTx.inputs
                 )
-            ).onSuccess {
-                _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(it.txId))
+            ).onSuccess { coins ->
+                createTransactionUseCase(
+                    CreateTransactionUseCase.Param(
+                        groupId = assistedWalletManager.getGroupId(walletId),
+                        walletId = walletId,
+                        outputs = mapOf(address to coins.sumOf { it.amount.value }.toAmount()),
+                        memo = oldTx.memo,
+                        inputs = coins.map { TxInput(it.txid, it.vout) },
+                        feeRate = newFee.toManualFeeRate(),
+                        subtractFeeFromAmount = true,
+                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                        replaceTxId = oldTx.txId
+                    )
+                ).onSuccess {
+                    _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(it.txId))
+                }.onFailure {
+                    _event.emit(ReplaceFeeEvent.ShowError(it))
+                }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))
             }
