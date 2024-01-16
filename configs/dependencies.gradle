@@ -39,7 +39,7 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 40
-    TASK_LABEL = "UAT"
+    TASK_LABEL = "DEV"
 
     VERSION_CODE = 223
 
