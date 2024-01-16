@@ -604,6 +604,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         }
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
+        saveWalletToLib(wallet, mutableSetOf())
+        return SeverWallet(wallet.id.orEmpty())
+    }
+
+    override suspend fun getWallet(walletId: String): SeverWallet {
+        val response = userWalletApiManager.walletApi.getWallet(walletId)
+        val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
+        saveWalletToLib(wallet, mutableSetOf())
         return SeverWallet(wallet.id.orEmpty())
     }
 

@@ -403,6 +403,8 @@ interface PremiumWalletRepository {
         groupId: String?
     ): SeverWallet
 
+    suspend fun getWallet(walletId: String): SeverWallet
+
     suspend fun syncDeletedWallet(): Boolean
 
     suspend fun deleteKey(xfp: String)

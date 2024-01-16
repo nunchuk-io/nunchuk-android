@@ -56,9 +56,7 @@ import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.trySafe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -106,7 +104,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
 
         val event = getEvent(remoteMessage.data)?.also { event ->
             applicationScope.launch {
-                handlePushMessageUseCase(event)
+                runCatching {
+                    handlePushMessageUseCase(event)
+                }
             }
         }
 

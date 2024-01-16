@@ -236,6 +236,10 @@ internal class WalletsViewModel @Inject constructor(
 
                     is PushEvent.PrimaryOwnerUpdated -> syncGroupWallets(event.walletId)
 
+                    is PushEvent.WalletChanged -> {
+                        retrieveData()
+                    }
+
                     else -> {}
                 }
             }

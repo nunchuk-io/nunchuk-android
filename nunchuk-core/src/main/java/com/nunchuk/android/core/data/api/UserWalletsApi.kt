@@ -72,6 +72,11 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletLocalId: String, @Body payload: UpdateWalletPayload
     ): Data<CreateOrUpdateWalletResponse>
 
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}")
+    suspend fun getWallet(
+        @Path("wallet_id_or_local_id") walletLocalId: String
+    ): Data<CreateOrUpdateWalletResponse>
+
     @GET("/v1.1/user-wallets/wallets")
     suspend fun getServerWallet(): Data<GetWalletResponse>
 
