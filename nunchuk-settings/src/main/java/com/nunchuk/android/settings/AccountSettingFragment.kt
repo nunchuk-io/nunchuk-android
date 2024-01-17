@@ -69,6 +69,11 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
 
     private fun observeEvent() {
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+        viewModel.state.observe(viewLifecycleOwner, ::handleState)
+    }
+
+    private fun handleState(state: AccountSettingState) {
+        binding.enableSync.isVisible = state.hasAssistedWallets.not() || state.isSyncEnable
     }
 
     private fun handleEvent(event: AccountSettingEvent) {

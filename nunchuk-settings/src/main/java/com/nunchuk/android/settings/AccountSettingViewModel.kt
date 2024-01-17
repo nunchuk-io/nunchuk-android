@@ -21,20 +21,25 @@ package com.nunchuk.android.settings
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.DeletePrimaryKeyUseCase
-import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.core.domain.GetSyncSettingUseCase
 import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.settings.AccountSettingEvent.*
+import com.nunchuk.android.settings.AccountSettingEvent.CheckNeedPassphraseSent
+import com.nunchuk.android.settings.AccountSettingEvent.DeletePrimaryKeySuccess
+import com.nunchuk.android.settings.AccountSettingEvent.Loading
+import com.nunchuk.android.settings.AccountSettingEvent.RequestDeleteError
+import com.nunchuk.android.settings.AccountSettingEvent.RequestDeleteSuccess
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -47,10 +52,29 @@ internal class AccountSettingViewModel @Inject constructor(
     private val appScope: CoroutineScope,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
-    private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder
-) : NunchukViewModel<Unit, AccountSettingEvent>() {
+    private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder,
+    private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val getSyncSettingUseCase: GetSyncSettingUseCase,
+) : NunchukViewModel<AccountSettingState, AccountSettingEvent>() {
 
-    override val initialState = Unit
+    override val initialState = AccountSettingState()
+
+    init {
+        viewModelScope.launch {
+            getAssistedWalletsFlowUseCase(Unit)
+                .combine(getSyncSettingUseCase(Unit)) { wallets, isSyncEnable ->
+                    wallets to isSyncEnable
+                }
+                .collect {
+                    updateState {
+                        copy(
+                            hasAssistedWallets = it.first.getOrElse { emptyList() }.isNotEmpty(),
+                            isSyncEnable = it.second.getOrElse { false }
+                        )
+                    }
+                }
+        }
+    }
 
     fun sendRequestDeleteAccount() {
         viewModelScope.launch {

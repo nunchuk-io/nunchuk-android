@@ -26,3 +26,8 @@ sealed class AccountSettingEvent {
     data class RequestDeleteError(val message: String) : AccountSettingEvent()
     data class CheckNeedPassphraseSent(val isNeeded: Boolean) : AccountSettingEvent()
 }
+
+data class AccountSettingState(
+    val isSyncEnable: Boolean = false,
+    val hasAssistedWallets: Boolean = false,
+)
