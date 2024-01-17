@@ -470,6 +470,8 @@ internal class WalletConfigViewModel @Inject constructor(
       return getState().role.toRole
     }
 
+    fun isEditableWalletName() = getState().role.toRole == AssistedWalletRole.MASTER
+
     override val initialState: WalletConfigState
         get() = WalletConfigState()
 

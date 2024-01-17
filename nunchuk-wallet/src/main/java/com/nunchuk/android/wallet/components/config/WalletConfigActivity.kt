@@ -37,7 +37,9 @@ import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
@@ -301,6 +303,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     private fun handleState(state: WalletConfigState) {
         val wallet = state.walletExtended.wallet
         binding.walletName.text = wallet.name
+        if (viewModel.isEditableWalletName()) {
+            binding.walletName.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_edit, 0)
+        } else {
+            binding.walletName.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
+        }
 
         binding.configuration.bindWalletConfiguration(wallet)
 
@@ -329,7 +336,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
             false
         }
-        binding.walletName.setOnClickListener { onEditClicked() }
+        binding.walletName.setOnClickListener {
+            if (viewModel.isEditableWalletName().not()) return@setOnClickListener
+            onEditClicked()
+        }
         binding.btnDone.setOnClickListener {
             finish()
         }
