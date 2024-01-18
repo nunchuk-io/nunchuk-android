@@ -22,6 +22,7 @@ package com.nunchuk.android.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.usecase.coin.SyncCoinControlData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,7 +37,8 @@ import javax.inject.Inject
 class SyncInfoViewModel @Inject constructor(
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val syncCoinControlData: SyncCoinControlData,
-    private val assistedWalletManager: AssistedWalletManager
+    private val assistedWalletManager: AssistedWalletManager,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
 ) : ViewModel() {
     private val assistedWallets = getAssistedWalletsFlowUseCase(Unit)
         .map { it.getOrElse { emptyList() } }
@@ -47,6 +49,7 @@ class SyncInfoViewModel @Inject constructor(
             while (true) {
                 delay(300_000L)
                 syncCoin()
+                syncUserProfile()
             }
         }
     }
@@ -67,6 +70,12 @@ class SyncInfoViewModel @Inject constructor(
                     )
                 )
             }
+        }
+    }
+
+    private fun syncUserProfile() {
+        viewModelScope.launch {
+            getUserProfileUseCase(Unit)
         }
     }
 }
