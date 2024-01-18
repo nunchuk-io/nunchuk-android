@@ -433,4 +433,11 @@ interface PremiumWalletRepository {
     suspend fun approveInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
     suspend fun requestSignatureTransaction(groupId: String, walletId: String, transactionId: String, membershipId: String)
     suspend fun updatePrimaryOwner(groupId: String, walletId: String, primaryMembershipId: String)
+
+    suspend fun replaceTransaction(
+        groupId: String?,
+        walletId: String,
+        transactionId: String,
+        newTxPsbt: String
+    )
 }

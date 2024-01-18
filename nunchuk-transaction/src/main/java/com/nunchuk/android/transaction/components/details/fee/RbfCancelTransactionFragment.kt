@@ -68,14 +68,14 @@ class RbfCancelTransactionFragment : Fragment() {
                     onCustomizeDestinationClick = { newFeeRate ->
                         findNavController().navigate(
                             RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToRbfCustomizeDestinationFragment(
-                                newFeeRate
+                                newFeeRate.times(1000)
                             )
                         )
                     },
                     onContinueClick = { newFeeRate ->
                         findNavController().navigate(
                             RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToConfirmReplaceTransactionFragment(
-                                newFee = newFeeRate,
+                                newFee = newFeeRate.times(1000),
                                 address = viewModel.state.value.address,
                             )
                         )

@@ -31,6 +31,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeR
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
+import com.nunchuk.android.usecase.membership.ReplaceServerTransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -48,6 +49,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     private val createTransactionUseCase: CreateTransactionUseCase,
     private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
     private val assistedWalletManager: AssistedWalletManager,
+    private val replaceServerTransactionUseCase: ReplaceServerTransactionUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ReplaceFeeEvent>()
     private val _state = MutableStateFlow<ConfirmReplaceTransactionState?>(null)
@@ -112,11 +114,20 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     walletId = walletId,
                     txId = txId,
                     newFee = newFee,
-                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
                 )
             )
             _event.emit(ReplaceFeeEvent.Loading(false))
             if (result.isSuccess) {
+                if (assistedWalletManager.isActiveAssistedWallet(walletId)) {
+                    replaceServerTransactionUseCase(
+                        ReplaceServerTransactionUseCase.Params(
+                            groupId = assistedWalletManager.getGroupId(walletId),
+                            walletId = walletId,
+                            transactionId = txId,
+                            newTxPsbt = result.getOrThrow().psbt
+                        )
+                    )
+                }
                 _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(result.getOrThrow().txId))
             } else {
                 _event.emit(ReplaceFeeEvent.ShowError(result.exceptionOrNull()))
@@ -142,10 +153,20 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                         inputs = coins.map { TxInput(it.txid, it.vout) },
                         feeRate = newFee.toManualFeeRate(),
                         subtractFeeFromAmount = true,
-                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                        isAssistedWallet = false, // hard code to false to don't sync to server
                         replaceTxId = oldTx.txId
                     )
                 ).onSuccess {
+                    if (assistedWalletManager.isActiveAssistedWallet(walletId)) {
+                        replaceServerTransactionUseCase(
+                            ReplaceServerTransactionUseCase.Params(
+                                groupId = assistedWalletManager.getGroupId(walletId),
+                                walletId = walletId,
+                                transactionId = oldTx.txId,
+                                newTxPsbt = it.psbt
+                            )
+                        )
+                    }
                     _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(it.txId))
                 }.onFailure {
                     _event.emit(ReplaceFeeEvent.ShowError(it))

@@ -461,4 +461,12 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Body payload: UpdatePrimaryOwnerRequest,
     ): Data<Unit>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/rbf")
+    suspend fun replaceTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: CreateOrUpdateServerTransactionRequest,
+    ): Data<TransactionResponse>
 }

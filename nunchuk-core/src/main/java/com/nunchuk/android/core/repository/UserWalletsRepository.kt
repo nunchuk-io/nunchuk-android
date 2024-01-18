@@ -1260,6 +1260,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             ) to serverTransaction
         } else if (serverTransaction != null) {
             val libTx = nunchukNativeSdk.importPsbt(walletId, serverTransaction.psbt.orEmpty())
+            updateReplaceTransactionIdIfNeed(walletId, libTx, serverTransaction)
             if (libTx.psbt != serverTransaction.psbt) {
                 val response = if (!groupId.isNullOrEmpty()) {
                     userWalletApiManager.groupWalletApi.syncTransaction(
@@ -1435,6 +1436,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     updateScheduleTransactionIfNeed(
                         walletId, transition.transactionId.orEmpty(), transition
                     )
+
+                    updateReplaceTransactionIdIfNeed(walletId, importTx, transition)
+
                     if (transition.type == ServerTransactionType.SCHEDULED) {
                         serverTransactionCache.put(
                             transition.transactionId.orEmpty(),
@@ -1458,6 +1462,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (transaction.type == ServerTransactionType.SCHEDULED && transaction.broadCastTimeMillis > System.currentTimeMillis()) {
             nunchukNativeSdk.updateTransactionSchedule(
                 walletId, transactionId, transaction.broadCastTimeMillis / 1000
+            )
+        }
+    }
+
+    private fun updateReplaceTransactionIdIfNeed(
+        walletId: String, localTx: Transaction, serverTx: TransactionServerDto,
+    ) {
+        if (!serverTx.replaceTxId.isNullOrEmpty() && localTx.replacedTxid != serverTx.replaceTxId) {
+            nunchukNativeSdk.replaceTransactionId(
+                walletId, serverTx.transactionId.orEmpty(), serverTx.replaceTxId
             )
         }
     }
@@ -2267,6 +2281,32 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             requestId = requestId,
             query = mapOf("group_id" to groupId, "wallet" to walletId)
         )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun replaceTransaction(
+        groupId: String?,
+        walletId: String,
+        transactionId: String,
+        newTxPsbt: String
+    ) {
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.replaceTransaction(
+                groupId = groupId,
+                walletId = walletId,
+                transactionId = transactionId,
+                payload = CreateOrUpdateServerTransactionRequest(psbt = newTxPsbt)
+            )
+        } else {
+            userWalletApiManager.walletApi.replaceTransaction(
+                walletId = walletId,
+                transactionId = transactionId,
+                payload = CreateOrUpdateServerTransactionRequest(psbt = newTxPsbt)
+            )
+        }
+
         if (response.isSuccess.not()) {
             throw response.error
         }

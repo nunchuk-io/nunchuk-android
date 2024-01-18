@@ -388,4 +388,11 @@ internal interface UserWalletsApi {
     suspend fun approveInheritanceRequestPlanning(
         @Path("request_id") requestId: String, @QueryMap query: Map<String, String>
     ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/rbf")
+    suspend fun replaceTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: CreateOrUpdateServerTransactionRequest
+    ): Data<TransactionResponse>
 }

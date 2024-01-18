@@ -46,7 +46,8 @@ data class TransactionServerDto(
     @SerializedName("last_modified_time_milis") val lastModifiedTimeMilis: Long = 0L,
     @SerializedName("broadcast_time_milis") val broadCastTimeMillis: Long = 0L,
     @SerializedName("spending_limit_reached") val spendingLimitReach: SpendingLimitReach? = null,
-    @SerializedName("is_cosigning") val isCosigning: Boolean = false
+    @SerializedName("is_cosigning") val isCosigning: Boolean = false,
+    @SerializedName("replace_txid") val replaceTxId: String? = null
 )
 
 data class SpendingLimitReach(
