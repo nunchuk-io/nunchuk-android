@@ -8,12 +8,15 @@ import com.nunchuk.android.messages.util.getGroupId
 import com.nunchuk.android.messages.util.getLastMessageContentSafe
 import com.nunchuk.android.messages.util.getTransactionId
 import com.nunchuk.android.messages.util.getWalletId
+import com.nunchuk.android.messages.util.getXfp
 import com.nunchuk.android.messages.util.isAddKeyCompleted
 import com.nunchuk.android.messages.util.isDraftWalletResetEvent
 import com.nunchuk.android.messages.util.isGroupEmergencyLockdownStarted
 import com.nunchuk.android.messages.util.isGroupMembershipRequestCreatedEvent
 import com.nunchuk.android.messages.util.isGroupNameChanged
 import com.nunchuk.android.messages.util.isGroupWalletCreatedEvent
+import com.nunchuk.android.messages.util.isGroupWalletPrimaryOwnerUpdated
+import com.nunchuk.android.messages.util.isKeyNameChanged
 import com.nunchuk.android.messages.util.isServerTransactionEvent
 import com.nunchuk.android.messages.util.isTransactionCancelled
 import com.nunchuk.android.messages.util.isTransactionHandleErrorMessageEvent
@@ -144,7 +147,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     }
                 }
             }
-            parameters.isGroupWalletPrimaryOwnerUpdated()) {
+            parameters.isGroupWalletPrimaryOwnerUpdated() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
                     saveHandledEventUseCase.invoke(parameters.eventId)
