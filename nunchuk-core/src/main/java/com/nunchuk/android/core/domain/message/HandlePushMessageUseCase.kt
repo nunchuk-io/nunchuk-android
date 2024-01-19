@@ -17,6 +17,7 @@ import com.nunchuk.android.messages.util.isGroupWalletCreatedEvent
 import com.nunchuk.android.messages.util.isServerTransactionEvent
 import com.nunchuk.android.messages.util.isTransactionCancelled
 import com.nunchuk.android.messages.util.isTransactionHandleErrorMessageEvent
+import com.nunchuk.android.messages.util.isTransactionReplaced
 import com.nunchuk.android.messages.util.isWalletCreated
 import com.nunchuk.android.usecase.IsHandledEventUseCase
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
@@ -36,7 +37,7 @@ class HandlePushMessageUseCase @Inject constructor(
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
-    private val getServerWalletsUseCase: GetServerWalletsUseCase
+    private val getServerWalletsUseCase: GetServerWalletsUseCase,
 ) : UseCase<TimelineEvent, Unit>(dispatcher) {
     override suspend fun execute(parameters: TimelineEvent) {
         when {
@@ -164,6 +165,20 @@ class HandlePushMessageUseCase @Inject constructor(
                     pushEventManager.push(
                         PushEvent.SignedChanged(
                             parameters.getXfp().orEmpty()
+                        )
+                    )
+                }
+            }
+
+            parameters.isTransactionReplaced() -> {
+                val result = isHandledEventUseCase.invoke(parameters.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(parameters.eventId)
+
+                    pushEventManager.push(
+                        PushEvent.ServerTransactionEvent(
+                            parameters.getWalletId().orEmpty(),
+                            parameters.getTransactionId().orEmpty()
                         )
                     )
                 }
