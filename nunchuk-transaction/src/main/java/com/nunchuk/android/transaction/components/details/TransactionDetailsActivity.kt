@@ -698,6 +698,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             canBroadcast = event.canBroadcast,
             isShowRequestSignature = viewModel.getMembers().isNotEmpty(),
             userRole = viewModel.getUserRole().name,
+            isReceive = viewModel.getTransaction().isReceive,
         ).setListener {
             when (it) {
                 CANCEL -> handleCancelTransaction()

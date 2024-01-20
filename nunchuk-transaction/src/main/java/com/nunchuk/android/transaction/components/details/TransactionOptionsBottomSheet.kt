@@ -76,7 +76,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     }
 
     private fun setupViews() {
-        binding.btnCancel.isVisible = args.isPending || args.isPendingConfirm
+        binding.btnCancel.isVisible = !args.isReceive && (args.isPending || args.isPendingConfirm)
         binding.btnCancel.setOnClickListener {
             listener(CANCEL)
             dismiss()
@@ -100,7 +100,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             dismiss()
         }
 
-        binding.btnReplaceFee.isVisible = args.isPendingConfirm
+        binding.btnReplaceFee.isVisible = !args.isReceive && args.isPendingConfirm
         binding.btnReplaceFee.setOnClickListener {
             listener(REPLACE_BY_FEE)
             dismiss()
@@ -124,8 +124,9 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
         }
 
         binding.btnScheduleBroadcast.isVisible = args.isPending
+                && !args.isReceive
                 && args.isAssistedWallet
-                && membershipStepManager.plan == MembershipPlan.HONEY_BADGER || membershipStepManager.plan == MembershipPlan.BYZANTINE_PRO || membershipStepManager.plan == MembershipPlan.BYZANTINE
+                && (membershipStepManager.plan == MembershipPlan.HONEY_BADGER || membershipStepManager.plan == MembershipPlan.BYZANTINE_PRO || membershipStepManager.plan == MembershipPlan.BYZANTINE)
         binding.btnScheduleBroadcast.text = if (args.isScheduleBroadcast) {
             getString(R.string.nc_cancel_scheduled_broadcast)
         } else {
@@ -168,18 +169,20 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             canBroadcast: Boolean,
             isShowRequestSignature: Boolean,
             userRole: String,
+            isReceive: Boolean,
         ): TransactionOptionsBottomSheet {
             return TransactionOptionsBottomSheet().apply {
                 arguments =
                     TransactionOptionsArgs(
-                        isPending,
-                        isPendingConfirm,
-                        isRejected,
-                        isAssistedWallet,
-                        isScheduleBroadcast,
-                        canBroadcast,
-                        isShowRequestSignature,
-                        userRole
+                        isPending = isPending,
+                        isPendingConfirm = isPendingConfirm,
+                        isRejected = isRejected,
+                        isAssistedWallet = isAssistedWallet,
+                        isScheduleBroadcast = isScheduleBroadcast,
+                        canBroadcast = canBroadcast,
+                        isShowRequestSignature = isShowRequestSignature,
+                        userRole = userRole,
+                        isReceive = isReceive
                     ).buildBundle()
                 show(fragmentManager, TAG)
             }
@@ -197,6 +200,7 @@ data class TransactionOptionsArgs(
     val canBroadcast: Boolean,
     val isShowRequestSignature: Boolean,
     val userRole: String,
+    val isReceive: Boolean,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
@@ -208,6 +212,7 @@ data class TransactionOptionsArgs(
         putBoolean(EXTRA_CAN_BROADCAST, canBroadcast)
         putBoolean(EXTRA_SHOW_REQUEST_SIGNATURE, isShowRequestSignature)
         putString(EXTRA_USER_ROLE, userRole)
+        putBoolean(EXTRA_IS_RECEIVE, isReceive)
     }
 
     companion object {
@@ -219,6 +224,7 @@ data class TransactionOptionsArgs(
         private const val EXTRA_CAN_BROADCAST = "EXTRA_CAN_BROADCAST"
         private const val EXTRA_SHOW_REQUEST_SIGNATURE = "EXTRA_SHOW_REQUEST_SIGNATURE"
         private const val EXTRA_USER_ROLE = "EXTRA_USER_ROLE"
+        private const val EXTRA_IS_RECEIVE = "EXTRA_IS_RECEIVE"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
@@ -229,6 +235,7 @@ data class TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_CAN_BROADCAST).orFalse(),
             data?.getBooleanValue(EXTRA_SHOW_REQUEST_SIGNATURE).orFalse(),
             data?.getString(EXTRA_USER_ROLE).orEmpty(),
+            data?.getBooleanValue(EXTRA_IS_RECEIVE).orFalse(),
         )
     }
 }

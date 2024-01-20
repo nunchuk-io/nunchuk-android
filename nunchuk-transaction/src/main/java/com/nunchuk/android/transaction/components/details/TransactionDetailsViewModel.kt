@@ -562,7 +562,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 isPendingTransaction = status.isPending(),
                 isPendingConfirm = status.isPendingConfirm(),
                 isRejected = status.isRejected(),
-                canBroadcast = status.canBroadCast()
+                canBroadcast = status.canBroadCast(),
             )
         )
     }
