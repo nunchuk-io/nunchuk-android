@@ -33,7 +33,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,7 +46,6 @@ import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.wallet.AddressWithQrView
 import com.nunchuk.android.compose.whisper
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
@@ -82,14 +80,6 @@ class RbfCancelTransactionFragment : Fragment() {
                     }
                 )
             }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setFragmentResultListener(RbfCustomizeDestinationFragment.REQUEST_KEY) { _, bundle ->
-            val address = bundle.getString(GlobalResultKey.ADDRESS).orEmpty()
-            viewModel.onAddressChange(address)
         }
     }
 }

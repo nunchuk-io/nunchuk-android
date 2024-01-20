@@ -27,10 +27,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.setFragmentResult
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.navArgs
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSnackBarHost
@@ -40,13 +40,12 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.qr.startQRCodeScan
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class RbfCustomizeDestinationFragment : Fragment() {
-
+    private val args by navArgs<RbfCustomizeDestinationFragmentArgs>()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -63,18 +62,16 @@ class RbfCustomizeDestinationFragment : Fragment() {
                     onHandledCheckAddressSuccess = viewModel::onHandledCheckAddressSuccess,
                     onContinue = viewModel::checkAddressValid,
                     sendResult = { address ->
-                        setFragmentResult(REQUEST_KEY, Bundle().apply {
-                            putString(GlobalResultKey.ADDRESS, address)
-                        })
-                        findNavController().popBackStack()
+                        findNavController().navigate(
+                            RbfCustomizeDestinationFragmentDirections.actionRbfCustomizeDestinationFragmentToConfirmReplaceTransactionFragment(
+                                newFee = args.newFee,
+                                address = address
+                            )
+                        )
                     }
                 )
             }
         }
-    }
-
-    companion object {
-        const val REQUEST_KEY = "RbfCustomizeDestinationFragment"
     }
 }
 
