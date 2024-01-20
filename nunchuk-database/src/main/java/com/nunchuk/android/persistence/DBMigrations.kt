@@ -63,7 +63,7 @@ object DBMigrations {
     val MIGRATION_19_20 = object : Migration(19, 20) {
 
         override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("ALTER TABLE `assisted_wallet` ADD COLUMN `primary_membership_id` TEXT DEFAULT ''")
+            database.execSQL("ALTER TABLE `assisted_wallet` ADD COLUMN `primary_membership_id` TEXT DEFAULT NULL")
         }
     }
 }

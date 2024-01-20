@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 20,
-    "identityHash": "ec7a9c29b7bc6dc2a855d737c0e16b18",
+    "identityHash": "94f956d5b00e06445e5b2e5ec7f25228",
     "entities": [
       {
         "tableName": "contact",
@@ -269,7 +269,7 @@
       },
       {
         "tableName": "assisted_wallet",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`local_id` TEXT NOT NULL, `group_id` TEXT NOT NULL DEFAULT '', `id` INTEGER NOT NULL DEFAULT 0, `plan` INTEGER NOT NULL, `is_set_up_inheritance` INTEGER NOT NULL, `register_coldcard_count` INTEGER NOT NULL DEFAULT 0, `register_airgap_count` INTEGER NOT NULL DEFAULT 0, `ext` TEXT, `primary_membership_id` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`local_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`local_id` TEXT NOT NULL, `group_id` TEXT NOT NULL DEFAULT '', `id` INTEGER NOT NULL DEFAULT 0, `plan` INTEGER NOT NULL, `is_set_up_inheritance` INTEGER NOT NULL, `register_coldcard_count` INTEGER NOT NULL DEFAULT 0, `register_airgap_count` INTEGER NOT NULL DEFAULT 0, `ext` TEXT, `primary_membership_id` TEXT, PRIMARY KEY(`local_id`))",
         "fields": [
           {
             "fieldPath": "localId",
@@ -327,8 +327,7 @@
             "fieldPath": "primaryMembershipId",
             "columnName": "primary_membership_id",
             "affinity": "TEXT",
-            "notNull": true,
-            "defaultValue": "''"
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -682,7 +681,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ec7a9c29b7bc6dc2a855d737c0e16b18')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '94f956d5b00e06445e5b2e5ec7f25228')"
     ]
   }
 }
