@@ -64,8 +64,8 @@ class PrimaryOwnerViewModel @Inject constructor(
 
     private fun setPreviousEmail() {
         state.value.wallet?.let { wallet ->
-            state.value.members.firstOrNull { it.membershipId == wallet.primaryMembershipId }?.user?.email?.let { email ->
-                _state.update { it.copy(email = email, previousEmail = email) }
+            state.value.members.firstOrNull { it.membershipId == wallet.primaryMembershipId }?.let { member ->
+                _state.update { it.copy(member = member, previousMember = member) }
             }
         }
     }
@@ -125,6 +125,7 @@ class PrimaryOwnerViewModel @Inject constructor(
             )
             _event.emit(PrimaryOwnerEvent.Loading(false))
             if (result.isSuccess) {
+                _state.update { it.copy(previousMember = state.value.member) }
                 _event.emit(PrimaryOwnerEvent.UpdatePrimaryOwnerSuccess)
             } else {
                 _event.emit(PrimaryOwnerEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
@@ -132,24 +133,25 @@ class PrimaryOwnerViewModel @Inject constructor(
         }
     }
 
-    fun updateEmail(email: String) {
-        _state.update { it.copy(email = email) }
+    fun updateSelectMember(member: ByzantineMember) {
+        _state.update { it.copy(member = member) }
     }
 
     private fun getMembershipId(): String? {
-        return state.value.members.firstOrNull { it.user?.email == state.value.email }?.membershipId
+        return state.value.member?.membershipId
     }
 
     fun enableContinueButton(): Boolean {
-        return state.value.email.isNotEmpty() && args.flow == PrimaryOwnerFlow.SETUP
-                || state.value.email.isNotEmpty() && state.value.email != state.value.previousEmail && args.flow == PrimaryOwnerFlow.EDIT
+        val email = state.value.member?.user?.email ?: return false
+        return email.isNotEmpty() && args.flow == PrimaryOwnerFlow.SETUP
+                || email.isNotEmpty() && email != state.value.previousMember?.user?.email && args.flow == PrimaryOwnerFlow.EDIT
     }
 }
 
 data class PrimaryOwnerState(
     val members: List<ByzantineMember> = emptyList(),
-    val email: String = "",
-    val previousEmail: String = "",
+    val member: ByzantineMember?=null,
+    val previousMember: ByzantineMember?=null,
     val wallet: AssistedWalletBrief? = null,
 )
 

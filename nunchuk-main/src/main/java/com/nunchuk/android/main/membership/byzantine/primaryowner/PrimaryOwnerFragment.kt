@@ -27,6 +27,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -76,6 +77,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.AddKeyStepViewModel
+import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -175,8 +177,8 @@ private fun PrimaryOwnerScreen(
         state = state,
         remainTime = remainTime,
         enableContinueButton = viewModel.enableContinueButton(),
-        onInputEmailChange = { email ->
-            viewModel.updateEmail(email)
+        onSelectMember = {
+            viewModel.updateSelectMember(it)
         },
         onSkipClick = onSkipClick,
         onContinueClick = {
@@ -186,7 +188,6 @@ private fun PrimaryOwnerScreen(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun PrimaryOwnerContent(
     state: PrimaryOwnerState,
@@ -195,14 +196,11 @@ private fun PrimaryOwnerContent(
     remainTime: Int = 0,
     onContinueClick: () -> Unit = {},
     onSkipClick: () -> Unit = {},
-    onInputEmailChange: (String) -> Unit = { _ -> },
+    onSelectMember: (ByzantineMember) -> Unit = { _ -> },
     onMoreClicked: () -> Unit = {},
 ) {
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
-    val coroutineScope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
     var dropdownSize by remember { mutableStateOf(Size.Zero) }
-    val keyboardController = LocalSoftwareKeyboardController.current
     fun onDropdownDismissRequest() {
         expanded = false
     }
@@ -265,30 +263,19 @@ private fun PrimaryOwnerContent(
                                 .onGloballyPositioned { coordinates ->
                                     dropdownSize = coordinates.size.toSize()
                                 },
-                            value = state.email,
-                            onValueChange = {
-                                if (it.trim() != state.email) onInputEmailChange(it.trim())
+                            value = state.member?.getDisplayName().orEmpty(),
+                            enabled = false,
+                            disableBackgroundColor = MaterialTheme.colorScheme.surface,
+                            onClick = {
                                 expanded = true
                             },
                             title = stringResource(id = R.string.nc_primary_owner),
-                            onFocusEvent = {
-                                if (it.isFocused) {
-                                    coroutineScope.launch {
-                                        delay(500L)
-                                        bringIntoViewRequester.bringIntoView()
-                                    }
-                                }
-                            },
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = {
-                                keyboardController?.hide()
-                            })
+                            onValueChange = { },
                         )
 
                         DropdownMenu(
                             modifier = Modifier
-                                .width(with(LocalDensity.current) { dropdownSize.width.toDp() })
-                                .heightIn(max = 125.dp),
+                                .width(with(LocalDensity.current) { dropdownSize.width.toDp() }),
                             expanded = expanded,
                             properties = PopupProperties(
                                 focusable = false,
@@ -302,9 +289,7 @@ private fun PrimaryOwnerContent(
                                     DropdownMenuItem(
                                         modifier = Modifier.padding(top = 8.dp),
                                         onClick = {
-                                            if (user.email != state.email) {
-                                                onInputEmailChange(user.email)
-                                            }
+                                            onSelectMember(state.members.first { it.user == user })
                                             onDropdownDismissRequest()
                                         }, text = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {

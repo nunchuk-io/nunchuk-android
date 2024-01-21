@@ -15,4 +15,8 @@ data class ByzantineMember(
 ) : Parcelable {
     fun isContact() = status == "ACTIVE"
     fun isPendingRequest() = status == "PENDING"
+
+   fun getDisplayName(): String = user?.name.takeIf { it?.isNotEmpty() == true }
+    ?: user?.email.takeIf { it?.isNotEmpty() == true }
+    ?: emailOrUsername
 }
