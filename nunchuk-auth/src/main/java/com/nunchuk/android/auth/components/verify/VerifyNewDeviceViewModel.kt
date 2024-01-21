@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.ProcessingEvent
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.SignInSuccessEvent
+import com.nunchuk.android.auth.domain.ResendVerifyNewDeviceCodeUseCase
 import com.nunchuk.android.auth.domain.VerifyNewDeviceUseCase
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
@@ -43,7 +44,8 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
     private val verifyNewDeviceUseCase: VerifyNewDeviceUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
-    private val signInModeHolder: SignInModeHolder
+    private val signInModeHolder: SignInModeHolder,
+    private val resendVerifyNewDeviceCodeUseCase: ResendVerifyNewDeviceCodeUseCase,
 ) : NunchukViewModel<Unit, VerifyNewDeviceEvent>() {
 
     override val initialState = Unit
@@ -73,11 +75,30 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
                     initNunchuk()
                 }
                 .flowOn(Dispatchers.Main)
-                .onException { setEvent(VerifyNewDeviceEvent.SignInErrorEvent(message = it.message.orUnknownError())) }
+                .onException { setEvent(VerifyNewDeviceEvent.ProcessErrorEvent(message = it.message.orUnknownError())) }
                 .collect {
                     signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                     event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty()))
                 }
+        }
+    }
+
+    fun handleResendVerifyNewDeviceCode(
+        email: String,
+        loginHalfToken: String,
+        deviceId: String,
+    ) = viewModelScope.launch {
+        event(ProcessingEvent)
+        val data = ResendVerifyNewDeviceCodeUseCase.Data(
+            email = email,
+            loginHalfToken = loginHalfToken,
+            deviceId = deviceId
+        )
+        val result = resendVerifyNewDeviceCodeUseCase(data)
+        if (result.isSuccess) {
+            event(VerifyNewDeviceEvent.ResendVerifyCodeSuccessEvent)
+        } else {
+            event(VerifyNewDeviceEvent.ProcessErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

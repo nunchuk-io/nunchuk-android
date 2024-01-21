@@ -34,10 +34,12 @@
     <string name="nc_text_skip">Skip</string>
     <string name="nc_text_sign_in_disclaim">We use email as the user ID for collaborative wallet and interpersonal messaging features. For stand-alone wallet that doesn’t require email sign up, please use the desktop app.</string>
     <string name="nc_toolbar_title_change_password">Change your password</string>
-    <string name="nc_toolbar_title_new_device">Confirm it was you</string>
+    <string name="nc_toolbar_title_new_device">Confirm that it\'s you</string>
     <string name="nc_text_signin_guest_mode">Continue as guest</string>
     <string name="nc_text_signup_primary_key">Create account using Primary Key</string>
     <string name="nc_text_signin_primary_key">Sign in with Primary Key</string>
     <string name="nc_text_change_your_password_info">We’ve sent a temporary password to %1$s. Please change your password.</string>
     <string name="nc_error_unconfirmed_coin_can_not_locked">Unconfirmed coins cannot be locked</string>
+    <string name="nc_text_resend_code">Resend code</string>
+    <string name="nc_text_expired_time_instruction">Confirmation code expires in</string>
 </resources>
