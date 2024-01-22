@@ -149,7 +149,6 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                         groupId = assistedWalletManager.getGroupId(walletId),
                         walletId = walletId,
                         outputs = mapOf(address to coins.sumOf { it.amount.value }.toAmount()),
-                        memo = oldTx.memo,
                         inputs = coins.map { TxInput(it.txid, it.vout) },
                         feeRate = newFee.toManualFeeRate(),
                         subtractFeeFromAmount = true,
