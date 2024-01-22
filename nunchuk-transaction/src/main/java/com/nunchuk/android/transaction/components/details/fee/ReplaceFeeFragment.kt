@@ -61,12 +61,8 @@ class ReplaceFeeFragment : BaseFragment<FragmentReplaceByFeeBinding>() {
         val previousFeeRate = args.transaction.feeRate.value.toInt()
         binding.tvOldFeeSat.text = previousFeeRate.toFeeRate()
         binding.tvOldFeeBtc.text = previousFeeRate.toFeeRateInBtc()
-        binding.tvNewFeeRateBtc.text = binding.feeRateInput.text.safeManualFee().toFeeRateInBtc()
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressedDispatcher?.onBackPressed()
-        }
-        binding.feeRateInput.addTextChangedCallback {
-            binding.tvNewFeeRateBtc.text = binding.feeRateInput.text.safeManualFee().toFeeRateInBtc()
         }
         binding.btnContinue.setOnClickListener {
             val newFee = binding.feeRateInput.text.safeManualFee()
