@@ -23,7 +23,7 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_title_wallets"
+            android:text="@string/nc_title_home"
             android:textColor="@color/nc_white_color" />
     </androidx.appcompat.widget.Toolbar>
 
