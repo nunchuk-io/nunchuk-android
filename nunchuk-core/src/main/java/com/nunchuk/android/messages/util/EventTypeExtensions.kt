@@ -63,6 +63,8 @@ const val GROUP_WALLET_CHANGE_NAMED = "io.nunchuk.custom.group_wallet_name_chang
 const val KEY_NAME_CHANGED = "io.nunchuk.custom.key_name_changed"
 const val GROUP_WALLET_PRIMARY_OWNER_UPDATED = "io.nunchuk.custom.group_wallet_primary_owner_updated"
 const val TRANSACTION_REPLACED = "io.nunchuk.custom.transaction_replaced"
+const val SET_ALIAS = "io.nunchuk.custom.group_wallet_alias_set"
+const val REMOVE_ALIAS = "io.nunchuk.custom.group_wallet_alias_removed"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
     return if (isSupportRoom.not()) {
@@ -182,3 +184,7 @@ fun TimelineEvent.isGroupWalletPrimaryOwnerUpdated() =
 
 fun TimelineEvent.isTransactionReplaced() =
     getMsgType() == TRANSACTION_REPLACED
+fun TimelineEvent.isSetAlias() =
+    getMsgType() == SET_ALIAS
+fun TimelineEvent.isRemoveAlias() =
+    getMsgType() == REMOVE_ALIAS

@@ -43,6 +43,8 @@ import com.nunchuk.android.messages.util.isKeyRecoveryRequest
 import com.nunchuk.android.messages.util.isMessageEvent
 import com.nunchuk.android.messages.util.isNunchukTransactionEvent
 import com.nunchuk.android.messages.util.isNunchukWalletEvent
+import com.nunchuk.android.messages.util.isRemoveAlias
+import com.nunchuk.android.messages.util.isSetAlias
 import com.nunchuk.android.messages.util.isTransactionReceived
 import com.nunchuk.android.messages.util.isTransactionScheduleMissingSignaturesEvent
 import com.nunchuk.android.messages.util.isTransactionScheduleNetworkRejectedEvent
@@ -314,6 +316,15 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = getTitle().orEmpty(),
                 message = getContent().orEmpty(),
                 intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        isRemoveAlias() || isSetAlias() -> {
+            PushNotificationData(
+                id = localId,
+                title = getTitle().orEmpty(),
+                message = getContent().orEmpty(),
+                intent = intentProvider.getAliasIntent(getWalletId().orEmpty())
             )
         }
 

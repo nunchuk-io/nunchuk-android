@@ -3,10 +3,10 @@ package com.nunchuk.android.core.repository
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletDto
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
-import com.nunchuk.android.core.data.model.byzantine.ReuseFromGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
+import com.nunchuk.android.core.data.model.membership.WalletAliasRequest
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toKeyHealthStatus
@@ -25,8 +25,10 @@ import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
+import com.nunchuk.android.model.byzantine.UserAlias
 import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.repository.GroupWalletRepository
@@ -50,6 +52,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
     private val byzantineSyncer: ByzantineSyncer,
     applicationScope: CoroutineScope,
+    private val assistedWalletDao: AssistedWalletDao
 ) : GroupWalletRepository {
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
@@ -222,14 +225,19 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         groupId: String,
         walletId: String,
     ): Flow<List<KeyHealthStatus>> {
-        return keyHealthStatusDao.getKeysFlow(groupId, walletId, accountManager.getAccount().chatId, chain.value).map {
+        return keyHealthStatusDao.getKeysFlow(
+            groupId,
+            walletId,
+            accountManager.getAccount().chatId,
+            chain.value
+        ).map {
             it.map { entity -> entity.toKeyHealthStatus() }
         }
     }
 
     override suspend fun getWalletHealthStatusRemote(
         groupId: String,
-        walletId: String
+        walletId: String,
     ): List<KeyHealthStatus> {
         return byzantineSyncer.syncKeyHealthStatus(groupId, walletId) ?: emptyList()
     }
@@ -260,6 +268,42 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         )
         return response.data.dummyTransaction?.toDomainModel()
             ?: throw NullPointerException("dummyTransaction null")
+    }
+
+    override suspend fun getWalletAliases(groupId: String, walletId: String): List<UserAlias> {
+        val response = userWalletApiManager.groupWalletApi.getWalletAlias(
+            groupId = groupId,
+            walletId = walletId
+        )
+        return response.data.walletAlias.map {
+            UserAlias(
+                membershipId = it.membershipId.orEmpty(),
+                alias = it.alias.orEmpty()
+            )
+        }
+    }
+
+    override suspend fun setWalletAlias(groupId: String, walletId: String, alias: String) {
+        val response = userWalletApiManager.groupWalletApi.setWalletAlias(
+            groupId = groupId,
+            walletId = walletId,
+            request = WalletAliasRequest(alias = alias)
+        )
+        if (response.isSuccess.not()) throw response.error
+        assistedWalletDao.getByGroupId(groupId)?.let {
+            assistedWalletDao.update(it.copy(alias = alias))
+        }
+    }
+
+    override suspend fun deleteWalletAlias(groupId: String, walletId: String) {
+        val response = userWalletApiManager.groupWalletApi.deleteWalletAlias(
+            groupId = groupId,
+            walletId = walletId
+        )
+        if (response.isSuccess.not()) throw response.error
+        assistedWalletDao.getByGroupId(groupId)?.let {
+            assistedWalletDao.update(it.copy(alias = ""))
+        }
     }
 
     private suspend fun getNonce(): String {

@@ -42,6 +42,8 @@ import com.nunchuk.android.core.data.model.membership.TransactionNoteResponse
 import com.nunchuk.android.core.data.model.membership.TransactionResponse
 import com.nunchuk.android.core.data.model.membership.TransactionsResponse
 import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
+import com.nunchuk.android.core.data.model.membership.WalletAliasRequest
+import com.nunchuk.android.core.data.model.membership.WalletAliasResponse
 import com.nunchuk.android.core.data.model.payment.CreateRecurringPaymentRequest
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
@@ -469,4 +471,24 @@ internal interface GroupWalletApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: CreateOrUpdateServerTransactionRequest,
     ): Data<TransactionResponse>
+
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/alias")
+    suspend fun getWalletAlias(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<WalletAliasResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/alias")
+    suspend fun setWalletAlias(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body request: WalletAliasRequest,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/alias")
+    suspend fun deleteWalletAlias(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<Unit>
 }

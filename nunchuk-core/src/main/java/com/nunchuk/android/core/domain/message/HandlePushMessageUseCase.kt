@@ -17,7 +17,9 @@ import com.nunchuk.android.messages.util.isGroupNameChanged
 import com.nunchuk.android.messages.util.isGroupWalletCreatedEvent
 import com.nunchuk.android.messages.util.isGroupWalletPrimaryOwnerUpdated
 import com.nunchuk.android.messages.util.isKeyNameChanged
+import com.nunchuk.android.messages.util.isRemoveAlias
 import com.nunchuk.android.messages.util.isServerTransactionEvent
+import com.nunchuk.android.messages.util.isSetAlias
 import com.nunchuk.android.messages.util.isTransactionCancelled
 import com.nunchuk.android.messages.util.isTransactionHandleErrorMessageEvent
 import com.nunchuk.android.messages.util.isTransactionReplaced
@@ -184,6 +186,20 @@ class HandlePushMessageUseCase @Inject constructor(
                             parameters.getTransactionId().orEmpty()
                         )
                     )
+                }
+            }
+
+            parameters.isSetAlias() || parameters.isRemoveAlias() -> {
+                val result = isHandledEventUseCase.invoke(parameters.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(parameters.eventId)
+                    val groupId = parameters.getGroupId().orEmpty()
+                    val walletId = parameters.getWalletId().orEmpty()
+                    if (groupId.isNotEmpty()) {
+                        syncGroupWalletUseCase(groupId)
+                    } else {
+                        getServerWalletUseCase(walletId)
+                    }
                 }
             }
         }

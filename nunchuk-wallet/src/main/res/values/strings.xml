@@ -80,4 +80,10 @@
     <string name="nc_limit_too_large">Limit too large</string>
     <string name="nc_multiple_addresses">multiple addresses</string>
     <string name="nc_cancel_change">Cancel change</string>
+    <string name="nc_wallet_alias">Wallet alias</string>
+    <string name="nc_wallet_alias_desc">The alias will show up as the wallet name locally on your devices. Removing the alias will revert the wallet name back to the default name set by the group.</string>
+    <string name="nc_set_alias">Set alias</string>
+    <string name="nc_wallet_aliases_used_by_other_members">Wallet aliases used by other members</string>
+    <string name="nc_remove_alias">Remove alias</string>
+    <string name="nc_default_name">Default name</string>
 </resources>

@@ -8,14 +8,11 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetWalletDetail2UseCase @Inject constructor(
+class GetWalletDetailWithoutAliasUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
-    private val assistedWalletManager: AssistedWalletManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<String, Wallet>(ioDispatcher) {
     override suspend fun execute(parameters: String): Wallet {
-        val wallet = nativeSdk.getWallet(parameters)
-        val name = assistedWalletManager.getWalletAlias(parameters).ifEmpty { wallet.name }
-        return wallet.copy(name = name)
+        return nativeSdk.getWallet(parameters)
     }
 }

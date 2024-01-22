@@ -56,6 +56,21 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Nunchuk Fun Fund" />
 
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tv_set_alias"
+            android:drawablePadding="@dimen/nc_padding_6"
+            style="@style/NCText.Title"
+            android:gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            app:drawableEndCompat="@drawable/ic_arrow"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/walletName"
+            android:text="@string/nc_set_alias" />
+
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/configuration"
             android:layout_width="0dp"
@@ -69,7 +84,7 @@
             android:textSize="@dimen/nc_text_size_12"
             app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/walletName"
+            app:layout_constraintTop_toBottomOf="@+id/tv_set_alias"
             tools:text="2/3 Multisig" />
 
         <com.nunchuk.android.widget.NCFontTextView

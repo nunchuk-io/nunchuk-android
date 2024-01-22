@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.repository
 
-import android.util.Log
 import android.util.LruCache
 import com.google.gson.Gson
 import com.nunchuk.android.api.key.MembershipApi
@@ -440,7 +439,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 AssistedWalletEntity(
                     localId = wallet.localId.orEmpty(),
                     plan = wallet.slug.toMembershipPlan(),
-                    id = wallet.id?.toLongOrNull() ?: 0L
+                    id = wallet.id?.toLongOrNull() ?: 0L,
+                    alias = wallet.alias.orEmpty()
                 )
             })
         }
@@ -1554,7 +1554,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     primaryMembershipId = wallet.primaryMembershipId,
                     ext = wallet.ext?.run {
                         gson.fromJson(this, AssistedWalletBriefExt::class.java)
-                    } ?: AssistedWalletBriefExt()
+                    } ?: AssistedWalletBriefExt(),
+                    alias = wallet.alias,
                 )
             }
         }
@@ -2045,7 +2046,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 plan = wallet.slug.toMembershipPlan(),
                 id = wallet.id?.toLongOrNull() ?: 0L,
                 groupId = groupId,
-                primaryMembershipId = wallet.primaryMembershipId.orEmpty()
+                primaryMembershipId = wallet.primaryMembershipId.orEmpty(),
+                alias = wallet.alias.orEmpty()
             )
         )
         return saveWalletToLib(wallet, groupAssistedKeys)

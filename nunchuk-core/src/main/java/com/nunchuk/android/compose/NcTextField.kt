@@ -39,11 +39,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +71,7 @@ fun NcTextField(
     value: String,
     rightContent: @Composable (() -> Unit)? = null,
     error: String? = null,
+    hint: String? = null,
     hasError: Boolean = !error.isNullOrEmpty(),
     showErrorMessageOnly: Boolean = false,
     onClick: () -> Unit = {},
@@ -164,26 +167,10 @@ fun NcTextField(
                 )
             },
         )
-        if (!error.isNullOrEmpty()) {
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(2.dp),
-                    painter = painterResource(id = R.drawable.ic_error_outline),
-                    contentDescription = "Error icon",
-                    tint = colorResource(id = R.color.nc_orange_color)
-                )
-                Text(
-                    text = error, style = NunchukTheme.typography.bodySmall.copy(
-                        color = colorResource(
-                            id = R.color.nc_orange_color
-                        )
-                    )
-                )
+        if (!error.isNullOrEmpty() || !hint.isNullOrEmpty()) {
+            val color = if (hasError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.greyDark
+            CompositionLocalProvider(LocalContentColor provides color) {
+                BottomText(error ?: hint)
             }
         }
     }
@@ -276,27 +263,29 @@ fun NcTextField(
             rightContent()
         }
         if (hasError) {
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(2.dp),
-                    painter = painterResource(id = R.drawable.ic_error_outline),
-                    contentDescription = "Error icon",
-                    tint = colorResource(id = R.color.nc_orange_color)
-                )
-                Text(
-                    text = error.orEmpty(), style = NunchukTheme.typography.bodySmall.copy(
-                        color = colorResource(
-                            id = R.color.nc_orange_color
-                        )
-                    )
-                )
-            }
+            BottomText(error)
         }
+    }
+}
+
+@Composable
+private fun BottomText(error: String?) {
+    Row(
+        modifier = Modifier.padding(top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(16.dp)
+                .padding(2.dp),
+            painter = painterResource(id = R.drawable.ic_error_outline),
+            contentDescription = "Error icon",
+        )
+        Text(
+            text = error.orEmpty(), style = NunchukTheme.typography.bodySmall.copy(
+                color = LocalContentColor.current
+            )
+        )
     }
 }
 

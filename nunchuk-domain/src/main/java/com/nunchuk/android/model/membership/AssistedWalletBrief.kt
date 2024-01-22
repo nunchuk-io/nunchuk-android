@@ -28,7 +28,8 @@ data class AssistedWalletBrief(
     val isSetupInheritance: Boolean,
     val registerAirgapCount: Int,
     val primaryMembershipId: String? = null,
-    val ext: AssistedWalletBriefExt
+    val ext: AssistedWalletBriefExt,
+    val alias: String = "",
 )
 
 data class AssistedWalletBriefExt(

@@ -24,4 +24,5 @@ interface AssistedWalletManager {
     fun getGroupId(walletId: String): String?
     fun isInactiveAssistedWallet(walletId: String): Boolean
     fun isShowSetupInheritance(walletId: String) : Boolean
+    fun getWalletAlias(walletId: String): String
 }

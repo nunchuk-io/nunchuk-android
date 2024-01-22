@@ -37,14 +37,13 @@ import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
-import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.alias.AliasActivity
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
@@ -56,6 +55,7 @@ import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -92,7 +92,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId)
         sharedViewModel.init(args.walletId)
     }
 
@@ -344,6 +343,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             finish()
         }
         binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.tvSetAlias.isVisible = !viewModel.getGroupId().isNullOrEmpty()
+        binding.tvSetAlias.setOnDebounceClickListener {
+            startActivity(AliasActivity.createIntent(this, args.walletId))
+        }
     }
 
     private fun handleExportBSMS() {

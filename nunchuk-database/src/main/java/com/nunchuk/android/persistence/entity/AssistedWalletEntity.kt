@@ -45,5 +45,7 @@ data class AssistedWalletEntity(
     @ColumnInfo(name = "ext")
     val ext: String? = null, // AssistedWalletBriefExt,
     @ColumnInfo(name = "primary_membership_id")
-    val primaryMembershipId: String ?= null,
+    val primaryMembershipId: String? = null,
+    @ColumnInfo(name = "alias", defaultValue = "")
+    val alias: String = "",
 )

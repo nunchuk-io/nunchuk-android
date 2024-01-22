@@ -20,9 +20,11 @@
 package com.nunchuk.android.wallet.components.config
 
 import androidx.annotation.Keep
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
@@ -65,14 +67,15 @@ import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateName
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -99,21 +102,36 @@ internal class WalletConfigViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     getContactsUseCase: GetContactsUseCase,
+    private val savedStateHandle: SavedStateHandle,
+    private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
-    lateinit var walletId: String
+    private val walletId: String
+        get() = savedStateHandle.get<String>("EXTRA_WALLET_ID").orEmpty()
 
     private val contacts = getContactsUseCase.execute()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun init(walletId: String) {
-        this.walletId = walletId
+    init {
         getWalletDetails()
         getUserRole()
+        getWalletAlias()
     }
 
-    private fun getWalletDetails() {
+    private fun getWalletAlias() {
         viewModelScope.launch {
+            getAssistedWalletsFlowUseCase(Unit).mapNotNull { wallets ->
+                wallets.getOrElse { emptyList() }.find { it.localId == walletId }
+            }.collect {
+                getWalletDetails()
+            }
+        }
+    }
+
+    private var getWalletDetailJob: Job? = null
+    private fun getWalletDetails() {
+        if (getWalletDetailJob?.isActive == true) return
+        getWalletDetailJob = viewModelScope.launch {
             getWalletUseCase.execute(walletId)
                 .onEach {
                     if (it.roomWallet != null) {
@@ -134,7 +152,13 @@ internal class WalletConfigViewModel @Inject constructor(
                     if (isAssistedWallet() && it.walletExtended.wallet.balance.pureBTC() == 0.0) {
                         getTransactionHistory()
                     }
-                    updateState { copy(walletExtended = it.walletExtended, signers = it.signers, isAssistedWallet = it.isAssistedWallet) }
+                    updateState {
+                        copy(
+                            walletExtended = it.walletExtended,
+                            signers = it.signers,
+                            isAssistedWallet = it.isAssistedWallet
+                        )
+                    }
                 }
         }
     }
@@ -302,7 +326,7 @@ internal class WalletConfigViewModel @Inject constructor(
 
     private suspend fun mapSigners(
         singleSigners: List<SingleSigner>,
-        roomWallet: RoomWallet? = null
+        roomWallet: RoomWallet? = null,
     ): List<SignerModel> {
         val account = accountManager.getAccount()
         val signers =
@@ -355,7 +379,7 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun deleteAssistedWallet(
         signatures: HashMap<String, String>,
-        securityQuestionToken: String
+        securityQuestionToken: String,
     ) = viewModelScope.launch {
         val state = getState()
         if (state.verifyToken == null) return@launch
@@ -467,10 +491,11 @@ internal class WalletConfigViewModel @Inject constructor(
     fun walletGapLimit() = getState().walletExtended.wallet.gapLimit
 
     fun getRole(): AssistedWalletRole {
-      return getState().role.toRole
+        return getState().role.toRole
     }
 
-    fun isEditableWalletName() = getGroupId().isNullOrEmpty() || getState().role.toRole == AssistedWalletRole.MASTER
+    fun isEditableWalletName() =
+        getGroupId().isNullOrEmpty() || getState().role.toRole == AssistedWalletRole.MASTER
 
     override val initialState: WalletConfigState
         get() = WalletConfigState()
