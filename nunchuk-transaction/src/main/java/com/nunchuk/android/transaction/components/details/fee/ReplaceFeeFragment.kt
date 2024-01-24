@@ -26,6 +26,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -34,6 +35,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
 import com.nunchuk.android.transaction.databinding.FragmentReplaceByFeeBinding
@@ -66,7 +68,13 @@ class ReplaceFeeFragment : BaseFragment<FragmentReplaceByFeeBinding>() {
         }
         binding.btnContinue.setOnClickListener {
             val newFee = binding.feeRateInput.text.safeManualFee()
-            binding.tvError.isVisible = newFee <= previousFeeRate
+            val isShowError = newFee <= previousFeeRate
+            if (isShowError) {
+                binding.feeRateInput.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_error_bg, null)
+            } else {
+                binding.feeRateInput.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_bg, null)
+            }
+            binding.tvError.isVisible = isShowError
             if (binding.tvError.isVisible.not()) {
                 findNavController().navigate(ReplaceFeeFragmentDirections.actionReplaceFeeFragmentToConfirmReplaceTransactionFragment(newFee))
             }
