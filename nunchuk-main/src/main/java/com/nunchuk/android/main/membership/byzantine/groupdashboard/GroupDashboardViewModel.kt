@@ -199,7 +199,7 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
                 when(event) {
-                    PushEvent.OpenRegisterWallet -> {
+                    PushEvent.DismissGroupWalletCreatedAlert -> {
                         val groupWalletSetupAlert =
                             _state.value.alerts.find { alert -> alert.type == AlertType.GROUP_WALLET_SETUP }
                         if (groupWalletSetupAlert != null && getWalletId().isNotEmpty()) {

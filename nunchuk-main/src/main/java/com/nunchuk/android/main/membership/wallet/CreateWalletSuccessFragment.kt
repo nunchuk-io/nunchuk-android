@@ -43,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
@@ -52,6 +53,8 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
@@ -59,12 +62,16 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class CreateWalletSuccessFragment : MembershipFragment() {
     @Inject
     lateinit var navigator: NunchukNavigator
+
+    @Inject
+    lateinit var pushEventManager: PushEventManager
 
     private val args: CreateWalletSuccessFragmentArgs by navArgs()
 
@@ -107,6 +114,9 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                     }
                 }
             }
+        }
+        lifecycleScope.launch {
+            pushEventManager.push(PushEvent.DismissGroupWalletCreatedAlert)
         }
     }
 }

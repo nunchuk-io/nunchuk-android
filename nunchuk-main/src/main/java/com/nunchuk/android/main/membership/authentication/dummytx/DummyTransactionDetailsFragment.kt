@@ -275,7 +275,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                     onPositiveClick = {},
                     onNegativeClick = {
                         lifecycleScope.launch {
-                            pushEventManager.push(PushEvent.OpenRegisterWallet)
+                            pushEventManager.push(PushEvent.DismissGroupWalletCreatedAlert)
                         }
                         startActivity(
                             MembershipActivity.openRegisterWalletIntent(
