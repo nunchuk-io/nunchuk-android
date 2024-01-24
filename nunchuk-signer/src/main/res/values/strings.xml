@@ -31,7 +31,7 @@
     <string name="nc_txt_run_health_check_success_event">%s is healthy</string>
     <string name="nc_txt_run_health_check_error_event">%s is not healthy</string>
     <string name="nc_add_nfc_key">Add NFC key</string>
-    <string name="nc_existing_cvc">Existing PIN</string>
+    <string name="nc_existing_cvc">Starting PIN</string>
     <string name="nc_set_up_nfc_key">Set up NFC key</string>
     <string name="nc_set_up_cvc">Set up PIN</string>
     <string name="nc_new_cvc">New PIN</string>
