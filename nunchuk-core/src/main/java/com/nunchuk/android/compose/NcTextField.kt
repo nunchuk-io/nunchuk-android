@@ -69,6 +69,7 @@ fun NcTextField(
     value: String,
     rightContent: @Composable (() -> Unit)? = null,
     error: String? = null,
+    hasError: Boolean = !error.isNullOrEmpty(),
     showErrorMessageOnly: Boolean = false,
     onClick: () -> Unit = {},
     placeholder: @Composable (() -> Unit)? = null,
@@ -89,7 +90,6 @@ fun NcTextField(
     textStyle: TextStyle = NunchukTheme.typography.body,
     onValueChange: (value: String) -> Unit,
 ) {
-    val hasError = !error.isNullOrEmpty()
     var backgroundErrorColor = textFieldColor
     var borderErrorColor = Color(0xFFDEDEDE)
     if (hasError && showErrorMessageOnly.not()) {
@@ -164,7 +164,7 @@ fun NcTextField(
                 )
             },
         )
-        if (hasError) {
+        if (!error.isNullOrEmpty()) {
             Row(
                 modifier = Modifier.padding(top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -178,7 +178,7 @@ fun NcTextField(
                     tint = colorResource(id = R.color.nc_orange_color)
                 )
                 Text(
-                    text = error.orEmpty(), style = NunchukTheme.typography.bodySmall.copy(
+                    text = error, style = NunchukTheme.typography.bodySmall.copy(
                         color = colorResource(
                             id = R.color.nc_orange_color
                         )

@@ -27,7 +27,7 @@ class RbfCustomizeDestinationViewModel @Inject constructor(
         viewModelScope.launch {
             parseBtcUriUseCase(content)
                 .onSuccess {
-                    _state.update { state -> state.copy(address = it.address) }
+                    _state.update { state -> state.copy(address = it.address, showError = false) }
                 }.onFailure { e ->
                     _state.update { state -> state.copy(errorMessage = e.message.orUnknownError()) }
                 }
@@ -40,7 +40,12 @@ class RbfCustomizeDestinationViewModel @Inject constructor(
                 CheckAddressValidUseCase.Params(listOf(_state.value.address))
             ).onSuccess {
                 if (it.isNotEmpty()) {
-                    _state.update { state -> state.copy(errorMessage = application.getString(R.string.nc_transaction_invalid_address)) }
+                    _state.update { state ->
+                        state.copy(
+                            errorMessage = application.getString(R.string.nc_transaction_invalid_address),
+                            showError = true
+                        )
+                    }
                 } else {
                     _state.update { state -> state.copy(checkAddressSuccess = true) }
                 }
@@ -49,7 +54,7 @@ class RbfCustomizeDestinationViewModel @Inject constructor(
     }
 
     fun onAddressChange(address: String) {
-        _state.update { state -> state.copy(address = address) }
+        _state.update { state -> state.copy(address = address, showError = false) }
     }
 
     fun onHandledMessage() {
@@ -64,5 +69,6 @@ class RbfCustomizeDestinationViewModel @Inject constructor(
 data class RbfCustomizeDestinationUiState(
     val address: String = "",
     val errorMessage: String? = null,
+    val showError: Boolean = false,
     val checkAddressSuccess: Boolean = false,
 )

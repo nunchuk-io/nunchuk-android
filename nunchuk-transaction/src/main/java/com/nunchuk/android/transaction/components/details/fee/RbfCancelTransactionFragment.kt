@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -28,8 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -37,19 +34,21 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
+import com.nunchuk.android.compose.NcNumberInputField
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.wallet.AddressWithQrView
 import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class RbfCancelTransactionFragment : Fragment() {
@@ -66,14 +65,14 @@ class RbfCancelTransactionFragment : Fragment() {
                     onCustomizeDestinationClick = { newFeeRate ->
                         findNavController().navigate(
                             RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToRbfCustomizeDestinationFragment(
-                                newFeeRate.times(1000)
+                                newFeeRate
                             )
                         )
                     },
                     onContinueClick = { newFeeRate ->
                         findNavController().navigate(
                             RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToConfirmReplaceTransactionFragment(
-                                newFee = newFeeRate.times(1000),
+                                newFee = newFeeRate,
                                 address = viewModel.state.value.address,
                             )
                         )
@@ -126,8 +125,9 @@ private fun RbfCancelTransactionContent(
                         .padding(horizontal = 16.dp),
                     enabled = newFeeRate.isNotEmpty(),
                     onClick = {
-                        if (newFeeRate.toInt().times(1000) > uiState.previousFeeRate) {
-                            onContinueClick(newFeeRate.toInt())
+                        val newFee = newFeeRate.toDouble().times(1000).roundToInt()
+                        if (newFee > uiState.previousFeeRate) {
+                            onContinueClick(newFee)
                         } else {
                             showWarning = true
                         }
@@ -140,7 +140,7 @@ private fun RbfCancelTransactionContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    onClick = { onCustomizeDestinationClick(newFeeRate.toInt()) },
+                    onClick = { onCustomizeDestinationClick(newFeeRate.toDouble().times(1000).roundToInt()) },
                     enabled = newFeeRate.isNotEmpty()
                 ) {
                     Text(text = stringResource(R.string.nc_customize_destination))
@@ -234,21 +234,16 @@ private fun RbfCancelTransactionContent(
                         Modifier.padding(top = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        NcTextField(
+                        NcNumberInputField(
                             modifier = Modifier.weight(1f),
                             title = "",
                             value = newFeeRate,
                             onValueChange = {
-                                if (it.isEmpty() || it.last().isDigit()) {
-                                    showWarning = false
-                                    newFeeRate = it
-                                }
+                                showWarning = false
+                                val format = CurrencyFormatter.format(it, 3)
+                                newFeeRate = format
                             },
                             error = stringResource(R.string.nc_new_fee_rate_invalid).takeIf { showWarning },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                                imeAction = ImeAction.Done
-                            ),
                         )
 
                         Text(

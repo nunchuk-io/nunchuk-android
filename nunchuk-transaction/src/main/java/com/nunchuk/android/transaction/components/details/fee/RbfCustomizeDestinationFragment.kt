@@ -166,7 +166,8 @@ private fun RbfCustomizeDestinationContent(
                             painter = painterResource(id = R.drawable.ic_qr),
                             contentDescription = "QR Code"
                         )
-                    }
+                    },
+                    hasError = uiState.showError,
                 )
             }
         }
