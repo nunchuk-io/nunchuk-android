@@ -58,7 +58,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
-    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase
+    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
@@ -121,7 +121,12 @@ class EstimatedFeeViewModel @Inject constructor(
             val result = estimateFeeUseCase(Unit)
             if (result.isSuccess) {
                 setEvent(EstimatedFeeEvent.GetFeeRateSuccess(result.getOrThrow()))
-                updateState { copy(estimateFeeRates = result.getOrThrow(), manualFeeRate = result.getOrThrow().defaultRate) }
+                updateState {
+                    copy(
+                        estimateFeeRates = result.getOrThrow(),
+                        manualFeeRate = result.getOrThrow().defaultRate
+                    )
+                }
             } else {
                 setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
                 updateState { copy(estimateFeeRates = EstimateFeeRates()) }
@@ -177,6 +182,7 @@ class EstimatedFeeViewModel @Inject constructor(
                 }
                 setEvent(EstimatedFeeEvent.DraftTransactionSuccess)
             }
+
             is Error -> {
                 if (result.exception !is CancellationException) {
                     setEvent(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
@@ -238,7 +244,7 @@ class EstimatedFeeViewModel @Inject constructor(
         }
     }
 
-    fun handleSubtractFeeSwitch(checked: Boolean, enable : Boolean = true) {
+    fun handleSubtractFeeSwitch(checked: Boolean, enable: Boolean = true) {
         updateState { copy(subtractFeeFromAmount = checked, enableSubtractFeeFromAmount = enable) }
         draftTransaction()
     }
@@ -278,9 +284,10 @@ class EstimatedFeeViewModel @Inject constructor(
     val defaultRate: Int
         get() = getState().estimateFeeRates.defaultRate
 
-    fun getSelectedCoins() : List<UnspentOutput> = inputs
+    fun getSelectedCoins(): List<UnspentOutput> =
+        inputs.ifEmpty { getInputsCoins() }
 
-    fun getInputsCoins() : List<UnspentOutput> {
+    fun getInputsCoins(): List<UnspentOutput> {
         val inputs = getState().inputs
         return getState().allCoins.filter { coin -> inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
     }
