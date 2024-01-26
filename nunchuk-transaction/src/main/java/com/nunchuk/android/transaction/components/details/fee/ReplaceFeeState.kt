@@ -22,8 +22,9 @@ package com.nunchuk.android.transaction.components.details.fee
 import com.nunchuk.android.model.EstimateFeeRates
 
 data class ReplaceFeeState(
-    val estimateFeeRates: EstimateFeeRates = EstimateFeeRates(),
-    val manualFeeRate: Int = estimateFeeRates.standardRate
+    val fee: EstimateFeeRates = EstimateFeeRates(),
+    val manualFeeRate: Int = fee.standardRate,
+    val previousFeeRate: Int = 0,
 )
 
 sealed class ReplaceFeeEvent {

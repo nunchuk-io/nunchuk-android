@@ -25,6 +25,7 @@ import com.nunchuk.android.usecase.EstimateFeeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,8 +40,14 @@ internal class ReplaceFeeViewModel @Inject constructor(
         viewModelScope.launch {
             val result = estimateFeeUseCase(Unit)
             if (result.isSuccess) {
-                _state.value = ReplaceFeeState(estimateFeeRates = result.getOrThrow())
+                _state.value = ReplaceFeeState(fee = result.getOrThrow())
             }
+        }
+    }
+
+    fun setPreviousFeeRate(previousFeeRate: Int) {
+        _state.update {
+            it.copy(previousFeeRate = previousFeeRate)
         }
     }
 }
