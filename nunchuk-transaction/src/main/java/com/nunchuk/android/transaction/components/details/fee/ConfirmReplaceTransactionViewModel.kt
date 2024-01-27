@@ -24,12 +24,15 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.ReplaceTransactionUseCase
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.membership.ReplaceServerTransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,7 +41,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,11 +53,32 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val replaceServerTransactionUseCase: ReplaceServerTransactionUseCase,
+    private val getAllTagsUseCase: GetAllTagsUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ReplaceFeeEvent>()
-    private val _state = MutableStateFlow<ConfirmReplaceTransactionState?>(null)
-    val state = _state.asStateFlow().filterIsInstance<ConfirmReplaceTransactionState>()
+    private val _state = MutableStateFlow(ConfirmReplaceTransactionState())
+    val state = _state.asStateFlow()
     val event = _event.asSharedFlow()
+
+    fun init(walletId: String, oldTx: Transaction) {
+        viewModelScope.launch {
+            getCoinsFromTxInputsUseCase(
+                GetCoinsFromTxInputsUseCase.Params(
+                    walletId = walletId,
+                    txInputs = oldTx.inputs
+                )
+            ).onSuccess { coins ->
+                _state.update { it.copy(inputCoins = coins, transaction = oldTx) }
+            }.onFailure {
+                _event.emit(ReplaceFeeEvent.ShowError(it))
+            }
+        }
+        viewModelScope.launch {
+            getAllTagsUseCase(walletId).onSuccess { tags ->
+                _state.update { it.copy(allTags = tags.associateBy { tag -> tag.id }) }
+            }
+        }
+    }
 
     fun draftTransaction(walletId: String, oldTx: Transaction, newFee: Int) {
         viewModelScope.launch {
@@ -67,7 +91,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                 subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
                 feeRate = newFee.toManualFeeRate()
             )) {
-                is Result.Success -> _state.value = ConfirmReplaceTransactionState(result.data)
+                is Result.Success -> _state.update { it.copy(transaction = result.data) }
                 is Result.Error -> {
                     _event.emit(ReplaceFeeEvent.ShowError(result.exception))
                 }
@@ -93,7 +117,8 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     subtractFeeFromAmount = true,
                     feeRate = newFee.toManualFeeRate()
                 )) {
-                    is Result.Success -> _state.value = ConfirmReplaceTransactionState(result.data)
+                    is Result.Success -> _state.update { it.copy(transaction = result.data) }
+
                     is Result.Error -> {
                         _event.emit(ReplaceFeeEvent.ShowError(result.exception))
                     }
@@ -178,4 +203,8 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     }
 }
 
-data class ConfirmReplaceTransactionState(val transaction: Transaction)
+data class ConfirmReplaceTransactionState(
+    val transaction: Transaction? = null,
+    val inputCoins: List<UnspentOutput> = emptyList(),
+    val allTags: Map<Int, CoinTag> = emptyMap()
+)

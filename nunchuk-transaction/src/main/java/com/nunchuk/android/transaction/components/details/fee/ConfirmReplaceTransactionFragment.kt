@@ -34,8 +34,11 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.FragmentTransactionConfirmBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -62,6 +65,7 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
         super.onViewCreated(view, savedInstanceState)
         observer()
         updateTransaction(activityArgs.transaction)
+        viewModel.init(activityArgs.walletId, activityArgs.transaction)
         registerEvents()
         if (args.address.isNullOrEmpty()) {
             viewModel.draftTransaction(
@@ -115,7 +119,7 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
         binding.sendAddressUSD.text = transaction.subAmount.pureBTC().getCurrencyAmount()
         binding.totalAmountBTC.text = transaction.totalAmount.pureBTC().getBTCAmount()
         binding.totalAmountUSD.text = transaction.totalAmount.pureBTC().getCurrencyAmount()
-        binding.noteContent.text = transaction.memo
+        binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
 
         val txOutput = transaction.outputs.getOrNull(transaction.changeIndex)
         val changeAddress = txOutput?.first.orEmpty()
@@ -149,7 +153,16 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
             }
         }
         flowObserver(viewModel.state) {
-            updateTransaction(it.transaction)
+            it.transaction?.let { tx ->
+                updateTransaction(tx)
+            }
+            showCoins(it.inputCoins, it.allTags)
+        }
+    }
+
+    private fun showCoins(inputCoins: List<UnspentOutput>, allTags: Map<Int, CoinTag>) {
+        binding.composeCoin.setContent {
+            TransactionConfirmCoinList(inputCoins, allTags)
         }
     }
 }
