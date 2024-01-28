@@ -10,7 +10,7 @@ const val setAliasRoute = "set_alias/{$walletIdArgument}"
 
 fun NavGraphBuilder.setAlias(
     walletId: String,
-    onBackPress : () -> Unit = {},
+    setOrRemoveSuccess : (String) -> Unit = {},
 ) {
     composable(
         route = setAliasRoute,
@@ -24,7 +24,7 @@ fun NavGraphBuilder.setAlias(
         )
     ) {
         SetAliasRoute(
-            onBackPress = onBackPress
+            setOrRemoveSuccess = setOrRemoveSuccess
         )
     }
 }

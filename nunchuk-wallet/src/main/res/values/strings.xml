@@ -86,4 +86,8 @@
     <string name="nc_wallet_aliases_used_by_other_members">Wallet aliases used by other members</string>
     <string name="nc_remove_alias">Remove alias</string>
     <string name="nc_default_name">Default name</string>
+    <string name="nc_alias_has_been_set">Alias has been set</string>
+    <string name="nc_alias_removed">Alias removed</string>
+    <string name="nc_are_you_sure_you_want_to_remove_this_alias">Are you sure you want to remove this alias?</string>
+    <string name="nc_change_alias">Change alias</string>
 </resources>

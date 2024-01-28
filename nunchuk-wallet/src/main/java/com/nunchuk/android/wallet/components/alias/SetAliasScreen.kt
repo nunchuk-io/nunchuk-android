@@ -31,21 +31,22 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.wallet.R
 
 @Composable
 fun SetAliasRoute(
-    onBackPress: () -> Unit = {},
+    setOrRemoveSuccess: (String) -> Unit = {},
     viewModel: SetAliasViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     SideEffect {
-        if (state.shouldGoBack) {
-            onBackPress()
-            viewModel.onHandledGoBack()
+        if (state.setOrRemoveSuccess) {
+            setOrRemoveSuccess(state.alias)
+            viewModel.onHandledSetOrRemove()
         }
     }
 
@@ -63,6 +64,7 @@ fun SetAliasScreen(
     onRemoveAlias: () -> Unit = {},
 ) {
     var alias by remember(uiState.alias) { mutableStateOf(uiState.alias) }
+    var showRemoveAliasDialog by remember { mutableStateOf(false) }
     NunchukTheme {
         Scaffold(
             topBar = {
@@ -112,7 +114,7 @@ fun SetAliasScreen(
                         Text(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .clickable { onRemoveAlias() },
+                                .clickable { showRemoveAliasDialog = true },
                             text = stringResource(R.string.nc_remove_alias),
                             style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
                         )
@@ -159,6 +161,17 @@ fun SetAliasScreen(
                     }
                 }
             }
+        }
+
+        if (showRemoveAliasDialog) {
+            NcConfirmationDialog(
+                message = stringResource(R.string.nc_are_you_sure_you_want_to_remove_this_alias),
+                onDismiss = { showRemoveAliasDialog = false },
+                onPositiveClick = {
+                    onRemoveAlias()
+                    showRemoveAliasDialog = false
+                }
+            )
         }
     }
 }

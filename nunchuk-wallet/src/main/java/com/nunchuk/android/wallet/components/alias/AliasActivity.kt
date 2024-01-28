@@ -24,7 +24,16 @@ class AliasActivity : BaseComposeActivity() {
                     ) {
                         setAlias(
                             walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
-                            onBackPress = onBackPressedDispatcher::onBackPressed
+                            setOrRemoveSuccess = { alias ->
+
+                                setResult(
+                                    RESULT_OK,
+                                    Intent().apply {
+                                        putExtra(EXTRA_ALIAS, alias)
+                                    },
+                                )
+                                finish()
+                            }
                         )
                     }
                 }
@@ -34,6 +43,7 @@ class AliasActivity : BaseComposeActivity() {
 
     companion object {
         const val EXTRA_WALLET_ID = "wallet_id"
+        const val EXTRA_ALIAS = "alias"
 
         fun createIntent(context: Context, walletId: String): Intent {
             return Intent(context, AliasActivity::class.java).apply {

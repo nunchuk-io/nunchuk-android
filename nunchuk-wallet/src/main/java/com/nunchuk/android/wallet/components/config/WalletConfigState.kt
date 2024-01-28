@@ -30,4 +30,5 @@ data class WalletConfigState(
     val verifyToken: String? = null,
     val isShowDeleteAssistedWallet: Boolean = false,
     val role: String = AssistedWalletRole.NONE.name,
+    val alias: String = "",
 )

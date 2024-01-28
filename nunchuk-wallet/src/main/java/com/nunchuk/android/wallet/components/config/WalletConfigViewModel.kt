@@ -123,6 +123,7 @@ internal class WalletConfigViewModel @Inject constructor(
             getAssistedWalletsFlowUseCase(Unit).mapNotNull { wallets ->
                 wallets.getOrElse { emptyList() }.find { it.localId == walletId }
             }.collect {
+                updateState { copy(alias = it.alias) }
                 getWalletDetails()
             }
         }

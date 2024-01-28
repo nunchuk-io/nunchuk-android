@@ -82,6 +82,19 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
         }
 
+    private val aliasLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val alias = data.getString(AliasActivity.EXTRA_ALIAS).orEmpty()
+                if (alias.isNotEmpty()) {
+                    NCToastMessage(this).showMessage(getString(R.string.nc_alias_has_been_set))
+                } else {
+                    NCToastMessage(this).showMessage(getString(R.string.nc_alias_removed))
+                }
+            }
+        }
+
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 
     override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater)
@@ -135,6 +148,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_CONFIGURE_GAP_LIMIT -> {
                 showConfigureGapLimitDialog()
             }
+
             SheetOptionType.TYPE_EDIT_PRIMARY_OWNER -> {
                 navigator.openPrimaryOwnerScreen(
                     activityContext = this,
@@ -326,6 +340,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         ) {
             showReEnterPassword(it)
         }.bindItems()
+        binding.tvSetAlias.text = if (state.alias.isNotEmpty()) {
+            getString(R.string.nc_change_alias)
+        } else {
+            getString(R.string.nc_set_alias)
+        }
     }
 
     private fun setupViews() {
@@ -345,7 +364,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.tvSetAlias.isVisible = !viewModel.getGroupId().isNullOrEmpty()
         binding.tvSetAlias.setOnDebounceClickListener {
-            startActivity(AliasActivity.createIntent(this, args.walletId))
+            aliasLauncher.launch(AliasActivity.createIntent(this, args.walletId))
         }
     }
 

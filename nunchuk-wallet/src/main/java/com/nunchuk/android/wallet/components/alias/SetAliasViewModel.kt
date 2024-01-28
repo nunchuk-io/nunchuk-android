@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
-import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
@@ -35,7 +34,6 @@ class SetAliasViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getWalletDetailWithoutAliasUseCase: GetWalletDetailWithoutAliasUseCase,
-    private val pushEventManager: PushEventManager,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SetAliasState())
     val state = _state.asStateFlow()
@@ -112,7 +110,8 @@ class SetAliasViewModel @Inject constructor(
             ).onSuccess {
                 _state.update { state ->
                     state.copy(
-                        shouldGoBack = true
+                        setOrRemoveSuccess = true,
+                        alias = alias
                     )
                 }
             }.onFailure {
@@ -135,7 +134,8 @@ class SetAliasViewModel @Inject constructor(
             ).onSuccess {
                 _state.update { state ->
                     state.copy(
-                        shouldGoBack = true
+                        setOrRemoveSuccess = true,
+                        alias = ""
                     )
                 }
             }.onFailure {
@@ -148,10 +148,10 @@ class SetAliasViewModel @Inject constructor(
         }
     }
 
-    fun onHandledGoBack() {
+    fun onHandledSetOrRemove() {
         _state.update { state ->
             state.copy(
-                shouldGoBack = false
+                setOrRemoveSuccess = false
             )
         }
     }
@@ -160,7 +160,7 @@ class SetAliasViewModel @Inject constructor(
 data class SetAliasState(
     val alias: String = "",
     val defaultName: String = "",
-    val shouldGoBack: Boolean = false,
+    val setOrRemoveSuccess: Boolean = false,
     val message: String? = null,
     val memberAliases: Map<String, String> = emptyMap(),
 )
