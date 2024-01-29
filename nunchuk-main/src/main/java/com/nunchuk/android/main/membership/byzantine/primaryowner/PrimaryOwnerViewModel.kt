@@ -56,7 +56,8 @@ class PrimaryOwnerViewModel @Inject constructor(
         viewModelScope.launch {
             getGroupUseCase(GetGroupUseCase.Params(args.groupId))
                 .collect { group ->
-                    _state.update { it.copy(members = group.getOrNull()?.members.orEmpty().filter { it.role != AssistedWalletRole.OBSERVER.name }) }
+                    _state.update { it.copy(members = group.getOrNull()?.members.orEmpty()
+                        .filter { member -> member.role != AssistedWalletRole.OBSERVER.name && member.role != AssistedWalletRole.KEYHOLDER_LIMITED.name}) }
                     setPreviousEmail()
                 }
         }
