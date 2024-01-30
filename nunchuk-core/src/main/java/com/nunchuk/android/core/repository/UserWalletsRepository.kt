@@ -640,20 +640,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getOnlyServerTransaction(
-        groupId: String?,
-        walletId: String,
-        transactionId: String,
-    ): ServerTransaction {
-        val response = if (!groupId.isNullOrEmpty()) {
-            userWalletApiManager.groupWalletApi.getTransaction(groupId, walletId, transactionId)
-        } else {
-            userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
-        }
-        return response.data.transaction?.toServerTransaction()
-            ?: throw NullPointerException("Transaction empty")
-    }
-
     override suspend fun downloadBackup(
         id: String, questions: List<QuestionsAndAnswer>, verifyToken: String,
     ): BackupKey {

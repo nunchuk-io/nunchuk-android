@@ -40,7 +40,7 @@ internal class ReplaceFeeViewModel @Inject constructor(
         viewModelScope.launch {
             val result = estimateFeeUseCase(Unit)
             if (result.isSuccess) {
-                _state.value = ReplaceFeeState(fee = result.getOrThrow())
+                _state.update { it.copy(fee = result.getOrThrow()) }
             }
         }
     }
