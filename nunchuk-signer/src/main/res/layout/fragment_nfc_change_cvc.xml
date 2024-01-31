@@ -4,44 +4,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/image"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scaleType="centerCrop"
-        android:src="@drawable/nc_bg_change_cvc"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_marginTop="@dimen/nc_padding_24"
-        style="@style/NCToolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_back" />
-
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="@dimen/nc_padding_16"
         android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@+id/btn_continue"
-        app:layout_constraintTop_toBottomOf="@+id/image">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/image"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/nc_bg_change_cvc"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    style="@style/NCToolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:navigationIcon="@drawable/ic_back" />
+            </FrameLayout>
+
             <TextView
                 android:id="@+id/toolbarTitle"
                 style="@style/NCText.Heading"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_16"
-                android:layout_height="wrap_content"
                 android:text="@string/nc_set_up_cvc" />
 
             <androidx.appcompat.widget.AppCompatTextView

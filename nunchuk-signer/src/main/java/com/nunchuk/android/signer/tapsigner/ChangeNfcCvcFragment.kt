@@ -83,7 +83,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
     }
 
     private fun observer() {
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_CHANGE_CVC }
                     .collect {
@@ -123,7 +123,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
             }
         }
 
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.event.collect { state ->
                     showOrHideLoading(
