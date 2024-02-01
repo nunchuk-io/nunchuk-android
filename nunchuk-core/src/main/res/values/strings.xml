@@ -164,7 +164,7 @@
     <string name="nc_primary_key_account_created">Account has been created </string>
     <string name="nc_primary_key_invalid_username">Username cannot contain spaces</string>
     <string name="nc_bip32_path">BIP32 path</string>
-    <string name="nc_bip32_path_example">For example: m/48h/0h/0h</string>
+    <string name="nc_bip32_path_example">For example: m/48h/0h/0h/2h</string>
     <string name="nc_invalid_path">Invalid path</string>
     <string name="nc_bip_32_updated">BIP32 path updated.</string>
     <string name="nc_new_xpub_need">New XPUB needed. Please tap your card again on the next screen.</string>
