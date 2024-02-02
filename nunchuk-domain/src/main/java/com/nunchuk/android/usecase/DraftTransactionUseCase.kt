@@ -32,7 +32,8 @@ interface DraftTransactionUseCase {
         outputs: Map<String, Amount>,
         inputs: List<TxInput> = emptyList(),
         feeRate: Amount = Amount(-1),
-        subtractFeeFromAmount: Boolean = false
+        subtractFeeFromAmount: Boolean = false,
+        replaceTxId: String = ""
     ): Result<Transaction>
 }
 
@@ -44,14 +45,16 @@ internal class DraftTransactionUseCaseImpl @Inject constructor(
         outputs: Map<String, Amount>,
         inputs: List<TxInput>,
         feeRate: Amount,
-        subtractFeeFromAmount: Boolean
+        subtractFeeFromAmount: Boolean,
+        replaceTxId: String
     ) = exe {
         nativeSdk.draftTransaction(
             walletId = walletId,
             outputs = outputs,
             inputs = inputs,
             feeRate = feeRate,
-            subtractFeeFromAmount = subtractFeeFromAmount
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            replaceTxId = replaceTxId
         )
     }
 

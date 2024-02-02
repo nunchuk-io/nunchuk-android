@@ -89,7 +89,8 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                 inputs = oldTx.inputs,
                 outputs = oldTx.userOutputs.associate { it.first to it.second },
                 subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
-                feeRate = newFee.toManualFeeRate()
+                feeRate = newFee.toManualFeeRate(),
+                replaceTxId = oldTx.txId
             )) {
                 is Result.Success -> _state.update { it.copy(transaction = result.data) }
                 is Result.Error -> {
@@ -115,7 +116,8 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     inputs = coins.map { TxInput(it.txid, it.vout) },
                     outputs = mapOf(address to coins.sumOf { it.amount.value }.toAmount()),
                     subtractFeeFromAmount = true,
-                    feeRate = newFee.toManualFeeRate()
+                    feeRate = newFee.toManualFeeRate(),
+                    replaceTxId = oldTx.txId
                 )) {
                     is Result.Success -> _state.update { it.copy(transaction = result.data) }
 
