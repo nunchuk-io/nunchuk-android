@@ -10,6 +10,7 @@ import com.nunchuk.android.messages.util.getTransactionId
 import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.getXfp
 import com.nunchuk.android.messages.util.isAddKeyCompleted
+import com.nunchuk.android.messages.util.isCoinControlUpdated
 import com.nunchuk.android.messages.util.isDraftWalletResetEvent
 import com.nunchuk.android.messages.util.isGroupEmergencyLockdownStarted
 import com.nunchuk.android.messages.util.isGroupMembershipRequestCreatedEvent
@@ -29,6 +30,7 @@ import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
+import com.nunchuk.android.usecase.coin.SyncCoinControlData
 import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -43,6 +45,7 @@ class HandlePushMessageUseCase @Inject constructor(
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
     private val getServerWalletsUseCase: GetServerWalletsUseCase,
+    private val syncCoinControlData: SyncCoinControlData
 ) : UseCase<TimelineEvent, Unit>(dispatcher) {
     override suspend fun execute(parameters: TimelineEvent) {
         when {
@@ -199,6 +202,24 @@ class HandlePushMessageUseCase @Inject constructor(
                         syncGroupWalletUseCase(groupId)
                     } else {
                         getServerWalletUseCase(walletId)
+                    }
+                }
+            }
+
+            parameters.isCoinControlUpdated() -> {
+                val result = isHandledEventUseCase.invoke(parameters.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(parameters.eventId)
+
+                    val groupId = parameters.getGroupId().orEmpty()
+                    val walletId = parameters.getWalletId().orEmpty()
+                    if (walletId.isNotEmpty()) {
+                        syncCoinControlData(
+                            SyncCoinControlData.Param(
+                                groupId,
+                                walletId
+                            )
+                        )
                     }
                 }
             }
