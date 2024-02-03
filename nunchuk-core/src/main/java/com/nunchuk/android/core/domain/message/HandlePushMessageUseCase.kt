@@ -220,6 +220,12 @@ class HandlePushMessageUseCase @Inject constructor(
                                 walletId
                             )
                         )
+
+                        pushEventManager.push(
+                            PushEvent.CoinUpdated(
+                                walletId
+                            )
+                        )
                     }
                 }
             }
