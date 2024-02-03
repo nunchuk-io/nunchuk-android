@@ -55,7 +55,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcNumberInputField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -64,6 +64,10 @@ import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
@@ -85,10 +89,10 @@ class ReplaceFeeFragment : Fragment() {
                 ReplaceFeeScreen(
                     viewModel = viewModel,
                     onContinueClick = { newFeeRate ->
-                        findNavController().navigate(
-                            ReplaceFeeFragmentDirections.actionReplaceFeeFragmentToConfirmReplaceTransactionFragment(
-                                newFeeRate
-                            )
+                        viewModel.draftTransaction(
+                            oldTx = args.transaction,
+                            walletId = args.walletId,
+                            newFee = newFeeRate
                         )
                     }
                 )
@@ -99,13 +103,28 @@ class ReplaceFeeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.setPreviousFeeRate(args.transaction.feeRate.value.toInt())
+        flowObserver(viewModel.event) {
+            when (it) {
+                is ReplaceFeeEvent.ShowError -> showError(it.e?.message.orUnknownError())
+                is ReplaceFeeEvent.DraftTransactionSuccess -> {
+                    findNavController().navigate(
+                        ReplaceFeeFragmentDirections.actionReplaceFeeFragmentToConfirmReplaceTransactionFragment(
+                            it.newFee
+                        )
+                    )
+                }
+
+                is ReplaceFeeEvent.Loading -> showOrHideLoading(it.isLoading)
+                else -> Unit
+            }
+        }
     }
 
     companion object {
         fun start(
             launcher: ActivityResultLauncher<Intent>,
             context: Context,
-            args: ReplaceFeeArgs
+            args: ReplaceFeeArgs,
         ) {
             launcher.launch(args.buildIntent(context))
         }

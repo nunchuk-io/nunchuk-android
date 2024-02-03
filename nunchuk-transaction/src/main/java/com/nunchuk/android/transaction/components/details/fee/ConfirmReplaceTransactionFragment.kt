@@ -150,6 +150,7 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
                 }
 
                 is ReplaceFeeEvent.ShowError -> NCToastMessage(requireActivity()).showError(it.e?.message.orUnknownError())
+                is ReplaceFeeEvent.DraftTransactionSuccess -> Unit
             }
         }
         flowObserver(viewModel.state) {

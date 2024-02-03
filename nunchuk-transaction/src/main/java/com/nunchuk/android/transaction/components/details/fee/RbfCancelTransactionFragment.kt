@@ -34,6 +34,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcNumberInputField
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -44,6 +45,10 @@ import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.wallet.AddressWithQrView
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
@@ -70,14 +75,29 @@ class RbfCancelTransactionFragment : Fragment() {
                         )
                     },
                     onContinueClick = { newFeeRate ->
-                        findNavController().navigate(
-                            RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToConfirmReplaceTransactionFragment(
-                                newFee = newFeeRate,
-                                address = viewModel.state.value.address,
-                            )
-                        )
+                        viewModel.draftCancelTransaction(newFeeRate, viewModel.state.value.address)
                     }
                 )
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewModel.event) {
+            when (it) {
+                is ReplaceFeeEvent.ShowError -> showError(it.e?.message.orUnknownError())
+                is ReplaceFeeEvent.DraftTransactionSuccess -> {
+                    findNavController().navigate(
+                        RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToConfirmReplaceTransactionFragment(
+                            newFee = it.newFee,
+                            address = viewModel.state.value.address,
+                        )
+                    )
+                }
+
+                is ReplaceFeeEvent.Loading -> showOrHideLoading(it.isLoading)
+                else -> Unit
             }
         }
     }
