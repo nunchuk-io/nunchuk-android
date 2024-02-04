@@ -83,6 +83,8 @@
     <string name="nc_apply_the_same_limit">Apply the same limit to all members</string>
     <string name="nc_invite_members">Invite members</string>
     <string name="nc_invite_members_desc">Enter the members’ emails and roles. You can have up to 3 keyholders (including the master account) and an unlimited number of observers.</string>
+    <string name="nc_invite_members_3_of_5_pro_desc">Enter the members’ emails and roles. You can have up to 4 keyholders (including the master account) and an unlimited number of observers.</string>
+    <string name="nc_invite_members_3_of_5_standard_desc">Enter the members’ emails and roles. You can have up to 5 keyholders (including the master account) and an unlimited number of observers.</string>
     <string name="nc_member_data">Member %1$s</string>
     <string name="nc_email_address">Email address</string>
     <string name="nc_add_more_members">Add more members</string>

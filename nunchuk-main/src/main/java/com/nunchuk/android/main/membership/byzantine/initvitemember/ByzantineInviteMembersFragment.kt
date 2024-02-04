@@ -6,8 +6,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -16,8 +32,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -47,9 +74,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
@@ -57,6 +93,8 @@ import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectR
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.byzantine.toGroupWalletType
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -110,31 +148,37 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InviteMembersScreen(flow = args.flow, viewModel = viewModel, onSelectRole = {
-                    findNavController().navigate(
-                        ByzantineInviteMembersFragmentDirections.actionByzantineInviteMembersFragmentToByzantineSelectRoleFragment(
-                            role = it,
-                            groupType = args.groupType
+                InviteMembersScreen(
+                    flow = args.flow, viewModel = viewModel,
+                    onSelectRole = {
+                        findNavController().navigate(
+                            ByzantineInviteMembersFragmentDirections.actionByzantineInviteMembersFragmentToByzantineSelectRoleFragment(
+                                role = it,
+                                groupType = args.groupType
+                            )
                         )
-                    )
-                }, onContinueClick = {
-                    if (viewModel.isExcessKeyholderLimit()) {
-                        showLimitKeyholderDialog()
-                        return@InviteMembersScreen
-                    }
-                    if (args.flow == ByzantineMemberFlow.SETUP) {
-                        val onCreateGroupWallet: () -> Unit = {
-                            viewModel.createGroup()
+                    },
+                    onContinueClick = {
+                        if (viewModel.isExcessKeyholderLimit()) {
+                            showLimitKeyholderDialog()
+                            return@InviteMembersScreen
                         }
-                        if (viewModel.hasAdminRole()) {
-                            showAdminRoleDialog(onCreateGroupWallet)
+                        if (args.flow == ByzantineMemberFlow.SETUP) {
+                            val onCreateGroupWallet: () -> Unit = {
+                                viewModel.createGroup()
+                            }
+                            if (viewModel.hasAdminRole()) {
+                                showAdminRoleDialog(onCreateGroupWallet)
+                            } else {
+                                onCreateGroupWallet()
+                            }
                         } else {
-                            onCreateGroupWallet()
+                            enterPasswordDialog()
                         }
-                    } else {
-                        enterPasswordDialog()
-                    }
-                }, onMoreClicked = ::handleShowMore)
+                    },
+                    onMoreClicked = ::handleShowMore,
+                    groupWalletType = args.groupType.toGroupWalletType(),
+                )
             }
         }
     }
@@ -226,6 +270,7 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
 private fun InviteMembersScreen(
     viewModel: ByzantineInviteMembersViewModel = viewModel(),
     flow: Int = ByzantineMemberFlow.NONE,
+    groupWalletType: GroupWalletType? = null,
     onSelectRole: (String) -> Unit = { _ -> },
     onContinueClick: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
@@ -246,7 +291,8 @@ private fun InviteMembersScreen(
         },
         onRemoveMember = { viewModel.removeMember(it) },
         onContinueClick = onContinueClick,
-        onMoreClicked = onMoreClicked
+        onMoreClicked = onMoreClicked,
+        groupWalletType = groupWalletType
     )
 }
 
@@ -257,6 +303,7 @@ private fun InviteMembersContent(
     suggestionContacts: List<Contact> = emptyList(),
     enableContinueButton: Boolean = false,
     flow: Int = ByzantineMemberFlow.NONE,
+    groupWalletType: GroupWalletType? = null,
     onRemoveMember: (Int) -> Unit = {},
     onContinueClick: () -> Unit = {},
     onAddMember: () -> Unit = {},
@@ -324,9 +371,16 @@ private fun InviteMembersContent(
                         text = stringResource(R.string.nc_invite_members),
                         style = NunchukTheme.typography.heading
                     )
-                    NcHighlightText(
+                    val desc = when (groupWalletType) {
+                        GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY, GroupWalletType.THREE_OF_FIVE_INHERITANCE,
+                        -> stringResource(R.string.nc_invite_members_3_of_5_pro_desc)
+
+                        GroupWalletType.THREE_OF_FIVE -> stringResource(R.string.nc_invite_members_3_of_5_standard_desc)
+                        else -> stringResource(R.string.nc_invite_members_desc)
+                    }
+                    Text(
                         modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                        text = stringResource(R.string.nc_invite_members_desc),
+                        text = desc,
                         style = NunchukTheme.typography.body
                     )
                 }
