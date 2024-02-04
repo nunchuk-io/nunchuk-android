@@ -167,7 +167,7 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
                 slots = emptyArray(),
                 type = SelectWalletFragment.TYPE_INHERITANCE_WALLET,
                 walletBalance = viewModel.getBalance().toFloat(),
-                claimInheritanceTxParams = ClaimInheritanceTxParam(
+                claimInheritanceTxParam = ClaimInheritanceTxParam(
                     masterSignerIds = args.signers.map { it.id },
                     magicalPhrase = args.magic.trim(),
                     derivationPaths = args.derivationPaths.toList()

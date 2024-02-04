@@ -169,7 +169,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             initEventId = "",
             roomId = "",
             transaction = transaction,
-            isInheritanceClaimingFlow = args.claimInheritanceTxParams.isInheritanceClaimFlow()
+            isInheritanceClaimingFlow = args.claimInheritanceTxParam.isInheritanceClaimFlow()
         )
     }
 
@@ -195,7 +195,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             subtractFeeFromAmount = true,
             sweepType = type,
             slots = args.slots.toList(),
-            claimInheritanceTxParam = args.claimInheritanceTxParams,
+            claimInheritanceTxParam = args.claimInheritanceTxParam,
         )
     }
 

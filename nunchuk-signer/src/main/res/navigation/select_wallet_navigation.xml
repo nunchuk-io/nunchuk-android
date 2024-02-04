@@ -22,7 +22,7 @@
             app:argType="float" />
 
         <argument
-            android:name="claim_inheritance_tx_params"
+            android:name="claim_inheritance_tx_param"
             android:defaultValue="@null"
             app:nullable="true"
             app:argType="com.nunchuk.android.core.data.model.ClaimInheritanceTxParam" />
