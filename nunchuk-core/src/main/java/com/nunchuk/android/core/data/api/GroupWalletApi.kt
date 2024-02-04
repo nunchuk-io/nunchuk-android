@@ -6,6 +6,7 @@ import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
+import com.nunchuk.android.core.data.model.byzantine.CreateDraftGroupWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
@@ -20,8 +21,6 @@ import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponse
 import com.nunchuk.android.core.data.model.byzantine.RecurringPaymentListResponse
 import com.nunchuk.android.core.data.model.byzantine.RecurringPaymentResponse
-import com.nunchuk.android.core.data.model.byzantine.ReuseFromGroupRequest
-import com.nunchuk.android.core.data.model.byzantine.SimilarGroupResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
@@ -35,12 +34,16 @@ import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.data.model.membership.PermissionResponse
 import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
+import com.nunchuk.android.core.data.model.membership.RequestSignatureTransactionRequest
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TransactionNoteResponse
 import com.nunchuk.android.core.data.model.membership.TransactionResponse
 import com.nunchuk.android.core.data.model.membership.TransactionsResponse
+import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
+import com.nunchuk.android.core.data.model.membership.WalletAliasRequest
+import com.nunchuk.android.core.data.model.membership.WalletAliasResponse
 import com.nunchuk.android.core.data.model.payment.CreateRecurringPaymentRequest
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
@@ -155,7 +158,7 @@ internal interface GroupWalletApi {
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/create-from-draft")
     suspend fun createGroupWallet(
         @Path("group_id") groupId: String,
-        @Body payload: Map<String, String>,
+        @Body payload: CreateDraftGroupWalletRequest,
     ): Data<CreateOrUpdateWalletResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/current")
@@ -320,6 +323,14 @@ internal interface GroupWalletApi {
         @Body payload: ScheduleTransactionRequest,
     ): Data<TransactionResponse>
 
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/request-signature")
+    suspend fun requestSignatureTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: RequestSignatureTransactionRequest,
+    ): Data<*>
+
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/sync")
     suspend fun syncTransaction(
         @Path("group_id") groupId: String,
@@ -342,17 +353,6 @@ internal interface GroupWalletApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: SignServerTransactionRequest,
     ): Data<TransactionResponse>
-
-    @GET("/v1.1/group-wallets/groups/{group_id}/find-similar")
-    suspend fun findSimilar(
-        @Path("group_id") groupId: String,
-    ): Data<SimilarGroupResponse>
-
-    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current/reuse-from-group")
-    suspend fun reuseFromGroup(
-        @Path("group_id") groupId: String,
-        @Body request: ReuseFromGroupRequest,
-    ): Data<DraftWalletResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/health")
     suspend fun getWalletHealthStatus(
@@ -390,7 +390,7 @@ internal interface GroupWalletApi {
         @Query("offset") offset: Int,
     ): Data<TransactionsResponse>
 
-    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
     suspend fun getTransactionsToDelete(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
@@ -456,4 +456,39 @@ internal interface GroupWalletApi {
         @Path("recurring_payment_id") recurringPaymentId: String,
         @Body request: CreateRecurringPaymentRequest,
     ): Data<DummyTransactionResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/primary-owner")
+    suspend fun updatePrimaryOwner(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: UpdatePrimaryOwnerRequest,
+    ): Data<Unit>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/rbf")
+    suspend fun replaceTransaction(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: CreateOrUpdateServerTransactionRequest,
+    ): Data<TransactionResponse>
+
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/alias")
+    suspend fun getWalletAlias(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<WalletAliasResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/alias")
+    suspend fun setWalletAlias(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body request: WalletAliasRequest,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/alias")
+    suspend fun deleteWalletAlias(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<Unit>
 }

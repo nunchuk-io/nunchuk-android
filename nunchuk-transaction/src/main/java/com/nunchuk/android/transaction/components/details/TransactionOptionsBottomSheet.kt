@@ -30,6 +30,8 @@ import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
@@ -39,6 +41,7 @@ import com.nunchuk.android.share.model.TransactionOption.EXPORT_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.IMPORT_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
+import com.nunchuk.android.share.model.TransactionOption.REQUEST_SIGNATURE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
@@ -73,7 +76,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     }
 
     private fun setupViews() {
-        binding.btnCancel.isVisible = args.isPending
+        binding.btnCancel.isVisible = !args.isReceive && (args.isPending || args.isPendingConfirm)
         binding.btnCancel.setOnClickListener {
             listener(CANCEL)
             dismiss()
@@ -91,7 +94,13 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             dismiss()
         }
 
-        binding.btnReplaceFee.isVisible = args.isPendingConfirm
+        binding.btnRequestSignature.isVisible = args.isPending && args.isShowRequestSignature
+        binding.btnRequestSignature.setOnClickListener {
+            listener(REQUEST_SIGNATURE)
+            dismiss()
+        }
+
+        binding.btnReplaceFee.isVisible = !args.isReceive && args.isPendingConfirm
         binding.btnReplaceFee.setOnClickListener {
             listener(REPLACE_BY_FEE)
             dismiss()
@@ -115,8 +124,9 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
         }
 
         binding.btnScheduleBroadcast.isVisible = args.isPending
+                && !args.isReceive
                 && args.isAssistedWallet
-                && membershipStepManager.plan == MembershipPlan.HONEY_BADGER || membershipStepManager.plan == MembershipPlan.BYZANTINE_PRO || membershipStepManager.plan == MembershipPlan.BYZANTINE
+                && (membershipStepManager.plan == MembershipPlan.HONEY_BADGER || membershipStepManager.plan == MembershipPlan.BYZANTINE_PRO || membershipStepManager.plan == MembershipPlan.BYZANTINE)
         binding.btnScheduleBroadcast.text = if (args.isScheduleBroadcast) {
             getString(R.string.nc_cancel_scheduled_broadcast)
         } else {
@@ -125,6 +135,20 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
         binding.btnScheduleBroadcast.setOnDebounceClickListener {
             listener(SCHEDULE_BROADCAST)
             dismiss()
+        }
+
+        hideOptionsIfRoleIsKeyHolderLimited()
+    }
+
+    private fun hideOptionsIfRoleIsKeyHolderLimited() {
+        val bottomSheet = binding.bottomSheet
+        if (args.userRole.toRole.isKeyHolderLimited) {
+            for (i in 0 until bottomSheet.childCount) {
+                val child = bottomSheet.getChildAt(i)
+                if (child.id != R.id.btnExport && child.id != R.id.btnImport) {
+                    child.visibility = View.GONE
+                }
+            }
         }
     }
 
@@ -142,17 +166,23 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             isRejected: Boolean,
             isAssistedWallet: Boolean,
             isScheduleBroadcast: Boolean,
-            canBroadcast: Boolean
+            canBroadcast: Boolean,
+            isShowRequestSignature: Boolean,
+            userRole: String,
+            isReceive: Boolean,
         ): TransactionOptionsBottomSheet {
             return TransactionOptionsBottomSheet().apply {
                 arguments =
                     TransactionOptionsArgs(
-                        isPending,
-                        isPendingConfirm,
-                        isRejected,
-                        isAssistedWallet,
-                        isScheduleBroadcast,
-                        canBroadcast
+                        isPending = isPending,
+                        isPendingConfirm = isPendingConfirm,
+                        isRejected = isRejected,
+                        isAssistedWallet = isAssistedWallet,
+                        isScheduleBroadcast = isScheduleBroadcast,
+                        canBroadcast = canBroadcast,
+                        isShowRequestSignature = isShowRequestSignature,
+                        userRole = userRole,
+                        isReceive = isReceive
                     ).buildBundle()
                 show(fragmentManager, TAG)
             }
@@ -168,6 +198,9 @@ data class TransactionOptionsArgs(
     val isAssistedWallet: Boolean,
     val isScheduleBroadcast: Boolean,
     val canBroadcast: Boolean,
+    val isShowRequestSignature: Boolean,
+    val userRole: String,
+    val isReceive: Boolean,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
@@ -177,6 +210,9 @@ data class TransactionOptionsArgs(
         putBoolean(EXTRA_IS_ASSISTED_WALLET, isAssistedWallet)
         putBoolean(EXTRA_IS_SCHEDULE_BROADCAST, isScheduleBroadcast)
         putBoolean(EXTRA_CAN_BROADCAST, canBroadcast)
+        putBoolean(EXTRA_SHOW_REQUEST_SIGNATURE, isShowRequestSignature)
+        putString(EXTRA_USER_ROLE, userRole)
+        putBoolean(EXTRA_IS_RECEIVE, isReceive)
     }
 
     companion object {
@@ -186,6 +222,9 @@ data class TransactionOptionsArgs(
         private const val EXTRA_IS_ASSISTED_WALLET = "EXTRA_IS_ASSISTED_WALLET"
         private const val EXTRA_IS_SCHEDULE_BROADCAST = "EXTRA_IS_SCHEDULE_BROADCAST"
         private const val EXTRA_CAN_BROADCAST = "EXTRA_CAN_BROADCAST"
+        private const val EXTRA_SHOW_REQUEST_SIGNATURE = "EXTRA_SHOW_REQUEST_SIGNATURE"
+        private const val EXTRA_USER_ROLE = "EXTRA_USER_ROLE"
+        private const val EXTRA_IS_RECEIVE = "EXTRA_IS_RECEIVE"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
@@ -194,6 +233,9 @@ data class TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_ASSISTED_WALLET).orFalse(),
             data?.getBooleanValue(EXTRA_IS_SCHEDULE_BROADCAST).orFalse(),
             data?.getBooleanValue(EXTRA_CAN_BROADCAST).orFalse(),
+            data?.getBooleanValue(EXTRA_SHOW_REQUEST_SIGNATURE).orFalse(),
+            data?.getString(EXTRA_USER_ROLE).orEmpty(),
+            data?.getBooleanValue(EXTRA_IS_RECEIVE).orFalse(),
         )
     }
 }

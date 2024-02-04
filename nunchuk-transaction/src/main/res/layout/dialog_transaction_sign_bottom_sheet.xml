@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/nc_bottom_sheet_background"
@@ -32,6 +33,19 @@
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_transaction_import_signature"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:drawableTint="@color/nc_primary_color" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnRequestSignature"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_request_signature"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_transaction_request_signature"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
         app:drawableTint="@color/nc_primary_color" />

@@ -81,3 +81,12 @@ data class ConfirmQrLoginRequest(
     @SerializedName("token")
     val token: String
 )
+
+data class ResendVerifyNewDeviceCodePayload(
+    @SerializedName("email")
+    val email: String,
+    @SerializedName("loginHalfToken")
+    val loginHalfToken: String,
+    @SerializedName("deviceId")
+    val deviceId: String
+): Serializable

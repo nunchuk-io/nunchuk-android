@@ -21,7 +21,9 @@ package com.nunchuk.android.transaction.components.send.confirmation
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
@@ -89,10 +91,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private val slots = mutableListOf<SatsCardSlot>()
     private val inputs = mutableListOf<UnspentOutput>()
     private lateinit var privateNote: String
-    private var masterSignerId: String = ""
-    private var magicalPhrase: String = ""
-    private var derivationPath: String = ""
-    private var isInheritanceFlow = false
+    private var claimInheritanceTxParam: ClaimInheritanceTxParam? = null
 
     override val initialState = Unit
 
@@ -103,10 +102,8 @@ class TransactionConfirmViewModel @Inject constructor(
         privateNote: String,
         manualFeeRate: Int,
         slots: List<SatsCardSlot>,
-        masterSignerId: String,
-        magicalPhrase: String,
         inputs: List<UnspentOutput> = emptyList(),
-        derivationPath: String
+        claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     ) {
         this.walletId = walletId
         this.txReceipts = txReceipts
@@ -121,10 +118,7 @@ class TransactionConfirmViewModel @Inject constructor(
             clear()
             addAll(inputs)
         }
-        this.masterSignerId = masterSignerId
-        this.magicalPhrase = magicalPhrase
-        this.derivationPath = derivationPath
-        isInheritanceFlow = magicalPhrase.isNotEmpty() && masterSignerId.isNotEmpty()
+        this.claimInheritanceTxParam = claimInheritanceTxParam
         if (inputs.isNotEmpty()) {
             getAllTags()
         }
@@ -166,7 +160,7 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun draftTransaction() {
-        if (isInheritanceFlow) {
+        if (claimInheritanceTxParam.isInheritanceClaimFlow()) {
             draftInheritanceTransaction()
         } else if (slots.isNotEmpty()) {
             draftSatsCardTransaction()
@@ -214,11 +208,11 @@ class TransactionConfirmViewModel @Inject constructor(
         viewModelScope.launch {
            val result = inheritanceClaimCreateTransactionUseCase(
                 InheritanceClaimCreateTransactionUseCase.Param(
-                    masterSignerId = masterSignerId,
+                    masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
                     address = txReceipts.first().address,
-                    magic = magicalPhrase,
+                    magic = claimInheritanceTxParam?.magicalPhrase.orEmpty(),
                     feeRate = manualFeeRate.toManualFeeRate(),
-                    derivationPath = derivationPath,
+                    derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                     isDraft = true
                 )
             )
@@ -258,7 +252,7 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    fun isInheritanceClaimingFlow() = masterSignerId.isNotBlank() && magicalPhrase.isNotBlank()
+    fun isInheritanceClaimingFlow() = claimInheritanceTxParam.isInheritanceClaimFlow()
 
     private fun createNewTransaction(isQuickCreateTransaction: Boolean) {
         viewModelScope.launch {
@@ -310,9 +304,9 @@ class TransactionConfirmViewModel @Inject constructor(
             InheritanceClaimCreateTransactionUseCase.Param(
                 address = txReceipts.first().address,
                 feeRate = manualFeeRate.toManualFeeRate(),
-                masterSignerId = masterSignerId,
-                magic = magicalPhrase,
-                derivationPath = derivationPath,
+                masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
+                magic = claimInheritanceTxParam?.magicalPhrase.orEmpty(),
+                derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                 isDraft = false
             )
         )

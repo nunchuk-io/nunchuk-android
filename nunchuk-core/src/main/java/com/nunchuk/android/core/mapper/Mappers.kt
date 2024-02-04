@@ -147,6 +147,7 @@ internal fun GroupResponse.toByzantineGroup(): ByzantineGroup {
                     )
                 })
         } ?: emptyList(),
+        slug = slug.orEmpty()
     )
 }
 
@@ -166,7 +167,10 @@ internal fun AlertResponse.toAlert(): Alert {
             xfps = payload?.xfps.orEmpty(),
             claimKey = payload?.claimKey.orFalse(),
             keyXfp = payload?.keyXfp.orEmpty(),
-            paymentName = payload?.paymentName.orEmpty()
+            paymentName = payload?.paymentName.orEmpty(),
+            requestId = payload?.requestId.orEmpty(),
+            membershipId = payload?.membershipId.orEmpty(),
+            transactionId = payload?.transactionId.orEmpty(),
         )
     )
 }
@@ -269,7 +273,8 @@ internal fun GroupResponse.toGroupEntity(chatId: String, chain: Chain, groupDao:
         chain = chain,
         setupPreference = setupPreference.orEmpty(),
         walletConfig = gson.toJson(walletConfig),
-        isLocked = isLocked.orFalse()
+        isLocked = isLocked.orFalse(),
+        slug = slug.orEmpty()
     )
 }
 
@@ -286,6 +291,7 @@ internal fun GroupEntity.toByzantineGroup(): ByzantineGroup {
         isViewPendingWallet = isViewPendingWallet,
         setupPreference = setupPreference,
         walletConfig = walletConfig,
-        isLocked = isLocked
+        isLocked = isLocked,
+        slug = slug
     )
 }

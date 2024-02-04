@@ -26,75 +26,309 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
-import androidx.core.view.isVisible
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.compose.NcNumberInputField
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyDark
+import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
-import com.nunchuk.android.transaction.databinding.FragmentReplaceByFeeBinding
-import com.nunchuk.android.utils.safeManualFee
-import com.nunchuk.android.widget.util.addTextChangedCallback
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-class ReplaceFeeFragment : BaseFragment<FragmentReplaceByFeeBinding>() {
+class ReplaceFeeFragment : Fragment() {
     private val viewModel: ReplaceFeeViewModel by viewModels()
     private val args: ReplaceFeeArgs by lazy { ReplaceFeeArgs.deserializeFrom(requireActivity().intent) }
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentReplaceByFeeBinding {
-        return FragmentReplaceByFeeBinding.inflate(inflater, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        observer()
-        initViews()
-    }
-
-    private fun initViews() {
-        val previousFeeRate = args.transaction.feeRate.value.toInt()
-        binding.tvOldFeeSat.text = previousFeeRate.toFeeRate()
-        binding.tvOldFeeBtc.text = previousFeeRate.toFeeRateInBtc()
-        binding.tvNewFeeRateBtc.text = binding.feeRateInput.text.safeManualFee().toFeeRateInBtc()
-        binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressedDispatcher?.onBackPressed()
-        }
-        binding.feeRateInput.addTextChangedCallback {
-            binding.tvNewFeeRateBtc.text = binding.feeRateInput.text.safeManualFee().toFeeRateInBtc()
-        }
-        binding.btnContinue.setOnClickListener {
-            val newFee = binding.feeRateInput.text.safeManualFee()
-            binding.tvError.isVisible = newFee <= previousFeeRate
-            if (binding.tvError.isVisible.not()) {
-                findNavController().navigate(ReplaceFeeFragmentDirections.actionReplaceFeeFragmentToConfirmReplaceTransactionFragment(newFee))
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                ReplaceFeeScreen(
+                    viewModel = viewModel,
+                    onContinueClick = { newFeeRate ->
+                        viewModel.draftTransaction(
+                            oldTx = args.transaction,
+                            walletId = args.walletId,
+                            newFee = newFeeRate
+                        )
+                    }
+                )
             }
         }
     }
 
-    private fun observer() {
-        lifecycleScope.launch {
-            viewModel.state.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect {
-                    bindEstimateFeeRates(it.estimateFeeRates)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.setPreviousFeeRate(args.transaction.feeRate.value.toInt())
+        flowObserver(viewModel.event) {
+            when (it) {
+                is ReplaceFeeEvent.ShowError -> showError(it.e?.message.orUnknownError())
+                is ReplaceFeeEvent.DraftTransactionSuccess -> {
+                    findNavController().navigate(
+                        ReplaceFeeFragmentDirections.actionReplaceFeeFragmentToConfirmReplaceTransactionFragment(
+                            it.newFee
+                        )
+                    )
                 }
-        }
-    }
 
-    private fun bindEstimateFeeRates(estimateFeeRates: EstimateFeeRates) {
-        binding.priorityRateValue.text = estimateFeeRates.priorityRate.toFeeRate()
-        binding.standardRateValue.text = estimateFeeRates.standardRate.toFeeRate()
-        binding.economicalRateValue.text = estimateFeeRates.economicRate.toFeeRate()
+                is ReplaceFeeEvent.Loading -> showOrHideLoading(it.isLoading)
+                else -> Unit
+            }
+        }
     }
 
     companion object {
-        fun start(launcher: ActivityResultLauncher<Intent>, context: Context, args: ReplaceFeeArgs) {
+        fun start(
+            launcher: ActivityResultLauncher<Intent>,
+            context: Context,
+            args: ReplaceFeeArgs,
+        ) {
             launcher.launch(args.buildIntent(context))
         }
     }
+}
+
+
+@Composable
+private fun ReplaceFeeScreen(
+    viewModel: ReplaceFeeViewModel = viewModel(),
+    onContinueClick: (Int) -> Unit = {},
+) {
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    ReplaceFeeContent(
+        uiState = uiState,
+        onContinueClick = onContinueClick,
+    )
+}
+
+@Composable
+private fun ReplaceFeeContent(
+    uiState: ReplaceFeeState = ReplaceFeeState(),
+    onContinueClick: (Int) -> Unit = {},
+) {
+    var newFeeRate by rememberSaveable {
+        mutableStateOf("")
+    }
+    var showWarning by rememberSaveable {
+        mutableStateOf(false)
+    }
+    NunchukTheme {
+        Scaffold(topBar = {
+            NcTopAppBar(
+                isBack = false, title = stringResource(id = R.string.nc_replace_by_fee),
+                textStyle = NunchukTheme.typography.title
+            )
+        }, bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    enabled = newFeeRate.isNotEmpty(),
+                    onClick = {
+                        val newFee = newFeeRate.toDouble().times(1000).roundToInt()
+                        if (newFee > uiState.previousFeeRate) {
+                            onContinueClick(newFee)
+                        } else {
+                            showWarning = true
+                        }
+                    },
+                ) {
+                    Text(text = stringResource(id = R.string.nc_create_transaction_new_fee_rate))
+                }
+            }
+        }) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    text = stringResource(R.string.nc_fee_rate),
+                    style = NunchukTheme.typography.title,
+                    modifier = Modifier.padding(top = 24.dp)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.greyLight,
+                            shape = NunchukTheme.shape.medium
+                        )
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_old_fee_rate),
+                            style = NunchukTheme.typography.body
+                        )
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = uiState.previousFeeRate.toFeeRate(),
+                                style = NunchukTheme.typography.title
+                            )
+
+                            Text(
+                                text = uiState.previousFeeRate.toFeeRateInBtc(),
+                                style = NunchukTheme.typography.bodySmall
+                            )
+                        }
+                    }
+
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .height(1.dp)
+                            .background(color = MaterialTheme.colorScheme.whisper),
+                    )
+
+                    Text(
+                        text = stringResource(R.string.nc_new_fee_rate),
+                        style = NunchukTheme.typography.body
+                    )
+
+                    Text(
+                        text = stringResource(R.string.nc_new_fee_rate_desc),
+                        style = NunchukTheme.typography.bodySmall
+                    )
+
+                    Row(
+                        Modifier.padding(top = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        NcNumberInputField(
+                            modifier = Modifier.weight(1f),
+                            title = "",
+                            value = newFeeRate,
+                            onValueChange = {
+                                showWarning = false
+                                val format = CurrencyFormatter.format(it, 3)
+                                newFeeRate = format
+                            },
+                            error = stringResource(R.string.nc_new_fee_rate_invalid).takeIf { showWarning },
+                        )
+
+                        Text(
+                            text = stringResource(R.string.nc_transaction_fee_rate_unit),
+                            style = NunchukTheme.typography.titleSmall,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    }
+
+                    Text(
+                        text = stringResource(id = R.string.nc_transaction_processing_speed),
+                        style = NunchukTheme.typography.titleSmall,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+
+                    Row(modifier = Modifier.padding(top = 4.dp)) {
+                        FeeRateView(
+                            modifier = Modifier.weight(1f),
+                            title = stringResource(id = R.string.nc_transaction_priority_rate),
+                            value = uiState.fee.priorityRate
+                        )
+                        FeeRateView(
+                            modifier = Modifier.weight(1f),
+                            title = stringResource(id = R.string.nc_transaction_standard_rate),
+                            value = uiState.fee.standardRate
+                        )
+                        FeeRateView(
+                            modifier = Modifier.weight(1f),
+                            title = stringResource(id = R.string.nc_transaction_economical_rate),
+                            value = uiState.fee.economicRate
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeeRateView(modifier: Modifier, title: String, value: Int) {
+    Column(modifier = modifier) {
+        Text(
+            text = title,
+            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.greyDark)
+        )
+
+        Text(
+            text = value.toFeeRate(),
+            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.primary)
+        )
+
+    }
+}
+
+@Preview
+@Composable
+private fun ReplaceFeeScreenPreview() {
+    ReplaceFeeContent(
+        uiState = ReplaceFeeState(
+            fee = EstimateFeeRates(
+                priorityRate = 100,
+                standardRate = 50,
+                economicRate = 10
+            ),
+            previousFeeRate = 20
+        )
+    )
 }

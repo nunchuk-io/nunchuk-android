@@ -131,8 +131,9 @@ internal class WalletDetailsViewModel @Inject constructor(
             pushEventManager.event.collect { event ->
                 if ((event is PushEvent.TransactionCancelled && event.walletId == args.walletId)
                     || (event is PushEvent.ServerTransactionEvent && event.walletId == args.walletId)
+                    || (event is PushEvent.WalletChanged && event.walletId == args.walletId)
                 ) {
-                    syncTransactionFromServer()
+                    syncData()
                 }
             }
         }

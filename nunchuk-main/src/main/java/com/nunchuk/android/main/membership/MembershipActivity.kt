@@ -76,9 +76,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
                 graph.setStartDestination(if (groupId.isEmpty()) R.id.addKeyStepFragment else R.id.addGroupKeyStepFragment)
 
             MembershipStage.ADD_KEY_ONLY -> graph.setStartDestination(R.id.groupPendingIntroFragment)
-            MembershipStage.REGISTER_WALLET -> if (index > 0) graph.setStartDestination(R.id.registerWalletToColdcardFragment) else graph.setStartDestination(
-                R.id.registerWalletToAirgapFragment
-            )
+            MembershipStage.REGISTER_WALLET -> graph.setStartDestination(R.id.registerWalletToAirgapFragment)
 
             else -> Unit
         }
@@ -97,9 +95,6 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     val groupId: String
             by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
-    private val index: Int
-            by lazy(LazyThreadSafetyMode.NONE) { intent.getIntExtra(EXTRA_INDEX, 0) }
-
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }
@@ -109,7 +104,6 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
         const val EXTRA_GROUP_ID = "group_id"
         const val EXTRA_ADD_ON_HONEY_BADGER = "add_on_honey_badger"
-        private const val EXTRA_INDEX = "index"
         private const val EXTRA_AIRGAP_INDEX = "airgap_index"
         private const val EXTRA_IS_SINGLE_REGISTER = "is_single_register"
 
@@ -130,17 +124,13 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             activity: Activity,
             walletId: String,
             groupId: String,
-            index: Int,
             airgapIndex: Int,
-            singleRegister: Boolean = false,
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, MembershipStage.REGISTER_WALLET)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_ADD_ON_HONEY_BADGER, true)
-            putExtra(EXTRA_INDEX, index)
             putExtra(EXTRA_AIRGAP_INDEX, airgapIndex)
-            putExtra(EXTRA_IS_SINGLE_REGISTER, singleRegister)
         }
     }
 }

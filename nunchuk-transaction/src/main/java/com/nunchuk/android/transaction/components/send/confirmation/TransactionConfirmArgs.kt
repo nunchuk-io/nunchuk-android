@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.send.confirmation
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBooleanValue
@@ -30,6 +31,7 @@ import com.nunchuk.android.core.util.getIntValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
 
@@ -43,9 +45,7 @@ data class TransactionConfirmArgs(
     val manualFeeRate: Int = 0,
     val sweepType: SweepType,
     val slots: List<SatsCardSlot>,
-    val masterSignerId: String,
-    val magicalPhrase: String,
-    val derivationPath: String,
+    val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     val inputs: List<UnspentOutput> = emptyList(),
 ) : ActivityArgs {
 
@@ -58,9 +58,7 @@ data class TransactionConfirmArgs(
             putExtra(EXTRA_SUBTRACT_FEE_FROM_AMOUNT, subtractFeeFromAmount)
             putExtra(EXTRA_MANUAL_FEE_RATE, manualFeeRate)
             putExtra(EXTRA_SWEEP_TYPE, sweepType)
-            putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
-            putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
-            putExtra(EXTRA_DERIVATION_PATH, derivationPath)
+            putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
             putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
             putParcelableArrayListExtra(EXTRA_INPUTS, ArrayList(inputs))
@@ -76,10 +74,8 @@ data class TransactionConfirmArgs(
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
         private const val EXTRA_INPUTS = "EXTRA_INPUTS"
-        private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
-        private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
-        private const val EXTRA_DERIVATION_PATH = "EXTRA_DERIVATION_PATH"
         private const val EXTRA_TX_RECEIPTS = "EXTRA_TX_RECEIPTS"
+        private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
             val extras = intent.extras
@@ -92,9 +88,7 @@ data class TransactionConfirmArgs(
                 manualFeeRate = extras.getIntValue(EXTRA_MANUAL_FEE_RATE),
                 sweepType = extras?.serializable(EXTRA_SWEEP_TYPE)!!,
                 slots = extras.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
-                masterSignerId = extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
-                magicalPhrase = extras.getStringValue(EXTRA_MAGICAL_PHRASE),
-                derivationPath = extras.getStringValue(EXTRA_DERIVATION_PATH),
+                claimInheritanceTxParam = extras.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
                 inputs = extras.parcelableArrayList<UnspentOutput>(EXTRA_INPUTS).orEmpty(),
                 txReceipts = extras.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty()
             )

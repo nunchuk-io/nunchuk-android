@@ -223,9 +223,6 @@ private fun CosigningGroupPolicyContent(
 
     NunchukTheme {
         Scaffold(
-            modifier = Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding(),
             topBar = { NcTopAppBar(title = "") }) { innerPadding ->
             Column(
                 modifier = Modifier

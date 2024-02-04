@@ -26,6 +26,7 @@ enum class MembershipStep {
     ADD_SEVER_KEY,
     SETUP_KEY_RECOVERY,
     CREATE_WALLET,
+    PRIMARY_OWNER,
     HONEY_ADD_TAP_SIGNER,
     HONEY_ADD_HARDWARE_KEY_1,
     HONEY_ADD_HARDWARE_KEY_2,
@@ -36,12 +37,16 @@ enum class MembershipStep {
     BYZANTINE_ADD_HARDWARE_KEY_2,
     BYZANTINE_ADD_HARDWARE_KEY_3,
     BYZANTINE_ADD_HARDWARE_KEY_4,
-    BYZANTINE_INVITE_MEMBER
+    BYZANTINE_INVITE_MEMBER,
+    BYZANTINE_ADD_TAP_SIGNER_1,
 }
+
+val MembershipStep.isAddInheritanceKey: Boolean
+    get() = this == MembershipStep.BYZANTINE_ADD_TAP_SIGNER || this == MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1
 
 fun MembershipStep.toIndex() = when (this) {
     MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 0
-    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> 1
+    MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> 1
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> 2
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> 3
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> 4

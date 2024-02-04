@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.byzantine.payment
+package com.nunchuk.android.compose.wallet
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
@@ -28,13 +29,14 @@ import com.nunchuk.android.core.qr.convertToQRCode
 fun AddressWithQrView(
     address: String = "",
     openQRDetailScreen: (address: String) -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     val qrSize = with(LocalDensity.current) { 40.dp.toPx().toInt() }
     val qrCode = produceState<Bitmap?>(initialValue = null, address) {
         value = address.convertToQRCode(width = qrSize, height = qrSize)
     }
     Row(
-        modifier = Modifier
+        modifier = modifier
             .padding(top = 12.dp)
             .background(
                 color = MaterialTheme.colorScheme.greyLight,
@@ -61,6 +63,16 @@ fun AddressWithQrView(
         Text(
             modifier = Modifier.padding(start = 12.dp),
             text = address, style = NunchukTheme.typography.body
+        )
+    }
+}
+
+@Composable
+@Preview
+private fun AddressWithQrViewPreview() {
+    NunchukTheme {
+        AddressWithQrView(
+            address = "bc1qft5swsj3nnm48qcpwvsqmht899gf6zk28tvvq6pdkjekaq3rltaqkztttq"
         )
     }
 }

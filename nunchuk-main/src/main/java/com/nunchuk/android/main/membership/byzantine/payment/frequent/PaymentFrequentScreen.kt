@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -85,7 +86,9 @@ fun PaymentFrequentScreen(
     openPaymentFeeRateScreen: () -> Unit = {},
 ) {
     val calendar = Calendar.getInstance()
-    var selectedDate: Long = 0L
+    var selectedDate by rememberSaveable {
+        mutableLongStateOf(0L)
+    }
     var showDatePicker by rememberSaveable {
         mutableStateOf(false)
     }

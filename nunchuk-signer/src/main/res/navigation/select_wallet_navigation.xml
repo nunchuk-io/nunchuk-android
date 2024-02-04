@@ -22,19 +22,10 @@
             app:argType="float" />
 
         <argument
-            android:name="master_signer_id"
-            android:defaultValue=""
-            app:argType="string" />
-
-        <argument
-            android:name="magical_phrase"
-            android:defaultValue=""
-            app:argType="string" />
-
-        <argument
-            android:name="derivation_path"
-            android:defaultValue=""
-            app:argType="string" />
+            android:name="claim_inheritance_tx_param"
+            android:defaultValue="@null"
+            app:nullable="true"
+            app:argType="com.nunchuk.android.core.data.model.ClaimInheritanceTxParam" />
     </fragment>
 
 </navigation>

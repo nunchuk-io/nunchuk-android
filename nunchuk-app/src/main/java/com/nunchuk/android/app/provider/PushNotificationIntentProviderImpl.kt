@@ -28,6 +28,7 @@ import com.nunchuk.android.messages.components.detail.RoomDetailActivity
 import com.nunchuk.android.messages.components.detail.RoomDetailFragmentArgs
 import com.nunchuk.android.notifications.PushNotificationIntentProvider
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
+import com.nunchuk.android.wallet.components.alias.AliasActivity
 import javax.inject.Inject
 
 class PushNotificationIntentProviderImpl @Inject constructor(
@@ -61,5 +62,9 @@ class PushNotificationIntentProviderImpl @Inject constructor(
         } else {
             getMainIntent()
         }
+    }
+
+    override fun getAliasIntent(walletId: String): Intent {
+        return AliasActivity.createIntent(context, walletId)
     }
 }

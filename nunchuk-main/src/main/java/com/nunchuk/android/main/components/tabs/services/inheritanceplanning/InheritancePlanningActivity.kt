@@ -68,6 +68,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
             InheritancePlanFlow.VIEW -> graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
             InheritancePlanFlow.CLAIM -> graph.setStartDestination(R.id.inheritanceClaimInputFragment)
             InheritancePlanFlow.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.inheritanceReviewPlanGroupGroupFragment)
+            InheritancePlanFlow.REQUEST -> graph.setStartDestination(R.id.inheritanceRequestPlanningConfirmFragment)
         }
         when (planFlow) {
             InheritancePlanFlow.SETUP -> {
@@ -113,6 +114,14 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                     )
                 )
             }
+            InheritancePlanFlow.REQUEST -> {
+                viewModel.setOrUpdate(
+                    InheritancePlanningParam.SetupOrReview(
+                        walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                        groupId = groupId,
+                    )
+                )
+            }
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -144,6 +153,8 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_SOURCE_FLOW = "extra_source_flow"
         private const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_DUMMY_TRANSACTION_ID = "dummy_transaction_id"
+
+        const val RESULT_REQUEST_PLANNING = "result_request_planning"
 
         fun navigate(
             launcher: ActivityResultLauncher<Intent>? = null,

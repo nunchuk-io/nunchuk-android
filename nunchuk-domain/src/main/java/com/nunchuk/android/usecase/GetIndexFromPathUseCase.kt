@@ -17,22 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class ReuseKeyWalletUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val repository: PremiumWalletRepository,
-) : UseCase<ReuseKeyWalletUseCase.Param, Unit>(dispatcher) {
-    override suspend fun execute(parameters: Param) {
-        repository.reuseKeyWallet(parameters.walletId, parameters.plan)
-    }
+class GetIndexFromPathUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+) : UseCase<String, Int>(ioDispatcher) {
 
-    data class Param(val walletId: String, val plan: MembershipPlan)
+    override suspend fun execute(parameters: String): Int {
+        return nativeSdk.getIndexFromPath(path = parameters)
+    }
 }

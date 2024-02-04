@@ -108,8 +108,10 @@ class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), Bo
 
     private fun openSelectWallet() {
         val action = SatscardNavigationDirections.toSelectWalletFragment(
-            viewModel.getUnsealSlots().unSealBalanceSlots().toTypedArray(),
-            SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT
+            slots = viewModel.getUnsealSlots().unSealBalanceSlots().toTypedArray(),
+            type = SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT,
+            masterSignerIds = arrayOf(),
+            derivationPaths = arrayOf(),
         )
         findNavController().navigate(action)
     }

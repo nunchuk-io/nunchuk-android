@@ -37,7 +37,7 @@ sealed class TransactionDetailsEvent {
     data class TransactionDetailsError(val message: String, val e: Throwable? = null) :
         TransactionDetailsEvent()
 
-    object NoInternetConnection : TransactionDetailsEvent()
+    data object NoInternetConnection : TransactionDetailsEvent()
 
     data class ViewBlockchainExplorer(val url: String) : TransactionDetailsEvent()
 
@@ -57,14 +57,15 @@ sealed class TransactionDetailsEvent {
 
     data class UpdateTransactionMemoFailed(val message: String) : TransactionDetailsEvent()
 
-    object ImportTransactionFromMk4Success : TransactionDetailsEvent()
+    data object ImportTransactionFromMk4Success : TransactionDetailsEvent()
 
-    object ExportTransactionToMk4Success : TransactionDetailsEvent()
+    data object ExportTransactionToMk4Success : TransactionDetailsEvent()
 
-    object LoadingEvent : TransactionDetailsEvent()
-    object CancelScheduleBroadcastTransactionSuccess : TransactionDetailsEvent()
+    data object LoadingEvent : TransactionDetailsEvent()
+    data object CancelScheduleBroadcastTransactionSuccess : TransactionDetailsEvent()
 
     data class NfcLoadingEvent(val isColdcard: Boolean = false) : TransactionDetailsEvent()
-    object ImportTransactionSuccess : TransactionDetailsEvent()
+    data object ImportTransactionSuccess : TransactionDetailsEvent()
     data class GetRawTransactionSuccess(val rawTransaction: String) : TransactionDetailsEvent()
+    data object RequestSignatureTransactionSuccess : TransactionDetailsEvent()
 }

@@ -47,6 +47,7 @@ import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
+import com.nunchuk.android.core.data.model.byzantine.CreateDraftGroupWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
@@ -59,11 +60,13 @@ import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransa
 import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
+import com.nunchuk.android.core.data.model.membership.RequestSignatureTransactionRequest
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.data.model.membership.TransactionServerDto
+import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toExternalModel
@@ -130,13 +133,13 @@ import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.toGroupWalletType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletBriefExt
 import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.model.toMembershipPlan
-import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
@@ -157,9 +160,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -439,7 +439,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 AssistedWalletEntity(
                     localId = wallet.localId.orEmpty(),
                     plan = wallet.slug.toMembershipPlan(),
-                    id = wallet.id?.toLongOrNull() ?: 0L
+                    id = wallet.id?.toLongOrNull() ?: 0L,
+                    alias = wallet.alias.orEmpty()
                 )
             })
         }
@@ -481,6 +482,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 description = walletServer.description.orEmpty()
             }
             nunchukNativeSdk.createWallet2(wallet)
+        } else {
+            walletServer.signerServerDtos.forEach { signer ->
+                saveServerSignerIfNeed(signer)
+            }
         }
         val wallet = nunchukNativeSdk.getWallet(walletServer.localId.orEmpty())
         walletServer.signerServerDtos.forEach { signer ->
@@ -599,6 +604,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         }
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
+        saveWalletToLib(wallet, mutableSetOf())
+        return SeverWallet(wallet.id.orEmpty())
+    }
+
+    override suspend fun getWallet(walletId: String): SeverWallet {
+        val response = userWalletApiManager.walletApi.getWallet(walletId)
+        val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
+        saveWalletToLib(wallet, mutableSetOf())
         return SeverWallet(wallet.id.orEmpty())
     }
 
@@ -625,20 +638,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             transaction = result.first,
             serverTransaction = result.second?.toServerTransaction(),
         )
-    }
-
-    override suspend fun getOnlyServerTransaction(
-        groupId: String?,
-        walletId: String,
-        transactionId: String,
-    ): ServerTransaction {
-        val response = if (!groupId.isNullOrEmpty()) {
-            userWalletApiManager.groupWalletApi.getTransaction(groupId, walletId, transactionId)
-        } else {
-            userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
-        }
-        return response.data.transaction?.toServerTransaction()
-            ?: throw NullPointerException("Transaction empty")
     }
 
     override suspend fun downloadBackup(
@@ -801,11 +800,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun inheritanceClaimStatus(
-        userData: String, masterFingerprint: String, signature: String,
+        userData: String, masterFingerprints: List<String>, signatures: List<String>
     ): InheritanceAdditional {
         val headers = mutableMapOf<String, String>()
-        val signerToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
-        headers["$AUTHORIZATION_X-1"] = signerToken
+        masterFingerprints.forEachIndexed { index, masterFingerprint ->
+            val signerToken = nunchukNativeSdk.createRequestToken(signatures[index], masterFingerprint)
+            headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
+        }
         val request = gson.fromJson(userData, InheritanceClaimStatusRequest::class.java)
         val response =
             userWalletApiManager.walletApi.inheritanceClaimingStatus(headers, request).data
@@ -830,11 +831,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun inheritanceClaimCreateTransaction(
-        userData: String, masterFingerprint: String, signature: String,
+        userData: String, masterFingerprints: List<String>, signatures: List<String>,
     ): TransactionAdditional {
         val headers = mutableMapOf<String, String>()
-        val signerToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
-        headers["$AUTHORIZATION_X-1"] = signerToken
+        masterFingerprints.forEachIndexed { index, masterFingerprint ->
+            val signerToken = nunchukNativeSdk.createRequestToken(signatures[index], masterFingerprint)
+            headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
+        }
         val request = gson.fromJson(userData, InheritanceClaimCreateTransactionRequest::class.java)
         val response =
             userWalletApiManager.walletApi.inheritanceClaimingCreateTransaction(headers, request)
@@ -934,7 +937,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             val inheritance = response.data.inheritance
             inheritance?.walletLocalId?.also { walletLocalId ->
                 markSetupInheritance(walletId = walletLocalId, isSetupInheritance = true)
-                updateAssistedWalletBriefExt(walletLocalId, inheritance.ownerId)
+                updateAssistedWalletBriefExt(walletLocalId, inheritance.toInheritance())
             }
         }
         return response.data.dummyTransaction?.id.orEmpty()
@@ -957,7 +960,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request, draft)
         if (response.isSuccess && request.body?.groupId == null) {
-            updateAssistedWalletBriefExt(walletId, "")
+            updateAssistedWalletBriefExt(walletId, null)
             markSetupInheritance(walletId, false)
         }
         return response.data.dummyTransaction?.id.orEmpty()
@@ -981,11 +984,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.dummyTransaction?.id.orEmpty()
     }
 
-    override suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey {
-        val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackup(
+    override suspend fun inheritanceClaimDownloadBackup(magic: String): List<BackupKey> {
+        val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackups(
             InheritanceClaimDownloadBackupRequest(magic = magic)
         )
-        return response.data.toBackupKey()
+        return response.data.keys?.map { it.toBackupKey() }.orEmpty()
     }
 
     override suspend fun inheritanceClaimingClaim(
@@ -996,7 +999,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val transaction =
             response.data.transaction ?: throw NullPointerException("transaction from server null")
-        return TransactionAdditional(psbt = transaction.psbt.orEmpty(), status = transaction.status.toTransactionStatus())
+        return TransactionAdditional(
+            psbt = transaction.psbt.orEmpty(),
+            status = transaction.status.toTransactionStatus()
+        )
     }
 
     override suspend fun inheritanceCheck(): InheritanceCheck {
@@ -1189,11 +1195,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getInheritance(walletId: String, groupId: String?): Inheritance {
         val response = userWalletApiManager.walletApi.getInheritance(walletId, groupId)
-        if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
+        if (response.data.inheritance == null) throw IllegalStateException("Can not get inheritance")
         else {
             val inheritance = response.data.inheritance!!.toInheritance()
             inheritance.walletLocalId.also { walletLocalId ->
-                updateAssistedWalletBriefExt(walletLocalId, inheritance.ownerId)
+                updateAssistedWalletBriefExt(walletLocalId, inheritance)
             }
             return inheritance.also {
                 markSetupInheritance(
@@ -1211,12 +1217,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun updateAssistedWalletBriefExt(walletId: String, ownerId: String?) {
+    private suspend fun updateAssistedWalletBriefExt(walletId: String, inheritance: Inheritance?) {
         val entity = assistedWalletDao.getById(walletId) ?: return
         val ext = entity.ext?.run {
             gson.fromJson(this, AssistedWalletBriefExt::class.java)
         } ?: AssistedWalletBriefExt()
-        assistedWalletDao.updateOrInsert(entity.copy(ext = gson.toJson(ext.copy(inheritanceOwnerId = ownerId))))
+        assistedWalletDao.updateOrInsert(entity.copy(ext = gson.toJson(ext.copy(inheritanceOwnerId = inheritance?.ownerId.orEmpty(),
+            isPlanningRequest = inheritance?.pendingRequests?.isNotEmpty() == true))))
     }
 
     private suspend fun handleServerTransaction(
@@ -1239,6 +1246,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             ) to serverTransaction
         } else if (serverTransaction != null) {
             val libTx = nunchukNativeSdk.importPsbt(walletId, serverTransaction.psbt.orEmpty())
+            updateReplaceTransactionIdIfNeed(walletId, libTx, serverTransaction)
             if (libTx.psbt != serverTransaction.psbt) {
                 val response = if (!groupId.isNullOrEmpty()) {
                     userWalletApiManager.groupWalletApi.syncTransaction(
@@ -1322,6 +1330,45 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return serverTransaction.toServerTransaction()
     }
 
+    override suspend fun requestSignatureTransaction(
+        groupId: String,
+        walletId: String,
+        transactionId: String,
+        membershipId: String
+    ) {
+        val response = userWalletApiManager.groupWalletApi.requestSignatureTransaction(
+            groupId = groupId,
+            walletId = walletId,
+            transactionId = transactionId,
+            payload = RequestSignatureTransactionRequest(
+                membershipId = membershipId
+            )
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun updatePrimaryOwner(
+        groupId: String,
+        walletId: String,
+        primaryMembershipId: String
+    ) {
+        val response = userWalletApiManager.groupWalletApi.updatePrimaryOwner(
+            groupId = groupId,
+            walletId = walletId,
+            payload = UpdatePrimaryOwnerRequest(
+                primaryMembershipId = primaryMembershipId
+            )
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        assistedWalletDao.getById(walletId)?.let {
+            assistedWalletDao.updateOrInsert(it.copy(primaryMembershipId = primaryMembershipId))
+        }
+    }
+
     override suspend fun deleteScheduleTransaction(
         groupId: String?, walletId: String, transactionId: String,
     ): ServerTransaction {
@@ -1375,6 +1422,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     updateScheduleTransactionIfNeed(
                         walletId, transition.transactionId.orEmpty(), transition
                     )
+
+                    updateReplaceTransactionIdIfNeed(walletId, importTx, transition)
+
                     if (transition.type == ServerTransactionType.SCHEDULED) {
                         serverTransactionCache.put(
                             transition.transactionId.orEmpty(),
@@ -1398,6 +1448,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (transaction.type == ServerTransactionType.SCHEDULED && transaction.broadCastTimeMillis > System.currentTimeMillis()) {
             nunchukNativeSdk.updateTransactionSchedule(
                 walletId, transactionId, transaction.broadCastTimeMillis / 1000
+            )
+        }
+    }
+
+    private fun updateReplaceTransactionIdIfNeed(
+        walletId: String, localTx: Transaction, serverTx: TransactionServerDto,
+    ) {
+        if (!serverTx.replaceTxId.isNullOrEmpty() && localTx.replacedTxid != serverTx.replaceTxId) {
+            nunchukNativeSdk.replaceTransactionId(
+                walletId, serverTx.transactionId.orEmpty(), serverTx.replaceTxId
             )
         }
     }
@@ -1476,11 +1536,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     plan = wallet.plan,
                     isSetupInheritance = wallet.isSetupInheritance,
                     registerAirgapCount = wallet.registerAirgapCount,
-                    registerColdcardCount = wallet.registerColdcardCount,
                     groupId = wallet.groupId,
+                    primaryMembershipId = wallet.primaryMembershipId,
                     ext = wallet.ext?.run {
                         gson.fromJson(this, AssistedWalletBriefExt::class.java)
-                    } ?: AssistedWalletBriefExt()
+                    } ?: AssistedWalletBriefExt(),
+                    alias = wallet.alias,
                 )
             }
         }
@@ -1488,69 +1549,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun clearLocalData() {
         assistedWalletDao.deleteAll()
-    }
-
-    override suspend fun reuseKeyWallet(walletId: String, plan: MembershipPlan) {
-        val wallet = nunchukNativeSdk.getWallet(walletId)
-        val verifyMap = coroutineScope {
-            wallet.signers.filter { it.type == SignerType.NFC }.map { key ->
-                async {
-                    userWalletApiManager.walletApi.getKey(
-                        key.masterFingerprint, key.derivationPath
-                    )
-                }
-            }.awaitAll().associateBy { it.data.keyXfp }
-                .mapValues { it.value.data.verificationType }
-        }
-        var inheritanceKey: SingleSigner? = null
-        if (plan == MembershipPlan.HONEY_BADGER) {
-            inheritanceKey = wallet.signers.find {
-                it.type == SignerType.NFC && nunchukNativeSdk.getMasterSigner(it.masterFingerprint).tags.contains(
-                    SignerTag.INHERITANCE
-                )
-            } ?: throw NullPointerException("Can not find inheritance key")
-            membershipRepository.saveStepInfo(
-                MembershipStepInfo(
-                    step = MembershipStep.HONEY_ADD_TAP_SIGNER,
-                    masterSignerId = inheritanceKey.masterFingerprint,
-                    plan = plan,
-                    verifyType = verifyMap[inheritanceKey.masterFingerprint].toVerifyType(),
-                    extraData = gson.toJson(
-                        SignerExtra(
-                            derivationPath = inheritanceKey.derivationPath,
-                            isAddNew = false,
-                            signerType = inheritanceKey.type
-                        )
-                    ),
-                    groupId = ""
-                )
-            )
-        }
-
-        val steps = if (plan == MembershipPlan.IRON_HAND) {
-            listOf(MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2)
-        } else {
-            listOf(MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.HONEY_ADD_HARDWARE_KEY_2)
-        }
-        wallet.signers.filter { it.type != SignerType.SERVER && it != inheritanceKey }
-            .forEachIndexed { index, singleSigner ->
-                membershipRepository.saveStepInfo(
-                    MembershipStepInfo(
-                        step = steps[index],
-                        masterSignerId = singleSigner.masterFingerprint,
-                        plan = plan,
-                        verifyType = if (singleSigner.type == SignerType.NFC) verifyMap[singleSigner.masterFingerprint].toVerifyType() else VerifyType.APP_VERIFIED,
-                        extraData = gson.toJson(
-                            SignerExtra(
-                                derivationPath = singleSigner.derivationPath,
-                                isAddNew = false,
-                                signerType = singleSigner.type
-                            )
-                        ),
-                        groupId = ""
-                    )
-                )
-            }
     }
 
     override suspend fun getCoinControlData(groupId: String?, walletId: String): String {
@@ -1670,7 +1668,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ) {
         val index = step.toIndex()
         val signerDto = mapToServerSignerDto(
-            signer, step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+            signer, step.isAddInheritanceKey
         ).copy(index = index)
         val response = userWalletApiManager.groupWalletApi.addKeyToServer(groupId, signerDto)
         if (response.isSuccess.not()) {
@@ -1894,8 +1892,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     private suspend fun deleteAssistedWallets(groupIds: Set<String>): Boolean {
-        val localGroupWallets = assistedWalletDao.getAssistedWallets().filter { it.groupId.isNotEmpty() }
-        val deleteGroupIds = localGroupWallets.map { it.groupId }.filter { groupId -> groupIds.isEmpty() || groupIds.contains(groupId).not() }
+        val localGroupWallets =
+            assistedWalletDao.getAssistedWallets().filter { it.groupId.isNotEmpty() }
+        val deleteGroupIds = localGroupWallets.map { it.groupId }
+            .filter { groupId -> groupIds.isEmpty() || groupIds.contains(groupId).not() }
         assistedWalletDao.deletes(localGroupWallets.filter { deleteGroupIds.contains(it.groupId) })
 
         localGroupWallets.filter { deleteGroupIds.contains(it.groupId) }
@@ -1999,9 +1999,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createGroupWallet(groupId: String, name: String): Wallet {
+    override suspend fun createGroupWallet(groupId: String, name: String, primaryMembershipId: String?): Wallet {
         val response =
-            userWalletApiManager.groupWalletApi.createGroupWallet(groupId, mapOf("name" to name))
+            userWalletApiManager.groupWalletApi.createGroupWallet(groupId,
+                CreateDraftGroupWalletRequest(name = name, primaryMembershipId = primaryMembershipId))
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
         assistedWalletDao.insert(
@@ -2009,7 +2010,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 localId = wallet.localId.orEmpty(),
                 plan = wallet.slug.toMembershipPlan(),
                 id = wallet.id?.toLongOrNull() ?: 0L,
-                groupId = groupId
+                groupId = groupId,
+                primaryMembershipId = primaryMembershipId.orEmpty()
             )
         )
         membershipStepDao.deleteStepByGroupId(groupId)
@@ -2024,19 +2026,25 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         membershipStepDao.deleteStepByGroupId(groupId)
         requestAddKeyDao.deleteRequests(groupId)
-        assistedWalletDao.insert(
+        assistedWalletDao.updateOrInsert(
             AssistedWalletEntity(
                 localId = wallet.localId.orEmpty(),
                 plan = wallet.slug.toMembershipPlan(),
                 id = wallet.id?.toLongOrNull() ?: 0L,
-                groupId = groupId
+                groupId = groupId,
+                primaryMembershipId = wallet.primaryMembershipId.orEmpty(),
+                alias = wallet.alias.orEmpty()
             )
         )
         return saveWalletToLib(wallet, groupAssistedKeys)
     }
 
     override fun getAlerts(groupId: String): Flow<List<Alert>> {
-        return alertDao.getAlertsFlow(groupId, chatId = accountManager.getAccount().chatId, chain.value)
+        return alertDao.getAlertsFlow(
+            groupId,
+            chatId = accountManager.getAccount().chatId,
+            chain.value
+        )
             .map { alerts ->
                 alerts.map { alert ->
                     alert.toAlert()
@@ -2215,7 +2223,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             securityQuestionToken = securityQuestionToken,
             confirmCodeToken = confirmCodeToken
         )
-        val response = userWalletApiManager.walletApi.requestRecoverKey(headers, id = xfp, payload = request)
+        val response =
+            userWalletApiManager.walletApi.requestRecoverKey(headers, id = xfp, payload = request)
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -2230,7 +2239,62 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun markKeyAsRecovered(xfp: String, status: String) {
-        val response = userWalletApiManager.walletApi.markRecoverStatus(xfp, MarkRecoverStatusRequest(status))
+        val response =
+            userWalletApiManager.walletApi.markRecoverStatus(xfp, MarkRecoverStatusRequest(status))
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun denyInheritanceRequestPlanning(
+        requestId: String,
+        groupId: String,
+        walletId: String
+    ) {
+        val response = userWalletApiManager.walletApi.denyInheritanceRequestPlanning(
+            requestId = requestId,
+            query = mapOf("group_id" to groupId, "wallet" to walletId)
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun approveInheritanceRequestPlanning(
+        requestId: String,
+        groupId: String,
+        walletId: String
+    ) {
+        val response = userWalletApiManager.walletApi.approveInheritanceRequestPlanning(
+            requestId = requestId,
+            query = mapOf("group_id" to groupId, "wallet" to walletId)
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun replaceTransaction(
+        groupId: String?,
+        walletId: String,
+        transactionId: String,
+        newTxPsbt: String
+    ) {
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.replaceTransaction(
+                groupId = groupId,
+                walletId = walletId,
+                transactionId = transactionId,
+                payload = CreateOrUpdateServerTransactionRequest(psbt = newTxPsbt)
+            )
+        } else {
+            userWalletApiManager.walletApi.replaceTransaction(
+                walletId = walletId,
+                transactionId = transactionId,
+                payload = CreateOrUpdateServerTransactionRequest(psbt = newTxPsbt)
+            )
+        }
+
         if (response.isSuccess.not()) {
             throw response.error
         }

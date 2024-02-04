@@ -38,6 +38,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.orDefault
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
@@ -63,13 +64,17 @@ class AlertActionIntroFragment : Fragment() {
                 AlertActionIntroScreen(
                     alert = args.alert, viewModel = viewModel,
                     onContinue = {
-                        setFragmentResult(
-                            REQUEST_KEY, bundleOf(
-                                EXTRA_DUMMY_TRANSACTION_ID to it.dummyTransactionId,
-                                EXTRA_REQUIRE_KEY to it.requiredSignatures
+                        if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
+                           viewModel.approveInheritanceRequestPlanning()
+                        } else if (it != null) {
+                            setFragmentResult(
+                                REQUEST_KEY, bundleOf(
+                                    EXTRA_DUMMY_TRANSACTION_ID to it.dummyTransactionId,
+                                    EXTRA_REQUIRE_KEY to it.requiredSignatures
+                                )
                             )
-                        )
-                        goBack()
+                            goBack()
+                        }
                     },
                     onCancel = {
                         val message = when (args.alert.type) {
@@ -90,7 +95,13 @@ class AlertActionIntroFragment : Fragment() {
                             .showDialog(
                                 title = getString(R.string.nc_confirmation),
                                 message = message,
-                                onYesClick = { viewModel.deleteDummyTransaction() },
+                                onYesClick = {
+                                    if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
+                                        viewModel.denyInheritanceRequestPlanning()
+                                    } else {
+                                        viewModel.deleteDummyTransaction()
+                                    }
+                                }
                             )
                     },
                 )
@@ -106,11 +117,6 @@ class AlertActionIntroFragment : Fragment() {
                     when (event) {
                         is AlertActionIntroEvent.DeleteDummyTransactionSuccess -> {
                             when (args.alert.type) {
-                                AlertType.REQUEST_INHERITANCE_PLANNING -> {
-                                    showSuccess(
-                                        message = getString(R.string.nc_inheritance_request_denied),
-                                    )
-                                }
                                 AlertType.HEALTH_CHECK_REQUEST, AlertType.HEALTH_CHECK_PENDING -> {
                                     showSuccess(
                                         message = getString(R.string.nc_health_check_has_been_canceled),
@@ -128,6 +134,22 @@ class AlertActionIntroFragment : Fragment() {
                         }
 
                         is AlertActionIntroEvent.Loading -> showOrHideLoading(event.isLoading)
+                        AlertActionIntroEvent.ApproveInheritanceRequestPlanningSuccess -> {
+                            setFragmentResult(
+                                REQUEST_KEY,
+                                bundleOf(EXTRA_APPROVE_INHERITANCE_REQUEST to true)
+                            )
+                            goBack()
+                        }
+                        AlertActionIntroEvent.DenyInheritanceRequestPlanningSuccess -> {
+                            setFragmentResult(
+                                REQUEST_KEY,
+                                bundleOf(EXTRA_APPROVE_INHERITANCE_REQUEST to false)
+                            )
+                            goBack()
+                        }
+
+                        is AlertActionIntroEvent.Error -> showError(message = event.message)
                     }
                 }
         }
@@ -141,6 +163,7 @@ class AlertActionIntroFragment : Fragment() {
         const val REQUEST_KEY = "AlertActionIntroFragment"
         const val EXTRA_DUMMY_TRANSACTION_ID = "_a"
         const val EXTRA_REQUIRE_KEY = "_b"
+        const val EXTRA_APPROVE_INHERITANCE_REQUEST = "_c"
     }
 }
 
@@ -148,7 +171,7 @@ class AlertActionIntroFragment : Fragment() {
 private fun AlertActionIntroScreen(
     alert: Alert,
     viewModel: AlertActionIntroViewModel = viewModel(),
-    onContinue: (DummyTransactionPayload) -> Unit,
+    onContinue: (DummyTransactionPayload?) -> Unit,
     onCancel: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -165,7 +188,7 @@ private fun AlertActionIntroContent(
     state: AlertActionIntroUiState = AlertActionIntroUiState(),
     alert: Alert,
     onCancelRequest: () -> Unit = {},
-    onContinue: (DummyTransactionPayload) -> Unit = {},
+    onContinue: (DummyTransactionPayload?) -> Unit = {},
 ) {
     val cancelButton = when (alert.type) {
         AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
@@ -190,12 +213,7 @@ private fun AlertActionIntroContent(
     }
 
     val continueButtonText = when (alert.type) {
-        AlertType.REQUEST_INHERITANCE_PLANNING -> {
-            stringResource(
-                id = R.string.nc_approve_signature_pending,
-                state.dummyTransaction?.pendingSignatures.orDefault(0)
-            )
-        }
+        AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(id = R.string.nc_approve)
         else -> stringResource(id = R.string.nc_text_continue)
     }
     NunchukTheme {
@@ -213,8 +231,8 @@ private fun AlertActionIntroContent(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth(),
-                            onClick = { onContinue(state.dummyTransaction!!) },
-                            enabled = state.dummyTransaction != null
+                            onClick = { onContinue(state.dummyTransaction) },
+                            enabled = state.dummyTransaction != null || alert.type == AlertType.REQUEST_INHERITANCE_PLANNING
                         ) {
                             Text(text = continueButtonText)
                         }
@@ -263,7 +281,10 @@ private fun AlertActionIntroScreenPreview() {
                 masterName = "masterName",
                 xfps = listOf("xfps"),
                 claimKey = false,
-                keyXfp = "keyXfp"
+                keyXfp = "keyXfp",
+                requestId = "123",
+                membershipId = "123",
+                transactionId = "123"
             ),
             body = "There is a health check request for [key name].",
             createdTimeMillis = 0,

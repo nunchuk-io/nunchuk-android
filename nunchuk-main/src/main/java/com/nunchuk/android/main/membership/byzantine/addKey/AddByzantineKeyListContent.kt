@@ -100,8 +100,9 @@ fun AddByzantineKeyListContent(
                             GroupWalletType.TWO_OF_FOUR_MULTISIG -> stringResource(R.string.nc_byzantine_add_key_2_of_4_desc)
                             GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> stringResource(R.string.nc_byzantine_add_key_2_of_4_no_inheritance_desc)
                             GroupWalletType.TWO_OF_THREE -> stringResource(R.string.nc_byzantine_add_key_2_of_3_desc)
-                            GroupWalletType.THREE_OF_FIVE -> stringResource(R.string.nc_byzantine_add_key_3_of_5_desc)
-                            else -> ""
+                            GroupWalletType.THREE_OF_FIVE, GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> stringResource(R.string.nc_byzantine_add_key_3_of_5_desc)
+                            GroupWalletType.THREE_OF_FIVE_INHERITANCE -> stringResource(R.string.nc_byzantine_add_key_3_of_5_inheritance_desc)
+                            null -> ""
                         }
                         NcSpannedText(
                             modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),

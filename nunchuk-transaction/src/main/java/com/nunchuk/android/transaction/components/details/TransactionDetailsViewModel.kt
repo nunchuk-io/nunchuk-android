@@ -36,6 +36,7 @@ import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
 import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransactionUseCase
+import com.nunchuk.android.core.domain.membership.RequestSignatureTransactionUseCase
 import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
@@ -62,9 +63,8 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.TxInput
-import com.nunchuk.android.model.TxOutput
-import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.GetContactsUseCase
@@ -102,13 +102,15 @@ import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.SignTransactionUseCase
 import com.nunchuk.android.usecase.UpdateTransactionMemo
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
-import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
+import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.TransactionException
 import com.nunchuk.android.utils.onException
@@ -119,9 +121,11 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -155,11 +159,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val signServerTransactionUseCase: SignServerTransactionUseCase,
     private val cancelScheduleBroadcastTransactionUseCase: CancelScheduleBroadcastTransactionUseCase,
     private val importTransactionUseCase: ImportTransactionUseCase,
-    private val isMyCoinUseCase: IsMyCoinUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val getRawTransactionUseCase: GetRawTransactionUseCase,
+    private val requestSignatureTransactionUseCase: RequestSignatureTransactionUseCase,
+    private val getGroupUseCase: GetGroupUseCase,
+    private val byzantineGroupUtils: ByzantineGroupUtils,
+    private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
@@ -173,7 +180,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private var masterSigners: List<MasterSigner> = emptyList()
 
     private var contacts: List<Contact> = emptyList()
-    private val allCoins: MutableList<UnspentOutput> = mutableListOf()
 
     private var initNumberOfSignedKey = INVALID_NUMBER_OF_SIGNED
 
@@ -207,8 +213,24 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     if (event.transactionId == txId) {
                         setEvent(DeleteTransactionSuccess(true))
                     }
+                } else if (event is PushEvent.SignedChanged) {
+                    if (getState().signers.any { signer -> signer.fingerPrint == event.xfp }) {
+                        loadWallet()
+                    }
                 }
             }
+        }
+        viewModelScope.launch {
+            state.asFlow()
+                .map { it.transaction.inputs }
+                .filter { it.isNotEmpty() }
+                .distinctUntilChanged()
+                .collect {
+                    getCoinsFromTxInputsUseCase(GetCoinsFromTxInputsUseCase.Params(walletId, it))
+                        .onSuccess { coins ->
+                            updateState { copy(txInputCoins = coins) }
+                        }
+                }
         }
     }
 
@@ -217,7 +239,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         txId: String,
         initEventId: String,
         roomId: String,
-        transaction: Transaction?
+        transaction: Transaction?,
     ) {
         this.walletId = walletId
         this.txId = txId
@@ -238,6 +260,30 @@ internal class TransactionDetailsViewModel @Inject constructor(
         listenTransactionChanged()
         getAllTags()
         getAllCoins()
+        getGroupMembers()
+    }
+
+    private fun getGroupMembers() {
+        val groupId = assistedWalletManager.getGroupId(walletId) ?: return
+        viewModelScope.launch {
+            getGroupUseCase(GetGroupUseCase.Params(groupId = groupId))
+                .map { it.getOrElse { null } }
+                .distinctUntilChanged()
+                .collect { group ->
+                    val members = group?.members.orEmpty()
+                        .filter {
+                            it.role != AssistedWalletRole.OBSERVER.name
+                                    && isMatchingEmailOrUserName(it.emailOrUsername).not()
+                                    && it.isPendingRequest().not()
+                        }
+                    updateState {
+                        copy(
+                            members = members,
+                            userRole = byzantineGroupUtils.getCurrentUserRole(group).toRole
+                        )
+                    }
+                }
+        }
     }
 
     fun getAllTags() {
@@ -251,10 +297,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun getAllCoins() {
         viewModelScope.launch {
             getAllCoinUseCase(walletId).onSuccess { coins ->
-                allCoins.apply {
-                    clear()
-                    addAll(coins)
-                }
                 updateState { copy(coins = coins.filter { it.txid == txId }) }
             }
         }
@@ -520,7 +562,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 isPendingTransaction = status.isPending(),
                 isPendingConfirm = status.isPendingConfirm(),
                 isRejected = status.isRejected(),
-                canBroadcast = status.canBroadCast()
+                canBroadcast = status.canBroadCast(),
             )
         )
     }
@@ -745,6 +787,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
 
+    fun getMembers() = getState().members
+
     fun isInheritanceSigner(xfp: String): Boolean =
         masterSigners.find { it.device.masterFingerprint == xfp }?.tags?.contains(SignerTag.INHERITANCE) == true
 
@@ -778,13 +822,26 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
+    fun requestSignatureTransaction(membershipId: String) = viewModelScope.launch {
+        setEvent(LoadingEvent)
+        requestSignatureTransactionUseCase(
+            RequestSignatureTransactionUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(walletId).orEmpty(),
+                walletId = walletId,
+                transactionId = txId,
+                membershipId = membershipId
+            )
+        ).onSuccess {
+            setEvent(TransactionDetailsEvent.RequestSignatureTransactionSuccess)
+        }.onFailure {
+            setEvent(TransactionError(it.readableMessage().orUnknownError()))
+        }
+    }
+
     fun allTags() = getState().tags
     fun coins() = getState().coins
 
-    fun isMyCoin(output: TxOutput) =
-        runBlocking { isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, output.first)) }.getOrDefault(
-            false
-        )
+    fun getUserRole() = getState().userRole
 
     private fun isSignByServerKey(transaction: Transaction): Boolean {
         val fingerPrint =
@@ -795,8 +852,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun toggleShowInputCoin() =
         updateState { copy(isShowInputCoin = getState().isShowInputCoin.not()) }
 
-    fun convertInputs(inputs: List<TxInput>) =
-        inputs.mapNotNull { txInput -> allCoins.find { it.txid == txInput.first && it.vout == txInput.second } }
+    private fun isMatchingEmailOrUserName(emailOrUsername: String) =
+        emailOrUsername == accountManager.getAccount().email
+                || emailOrUsername == accountManager.getAccount().username
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1

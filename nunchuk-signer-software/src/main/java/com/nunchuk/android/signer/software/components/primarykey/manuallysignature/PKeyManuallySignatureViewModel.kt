@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.SignInManuallyPrimaryKeyUseCase
 import com.nunchuk.android.core.domain.UpdateTurnOnNotificationStoreUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import dagger.assisted.Assisted
@@ -41,8 +42,9 @@ class PKeyManuallySignatureViewModel @AssistedInject constructor(
     private val postNoncePrimaryKeyUseCase: PostNoncePrimaryKeyUseCase,
     private val signInModeHolder: SignInModeHolder,
     private val getTurnOnNotificationStoreUseCase: GetTurnOnNotificationStoreUseCase,
-    private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase
-) : NunchukViewModel<PKeyManuallySignatureState, PKeyManuallySignatureEvent>() {
+    private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
+    ) : NunchukViewModel<PKeyManuallySignatureState, PKeyManuallySignatureEvent>() {
 
     init {
         getChallengeMessage()
@@ -65,9 +67,10 @@ class PKeyManuallySignatureViewModel @AssistedInject constructor(
         if (result.isSuccess) {
             val initNunchukResult = initNunchukUseCase(InitNunchukUseCase.Param(accountId = args.username))
             if (initNunchukResult.isSuccess) {
-                signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
-                setEvent(PKeyManuallySignatureEvent.LoadingEvent(false))
-                setEvent(PKeyManuallySignatureEvent.SignInSuccess)
+                getUserProfileUseCase(Unit).onSuccess {
+                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
+                    setEvent(PKeyManuallySignatureEvent.SignInSuccess)
+                }
             } else {
                 setEvent(PKeyManuallySignatureEvent.ProcessFailure(initNunchukResult.exceptionOrNull()?.message.orUnknownError()))
             }

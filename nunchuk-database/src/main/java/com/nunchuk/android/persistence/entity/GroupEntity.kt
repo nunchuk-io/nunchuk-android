@@ -29,4 +29,6 @@ data class GroupEntity(
     val setupPreference: String,
     @ColumnInfo("is_locked", defaultValue = "false")
     val isLocked: Boolean,
+    @ColumnInfo("slug", defaultValue = "")
+    val slug: String,
 )

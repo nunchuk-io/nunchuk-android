@@ -31,7 +31,9 @@ import com.nunchuk.android.model.KeyVerifiedRequest
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
@@ -114,6 +116,16 @@ internal class KeyRepositoryImpl @Inject constructor(
                 val chatId = accountManager.getAccount().chatId
                 val verifyType =
                     if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.SELF_VERIFIED else VerifyType.NONE
+                var signer: SingleSigner? = null
+                if (groupId.isNotEmpty()) {
+                    signer =
+                        nativeSdk.getSignerByIndex(
+                            xfp,
+                            WalletType.MULTI_SIG.ordinal,
+                            AddressType.NATIVE_SEGWIT.ordinal,
+                            newIndex
+                        )
+                }
                 val info = MembershipStepEntity(
                     chatId = chatId,
                     step = step,
@@ -122,7 +134,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                     checkSum = response?.keyCheckSum.orEmpty(),
                     extraJson = gson.toJson(
                         SignerExtra(
-                            derivationPath = "",
+                            derivationPath = signer?.derivationPath.orEmpty(),
                             isAddNew = isAddNewKey,
                             signerType = SignerType.NFC
                         )
@@ -133,15 +145,9 @@ internal class KeyRepositoryImpl @Inject constructor(
                     groupId = groupId
                 )
                 if (groupId.isNotEmpty()) {
-                    val isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+                    if (signer == null) throw NullPointerException("Can not get signer by index $newIndex")
+                    val isInheritance = step.isAddInheritanceKey
                     val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
-                    val signer =
-                        nativeSdk.getSignerByIndex(
-                            xfp,
-                            WalletType.MULTI_SIG.ordinal,
-                            AddressType.NATIVE_SEGWIT.ordinal,
-                            newIndex
-                        ) ?: throw NullPointerException("Can not get signer by index $newIndex")
                     val keyResponse = userWalletApiManager.groupWalletApi.addKeyToServer(
                         groupId = groupId,
                         payload = SignerServerDto(
@@ -156,7 +162,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                                 version = status.version.orEmpty(),
                                 birthHeight = status.birthHeight,
                                 isTestnet = status.isTestNet,
-                                isInheritance = step == MembershipStep.BYZANTINE_ADD_TAP_SIGNER
+                                isInheritance = isInheritance
                             ),
                             tags = if (isInheritance) listOf(
                                 SignerTag.INHERITANCE.name

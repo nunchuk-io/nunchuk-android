@@ -19,6 +19,9 @@ val AssistedWalletRole.isKeyHolderWithoutKeyHolderLimited: Boolean
 val AssistedWalletRole.isKeyHolderLimited: Boolean
     get() = this == AssistedWalletRole.KEYHOLDER_LIMITED
 
+val AssistedWalletRole.isObserver: Boolean
+    get() = this == AssistedWalletRole.OBSERVER
+
 val String?.toRole : AssistedWalletRole
     get() = when(this) {
         AssistedWalletRole.MASTER.name -> AssistedWalletRole.MASTER

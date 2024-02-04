@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
@@ -34,13 +35,19 @@ interface GetWalletsUseCase {
 }
 
 internal class GetWalletsUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
+    private val nativeSdk: NunchukNativeSdk,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : GetWalletsUseCase {
 
     override fun execute() = flow {
         val wallets = nativeSdk.getWallets()
         val rWalletIds = nativeSdk.getAllRoomWalletIds()
-        emit(wallets.map { WalletExtended(it, it.isShared(rWalletIds)) })
+        emit(
+            wallets.map {
+                val name = assistedWalletManager.getWalletAlias(it.id).ifEmpty { it.name }
+                WalletExtended(it.copy(name = name), it.isShared(rWalletIds))
+            }
+        )
     }.flowOn(Dispatchers.IO)
 
 }
@@ -50,15 +57,17 @@ interface GetWalletUseCase {
 }
 
 internal class GetWalletUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
+    private val nativeSdk: NunchukNativeSdk,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : GetWalletUseCase {
 
     override fun execute(walletId: String) = flow {
         val wallet = nativeSdk.getWallet(walletId)
+        val name = assistedWalletManager.getWalletAlias(walletId).ifEmpty { wallet.name }
         val rWallets = nativeSdk.getAllRoomWallet()
         val rWalletIds = rWallets.map(RoomWallet::walletId)
         val roomWallet = rWallets.firstOrNull { wallet.id == it.walletId }
-        emit(WalletExtended(wallet, wallet.isShared(rWalletIds), roomWallet))
+        emit(WalletExtended(wallet.copy(name = name), wallet.isShared(rWalletIds), roomWallet))
     }.flowOn(Dispatchers.IO)
 
 }

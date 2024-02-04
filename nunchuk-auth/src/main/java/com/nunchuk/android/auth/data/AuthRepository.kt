@@ -52,6 +52,12 @@ interface AuthRepository {
     suspend fun tryLogin(qr: String) : QrSignInData
 
     suspend fun confirmLogin(uuid: String?, token: String)
+
+    suspend fun resendVerifyCode(
+        email: String,
+        loginHalfToken: String,
+        deviceId: String
+    )
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
@@ -122,5 +128,20 @@ internal class AuthRepositoryImpl @Inject constructor(
             uuid = response.data.uuid,
             token = response.data.token.orEmpty()
         )
+    }
+
+    override suspend fun resendVerifyCode(
+        email: String,
+        loginHalfToken: String,
+        deviceId: String
+    ) {
+        val payload = ResendVerifyNewDeviceCodePayload(
+            email = email, loginHalfToken = loginHalfToken, deviceId = deviceId
+        )
+        try {
+            authApi.resendVerifyNewDeviceCode(payload).data
+        } catch (e: ApiInterceptedException) {
+            CrashlyticsReporter.recordException(e)
+        }
     }
 }

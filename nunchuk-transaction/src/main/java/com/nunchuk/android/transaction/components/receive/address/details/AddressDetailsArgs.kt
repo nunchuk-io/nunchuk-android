@@ -22,11 +22,13 @@ package com.nunchuk.android.transaction.components.receive.address.details
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.qr.DynamicQRCodeArgs.Companion.EXTRA_WALLET_ID
 import com.nunchuk.android.core.util.getStringValue
 
 data class AddressDetailsArgs(
     val address: String,
-    val balance: String
+    val balance: String,
+    val walletId: String
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(
@@ -35,15 +37,18 @@ data class AddressDetailsArgs(
     ).apply {
         putExtra(EXTRA_ADDRESS, address)
         putExtra(EXTRA_BALANCE, balance)
+        putExtra(EXTRA_WALLET_ID, walletId)
     }
 
     companion object {
         private const val EXTRA_ADDRESS = "EXTRA_ADDRESS"
         private const val EXTRA_BALANCE = "EXTRA_BALANCE"
+        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
 
         fun deserializeFrom(intent: Intent): AddressDetailsArgs = AddressDetailsArgs(
             intent.extras.getStringValue(EXTRA_ADDRESS),
-            intent.extras.getStringValue(EXTRA_BALANCE)
+            intent.extras.getStringValue(EXTRA_BALANCE),
+            intent.extras.getStringValue(EXTRA_WALLET_ID)
         )
     }
 }

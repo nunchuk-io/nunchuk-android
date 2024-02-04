@@ -33,6 +33,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateSignerUseCase
@@ -92,6 +93,11 @@ class ColdcardRecoverViewModel @Inject constructor(
                     parseResult.getOrThrow().find { it.derivationPath.isRecommendedPath }
                 if (signer == null) {
                     _event.emit(ColdcardRecoverEvent.ShowError("Can not find valid signer path"))
+                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                    return@launch
+                }
+                if (isTestNetPath(signer.derivationPath)) {
+                    _event.emit(ColdcardRecoverEvent.ErrorMk4TestNet)
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
@@ -166,4 +172,5 @@ sealed class ColdcardRecoverEvent {
     data object AddSameKey : ColdcardRecoverEvent()
     data object ParseFileError : ColdcardRecoverEvent()
     data object NewIndexNotMatchException : ColdcardRecoverEvent()
+    object ErrorMk4TestNet : ColdcardRecoverEvent()
 }

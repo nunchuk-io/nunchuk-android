@@ -132,4 +132,8 @@ object SheetOptionType {
     const val TYPE_ADD_BITBOX = 73
 
     const val TYPE_FORCE_SYNC_DUMMY_TX = 74
+    const val TYPE_ADDRESS_DERIVATION_PATH = 75
+    const val TYPE_VERIFY_ADDRESS_DEVICE = 76
+
+    const val TYPE_EDIT_PRIMARY_OWNER = 77
 }

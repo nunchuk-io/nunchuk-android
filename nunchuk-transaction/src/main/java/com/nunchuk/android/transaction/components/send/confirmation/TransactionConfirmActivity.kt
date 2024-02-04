@@ -27,11 +27,13 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
@@ -89,9 +91,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             privateNote = args.privateNote,
             manualFeeRate = args.manualFeeRate,
             slots = args.slots,
-            masterSignerId = args.masterSignerId,
-            magicalPhrase = args.magicalPhrase,
-            derivationPath = args.derivationPath,
+            claimInheritanceTxParam = args.claimInheritanceTxParam,
             inputs = args.inputs
         )
         viewModel.draftTransaction()
@@ -153,6 +153,13 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         }
         binding.inputCoin.isVisible = args.inputs.isNotEmpty()
         binding.composeCoin.isVisible = args.inputs.isNotEmpty()
+
+        binding.estimatedFeeLabel.setOnClickListener {
+            BottomSheetTooltip.newInstance(
+                title = getString(R.string.nc_text_info),
+                message = getString(R.string.nc_estimated_fee_tooltip),
+            ).show(supportFragmentManager, "BottomSheetTooltip")
+        }
     }
 
     private fun handleCopyContent(content: String) {
@@ -237,9 +244,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             manualFeeRate: Int = 0,
             sweepType: SweepType = SweepType.NONE,
             slots: List<SatsCardSlot> = emptyList(),
-            masterSignerId: String,
-            magicalPhrase: String,
-            derivationPath: String,
+            claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             inputs: List<UnspentOutput> = emptyList(),
         ) {
             activityContext.startActivity(
@@ -253,9 +258,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     manualFeeRate = manualFeeRate,
                     sweepType = sweepType,
                     slots = slots,
-                    masterSignerId = masterSignerId,
-                    magicalPhrase = magicalPhrase,
-                    derivationPath = derivationPath,
+                    claimInheritanceTxParam = claimInheritanceTxParam,
                     inputs = inputs
                 ).buildIntent(activityContext)
             )

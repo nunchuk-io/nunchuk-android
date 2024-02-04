@@ -30,8 +30,8 @@ import javax.inject.Inject
 class InheritanceClaimDownloadBackupUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletsRepository: PremiumWalletRepository,
-) : UseCase<String, BackupKey>(dispatcher) {
-    override suspend fun execute(parameters: String): BackupKey {
+) : UseCase<String, List<BackupKey>>(dispatcher) {
+    override suspend fun execute(parameters: String): List<BackupKey> {
         return userWalletsRepository.inheritanceClaimDownloadBackup(parameters)
     }
 }

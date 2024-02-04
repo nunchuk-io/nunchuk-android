@@ -44,9 +44,8 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
-import com.nunchuk.android.usecase.byzantine.FindSimilarGroupWalletUseCase
-import com.nunchuk.android.usecase.byzantine.ReuseGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
@@ -79,10 +78,9 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
     private val syncGroupDraftWalletUseCase: SyncGroupDraftWalletUseCase,
-    private val findSimilarGroupWalletUseCase: FindSimilarGroupWalletUseCase,
-    private val reuseGroupWalletUseCase: ReuseGroupWalletUseCase,
     private val pushEventManager: PushEventManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
+    private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -108,16 +106,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val singleSigners = mutableListOf<SingleSigner>()
 
     init {
-        if (args.isAddOnly.not() && membershipStepManager.isNotConfig()) {
-            viewModelScope.launch {
-                findSimilarGroupWalletUseCase(args.groupId).onSuccess { similar ->
-                    _state.update { it.copy(similarGroups = similar.associate { similar -> similar.walletLocalId to similar.groupId }) }
-                    if (similar.isNotEmpty()) {
-                        _event.emit(AddKeyListEvent.LoadSimilarGroup(similar.map { it.walletLocalId }))
-                    }
-                }
-            }
-        }
         if (args.isAddOnly) {
             viewModelScope.launch {
                 pushEventManager.event.filterIsInstance<PushEvent.KeyAddedToGroup>().collect {
@@ -141,25 +129,33 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     private suspend fun loadSigners() {
         getAllSignersUseCase(Unit).onSuccess { pair ->
+            val singleSigner = pair.second.distinctBy { it.masterFingerprint }
             singleSigners.apply {
                 clear()
-                addAll(pair.second)
+                addAll(singleSigner)
             }
             val signers = pair.first.map { signer ->
                 masterSignerMapper(signer)
-            } + pair.second.map { signer -> signer.toModel() }
+            } + singleSigner.map { signer -> signer.toModel() }
             _state.update { it.copy(signers = signers) }
             updateKeyData()
         }
     }
 
-    private fun updateKeyData() {
+    private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
-        val signers = _state.value.signers
+        val signers = _state.value.`signers`
         val news = key.value.map { addKeyData ->
             val info = getStepInfo(addKeyData.type)
+            var signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null
+            if (signer != null) {
+                runCatching {
+                    val extra = gson.fromJson(info.extraData, SignerExtra::class.java)
+                    signer = signer?.copy(index = getIndexFromPathUseCase(extra.derivationPath).getOrDefault(0))
+                }
+            }
             addKeyData.copy(
-                signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null,
+                signer = signer,
                 verifyType = info.verifyType
             )
         }
@@ -243,19 +239,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
     fun getHardwareSigners(tag: SignerTag) =
         _state.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
 
-    fun reuseKeyFromWallet(id: String) {
-        viewModelScope.launch {
-            reuseGroupWalletUseCase(
-                ReuseGroupWalletUseCase.Params(
-                    args.groupId,
-                    state.value.similarGroups[id].orEmpty()
-                )
-            ).onFailure {
-                _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
-            }
-        }
-    }
-
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
@@ -321,7 +304,6 @@ sealed class AddKeyListEvent {
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
-    data class LoadSimilarGroup(val similarWalletIds: List<String>) : AddKeyListEvent()
     data class UpdateSignerTag(val signer: SignerModel) : AddKeyListEvent()
 }
 

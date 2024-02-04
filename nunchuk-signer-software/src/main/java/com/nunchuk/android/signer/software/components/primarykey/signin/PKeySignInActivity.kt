@@ -65,9 +65,16 @@ class PKeySignInActivity : BaseActivity<ActivityPkeySignInBinding>() {
     private fun handleEvent(event: PKeySignInEvent) {
         when (event) {
             is PKeySignInEvent.LoadingEvent -> showOrHideLoading(event.loading)
-            is PKeySignInEvent.ProcessErrorEvent -> NCToastMessage(this).showError(event.message)
-            is PKeySignInEvent.SignInSuccessEvent -> openMainScreen()
+            is PKeySignInEvent.ProcessErrorEvent -> {
+                hideLoading()
+                NCToastMessage(this).showError(event.message)
+            }
+            is PKeySignInEvent.SignInSuccessEvent -> {
+                hideLoading()
+                openMainScreen()
+            }
             is PKeySignInEvent.InitFailure -> {
+                hideLoading()
                 NCToastMessage(this).showError(event.message)
                 finish()
             }

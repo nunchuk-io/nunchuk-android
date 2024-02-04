@@ -140,8 +140,10 @@ class ContactsViewModel @Inject constructor(
     }
 
     private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
-        events.forEach { event ->
-            handlePushMessageUseCase(event)
+        runCatching {
+            events.forEach { event ->
+                handlePushMessageUseCase(event)
+            }
         }
         events.findLast(TimelineEvent::isContactUpdateEvent)?.let { retrieveContacts() }
     }

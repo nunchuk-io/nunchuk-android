@@ -147,6 +147,30 @@ class MembershipStepManager @Inject constructor(
                                 MembershipStepFlow(totalStep = 8)
                         }
 
+                        GroupWalletType.THREE_OF_FIVE_INHERITANCE -> {
+                            steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                        }
+
+                        GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> {
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
+                                MembershipStepFlow(totalStep = 8)
+                            steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                        }
+
                         else -> {
                             steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
                                 MembershipStepFlow(totalStep = 8)
@@ -286,10 +310,13 @@ class MembershipStepManager @Inject constructor(
     fun getRemainTimeByOtherSteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.toMap().filter { it.key !in querySteps }.values)
 
-    fun getTapSignerName() =
-        if (currentStep == MembershipStep.HONEY_ADD_TAP_SIGNER) TAPSIGNER_INHERITANCE_NAME else "TAPSIGNER${
+    fun getTapSignerName() = when(currentStep) {
+        MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.HONEY_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
+        MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> "$TAPSIGNER_INHERITANCE_NAME #2"
+        else -> "TAPSIGNER${
             getNextKeySuffixByType(SignerType.NFC)
         }"
+    }
 
     fun getNextKeySuffixByType(type: SignerType): String {
         val index = stepInfo.value.asSequence().mapNotNull {

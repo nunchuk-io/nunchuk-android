@@ -18,6 +18,19 @@
         app:layout_constraintTop_toTopOf="@+id/status" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_rbf_tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/NCText.Badges"
+        android:background="@drawable/nc_rounded_50dp_stroke_border_background"
+        android:text="@string/nc_rbf"
+        android:visibility="gone"
+        android:layout_marginEnd="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/status"
+        tools:visibility="visible" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/status"
         style="@style/NCText.Badges"
         android:layout_width="wrap_content"

@@ -1,7 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroEvent
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
@@ -25,19 +24,15 @@ sealed class GroupDashboardEvent {
         val token: String = "",
         val isAlertFlow: Boolean = false
     ) : GroupDashboardEvent()
-    data class RegisterSignersSuccess(val totalColdcard: Int, val totalAirgap: Int) : GroupDashboardEvent()
+    data class RegisterSignersSuccess(val totalAirgap: Int) : GroupDashboardEvent()
     data class UpdateServerKey(val token: String, val signer: SignerModel, val groupId: String) : GroupDashboardEvent()
     data class CalculateRequiredSignaturesSuccess(
-        val type: String,
-        val walletId: String,
-        val userData: String,
-        val requiredSignatures: Int,
-        val dummyTransactionId: String
+        val type: String
     ) : GroupDashboardEvent()
 
     data object RestartWizardSuccess: GroupDashboardEvent()
+    data class SyncTransactionSuccess(val txId: String): GroupDashboardEvent()
     data class DownloadBackupKeySuccess(val backupKey: BackupKey) : GroupDashboardEvent()
-    data class GroupDummyTransactionPayloadSuccess(val dummyTransactionPayload: DummyTransactionPayload, val alert: Alert) : GroupDashboardEvent()
 }
 
 data class GroupDashboardState(
@@ -48,7 +43,7 @@ data class GroupDashboardState(
     val myRole: AssistedWalletRole = AssistedWalletRole.NONE,
     val signers: List<SignerModel> = emptyList(),
     val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),
-    val isSetupInheritance: Boolean = false,
+    val isAlreadySetupInheritance: Boolean = false,
     val inheritanceOwnerId: String? = null,
     val isHasPendingRequestInheritance: Boolean = false,
     val isRefreshing: Boolean = false,

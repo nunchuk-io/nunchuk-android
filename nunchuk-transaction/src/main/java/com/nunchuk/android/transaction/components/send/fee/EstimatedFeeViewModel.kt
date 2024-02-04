@@ -21,7 +21,9 @@ package com.nunchuk.android.transaction.components.send.fee
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
@@ -56,7 +58,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
-    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase
+    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
@@ -65,11 +67,8 @@ class EstimatedFeeViewModel @Inject constructor(
     private var draftTranJob: Job? = null
     private val slots = mutableListOf<SatsCardSlot>()
     private val inputs = mutableListOf<UnspentOutput>()
-    private var isInheritanceFlow = false
-    private var masterSignerId = ""
     private var address = ""
-    private var magic = ""
-    private var derivationPath = ""
+    private var claimInheritanceTxParam: ClaimInheritanceTxParam? = null
     override val initialState = EstimatedFeeState()
 
     fun init(args: EstimatedFeeArgs) {
@@ -83,12 +82,9 @@ class EstimatedFeeViewModel @Inject constructor(
             clear()
             addAll(args.inputs)
         }
-        isInheritanceFlow = args.magicalPhrase.isNotEmpty() && args.masterSignerId.isNotEmpty()
-        masterSignerId = args.masterSignerId
         address = args.txReceipts.first().address
-        magic = args.magicalPhrase
-        derivationPath = args.derivationPath
         forceSubtractFeeFromAmount = args.subtractFeeFromAmount
+        claimInheritanceTxParam = args.claimInheritanceTxParam
         getEstimateFeeRates()
         if (slots.isEmpty()) {
             getAllTags()
@@ -125,7 +121,12 @@ class EstimatedFeeViewModel @Inject constructor(
             val result = estimateFeeUseCase(Unit)
             if (result.isSuccess) {
                 setEvent(EstimatedFeeEvent.GetFeeRateSuccess(result.getOrThrow()))
-                updateState { copy(estimateFeeRates = result.getOrThrow(), manualFeeRate = result.getOrThrow().defaultRate) }
+                updateState {
+                    copy(
+                        estimateFeeRates = result.getOrThrow(),
+                        manualFeeRate = result.getOrThrow().defaultRate
+                    )
+                }
             } else {
                 setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
                 updateState { copy(estimateFeeRates = EstimateFeeRates()) }
@@ -139,7 +140,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private fun draftTransaction() {
         draftTranJob?.cancel()
         draftTranJob = viewModelScope.launch {
-            if (isInheritanceFlow) {
+            if (claimInheritanceTxParam.isInheritanceClaimFlow()) {
                 draftInheritanceTransaction()
             } else if (slots.isNotEmpty()) {
                 draftSatsCardTransaction()
@@ -181,6 +182,7 @@ class EstimatedFeeViewModel @Inject constructor(
                 }
                 setEvent(EstimatedFeeEvent.DraftTransactionSuccess)
             }
+
             is Error -> {
                 if (result.exception !is CancellationException) {
                     setEvent(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
@@ -224,11 +226,11 @@ class EstimatedFeeViewModel @Inject constructor(
         setEvent(EstimatedFeeEvent.Loading(true))
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
-                masterSignerId = masterSignerId,
+                masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
                 address = address,
-                magic = magic,
+                magic = claimInheritanceTxParam?.magicalPhrase.orEmpty(),
                 feeRate = getState().manualFeeRate.toManualFeeRate(),
-                derivationPath = derivationPath,
+                derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                 isDraft = true
             )
         )
@@ -242,7 +244,7 @@ class EstimatedFeeViewModel @Inject constructor(
         }
     }
 
-    fun handleSubtractFeeSwitch(checked: Boolean, enable : Boolean = true) {
+    fun handleSubtractFeeSwitch(checked: Boolean, enable: Boolean = true) {
         updateState { copy(subtractFeeFromAmount = checked, enableSubtractFeeFromAmount = enable) }
         draftTransaction()
     }
@@ -282,9 +284,10 @@ class EstimatedFeeViewModel @Inject constructor(
     val defaultRate: Int
         get() = getState().estimateFeeRates.defaultRate
 
-    fun getSelectedCoins() : List<UnspentOutput> = inputs
+    fun getSelectedCoins(): List<UnspentOutput> =
+        inputs.ifEmpty { getInputsCoins() }
 
-    fun getInputsCoins() : List<UnspentOutput> {
+    fun getInputsCoins(): List<UnspentOutput> {
         val inputs = getState().inputs
         return getState().allCoins.filter { coin -> inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
     }

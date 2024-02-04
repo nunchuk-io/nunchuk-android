@@ -17,28 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.network
+package com.nunchuk.android.core.domain.membership
 
-import okhttp3.Interceptor
-import okhttp3.Response
-import java.io.IOException
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.WalletServerSync
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class UnauthorizedInterceptor @Inject constructor() : Interceptor {
-
-    @Throws(IOException::class)
-    override fun intercept(chain: Interceptor.Chain): Response {
-        try {
-            val response = chain.proceed(chain.request())
-            if (response.isUnauthorized()) {
-                UnauthorizedEventBus.instance().publish()
-            }
-            return response
-        } catch (exception: IOException) {
-            throw exception
-        }
+class GetServerWalletsUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletsRepository: PremiumWalletRepository,
+) : UseCase<Unit, WalletServerSync>(dispatcher) {
+    override suspend fun execute(parameters: Unit): WalletServerSync {
+        return userWalletsRepository.getServerWallet()
     }
-
 }
-
-internal fun Response.isUnauthorized(): Boolean = code == ApiErrorCode.UNAUTHORIZED

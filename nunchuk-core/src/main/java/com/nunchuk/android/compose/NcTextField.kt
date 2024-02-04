@@ -39,11 +39,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +55,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,11 +71,13 @@ fun NcTextField(
     value: String,
     rightContent: @Composable (() -> Unit)? = null,
     error: String? = null,
+    hint: String? = null,
+    hasError: Boolean = !error.isNullOrEmpty(),
     showErrorMessageOnly: Boolean = false,
     onClick: () -> Unit = {},
     placeholder: @Composable (() -> Unit)? = null,
     minLines: Int = 1,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
     keyboardActions: KeyboardActions = KeyboardActions(),
     enabled: Boolean = true,
     readOnly: Boolean = false,
@@ -88,7 +93,6 @@ fun NcTextField(
     textStyle: TextStyle = NunchukTheme.typography.body,
     onValueChange: (value: String) -> Unit,
 ) {
-    val hasError = !error.isNullOrEmpty()
     var backgroundErrorColor = textFieldColor
     var borderErrorColor = Color(0xFFDEDEDE)
     if (hasError && showErrorMessageOnly.not()) {
@@ -163,26 +167,10 @@ fun NcTextField(
                 )
             },
         )
-        if (hasError) {
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(2.dp),
-                    painter = painterResource(id = R.drawable.ic_error_outline),
-                    contentDescription = "Error icon",
-                    tint = colorResource(id = R.color.nc_orange_color)
-                )
-                Text(
-                    text = error.orEmpty(), style = NunchukTheme.typography.bodySmall.copy(
-                        color = colorResource(
-                            id = R.color.nc_orange_color
-                        )
-                    )
-                )
+        if (!error.isNullOrEmpty() || !hint.isNullOrEmpty()) {
+            val color = if (hasError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.greyDark
+            CompositionLocalProvider(LocalContentColor provides color) {
+                BottomText(error ?: hint)
             }
         }
     }
@@ -275,27 +263,29 @@ fun NcTextField(
             rightContent()
         }
         if (hasError) {
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(2.dp),
-                    painter = painterResource(id = R.drawable.ic_error_outline),
-                    contentDescription = "Error icon",
-                    tint = colorResource(id = R.color.nc_orange_color)
-                )
-                Text(
-                    text = error.orEmpty(), style = NunchukTheme.typography.bodySmall.copy(
-                        color = colorResource(
-                            id = R.color.nc_orange_color
-                        )
-                    )
-                )
-            }
+            BottomText(error)
         }
+    }
+}
+
+@Composable
+private fun BottomText(error: String?) {
+    Row(
+        modifier = Modifier.padding(top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(16.dp)
+                .padding(2.dp),
+            painter = painterResource(id = R.drawable.ic_error_outline),
+            contentDescription = "Error icon",
+        )
+        Text(
+            text = error.orEmpty(), style = NunchukTheme.typography.bodySmall.copy(
+                color = LocalContentColor.current
+            )
+        )
     }
 }
 

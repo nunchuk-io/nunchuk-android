@@ -35,6 +35,7 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
+import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
@@ -42,6 +43,7 @@ import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecovery
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
+import com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -139,6 +141,20 @@ internal class NunchukNavigatorImpl @Inject constructor(
             output = output,
         )
         launcher?.launch(intent) ?: context.startActivity(intent)
+    }
+
+    override fun openPrimaryOwnerScreen(
+        activityContext: Context,
+        groupId: String,
+        walletId: String,
+        @PrimaryOwnerFlow.PrimaryOwnerFlowInfo flowInfo: Int
+    ) {
+        PrimaryOwnerActivity.navigate(
+            activity = activityContext,
+            groupId = groupId,
+            walletId = walletId,
+            flowInfo = flowInfo
+        )
     }
 }
 

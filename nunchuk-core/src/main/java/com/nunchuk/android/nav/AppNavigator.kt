@@ -25,6 +25,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
+import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
@@ -106,5 +107,12 @@ interface AppNavigator {
         walletId: String? = null,
         message: String? = null,
         activityContext: Context
+    )
+
+    fun openPrimaryOwnerScreen(
+        activityContext: Context,
+        groupId: String,
+        walletId: String,
+        @PrimaryOwnerFlow.PrimaryOwnerFlowInfo flowInfo: Int
     )
 }

@@ -31,25 +31,15 @@ import javax.inject.Inject
 class ReplaceTransactionUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk,
-    private val repository: PremiumWalletRepository,
 ) : UseCase<ReplaceTransactionUseCase.Data, Transaction>(dispatcher) {
 
     override suspend fun execute(parameters: Data): Transaction {
-        val transaction = nativeSdk.replaceTransaction(parameters.walletId, parameters.txId, Amount(value = parameters.newFee.toLong()))
-        if (parameters.isAssistedWallet) {
-            try {
-                repository.createServerTransaction(
-                    parameters.groupId,
-                    parameters.walletId,
-                    transaction.psbt,
-                    transaction.memo,
-                )
-            } catch (e: Exception) {
-                throw e
-            }
-        }
-        return transaction
+        return nativeSdk.replaceTransaction(
+            parameters.walletId,
+            parameters.txId,
+            Amount(value = parameters.newFee.toLong())
+        )
     }
 
-    data class Data(val groupId: String?, val walletId: String, val txId: String, val newFee: Int, val isAssistedWallet: Boolean)
+    data class Data(val groupId: String?, val walletId: String, val txId: String, val newFee: Int)
 }

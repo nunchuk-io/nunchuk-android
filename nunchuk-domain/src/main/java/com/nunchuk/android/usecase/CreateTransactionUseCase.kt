@@ -40,7 +40,8 @@ class CreateTransactionUseCase @Inject constructor(
             memo = parameters.memo,
             inputs = parameters.inputs,
             feeRate = parameters.feeRate,
-            subtractFeeFromAmount = parameters.subtractFeeFromAmount
+            subtractFeeFromAmount = parameters.subtractFeeFromAmount,
+            replaceTxId = parameters.replaceTxId
         )
         if (parameters.isAssistedWallet) {
             try {
@@ -61,10 +62,11 @@ class CreateTransactionUseCase @Inject constructor(
         val groupId: String?,
         val walletId: String,
         val outputs: Map<String, Amount>,
+        val isAssistedWallet: Boolean,
         val memo: String = "",
         val inputs: List<TxInput> = emptyList(),
         val feeRate: Amount = Amount(-1),
         val subtractFeeFromAmount: Boolean = false,
-        val isAssistedWallet: Boolean
+        val replaceTxId : String = ""
     )
 }

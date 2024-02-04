@@ -144,6 +144,7 @@ internal class TransactionAdapter(
             }
             binding.status.bindTransactionStatus(data.transaction)
             binding.date.text = data.transaction.getFormatDate()
+            binding.tvRbfTag.isVisible = data.transaction.replacedTxid.isNotEmpty()
 
             binding.root.setOnClickListener {
                 if (hideWalletDetail.not()) onItemSelectedListener(data.transaction)

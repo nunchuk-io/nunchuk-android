@@ -28,9 +28,11 @@ import com.nunchuk.android.core.domain.message.HandlePushMessageUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.isAtLeastStarted
+import com.nunchuk.android.messages.util.getContent
 import com.nunchuk.android.messages.util.getGroupId
 import com.nunchuk.android.messages.util.getLastMessageContentSafe
 import com.nunchuk.android.messages.util.getMsgBody
+import com.nunchuk.android.messages.util.getTitle
 import com.nunchuk.android.messages.util.getTransactionId
 import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.isContactUpdateEvent
@@ -41,9 +43,12 @@ import com.nunchuk.android.messages.util.isKeyRecoveryRequest
 import com.nunchuk.android.messages.util.isMessageEvent
 import com.nunchuk.android.messages.util.isNunchukTransactionEvent
 import com.nunchuk.android.messages.util.isNunchukWalletEvent
+import com.nunchuk.android.messages.util.isRemoveAlias
+import com.nunchuk.android.messages.util.isSetAlias
 import com.nunchuk.android.messages.util.isTransactionReceived
 import com.nunchuk.android.messages.util.isTransactionScheduleMissingSignaturesEvent
 import com.nunchuk.android.messages.util.isTransactionScheduleNetworkRejectedEvent
+import com.nunchuk.android.messages.util.isTransactionSignatureRequest
 import com.nunchuk.android.messages.util.isWalletInheritancePlanningRequestDenied
 import com.nunchuk.android.messages.util.lastMessageContent
 import com.nunchuk.android.messages.util.lastMessageSender
@@ -101,7 +106,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
 
         val event = getEvent(remoteMessage.data)?.also { event ->
             applicationScope.launch {
-                handlePushMessageUseCase(event)
+                runCatching {
+                    handlePushMessageUseCase(event)
+                }
             }
         }
 
@@ -300,6 +307,24 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = getString(R.string.nc_notification_key_recovery_approved),
                 message = message,
                 intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        isTransactionSignatureRequest() -> {
+            PushNotificationData(
+                id = localId,
+                title = getTitle().orEmpty(),
+                message = getContent().orEmpty(),
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
+            )
+        }
+
+        isRemoveAlias() || isSetAlias() -> {
+            PushNotificationData(
+                id = localId,
+                title = getTitle().orEmpty(),
+                message = getContent().orEmpty(),
+                intent = intentProvider.getAliasIntent(getWalletId().orEmpty())
             )
         }
 

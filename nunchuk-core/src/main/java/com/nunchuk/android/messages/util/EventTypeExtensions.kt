@@ -58,7 +58,14 @@ const val GROUP_EMERGENCY_LOCKDOWN_STARTED = "io.nunchuk.custom.group_emergency_
 const val WALLET_INHERITANCE_PLANNING_REQUEST_DENIED = "io.nunchuk.custom.wallet_inheritance_planning_request_denied"
 const val KEY_RECOVERY_REQUEST = "io.nunchuk.custom.key_recovery_request"
 const val KEY_RECOVERY_APPROVED = "io.nunchuk.custom.key_recovery_approved"
-const val KEY_RECOVERY_SUCCESS = "io.nunchuk.custom.key_recovery_success"
+const val TRANSACTION_SIGNATURE_REQUEST = "io.nunchuk.custom.transaction_signature_request"
+const val GROUP_WALLET_CHANGE_NAMED = "io.nunchuk.custom.group_wallet_name_changed"
+const val KEY_NAME_CHANGED = "io.nunchuk.custom.key_name_changed"
+const val GROUP_WALLET_PRIMARY_OWNER_UPDATED = "io.nunchuk.custom.group_wallet_primary_owner_updated"
+const val TRANSACTION_REPLACED = "io.nunchuk.custom.transaction_replaced"
+const val SET_ALIAS = "io.nunchuk.custom.group_wallet_alias_set"
+const val REMOVE_ALIAS = "io.nunchuk.custom.group_wallet_alias_removed"
+const val COIN_UPDATE = "io.nunchuk.custom.coin_control_updated"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
     return if (isSupportRoom.not()) {
@@ -136,6 +143,9 @@ fun TimelineEvent.getTransactionId() = root.getClearContent()?.get("transaction_
 
 fun TimelineEvent.getWalletId() = root.getClearContent()?.get("wallet_local_id")?.toString()
 fun TimelineEvent.getGroupId() = root.getClearContent()?.get("group_id")?.toString()
+fun TimelineEvent.getTitle() = root.getClearContent()?.get("title")?.toString()
+fun TimelineEvent.getContent() = root.getClearContent()?.get("content")?.toString()
+fun TimelineEvent.getXfp() = root.getClearContent()?.get("xfp")?.toString()
 
 fun TimelineEvent.isGroupMembershipRequestEvent() =
     getMsgType() == GROUP_MEMBERSHIP_REQUEST_ACCEPTED || getMsgType() == GROUP_MEMBERSHIP_REQUEST_DENIED
@@ -160,3 +170,25 @@ fun TimelineEvent.isKeyRecoveryRequest() =
 
 fun TimelineEvent.isKeyRecoveryApproved() =
     getMsgType() == KEY_RECOVERY_APPROVED
+
+fun TimelineEvent.isTransactionSignatureRequest() =
+    getMsgType() == TRANSACTION_SIGNATURE_REQUEST
+
+fun TimelineEvent.isGroupNameChanged() =
+    getMsgType() == GROUP_WALLET_CHANGE_NAMED
+
+fun TimelineEvent.isKeyNameChanged() =
+    getMsgType() == KEY_NAME_CHANGED
+
+fun TimelineEvent.isGroupWalletPrimaryOwnerUpdated() =
+    getMsgType() == GROUP_WALLET_PRIMARY_OWNER_UPDATED
+
+fun TimelineEvent.isTransactionReplaced() =
+    getMsgType() == TRANSACTION_REPLACED
+fun TimelineEvent.isSetAlias() =
+    getMsgType() == SET_ALIAS
+fun TimelineEvent.isRemoveAlias() =
+    getMsgType() == REMOVE_ALIAS
+
+fun TimelineEvent.isCoinControlUpdated() =
+    getMsgType() == COIN_UPDATE

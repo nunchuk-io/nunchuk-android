@@ -30,7 +30,7 @@ import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
-import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
+import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
@@ -58,7 +58,6 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEve
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPassphraseSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
-import com.nunchuk.android.main.util.ByzantineGroupUtils
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -66,7 +65,6 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
-import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -88,6 +86,7 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -119,7 +118,7 @@ internal class WalletsViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val accountManager: AccountManager,
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
-    private val getServerWalletUseCase: GetServerWalletUseCase,
+    private val getServerWalletsUseCase: GetServerWalletsUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
@@ -209,7 +208,7 @@ internal class WalletsViewModel @Inject constructor(
                 when (event) {
                     is PushEvent.WalletCreate -> {
                         if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                            getServerWalletUseCase(Unit).onSuccess {
+                            getServerWalletsUseCase(Unit).onSuccess {
                                 if (it.isNeedReload) {
                                     retrieveData()
                                 }
@@ -231,20 +230,14 @@ internal class WalletsViewModel @Inject constructor(
                         }
                     }
 
-                    is PushEvent.GroupEmergencyLockdownStarted -> {
-                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
-                                if (shouldReload) retrieveData()
-                            }
-                        }
-                    }
+                    is PushEvent.GroupEmergencyLockdownStarted -> syncGroupWallets(event.walletId)
 
-                    is PushEvent.GroupWalletCreated -> {
-                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
-                                if (shouldReload) retrieveData()
-                            }
-                        }
+                    is PushEvent.GroupWalletCreated -> syncGroupWallets(event.walletId)
+
+                    is PushEvent.PrimaryOwnerUpdated -> syncGroupWallets(event.walletId)
+
+                    is PushEvent.WalletChanged, is PushEvent.SignedChanged -> {
+                        retrieveData()
                     }
 
                     else -> {}
@@ -290,6 +283,16 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
+    private fun syncGroupWallets(walletId: String) {
+        viewModelScope.launch {
+            if (!getState().wallets.any { it.wallet.id == walletId }) {
+                syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                    if (shouldReload) retrieveData()
+                }
+            }
+        }
+    }
+
     private suspend fun checkInheritance(wallets: List<AssistedWalletBrief>) {
         val walletsUnSetupInheritance =
             wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO }
@@ -312,7 +315,7 @@ internal class WalletsViewModel @Inject constructor(
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
                 val subscription = result.getOrThrow()
-                val getServerWalletResult = getServerWalletUseCase(Unit)
+                val getServerWalletResult = getServerWalletsUseCase(Unit)
                 if (getServerWalletResult.isFailure) return@launch
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
@@ -387,7 +390,8 @@ internal class WalletsViewModel @Inject constructor(
             val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()
             val pendingGroup = groups.filter { it.isPendingWallet() }
             wallets.forEach { wallet ->
-                val groupId = assistedWallets.find { it.localId == wallet.wallet.id }?.groupId
+                val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
+                val groupId = assistedWallet?.groupId
                 val group = groups.firstOrNull { it.id == groupId }
                 var groupWalletUi = GroupWalletUi(
                     wallet = wallet,
@@ -404,6 +408,7 @@ internal class WalletsViewModel @Inject constructor(
                         wallet = if (inviterName.isNotEmpty()) null else wallet,
                         group = group,
                         role = role,
+                        primaryOwnerMember = byzantineGroupUtils.getPrimaryOwnerMember(group, assistedWallet?.primaryMembershipId),
                         inviterName = inviterName
                     )
                 }

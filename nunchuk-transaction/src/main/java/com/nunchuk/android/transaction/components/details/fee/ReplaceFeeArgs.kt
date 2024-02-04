@@ -22,29 +22,34 @@ package com.nunchuk.android.transaction.components.details.fee
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.utils.parcelable
 
 data class ReplaceFeeArgs(
     val walletId: String,
-    val transaction: Transaction
+    val transaction: Transaction,
+    val rbfType: RbfType
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ReplaceFeeActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
         putExtra(EXTRA_TRANSACTION, transaction)
+        putExtra(EXTRA_TYPE, rbfType.value)
     }
 
     companion object {
-        private const val EXTRA_WALLET_ID = "a"
-        private const val EXTRA_TRANSACTION = "b"
+        const val EXTRA_WALLET_ID = "a"
+        const val EXTRA_TRANSACTION = "b"
+        private const val EXTRA_TYPE = "c"
 
         fun deserializeFrom(intent: Intent): ReplaceFeeArgs {
             val extras = intent.extras
             return ReplaceFeeArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
                 transaction = extras?.parcelable(EXTRA_TRANSACTION)!!,
+                rbfType = RbfType.fromValue(extras.getInt(EXTRA_TYPE))
             )
         }
     }

@@ -51,6 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -152,9 +153,11 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
             subtractFeeFromAmount = true,
             slots = emptyList(),
             sweepType = sweepType,
-            masterSignerId = args.signer.id,
-            magicalPhrase = args.magic.trim(),
-            derivationPath = args.derivationPath
+            claimInheritanceTxParam = ClaimInheritanceTxParam(
+                masterSignerIds = args.signers.map { it.id },
+                magicalPhrase = args.magic.trim(),
+                derivationPaths = args.derivationPaths.toList()
+            )
         )
     }
 
@@ -164,9 +167,11 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
                 slots = emptyArray(),
                 type = SelectWalletFragment.TYPE_INHERITANCE_WALLET,
                 walletBalance = viewModel.getBalance().toFloat(),
-                masterSignerId = args.signer.id,
-                magicalPhrase = args.magic.trim(),
-                derivationPath = args.derivationPath
+                claimInheritanceTxParam = ClaimInheritanceTxParam(
+                    masterSignerIds = args.signers.map { it.id },
+                    magicalPhrase = args.magic.trim(),
+                    derivationPaths = args.derivationPaths.toList()
+                )
             )
         )
     }

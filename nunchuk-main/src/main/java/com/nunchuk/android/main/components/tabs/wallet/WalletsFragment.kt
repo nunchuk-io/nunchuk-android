@@ -85,6 +85,8 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
@@ -493,6 +495,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             hideWalletDetail = hideWalletDetail,
                             badgeCount = it.badgeCount,
                             isLocked = it.group?.isLocked.orFalse(),
+                            primaryOwnerMember = it.primaryOwnerMember,
                             role = it.role,
                             onAccept = {
                                 it.group?.id?.let {
@@ -507,13 +510,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 }
                             },
                             onGroupClick = {
-                                if (it.group?.id != null) {
-                                    navigator.openGroupDashboardScreen(
-                                        groupId = it.group.id,
-                                        walletId = it.wallet?.wallet?.id,
-                                        activityContext = requireActivity()
-                                    )
-                                }
+                                if (it.group?.id == null || it.role.toRole.isKeyHolderLimited && it.badgeCount == 0) return@PendingWalletView
+                                navigator.openGroupDashboardScreen(
+                                    groupId = it.group.id,
+                                    walletId = it.wallet?.wallet?.id,
+                                    activityContext = requireActivity()
+                                )
                             },
                             onWalletClick = {
                                 if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name || it.group?.isLocked == true) return@PendingWalletView

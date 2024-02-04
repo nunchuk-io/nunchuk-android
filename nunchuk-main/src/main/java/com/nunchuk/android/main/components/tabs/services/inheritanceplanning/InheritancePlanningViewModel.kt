@@ -55,6 +55,10 @@ class InheritancePlanningViewModel @Inject constructor(
             setupOrReviewParam = param
         }
     }
+
+    fun getGroupWalletType(): GroupWalletType? {
+        return state.value.groupWalletType
+    }
 }
 
 data class InheritancePlanningState(

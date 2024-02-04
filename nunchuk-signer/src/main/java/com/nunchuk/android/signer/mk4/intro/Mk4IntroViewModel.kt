@@ -111,6 +111,11 @@ class Mk4IntroViewModel @Inject constructor(
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
+                    if (isTestNetPath(signer.derivationPath)) {
+                        _event.emit(Mk4IntroViewEvent.ErrorMk4TestNet)
+                        _event.emit(Mk4IntroViewEvent.Loading(false))
+                        return@launch
+                    }
                     if (!xfp.isNullOrEmpty() && signer.masterFingerprint != xfp) {
                         _event.emit(Mk4IntroViewEvent.XfpNotMatchException)
                         _event.emit(Mk4IntroViewEvent.Loading(false))

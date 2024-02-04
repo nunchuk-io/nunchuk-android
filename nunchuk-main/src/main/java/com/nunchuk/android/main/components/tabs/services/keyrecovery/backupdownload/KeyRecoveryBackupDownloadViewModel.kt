@@ -45,10 +45,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class KeyRecoveryBackupDownloadViewModel @Inject constructor(
-    private val verifyTapSignerBackupContentUseCase: VerifyTapSignerBackupContentUseCase,
     private val importTapsignerMasterSignerContentUseCase: ImportTapsignerMasterSignerContentUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @ApplicationContext private val context: Context,
     private val masterSignerMapper: MasterSignerMapper,
     private val markRecoverStatusUseCase: MarkRecoverStatusUseCase,
     savedStateHandle: SavedStateHandle

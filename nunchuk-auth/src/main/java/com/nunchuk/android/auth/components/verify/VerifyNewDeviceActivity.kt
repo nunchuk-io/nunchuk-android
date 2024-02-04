@@ -19,13 +19,25 @@
 
 package com.nunchuk.android.auth.components.verify
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.style.ForegroundColorSpan
+import android.text.style.MetricAffectingSpan
+import android.text.style.UnderlineSpan
+import android.view.MotionEvent
+import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.core.content.res.ResourcesCompat
 import com.nunchuk.android.auth.R
+import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.ProcessErrorEvent
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.ProcessingEvent
-import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.SignInErrorEvent
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.SignInSuccessEvent
 import com.nunchuk.android.auth.databinding.ActivityVerifyNewDeviceBinding
 import com.nunchuk.android.auth.util.getTextTrimmed
@@ -49,6 +61,9 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
     private val staySignedIn
         get() = intent.getBooleanExtra(EXTRAS_STAY_SIGNED_IN, false)
 
+    private var startResendText = 0
+    private var endResendText = 0
+
     override fun initializeBinding() = ActivityVerifyNewDeviceBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,16 +83,21 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
     private fun observeEvent() {
         viewModel.event.observe(this) {
             when (it) {
-                is SignInErrorEvent -> onSignInError(it.message)
+                is ProcessErrorEvent -> onHandleError(it.message)
                 is SignInSuccessEvent -> {
                     openMainScreen(it.token, it.encryptedDeviceId)
                 }
+
                 is ProcessingEvent -> showLoading()
+                is VerifyNewDeviceEvent.ResendVerifyCodeSuccessEvent -> {
+                    binding.tvConfirmInstruction.text = getConfirmInstructionText()
+                    hideLoading()
+                }
             }
         }
     }
 
-    private fun onSignInError(message: String) {
+    private fun onHandleError(message: String) {
         hideLoading()
         NCToastMessage(this).showError(message)
     }
@@ -98,10 +118,74 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupViews() {
-        binding.tvConfirmInstruction.text = getString(R.string.nc_text_verify_instruction, email)
         binding.btnContinue.setOnClickListener { onVerifyNewDeviceClick() }
         showToolbarBackButton()
+        binding.tvConfirmInstruction.text = getConfirmInstructionText()
+        binding.tvConfirmInstruction.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val x = event.x.toInt()
+                val y = event.y.toInt()
+
+                val layout = (v as TextView).layout
+                val line = layout.getLineForVertical(y)
+                val offset = layout.getOffsetForHorizontal(line, x.toFloat())
+
+                if (offset in startResendText until endResendText) {
+                    viewModel.handleResendVerifyNewDeviceCode(
+                        email = email.orEmpty(),
+                        loginHalfToken = loginHalfToken.orEmpty(),
+                        deviceId = deviceId.orEmpty(),
+                    )
+                    return@setOnTouchListener true
+                }
+            }
+            return@setOnTouchListener false
+        }
+    }
+
+    private fun getConfirmInstructionText(): SpannableString {
+        val resendText = getString(R.string.nc_text_resend_code)
+        val confirmInstructionText =
+            "${getString(R.string.nc_text_verify_instruction, email)} $resendText"
+        val start = confirmInstructionText.length - resendText.length
+        val end = confirmInstructionText.length
+        startResendText = start
+        endResendText = end
+        val textSpannable = SpannableString(confirmInstructionText).apply {
+            setSpan(UnderlineSpan(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(
+                ForegroundColorSpan(getColor(R.color.nc_primary_color)),
+                start,
+                end,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            runCatching {
+                val typefaceSpan =
+                    Typeface.create(
+                        ResourcesCompat.getFont(
+                            this@VerifyNewDeviceActivity,
+                            R.font.lato_bold
+                        ), Typeface.NORMAL
+                    )
+                val customTypefaceSpan = CustomTypefaceSpan(typefaceSpan)
+                setSpan(customTypefaceSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+        return textSpannable
+    }
+
+    private class CustomTypefaceSpan(private val typeface: Typeface) : MetricAffectingSpan() {
+        override fun updateMeasureState(p: TextPaint) {
+            p.typeface = typeface
+            p.flags = p.flags or Paint.SUBPIXEL_TEXT_FLAG
+        }
+
+        override fun updateDrawState(tp: TextPaint) {
+            tp.typeface = typeface
+            tp.flags = tp.flags or Paint.SUBPIXEL_TEXT_FLAG
+        }
     }
 
     private fun onVerifyNewDeviceClick() {

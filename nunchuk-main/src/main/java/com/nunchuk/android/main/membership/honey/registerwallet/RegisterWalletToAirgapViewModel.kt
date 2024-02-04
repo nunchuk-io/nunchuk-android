@@ -39,7 +39,7 @@ class RegisterWalletToAirgapViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun onExportColdcardClicked() {
+    fun onExportAirgapClicked() {
         viewModelScope.launch {
             _event.emit(RegisterWalletToAirgapEvent.ExportWalletToAirgap)
         }

@@ -52,11 +52,14 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.User
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.Utils
@@ -73,6 +76,7 @@ fun PendingWalletView(
     badgeCount: Int = 0,
     inviterName: String = "",
     isLocked: Boolean = false,
+    primaryOwnerMember: ByzantineMember? = null,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
     onGroupClick: () -> Unit = {},
@@ -142,6 +146,7 @@ fun PendingWalletView(
                     badgeCount = badgeCount,
                     isLocked = isLocked,
                     role = role,
+                    primaryOwnerMember = primaryOwnerMember,
                     inviterName = inviterName,
                     onAccept = onAccept,
                     onDeny = onDeny
@@ -184,6 +189,7 @@ fun RowScope.BottomContent(
     isLocked: Boolean = false,
     role: String = AssistedWalletRole.NONE.name,
     inviterName: String = "",
+    primaryOwnerMember: ByzantineMember? = null,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
 ) {
@@ -244,6 +250,49 @@ fun RowScope.BottomContent(
                     .padding(start = 4.dp)
                     .weight(1f, fill = true)
             )
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (badgeCount != 0) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp, 24.dp)
+                            .clip(CircleShape)
+                            .background(color = colorResource(id = R.color.nc_orange_color)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = badgeCount.toString(),
+                            style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
+                        )
+                    }
+                }
+
+                Icon(
+                    modifier = Modifier.padding(start = 12.dp),
+                    painter = painterResource(id = R.drawable.ic_arrow_expand),
+                    contentDescription = "Arrow"
+                )
+            }
+        }
+    } else if (role.toRole.isMasterOrAdmin && primaryOwnerMember != null) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AvatarView(
+                avatarUrl = primaryOwnerMember.user?.avatar.orEmpty(),
+                name = primaryOwnerMember.user?.name.orEmpty(),
+                isContact = primaryOwnerMember.isPendingRequest().not()
+            )
+
+            Text(modifier = Modifier.padding(start = 8.dp)
+                .weight(1f),
+                text = primaryOwnerMember.user?.name ?: primaryOwnerMember.emailOrUsername,
+                style = NunchukTheme.typography.titleSmall)
 
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -567,7 +616,8 @@ fun PendingWalletViewPreview() {
         isLocked = false,
         walletConfig = ByzantineWalletConfig(
             m = 2, n = 4, requiredServerKey = true, allowInheritance = true
-        )
+        ),
+        slug = MembershipPlan.BYZANTINE_PREMIER.name
     )
     val members = group.members.map {
         ByzantineMember(
@@ -592,7 +642,8 @@ fun PendingWalletViewPreview() {
                     isViewPendingWallet = true,
                     walletConfig = group.walletConfig,
                     setupPreference = group.setupPreference,
-                    isLocked = false
+                    isLocked = false,
+                    slug = MembershipPlan.BYZANTINE_PREMIER.name
                 ),
             )
         }

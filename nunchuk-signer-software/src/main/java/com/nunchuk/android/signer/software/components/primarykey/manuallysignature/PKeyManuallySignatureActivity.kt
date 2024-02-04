@@ -83,7 +83,10 @@ class PKeyManuallySignatureActivity : BaseActivity<ActivityPkeyManuallySignature
                 hideLoading()
                 NCToastMessage(this).showError(event.message)
             }
-            is PKeyManuallySignatureEvent.SignInSuccess -> viewModel.getTurnOnNotification()
+            is PKeyManuallySignatureEvent.SignInSuccess -> {
+                hideLoading()
+                viewModel.getTurnOnNotification()
+            }
             is PKeyManuallySignatureEvent.GetTurnOnNotificationSuccess -> openNextScreen(event.isTurnOn)
         }
     }

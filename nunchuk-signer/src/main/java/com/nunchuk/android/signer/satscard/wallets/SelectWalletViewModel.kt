@@ -23,7 +23,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
-import com.nunchuk.android.core.util.SATOSHI_BTC_EXCHANGE_RATE
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.Transaction
@@ -34,7 +33,15 @@ import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -124,13 +131,14 @@ class SelectWalletViewModel @Inject constructor(
 
     fun createInheritanceTransaction() = viewModelScope.launch {
         _event.emit(SelectWalletEvent.Loading(isLoading = true, isClaimInheritance = true))
+        val claimInheritanceTxParam = args.claimInheritanceTxParam
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
                 address = _state.value.selectWalletAddress,
                 feeRate = _state.value.feeRates.priorityRate.toAmount(),
-                masterSignerId = args.masterSignerId,
-                magic = args.magicalPhrase,
-                derivationPath = args.derivationPath,
+                masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
+                magic = claimInheritanceTxParam?.magicalPhrase.orEmpty(),
+                derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                 isDraft = false
             )
         )

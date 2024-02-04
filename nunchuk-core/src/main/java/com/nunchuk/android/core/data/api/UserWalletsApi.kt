@@ -24,6 +24,7 @@ import com.nunchuk.android.core.data.model.byzantine.*
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.network.Data
+import com.nunchuk.android.model.DownloadBackupKeyResponseData
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.KeyResponseData
 import com.nunchuk.android.model.KeyVerifiedRequest
@@ -69,6 +70,11 @@ internal interface UserWalletsApi {
     @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}")
     suspend fun updateWallet(
         @Path("wallet_id_or_local_id") walletLocalId: String, @Body payload: UpdateWalletPayload
+    ): Data<CreateOrUpdateWalletResponse>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}")
+    suspend fun getWallet(
+        @Path("wallet_id_or_local_id") walletLocalId: String
     ): Data<CreateOrUpdateWalletResponse>
 
     @GET("/v1.1/user-wallets/wallets")
@@ -242,10 +248,10 @@ internal interface UserWalletsApi {
         @HeaderMap headers: Map<String, String>, @Body payload: InheritanceClaimStatusRequest
     ): Data<InheritanceClaimStatusResponse>
 
-    @POST("/v1.1/user-wallets/inheritance/claiming/download-backup")
-    suspend fun inheritanceClaimingDownloadBackup(
+    @POST("/v1.1/user-wallets/inheritance/claiming/download-backups")
+    suspend fun inheritanceClaimingDownloadBackups(
         @Body payload: InheritanceClaimDownloadBackupRequest
-    ): Data<KeyResponse>
+    ): Data<DownloadBackupKeyResponseData>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/create-transaction")
     suspend fun inheritanceClaimingCreateTransaction(
@@ -257,11 +263,6 @@ internal interface UserWalletsApi {
     suspend fun inheritanceClaimingClaim(
         @Body payload: InheritanceClaimClaimRequest
     ): Data<TransactionResponse>
-
-    @POST("/v1.1/user-wallets/inheritance/claiming/check-valid")
-    suspend fun inheritanceClaimingCheckValid(
-        @Body payload: InheritanceClaimCheckValidRequest
-    ): Data<InheritanceClaimCheckValidResponse>
 
     @HTTP(method = "DELETE", path = "/v1.1/user-wallets/inheritance", hasBody = true)
     suspend fun inheritanceCancel(
@@ -377,4 +378,21 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Query("offset") offset: Int
     ): Data<TransactionNoteResponse>
+
+    @PUT("/v1.1/user-wallets/inheritance/request-planning/{request_id}/deny")
+    suspend fun denyInheritanceRequestPlanning(
+        @Path("request_id") requestId: String, @QueryMap query: Map<String, String>
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/inheritance/request-planning/{request_id}/approve")
+    suspend fun approveInheritanceRequestPlanning(
+        @Path("request_id") requestId: String, @QueryMap query: Map<String, String>
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/rbf")
+    suspend fun replaceTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: CreateOrUpdateServerTransactionRequest
+    ): Data<TransactionResponse>
 }

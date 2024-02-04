@@ -29,12 +29,15 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
@@ -59,8 +62,21 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     @Inject
     lateinit var initNunchukUseCase: InitNunchukUseCase
 
+    @Inject
+    lateinit var getUserProfileUseCase: GetUserProfileUseCase
+
+    @Inject
+    lateinit var applicationScope: CoroutineScope
+
     private val foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
-        onResumeAppCallback = { AppEvenBus.instance.publish(AppEvent.AppResumedEvent) }
+        onResumeAppCallback = {
+            AppEvenBus.instance.publish(AppEvent.AppResumedEvent)
+            if (accountManager.getAccount().token.isNotEmpty()) {
+                applicationScope.launch {
+                    getUserProfileUseCase(Unit)
+                }
+            }
+        }
     )
 
     override fun onCreate() {

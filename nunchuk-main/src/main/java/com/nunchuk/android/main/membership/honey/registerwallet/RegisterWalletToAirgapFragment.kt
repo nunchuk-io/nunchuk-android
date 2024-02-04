@@ -114,7 +114,7 @@ private fun RegisterWalletToAirgapScreen(viewModel: RegisterWalletToAirgapViewMo
     val remainingTime by viewModel.remainTime.collectAsStateWithLifecycle()
     RegisterWalletToAirgapContent(
         remainingTime = remainingTime,
-        onExportToColdcardClicked = viewModel::onExportColdcardClicked
+        onExportToColdcardClicked = viewModel::onExportAirgapClicked
     )
 }
 

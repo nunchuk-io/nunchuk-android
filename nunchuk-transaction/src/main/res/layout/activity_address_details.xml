@@ -61,6 +61,19 @@
         app:layout_constraintTop_toBottomOf="@+id/address"
         tools:text="Address balance: 1.00000001 BTC" />
 
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/derivationPath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_text_size_16"
+        android:gravity="center"
+        android:paddingHorizontal="@dimen/nc_text_size_16"
+        style="@style/NCText.Body.Small"
+        android:textColor="@color/nc_grey_dark_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/balance"
+        tools:text="Path: m/84h/0h/0h/0/3" />
+
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnClose"
         style="@style/NCPrimaryButton.Dark"

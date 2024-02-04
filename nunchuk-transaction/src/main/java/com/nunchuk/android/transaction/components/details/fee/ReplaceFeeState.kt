@@ -20,14 +20,19 @@
 package com.nunchuk.android.transaction.components.details.fee
 
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.Transaction
 
 data class ReplaceFeeState(
-    val estimateFeeRates: EstimateFeeRates = EstimateFeeRates(),
-    val manualFeeRate: Int = estimateFeeRates.standardRate
+    val fee: EstimateFeeRates = EstimateFeeRates(),
+    val manualFeeRate: Int = fee.standardRate,
+    val previousFeeRate: Int = 0,
 )
 
 sealed class ReplaceFeeEvent {
-    class Loading(val isLoading: Boolean) : ReplaceFeeEvent()
-    class ReplaceTransactionSuccess(val newTxId: String) : ReplaceFeeEvent()
-    class ShowError(val e: Throwable?) : ReplaceFeeEvent()
+    data class Loading(val isLoading: Boolean) : ReplaceFeeEvent()
+    data class ReplaceTransactionSuccess(val newTxId: String) : ReplaceFeeEvent()
+    data class DraftTransactionSuccess(val transaction: Transaction, val newFee: Int) :
+        ReplaceFeeEvent()
+
+    data class ShowError(val e: Throwable?) : ReplaceFeeEvent()
 }

@@ -48,7 +48,7 @@ fun String.convertToQRCode(width: Int = WIDTH, height: Int = WIDTH, margin: Int 
     }
     // val filePath = "${Environment.getExternalStorageDirectory()}/${System.currentTimeMillis()}.png"
     // bitmap.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(filePath))
-    return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+    return Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565).apply {
         setPixels(pixels, 0, width, 0, 0, width, height)
     }
 }

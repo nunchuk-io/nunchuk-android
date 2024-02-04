@@ -32,7 +32,10 @@ import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.replaceLastWord
 import com.nunchuk.android.main.util.ChecksumUtil
+import com.nunchuk.android.model.BackupKey
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result
+import com.nunchuk.android.usecase.DeleteMasterSignerUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -50,6 +53,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
     private val importTapsignerMasterSignerContentUseCase: ImportTapsignerMasterSignerContentUseCase,
     private val masterSignerMapper: MasterSignerMapper,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
+    private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<InheritanceClaimInputEvent>()
@@ -71,31 +75,38 @@ class InheritanceClaimInputViewModel @Inject constructor(
 
     fun downloadBackupKey() = viewModelScope.launch {
         val stateValue = _state.value
-        if (stateValue.magicalPhrase.isBlank() || stateValue.backupPassword.isBlank()) return@launch
+        if (stateValue.magicalPhrase.isBlank()) return@launch
         _event.emit(InheritanceClaimInputEvent.Loading(true))
         val result = inheritanceClaimDownloadBackupUseCase(stateValue.magicalPhrase)
         _event.emit(InheritanceClaimInputEvent.Loading(false))
         if (result.isSuccess) {
-            val backupKey = result.getOrThrow()
-            val backupData = Base64.decode(backupKey.keyBackUpBase64, Base64.DEFAULT)
-            if (ChecksumUtil.verifyChecksum(backupData, backupKey.keyCheckSum)) {
+            val backupKeys = result.getOrThrow()
+            if (backupKeys.size != stateValue.backupPasswords.size) return@launch
+            val importMasterSigners = ArrayList<MasterSigner>()
+            backupKeys.forEachIndexed { index, backupKey ->
+                val backupData = Base64.decode(backupKey.keyBackUpBase64, Base64.DEFAULT)
+                if (ChecksumUtil.verifyChecksum(backupData, backupKey.keyCheckSum).not()) return@launch
                 val resultImport = importTapsignerMasterSignerContentUseCase(
                     ImportTapsignerMasterSignerContentUseCase.Param(
                         backupData,
-                        stateValue.backupPassword,
-                        INHERITED_KEY_NAME
+                        stateValue.backupPasswords[index],
+                        "$INHERITED_KEY_NAME #${index + 1}"
                     )
                 )
                 if (resultImport.isSuccess) {
-                    getStatus(
-                        masterSignerMapper(resultImport.getOrThrow()),
-                        stateValue.magicalPhrase,
-                        result.getOrThrow().derivationPath
-                    )
+                    importMasterSigners.add(resultImport.getOrThrow())
                 } else {
                     _event.emit(InheritanceClaimInputEvent.Error(resultImport.exceptionOrNull()?.message.orUnknownError()))
+                    return@forEachIndexed
                 }
             }
+            if (importMasterSigners.size != stateValue.backupPasswords.size) {
+                importMasterSigners.forEach {
+                    deleteMasterSignerUseCase(it.id)
+                }
+                return@launch
+            }
+            getStatus(importMasterSigners, stateValue.magicalPhrase, backupKeys)
         } else {
             val exception = result.exceptionOrNull()
             if (exception is NunchukApiException) {
@@ -110,14 +121,16 @@ class InheritanceClaimInputViewModel @Inject constructor(
         }
     }
 
-    private fun getStatus(signer: SignerModel, magic: String, derivationPath: String) =
+    private fun getStatus(masterSigners: List<MasterSigner>, magic: String, backupKeys: List<BackupKey>) =
         viewModelScope.launch {
             _event.emit(InheritanceClaimInputEvent.Loading(true))
+            val signers = masterSigners.map { masterSignerMapper(it) }
+            val derivationPaths = backupKeys.map { it.derivationPath }
             val result = getInheritanceClaimStateUseCase(
                 GetInheritanceClaimStateUseCase.Param(
-                    signer = signer,
+                    signerModels = signers,
                     magic = magic,
-                    derivationPath = derivationPath
+                    derivationPaths = derivationPaths
                 )
             )
             _event.emit(InheritanceClaimInputEvent.Loading(false))
@@ -125,9 +138,9 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 _event.emit(
                     InheritanceClaimInputEvent.GetInheritanceStatusSuccess(
                         inheritanceAdditional = result.getOrThrow(),
-                        signer = signer,
+                        signers = signers,
                         magic = magic,
-                        derivationPath = derivationPath
+                        derivationPaths = derivationPaths
                     )
                 )
             } else {
@@ -135,8 +148,10 @@ class InheritanceClaimInputViewModel @Inject constructor(
             }
         }
 
-    fun updateBackupPassword(password: String) {
-        _state.update { it.copy(backupPassword = password) }
+    fun updateBackupPassword(password: String, index: Int) {
+        val updatedPasswords = _state.value.backupPasswords.toMutableList()
+        updatedPasswords[index] = password
+        _state.update { it.copy(backupPasswords = updatedPasswords) }
     }
 
     fun handleInputEvent(mnemonic: String) {

@@ -148,6 +148,14 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+        <action
+            android:id="@+id/action_groupDashboardFragment_to_inheritanceRequestPlanningConfirmFragment"
+            app:destination="@id/inheritanceRequestPlanningConfirmFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />
@@ -333,6 +341,5 @@
             android:name="address"
             app:argType="string" />
     </fragment>
-
 
 </navigation>

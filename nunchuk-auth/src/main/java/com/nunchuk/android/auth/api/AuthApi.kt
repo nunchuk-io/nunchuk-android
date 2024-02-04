@@ -40,6 +40,11 @@ interface AuthApi {
         @Body verifyPayload: VerifyNewDevicePayload
     ): Data<UserTokenResponse>
 
+    @POST("passport/sign-in/resend-verify-new-device-code")
+    suspend fun resendVerifyNewDeviceCode(
+        @Body verifyPayload: ResendVerifyNewDeviceCodePayload
+    ): Data<Unit>
+
     @POST("passport/recover-password")
     suspend fun recoverPassword(
         @Body recoverPasswordPayload: RecoverPasswordPayload

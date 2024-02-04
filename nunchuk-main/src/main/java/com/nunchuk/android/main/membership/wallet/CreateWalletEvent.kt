@@ -22,11 +22,12 @@ package com.nunchuk.android.main.membership.wallet
 sealed class CreateWalletEvent {
     data class Loading(val isLoading: Boolean) : CreateWalletEvent()
     data class ShowError(val message: String) : CreateWalletEvent()
-    data class OnCreateWalletSuccess(val walletId: String, val coldcardCount: Int, val airgapCount: Int,) : CreateWalletEvent()
+    data class OnCreateWalletSuccess(val walletId: String, val airgapCount: Int) : CreateWalletEvent()
 }
 
 data class CreateWalletState(
     val walletName: String = "",
+    val primaryMembershipId: String? = null,
 ) {
     companion object {
         val EMPTY = CreateWalletState()

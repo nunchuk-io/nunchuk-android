@@ -21,9 +21,11 @@ package com.nunchuk.android.main.components.tabs.wallet
 
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
+import com.nunchuk.android.model.User
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -75,5 +77,6 @@ internal data class GroupWalletUi(
     val role: String = AssistedWalletRole.NONE.name,
     val inviterName: String = "",
     val isAssistedWallet: Boolean = false,
-    val badgeCount: Int = 0
+    val badgeCount: Int = 0,
+    val primaryOwnerMember: ByzantineMember?= null,
 )

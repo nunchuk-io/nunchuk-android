@@ -59,9 +59,8 @@
             app:argType="float" />
 
         <argument
-            android:name="master_signer_id"
-            android:defaultValue=""
-            app:argType="string" />
+            android:name="master_signer_ids"
+            app:argType="string[]" />
 
         <argument
             android:name="magical_phrase"
@@ -69,9 +68,8 @@
             app:argType="string" />
 
         <argument
-            android:name="derivation_path"
-            android:defaultValue=""
-            app:argType="string" />
+            android:name="derivation_paths"
+            app:argType="string[]" />
     </fragment>
     <fragment
         android:id="@+id/satsCardSlotQrFragment"

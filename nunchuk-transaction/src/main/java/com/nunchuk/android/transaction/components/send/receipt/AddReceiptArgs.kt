@@ -22,12 +22,15 @@ package com.nunchuk.android.transaction.components.send.receipt
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.nfc.NfcViewModel.Companion.EXTRA_MASTER_SIGNER_ID
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
 
@@ -40,10 +43,8 @@ data class AddReceiptArgs(
     val address: String = "",
     val privateNote: String = "",
     val sweepType: SweepType,
-    val masterSignerId: String = "",
-    val magicalPhrase: String = "",
-    val derivationPath: String = "",
     val inputs: List<UnspentOutput>,
+    val claimInheritanceTxParam: ClaimInheritanceTxParam? = null
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -56,9 +57,7 @@ data class AddReceiptArgs(
             putExtra(EXTRA_ADDRESS, address)
             putExtra(EXTRA_PRIVATE_NOTE, privateNote)
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
-            putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
-            putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
-            putExtra(EXTRA_DERIVATION_PATH, derivationPath)
+            putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
             putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
         }
 
@@ -71,9 +70,7 @@ data class AddReceiptArgs(
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_ADDRESS = "EXTRA_ADDRESS"
         private const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
-        private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
-        private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
-        private const val EXTRA_DERIVATION_PATH = "EXTRA_DERIVATION_PATH"
+        private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
         private const val EXTRA_INPUT = "EXTRA_INPUT"
 
         fun deserializeFrom(intent: Intent) = AddReceiptArgs(
@@ -85,10 +82,8 @@ data class AddReceiptArgs(
             intent.extras.getStringValue(EXTRA_ADDRESS),
             intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
             intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
-            intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
-            intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE),
-            intent.extras.getStringValue(EXTRA_DERIVATION_PATH),
             intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
+            intent.extras?.parcelable<ClaimInheritanceTxParam>(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
         )
     }
 }

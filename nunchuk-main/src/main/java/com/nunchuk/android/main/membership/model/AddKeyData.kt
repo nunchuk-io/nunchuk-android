@@ -40,7 +40,9 @@ val MembershipStep.resId: Int
         return when (this) {
             MembershipStep.ADD_SEVER_KEY -> R.drawable.ic_server_key_dark
             MembershipStep.HONEY_ADD_TAP_SIGNER,
-            MembershipStep.BYZANTINE_ADD_TAP_SIGNER -> R.drawable.ic_nfc_card
+            MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
+            MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> R.drawable.ic_nfc_card
+
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
@@ -50,6 +52,7 @@ val MembershipStep.resId: Int
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> R.drawable.ic_hardware_key
+
             else -> 0
         }
     }
@@ -61,6 +64,7 @@ fun MembershipStep.getLabel(context: Context): String {
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> "Hardware key #1"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
         MembershipStep.HONEY_ADD_TAP_SIGNER, MembershipStep.BYZANTINE_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
+        MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> "$TAPSIGNER_INHERITANCE_NAME #2"
         MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "Hardware key #2"
         MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> "Hardware key #3"
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> "Hardware key #4"

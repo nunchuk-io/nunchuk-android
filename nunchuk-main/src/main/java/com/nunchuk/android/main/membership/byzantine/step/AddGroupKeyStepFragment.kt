@@ -85,9 +85,6 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                 AddKeyStepEvent.OpenCreateWallet -> handleOpenCreateWallet()
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
-                is AddKeyStepEvent.OpenRegisterColdCard -> handleOpenRegisterColdcard(
-                    event.walletId,
-                )
             }
         }
     }
@@ -95,16 +92,6 @@ class AddGroupKeyStepFragment : MembershipFragment() {
     override fun onResume() {
         super.onResume()
         viewModel.refresh()
-    }
-
-    private fun handleOpenRegisterColdcard(walletId: String) {
-        findNavController().navigate(
-            AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToRegisterWalletToColdcardFragment(
-                walletId,
-                viewModel.getRegisterColdcardIndex(),
-                viewModel.getRegisterAirgapIndex(),
-            )
-        )
     }
 
     private fun handleOpenRegisterAirgap(walletId: String) {
@@ -145,7 +132,6 @@ fun AddKeyStepScreen(viewModel: AddGroupKeyStepViewModel) {
     val isSetupRecoverKeyDone by viewModel.isSetupRecoverKeyDone.collectAsStateWithLifecycle()
     val isCreateWalletDone by viewModel.isCreateWalletDone.collectAsStateWithLifecycle()
     val isRegisterAirgap by viewModel.isRegisterAirgap.collectAsStateWithLifecycle()
-    val isRegisterColdcard by viewModel.isRegisterColdcard.collectAsStateWithLifecycle()
     val groupRemainTime by viewModel.groupRemainTime.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -153,7 +139,7 @@ fun AddKeyStepScreen(viewModel: AddGroupKeyStepViewModel) {
         uiState = uiState,
         isConfigKeyDone = isConfigKeyDone,
         isSetupRecoverKeyDone = isSetupRecoverKeyDone,
-        isCreateWalletDone = isCreateWalletDone && isRegisterAirgap && isRegisterColdcard,
+        isCreateWalletDone = isCreateWalletDone && isRegisterAirgap,
         isShowMoreOption = isCreateWalletDone.not(),
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,

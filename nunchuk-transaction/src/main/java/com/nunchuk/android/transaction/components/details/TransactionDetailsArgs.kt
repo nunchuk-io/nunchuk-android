@@ -35,7 +35,8 @@ data class TransactionDetailsArgs(
     val transaction: Transaction?,
     val isInheritanceClaimingFlow: Boolean,
     val isCancelBroadcast: Boolean,
-    val errorMessage: String
+    val errorMessage: String,
+    val isRequestSignatureFlow: Boolean = false,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -48,6 +49,7 @@ data class TransactionDetailsArgs(
             putExtra(EXTRA_INHERITANCE_CLAIMING_FLOW, isInheritanceClaimingFlow)
             putExtra(EXTRA_IS_CANCEL_BROADCAST, isCancelBroadcast)
             putExtra(EXTRA_ERROR_MESSAGE, errorMessage)
+            putExtra(EXTRA_REQUEST_SIGNATURE_FLOW, isRequestSignatureFlow)
         }
 
     companion object {
@@ -59,6 +61,7 @@ data class TransactionDetailsArgs(
         private const val EXTRA_INHERITANCE_CLAIMING_FLOW = "EXTRA_INHERITANCE_CLAIMING_FLOW"
         private const val EXTRA_IS_CANCEL_BROADCAST = "EXTRA_IS_CANCEL_BROADCAST"
         private const val EXTRA_ERROR_MESSAGE = "EXTRA_ERROR_MESSAGE"
+        private const val EXTRA_REQUEST_SIGNATURE_FLOW = "EXTRA_REQUEST_SIGNATURE_FLOW"
 
         fun deserializeFrom(intent: Intent): TransactionDetailsArgs {
             val extras = intent.extras
@@ -70,7 +73,8 @@ data class TransactionDetailsArgs(
                 transaction = extras?.parcelable(EXTRA_TRANSACTION),
                 isInheritanceClaimingFlow = extras.getBooleanValue(EXTRA_INHERITANCE_CLAIMING_FLOW),
                 isCancelBroadcast = extras.getBooleanValue(EXTRA_IS_CANCEL_BROADCAST),
-                errorMessage = extras.getStringValue(EXTRA_ERROR_MESSAGE)
+                errorMessage = extras.getStringValue(EXTRA_ERROR_MESSAGE),
+                isRequestSignatureFlow = extras.getBooleanValue(EXTRA_REQUEST_SIGNATURE_FLOW),
             )
         }
     }

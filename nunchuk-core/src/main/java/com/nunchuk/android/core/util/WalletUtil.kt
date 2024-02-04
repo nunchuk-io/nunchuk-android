@@ -80,6 +80,8 @@ fun Double.toAmount() = Amount().copy(value = (this * BTC_SATOSHI_EXCHANGE_RATE)
 
 fun Int.toAmount() = Amount().copy(value = this.toLong())
 
+fun Long.toAmount() = Amount(value = this)
+
 fun String.toNumericValue(locale: Locale = Locale.US): Number = try {
     NumberFormat.getInstance(locale).parse(this) ?: 0.0
 } catch (t: Exception) {

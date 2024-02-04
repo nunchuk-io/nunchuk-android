@@ -31,7 +31,9 @@
     <string name="nc_activation_date">Activation Date</string>
     <string name="nc_plan_overview_bottom_desc">We will now go through them one-by-one.</string>
     <string name="nc_find_backup_password_desc">In your wallet, you have designated a TAPSIGNER to be the inheritance key. An encrypted backup of this key is stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_find_two_backup_password_desc">In your wallet, you have designated two TAPSIGNERs to be the inheritance keys. The encrypted backups of these keys are stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover these keys using the Backup Passwords printed on the back of the TAPSIGNERs.\n\n[B]Make note of the two Backup Passwords[/B]. You will need to share them with the Beneficiary or Trustee.</string>
     <string name="nc_find_backup_password">Find your Backup Password</string>
+    <string name="nc_find_backup_passwords">Find your Backup Passwords</string>
     <string name="nc_set_up_inheritance_hint">[B]Beneficiary[/B]: an individual who will inherit your bitcoins.\n\n[B]Trustee[/B]: an individual who will help manage and distribute your bitcoins to the Beneficiary.</string>
     <string name="nc_here_is_plan_magical_phrase">Here is your plan’s Magic Phrase</string>
     <string name="nc_inheritance_key_tip">Inheritance key tip</string>
@@ -46,8 +48,6 @@
     <string name="nc_try_assisted_wallet_desc">All Bitcoin features work exactly the same on testnet as they would on the real blockchain. See if an assisted wallet is a good fit for you by trying it out on testnet.</string>
     <string name="nc_try_assisted_wallet_hint">The testnet is an alternative Bitcoin blockchain used for testing. Testnet coins are separate and distinct from actual bitcoins and they do not hold any value.</string>
     <string name="nc_hint_config_spending_limit">You can bypass the spending limit by signing transactions using two of your own keys.</string>
-    <string name="nc_key_reuse_desc">Do you want to reuse the keys from one of the existing assisted wallets?</string>
-    <string name="nc_group_key_reuse_desc">Do you want to reuse the keys from one of the existing group wallets?</string>
     <string name="nc_seedsigner">SeedSigner</string>
     <string name="nc_main_add_ledger_desc">To use Ledger with your assisted wallet, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
     <string name="nc_main_add_trezor_desc">To use Trezor with your assisted wallet, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
@@ -70,7 +70,7 @@
     <string name="nc_2_of_4_multisig_title">2-of-4 multisig with inheritance planning</string>
     <string name="nc_2_of_3_multisig_title">2-of-3 multisig without inheritance planning</string>
     <string name="nc_3_of_5_multisig_title">3-of-5 multisig without inheritance planning</string>
-    <string name="nc_2_of_4_multisig_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key on our secure server to assist in inheritance planning and daily wallet operation.</string>
+    <string name="nc_2_of_4_multisig_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key on a secure server to assist in inheritance planning and daily wallet operation.</string>
     <string name="nc_2_of_3_multisig_desc">A master account and secondary account(s) control three keys; Nunchuk does not control any keys.</string>
     <string name="nc_3_of_5_multisig_desc">A master account and secondary account(s) control five keys; Nunchuk does not control any keys.</string>
     <string name="nc_main_select_group_wallet_type">Select group wallet type</string>
@@ -83,6 +83,8 @@
     <string name="nc_apply_the_same_limit">Apply the same limit to all members</string>
     <string name="nc_invite_members">Invite members</string>
     <string name="nc_invite_members_desc">Enter the members’ emails and roles. You can have up to 3 keyholders (including the master account) and an unlimited number of observers.</string>
+    <string name="nc_invite_members_3_of_5_pro_desc">Enter the members’ emails and roles. You can have up to 4 keyholders (including the master account) and an unlimited number of observers.</string>
+    <string name="nc_invite_members_3_of_5_standard_desc">Enter the members’ emails and roles. You can have up to 5 keyholders (including the master account) and an unlimited number of observers.</string>
     <string name="nc_member_data">Member %1$s</string>
     <string name="nc_email_address">Email address</string>
     <string name="nc_add_more_members">Add more members</string>
@@ -103,10 +105,11 @@
     <string name="nc_primary_key_admin_role_message_dialog">An admin must have an email-based account.</string>
     <string name="nc_limit_keyholder_message_dialog">Please make sure that you have no more than %1$s keyholders.</string>
     <string name="nc_remove_member_inheritance_message_dialog">This member is currently in charge of the inheritance plan for this wallet. Please cancel the plan first.</string>
-    <string name="nc_byzantine_add_key_2_of_4_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nYour group will have possession of three keys. The fourth key will be held by Nunchuk on our secure server.\n\nAmong your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.\n\nPull to refresh the key statuses.</string>
-    <string name="nc_byzantine_add_key_2_of_4_no_inheritance_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nYour group will have possession of three keys. The fourth key will be held by Nunchuk on our secure server.\n\nPull to refresh the key statuses.</string>
+    <string name="nc_byzantine_add_key_2_of_4_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nAmong your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.\n\nPull to refresh the key statuses.</string>
+    <string name="nc_byzantine_add_key_2_of_4_no_inheritance_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_2_of_3_desc">Your new wallet will be a 2-of-3 multisig wallet. [B]Two keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_3_of_5_desc">Your new wallet will be a 3-of-5 multisig wallet. [B]Three keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
+    <string name="nc_byzantine_add_key_3_of_5_inheritance_desc">Your new wallet will be a 3-of-5 multisig wallet. [B]Three keys are always required for spending[/B].\n\nAmong your keys, select two keys to be the inheritance keys. They must be TAPSIGNERs.\n\nPull to refresh the key statuses.</string>
     <string name="nc_pending_wallet">Pending wallet</string>
     <string name="nc_wallet_invitation">Wallet invitation</string>
     <string name="nc_accept">Accept</string>
@@ -198,13 +201,13 @@
     <string name="nc_add_recurring_payments">Add recurring payment</string>
     <string name="nc_recurring_payments_intro_desc">Recurring payments allow you to automatically create transactions that send bitcoins to a predefined destination wallet or addresses at scheduled intervals.</string>
     <string name="nc_customize_key_account">Customize key account</string>
-    <string name="nc_custom_key_account_desc">Would you like to use a different account on this key? Using a new account helps prevent key reuse and improve privacy.</string>
+    <string name="nc_custom_key_account_desc">Would you like to customize the account used for this key? Using a new account per wallet helps prevent key reuse and improve privacy.</string>
     <string name="nc_last_used_account">Last used account</string>
     <string name="nc_new_account">New account</string>
     <string name="nc_security_tip">Security tip</string>
     <string name="nc_security_tip_desc">For maximum security, keep your keys geographically distributed.</string>
     <string name="nc_master_signer_new_index_not_available">New account data needed. Please use the desktop app to connect your device so that the new account can be loaded.</string>
-    <string name="nc__2_of_4_multisig_without_inheritance_planning">2-of-4 multisig without inheritance planning</string>
+    <string name="nc_2_of_4_multisig_without_inheritance_planning">2-of-4 multisig without inheritance planning</string>
     <string name="nc_2_of_4_no_inheritance_desc">A master account and secondary account(s) control three keys; Nunchuk holds the fourth key.</string>
     <string name="nc_key_recovery_approved">Key recovery approved</string>
     <string name="nc_key_recovery_request_sent">Key recovery request sent</string>
@@ -262,7 +265,6 @@
     <string name="nc_economy_fee_rate_desc">Typically allow the payment to be confirmed in 3 blocks or more. Maximum fee savings. However when fees spike it could take much longer and the payment might subsequently need to be fee-bumped and signed again.</string>
     <string name="nc_payment_fee_rate_title">Please select the fee rate for the recurring payment.</string>
     <string name="nc_payment_cosign_enable_warning">This recurring payment enables the platform key to automatically co-sign. Only 1 signature (from any keyholder) is required for each payment.</string>
-    <string name="nc_fee_rate">Fee rate</string>
     <string name="nc_review_recurring_payment">Review recurring payment</string>
     <string name="nc_recurring_payment_request">Recurring payment request</string>
     <plurals name="nc_approve_signatures_pending">
@@ -307,4 +309,9 @@
     <string name="nc_approve">Approve</string>
     <string name="nc_coldcard_index_not_match">The account imported does not match the account that you entered (%1$d). Please try again.</string>
     <string name="nc_new_account_needed_airgap">New account data needed. Please import your key again using the given account.</string>
+    <string name="nc_3_of_5_multisig_with_inheritance_planning">3-of-5 multisig with inheritance planning</string>
+    <string name="nc_3_of_5_multisig_without_inheritance_planning">3-of-5 multisig without inheritance planning</string>
+    <string name="nc_3_of_5_multisig_with_inheritance_planning_desc">A master account and secondary account(s) control four keys; Nunchuk holds the fifth key on a secure server to assist in inheritance planning and daily wallet operation.</string>
+    <string name="nc_3_of_5_multisig_without_inheritance_planning_desc">A master account and secondary account(s) control four keys; Nunchuk holds the fifth key on a secure server to assist in daily wallet operation.</string>
+    <string name="nc_primary_owner_update_success">Primary owner updated</string>
 </resources>

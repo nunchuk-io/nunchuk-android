@@ -32,4 +32,6 @@ interface PushNotificationIntentProvider {
     ): Intent
 
     fun getGeneralIntent(walletId: String?, groupId: String?, transactionId: String?): Intent
+
+    fun getAliasIntent(walletId: String): Intent
 }

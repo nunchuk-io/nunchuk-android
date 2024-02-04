@@ -31,5 +31,10 @@ sealed class PushEvent {
     data class GroupWalletCreated(val walletId: String) : PushEvent()
     data class GroupEmergencyLockdownStarted(val walletId: String) : PushEvent()
     data object KeyAddedToGroup : PushEvent()
-    data object OpenRegisterWallet : PushEvent()
+    data object DismissGroupWalletCreatedAlert : PushEvent()
+    data class SignedTxSuccess(val txId: String) : PushEvent()
+    data class WalletChanged(val walletId: String) : PushEvent()
+    data class PrimaryOwnerUpdated(val walletId: String) : PushEvent()
+    data class SignedChanged(val xfp: String) : PushEvent()
+    data class CoinUpdated(val walletId: String) : PushEvent()
 }

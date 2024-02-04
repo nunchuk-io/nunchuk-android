@@ -23,7 +23,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
@@ -56,12 +58,14 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     override fun openAddressDetailsScreen(
         activityContext: Activity,
         address: String,
-        balance: String
+        balance: String,
+        walletId: String
     ) {
         AddressDetailsActivity.start(
             activityContext = activityContext,
             address = address,
-            balance = balance
+            balance = balance,
+            walletId = walletId
         )
     }
 
@@ -91,10 +95,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         subtractFeeFromAmount: Boolean,
         slots: List<SatsCardSlot>,
         sweepType: SweepType,
-        masterSignerId: String,
-        magicalPhrase: String,
-        derivationPath: String,
-        inputs: List<UnspentOutput>
+        inputs: List<UnspentOutput>,
+        claimInheritanceTxParam: ClaimInheritanceTxParam?,
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -106,9 +108,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             privateNote = privateNote,
             slots = slots,
             sweepType = sweepType,
-            masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase,
-            derivationPath = derivationPath,
+            claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs
         )
     }
@@ -122,10 +122,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         subtractFeeFromAmount: Boolean,
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
-        masterSignerId: String,
-        magicalPhrase: String,
-        derivationPath: String,
-        inputs: List<UnspentOutput>
+        inputs: List<UnspentOutput>,
+        claimInheritanceTxParam: ClaimInheritanceTxParam?,
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -136,9 +134,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = sweepType,
             slots = slots,
-            masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase,
-            derivationPath = derivationPath,
+            claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs,
         )
     }
@@ -154,10 +150,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         manualFeeRate: Int,
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
-        masterSignerId: String,
-        magicalPhrase: String,
-        derivationPath: String,
-        inputs: List<UnspentOutput>
+        inputs: List<UnspentOutput>,
+        claimInheritanceTxParam: ClaimInheritanceTxParam?,
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -170,9 +164,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             manualFeeRate = manualFeeRate,
             sweepType = sweepType,
             slots = slots,
-            masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase,
-            derivationPath = derivationPath,
+            claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs
         )
     }
@@ -184,7 +176,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         initEventId: String,
         roomId: String,
         transaction: Transaction?,
-        isInheritanceClaimingFlow: Boolean
+        isInheritanceClaimingFlow: Boolean,
+        isRequestSignatureFlow: Boolean
     ) {
         activityContext.startActivity(
             TransactionDetailsActivity.buildIntent(
@@ -194,7 +187,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
                 initEventId = initEventId,
                 roomId = roomId,
                 transaction = transaction,
-                isInheritanceClaimingFlow = isInheritanceClaimingFlow
+                isInheritanceClaimingFlow = isInheritanceClaimingFlow,
+                isRequestSignatureFlow = isRequestSignatureFlow
             )
         )
     }
@@ -270,9 +264,10 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         launcher: ActivityResultLauncher<Intent>,
         context: Context,
         walletId: String,
-        transaction: Transaction
+        transaction: Transaction,
+        type: RbfType,
     ) {
-        ReplaceFeeActivity.start(launcher, context, walletId, transaction)
+        ReplaceFeeActivity.start(launcher, context, walletId, transaction, type)
     }
 
     override fun openBatchTransactionScreen(

@@ -34,11 +34,12 @@ class CreateGroupWalletUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): Wallet {
         val wallet = userWalletRepository.createGroupWallet(
             groupId = parameters.groupId,
-            name = parameters.name
+            name = parameters.name,
+            primaryMembershipId = parameters.primaryMembershipId
         )
         userWalletRepository.updateGroupStatus(parameters.groupId, GroupStatus.ACTIVE.name)
         return wallet
     }
 
-    data class Param(val groupId: String, val name: String)
+    data class Param(val groupId: String, val name: String, val primaryMembershipId: String?)
 }

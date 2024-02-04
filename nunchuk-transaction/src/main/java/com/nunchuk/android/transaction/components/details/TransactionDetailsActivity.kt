@@ -33,6 +33,8 @@ import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.RbfType
+import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -53,14 +55,20 @@ import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isConfirmed
+import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.isPendingConfirm
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.isObserver
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
 import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
 import com.nunchuk.android.share.model.TransactionOption.COPY_TRANSACTION_ID
@@ -70,6 +78,7 @@ import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.details.RequestSignatureMemberFragment.Companion.EXTRA_MEMBER_ID
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.DeleteTransactionSuccess
@@ -146,10 +155,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     activityContext = this,
                     walletId = result.walletId,
                     txId = result.transaction.txId,
-                    initEventId = "",
-                    roomId = ""
                 )
-                NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
+                NcToastManager.scheduleShowMessage(getString(R.string.nc_the_transaction_has_been_replaced))
                 finish()
             }
         }
@@ -309,7 +316,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             }
         }
         binding.changeAddressLabel.setOnLongClickListener {
-            handleCopyContent(binding.changeAddressLabel.text.toString())
+            if (viewModel.getUserRole().isKeyHolderLimited.not()) {
+                handleCopyContent(binding.changeAddressLabel.text.toString())
+            }
             true
         }
         binding.noteContent.setOnLongClickListener {
@@ -345,6 +354,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.switchShowInputCoin.setOnClickListener {
             viewModel.toggleShowInputCoin()
         }
+
+        supportFragmentManager.setFragmentResultListener(
+            RequestSignatureMemberFragment.REQUEST_KEY,
+            this
+        ) { requestKey, result ->
+            if (requestKey == RequestSignatureMemberFragment.REQUEST_KEY) {
+                val memberId = result.getString(EXTRA_MEMBER_ID)
+                viewModel.requestSignatureTransaction(memberId.orEmpty())
+            }
+        }
     }
 
     private fun handleMenuMore() {
@@ -364,6 +383,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
 
         binding.transactionDetailsContainer.isVisible = state.viewMore
+        if (viewModel.getUserRole().isObserver) {
+            binding.toolbar.menu.clear()
+        }
 
         bindTransaction(state.transaction, state.coins)
         if (state.transaction.isReceive.not()) {
@@ -375,24 +397,32 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
         }
         handleServerTransaction(state.transaction, state.serverTransaction)
-        handleManageCoin(state.transaction.status, state.coins)
+        handleManageCoin(state.transaction.status, state.coins, state.userRole)
         hideLoading()
         handleShowInputCoin(state)
     }
 
     private fun handleShowInputCoin(state: TransactionDetailsState) {
+        if (state.userRole.isKeyHolderLimited) {
+            binding.switchShowInputCoin.apply {
+                isEnabled = false
+                isChecked = false
+                isClickable = false
+            }
+        }
+        binding.switchShowInputCoin.isVisible = state.txInputCoins.isNotEmpty()
+        binding.tvShowInputCoin.isVisible = state.txInputCoins.isNotEmpty()
         binding.switchShowInputCoin.isChecked = state.isShowInputCoin
         binding.inputCoin.isVisible = state.isShowInputCoin
         if (state.isShowInputCoin) {
-            val coins = viewModel.convertInputs(state.transaction.inputs)
             binding.inputCoin.setContent {
-                TransactionConfirmCoinList(inputs = coins, allTags = state.tags)
+                TransactionConfirmCoinList(inputs = state.txInputCoins, allTags = state.tags)
             }
         }
     }
 
-    private fun handleManageCoin(status: TransactionStatus, coins: List<UnspentOutput>) {
-        binding.tvManageCoin.isVisible = coins.isNotEmpty() && status.hadBroadcast()
+    private fun handleManageCoin(status: TransactionStatus, coins: List<UnspentOutput>, role: AssistedWalletRole) {
+        binding.tvManageCoin.isVisible = coins.isNotEmpty() && status.hadBroadcast() && role.isKeyHolderLimited.not()
     }
 
     private fun handleServerTransaction(
@@ -426,6 +456,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             signers = signers,
             txStatus = status,
             serverTransaction = serverTransaction,
+            userRole = viewModel.getUserRole(),
             listener = { signer ->
                 viewModel.setCurrentSigner(signer)
                 when {
@@ -468,9 +499,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.signersContainer.isVisible =
             !transaction.isReceive && args.isInheritanceClaimingFlow.not()
         binding.btnBroadcast.isVisible =
-            transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not()
+            transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not() && viewModel.getUserRole().isObserver.not()
         binding.btnViewBlockChain.isVisible =
             transaction.isReceive || transaction.status.hadBroadcast()
+        if (transaction.status.canBroadCast() || transaction.status.isPendingConfirm() || transaction.status.isConfirmed()) {
+            handleSignRequestSignature(false)
+        }
 
         bindAddress(transaction)
         bindChangeAddress(transaction, coins)
@@ -502,7 +536,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             TransactionAddressViewBinder(
                 binding.containerAddress, coins.take(30),
             ) {
-                handleCopyContent(it)
+                if (viewModel.getUserRole().isKeyHolderLimited.not()) {
+                    handleCopyContent(it)
+                }
             }.bindItems()
         }
         if (coins.size >= 2) {
@@ -577,9 +613,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 getString(R.string.nc_schedule_broadcast_has_been_canceled)
             )
 
-            ImportTransactionSuccess -> NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
+            ImportTransactionSuccess -> {
+                NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
+                handleSignRequestSignature()
+            }
             NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
             is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
+            TransactionDetailsEvent.RequestSignatureTransactionSuccess -> {
+                hideLoading()
+                NCToastMessage(this).show(getString(R.string.nc_request_signature_sent))
+            }
         }
     }
 
@@ -592,6 +635,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     private fun handleImportTransactionFromMk4Success() {
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_signed_transaction))
+        handleSignRequestSignature()
     }
 
     private fun handleUpdateTransactionFailed(event: UpdateTransactionMemoFailed) {
@@ -621,12 +665,22 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         controller.shareFile(event.filePath)
     }
 
-    private fun promptCancelTransactionConfirmation() {
-        NCWarningDialog(this).showDialog(
-            title = getString(R.string.nc_text_confirmation),
-            message = getString(R.string.nc_transaction_confirmation),
-            onYesClick = viewModel::handleDeleteTransactionEvent
-        )
+    private fun handleCancelTransaction() {
+        if (viewModel.getTransaction().status.isPending()) {
+            NCWarningDialog(this).showDialog(
+                title = getString(R.string.nc_text_confirmation),
+                message = getString(R.string.nc_transaction_confirmation),
+                onYesClick = viewModel::handleDeleteTransactionEvent
+            )
+        } else {
+            navigator.openReplaceTransactionFee(
+                replaceByFeeLauncher,
+                this,
+                walletId = args.walletId,
+                transaction = viewModel.getTransaction(),
+                type = RbfType.CancelTransaction
+            )
+        }
     }
 
     private fun promptTransactionOptions(event: PromptTransactionOptions) {
@@ -637,10 +691,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isRejected = event.isRejected,
             isAssistedWallet = viewModel.isAssistedWallet(),
             isScheduleBroadcast = viewModel.isScheduleBroadcast(),
-            canBroadcast = event.canBroadcast
+            canBroadcast = event.canBroadcast,
+            isShowRequestSignature = viewModel.getMembers().isNotEmpty(),
+            userRole = viewModel.getUserRole().name,
+            isReceive = viewModel.getTransaction().isReceive,
         ).setListener {
             when (it) {
-                CANCEL -> promptCancelTransactionConfirmation()
+                CANCEL -> handleCancelTransaction()
                 EXPORT_TRANSACTION -> showExportTransactionOptions()
                 IMPORT_TRANSACTION -> showImportTransactionOptions()
                 REPLACE_BY_FEE -> handleOpenEditFee()
@@ -658,6 +715,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                         )
                     )
                 }
+
+                TransactionOption.REQUEST_SIGNATURE -> {
+                    RequestSignatureMemberFragment.show(
+                        supportFragmentManager,
+                        viewModel.getMembers(),
+                    )
+                }
             }
         }
     }
@@ -667,7 +731,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             replaceByFeeLauncher,
             this,
             walletId = args.walletId,
-            transaction = viewModel.getTransaction()
+            transaction = viewModel.getTransaction(),
+            type = RbfType.ReplaceFee
         )
     }
 
@@ -719,6 +784,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         if (event.roomId.isNotEmpty()) {
             returnActiveRoom()
         }
+        handleSignRequestSignature()
     }
 
     private fun showBroadcastTransactionSuccess(roomId: String) {
@@ -753,6 +819,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     private fun handleCopyContent(content: String) {
         copyToClipboard(label = "Nunchuk", text = content)
         NCToastMessage(this).showMessage(getString(R.string.nc_copied_to_clipboard))
+    }
+
+    private fun handleSignRequestSignature(isBack: Boolean = true) {
+        if (args.isRequestSignatureFlow.not()) return
+        lifecycleScope.launch {
+            pushEventManager.push(PushEvent.SignedTxSuccess(args.txId))
+        }
+        if (isBack) finish()
     }
 
     private fun showSignByMk4Options() {
@@ -834,6 +908,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isInheritanceClaimingFlow: Boolean = false,
             isCancelBroadcast: Boolean = false,
             errorMessage: String = "",
+            isRequestSignatureFlow: Boolean = false,
         ): Intent {
             return TransactionDetailsArgs(
                 walletId = walletId,
@@ -843,7 +918,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 transaction = transaction,
                 isInheritanceClaimingFlow = isInheritanceClaimingFlow,
                 isCancelBroadcast = isCancelBroadcast,
-                errorMessage = errorMessage
+                errorMessage = errorMessage,
+                isRequestSignatureFlow = isRequestSignatureFlow,
             ).buildIntent(activityContext)
         }
     }

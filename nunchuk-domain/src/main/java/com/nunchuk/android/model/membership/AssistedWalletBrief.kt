@@ -27,10 +27,12 @@ data class AssistedWalletBrief(
     val plan: MembershipPlan,
     val isSetupInheritance: Boolean,
     val registerAirgapCount: Int,
-    val registerColdcardCount: Int,
-    val ext: AssistedWalletBriefExt
+    val primaryMembershipId: String? = null,
+    val ext: AssistedWalletBriefExt,
+    val alias: String = "",
 )
 
 data class AssistedWalletBriefExt(
-    val inheritanceOwnerId: String? = null
+    val inheritanceOwnerId: String? = null,
+    val isPlanningRequest: Boolean = false,
 )

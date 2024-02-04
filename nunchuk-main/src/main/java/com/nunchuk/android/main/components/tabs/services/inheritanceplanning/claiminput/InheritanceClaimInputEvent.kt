@@ -25,19 +25,19 @@ import com.nunchuk.android.model.InheritanceAdditional
 sealed class InheritanceClaimInputEvent {
     data class Loading(val isLoading: Boolean) : InheritanceClaimInputEvent()
     data class Error(val message: String) : InheritanceClaimInputEvent()
-    object SubscriptionExpired : InheritanceClaimInputEvent()
+    data object SubscriptionExpired : InheritanceClaimInputEvent()
     data class InActivated(val message: String) : InheritanceClaimInputEvent()
     data class GetInheritanceStatusSuccess(
         val inheritanceAdditional: InheritanceAdditional,
-        val signer: SignerModel,
+        val signers: List<SignerModel>,
         val magic: String,
-        val derivationPath: String
+        val derivationPaths: List<String>
     ) :
         InheritanceClaimInputEvent()
 }
 
 data class InheritanceClaimInputState(
     val magicalPhrase: String = "",
-    val backupPassword: String = "",
+    val backupPasswords: List<String> = arrayListOf("",""),
     val suggestions: List<String> = emptyList()
 )

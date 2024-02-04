@@ -17,19 +17,29 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.user
+package com.nunchuk.android.usecase.coin
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class SetRegisterColdcardUseCase @Inject constructor(
-    private val repository: MembershipRepository,
-    @IoDispatcher ioDispatcher: CoroutineDispatcher
-) : UseCase<SetRegisterColdcardUseCase.Params, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: Params) = repository.setRegisterColdcard(parameters.walletId, parameters.count)
+class GetCoinsFromTxInputsUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk,
+) : UseCase<GetCoinsFromTxInputsUseCase.Params, List<UnspentOutput>>(ioDispatcher) {
+    override suspend fun execute(parameters: Params): List<UnspentOutput> {
+        return nunchukNativeSdk.getCoinsFromTxInputs(
+            parameters.walletId,
+            parameters.txInputs,
+        )
+    }
 
-    data class Params(val walletId: String, val count: Int)
+    data class Params(
+        val walletId : String,
+        val txInputs: List<TxInput>
+    )
 }

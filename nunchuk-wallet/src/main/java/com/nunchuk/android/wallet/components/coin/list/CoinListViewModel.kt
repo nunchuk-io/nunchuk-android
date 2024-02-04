@@ -22,6 +22,8 @@ package com.nunchuk.android.wallet.components.coin.list
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -38,6 +40,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -54,6 +58,7 @@ class CoinListViewModel @Inject constructor(
     private val removeCoinFromCollectionUseCase: RemoveCoinFromCollectionUseCase,
     private val getAllCollectionsUseCase: GetAllCollectionsUseCase,
     private val assistedWalletManager: AssistedWalletManager,
+    private val pushEventManager: PushEventManager,
 ) : ViewModel() {
     private val walletId = savedStateHandle.get<String>("wallet_id").orEmpty()
     private val _state = MutableStateFlow(CoinListUiState())
@@ -71,6 +76,15 @@ class CoinListViewModel @Inject constructor(
                     getAllCollections()
                 }
             }
+        }
+        viewModelScope.launch {
+            pushEventManager.event.filterIsInstance<PushEvent.CoinUpdated>()
+                .filter { it.walletId == walletId }
+                .collect {
+                    getAllCoins()
+                    getAllTags()
+                    getAllCollections()
+                }
         }
         refresh()
     }

@@ -35,6 +35,8 @@ import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isObserver
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.SignerType
@@ -53,6 +55,7 @@ internal class TransactionSignersViewBinder(
     private val txStatus: TransactionStatus,
     private val listener: (SignerModel) -> Unit = {},
     private val serverTransaction: ServerTransaction?,
+    private val userRole: AssistedWalletRole = AssistedWalletRole.NONE,
 ) : AbsViewBinder<SignerModel, ItemTransactionSignerBinding>(container, signers) {
 
     override fun initializeBinding() =
@@ -85,7 +88,7 @@ internal class TransactionSignersViewBinder(
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = true
         } else {
-            binding.btnSign.isVisible = model.type != SignerType.SERVER && txStatus.isPendingSignatures()
+            binding.btnSign.isVisible = model.type != SignerType.SERVER && txStatus.isPendingSignatures() && userRole.isObserver.not()
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
         }

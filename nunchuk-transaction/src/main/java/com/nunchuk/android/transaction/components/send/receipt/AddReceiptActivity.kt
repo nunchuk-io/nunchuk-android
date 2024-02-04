@@ -26,6 +26,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -248,9 +249,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 slots = args.slots,
                 inputs = args.inputs,
                 manualFeeRate = manualFeeRate,
-                masterSignerId = args.masterSignerId,
-                magicalPhrase = args.magicalPhrase,
-                derivationPath = args.derivationPath,
+                claimInheritanceTxParam = args.claimInheritanceTxParam
             )
             transactionConfirmViewModel.handleConfirmEvent(true)
         }
@@ -294,9 +293,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = args.sweepType,
             slots = args.slots,
-            masterSignerId = args.masterSignerId,
-            magicalPhrase = args.magicalPhrase,
-            derivationPath = args.derivationPath,
+            claimInheritanceTxParam = args.claimInheritanceTxParam,
             inputs = args.inputs
         )
     }
@@ -313,10 +310,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             subtractFeeFromAmount: Boolean = false,
             slots: List<SatsCardSlot> = emptyList(),
             sweepType: SweepType = SweepType.NONE,
-            masterSignerId: String = "",
-            magicalPhrase: String = "",
-            derivationPath: String = "",
             inputs: List<UnspentOutput> = emptyList(),
+            claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         ) {
             activityContext.startActivity(
                 AddReceiptArgs(
@@ -328,10 +323,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     address = address,
                     privateNote = privateNote,
                     sweepType = sweepType,
-                    masterSignerId = masterSignerId,
-                    magicalPhrase = magicalPhrase,
-                    derivationPath = derivationPath,
                     inputs = inputs,
+                    claimInheritanceTxParam = claimInheritanceTxParam
                 ).buildIntent(activityContext)
             )
         }

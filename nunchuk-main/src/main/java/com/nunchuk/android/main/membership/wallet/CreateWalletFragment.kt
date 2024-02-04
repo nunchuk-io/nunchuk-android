@@ -26,9 +26,8 @@ import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +53,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -80,7 +80,20 @@ class CreateWalletFragment : MembershipFragment() {
                     viewModel = viewModel,
                     onMoreClicked = ::handleShowMore,
                     membershipStepManager = membershipStepManager,
-                    groupId = groupId,
+                    onContinueClicked = {
+                        if (groupId.isNotEmpty()) {
+                            findNavController().navigate(
+                                CreateWalletFragmentDirections.actionCreateWalletFragmentToPrimaryOwnerFragment(
+                                    groupId = groupId,
+                                    flow = PrimaryOwnerFlow.SETUP,
+                                    walletName = viewModel.state.value.walletName,
+                                    walletId = "",
+                                ),
+                            )
+                        } else {
+                            viewModel.createQuickWallet()
+                        }
+                    }
                 )
             }
         }
@@ -105,18 +118,7 @@ class CreateWalletFragment : MembershipFragment() {
     }
 
     private fun handleCreateWalletSuccess(event: CreateWalletEvent.OnCreateWalletSuccess) {
-        if (event.coldcardCount > 0) {
-            findNavController().navigate(
-                CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToColdcardFragment(
-                    event.walletId,
-                    event.coldcardCount,
-                    event.airgapCount
-                ),
-                NavOptions.Builder()
-                    .setPopUpTo(findNavController().graph.startDestinationId, true)
-                    .build()
-            )
-        } else if (event.airgapCount > 0) {
+        if (event.airgapCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
                     event.walletId,
@@ -142,14 +144,14 @@ class CreateWalletFragment : MembershipFragment() {
 fun CreateWalletScreen(
     viewModel: CreateWalletViewModel = viewModel(),
     onMoreClicked: () -> Unit = {},
+    onContinueClicked: () -> Unit = {},
     membershipStepManager: MembershipStepManager,
-    groupId: String,
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CreateWalletScreenContent(
-        onContinueClicked = { viewModel.onContinueClicked(groupId) },
+        onContinueClicked = onContinueClicked,
         onMoreClicked = onMoreClicked,
         onWalletNameTextChange = viewModel::updateWalletName,
         remainTime = remainTime,
@@ -166,12 +168,9 @@ fun CreateWalletScreenContent(
     walletName: String = "",
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-            ) {
+        Scaffold(
+            modifier = Modifier.systemBarsPadding(),
+            topBar = {
                 NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime),
                     actions = {
                         IconButton(onClick = onMoreClicked) {
@@ -182,7 +181,11 @@ fun CreateWalletScreenContent(
                         }
                     }
                 )
-
+            },
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier.padding(innerPadding)
+            ) {
                 Text(
                     modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_let_create_your_wallet),

@@ -60,7 +60,6 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -107,6 +106,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                             )
                         )
                     }
+
                     SignerType.AIRGAP -> {
                         val hasTag = signer.tags.any { it.isAirgapTag || it == SignerTag.COLDCARD }
                         if (hasTag) {
@@ -119,6 +119,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                             viewModel.requestAddAirgapTag(signer)
                         }
                     }
+
                     SignerType.COLDCARD_NFC -> {
                         findNavController().navigate(
                             AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
@@ -126,6 +127,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                             )
                         )
                     }
+
                     SignerType.HARDWARE -> {
                         findNavController().navigate(
                             AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
@@ -133,6 +135,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                             )
                         )
                     }
+
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             } else {
@@ -143,6 +146,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     SignerType.HARDWARE -> selectedSignerTag?.let { tag ->
                         openRequestAddDesktopKey(tag)
                     }
+
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             }
@@ -154,13 +158,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 viewModel.handleSignerNewIndex(signer)
             }
             clearFragmentResult(CustomKeyAccountFragmentFragment.REQUEST_KEY)
-        }
-        childFragmentManager.setFragmentResultListener(
-            AssistedWalletBottomSheet.TAG,
-            viewLifecycleOwner
-        ) { _, bundle ->
-            val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
-            viewModel.reuseKeyFromWallet(walletId)
         }
     }
 
@@ -211,6 +208,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     SignerType.HARDWARE
                 ) { openRequestAddDesktopKey(SignerTag.LEDGER) }
             }
+
             SheetOptionType.TYPE_ADD_TREZOR -> {
                 selectedSignerTag = SignerTag.TREZOR
                 handleShowKeysOrCreate(
@@ -218,6 +216,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     SignerType.HARDWARE
                 ) { openRequestAddDesktopKey(SignerTag.TREZOR) }
             }
+
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
             SheetOptionType.TYPE_ADD_BITBOX -> {
                 selectedSignerTag = SignerTag.BITBOX
@@ -321,17 +320,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
-                is AddKeyListEvent.LoadSimilarGroup -> NCWarningDialog(requireActivity()).showDialog(
-                    title = getString(R.string.nc_key_resuse),
-                    message = getString(R.string.nc_group_key_reuse_desc),
-                    onYesClick = {
-                        AssistedWalletBottomSheet.show(
-                            fragmentManager = childFragmentManager,
-                            assistedWalletIds = event.similarWalletIds,
-                            title = getString(R.string.nc_select_a_group_wallet)
-                        )
-                    }
-                )
+
                 is AddKeyListEvent.UpdateSignerTag -> findNavController().navigate(
                     AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
                         event.signer
@@ -359,7 +348,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 )
             }
 
-            MembershipStep.BYZANTINE_ADD_TAP_SIGNER -> {
+            MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> {
                 findNavController().navigate(AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToTapSignerInheritanceIntroFragment())
             }
 

@@ -51,6 +51,11 @@
             android:name="com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name="com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
     </application>
 
 </manifest>

@@ -22,7 +22,9 @@ package com.nunchuk.android.transaction.components.receive.address.unused
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.transaction.components.receive.address.unused.UnusedAddressEvent.GenerateAddressErrorEvent
+import com.nunchuk.android.usecase.GetAddressPathUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,8 +35,10 @@ import javax.inject.Inject
 @HiltViewModel
 internal class UnusedAddressViewModel @Inject constructor(
     private val addressesUseCase: GetAddressesUseCase,
-    private val newAddressUseCase: NewAddressUseCase
-) : NunchukViewModel<UnusedAddressState, UnusedAddressEvent>() {
+    private val newAddressUseCase: NewAddressUseCase,
+    private val getAddressPathUseCase: GetAddressPathUseCase,
+    private val getWalletUseCase: GetWalletUseCase,
+    ) : NunchukViewModel<UnusedAddressState, UnusedAddressEvent>() {
 
     private lateinit var walletId: String
 
@@ -43,6 +47,30 @@ internal class UnusedAddressViewModel @Inject constructor(
     fun init(walletId: String) {
         this.walletId = walletId
         getUnusedAddresses()
+        getWallet()
+    }
+
+    private fun getWallet() {
+        viewModelScope.launch {
+            getWalletUseCase.execute(walletId)
+                .onException { }
+                .collect { updateState { copy(wallet = it.wallet) } }
+        }
+    }
+
+    fun getAddressPath(address: String) {
+        viewModelScope.launch {
+            getAddressPathUseCase(GetAddressPathUseCase.Params(walletId, address))
+                .onSuccess {
+                    setEvent(UnusedAddressEvent.GetAddressPathSuccessEvent(it))
+                }
+        }
+    }
+
+    fun isSingleSignWallet(): Boolean {
+        val requireSigns = getState().wallet.totalRequireSigns
+        val totalSigns = getState().wallet.signers.size
+        return requireSigns == 1 && totalSigns == 1
     }
 
     private fun getUnusedAddresses() {

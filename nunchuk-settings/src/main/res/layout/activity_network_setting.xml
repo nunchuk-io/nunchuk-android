@@ -9,7 +9,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnSave"
+        app:layout_constraintBottom_toTopOf="@+id/guideText"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -266,6 +266,28 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back"
         app:title="@string/nc_settings_network" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/guideText"
+        style="@style/NCText.Body.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:drawablePadding="@dimen/nc_padding_16"
+        android:gravity="center_vertical"
+        android:padding="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        app:layout_constraintBottom_toTopOf="@+id/barrier"
+        app:drawableStartCompat="@drawable/ic_info"
+        android:text="@string/nc_account_delete_account_information" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="btnSave, btnSaveDisable"/>
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnSave"

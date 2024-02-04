@@ -258,7 +258,9 @@ private fun CustomKeyAccountFragmentContent(
     onShowMoreOptions: () -> Unit = {},
     onContinueClicked: (newIndex: Int) -> Unit = {},
 ) {
-    var newIndex by remember { mutableStateOf("") }
+    var newIndex by remember(oldIndex) {
+        mutableStateOf(if (oldIndex >= 0) "" else "0")
+    }
     val formatOldIndex = if (oldIndex >= 0) oldIndex.toString() else ""
     NunchukTheme {
         Scaffold(

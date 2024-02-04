@@ -122,13 +122,6 @@ interface PremiumWalletRepository {
         walletId: String,
         transactionId: String
     ): ExtendedTransaction
-
-    suspend fun getOnlyServerTransaction(
-        groupId: String?,
-        walletId: String,
-        transactionId: String
-    ): ServerTransaction
-
     suspend fun deleteServerTransaction(groupId: String?, walletId: String, transactionId: String)
     suspend fun getInheritance(walletId: String, groupId: String?): Inheritance
     suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean)
@@ -235,14 +228,14 @@ interface PremiumWalletRepository {
 
     suspend fun inheritanceClaimStatus(
         userData: String,
-        masterFingerprint: String,
-        signature: String
+        masterFingerprints: List<String>,
+        signatures: List<String>
     ): InheritanceAdditional
 
     suspend fun inheritanceClaimCreateTransaction(
         userData: String,
-        masterFingerprint: String,
-        signature: String
+        masterFingerprints: List<String>,
+        signatures: List<String>
     ): TransactionAdditional
 
     suspend fun generateCancelInheritanceUserData(
@@ -292,7 +285,7 @@ interface PremiumWalletRepository {
         groupId: String
     ): String
 
-    suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey
+    suspend fun inheritanceClaimDownloadBackup(magic: String): List<BackupKey>
 
     suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
 
@@ -305,8 +298,6 @@ interface PremiumWalletRepository {
     fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>>
 
     suspend fun clearLocalData()
-
-    suspend fun reuseKeyWallet(walletId: String, plan: MembershipPlan)
 
     suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
         walletId: String,
@@ -380,7 +371,7 @@ interface PremiumWalletRepository {
         confirmCodeNonce: String
     ): ByzantineGroup
 
-    suspend fun createGroupWallet(groupId: String, name: String): Wallet
+    suspend fun createGroupWallet(groupId: String, name: String, primaryMembershipId: String?): Wallet
     suspend fun groupMemberAcceptRequest(groupId: String)
     suspend fun groupMemberDenyRequest(groupId: String)
     suspend fun syncGroupWallet(
@@ -404,6 +395,8 @@ interface PremiumWalletRepository {
         name: String,
         groupId: String?
     ): SeverWallet
+
+    suspend fun getWallet(walletId: String): SeverWallet
 
     suspend fun syncDeletedWallet(): Boolean
 
@@ -429,4 +422,15 @@ interface PremiumWalletRepository {
     ): BackupKey
 
     suspend fun markKeyAsRecovered(xfp: String, status: String)
+    suspend fun denyInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
+    suspend fun approveInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
+    suspend fun requestSignatureTransaction(groupId: String, walletId: String, transactionId: String, membershipId: String)
+    suspend fun updatePrimaryOwner(groupId: String, walletId: String, primaryMembershipId: String)
+
+    suspend fun replaceTransaction(
+        groupId: String?,
+        walletId: String,
+        transactionId: String,
+        newTxPsbt: String
+    )
 }

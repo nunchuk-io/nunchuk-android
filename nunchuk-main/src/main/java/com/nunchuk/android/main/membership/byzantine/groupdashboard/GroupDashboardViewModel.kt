@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
-import androidx.core.app.NotificationCompat.getGroup
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,8 +7,6 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
-import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUseCase
-import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUserDataUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -24,10 +21,6 @@ import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroEvent
-import com.nunchuk.android.main.membership.model.AddKeyData
-import com.nunchuk.android.main.membership.model.toGroupWalletType
-import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.Alert
@@ -42,7 +35,6 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusRemoteUseCase
@@ -58,8 +50,8 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
+import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
-import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -69,7 +61,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -104,17 +95,14 @@ class GroupDashboardViewModel @Inject constructor(
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-    private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
-    private val requestPlanningInheritanceUserDataUseCase: RequestPlanningInheritanceUserDataUseCase,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
-    private val requestPlanningInheritanceUseCase: RequestPlanningInheritanceUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase,
     private val recoverKeyUseCase: RecoverKeyUseCase,
-    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
     private val pushEventManager: PushEventManager,
+    private val syncTransactionUseCase: SyncTransactionUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -180,13 +168,14 @@ class GroupDashboardViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect { wallets ->
                     wallets.find { wallet -> wallet.groupId == args.groupId }?.let { wallet ->
-                        _state.update { state -> state.copy(isSetupInheritance = wallet.isSetupInheritance) }
+                        _state.update { state -> state.copy(isAlreadySetupInheritance = wallet.isSetupInheritance) }
                         savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
                     }
                     _state.update {
                         it.copy(
-                            isSetupInheritance = wallets.find { wallet -> wallet.groupId == args.groupId }?.isSetupInheritance.orFalse(),
-                            inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == args.groupId }?.ext?.inheritanceOwnerId)
+                            isAlreadySetupInheritance = wallets.find { wallet -> wallet.groupId == args.groupId }?.isSetupInheritance.orFalse(),
+                            inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == args.groupId }?.ext?.inheritanceOwnerId
+                        )
                     }
                 }
         }
@@ -205,23 +194,28 @@ class GroupDashboardViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getInheritanceUseCase(
-                GetInheritanceUseCase.Param(
-                    walletId.value.orEmpty(),
-                    args.groupId
-                )
-            ).onSuccess { inheritance ->
-                _state.update {
-                    it.copy(isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty(), inheritanceOwnerId = inheritance.ownerId)
-                }
-            }
+            getInheritance(silentLoading = true)
         }
         viewModelScope.launch {
-            pushEventManager.event.filterIsInstance<PushEvent.OpenRegisterWallet>().collect {
-                val groupWalletSetupAlert = _state.value.alerts.find { alert -> alert.type == AlertType.GROUP_WALLET_SETUP }
-                if (groupWalletSetupAlert != null && getWalletId().isNotEmpty()) {
-                    dismissAlert(groupWalletSetupAlert.id, silentLoading = true)
+            pushEventManager.event.collect { event ->
+                when(event) {
+                    PushEvent.DismissGroupWalletCreatedAlert -> {
+                        val groupWalletSetupAlert =
+                            _state.value.alerts.find { alert -> alert.type == AlertType.GROUP_WALLET_SETUP }
+                        if (groupWalletSetupAlert != null && getWalletId().isNotEmpty()) {
+                            dismissAlert(groupWalletSetupAlert.id, silentLoading = true)
+                        }
+                    }
+                    is PushEvent.SignedTxSuccess -> {
+                        val alert = _state.value.alerts.find { alert -> alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST &&  alert.payload.transactionId == event.txId  }
+                        if (alert != null) {
+                            dismissAlert(alert.id, silentLoading = true)
+                        }
+                    }
+
+                    else -> {}
                 }
+
             }
         }
         viewModelScope.launch {
@@ -442,7 +436,7 @@ class GroupDashboardViewModel @Inject constructor(
         if (result.isSuccess) {
             val token = result.getOrThrow().orEmpty()
             when (targetAction) {
-                TargetAction.UPDATE_INHERITANCE_PLAN -> getInheritance(token, false)
+                TargetAction.UPDATE_INHERITANCE_PLAN -> getInheritance(token)
                 TargetAction.UPDATE_SERVER_KEY -> {
                     state.value.signers.find { it.type == SignerType.SERVER }?.let { signer ->
                         _event.emit(
@@ -468,7 +462,7 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun getInheritance(token: String, isAlertFlow: Boolean) = viewModelScope.launch {
+    fun getInheritance(token: String = "", isAlertFlow: Boolean = false, silentLoading: Boolean = false) = viewModelScope.launch {
         getInheritanceUseCase(
             GetInheritanceUseCase.Param(
                 walletId.value.orEmpty(),
@@ -476,11 +470,14 @@ class GroupDashboardViewModel @Inject constructor(
             )
         ).onSuccess { inheritance ->
             _state.update {
-                it.copy(inheritanceOwnerId = inheritance.ownerId, isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty())
+                it.copy(
+                    inheritanceOwnerId = inheritance.ownerId,
+                    isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty()
+                )
             }
-            _event.emit(GroupDashboardEvent.GetInheritanceSuccess(inheritance, token, isAlertFlow))
+            if (silentLoading.not()) _event.emit(GroupDashboardEvent.GetInheritanceSuccess(inheritance, token, isAlertFlow))
         }.onFailure {
-            _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
+            if (silentLoading.not()) _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
         }
     }
 
@@ -522,19 +519,11 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun getWalletId() = walletId.value.orEmpty()
-    fun handleRegisterSigners(xfps: List<String>) {
+
+    fun handleRegisterSigners(id: String, xfps: List<String>) {
         viewModelScope.launch {
             val signers = _state.value.wallet.signers.filter { it.masterFingerprint in xfps }
-            val totalColdcard = signers.count { it.isColdCard }
             val totalAirgap = signers.count { it.type == SignerType.AIRGAP && !it.isColdCard }
-            if (totalColdcard > 0) {
-                setRegisterColdcardUseCase(
-                    SetRegisterColdcardUseCase.Params(
-                        walletId.value.orEmpty(),
-                        totalColdcard
-                    )
-                )
-            }
             if (totalAirgap > 0) {
                 setRegisterAirgapUseCase(
                     SetRegisterAirgapUseCase.Params(
@@ -543,8 +532,10 @@ class GroupDashboardViewModel @Inject constructor(
                     )
                 )
             }
-            if (totalColdcard > 0 || totalAirgap > 0) {
-                _event.emit(GroupDashboardEvent.RegisterSignersSuccess(totalColdcard, totalAirgap))
+            if (totalAirgap > 0) {
+                _event.emit(GroupDashboardEvent.RegisterSignersSuccess(totalAirgap))
+            } else {
+                dismissAlert(alertId = id, silentLoading = true)
             }
         }
     }
@@ -557,12 +548,6 @@ class GroupDashboardViewModel @Inject constructor(
     fun calculateRequiredSignatures() {
         viewModelScope.launch {
             _event.emit(GroupDashboardEvent.Loading(true))
-            val userData = requestPlanningInheritanceUserDataUseCase(
-                RequestPlanningInheritanceUserDataUseCase.Param(
-                    walletId = getWalletId(),
-                    groupId = args.groupId
-                )
-            )
             calculateRequiredSignaturesInheritanceUseCase(
                 CalculateRequiredSignaturesInheritanceUseCase.Param(
                     walletId = getWalletId(),
@@ -570,28 +555,7 @@ class GroupDashboardViewModel @Inject constructor(
                     groupId = args.groupId
                 )
             ).onSuccess { resultCalculate ->
-                requestPlanningInheritanceUseCase(
-                    RequestPlanningInheritanceUseCase.Param(
-                        userData = userData.getOrThrow(),
-                        walletId = getWalletId(),
-                        groupId = args.groupId
-                    )
-                ).onSuccess {
-                    _state.update { state ->
-                        state.copy(isHasPendingRequestInheritance = true, inheritanceOwnerId = accountManager.getAccount().id)
-                    }
-                    _event.emit(
-                        GroupDashboardEvent.CalculateRequiredSignaturesSuccess(
-                            type = resultCalculate.type,
-                            walletId = getWalletId(),
-                            userData = userData.getOrThrow(),
-                            requiredSignatures = resultCalculate.requiredSignatures,
-                            dummyTransactionId = it
-                        )
-                    )
-                }.onFailure {
-                    _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
-                }
+                _event.emit(GroupDashboardEvent.CalculateRequiredSignaturesSuccess(resultCalculate.type))
             }.onFailure {
                 _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
             }
@@ -640,21 +604,6 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun getGroupDummyTransactionPayload(alert: Alert) = viewModelScope.launch {
-        getGroupDummyTransactionPayloadUseCase(
-            GetGroupDummyTransactionPayloadUseCase.Param(
-                groupId = args.groupId,
-                walletId = getWalletId(),
-                transactionId = alert.payload.dummyTransactionId
-            )
-        ).onSuccess {
-            _event.emit(GroupDashboardEvent.GroupDummyTransactionPayloadSuccess(
-                dummyTransactionPayload = it,
-                alert = alert
-            ))
-        }
-    }
-
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
@@ -668,16 +617,33 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
+    fun syncTransaction(txId: String) = viewModelScope.launch {
+        _event.emit(GroupDashboardEvent.Loading(true))
+        val result = syncTransactionUseCase(SyncTransactionUseCase.Params(args.groupId, getWalletId()))
+        _event.emit(GroupDashboardEvent.Loading(false))
+        if (result.isSuccess) {
+            _event.emit(GroupDashboardEvent.SyncTransactionSuccess(txId))
+        } else {
+            _event.emit(GroupDashboardEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
     private fun isInheritanceOwner(): Boolean {
-        return  _state.value.inheritanceOwnerId == accountManager.getAccount().id
+        return _state.value.inheritanceOwnerId == accountManager.getAccount().id
     }
 
     fun isShowSetupInheritanceOption(): Boolean {
         return (_state.value.inheritanceOwnerId.isNullOrEmpty() || isInheritanceOwner()) && state.value.isHasPendingRequestInheritance.not()
     }
 
-    fun getUserId(): String {
-        return accountManager.getAccount().id
+    fun setInheritanceRequestByMe() = viewModelScope.launch {
+        _state.update { state ->
+            state.copy(
+                isHasPendingRequestInheritance = true,
+                inheritanceOwnerId = accountManager.getAccount().id
+            )
+        }
+        getInheritance(silentLoading = true)
     }
 
     private val currentSelectedAlert: Alert?

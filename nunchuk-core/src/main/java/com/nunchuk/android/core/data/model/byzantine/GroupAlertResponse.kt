@@ -45,5 +45,11 @@ data class PayloadResponse(
     @SerializedName("key_xfp")
     val keyXfp: String? = null,
     @SerializedName("payment_name")
-    val paymentName: String? = null
+    val paymentName: String? = null,
+    @SerializedName("request_id")
+    val requestId: String? = null,
+    @SerializedName("membership_id")
+    val membershipId: String? = null,
+    @SerializedName("transaction_id")
+    val transactionId: String? = null,
 )

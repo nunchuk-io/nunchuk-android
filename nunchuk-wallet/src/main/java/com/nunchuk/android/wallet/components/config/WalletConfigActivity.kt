@@ -33,14 +33,17 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.alias.AliasActivity
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
@@ -52,6 +55,7 @@ import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -78,6 +82,19 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
         }
 
+    private val aliasLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val alias = data.getString(AliasActivity.EXTRA_ALIAS).orEmpty()
+                if (alias.isNotEmpty()) {
+                    NCToastMessage(this).showMessage(getString(R.string.nc_alias_has_been_set))
+                } else {
+                    NCToastMessage(this).showMessage(getString(R.string.nc_alias_removed))
+                }
+            }
+        }
+
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 
     override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater)
@@ -88,7 +105,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId)
         sharedViewModel.init(args.walletId)
     }
 
@@ -132,6 +148,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_CONFIGURE_GAP_LIMIT -> {
                 showConfigureGapLimitDialog()
             }
+
+            SheetOptionType.TYPE_EDIT_PRIMARY_OWNER -> {
+                navigator.openPrimaryOwnerScreen(
+                    activityContext = this,
+                    walletId = args.walletId,
+                    groupId = viewModel.getGroupId().orEmpty(),
+                    flowInfo = PrimaryOwnerFlow.EDIT
+                )
+            }
         }
     }
 
@@ -147,11 +172,19 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun showForceRefreshWalletDialog() {
-        NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
-            message = getString(R.string.nc_force_refresh_desc),
-            onYesClick = {
-                viewModel.forceRefreshWallet()
-            })
+        if (viewModel.isAssistedWallet()) {
+            NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_force_refresh_desc),
+                onYesClick = {
+                    viewModel.forceRefreshWallet()
+                })
+        } else {
+            NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_force_refresh_free_user_desc),
+                onYesClick = {
+                    viewModel.forceRefreshWallet()
+                })
+        }
     }
 
     private fun handleDeleteWallet() {
@@ -283,6 +316,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     private fun handleState(state: WalletConfigState) {
         val wallet = state.walletExtended.wallet
         binding.walletName.text = wallet.name
+        if (viewModel.isEditableWalletName()) {
+            binding.walletName.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_edit, 0)
+        } else {
+            binding.walletName.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
+        }
 
         binding.configuration.bindWalletConfiguration(wallet)
 
@@ -302,6 +340,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         ) {
             showReEnterPassword(it)
         }.bindItems()
+        binding.tvSetAlias.text = if (state.alias.isNotEmpty()) {
+            getString(R.string.nc_change_alias)
+        } else {
+            getString(R.string.nc_set_alias)
+        }
     }
 
     private fun setupViews() {
@@ -311,11 +354,18 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
             false
         }
-        binding.walletName.setOnClickListener { onEditClicked() }
+        binding.walletName.setOnClickListener {
+            if (viewModel.isEditableWalletName().not()) return@setOnClickListener
+            onEditClicked()
+        }
         binding.btnDone.setOnClickListener {
             finish()
         }
         binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.tvSetAlias.isVisible = !viewModel.getGroupId().isNullOrEmpty()
+        binding.tvSetAlias.setOnDebounceClickListener {
+            aliasLauncher.launch(AliasActivity.createIntent(this, args.walletId))
+        }
     }
 
     private fun handleExportBSMS() {
@@ -350,6 +400,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 R.string.nc_configure_gap_limit
             )
         )
+        if (viewModel.getRole().isMasterOrAdmin) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_EDIT_PRIMARY_OWNER,
+                    R.drawable.ic_account_member,
+                    R.string.nc_edit_primary_owner,
+                ),
+            )
+        }
+
         if (viewModel.isShowDeleteWallet()) {
             options.add(
                 SheetOption(
