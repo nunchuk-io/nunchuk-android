@@ -723,7 +723,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun calculateRequiredSignaturesLockdown(
         walletId: String, periodId: String, groupId: String?,
     ): CalculateRequiredSignatures {
-        val response = if (groupId != null) {
+        val response = if (groupId.isNullOrEmpty().not()) {
             userWalletApiManager.groupWalletApi.calculateRequiredSignaturesLockdown(
                 LockdownUpdateRequest.Body(
                     walletId = walletId, periodId = periodId, groupId = groupId
@@ -1053,7 +1053,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             request = request.copy(nonce = confirmCodeNonce)
         }
         val groupId = request.body?.groupId
-        val response = if (groupId != null) {
+        val response = if (groupId.isNullOrEmpty().not()) {
             userWalletApiManager.groupWalletApi.lockdownUpdate(
                 getHeaders(
                     authorizations = authorizations,
@@ -1098,7 +1098,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String?,
     ): String {
         val body =
-            LockdownUpdateRequest.Body(periodId = periodId, walletId = walletId, groupId = groupId)
+            LockdownUpdateRequest.Body(periodId = periodId, walletId = walletId, groupId = if (groupId.isNullOrEmpty().not()) groupId else null)
         val nonce = getNonce()
         val request = LockdownUpdateRequest(
             nonce = nonce, body = body
