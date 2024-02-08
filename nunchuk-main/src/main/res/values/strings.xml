@@ -254,7 +254,8 @@
     <string name="nc_allow_platform_key_to_co_sign">Allow platform key to co-sign</string>
     <string name="nc_allow_platform_key_to_co_sign_desc">The recurring payment will only require 1 signature from any keyholder.</string>
     <string name="nc_don_t_allow_platform_key_to_co_sign">Don’t allow platform key to co-sign</string>
-    <string name="nc_don_t_allow_platform_key_to_co_sign_desc">The recurring payment will require 2 signatures from the keyholders.</string>
+    <string name="nc_recurring_payment_require_2_signatures">The recurring payment will require 2 signatures from the keyholders.</string>
+    <string name="nc_recurring_payment_require_3_signatures">The recurring payment will require 3 signatures from the keyholders.</string>
     <string name="nc_payment_note_title">Would you like to add a transaction note for this recurring payment?</string>
     <string name="nc_date_range">Date range</string>
     <string name="nc_priority_fee_rate">Priority fee rate</string>
