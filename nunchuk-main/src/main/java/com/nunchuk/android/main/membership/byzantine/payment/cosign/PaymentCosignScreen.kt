@@ -9,11 +9,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioOption
@@ -21,26 +26,38 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
+import com.nunchuk.android.model.byzantine.GroupWalletType
 
 @Composable
 fun PaymentCosignRoute(
     recurringPaymentViewModel: RecurringPaymentViewModel,
     openPaymentNote: () -> Unit,
+    viewModel: PaymentCosignViewModel = hiltViewModel()
 ) {
     val state by recurringPaymentViewModel.config.collectAsStateWithLifecycle()
+    var groupType by remember {
+        mutableStateOf<GroupWalletType?>(null)
+    }
+    LaunchedEffect(Unit) {
+        groupType = viewModel.getGroupConfig(recurringPaymentViewModel.groupId)
+    }
     PaymentCosignScreen(
         isCosign = state.isCosign,
         openPaymentNote = openPaymentNote,
         onIsCosignChange = recurringPaymentViewModel::onIsCosignChange,
+        groupWalletType = groupType
     )
 }
 
 @Composable
 private fun PaymentCosignScreen(
     isCosign: Boolean? = null,
-    openPaymentNote : () -> Unit = {},
+    openPaymentNote: () -> Unit = {},
     onIsCosignChange: (Boolean) -> Unit = {},
+    groupWalletType: GroupWalletType? = null
 ) {
+    val is3Of5PlatformKey = groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE
+            || groupWalletType == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(
@@ -75,7 +92,8 @@ private fun PaymentCosignScreen(
                     modifier = Modifier.padding(top = 16.dp),
                     isSelected = isCosign == true,
                     title = stringResource(R.string.nc_allow_platform_key_to_co_sign),
-                    desc = stringResource(R.string.nc_allow_platform_key_to_co_sign_desc),
+                    desc = if (is3Of5PlatformKey) stringResource(R.string.nc_recurring_payment_require_2_signatures) else
+                        stringResource(R.string.nc_allow_platform_key_to_co_sign_desc),
                     onClick = {
                         onIsCosignChange(true)
                     }
@@ -85,7 +103,8 @@ private fun PaymentCosignScreen(
                     modifier = Modifier.padding(top = 16.dp),
                     isSelected = isCosign == false,
                     title = stringResource(R.string.nc_don_t_allow_platform_key_to_co_sign),
-                    desc = stringResource(R.string.nc_don_t_allow_platform_key_to_co_sign_desc),
+                    desc = if (is3Of5PlatformKey) stringResource(R.string.nc_recurring_payment_require_3_signatures) else
+                        stringResource(R.string.nc_recurring_payment_require_2_signatures),
                     onClick = {
                         onIsCosignChange(false)
                     }
@@ -117,4 +136,12 @@ private fun PaymentCosignOption(
 @Composable
 fun PaymentCosignScreenPreview() {
     PaymentCosignScreen()
+}
+
+@Preview
+@Composable
+fun PaymentCosignScreen3Of5Preview() {
+    PaymentCosignScreen(
+        groupWalletType = GroupWalletType.THREE_OF_FIVE_INHERITANCE
+    )
 }
