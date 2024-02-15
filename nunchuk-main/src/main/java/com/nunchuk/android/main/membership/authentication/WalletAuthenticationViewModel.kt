@@ -35,6 +35,7 @@ import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerUseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageUseCase
 import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -54,6 +55,7 @@ import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.FinalizeDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTxRequestTokenUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.UpdateGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
@@ -97,6 +99,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getDummyTxRequestTokenUseCase: GetDummyTxRequestTokenUseCase,
     private val networkStatusFlowUseCase: NetworkStatusFlowUseCase,
     private val application: Application,
+    private val syncGroupWalletUseCase: SyncGroupWalletUseCase
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -397,6 +400,11 @@ class WalletAuthenticationViewModel @Inject constructor(
                 )
             }
             if (updateInfo.status == TransactionStatus.CONFIRMED) {
+                if (args.action == TargetAction.CLAIM_KEY.name) {
+                    runCatching {
+                        syncGroupWalletUseCase(args.groupId.orEmpty())
+                    }
+                }
                 _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess())
             }
         }.isSuccess
