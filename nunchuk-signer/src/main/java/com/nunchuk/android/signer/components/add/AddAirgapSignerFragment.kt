@@ -237,7 +237,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         val fragment = BottomSheetOption.newInstance(signers.mapIndexed { index, singleSigner ->
             SheetOption(
                 type = index,
-                label = if (singleSigner.derivationPath.isRecommendedPath) "${singleSigner.derivationPath} (${getString(R.string.nc_recommended)})" else singleSigner.derivationPath
+                label = if (singleSigner.derivationPath.isRecommendedPath) "${singleSigner.derivationPath} (${getString(R.string.nc_recommended_for_multisig)})" else singleSigner.derivationPath
             )
         }, title = getString(R.string.nc_signer_select_key_dialog_title))
         fragment.show(childFragmentManager, "BottomSheetOption")
