@@ -467,7 +467,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 findNavController().navigate(
                     GroupDashboardFragmentDirections.actionGroupDashboardFragmentToClaimKeyFragment(
                         groupId = args.groupId,
-                        walletId = viewModel.getWalletId()
+                        walletId = viewModel.getWalletId(),
+                        myRole = viewModel.state.value.myRole,
                     )
                 )
             } else {

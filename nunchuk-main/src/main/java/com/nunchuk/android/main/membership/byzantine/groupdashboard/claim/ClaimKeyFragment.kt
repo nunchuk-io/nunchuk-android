@@ -59,6 +59,7 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInfoDialog
@@ -78,11 +79,15 @@ class ClaimKeyFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 showSuccess(getString(R.string.nc_the_key_has_been_claimed))
-                findNavController().navigate(
-                    ClaimKeyFragmentDirections.actionClaimKeyFragmentToWalletConfigIntroFragment(
-                        true
+                if (args.myRole != AssistedWalletRole.KEYHOLDER_LIMITED) {
+                    findNavController().navigate(
+                        ClaimKeyFragmentDirections.actionClaimKeyFragmentToWalletConfigIntroFragment(
+                            true
+                        )
                     )
-                )
+                } else {
+                    findNavController().popBackStack()
+                }
             }
         }
 
