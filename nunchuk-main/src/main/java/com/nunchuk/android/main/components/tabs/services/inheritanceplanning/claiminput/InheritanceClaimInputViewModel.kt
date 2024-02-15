@@ -81,7 +81,8 @@ class InheritanceClaimInputViewModel @Inject constructor(
         _event.emit(InheritanceClaimInputEvent.Loading(false))
         if (result.isSuccess) {
             val backupKeys = result.getOrThrow()
-            if (backupKeys.size != stateValue.backupPasswords.size) return@launch
+            val backupPasswords = stateValue.backupPasswords.filter { it.isNotBlank() }.map { it.trim() }
+            if (backupKeys.size != backupPasswords.size) return@launch
             val importMasterSigners = ArrayList<MasterSigner>()
             backupKeys.forEachIndexed { index, backupKey ->
                 val backupData = Base64.decode(backupKey.keyBackUpBase64, Base64.DEFAULT)
@@ -89,7 +90,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 val resultImport = importTapsignerMasterSignerContentUseCase(
                     ImportTapsignerMasterSignerContentUseCase.Param(
                         backupData,
-                        stateValue.backupPasswords[index],
+                        backupPasswords[index],
                         "$INHERITED_KEY_NAME #${index + 1}"
                     )
                 )
@@ -100,7 +101,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     return@forEachIndexed
                 }
             }
-            if (importMasterSigners.size != stateValue.backupPasswords.size) {
+            if (importMasterSigners.size != backupPasswords.size) {
                 importMasterSigners.forEach {
                     deleteMasterSignerUseCase(it.id)
                 }

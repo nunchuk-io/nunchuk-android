@@ -310,12 +310,12 @@ class ServicesTabViewModel @Inject constructor(
     fun openSetupInheritancePlan(walletId: String) {
         viewModelScope.launch {
             val groupId = state.value.assistedWallets.find { it.localId == walletId }?.groupId
-            if (groupId != null) {
+            if (groupId.isNullOrEmpty().not()) {
                 _event.emit(ServicesTabEvent.Loading(true))
                 val inheritance =
                     getInheritanceUseCase(GetInheritanceUseCase.Param(walletId, groupId))
                 if (inheritance.getOrNull()?.status == InheritanceStatus.PENDING_APPROVAL) {
-                    calculateRequiredSignatures(walletId, groupId)
+                    calculateRequiredSignatures(walletId, groupId!!)
                 } else {
                     _event.emit(ServicesTabEvent.OpenSetupInheritancePlan(walletId, groupId))
                 }
