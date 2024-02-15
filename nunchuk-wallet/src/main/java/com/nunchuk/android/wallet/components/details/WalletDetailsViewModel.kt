@@ -100,6 +100,9 @@ internal class WalletDetailsViewModel @Inject constructor(
             TransactionListener.transactionUpdateFlow.debounce(1000L).collect {
                 if (it.walletId == args.walletId) {
                     syncData()
+                    if (getState().isHasCoin.not()) {
+                        getCoins()
+                    }
                 }
             }
         }
@@ -122,11 +125,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                 syncTransactionFromServer()
             }
         }
-        viewModelScope.launch {
-            getAllCoinUseCase(args.walletId).onSuccess { coins ->
-                updateState { copy(isHasCoin = coins.isNotEmpty()) }
-            }
-        }
+        getCoins()
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
                 if ((event is PushEvent.TransactionCancelled && event.walletId == args.walletId)
@@ -135,6 +134,14 @@ internal class WalletDetailsViewModel @Inject constructor(
                 ) {
                     syncData()
                 }
+            }
+        }
+    }
+
+    private fun getCoins() {
+        viewModelScope.launch {
+            getAllCoinUseCase(args.walletId).onSuccess { coins ->
+                updateState { copy(isHasCoin = coins.isNotEmpty()) }
             }
         }
     }
