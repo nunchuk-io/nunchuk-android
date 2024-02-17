@@ -233,11 +233,17 @@ private fun SignerCard(
                 .weight(1.0f)
         ) {
             Text(text = signer.name, style = NunchukTheme.typography.body)
-            NcTag(
-                modifier = Modifier
-                    .padding(top = 4.dp),
-                label = signer.toReadableSignerType(context = context),
-            )
+            Row(Modifier.padding(top = 4.dp)) {
+                NcTag(
+                    label = signer.toReadableSignerType(context = context),
+                )
+                if (signer.isShowAcctX()) {
+                    NcTag(
+                        modifier = Modifier.padding(start = 4.dp),
+                        label = stringResource(id = R.string.nc_acct_x, signer.index)
+                    )
+                }
+            }
             Text(
                 modifier = Modifier.padding(top = 4.dp),
                 text = signer.getXfpOrCardIdLabel(),
