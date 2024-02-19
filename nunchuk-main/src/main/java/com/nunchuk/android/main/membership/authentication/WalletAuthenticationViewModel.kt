@@ -316,10 +316,17 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun handleImportAirgapTransaction(transaction: Transaction) {
         viewModelScope.launch {
             val signatures = _state.value.signatures
-            _state.value.singleSigners.filter {
+            val validSignatures = _state.value.singleSigners.filter {
                 transaction.signers[it.masterFingerprint] == true
                         && signatures.contains(it.masterFingerprint).not()
-            }.forEach {
+            }
+            if (validSignatures.isEmpty()) {
+                getInteractSingleSigner()?.let {
+                    _event.emit(WalletAuthenticationEvent.SignFailed(it))
+                }
+                return@launch
+            }
+            validSignatures.forEach {
                 handleSignatureResult(
                     getDummyTransactionSignatureUseCase(
                         GetDummyTransactionSignatureUseCase.Param(
