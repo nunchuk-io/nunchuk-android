@@ -141,7 +141,7 @@ fun PendingWalletView(
                     )
                     .padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomContent(
+                ByzantineBottomContent(
                     group = group,
                     badgeCount = badgeCount,
                     isLocked = isLocked,
@@ -151,6 +151,17 @@ fun PendingWalletView(
                     onAccept = onAccept,
                     onDeny = onDeny
                 )
+            }
+        } else if (isAssistedWallet) {
+            Row(
+                modifier = Modifier
+                    .clickable(
+                        enabled = isLocked.not(),
+                        onClick = onGroupClick,
+                    )
+                    .padding(12.dp), verticalAlignment = Alignment.CenterVertically
+            ) {
+                AssistedWalletBottomContent(badgeCount = badgeCount, isLocked = isLocked)
             }
         }
     }
@@ -183,7 +194,70 @@ fun RowScope.PendingWalletInviteMember(
 }
 
 @Composable
-fun RowScope.BottomContent(
+fun RowScope.AssistedWalletBottomContent(
+    badgeCount: Int = 0,
+    isLocked: Boolean = false,
+) {
+    if (isLocked) {
+        Box(
+            modifier = Modifier
+                .background(
+                    color = colorResource(id = R.color.nc_red_tint_color),
+                    shape = RoundedCornerShape(size = 20.dp)
+                )
+                .padding(start = 10.dp, top = 4.dp, end = 10.dp, bottom = 4.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.nc_lockdown_in_progress),
+                style = NunchukTheme.typography.caption
+            )
+        }
+    } else {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.nc_dashboard),
+                style = NunchukTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .weight(1f, fill = true)
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (badgeCount != 0) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp, 24.dp)
+                            .clip(CircleShape)
+                            .background(color = colorResource(id = R.color.nc_orange_color)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = badgeCount.toString(),
+                            style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
+                        )
+                    }
+                }
+
+                Icon(
+                    modifier = Modifier.padding(start = 12.dp),
+                    painter = painterResource(id = R.drawable.ic_arrow_expand),
+                    contentDescription = "Arrow"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RowScope.ByzantineBottomContent(
     group: ByzantineGroup,
     badgeCount: Int = 0,
     isLocked: Boolean = false,

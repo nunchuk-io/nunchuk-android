@@ -310,7 +310,7 @@ interface AppNavigatorDelegate : AppNavigator {
     }
 
     override fun openGroupDashboardScreen(
-        groupId: String,
+        groupId: String?,
         walletId: String?,
         message: String?,
         activityContext: Context

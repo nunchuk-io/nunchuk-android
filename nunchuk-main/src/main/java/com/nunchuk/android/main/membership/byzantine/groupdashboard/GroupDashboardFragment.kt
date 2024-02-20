@@ -206,7 +206,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         if (walletId.isNotEmpty()) {
                             findNavController().navigate(
                                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToHealthCheckFragment(
-                                    groupId = args.groupId,
+                                    groupId = viewModel.getGroupId(),
                                     walletId = viewModel.getWalletId()
                                 )
                             )
@@ -227,7 +227,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             walletId = viewModel.getWalletId(),
             requiredSignatures = requiredSignatures,
             type = VerificationType.SIGN_DUMMY_TX,
-            groupId = args.groupId,
+            groupId = viewModel.getGroupId(),
             dummyTransactionId = dummyTransactionId,
             userData = userData,
             launcher = signLauncher
@@ -318,7 +318,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 verifyToken = event.token,
                                 inheritance = event.inheritance,
                                 flowInfo = InheritancePlanFlow.VIEW,
-                                groupId = args.groupId,
+                                groupId = viewModel.getGroupId(),
                                 sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                             )
                         } else if (event.inheritance.status == InheritanceStatus.PENDING_APPROVAL) {
@@ -328,7 +328,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                                 walletId = viewModel.getWalletId(),
                                 activityContext = requireContext(),
                                 flowInfo = InheritancePlanFlow.SETUP,
-                                groupId = args.groupId,
+                                groupId = viewModel.getGroupId(),
                                 sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                             )
                         }
@@ -339,7 +339,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     registerWalletLauncher.launch(
                         MembershipActivity.openRegisterWalletIntent(
                             activity = requireActivity(),
-                            groupId = args.groupId,
+                            groupId = viewModel.getGroupId(),
                             walletId = viewModel.getWalletId(),
                             airgapIndex = event.totalAirgap
                         )
@@ -358,7 +358,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     navigator.openEmergencyLockdownScreen(
                         activityContext = requireActivity(),
                         verifyToken = event.token,
-                        groupId = args.groupId,
+                        groupId = viewModel.getGroupId(),
                         walletId = viewModel.getWalletId()
                     )
                 }
@@ -369,7 +369,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                             walletId = viewModel.getWalletId(),
                             activityContext = requireContext(),
                             flowInfo = InheritancePlanFlow.REQUEST,
-                            groupId = args.groupId,
+                            groupId = viewModel.getGroupId(),
                             sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
                             launcher = inheritanceLauncher
                         )
@@ -421,7 +421,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     launcher = createWalletLauncher,
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
-                    groupId = args.groupId,
+                    groupId = viewModel.getGroupId(),
                     walletId = args.walletId
                 )
             } else {
@@ -429,7 +429,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     launcher = createWalletLauncher,
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.ADD_KEY_ONLY,
-                    groupId = args.groupId
+                    groupId = viewModel.getGroupId()
                 )
             }
         } else if (alert.type == AlertType.UPDATE_SERVER_KEY) {
@@ -438,7 +438,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 CosigningPolicyActivity.start(
                     activity = requireActivity(),
                     walletId = viewModel.getWalletId(),
-                    groupId = args.groupId,
+                    groupId = viewModel.getGroupId(),
                     dummyTransactionId = alert.payload.dummyTransactionId,
                 )
             }
@@ -449,13 +449,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 activityContext = requireActivity(),
                 flowInfo = InheritancePlanFlow.SIGN_DUMMY_TX,
                 sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
-                groupId = args.groupId,
+                groupId = viewModel.getGroupId(),
                 dummyTransactionId = alert.payload.dummyTransactionId
             )
         } else if (alert.type == AlertType.HEALTH_CHECK_REQUEST || alert.type == AlertType.HEALTH_CHECK_PENDING) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                    args.groupId,
+                    viewModel.getGroupId(),
                     viewModel.getWalletId(),
                     alert
                 )
@@ -466,7 +466,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             if (alert.payload.claimKey) {
                 findNavController().navigate(
                     GroupDashboardFragmentDirections.actionGroupDashboardFragmentToClaimKeyFragment(
-                        groupId = args.groupId,
+                        groupId = viewModel.getGroupId(),
                         walletId = viewModel.getWalletId(),
                         myRole = viewModel.state.value.myRole,
                     )
@@ -477,7 +477,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                    args.groupId,
+                    viewModel.getGroupId(),
                     viewModel.getWalletId(),
                     alert
                 )
@@ -487,7 +487,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 walletId = viewModel.getWalletId(),
                 activityContext = requireContext(),
                 flowInfo = InheritancePlanFlow.SETUP,
-                groupId = args.groupId,
+                groupId = viewModel.getGroupId(),
                 sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
             )
         } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST
@@ -495,7 +495,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         ) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                    args.groupId,
+                    viewModel.getGroupId(),
                     viewModel.getWalletId(),
                     alert
                 )
@@ -505,7 +505,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         } else if (alert.type == AlertType.RECURRING_PAYMENT_REQUEST) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToRecurringPaymentRequestFragment(
-                    args.groupId,
+                    viewModel.getGroupId(),
                     viewModel.getWalletId(),
                     alert.payload.dummyTransactionId
                 )
@@ -544,7 +544,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_RECURRING_PAYMENT -> {
                 RecurringPaymentActivity.navigate(
                     activity = requireActivity(),
-                    groupId = args.groupId,
+                    groupId = viewModel.getGroupId(),
                     walletId = viewModel.getWalletId(),
                     role = viewModel.state.value.myRole,
                 )

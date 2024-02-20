@@ -159,6 +159,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
+import com.nunchuk.android.utils.isNoneEmpty
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -2039,34 +2040,49 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return saveWalletToLib(wallet, groupAssistedKeys)
     }
 
-    override fun getAlerts(groupId: String): Flow<List<Alert>> {
+    override fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>> {
         return alertDao.getAlertsFlow(
-            groupId,
-            chatId = accountManager.getAccount().chatId,
+            groupId = groupId,
+            walletId = walletId,
             chain.value
-        )
-            .map { alerts ->
+        ).map { alerts ->
                 alerts.map { alert ->
                     alert.toAlert()
                 }
             }
     }
 
-    override suspend fun getAlertsRemote(groupId: String): List<Alert> {
-        return syncer.syncAlerts(groupId) ?: emptyList()
+    override suspend fun getAlertsRemote(groupId: String?, walletId: String?): List<Alert> {
+        return syncer.syncAlerts(groupId = groupId, walletId = walletId) ?: emptyList()
     }
 
-    override suspend fun markAlertAsRead(groupId: String, alertId: String) {
-        userWalletApiManager.groupWalletApi.markAlertAsRead(groupId, alertId)
+    override suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String) {
+        if (groupId.isNullOrEmpty().not()) {
+            userWalletApiManager.groupWalletApi.markAlertAsRead(groupId!!, alertId)
+        } else if (walletId.isNullOrEmpty().not()) {
+            userWalletApiManager.walletApi.markAlertAsRead(walletId!!, alertId)
+        }
     }
 
-    override suspend fun dismissAlert(groupId: String, alertId: String) {
-        val response = userWalletApiManager.groupWalletApi.dismissAlert(groupId, alertId)
+    override suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String) {
+        val response = if (groupId.isNullOrEmpty().not()) {
+            userWalletApiManager.groupWalletApi.dismissAlert(groupId!!, alertId)
+        } else if (walletId.isNullOrEmpty().not()) {
+            userWalletApiManager.walletApi.dismissAlert(walletId!!, alertId)
+        } else {
+            throw NullPointerException("groupId and walletId is null")
+        }
         if (response.isSuccess.not()) throw response.error
     }
 
-    override suspend fun getAlertTotal(groupId: String): Int {
-        val response = userWalletApiManager.groupWalletApi.getAlertTotal(groupId)
+    override suspend fun getAlertTotal(groupId: String?, walletId: String?): Int {
+        val response = if (groupId.isNullOrEmpty().not()) {
+            userWalletApiManager.groupWalletApi.getAlertTotal(groupId!!)
+        } else if (walletId.isNullOrEmpty().not()) {
+            userWalletApiManager.walletApi.getAlertTotal(walletId!!)
+        } else {
+            throw NullPointerException("groupId and walletId is null")
+        }
         return response.data.total ?: 0
     }
 

@@ -447,9 +447,14 @@ internal class WalletsViewModel @Inject constructor(
         if (isRetrievingAlert.get()) return
         viewModelScope.launch {
             val groupIds = getState().allGroups.map { it.id }
-            if (groupIds.isEmpty()) return@launch
+            val assistedWalletIdsWithoutGroupId = getState().assistedWallets.filter { it.groupId.isEmpty() }.map { it.localId }
+            if (groupIds.isEmpty() && assistedWalletIdsWithoutGroupId.isEmpty()) return@launch
             isRetrievingAlert.set(true)
-            val result = getPendingWalletNotifyCountUseCase(groupIds)
+            val result = getPendingWalletNotifyCountUseCase(
+                GetPendingWalletNotifyCountUseCase.Param(
+                    groupIds = groupIds,
+                    walletIds = assistedWalletIdsWithoutGroupId
+                ))
             isRetrievingAlert.set(false)
             if (result.isSuccess) {
                 val alerts = result.getOrDefault(hashMapOf())

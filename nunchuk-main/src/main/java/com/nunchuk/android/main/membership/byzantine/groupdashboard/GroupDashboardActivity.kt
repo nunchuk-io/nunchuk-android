@@ -42,7 +42,7 @@ class GroupDashboardActivity : BaseActivity<ActivityNavigationBinding>() {
 
         fun navigate(
             activity: Context,
-            groupId: String,
+            groupId: String?,
             walletId: String?,
             message: String?
         ) {
@@ -52,7 +52,7 @@ class GroupDashboardActivity : BaseActivity<ActivityNavigationBinding>() {
 
         fun buildIntent(
             activity: Context,
-            groupId: String,
+            groupId: String?,
             walletId: String?,
             message: String? = null
         ): Intent {
