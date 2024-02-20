@@ -510,9 +510,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 }
                             },
                             onGroupClick = {
-                                if (it.group?.id == null || it.role.toRole.isKeyHolderLimited && it.badgeCount == 0) return@PendingWalletView
+                                if (it.group?.id != null && it.role.toRole.isKeyHolderLimited && it.badgeCount == 0) return@PendingWalletView
                                 navigator.openGroupDashboardScreen(
-                                    groupId = it.group.id,
+                                    groupId = it.group?.id,
                                     walletId = it.wallet?.wallet?.id,
                                     activityContext = requireActivity()
                                 )

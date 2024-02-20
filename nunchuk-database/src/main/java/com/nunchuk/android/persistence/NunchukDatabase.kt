@@ -79,6 +79,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         AutoMigration(from = 17, to = 18),
         AutoMigration(from = 18, to = 19),
         AutoMigration(from = 20, to = 21),
+        AutoMigration(from = 21, to = 22),
     ]
 )
 @TypeConverters(Converters::class)

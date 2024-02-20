@@ -395,4 +395,28 @@ internal interface UserWalletsApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: CreateOrUpdateServerTransactionRequest
     ): Data<TransactionResponse>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/alerts")
+    suspend fun getAlerts(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT,
+    ): Data<GroupAlertResponse>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/alerts/{alert_id}/mark-as-read")
+    suspend fun markAlertAsRead(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("alert_id") alertId: String,
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/alerts/{alert_id}/dismiss")
+    suspend fun dismissAlert(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("alert_id") alertId: String,
+    ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/alerts/total")
+    suspend fun getAlertTotal(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<TotalAlertResponse>
 }

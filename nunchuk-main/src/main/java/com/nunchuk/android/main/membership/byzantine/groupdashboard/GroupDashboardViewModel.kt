@@ -110,6 +110,9 @@ class GroupDashboardViewModel @Inject constructor(
     private val walletId =
         savedStateHandle.getStateFlow<String?>(EXTRA_WALLET_ID, args.walletId.orEmpty())
 
+    private val groupId =
+        savedStateHandle.getStateFlow<String?>(EXTRA_GROUP_ID, args.groupId.orEmpty())
+
     private val _event = MutableSharedFlow<GroupDashboardEvent>()
     val event = _event.asSharedFlow()
 
@@ -124,7 +127,7 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             getGroupUseCase(
                 GetGroupUseCase.Params(
-                    args.groupId
+                    getGroupId()
                 )
             )
                 .map { it.getOrElse { null } }
@@ -137,8 +140,8 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             getGroupWalletKeyHealthStatusUseCase(
                 GetGroupWalletKeyHealthStatusUseCase.Params(
-                    args.groupId,
-                    walletId.value.orEmpty(),
+                    getGroupId(),
+                    getWalletId(),
                 )
             )
                 .map { it.getOrElse { emptyList() } }
@@ -167,14 +170,15 @@ class GroupDashboardViewModel @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { wallets ->
-                    wallets.find { wallet -> wallet.groupId == args.groupId }?.let { wallet ->
+                    if (isByzantine().not()) return@collect
+                    wallets.find { wallet -> wallet.groupId == getGroupId() }?.let { wallet ->
                         _state.update { state -> state.copy(isAlreadySetupInheritance = wallet.isSetupInheritance) }
                         savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
                     }
                     _state.update {
                         it.copy(
-                            isAlreadySetupInheritance = wallets.find { wallet -> wallet.groupId == args.groupId }?.isSetupInheritance.orFalse(),
-                            inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == args.groupId }?.ext?.inheritanceOwnerId
+                            isAlreadySetupInheritance = wallets.find { wallet -> wallet.groupId == getGroupId() }?.isSetupInheritance.orFalse(),
+                            inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == getGroupId() }?.ext?.inheritanceOwnerId
                         )
                     }
                 }
@@ -182,7 +186,7 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             getAlertGroupUseCase(
                 GetAlertGroupUseCase.Params(
-                    groupId = args.groupId
+                    groupId = getGroupId()
                 )
             )
                 .map { it.getOrElse { emptyList() } }
@@ -234,8 +238,8 @@ class GroupDashboardViewModel @Inject constructor(
     private suspend fun getKeysStatusUseCase() {
         getGroupWalletKeyHealthStatusRemoteUseCase(
             GetGroupWalletKeyHealthStatusRemoteUseCase.Params(
-                args.groupId,
-                walletId.value.orEmpty(),
+                getGroupId(),
+                getWalletId(),
             )
         ).onSuccess { result ->
             _state.update { state ->
@@ -253,13 +257,14 @@ class GroupDashboardViewModel @Inject constructor(
     private suspend fun getAlertsUseCase() {
         getAlertGroupRemoteUseCase(
             GetAlertGroupRemoteUseCase.Params(
-                groupId = args.groupId
+                groupId = getGroupId(),
+                walletId = getWalletId()
             )
         )
     }
 
     private fun getGroupChat() = viewModelScope.launch {
-        val result = getGroupChatUseCase(args.groupId)
+        val result = getGroupChatUseCase(getGroupId())
         if (result.isSuccess) {
             _state.value = _state.value.copy(groupChat = result.getOrNull())
         }
@@ -287,7 +292,7 @@ class GroupDashboardViewModel @Inject constructor(
     private suspend fun getGroupUseCase() {
         getGroupRemoteUseCase(
             GetGroupRemoteUseCase.Params(
-                args.groupId
+                getGroupId()
             )
         )
     }
@@ -401,7 +406,7 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun dismissAlert(alertId: String, silentLoading: Boolean = false) {
         viewModelScope.launch {
-            val result = dismissAlertUseCase(DismissAlertUseCase.Param(alertId, args.groupId))
+            val result = dismissAlertUseCase(DismissAlertUseCase.Param(alertId, getGroupId(), getWalletId()))
             if (result.isSuccess) {
                 _state.update {
                     it.copy(alerts = it.alerts.filterNot { alert -> alert.id == alertId })
@@ -414,7 +419,7 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun markAsReadAlert(alertId: String) {
         viewModelScope.launch {
-            markAlertAsReadUseCase(MarkAlertAsReadUseCase.Param(alertId, args.groupId))
+            markAlertAsReadUseCase(MarkAlertAsReadUseCase.Param(alertId, getGroupId(), getWalletId()))
         }
     }
 
@@ -443,7 +448,7 @@ class GroupDashboardViewModel @Inject constructor(
                             GroupDashboardEvent.UpdateServerKey(
                                 token,
                                 signer,
-                                args.groupId
+                                getGroupId()
                             )
                         )
                     }
@@ -465,8 +470,8 @@ class GroupDashboardViewModel @Inject constructor(
     fun getInheritance(token: String = "", isAlertFlow: Boolean = false, silentLoading: Boolean = false) = viewModelScope.launch {
         getInheritanceUseCase(
             GetInheritanceUseCase.Param(
-                walletId.value.orEmpty(),
-                args.groupId
+                getWalletId(),
+                getGroupId()
             )
         ).onSuccess { inheritance ->
             _state.update {
@@ -486,8 +491,8 @@ class GroupDashboardViewModel @Inject constructor(
             _event.emit(GroupDashboardEvent.Loading(true))
             requestHealthCheckUseCase(
                 RequestHealthCheckUseCase.Params(
-                    args.groupId,
-                    walletId.value.orEmpty(),
+                    getGroupId(),
+                    getWalletId(),
                     signerModel.fingerPrint,
                 )
             ).onSuccess {
@@ -504,8 +509,8 @@ class GroupDashboardViewModel @Inject constructor(
             _event.emit(GroupDashboardEvent.Loading(true))
             keyHealthCheckUseCase(
                 KeyHealthCheckUseCase.Params(
-                    groupId = args.groupId,
-                    walletId = walletId.value.orEmpty(),
+                    groupId = getGroupId(),
+                    walletId = getWalletId(),
                     xfp = signerModel.fingerPrint,
                     draft = true
                 )
@@ -520,6 +525,8 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun getWalletId() = walletId.value.orEmpty()
 
+    fun getGroupId() = groupId.value.orEmpty()
+
     fun handleRegisterSigners(id: String, xfps: List<String>) {
         viewModelScope.launch {
             val signers = _state.value.wallet.signers.filter { it.masterFingerprint in xfps }
@@ -527,7 +534,7 @@ class GroupDashboardViewModel @Inject constructor(
             if (totalAirgap > 0) {
                 setRegisterAirgapUseCase(
                     SetRegisterAirgapUseCase.Params(
-                        walletId.value.orEmpty(),
+                        getWalletId(),
                         1
                     )
                 )
@@ -552,7 +559,7 @@ class GroupDashboardViewModel @Inject constructor(
                 CalculateRequiredSignaturesInheritanceUseCase.Param(
                     walletId = getWalletId(),
                     action = CalculateRequiredSignaturesAction.REQUEST_PLANNING,
-                    groupId = args.groupId
+                    groupId = getGroupId()
                 )
             ).onSuccess { resultCalculate ->
                 _event.emit(GroupDashboardEvent.CalculateRequiredSignaturesSuccess(resultCalculate.type))
@@ -568,7 +575,7 @@ class GroupDashboardViewModel @Inject constructor(
             restartWizardUseCase(
                 RestartWizardUseCase.Param(
                     plan = membershipStepManager.plan,
-                    groupId = args.groupId
+                    groupId = getGroupId()
                 )
             ).onSuccess {
                 _event.emit(GroupDashboardEvent.RestartWizardSuccess)
@@ -619,7 +626,7 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun syncTransaction(txId: String) = viewModelScope.launch {
         _event.emit(GroupDashboardEvent.Loading(true))
-        val result = syncTransactionUseCase(SyncTransactionUseCase.Params(args.groupId, getWalletId()))
+        val result = syncTransactionUseCase(SyncTransactionUseCase.Params(getGroupId(), getWalletId()))
         _event.emit(GroupDashboardEvent.Loading(false))
         if (result.isSuccess) {
             _event.emit(GroupDashboardEvent.SyncTransactionSuccess(txId))
@@ -646,11 +653,16 @@ class GroupDashboardViewModel @Inject constructor(
         getInheritance(silentLoading = true)
     }
 
+    private fun isByzantine(): Boolean {
+        return getGroupId().isNotEmpty()
+    }
+
     private val currentSelectedAlert: Alert?
         get() = savedStateHandle.get<Alert>(EXTRA_SELECTED_ALERT)
 
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"
+        private const val EXTRA_GROUP_ID = "group_id"
         private const val EXTRA_SELECTED_ALERT = "alert"
     }
 }

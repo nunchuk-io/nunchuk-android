@@ -13,7 +13,7 @@ class GetAlertGroupUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : FlowUseCase<GetAlertGroupUseCase.Params, List<Alert>>(ioDispatcher) {
 
-    override fun execute(parameters: Params): Flow<List<Alert>> = repository.getAlerts(groupId = parameters.groupId)
+    override fun execute(parameters: Params): Flow<List<Alert>> = repository.getAlerts(groupId = parameters.groupId, walletId = parameters.walletId)
 
-    class Params(val groupId: String)
+    class Params(val groupId: String? = null, val walletId: String? = null)
 }

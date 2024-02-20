@@ -11,7 +11,8 @@
 
         <argument
             android:name="group_id"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true"/>
 
         <argument
             android:name="wallet_id"

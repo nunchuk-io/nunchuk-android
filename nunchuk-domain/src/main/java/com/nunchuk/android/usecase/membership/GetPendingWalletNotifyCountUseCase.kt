@@ -12,13 +12,19 @@ import javax.inject.Inject
 class GetPendingWalletNotifyCountUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<List<String>, Map<String, Int>>(ioDispatcher) {
+) : UseCase<GetPendingWalletNotifyCountUseCase.Param, Map<String, Int>>(ioDispatcher) {
 
-    override suspend fun execute(parameters: List<String>): Map<String, Int> {
+    override suspend fun execute(parameters: Param): Map<String, Int> {
         return supervisorScope {
-            parameters.map { groupId ->
-                async { groupId to repository.getAlertTotal(groupId) }
+            val walletAlerts = parameters.walletIds.map { walletId ->
+                async { walletId to repository.getAlertTotal(walletId = walletId) }
             }.awaitAll().toMap()
+            val groupAlerts = parameters.groupIds.map { groupId ->
+                async { groupId to repository.getAlertTotal(groupId = groupId) }
+            }.awaitAll().toMap()
+            walletAlerts + groupAlerts
         }
     }
+
+    class Param(val groupIds: List<String>, val walletIds: List<String>)
 }
