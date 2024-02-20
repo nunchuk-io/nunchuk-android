@@ -245,13 +245,13 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                 && walletAuthenticationViewModel.getDummyTransactionType() != DummyTransactionType.KEY_RECOVERY_REQUEST
     }
 
-    private fun openGroupDashboard() {
+    private fun openGroupDashboard(message: String = walletAuthenticationViewModel.signedSuccessMessage) {
         val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
         navigator.openGroupDashboardScreen(
             activityContext = requireActivity(),
             groupId = args.groupId.orEmpty(),
             walletId = args.walletId,
-            message = walletAuthenticationViewModel.signedSuccessMessage
+            message = message
         )
         ActivityManager.popUntilRoot()
     }
@@ -287,7 +287,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                         )
                     },
                     onNeutralClick = {
-                        requireActivity().finish()
+                        openGroupDashboard("")
                     },
                 )
         }
