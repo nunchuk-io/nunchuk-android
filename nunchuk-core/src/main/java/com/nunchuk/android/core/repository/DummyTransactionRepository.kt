@@ -23,14 +23,21 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
     override suspend fun getDummyTransaction(
         groupId: String,
         walletId: String,
-        dummyTransactionId: String
+        dummyTransactionId: String,
     ): DummyTransaction {
         return runCatching {
-            val response = userWalletApiManager.groupWalletApi.getDummyTransaction(
-                groupId,
-                walletId,
-                dummyTransactionId
-            )
+            val response = if (groupId.isEmpty()) {
+                userWalletApiManager.walletApi.getDummyTransaction(
+                    walletId,
+                    dummyTransactionId
+                )
+            } else {
+                userWalletApiManager.groupWalletApi.getDummyTransaction(
+                    groupId,
+                    walletId,
+                    dummyTransactionId
+                )
+            }
             val dummyTransaction = response.data.dummyTransaction
                 ?: throw NullPointerException("Can not load dummy transaction")
             nunchukNativeSdk.importDummyTx(gson.toJson(dummyTransaction))
@@ -58,7 +65,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
     override suspend fun getDummyTransactionPayload(
         groupId: String,
         walletId: String,
-        dummyTransactionId: String
+        dummyTransactionId: String,
     ): DummyTransactionPayload {
         return runCatching {
             val response = userWalletApiManager.groupWalletApi.getDummyTransaction(
@@ -97,7 +104,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         signatures: Map<String, String>,
         groupId: String,
         walletId: String,
-        dummyTransactionId: String
+        dummyTransactionId: String,
     ): DummyTransactionUpdate {
         val headers = mutableMapOf<String, String>()
         signatures.map { (masterFingerprint, signature) ->
@@ -108,12 +115,20 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         headers.values.forEach { signatureToken ->
             nunchukNativeSdk.saveDummyTxRequestToken(walletId, dummyTransactionId, signatureToken)
         }
-        val response = userWalletApiManager.groupWalletApi.updateDummyTransaction(
-            headers,
-            groupId,
-            walletId,
-            dummyTransactionId
-        )
+        val response = if (groupId.isEmpty()) {
+            userWalletApiManager.walletApi.updateDummyTransaction(
+                headers,
+                walletId,
+                dummyTransactionId
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.updateDummyTransaction(
+                headers,
+                groupId,
+                walletId,
+                dummyTransactionId
+            )
+        }
         return DummyTransactionUpdate(
             TransactionStatus.values().find { it.name == response.data.dummyTransaction?.status }
                 ?: TransactionStatus.PENDING_SIGNATURES,
@@ -124,13 +139,20 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
     override suspend fun deleteDummyTransaction(
         groupId: String,
         walletId: String,
-        dummyTransactionId: String
+        dummyTransactionId: String,
     ) {
-        val response = userWalletApiManager.groupWalletApi.deleteDummyTransaction(
-            groupId,
-            walletId,
-            dummyTransactionId
-        )
+        val response = if (groupId.isEmpty()) {
+            userWalletApiManager.walletApi.deleteDummyTransaction(
+                walletId,
+                dummyTransactionId
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.deleteDummyTransaction(
+                groupId,
+                walletId,
+                dummyTransactionId
+            )
+        }
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -141,9 +163,15 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         walletId: String,
         dummyTransactionId: String,
     ) {
-        val response = userWalletApiManager.groupWalletApi.finalizeDummyTransaction(
-            groupId, walletId, dummyTransactionId
-        )
+        val response = if (groupId.isEmpty()) {
+            userWalletApiManager.walletApi.finalizeDummyTransaction(
+                walletId, dummyTransactionId
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.finalizeDummyTransaction(
+                groupId, walletId, dummyTransactionId
+            )
+        }
         val transaction = response.data.dummyTransaction
             ?: throw NullPointerException("Can not get dummy transaction")
         nunchukNativeSdk.importDummyTx(gson.toJson(transaction))

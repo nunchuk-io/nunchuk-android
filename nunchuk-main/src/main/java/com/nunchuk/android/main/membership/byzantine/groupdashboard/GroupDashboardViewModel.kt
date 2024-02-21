@@ -116,7 +116,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val _event = MutableSharedFlow<GroupDashboardEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(GroupDashboardState())
+    private val _state = MutableStateFlow(GroupDashboardState(groupId = getGroupId()))
     val state = _state.asStateFlow()
 
     private var timeline: Timeline? = null
@@ -186,7 +186,8 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             getAlertGroupUseCase(
                 GetAlertGroupUseCase.Params(
-                    groupId = getGroupId()
+                    groupId = getGroupId(),
+                    walletId = getWalletId()
                 )
             )
                 .map { it.getOrElse { emptyList() } }
@@ -264,6 +265,7 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     private fun getGroupChat() = viewModelScope.launch {
+        if (getGroupId().isEmpty()) return@launch
         val result = getGroupChatUseCase(getGroupId())
         if (result.isSuccess) {
             _state.value = _state.value.copy(groupChat = result.getOrNull())
@@ -290,6 +292,7 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     private suspend fun getGroupUseCase() {
+        if (getGroupId().isEmpty()) return
         getGroupRemoteUseCase(
             GetGroupRemoteUseCase.Params(
                 getGroupId()

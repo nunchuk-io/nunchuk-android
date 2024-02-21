@@ -96,7 +96,8 @@ fun HealthCheckContent(
                             signer = it,
                             status = state.keyStatus[it.fingerPrint],
                             onHealthCheck = onHealthCheck,
-                            onRequestHealthCheck = onRequestHealthCheck
+                            onRequestHealthCheck = onRequestHealthCheck,
+                            isShowRequestHealthCheck = state.groupId.isNotEmpty()
                         )
                     }
                 }
@@ -109,6 +110,7 @@ fun HealthCheckContent(
 private fun HealthCheckItem(
     signer: SignerModel,
     status: KeyHealthStatus?,
+    isShowRequestHealthCheck: Boolean,
     onHealthCheck: (SignerModel) -> Unit = {},
     onRequestHealthCheck: (SignerModel) -> Unit = {},
 ) {
@@ -210,17 +212,20 @@ private fun HealthCheckItem(
                     style = NunchukTheme.typography.captionTitle
                 )
             }
-            NcOutlineButton(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(36.dp),
-                onClick = { onRequestHealthCheck(signer) },
-                enabled = status?.canRequestHealthCheck == true
-            ) {
-                Text(
-                    text = stringResource(R.string.nc_request_health_check),
-                    style = NunchukTheme.typography.captionTitle
-                )
+
+            if (isShowRequestHealthCheck) {
+                NcOutlineButton(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(36.dp),
+                    onClick = { onRequestHealthCheck(signer) },
+                    enabled = status?.canRequestHealthCheck == true
+                ) {
+                    Text(
+                        text = stringResource(R.string.nc_request_health_check),
+                        style = NunchukTheme.typography.captionTitle
+                    )
+                }
             }
         }
     }

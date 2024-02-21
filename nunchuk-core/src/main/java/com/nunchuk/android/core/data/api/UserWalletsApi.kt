@@ -419,4 +419,42 @@ internal interface UserWalletsApi {
     suspend fun getAlertTotal(
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<TotalAlertResponse>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/health")
+    suspend fun getWalletHealthStatus(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<WalletHealthStatusResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/health/{xfp}/health-check")
+    suspend fun healthCheck(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+        @Query("draft") draft: Boolean,
+        @Body request: HealthCheckRequest,
+    ): Data<DummyTransactionResponse>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun getDummyTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<DummyTransactionResponse>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun updateDummyTransaction(
+        @HeaderMap headers: Map<String, String>,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<DummyTransactionResponse>
+
+    @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun deleteDummyTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}/finalize")
+    suspend fun finalizeDummyTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<DummyTransactionResponse>
 }

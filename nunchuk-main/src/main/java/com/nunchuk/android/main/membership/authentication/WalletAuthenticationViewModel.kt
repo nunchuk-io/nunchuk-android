@@ -99,7 +99,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getDummyTxRequestTokenUseCase: GetDummyTxRequestTokenUseCase,
     private val networkStatusFlowUseCase: NetworkStatusFlowUseCase,
     private val application: Application,
-    private val syncGroupWalletUseCase: SyncGroupWalletUseCase
+    private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -119,7 +119,7 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _event.emit(WalletAuthenticationEvent.Loading(true))
-            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
+            if (!args.dummyTransactionId.isNullOrEmpty()) {
                 getGroupDummyTransactionUseCase(
                     GetGroupDummyTransactionUseCase.Param(
                         groupId = args.groupId.orEmpty(),
@@ -364,7 +364,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 return
             }
             signatures[singleSigner.masterFingerprint] = signature
-            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
+            if (!args.dummyTransactionId.isNullOrEmpty()) {
                 if (uploadSignature(singleSigner.masterFingerprint, signature, signatures)) {
                     val status = _state.value.transactionStatus
                     if (status != TransactionStatus.CONFIRMED) {
@@ -481,7 +481,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun deleteDummyTransaction() {
         viewModelScope.launch(NonCancellable) {
             val isDraft = state.value.isDraft
-            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty() && isDraft) {
+            if (!args.dummyTransactionId.isNullOrEmpty() && isDraft) {
                 deleteGroupDummyTransactionUseCase(
                     DeleteGroupDummyTransactionUseCase.Param(
                         groupId = args.groupId.orEmpty(),
@@ -515,6 +515,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 R.string.nc_txt_run_health_check_success_event,
                 getInteractSingleSigner()?.name.orEmpty()
             )
+
             DummyTransactionType.CREATE_RECURRING_PAYMENT -> application.getString(R.string.nc_the_recurring_payment_has_been_approved)
             DummyTransactionType.CANCEL_RECURRING_PAYMENT -> application.getString(R.string.nc_pending_cancellation_has_been_cancelled)
             else -> ""
