@@ -67,7 +67,7 @@ internal class ByzantineSyncer @Inject constructor(
 
         val updateOrInsertList = mutableListOf<AlertEntity>()
 
-        val localMap = alertDao.getAlerts(groupId, getChatId(), chain.value)
+        val localMap = alertDao.getAlerts(groupId = groupId.orEmpty(), walletId = walletId.orEmpty(), chain.value)
             .associateByTo(mutableMapOf()) { it.id }
 
         remoteList.forEach { remote ->

@@ -2042,8 +2042,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>> {
         return alertDao.getAlertsFlow(
-            groupId = groupId,
-            walletId = walletId,
+            groupId = groupId.orEmpty(),
+            walletId = walletId.orEmpty(),
             chain.value
         ).map { alerts ->
                 alerts.map { alert ->

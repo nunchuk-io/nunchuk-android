@@ -14,20 +14,20 @@ interface AlertDao : BaseDao<AlertEntity> {
 
     companion object {
         const val GET_ALERTS_STATEMENT =
-            "SELECT * FROM $TABLE_ALERT WHERE ((group_id = :groupId AND :groupId IS NOT NULL) OR (wallet_id = :walletId AND :walletId IS NOT NULL)) AND chain = :chain"
+            "SELECT * FROM $TABLE_ALERT WHERE (group_id = :groupId AND wallet_id = :walletId) AND chain = :chain"
     }
 
     @Query(GET_ALERTS_STATEMENT)
     fun getAlertsFlow(
-        groupId: String? = null,
-        walletId: String? = null,
+        groupId: String,
+        walletId: String,
         chain: Chain,
     ): Flow<List<AlertEntity>>
 
     @Query(GET_ALERTS_STATEMENT)
     fun getAlerts(
-        groupId: String? = null,
-        walletId: String? = null,
+        groupId: String,
+        walletId: String,
         chain: Chain
     ): List<AlertEntity>
 
