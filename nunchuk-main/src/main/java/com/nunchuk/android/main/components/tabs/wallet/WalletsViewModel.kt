@@ -44,6 +44,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
@@ -396,7 +397,7 @@ internal class WalletsViewModel @Inject constructor(
                 var groupWalletUi = GroupWalletUi(
                     wallet = wallet,
                     isAssistedWallet = wallet.wallet.id in assistedWalletIds,
-                    badgeCount = alerts[groupId] ?: 0
+                    badgeCount = if (alerts[groupId] == null) alerts[wallet.wallet.id].orDefault(0) else alerts[groupId].orDefault(0)
                 )
                 if (group != null) {
                     val role = byzantineGroupUtils.getCurrentUserRole(group)
