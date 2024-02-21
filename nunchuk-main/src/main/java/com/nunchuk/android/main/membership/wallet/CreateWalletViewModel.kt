@@ -37,7 +37,6 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
-import com.nunchuk.android.usecase.byzantine.CreateGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.utils.onException
@@ -156,7 +155,6 @@ class CreateWalletViewModel @Inject constructor(
                 _event.emit(CreateWalletEvent.Loading(false))
                 return@launch
             }
-            val remoteSigner = remoteSigners.filter { signers.containsKey(it.masterFingerprint) }
             val createServerSignerResult = createSignerUseCase(
                 CreateSignerUseCase.Params(
                     name = serverKey.name,
@@ -178,7 +176,7 @@ class CreateWalletViewModel @Inject constructor(
             val wallet = Wallet(
                 name = _state.value.walletName,
                 totalRequireSigns = 2,
-                signers = getSingleSingerResult.getOrThrow() + remoteSigner + createServerSignerResult.getOrThrow(),
+                signers = getSingleSingerResult.getOrThrow() + walletRemoteSigners + createServerSignerResult.getOrThrow(),
                 addressType = addressType,
                 escrow = false,
             )
@@ -189,7 +187,7 @@ class CreateWalletViewModel @Inject constructor(
                 createWalletUseCase.execute(
                     name = _state.value.walletName,
                     totalRequireSigns = 2,
-                    signers = getSingleSingerResult.getOrThrow() + remoteSigner + createServerSignerResult.getOrThrow(),
+                    signers = getSingleSingerResult.getOrThrow() + walletRemoteSigners + createServerSignerResult.getOrThrow(),
                     addressType = addressType,
                     isEscrow = false
                 ).flowOn(Dispatchers.IO)
