@@ -7,10 +7,10 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetGroupDummyTransactionPayloadUseCase @Inject constructor(
+class GetDummyTransactionPayloadUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val dummyTransactionRepository: DummyTransactionRepository,
-) : UseCase<GetGroupDummyTransactionPayloadUseCase.Param, DummyTransactionPayload>(ioDispatcher) {
+) : UseCase<GetDummyTransactionPayloadUseCase.Param, DummyTransactionPayload>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): DummyTransactionPayload =
         dummyTransactionRepository.getDummyTransactionPayload(
@@ -19,5 +19,5 @@ class GetGroupDummyTransactionPayloadUseCase @Inject constructor(
             dummyTransactionId = parameters.transactionId
         )
 
-    data class Param(val groupId: String, val walletId: String, val transactionId: String)
+    data class Param(val groupId: String = "", val walletId: String, val transactionId: String)
 }

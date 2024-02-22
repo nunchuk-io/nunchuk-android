@@ -37,7 +37,7 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
+import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupServerKeysUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -58,7 +58,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
     private val calculateRequiredSignaturesUpdateGroupKeyPolicyUseCase: CalculateRequiredSignaturesUpdateGroupKeyPolicyUseCase,
     private val getGroupKeyPolicyUserDataUseCase: GetGroupKeyPolicyUserDataUseCase,
     private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
-    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
+    private val getDummyTransactionPayloadUseCase: GetDummyTransactionPayloadUseCase,
     private val parseUpdateGroupKeyPayloadUseCase: ParseUpdateGroupKeyPayloadUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
@@ -77,8 +77,8 @@ class CosigningGroupPolicyViewModel @Inject constructor(
             _event.emit(CosigningGroupPolicyEvent.Loading(true))
             loadMembers()
             if (args.dummyTransactionId.isNotEmpty()) {
-                getGroupDummyTransactionPayloadUseCase(
-                    GetGroupDummyTransactionPayloadUseCase.Param(
+                getDummyTransactionPayloadUseCase(
+                    GetDummyTransactionPayloadUseCase.Param(
                         groupId = args.groupId,
                         transactionId = args.dummyTransactionId,
                         walletId = args.walletId

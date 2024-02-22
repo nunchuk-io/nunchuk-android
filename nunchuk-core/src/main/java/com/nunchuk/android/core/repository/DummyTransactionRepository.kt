@@ -68,11 +68,18 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         dummyTransactionId: String,
     ): DummyTransactionPayload {
         return runCatching {
-            val response = userWalletApiManager.groupWalletApi.getDummyTransaction(
-                groupId,
-                walletId,
-                dummyTransactionId
-            )
+            val response = if (groupId.isEmpty()) {
+                userWalletApiManager.walletApi.getDummyTransaction(
+                    walletId,
+                    dummyTransactionId
+                )
+            } else {
+                userWalletApiManager.groupWalletApi.getDummyTransaction(
+                    groupId,
+                    walletId,
+                    dummyTransactionId
+                )
+            }
             val dummyTransaction = response.data.dummyTransaction
                 ?: throw NullPointerException("Can not load dummy transaction")
             saveDummyTransactionEntity(dummyTransactionId, dummyTransaction)
