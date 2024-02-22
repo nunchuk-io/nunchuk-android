@@ -772,7 +772,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun generateInheritanceClaimStatusUserData(magic: String): String {
         val body = InheritanceClaimStatusRequest.Body(
-            magic = magic
+            magic = magic,
         )
         val nonce = getNonce()
         val request = InheritanceClaimStatusRequest(
@@ -979,9 +979,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.dummyTransaction?.id.orEmpty()
     }
 
-    override suspend fun inheritanceClaimDownloadBackup(magic: String): List<BackupKey> {
+    override suspend fun inheritanceClaimDownloadBackup(magic: String, hashedBps: List<String>): List<BackupKey> {
         val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackups(
-            InheritanceClaimDownloadBackupRequest(magic = magic)
+            InheritanceClaimDownloadBackupRequest(magic = magic, hashedBps = hashedBps)
         )
         return response.data.keys?.map { it.toBackupKey() }.orEmpty()
     }
