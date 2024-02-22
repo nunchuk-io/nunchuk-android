@@ -22,8 +22,6 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
-import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.utils.onException

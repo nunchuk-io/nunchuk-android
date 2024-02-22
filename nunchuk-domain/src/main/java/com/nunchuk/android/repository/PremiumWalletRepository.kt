@@ -216,9 +216,7 @@ interface PremiumWalletRepository {
         groupId: String?
     ): String
 
-    suspend fun generateInheritanceClaimStatusUserData(
-        magic: String
-    ): String
+    suspend fun generateInheritanceClaimStatusUserData(magic: String): String
 
     suspend fun generateInheritanceClaimCreateTransactionUserData(
         magic: String,
@@ -285,7 +283,7 @@ interface PremiumWalletRepository {
         groupId: String
     ): String
 
-    suspend fun inheritanceClaimDownloadBackup(magic: String): List<BackupKey>
+    suspend fun inheritanceClaimDownloadBackup(magic: String, hashedBps: List<String>): List<BackupKey>
 
     suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
 

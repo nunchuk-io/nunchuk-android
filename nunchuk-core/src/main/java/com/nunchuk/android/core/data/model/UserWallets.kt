@@ -148,7 +148,6 @@ data class CreateUpdateInheritancePlanRequest(
     )
 }
 
-
 data class InheritanceClaimStatusRequest(
     @SerializedName("nonce")
     val nonce: String? = null,
@@ -157,23 +156,15 @@ data class InheritanceClaimStatusRequest(
 ) {
     data class Body(
         @SerializedName("magic")
-        val magic: String? = null,
+        val magic: String? = null
     )
 }
 
 data class InheritanceClaimDownloadBackupRequest(
     @SerializedName("magic")
-    val magic: String? = null
-)
-
-data class InheritanceClaimCheckValidRequest(
-    @SerializedName("magic")
-    val magic: String? = null
-)
-
-data class InheritanceClaimCheckValidResponse(
-    @SerializedName("is_valid")
-    val isValid: Boolean? = null
+    val magic: String? = null,
+    @SerializedName("hashed_bps")
+    val hashedBps: List<String>? = null
 )
 
 data class InheritanceClaimClaimRequest(
