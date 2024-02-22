@@ -27,6 +27,11 @@
             app:argType="com.nunchuk.android.core.signer.SignerModel"
             app:nullable="true"
             android:defaultValue="@null"/>
+
+        <argument
+            android:name="dummy_transaction_id"
+            app:argType="string"
+            android:defaultValue=""/>
     </fragment>
     <fragment
         android:id="@+id/cosigningGroupPolicyFragment"

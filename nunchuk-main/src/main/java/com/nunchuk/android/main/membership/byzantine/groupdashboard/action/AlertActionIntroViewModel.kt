@@ -10,7 +10,7 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
+import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,7 +28,7 @@ import javax.inject.Inject
 class AlertActionIntroViewModel @Inject constructor(
     private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
+    private val getDummyTransactionPayloadUseCase: GetDummyTransactionPayloadUseCase,
     private val getGroupUseCase: GetGroupUseCase,
     private val denyInheritanceRequestPlanningUseCase: DenyInheritanceRequestPlanningUseCase,
     private val approveInheritanceRequestPlanningUseCase: ApproveInheritanceRequestPlanningUseCase,
@@ -47,8 +47,8 @@ class AlertActionIntroViewModel @Inject constructor(
             getGroup(args.alert.payload.membershipId)
         } else {
             viewModelScope.launch {
-                getGroupDummyTransactionPayloadUseCase(
-                    GetGroupDummyTransactionPayloadUseCase.Param(
+                getDummyTransactionPayloadUseCase(
+                    GetDummyTransactionPayloadUseCase.Param(
                         groupId = args.groupId,
                         walletId = args.walletId,
                         transactionId = args.alert.payload.dummyTransactionId

@@ -33,9 +33,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -118,7 +117,7 @@ class CosigningPolicyFragment : Fragment() {
         }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -142,6 +141,7 @@ class CosigningPolicyFragment : Fragment() {
                             keyPolicy = viewModel.state.value.keyPolicy,
                             xfp = args.signer?.fingerPrint.orEmpty(),
                         )
+
                         CosigningPolicyEvent.OnEditSpendingLimitClicked -> navigator.openConfigServerKeyActivity(
                             launcher = launcher,
                             activityContext = requireActivity(),
@@ -149,6 +149,7 @@ class CosigningPolicyFragment : Fragment() {
                             keyPolicy = viewModel.state.value.keyPolicy,
                             xfp = args.signer?.fingerPrint.orEmpty(),
                         )
+
                         CosigningPolicyEvent.OnDiscardChange -> NCWarningDialog(requireActivity()).showDialog(
                             title = getString(R.string.nc_confirmation),
                             message = getString(R.string.nc_are_you_sure_discard_the_change),
@@ -156,6 +157,7 @@ class CosigningPolicyFragment : Fragment() {
                                 requireActivity().finish()
                             }
                         )
+
                         is CosigningPolicyEvent.OnSaveChange -> openWalletAuthentication(event)
                         is CosigningPolicyEvent.Loading -> showOrHideLoading(event.isLoading)
                         is CosigningPolicyEvent.ShowError -> showError(event.error)
@@ -181,7 +183,8 @@ class CosigningPolicyFragment : Fragment() {
                 requiredSignatures = event.required.requiredSignatures,
                 type = event.required.type,
                 launcher = signLauncher,
-                activityContext = requireActivity()
+                activityContext = requireActivity(),
+                dummyTransactionId = event.dummyTransactionId,
             )
         }
     }
@@ -215,11 +218,10 @@ private fun CosigningPolicyContent(
 ) {
 
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(modifier = Modifier.systemBarsPadding()) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
+                    .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
@@ -264,7 +266,11 @@ private fun CosigningPolicyContent(
                         ) {
                             Text(
                                 modifier = Modifier.weight(1.0f),
-                                text = "${spendingPolicy.limit.formatDecimalWithoutZero(maxFractionDigits = USD_FRACTION_DIGITS)} ${spendingPolicy.currencyUnit}/${
+                                text = "${
+                                    spendingPolicy.limit.formatDecimalWithoutZero(
+                                        maxFractionDigits = USD_FRACTION_DIGITS
+                                    )
+                                } ${spendingPolicy.currencyUnit}/${
                                     spendingPolicy.timeUnit.name.lowercase()
                                         .capitalize(Locale.current)
                                 }",
@@ -346,31 +352,36 @@ private fun CosigningPolicyContent(
                             text = stringResource(R.string.nc_enable_co_signing_delay),
                             style = NunchukTheme.typography.body
                         )
-                        val delayTime = if (keyPolicy.getSigningDelayInHours() == 0 && keyPolicy.getSigningDelayInMinutes() == 0) {
-                            stringResource(R.string.nc_off)
-                        } else if (keyPolicy.getSigningDelayInHours() == 0) {
-                            pluralStringResource(
-                                R.plurals.nc_plural_minute,
-                                keyPolicy.getSigningDelayInMinutes(),
-                                keyPolicy.getSigningDelayInMinutes()
-                            )
-                        } else if (keyPolicy.getSigningDelayInMinutes() == 0) {
-                            pluralStringResource(
-                                R.plurals.nc_plural_hour,
-                                keyPolicy.getSigningDelayInHours(),
-                                keyPolicy.getSigningDelayInHours()
-                            )
-                        } else {
-                            "${pluralStringResource(
-                                R.plurals.nc_plural_hour,
-                                keyPolicy.getSigningDelayInHours(),
-                                keyPolicy.getSigningDelayInHours()
-                            )} ${pluralStringResource(
-                                R.plurals.nc_plural_minute,
-                                keyPolicy.getSigningDelayInMinutes(),
-                                keyPolicy.getSigningDelayInMinutes()
-                            )}"
-                        }
+                        val delayTime =
+                            if (keyPolicy.getSigningDelayInHours() == 0 && keyPolicy.getSigningDelayInMinutes() == 0) {
+                                stringResource(R.string.nc_off)
+                            } else if (keyPolicy.getSigningDelayInHours() == 0) {
+                                pluralStringResource(
+                                    R.plurals.nc_plural_minute,
+                                    keyPolicy.getSigningDelayInMinutes(),
+                                    keyPolicy.getSigningDelayInMinutes()
+                                )
+                            } else if (keyPolicy.getSigningDelayInMinutes() == 0) {
+                                pluralStringResource(
+                                    R.plurals.nc_plural_hour,
+                                    keyPolicy.getSigningDelayInHours(),
+                                    keyPolicy.getSigningDelayInHours()
+                                )
+                            } else {
+                                "${
+                                    pluralStringResource(
+                                        R.plurals.nc_plural_hour,
+                                        keyPolicy.getSigningDelayInHours(),
+                                        keyPolicy.getSigningDelayInHours()
+                                    )
+                                } ${
+                                    pluralStringResource(
+                                        R.plurals.nc_plural_minute,
+                                        keyPolicy.getSigningDelayInMinutes(),
+                                        keyPolicy.getSigningDelayInMinutes()
+                                    )
+                                }"
+                            }
                         Text(
                             modifier = Modifier.weight(1.0f),
                             textAlign = TextAlign.End,

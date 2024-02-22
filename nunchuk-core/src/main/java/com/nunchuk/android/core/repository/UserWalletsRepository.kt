@@ -159,7 +159,6 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
-import com.nunchuk.android.utils.isNoneEmpty
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -292,7 +291,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         token: String,
         securityQuestionToken: String,
         body: String,
-    ): KeyPolicy {
+    ): String {
         val headers = mutableMapOf(VERIFY_TOKEN to token)
         if (securityQuestionToken.isNotEmpty()) {
             headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
@@ -308,12 +307,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             derivationPath = derivationPath,
             body = gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
         )
-        val serverPolicy =
-            response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
-        return KeyPolicy(
-            autoBroadcastTransaction = serverPolicy.autoBroadcastTransaction,
-            signingDelayInSeconds = serverPolicy.signingDelaySeconds
-        )
+        return response.data.dummyTransaction?.id ?: throw NullPointerException("Transaction empty")
     }
 
     override suspend fun updateGroupServerKeys(

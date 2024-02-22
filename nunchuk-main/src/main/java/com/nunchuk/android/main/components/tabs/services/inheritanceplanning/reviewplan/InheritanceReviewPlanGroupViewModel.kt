@@ -17,9 +17,8 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
+import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
-import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,7 +31,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceReviewPlanGroupViewModel @Inject constructor(
-    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
+    private val getDummyTransactionPayloadUseCase: GetDummyTransactionPayloadUseCase,
     private val parseInheritancePayloadUseCase: ParseInheritancePayloadUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getInheritanceUserDataUseCase: GetInheritanceUserDataUseCase,
@@ -55,8 +54,8 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
             _event.emit(InheritanceReviewPlanGroupEvent.Loading(true))
             loadMembers()
             if (param.dummyTransactionId.isNotEmpty()) {
-                getGroupDummyTransactionPayloadUseCase(
-                    GetGroupDummyTransactionPayloadUseCase.Param(
+                getDummyTransactionPayloadUseCase(
+                    GetDummyTransactionPayloadUseCase.Param(
                         groupId = param.groupId,
                         transactionId = param.dummyTransactionId,
                         walletId = param.walletId
