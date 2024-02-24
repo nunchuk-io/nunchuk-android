@@ -134,19 +134,19 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         val userData = getUserData()
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
         if (resultCalculate.isSuccess) {
-            if (param.groupId.isEmpty()) {
-                _event.emit(
-                    InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess(
-                        type = resultCalculate.getOrThrow().type,
-                        walletId = walletId,
-                        userData = userData,
-                        requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
-                        dummyTransactionId = ""
-                    )
-                )
-            } else {
+//            if (param.groupId.isEmpty()) {
+//                _event.emit(
+//                    InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess(
+//                        type = resultCalculate.getOrThrow().type,
+//                        walletId = walletId,
+//                        userData = userData,
+//                        requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
+//                        dummyTransactionId = ""
+//                    )
+//                )
+//            } else {
                 calculateRequiredSignaturesByzantine(resultCalculate.getOrThrow(), userData)
-            }
+//            }
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
         }

@@ -570,8 +570,8 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         val options = mutableListOf<SheetOption>()
         val uiState = viewModel.state.value
         if (viewModel.isPendingCreateWallet().not()) {
-            if (uiState.group?.walletConfig?.allowInheritance == true) {
-                if (uiState.myRole.isMasterOrAdmin) {
+            if (onCheckRuleForByzantine(uiState.group?.walletConfig?.allowInheritance == true)) {
+                if (onCheckRuleForByzantine(uiState.myRole.isMasterOrAdmin)) {
                     if (uiState.isAlreadySetupInheritance) {
                         options.add(
                             SheetOption(
@@ -606,7 +606,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     )
                 }
             }
-            if (uiState.myRole.isMasterOrAdmin) {
+            if (onCheckRuleForByzantine(uiState.myRole.isMasterOrAdmin)) {
                 options.add(
                     SheetOption(
                         type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
@@ -621,7 +621,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
         }
-        if (uiState.myRole.isMasterOrAdmin && viewModel.groupChat() != null) {
+        if (onCheckRuleForByzantine(uiState.myRole.isMasterOrAdmin && viewModel.groupChat() != null)) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
@@ -629,7 +629,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
         }
-        if (viewModel.isPendingCreateWallet() && uiState.myRole == AssistedWalletRole.MASTER) {
+        if (onCheckRuleForByzantine(viewModel.isPendingCreateWallet() && uiState.myRole == AssistedWalletRole.MASTER)) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_RESTART_WIZARD,
@@ -641,6 +641,10 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         if (options.isEmpty()) return
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun onCheckRuleForByzantine(condition: Boolean): Boolean {
+        return viewModel.isNormalAssistedWallet() || condition
     }
 }
 

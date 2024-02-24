@@ -170,14 +170,13 @@ class GroupDashboardViewModel @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { wallets ->
-                    if (isByzantine().not()) return@collect
-                    wallets.find { wallet -> wallet.groupId == getGroupId() }?.let { wallet ->
+                    wallets.find { wallet -> wallet.localId == getWalletId() }?.let { wallet ->
                         _state.update { state -> state.copy(isAlreadySetupInheritance = wallet.isSetupInheritance) }
                         savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
                     }
                     _state.update {
                         it.copy(
-                            isAlreadySetupInheritance = wallets.find { wallet -> wallet.groupId == getGroupId() }?.isSetupInheritance.orFalse(),
+                            isAlreadySetupInheritance = wallets.find { wallet -> wallet.localId == getWalletId() }?.isSetupInheritance.orFalse(),
                             inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == getGroupId() }?.ext?.inheritanceOwnerId
                         )
                     }
@@ -658,6 +657,10 @@ class GroupDashboardViewModel @Inject constructor(
 
     private fun isByzantine(): Boolean {
         return getGroupId().isNotEmpty()
+    }
+
+    fun isNormalAssistedWallet(): Boolean {
+        return getGroupId().isEmpty()
     }
 
     private val currentSelectedAlert: Alert?

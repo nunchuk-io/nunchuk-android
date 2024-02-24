@@ -114,8 +114,9 @@ fun GroupDashboardContent(
         }
     }
 
-    val isShowMore = (uiState.myRole != AssistedWalletRole.KEYHOLDER_LIMITED && uiState.myRole != AssistedWalletRole.OBSERVER)
-            && (uiState.groupChat != null || uiState.group?.isPendingWallet() == false || uiState.myRole == AssistedWalletRole.MASTER)
+    val isShowMore = uiState.groupId.isEmpty() ||
+            ((uiState.myRole != AssistedWalletRole.KEYHOLDER_LIMITED && uiState.myRole != AssistedWalletRole.OBSERVER)
+            && (uiState.groupChat != null || uiState.group?.isPendingWallet() == false || uiState.myRole == AssistedWalletRole.MASTER))
 
     NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
         Scaffold(
