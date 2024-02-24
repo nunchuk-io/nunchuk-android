@@ -69,7 +69,7 @@ import com.nunchuk.android.core.data.model.membership.TransactionServerDto
 import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
-import com.nunchuk.android.core.data.model.membership.toExternalModel
+import com.nunchuk.android.core.data.model.membership.toGroupKeyPolicy
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -281,7 +281,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             userWalletApiManager.groupWalletApi.getGroupServerKey(groupId, xfp, derivationPath)
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
-        return policy.toExternalModel()
+        return policy.toGroupKeyPolicy()
     }
 
     override suspend fun updateServerKeys(

@@ -154,7 +154,7 @@ class CosigningPolicyFragment : Fragment() {
                             title = getString(R.string.nc_confirmation),
                             message = getString(R.string.nc_are_you_sure_discard_the_change),
                             onYesClick = {
-                                requireActivity().finish()
+                                viewModel.cancelChange()
                             }
                         )
 
@@ -168,6 +168,8 @@ class CosigningPolicyFragment : Fragment() {
                                 R.string.nc_policy_updated
                             )
                         )
+
+                        CosigningPolicyEvent.CancelChangeSuccess -> requireActivity().finish()
                     }
                 }
         }

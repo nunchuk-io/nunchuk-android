@@ -19,7 +19,7 @@ class DeleteGroupDummyTransactionUseCase @Inject constructor(
         )
 
     data class Param(
-        val groupId: String,
+        val groupId: String = "",
         val walletId: String,
         val transactionId: String,
     )

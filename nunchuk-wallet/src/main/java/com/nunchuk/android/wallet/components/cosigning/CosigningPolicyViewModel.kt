@@ -24,11 +24,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesUpdateKeyPolicyUseCase
 import com.nunchuk.android.core.domain.membership.GetKeyPolicyUserDataUseCase
+import com.nunchuk.android.core.domain.membership.ParseUpdateKeyPayloadUseCase
 import com.nunchuk.android.core.domain.membership.UpdateServerKeysUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.membership.GetServerKeysUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,6 +41,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,7 +51,9 @@ class CosigningPolicyViewModel @Inject constructor(
     private val updateServerKeysUseCase: UpdateServerKeysUseCase,
     private val calculateRequiredSignaturesUpdateKeyPolicyUseCase: CalculateRequiredSignaturesUpdateKeyPolicyUseCase,
     private val getKeyPolicyUserDataUseCase: GetKeyPolicyUserDataUseCase,
-    private val getDummyTransactionPayloadUseCase: GetDummyTransactionPayloadUseCase
+    private val getDummyTransactionPayloadUseCase: GetDummyTransactionPayloadUseCase,
+    private val parseUpdateKeyPayloadUseCase: ParseUpdateKeyPayloadUseCase,
+    private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
 ) : ViewModel() {
     private val args: CosigningPolicyFragmentArgs =
         CosigningPolicyFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -68,28 +74,23 @@ class CosigningPolicyViewModel @Inject constructor(
                         walletId = args.walletId
                     )
                 ).onSuccess { payload ->
-                    // TODO Hai
-//                    if (payload.type == DummyTransactionType.UPDATE_SERVER_KEY) {
-//                        parseUpdateGroupKeyPayloadUseCase(payload).onSuccess { newPolicy ->
-//                            _state.update {
-//                                it.copy(
-//                                    keyPolicy = newPolicy,
-//                                    dummyTransactionId = args.dummyTransactionId,
-//                                    isUpdateFlow = true,
-//                                    requiredSignature = CalculateRequiredSignatures(
-//                                        VerificationType.SIGN_DUMMY_TX,
-//                                        payload.requiredSignatures
-//                                    ),
-//                                    requestByUserId = payload.requestByUserId,
-//                                    pendingSignature = payload.pendingSignatures
-//                                )
-//                            }
-//                        }
-//
-//                        getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
-//                            _state.update { it.copy(walletName = wallet.name) }
-//                        }
-//                    }
+                    if (payload.type == DummyTransactionType.UPDATE_SERVER_KEY) {
+                        parseUpdateKeyPayloadUseCase(payload).onSuccess { newPolicy ->
+                            _state.update {
+                                it.copy(
+                                    keyPolicy = newPolicy,
+                                    dummyTransactionId = args.dummyTransactionId,
+                                    isUpdateFlow = true,
+                                    requiredSignature = CalculateRequiredSignatures(
+                                        VerificationType.SIGN_DUMMY_TX,
+                                        payload.requiredSignatures
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }.onFailure {
+                    Timber.e(it)
                 }
             } else {
                 val signer = args.signer ?: return@launch
@@ -149,8 +150,31 @@ class CosigningPolicyViewModel @Inject constructor(
         }
     }
 
+    fun cancelChange() {
+        viewModelScope.launch {
+            _event.emit(CosigningPolicyEvent.Loading(true))
+            deleteGroupDummyTransactionUseCase(
+                DeleteGroupDummyTransactionUseCase.Param(
+                    walletId = args.walletId,
+                    transactionId = args.dummyTransactionId
+                )
+            ).onSuccess { _event.emit(CosigningPolicyEvent.CancelChangeSuccess) }
+                .onFailure { _event.emit(CosigningPolicyEvent.ShowError(it.message.orUnknownError())) }
+        }
+    }
+
     fun onSaveChangeClicked() {
         viewModelScope.launch {
+            if (state.value.dummyTransactionId.isNotEmpty()) {
+                _event.emit(
+                    CosigningPolicyEvent.OnSaveChange(
+                        _state.value.requiredSignature,
+                        _state.value.userData,
+                        _state.value.dummyTransactionId
+                    )
+                )
+                return@launch
+            }
             val signer = args.signer ?: return@launch
             _event.emit(CosigningPolicyEvent.Loading(true))
             val result = calculateRequiredSignaturesUpdateKeyPolicyUseCase(
@@ -238,11 +262,16 @@ data class CosigningPolicyState(
 sealed class CosigningPolicyEvent {
     class Loading(val isLoading: Boolean) : CosigningPolicyEvent()
     class ShowError(val error: String) : CosigningPolicyEvent()
-    class OnSaveChange(val required: CalculateRequiredSignatures, val data: String, val dummyTransactionId: String) :
+    class OnSaveChange(
+        val required: CalculateRequiredSignatures,
+        val data: String,
+        val dummyTransactionId: String,
+    ) :
         CosigningPolicyEvent()
 
-    object OnEditSpendingLimitClicked : CosigningPolicyEvent()
-    object OnEditSingingDelayClicked : CosigningPolicyEvent()
-    object OnDiscardChange : CosigningPolicyEvent()
-    object UpdateKeyPolicySuccess : CosigningPolicyEvent()
+    data object OnEditSpendingLimitClicked : CosigningPolicyEvent()
+    data object OnEditSingingDelayClicked : CosigningPolicyEvent()
+    data object OnDiscardChange : CosigningPolicyEvent()
+    data object UpdateKeyPolicySuccess : CosigningPolicyEvent()
+    data object CancelChangeSuccess : CosigningPolicyEvent()
 }
