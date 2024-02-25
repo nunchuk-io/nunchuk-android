@@ -44,6 +44,7 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.InheritanceStatus
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
@@ -199,7 +200,11 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                         }
                     },
                     onMoreClick = {
-                        showMoreOptions()
+                        if (args.groupId.isNullOrEmpty()) {
+                            showMoreOptionsNormalAssistedWallet()
+                        } else {
+                            showMoreOptionsByzantine()
+                        }
                     },
                     onOpenHealthCheckScreen = {
                         val walletId = viewModel.getWalletId()
@@ -566,12 +571,12 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         }
     }
 
-    private fun showMoreOptions() {
+    private fun showMoreOptionsByzantine() {
         val options = mutableListOf<SheetOption>()
         val uiState = viewModel.state.value
         if (viewModel.isPendingCreateWallet().not()) {
-            if (onCheckRuleForByzantine(uiState.group?.walletConfig?.allowInheritance == true)) {
-                if (onCheckRuleForByzantine(uiState.myRole.isMasterOrAdmin)) {
+            if (uiState.group?.walletConfig?.allowInheritance == true) {
+                if (uiState.myRole.isMasterOrAdmin) {
                     if (uiState.isAlreadySetupInheritance) {
                         options.add(
                             SheetOption(
@@ -606,7 +611,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     )
                 }
             }
-            if (onCheckRuleForByzantine(uiState.myRole.isMasterOrAdmin)) {
+            if (uiState.myRole.isMasterOrAdmin) {
                 options.add(
                     SheetOption(
                         type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
@@ -621,7 +626,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
         }
-        if (onCheckRuleForByzantine(uiState.myRole.isMasterOrAdmin && viewModel.groupChat() != null)) {
+        if (uiState.myRole.isMasterOrAdmin && viewModel.groupChat() != null) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
@@ -629,7 +634,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
         }
-        if (onCheckRuleForByzantine(viewModel.isPendingCreateWallet() && uiState.myRole == AssistedWalletRole.MASTER)) {
+        if (viewModel.isPendingCreateWallet() && uiState.myRole == AssistedWalletRole.MASTER) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_RESTART_WIZARD,
@@ -643,8 +648,54 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
 
-    private fun onCheckRuleForByzantine(condition: Boolean): Boolean {
-        return viewModel.isNormalAssistedWallet() || condition
+    private fun showMoreOptionsNormalAssistedWallet() {
+        val options = mutableListOf<SheetOption>()
+        val uiState = viewModel.state.value
+        if (viewModel.isPendingCreateWallet().not()) {
+            if (viewModel.membershipPlan() != MembershipPlan.IRON_HAND) {
+                if (uiState.isAlreadySetupInheritance) {
+                    options.add(
+                        SheetOption(
+                            type = SheetOptionType.SET_UP_INHERITANCE,
+                            stringId = R.string.nc_view_inheritance_plan
+                        ),
+                    )
+                } else if (viewModel.isShowSetupInheritanceOption()) {
+                    options.add(
+                        SheetOption(
+                            type = SheetOptionType.SET_UP_INHERITANCE,
+                            stringId = R.string.nc_set_up_inheritance_plan_wallet
+                        ),
+                    )
+                }
+            }
+            if (!args.walletId.isNullOrEmpty()) {
+                options.add(
+                    SheetOption(
+                        type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
+                        stringId = R.string.nc_cosigning_policies
+                    )
+                )
+            }
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
+                    stringId = R.string.nc_emergency_lockdown
+                )
+            )
+        }
+        if (viewModel.isPendingCreateWallet()) {
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_RESTART_WIZARD,
+                    stringId = R.string.nc_cancel_pending_wallet,
+                    isDeleted = true
+                )
+            )
+        }
+        if (options.isEmpty()) return
+        val bottomSheet = BottomSheetOption.newInstance(options)
+        bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
 }
 
