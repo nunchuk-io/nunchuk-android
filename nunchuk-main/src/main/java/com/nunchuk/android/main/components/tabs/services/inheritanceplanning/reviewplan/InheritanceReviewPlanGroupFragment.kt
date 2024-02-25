@@ -66,6 +66,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
 
     private val viewModel: InheritanceReviewPlanGroupViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
+    private val groupId by lazy { inheritanceViewModel.state.value.groupId }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -87,9 +88,12 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                 is InheritanceReviewPlanGroupEvent.OnContinue -> {
                     requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
                         putExtra(GlobalResultKey.DUMMY_TX_ID, event.dummyTransactionId)
-                        putExtra(GlobalResultKey.REQUIRED_SIGNATURES, event.requiredSignatures.requiredSignatures)
+                        putExtra(
+                            GlobalResultKey.REQUIRED_SIGNATURES,
+                            event.requiredSignatures.requiredSignatures
+                        )
                     })
-                   requireActivity().finish()
+                    requireActivity().finish()
                 }
 
                 is InheritanceReviewPlanGroupEvent.Loading -> showOrHideLoading(loading = event.loading)
@@ -99,104 +103,138 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
             }
         }
     }
-}
 
-@Composable
-fun InheritanceReviewPlanGroupScreen(
-    viewModel: InheritanceReviewPlanGroupViewModel = viewModel(),
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    InheritanceReviewPlanGroupScreenContent(
-        uiState = state,
-        onContinueClicked = viewModel::onContinueClick
-    )
-}
-
-@Composable
-fun InheritanceReviewPlanGroupScreenContent(
-    uiState: InheritanceReviewPlanGroupState = InheritanceReviewPlanGroupState(),
-    onContinueClicked: () -> Unit = {},
-) {
-    val newData = uiState.payload.newData
-    val oldData = uiState.payload.oldData
-
-    if (newData == null && oldData == null && uiState.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN) {
-        return
+    @Composable
+    fun InheritanceReviewPlanGroupScreen(
+        viewModel: InheritanceReviewPlanGroupViewModel = viewModel(),
+    ) {
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        InheritanceReviewPlanGroupScreenContent(
+            uiState = state,
+            onContinueClicked = viewModel::onContinueClick
+        )
     }
 
-    val requester by remember(uiState.members, uiState.requestByUserId) {
-        derivedStateOf {
-            uiState.members.find { it.userId == uiState.requestByUserId }
+    @Composable
+    fun InheritanceReviewPlanGroupScreenContent(
+        uiState: InheritanceReviewPlanGroupState = InheritanceReviewPlanGroupState(),
+        onContinueClicked: () -> Unit = {},
+    ) {
+        val newData = uiState.payload.newData
+        val oldData = uiState.payload.oldData
+
+        if (newData == null && oldData == null && uiState.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN) {
+            return
         }
-    }
 
-    val onTextColor: (isChanged: Boolean) -> Color = {
-        if (oldData != null && it) Color(0xffCF4018) else Color(0xff031F2B)
-    }
+        val requester by remember(uiState.members, uiState.requestByUserId) {
+            derivedStateOf {
+                uiState.members.find { it.userId == uiState.requestByUserId }
+            }
+        }
 
-    val title =
-        when (uiState.type) {
-            DummyTransactionType.CREATE_INHERITANCE_PLAN -> stringResource(
-                id = R.string.nc_inheritance_plan_group_create,
-                uiState.walletName
-            )
+        val onTextColor: (isChanged: Boolean) -> Color = {
+            if (oldData != null && it) Color(0xffCF4018) else Color(0xff031F2B)
+        }
 
-            DummyTransactionType.UPDATE_INHERITANCE_PLAN, DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(
-                id = R.string.nc_inheritance_plan_group_change,
-                uiState.walletName
-            )
+        val title =
+            when (uiState.type) {
+                DummyTransactionType.CREATE_INHERITANCE_PLAN -> stringResource(
+                    id = R.string.nc_inheritance_plan_group_create,
+                    uiState.walletName
+                )
+
+                DummyTransactionType.UPDATE_INHERITANCE_PLAN, DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(
+                    id = R.string.nc_inheritance_plan_group_change,
+                    uiState.walletName
+                )
+
+                else -> ""
+            }
+
+        val desc = when (uiState.type) {
+            DummyTransactionType.CREATE_INHERITANCE_PLAN -> {
+                val message = if (groupId.isNotEmpty()) {
+                    stringResource(
+                        id = R.string.nc_create_inheritance_plan_group_change_by,
+                        requester?.name ?: "Someone",
+                        uiState.walletName
+                    )
+                } else {
+                    ""
+                }
+                message
+            }
+
+            DummyTransactionType.UPDATE_INHERITANCE_PLAN -> {
+                val message = if (groupId.isNotEmpty()) {
+                    stringResource(
+                        id = R.string.nc_update_inheritance_plan_group_change_by,
+                        requester?.name ?: "Someone",
+                        uiState.walletName
+                    )
+                } else {
+                    stringResource(
+                        id = R.string.nc_activation_date_inheritance_plan_normal_assisted,
+                        uiState.walletName,
+                        Date(oldData?.activationTimeMilis.orDefault(0L)).simpleGlobalDateFormat(),
+                        Date(newData?.activationTimeMilis.orDefault(0L)).simpleGlobalDateFormat()
+                    )
+                }
+                message
+            }
+
+            DummyTransactionType.CANCEL_INHERITANCE_PLAN -> {
+                val message = if (groupId.isNotEmpty()) {
+                    stringResource(
+                        id = R.string.nc_cancel_inheritance_plan_group_change_by,
+                        requester?.name ?: "Someone",
+                        uiState.walletName
+                    )
+                } else {
+                    stringResource(
+                        id = R.string.nc_cancel_inheritance_plan_normal_assisted,
+                        uiState.walletName
+                    )
+                }
+                message
+            }
 
             else -> ""
         }
 
-    val desc = when (uiState.type) {
-        DummyTransactionType.CREATE_INHERITANCE_PLAN -> stringResource(
-            id = R.string.nc_create_inheritance_plan_group_change_by,
-            requester?.name ?: "Someone",
-            uiState.walletName
-        )
-
-        DummyTransactionType.UPDATE_INHERITANCE_PLAN -> stringResource(
-            id = R.string.nc_update_inheritance_plan_group_change_by,
-            requester?.name ?: "Someone",
-            uiState.walletName
-        )
-
-        DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(
-            id = R.string.nc_cancel_inheritance_plan_group_change_by,
-            requester?.name ?: "Someone",
-            uiState.walletName
-        )
-
-        else -> ""
-    }
-
-    NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .fillMaxSize()
-            ) {
-                NcTopAppBar(title = "")
-                LazyColumn(
-                    modifier = Modifier.weight(1.0f),
+        NunchukTheme {
+            Scaffold { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .navigationBarsPadding()
+                        .fillMaxSize()
                 ) {
-                    item {
-                        if (uiState.dummyTransactionId.isNotEmpty() && uiState.walletName.isNotEmpty()) {
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                text = title,
-                                style = NunchukTheme.typography.heading
-                            )
-
-                            Text(
-                                text = desc,
-                                style = NunchukTheme.typography.body,
-                                modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                            )
-                            if (uiState.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN) {
+                    NcTopAppBar(title = "")
+                    LazyColumn(
+                        modifier = Modifier.weight(1.0f),
+                    ) {
+                        item {
+                            if (uiState.dummyTransactionId.isNotEmpty() && uiState.walletName.isNotEmpty()) {
+                                Text(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    text = title,
+                                    style = NunchukTheme.typography.heading
+                                )
+                                if (desc.isNotEmpty()) {
+                                    Text(
+                                        text = desc,
+                                        style = NunchukTheme.typography.body,
+                                        modifier = Modifier.padding(
+                                            top = 16.dp,
+                                            start = 16.dp,
+                                            end = 16.dp
+                                        )
+                                    )
+                                }
+                                if (uiState.type == DummyTransactionType.CANCEL_INHERITANCE_PLAN) return@item
+                                if (groupId.isEmpty() && uiState.type == DummyTransactionType.UPDATE_INHERITANCE_PLAN) return@item
                                 Column(
                                     modifier = Modifier.padding(
                                         start = 16.dp, end = 16.dp, top = 24.dp
@@ -372,28 +410,29 @@ fun InheritanceReviewPlanGroupScreenContent(
                             }
                         }
                     }
-                }
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp), onContinueClicked
-                ) {
-                    Text(
-                        text = stringResource(
-                            id = R.string.nc_text_continue_signature_pending,
-                            uiState.pendingSignatures
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp), onContinueClicked
+                    ) {
+                        Text(
+                            text = stringResource(
+                                id = R.string.nc_text_continue_signature_pending,
+                                uiState.pendingSignatures
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
     }
 
+    @Preview
+    @Composable
+    private fun InheritanceReviewPlanGroupScreenPreview() {
+        InheritanceReviewPlanGroupScreenContent()
+    }
 
 }
 
-@Preview
-@Composable
-private fun InheritanceReviewPlanGroupScreenPreview() {
-    InheritanceReviewPlanGroupScreenContent()
-}
+

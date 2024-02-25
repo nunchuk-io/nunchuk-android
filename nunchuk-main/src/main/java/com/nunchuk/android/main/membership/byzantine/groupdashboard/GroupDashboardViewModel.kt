@@ -29,6 +29,7 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
@@ -170,9 +171,10 @@ class GroupDashboardViewModel @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { wallets ->
-                    wallets.find { wallet -> wallet.localId == getWalletId() }?.let { wallet ->
-                        _state.update { state -> state.copy(isAlreadySetupInheritance = wallet.isSetupInheritance) }
-                        savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
+                    if (getGroupId().isNotEmpty()) {
+                        wallets.find { wallet -> wallet.localId == getGroupId() }?.let { wallet ->
+                            savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
+                        }
                     }
                     _state.update {
                         it.copy(
@@ -655,13 +657,11 @@ class GroupDashboardViewModel @Inject constructor(
         getInheritance(silentLoading = true)
     }
 
-    private fun isByzantine(): Boolean {
-        return getGroupId().isNotEmpty()
-    }
-
     fun isNormalAssistedWallet(): Boolean {
         return getGroupId().isEmpty()
     }
+
+    fun membershipPlan(): MembershipPlan = membershipStepManager.plan
 
     private val currentSelectedAlert: Alert?
         get() = savedStateHandle.get<Alert>(EXTRA_SELECTED_ALERT)
