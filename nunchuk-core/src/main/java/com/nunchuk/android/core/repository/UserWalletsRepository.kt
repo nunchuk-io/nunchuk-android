@@ -41,7 +41,6 @@ import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
-import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequestBody
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
@@ -1017,7 +1016,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         securityQuestionToken: String,
         confirmCodeToken: String,
         confirmCodeNonce: String,
-    ) {
+        draft: Boolean,
+    ): String {
         var request = gson.fromJson(userData, SecurityQuestionsUpdateRequest::class.java)
         if (confirmCodeNonce.isNotEmpty()) {
             request = request.copy(nonce = confirmCodeNonce)
@@ -1028,7 +1028,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             securityQuestionToken = securityQuestionToken,
             confirmCodeToken = confirmCodeToken
         )
-        return userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request)
+        val response = userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request, draft)
+        if (response.isSuccess.not()) throw response.error
+        return response.data.dummyTransaction?.id.orEmpty()
     }
 
     override suspend fun getNonce(): String {
@@ -1079,7 +1081,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 questionId = it.questionId, answer = it.answer, change = it.change
             )
         }
-        val body = QuestionsAndAnswerRequestBody(questionsAndAnswerRequests, walletId = walletId)
+        val body = SecurityQuestionsUpdateRequest.Body(questionsAndAnswerRequests, walletId = walletId)
         val nonce = getNonce()
         val request = SecurityQuestionsUpdateRequest(
             nonce = nonce, body = body
@@ -2131,10 +2133,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     EditGroupMemberRequest.Body::class.java
                 )
 
-                TargetAction.UPDATE_SECURITY_QUESTIONS.name -> gson.fromJson(
-                    userData,
-                    QuestionsAndAnswerRequestBody::class.java
-                )
+                TargetAction.UPDATE_SECURITY_QUESTIONS.name -> {
+                    val request = gson.fromJson(
+                        userData,
+                        SecurityQuestionsUpdateRequest::class.java
+                    )
+                    request.body
+                }
 
                 TargetAction.EMERGENCY_LOCKDOWN.name -> {
                     val request = gson.fromJson(

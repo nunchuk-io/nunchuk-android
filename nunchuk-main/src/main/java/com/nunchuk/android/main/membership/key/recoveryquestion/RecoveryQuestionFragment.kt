@@ -150,6 +150,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
                         requiredSignatures = it.requiredSignatures,
                         type = it.type,
                         action = TargetAction.UPDATE_SECURITY_QUESTIONS.name,
+                        dummyTransactionId = it.dummyTransactionId,
                         launcher = launcher,
                         activityContext = requireActivity()
                     )

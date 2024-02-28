@@ -98,15 +98,15 @@ data class SecurityQuestionsUpdateRequest(
     @SerializedName("nonce")
     val nonce: String? = null,
     @SerializedName("body")
-    val body: QuestionsAndAnswerRequestBody? = null
-)
-
-data class QuestionsAndAnswerRequestBody(
-    @SerializedName("questions_and_answers")
-    val questionsAndAnswerRequests: List<QuestionsAndAnswerRequest>? = null,
-    @SerializedName("wallet")
-    val walletId: String? = null
-)
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("questions_and_answers")
+        val questionsAndAnswerRequests: List<QuestionsAndAnswerRequest>? = null,
+        @SerializedName("wallet")
+        val walletId: String? = null
+    )
+}
 
 data class LockdownUpdateRequest(
     @SerializedName("nonce")
@@ -260,12 +260,7 @@ data class MarkRecoverStatusRequest(
 
 class EmptyRequest
 
-data class InheritanceRequestPlanningPayload(
-    @SerializedName("request_id")
-    val requestId: String? = null,
-    @SerializedName("wallet")
-    val walletId: String? = null,
-    @SerializedName("group_id")
-    val groupId: String? = null
+data class UpdateSecurityQuestionResponse(
+    @SerializedName("dummy_transaction")
+    val dummyTransaction: DummyTransactionDto? = null
 )
-

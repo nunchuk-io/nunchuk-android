@@ -30,8 +30,8 @@ class SecurityQuestionsUpdateUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
     private val nunchukNativeSdk: NunchukNativeSdk
-) : UseCase<SecurityQuestionsUpdateUseCase.Param, Unit>(dispatcher) {
-    override suspend fun execute(parameters: Param) {
+) : UseCase<SecurityQuestionsUpdateUseCase.Param, String>(dispatcher) {
+    override suspend fun execute(parameters: Param): String {
         val authorizations = mutableListOf<String>()
         parameters.signatures.forEach { (masterFingerprint, signature) ->
             val requestToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
@@ -43,7 +43,8 @@ class SecurityQuestionsUpdateUseCase @Inject constructor(
             userData = parameters.userData,
             securityQuestionToken = parameters.securityQuestionToken,
             confirmCodeToken = parameters.confirmCodeToken,
-            confirmCodeNonce = parameters.confirmCodeNonce
+            confirmCodeNonce = parameters.confirmCodeNonce,
+            draft = parameters.draft
         )
     }
 
@@ -53,6 +54,7 @@ class SecurityQuestionsUpdateUseCase @Inject constructor(
         val verifyToken: String,
         val securityQuestionToken: String,
         val confirmCodeToken: String,
-        val confirmCodeNonce: String
+        val confirmCodeNonce: String,
+        val draft: Boolean
     )
 }

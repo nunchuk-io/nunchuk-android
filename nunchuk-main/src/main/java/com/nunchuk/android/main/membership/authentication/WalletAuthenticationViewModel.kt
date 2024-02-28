@@ -518,6 +518,7 @@ class WalletAuthenticationViewModel @Inject constructor(
 
             DummyTransactionType.CREATE_RECURRING_PAYMENT -> application.getString(R.string.nc_the_recurring_payment_has_been_approved)
             DummyTransactionType.CANCEL_RECURRING_PAYMENT -> application.getString(R.string.nc_pending_cancellation_has_been_cancelled)
+            DummyTransactionType.UPDATE_SECURITY_QUESTIONS -> application.getString(R.string.nc_security_questions_updated)
             else -> ""
         }
 
