@@ -8,7 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +31,7 @@ import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentVie
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.payment.PaymentCalculationMethod
 import com.nunchuk.android.model.payment.PaymentDestinationType
 import com.nunchuk.android.model.payment.PaymentFrequency
@@ -42,6 +45,14 @@ fun PaymentSummaryRoute(
     val config by recurringPaymentViewModel.config.collectAsStateWithLifecycle()
     val state by recurringPaymentViewModel.state.collectAsStateWithLifecycle()
     val snackState = remember { SnackbarHostState() }
+    var groupType by remember {
+        mutableStateOf<GroupWalletType?>(null)
+    }
+    LaunchedEffect(Unit) {
+        if (config.isCosign == true) {
+            groupType = recurringPaymentViewModel.getGroupConfig()
+        }
+    }
 
     LaunchedEffect(state.openDummyTransactionScreen) {
         state.openDummyTransactionScreen?.let {
@@ -102,6 +113,7 @@ fun PaymentSummaryScreen(
     unit: SpendingCurrencyUnit = SpendingCurrencyUnit.CURRENCY_UNIT,
     useAmount: Boolean = false,
     bsms: String? = null,
+    groupWalletType: GroupWalletType? = null,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     openQRDetailScreen: (address: String) -> Unit = {},
 ) {
@@ -158,6 +170,7 @@ fun PaymentSummaryScreen(
                 useAmount = useAmount,
                 openQRDetailScreen = openQRDetailScreen,
                 bsms = bsms,
+                groupWalletType = groupWalletType,
             )
         }
     }
