@@ -497,6 +497,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
             )
         } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST
             || alert.type == AlertType.RECURRING_PAYMENT_CANCELATION_PENDING
+            || alert.type == AlertType.UPDATE_SECURITY_QUESTIONS
         ) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(

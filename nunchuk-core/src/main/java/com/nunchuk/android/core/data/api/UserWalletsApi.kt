@@ -189,8 +189,9 @@ internal interface UserWalletsApi {
 
     @PUT("/v1.1/user-wallets/security-questions/update")
     suspend fun securityQuestionsUpdate(
-        @HeaderMap headers: Map<String, String>, @Body payload: SecurityQuestionsUpdateRequest
-    )
+        @HeaderMap headers: Map<String, String>, @Body payload: SecurityQuestionsUpdateRequest,
+        @Query("draft") draft: Boolean = false
+    ): Data<UpdateSecurityQuestionResponse>
 
     @GET("/v1.1/user-wallets/nonce")
     suspend fun getNonce(): Data<GetNonceResponse>

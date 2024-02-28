@@ -21,11 +21,12 @@ package com.nunchuk.android.main.membership.key.recoveryquestion
 
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.membership.AssistedWalletBrief
 
 sealed class RecoveryQuestionEvent {
     data class Loading(val isLoading: Boolean) : RecoveryQuestionEvent()
-    object ContinueStepEvent : RecoveryQuestionEvent()
-    object ConfigRecoveryQuestionSuccess : RecoveryQuestionEvent()
+    data object ContinueStepEvent : RecoveryQuestionEvent()
+    data object ConfigRecoveryQuestionSuccess : RecoveryQuestionEvent()
 
     data class GetSecurityQuestionSuccess(
         val questions: List<SecurityQuestionModel>,
@@ -36,11 +37,12 @@ sealed class RecoveryQuestionEvent {
         val userData: String,
         val requiredSignatures: Int,
         val type: String,
+        val dummyTransactionId: String? = null
     ) : RecoveryQuestionEvent()
 
     data class ShowError(val message: String) : RecoveryQuestionEvent()
-    object RecoveryQuestionUpdateSuccess : RecoveryQuestionEvent()
-    object DiscardChangeClick : RecoveryQuestionEvent()
+    data object RecoveryQuestionUpdateSuccess : RecoveryQuestionEvent()
+    data object DiscardChangeClick : RecoveryQuestionEvent()
 }
 
 data class RecoveryQuestionState(
@@ -50,7 +52,8 @@ data class RecoveryQuestionState(
     val userData: String? = null,
     val clearFocusRequest: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
-    ) {
+    val assistedWallets: List<AssistedWalletBrief> = emptyList(),
+) {
     companion object {
         val Empty = RecoveryQuestionState()
         const val InitValue = -1
