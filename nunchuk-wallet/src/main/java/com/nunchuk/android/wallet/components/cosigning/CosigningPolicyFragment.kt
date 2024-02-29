@@ -123,7 +123,10 @@ class CosigningPolicyFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                CosigningPolicyScreen(viewModel)
+                CosigningPolicyScreen(
+                    viewModel,
+                    args.dummyTransactionId
+                )
             }
         }
     }
@@ -193,13 +196,17 @@ class CosigningPolicyFragment : Fragment() {
 }
 
 @Composable
-private fun CosigningPolicyScreen(viewModel: CosigningPolicyViewModel = viewModel()) {
+private fun CosigningPolicyScreen(
+    viewModel: CosigningPolicyViewModel = viewModel(),
+    dummyTransactionId: String,
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     CosigningPolicyContent(
         isAutoBroadcast = state.keyPolicy.autoBroadcastTransaction,
         keyPolicy = state.keyPolicy,
         spendingPolicy = state.keyPolicy.spendingPolicy,
         isUpdateFlow = state.isUpdateFlow,
+        isEditable = dummyTransactionId.isEmpty(),
         onEditSingingDelayClicked = viewModel::onEditSigningDelayClicked,
         onEditSpendingLimitClicked = viewModel::onEditSpendingLimitClicked,
         onSaveChangeClicked = viewModel::onSaveChangeClicked,
@@ -213,6 +220,7 @@ private fun CosigningPolicyContent(
     keyPolicy: KeyPolicy = KeyPolicy(),
     spendingPolicy: SpendingPolicy? = null,
     isUpdateFlow: Boolean = false,
+    isEditable: Boolean = true,
     onEditSpendingLimitClicked: () -> Unit = {},
     onEditSingingDelayClicked: () -> Unit = {},
     onSaveChangeClicked: () -> Unit = {},
@@ -244,11 +252,13 @@ private fun CosigningPolicyContent(
                             text = stringResource(R.string.nc_spending_limit),
                             style = NunchukTheme.typography.title
                         )
-                        Text(
-                            modifier = Modifier.clickable(onClick = onEditSpendingLimitClicked),
-                            text = stringResource(R.string.nc_edit),
-                            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-                        )
+                        if (isEditable) {
+                            Text(
+                                modifier = Modifier.clickable(onClick = onEditSpendingLimitClicked),
+                                text = stringResource(R.string.nc_edit),
+                                style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                            )
+                        }
                     }
                     Column(
                         modifier = Modifier
@@ -298,11 +308,13 @@ private fun CosigningPolicyContent(
                         text = stringResource(R.string.nc_co_signing_delay),
                         style = NunchukTheme.typography.title
                     )
-                    Text(
-                        modifier = Modifier.clickable(onClick = onEditSingingDelayClicked),
-                        text = stringResource(R.string.nc_edit),
-                        style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-                    )
+                    if (isEditable) {
+                        Text(
+                            modifier = Modifier.clickable(onClick = onEditSingingDelayClicked),
+                            text = stringResource(R.string.nc_edit),
+                            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                        )
+                    }
                 }
                 Column(
                     modifier = Modifier
