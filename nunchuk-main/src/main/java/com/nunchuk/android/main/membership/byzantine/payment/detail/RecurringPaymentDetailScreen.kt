@@ -6,6 +6,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +27,7 @@ import com.nunchuk.android.main.membership.byzantine.formatAmount
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
 
@@ -37,6 +39,15 @@ fun RecurringPaymentDetailRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    var groupType by remember {
+        mutableStateOf<GroupWalletType?>(null)
+    }
+    LaunchedEffect(Unit) {
+        if (state.recurringPayment?.allowCosigning == true) {
+            groupType = viewModel.getGroupConfig()
+        }
+    }
+
     state.openDummyTransactionPayload?.let {
         onOpenDummyTransaction(it)
         viewModel.onOpenDummyTransactionScreenComplete()
@@ -44,6 +55,7 @@ fun RecurringPaymentDetailRoute(
 
     RecurringPaymentDetailScreen(
         recurringPayment = state.recurringPayment,
+        groupType = groupType,
         onCancelPayment = viewModel::onCancelPayment,
         isLoading = state.isLoading,
         openQRDetailScreen = openQRDetailScreen
@@ -54,6 +66,7 @@ fun RecurringPaymentDetailRoute(
 fun RecurringPaymentDetailScreen(
     onCancelPayment: () -> Unit = {},
     recurringPayment: RecurringPayment? = null,
+    groupType: GroupWalletType? = null,
     isLoading: Boolean = false,
     openQRDetailScreen: (address: String) -> Unit = {},
 ) {
@@ -94,6 +107,7 @@ fun RecurringPaymentDetailScreen(
                     useAmount = recurringPayment.paymentType == RecurringPaymentType.FIXED_AMOUNT,
                     openQRDetailScreen = openQRDetailScreen,
                     bsms = recurringPayment.bsms,
+                    groupWalletType = groupType,
                 )
             }
         }
