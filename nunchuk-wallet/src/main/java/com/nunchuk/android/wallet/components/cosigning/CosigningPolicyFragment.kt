@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -228,14 +227,15 @@ private fun CosigningPolicyContent(
 ) {
 
     NunchukTheme {
-        Scaffold(modifier = Modifier.systemBarsPadding()) { innerPadding ->
+        Scaffold(topBar = {
+            NcTopAppBar(title = "")
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcTopAppBar(title = "")
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = stringResource(R.string.nc_cosigning_policies),
