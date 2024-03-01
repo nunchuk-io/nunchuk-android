@@ -190,6 +190,9 @@ class CosigningPolicyFragment : Fragment() {
                 activityContext = requireActivity(),
                 dummyTransactionId = event.dummyTransactionId,
             )
+            if (args.dummyTransactionId.isNotEmpty()) {
+                requireActivity().finish()
+            }
         }
     }
 }

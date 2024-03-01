@@ -306,7 +306,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             derivationPath = derivationPath,
             body = gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
         )
-        return response.data.dummyTransaction?.id ?: throw NullPointerException("Transaction empty")
+        return response.data.dummyTransaction?.id.orEmpty()
     }
 
     override suspend fun updateGroupServerKeys(
