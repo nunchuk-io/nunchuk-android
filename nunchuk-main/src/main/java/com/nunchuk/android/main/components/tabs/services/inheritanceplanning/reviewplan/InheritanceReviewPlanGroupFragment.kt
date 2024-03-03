@@ -234,7 +234,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                                     )
                                 }
                                 if (uiState.type == DummyTransactionType.CANCEL_INHERITANCE_PLAN) return@item
-                                if (groupId.isEmpty() && uiState.type == DummyTransactionType.UPDATE_INHERITANCE_PLAN) return@item
+                                if (groupId.isEmpty() && uiState.type != DummyTransactionType.UPDATE_INHERITANCE_PLAN) return@item
                                 Column(
                                     modifier = Modifier.padding(
                                         start = 16.dp, end = 16.dp, top = 24.dp
@@ -325,7 +325,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                                                 .fillMaxWidth()
                                                 .padding(16.dp),
                                             text = newData?.bufferPeriod?.displayName.orEmpty()
-                                                .ifBlank { stringResource(id = R.string.nc_no_note) },
+                                                .ifBlank { stringResource(id = R.string.nc_no_buffer) },
                                             style = NunchukTheme.typography.body.copy(
                                                 color = onTextColor(
                                                     newData?.bufferPeriod?.id != oldData?.bufferPeriod?.id

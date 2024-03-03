@@ -153,6 +153,7 @@
     <string name="nc_cancel_request">Cancel request</string>
     <string name="nc_inheritance_has_been_created">The inheritance plan has been created</string>
     <string name="nc_inheritance_has_been_updated">The inheritance plan has been updated</string>
+    <string name="nc_inheritance_plan_updated">Inheritance plan updated</string>
     <string name="nc_cancel_health_check_request">Are you sure you want to cancel this health check request?</string>
     <string name="nc_cancel_this_change">Are you sure you want to cancel this change?</string>
     <string name="nc_cancel_inheritance_planning_request">Are you sure you want to deny this inheritance planning request?</string>

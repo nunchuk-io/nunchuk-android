@@ -144,7 +144,7 @@ fun InheritanceClaimScreen(
 
     InheritanceClaimInputContent(suggestions = state.suggestions,
         magicalPhrase = state.magicalPhrase,
-        backupDownloads = state.backupPasswords,
+        backupDownloads = state._backupPasswords,
         onMagicalPhraseTextChange = {
             viewModel.handleInputEvent(it)
         }, onSuggestClick = {
