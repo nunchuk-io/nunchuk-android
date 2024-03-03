@@ -34,6 +34,7 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.membership.GetServerKeysUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CosigningPolicyViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getServerKeysUseCase: GetServerKeysUseCase,
     private val updateServerKeysUseCase: UpdateServerKeysUseCase,
     private val calculateRequiredSignaturesUpdateKeyPolicyUseCase: CalculateRequiredSignaturesUpdateKeyPolicyUseCase,
@@ -61,7 +63,7 @@ class CosigningPolicyViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     private val _state = MutableStateFlow(
-        CosigningPolicyState(args.keyPolicy ?: KeyPolicy())
+        CosigningPolicyState(keyPolicy = args.keyPolicy ?: KeyPolicy())
     )
     val state = _state.asStateFlow()
 
@@ -91,6 +93,9 @@ class CosigningPolicyViewModel @Inject constructor(
                     }
                 }.onFailure {
                     Timber.e(it)
+                }
+                getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
+                    _state.update { it.copy(walletName = wallet.name) }
                 }
             } else {
                 val signer = args.signer ?: return@launch
@@ -251,6 +256,7 @@ class CosigningPolicyViewModel @Inject constructor(
 }
 
 data class CosigningPolicyState(
+    val walletName: String = "",
     val keyPolicy: KeyPolicy = KeyPolicy(),
     val isUpdateFlow: Boolean = false,
     val userData: String = "",

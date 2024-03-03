@@ -72,6 +72,7 @@ import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SpendingPolicy
@@ -208,6 +209,8 @@ private fun CosigningPolicyScreen(
         keyPolicy = state.keyPolicy,
         spendingPolicy = state.keyPolicy.spendingPolicy,
         isUpdateFlow = state.isUpdateFlow,
+        walletName = state.walletName,
+        requiredSignature = state.requiredSignature,
         isEditable = dummyTransactionId.isEmpty(),
         onEditSingingDelayClicked = viewModel::onEditSigningDelayClicked,
         onEditSpendingLimitClicked = viewModel::onEditSpendingLimitClicked,
@@ -221,6 +224,8 @@ private fun CosigningPolicyContent(
     isAutoBroadcast: Boolean = true,
     keyPolicy: KeyPolicy = KeyPolicy(),
     spendingPolicy: SpendingPolicy? = null,
+    requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
+    walletName: String = "",
     isUpdateFlow: Boolean = false,
     isEditable: Boolean = true,
     onEditSpendingLimitClicked: () -> Unit = {},
@@ -239,11 +244,27 @@ private fun CosigningPolicyContent(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.nc_cosigning_policies),
-                    style = NunchukTheme.typography.heading
-                )
+                if (!isEditable && walletName.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = stringResource(
+                            R.string.nc_cosigning_policies_change, walletName
+                        ),
+                        style = NunchukTheme.typography.heading
+                    )
+
+                    Text(
+                        text = stringResource(R.string.nc_platform_key_updated_as_below),
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = stringResource(R.string.nc_cosigning_policies),
+                        style = NunchukTheme.typography.heading
+                    )
+                }
                 if (spendingPolicy != null) {
                     Row(
                         modifier = Modifier
@@ -415,7 +436,16 @@ private fun CosigningPolicyContent(
                             .fillMaxWidth(),
                         onClick = onSaveChangeClicked,
                     ) {
-                        Text(text = stringResource(R.string.nc_continue_save_changes))
+                        if (!isEditable) {
+                            Text(
+                                text = stringResource(
+                                    R.string.nc_text_continue_signature_pending,
+                                    requiredSignature.requiredSignatures
+                                )
+                            )
+                        } else {
+                            Text(text = stringResource(R.string.nc_continue_save_changes))
+                        }
                     }
                     TextButton(
                         modifier = Modifier
