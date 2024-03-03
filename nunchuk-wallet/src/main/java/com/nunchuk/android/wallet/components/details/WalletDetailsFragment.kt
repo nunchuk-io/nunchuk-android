@@ -161,11 +161,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             SheetOptionType.TYPE_IMPORT_TX -> showImportTransactionOption()
             SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
             SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
-            SheetOptionType.SET_UP_INHERITANCE -> navigator.openMembershipActivity(
-                activityContext = requireActivity(),
-                groupStep = MembershipStage.SETUP_INHERITANCE,
-                walletId = args.walletId
-            )
         }
     }
 
@@ -415,15 +410,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 R.string.nc_import_transaction
             ),
         )
-        if (viewModel.isShowSetupInheritance()) {
-            options.add(
-                0, SheetOption(
-                    SheetOptionType.SET_UP_INHERITANCE,
-                    R.drawable.ic_inheritance,
-                    R.string.nc_setup_inheritance_for_this_wallet
-                )
-            )
-        }
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }

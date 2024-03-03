@@ -38,7 +38,7 @@ sealed class InheritanceClaimInputEvent {
 
 data class InheritanceClaimInputState(
     private var _magicalPhrase: String = "",
-    private var _backupPasswords: List<String> = arrayListOf("",""),
+    var _backupPasswords: List<String> = arrayListOf("",""),
     val suggestions: List<String> = emptyList()
 ) {
     var magicalPhrase: String

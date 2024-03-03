@@ -141,7 +141,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
     private fun showInheritanceMessage(dummyTransactionType: DummyTransactionType) {
         val message = when (dummyTransactionType) {
             DummyTransactionType.CREATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_created)
-            DummyTransactionType.UPDATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_updated)
+            DummyTransactionType.UPDATE_INHERITANCE_PLAN -> {
+                if (args.groupId?.isNotEmpty() == true) {
+                    getString(R.string.nc_inheritance_has_been_updated)
+                } else {
+                    getString(R.string.nc_inheritance_plan_updated)
+                }
+            }
             DummyTransactionType.CANCEL_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_canlled)
             else -> ""
         }

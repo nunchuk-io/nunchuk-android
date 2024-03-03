@@ -150,7 +150,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
         }
 
     fun updateBackupPassword(password: String, index: Int) {
-        val updatedPasswords = _state.value.backupPasswords.toMutableList()
+        val updatedPasswords = _state.value._backupPasswords.toMutableList()
         updatedPasswords[index] = password
         _state.update { it.copy(_backupPasswords = updatedPasswords) }
     }

@@ -246,6 +246,9 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         launcher = launcher,
                         activityContext = requireActivity()
                     )
+                    if (event.dummyTransactionId.isNotEmpty() && inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
+                        requireActivity().finish()
+                    }
                 }
 
                 is InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess -> handleFlow()
