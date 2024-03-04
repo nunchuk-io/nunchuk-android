@@ -234,7 +234,6 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                                     )
                                 }
                                 if (uiState.type == DummyTransactionType.CANCEL_INHERITANCE_PLAN) return@item
-                                if (groupId.isEmpty() && uiState.type != DummyTransactionType.UPDATE_INHERITANCE_PLAN) return@item
                                 Column(
                                     modifier = Modifier.padding(
                                         start = 16.dp, end = 16.dp, top = 24.dp
