@@ -156,7 +156,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
     }
 
     fun handleInputEvent(mnemonic: String) {
-        val withoutSpace = mnemonic.trim()
+        val withoutSpace = mnemonic
         if (withoutSpace != _state.value.magicalPhrase) {
             _state.update { it.copy(_magicalPhrase = withoutSpace) }
             val word = withoutSpace.lastWord()
