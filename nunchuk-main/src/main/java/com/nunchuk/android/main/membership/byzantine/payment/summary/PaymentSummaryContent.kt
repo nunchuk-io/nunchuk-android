@@ -65,7 +65,7 @@ fun PaymentSummaryContent(
     ) {
         if (isCosign == true) {
             if (is3Of5PlatformKey) {
-                NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_payment_cosign_enable_warning))))
+                NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_payment_cosign_enable_warning_3_of_5))))
             } else {
                 NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_payment_cosign_enable_warning))))
             }

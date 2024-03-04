@@ -93,6 +93,7 @@ fun PaymentSummaryRoute(
         snackState = snackState,
         openQRDetailScreen = openQRDetailScreen,
         bsms = config.bsms,
+        groupWalletType = groupType,
     )
 }
 
