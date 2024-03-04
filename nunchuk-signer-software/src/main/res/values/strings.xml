@@ -54,4 +54,7 @@
     <string name="nc_primary_key_signin_manually_your_signature">Your signature</string>
     <string name="nc_primary_key_signin_manually_copy_clipboard">Copied to clipboard</string>
     <string name="nc_primary_key_signin_manually_account_not_found">Account not found</string>
+    <string name="nc_i_ve_backed_it_up">I’ve backed it up</string>
+    <string name="nc_seed_phase_confirmation_desc_one">You won’t be able to view the seed phrase again in the app.</string>
+    <string name="nc_seed_phase_confirmation_desc_two">" Please make sure that you have it backed up, or risk losing your funds."</string>
 </resources>
