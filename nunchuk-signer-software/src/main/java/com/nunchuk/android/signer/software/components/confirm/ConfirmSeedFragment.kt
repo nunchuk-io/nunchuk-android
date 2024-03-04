@@ -20,9 +20,11 @@
 package com.nunchuk.android.signer.software.components.confirm
 
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.text.bold
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -33,6 +35,7 @@ import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.databinding.FragmentConfirmSeedBinding
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -68,9 +71,26 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     private fun handleEvent(event: ConfirmSeedEvent) {
         when (event) {
-            ConfirmSeedCompletedEvent -> openSetPassphrase()
+            ConfirmSeedCompletedEvent -> confirmBeforeOpenNewScreen()
             SelectedIncorrectWordEvent -> NCToastMessage(requireActivity()).showError(getString(R.string.nc_ssigner_confirm_seed_error))
         }
+    }
+
+    private fun confirmBeforeOpenNewScreen() {
+        NCInfoDialog(requireActivity()).showDialog(
+            message = SpannableStringBuilder().bold {
+                append(getString(R.string.nc_seed_phase_confirmation_desc_one))
+            }.append(getString(R.string.nc_seed_phase_confirmation_desc_two)),
+            btnInfo = getString(R.string.nc_i_ve_backed_it_up),
+            onYesClick = {
+                if (args.isQuickWallet) {
+                    findNavController().popBackStack()
+                } else {
+                    requireActivity().finish()
+                }
+            },
+            onInfoClick = { openSetPassphrase() }
+        )
     }
 
     private fun openSetPassphrase() {

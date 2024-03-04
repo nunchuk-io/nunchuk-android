@@ -26,6 +26,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
 import androidx.core.view.isVisible
 import com.nunchuk.android.widget.databinding.NcInfoDialogBinding
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import javax.inject.Inject
 
 class NCInfoDialog @Inject constructor(
@@ -34,7 +35,7 @@ class NCInfoDialog @Inject constructor(
 
     fun init(
         title: String = activity.getString(R.string.nc_text_info),
-        message: String,
+        message: CharSequence,
         btnYes: String = activity.getString(R.string.nc_text_got_it),
         btnInfo: String = "",
         onYesClick: () -> Unit = {},
@@ -66,7 +67,7 @@ class NCInfoDialog @Inject constructor(
 
     fun showDialog(
         title: String = activity.getString(R.string.nc_text_info),
-        message: String,
+        message: CharSequence,
         btnYes: String = activity.getString(R.string.nc_text_got_it),
         btnInfo: String = "",
         onYesClick: () -> Unit = {},
@@ -85,11 +86,11 @@ class NCInfoDialog @Inject constructor(
         binding.message.text = message
         binding.btnInfo.isVisible = btnInfo.isNotBlank()
         binding.btnInfo.text = btnInfo
-        binding.btnYes.setOnClickListener {
+        binding.btnYes.setOnDebounceClickListener {
             onYesClick()
             dismiss()
         }
-        binding.btnInfo.setOnClickListener {
+        binding.btnInfo.setOnDebounceClickListener {
             onInfoClick()
             dismiss()
         }
