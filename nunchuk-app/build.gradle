@@ -172,6 +172,7 @@ dependencies {
 
     kapt hiltDeps.processor
     implementation hiltDeps.hilt
+    implementation hiltDeps.hiltNavigation
 
     implementation networkDeps.values()
     implementation platform('androidx.compose:compose-bom:2023.10.01')

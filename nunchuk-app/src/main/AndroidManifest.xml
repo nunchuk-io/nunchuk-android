@@ -80,6 +80,10 @@
             android:label="Membership"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"/>
+        <activity android:name="com.nunchuk.android.app.onboard.OnboardActivity"
+            android:label="Onboard"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
 
         <provider
             android:name="androidx.startup.InitializationProvider"

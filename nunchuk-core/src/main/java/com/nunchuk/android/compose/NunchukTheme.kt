@@ -33,6 +33,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -91,6 +92,7 @@ data class NunchukTypography(
     val caption: TextStyle,
     val captionTitle: TextStyle,
     val bodySmall: TextStyle,
+    val textLink: TextStyle,
 )
 
 @Immutable
@@ -116,6 +118,7 @@ val LocalNunchukTypography = staticCompositionLocalOf {
         bodySmall = TextStyle.Default,
         caption = TextStyle.Default,
         captionTitle = TextStyle.Default,
+        textLink = TextStyle.Default
     )
 }
 
@@ -169,6 +172,13 @@ fun NunchukTheme(
             fontFamily = latoBold,
             color = PrimaryColor,
             fontWeight = FontWeight.Bold
+        ),
+        textLink = TextStyle(
+            fontSize = 16.sp,
+            fontFamily = latoBold,
+            color = PrimaryColor,
+            fontWeight = FontWeight.Bold,
+            textDecoration = TextDecoration.Underline
         ),
     )
 
@@ -228,6 +238,13 @@ fun NunchukTheme(
             fontFamily = latoBold,
             color = PrimaryColor,
             fontWeight = FontWeight.Bold
+        ),
+        textLink = TextStyle(
+            fontSize = 16.sp,
+            fontFamily = latoBold,
+            color = PrimaryColor,
+            fontWeight = FontWeight.Bold,
+            textDecoration = TextDecoration.Underline
         ),
     )
     val defaultTypography = Typography()
