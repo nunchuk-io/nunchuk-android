@@ -497,6 +497,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             isLocked = it.group?.isLocked.orFalse(),
                             primaryOwnerMember = it.primaryOwnerMember,
                             role = it.role,
+                            status = it.keyStatus,
+                            signers = it.signers,
                             onAccept = {
                                 it.group?.id?.let {
                                     walletsViewModel.acceptInviteMember(it)
@@ -598,5 +600,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         super.onResume()
         walletsViewModel.retrieveData()
         walletsViewModel.updateBadge()
+        walletsViewModel.getKeyHealthStatus()
     }
 }

@@ -29,6 +29,7 @@ import com.nunchuk.android.model.User
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
@@ -50,6 +51,7 @@ internal data class WalletsState(
     val allGroups: List<ByzantineGroup> = emptyList(),
     val groupWalletUis: List<GroupWalletUi> = emptyList(),
     val alerts: Map<String, Int> = emptyMap(),
+    val keyHealthStatus: Map<String, List<KeyHealthStatus>> = emptyMap(),
 )
 
 internal sealed class WalletsEvent {
@@ -79,4 +81,6 @@ internal data class GroupWalletUi(
     val isAssistedWallet: Boolean = false,
     val badgeCount: Int = 0,
     val primaryOwnerMember: ByzantineMember?= null,
+    val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),
+    val signers: List<SignerModel> = emptyList(),
 )
