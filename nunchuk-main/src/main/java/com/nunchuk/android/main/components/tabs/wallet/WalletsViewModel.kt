@@ -42,6 +42,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.orDefault
@@ -68,16 +69,20 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusUseCase
+import com.nunchuk.android.usecase.byzantine.GetListGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
 import com.nunchuk.android.usecase.byzantine.SyncDeletedWalletUseCase
@@ -102,6 +107,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -142,6 +148,8 @@ internal class WalletsViewModel @Inject constructor(
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val syncDeletedWalletUseCase: SyncDeletedWalletUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val getListGroupWalletKeyHealthStatusUseCase: GetListGroupWalletKeyHealthStatusUseCase,
+    private val cardIdManager: CardIdManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -156,6 +164,7 @@ internal class WalletsViewModel @Inject constructor(
 
     private var isRetrievingData = AtomicBoolean(false)
     private var isRetrievingAlert = AtomicBoolean(false)
+    private var isRetrievingKeyHealthStatus = AtomicBoolean(false)
 
     override val initialState = WalletsState()
 
@@ -171,6 +180,7 @@ internal class WalletsViewModel @Inject constructor(
                     checkMemberMembership()
                     checkInheritance(it)
                     mapGroupWalletUi()
+                    getKeyHealthStatus()
                 }
         }
         viewModelScope.launch {
@@ -255,9 +265,8 @@ internal class WalletsViewModel @Inject constructor(
             getGroupsUseCase(Unit).distinctUntilChanged().collect {
                 val groups = it.getOrDefault(emptyList())
                 updateState { copy(allGroups = groups) }
-                if (groups.isNotEmpty()) {
-                    updateBadge()
-                }
+                updateBadge()
+                getKeyHealthStatus()
                 mapGroupWalletUi()
             }
         }
@@ -394,10 +403,21 @@ internal class WalletsViewModel @Inject constructor(
                 val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
                 val groupId = assistedWallet?.groupId
                 val group = groups.firstOrNull { it.id == groupId }
+                val signers = wallet.wallet.signers
+                    .map { signer -> signer.toModel() }
+                    .map { signer ->
+                        if (signer.type == SignerType.NFC) signer.copy(
+                            cardId = cardIdManager.getCardId(
+                                signer.id
+                            )
+                        ) else signer
+                    }.toList()
                 var groupWalletUi = GroupWalletUi(
                     wallet = wallet,
                     isAssistedWallet = wallet.wallet.id in assistedWalletIds,
-                    badgeCount = if (alerts[groupId] == null) alerts[wallet.wallet.id].orDefault(0) else alerts[groupId].orDefault(0)
+                    badgeCount = if (alerts[groupId] == null) alerts[wallet.wallet.id].orDefault(0) else alerts[groupId].orDefault(0),
+                    keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty().associateBy { it.xfp },
+                    signers = signers
                 )
                 if (group != null) {
                     val role = byzantineGroupUtils.getCurrentUserRole(group)
@@ -460,6 +480,22 @@ internal class WalletsViewModel @Inject constructor(
             if (result.isSuccess) {
                 val alerts = result.getOrDefault(hashMapOf())
                 updateState { copy(alerts = alerts) }
+                mapGroupWalletUi()
+            }
+        }
+    }
+
+    fun getKeyHealthStatus() {
+        if (isRetrievingKeyHealthStatus.get()) return
+        viewModelScope.launch {
+            isRetrievingKeyHealthStatus.set(true)
+            getListGroupWalletKeyHealthStatusUseCase(
+                GetListGroupWalletKeyHealthStatusUseCase.Params(
+                    getState().assistedWallets.map { it.groupId to it.localId }
+                )
+            ).onSuccess {
+                isRetrievingKeyHealthStatus.set(false)
+                updateState { copy(keyHealthStatus = it) }
                 mapGroupWalletUi()
             }
         }

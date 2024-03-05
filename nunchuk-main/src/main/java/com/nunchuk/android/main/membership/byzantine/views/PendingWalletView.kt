@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -36,18 +38,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.everglade
 import com.nunchuk.android.compose.ming
 import com.nunchuk.android.compose.yellowishOrange
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.healthCheckTimeColor
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
@@ -58,6 +65,7 @@ import com.nunchuk.android.model.User
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.type.AddressType
@@ -77,6 +85,8 @@ fun PendingWalletView(
     inviterName: String = "",
     isLocked: Boolean = false,
     primaryOwnerMember: ByzantineMember? = null,
+    signers: List<SignerModel> = emptyList(),
+    status: Map<String, KeyHealthStatus> = emptyMap(),
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
     onGroupClick: () -> Unit = {},
@@ -161,7 +171,7 @@ fun PendingWalletView(
                     )
                     .padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                AssistedWalletBottomContent(badgeCount = badgeCount, isLocked = isLocked)
+                AssistedWalletBottomContent(badgeCount = badgeCount, isLocked = isLocked, signers = signers, status = status)
             }
         }
     }
@@ -197,6 +207,7 @@ fun RowScope.PendingWalletInviteMember(
 fun RowScope.AssistedWalletBottomContent(
     badgeCount: Int = 0,
     isLocked: Boolean = false,
+    signers: List<SignerModel>, status: Map<String, KeyHealthStatus>
 ) {
     if (isLocked) {
         Box(
@@ -218,14 +229,27 @@ fun RowScope.AssistedWalletBottomContent(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = stringResource(R.string.nc_dashboard),
-                style = NunchukTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .padding(start = 4.dp)
-                    .weight(1f, fill = true)
-            )
+            if (status.isNotEmpty() && signers.any { it.type != SignerType.SERVER }) {
+                LazyRow(
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .weight(1f, fill = true),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    items(signers.filter { it.type != SignerType.SERVER }) {
+                        NcCircleImage(resId = it.toReadableDrawableResId(), size = 36.dp, iconSize = 18.dp, color = status[it.fingerPrint]?.lastHealthCheckTimeMillis.healthCheckTimeColor())
+                    }
+                }
+            } else {
+                Text(
+                    text = stringResource(R.string.nc_dashboard),
+                    style = NunchukTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .weight(1f, fill = true)
+                )
+            }
 
             Row(
                 horizontalArrangement = Arrangement.Center,
