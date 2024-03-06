@@ -31,6 +31,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.wallet.R
@@ -96,8 +97,8 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    fun openDynamicQRScreen(walletId: String) {
-        navigator.openDynamicQRScreen(this, launcher, walletId)
+    fun openDynamicQRScreen(walletId: String, qrCodeType: Int = ExportWalletQRCodeType.BC_UR2_LEGACY) {
+        navigator.openDynamicQRScreen(this, launcher, walletId, qrCodeType)
     }
 
     protected fun showError(event: UploadConfigurationEvent.ShowError) {
