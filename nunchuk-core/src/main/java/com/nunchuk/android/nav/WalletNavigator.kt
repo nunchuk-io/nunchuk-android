@@ -137,6 +137,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         activityContext: Context,
         launcher: ActivityResultLauncher<Intent>,
         walletId: String,
+        qrCodeType: Int,
     )
 
     fun openWalletDetailsScreen(activityContext: Context, walletId: String)

@@ -160,8 +160,9 @@ interface WalletNavigatorDelegate : WalletNavigator {
         activityContext: Context,
         launcher: ActivityResultLauncher<Intent>,
         walletId: String,
+        qrCodeType: Int,
     ) {
-        launcher.launch(DynamicQRCodeActivity.buildIntent(activityContext, walletId))
+        launcher.launch(DynamicQRCodeActivity.buildIntent(activityContext, walletId, qrCodeType))
     }
 
     override fun openWalletDetailsScreen(activityContext: Context, walletId: String) {

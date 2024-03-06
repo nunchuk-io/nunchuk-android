@@ -662,6 +662,10 @@
     <string name="nc_bip329">BIP329</string>
     <string name="nc_select_import_format">Select the import format</string>
     <string name="nc_select_export_format">Select the export format</string>
+    <string name="nc_select_qr_type">Select QR type</string>
+    <string name="nc_bc_ur2_legacy">BC-UR2 (legacy)</string>
+    <string name="nc_bc_ur2_legacy_desc">For Jade, Passport, Keystone and SeedSigner</string>
+    <string name="nc_bc_ur2">BC-UR2</string>
     <string name="nc_no_filter">No filter</string>
     <string name="nc_select_import_format_desc">The import might overwrite existing labels. Are you sure you want to continue?</string>
     <string name="nc_select_export_format_desc">Please note that certain Nunchuk labels might not be supported by BIP329. Are you sure you want to continue?</string>

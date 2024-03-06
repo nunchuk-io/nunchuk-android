@@ -30,6 +30,7 @@ data class SheetOption(
     val type: Int = 0,
     @DrawableRes val resId: Int = 0,
     @StringRes val stringId: Int = 0,
+    @StringRes val subStringId: Int = 0,
     val isDeleted: Boolean = false,
     val label: String? = null,
     val id: String? = null,
@@ -136,4 +137,6 @@ object SheetOptionType {
     const val TYPE_VERIFY_ADDRESS_DEVICE = 76
 
     const val TYPE_EDIT_PRIMARY_OWNER = 77
+    const val TYPE_QR_BC_UR2_LEGACY = 78
+    const val TYPE_QR_BC_UR2 = 79
 }

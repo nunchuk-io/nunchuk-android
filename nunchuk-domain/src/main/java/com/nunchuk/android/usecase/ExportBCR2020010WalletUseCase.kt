@@ -17,27 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.qr
+package com.nunchuk.android.usecase
 
-import android.content.Context
-import android.content.Intent
-import com.nunchuk.android.arch.args.ActivityArgs
-import com.nunchuk.android.core.util.ExportWalletQRCodeType
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class DynamicQRCodeArgs(val walletId: String, val qrCodeType: Int) : ActivityArgs {
+class ExportBCR2020010WalletUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk,
+) : UseCase<ExportBCR2020010WalletUseCase.Params, List<String>>(dispatcher) {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, DynamicQRCodeActivity::class.java).apply {
-        putExtra(EXTRA_WALLET_ID, walletId)
-        putExtra(EXTRA_QR_CODE_TYPE, qrCodeType)
-    }
-
-    companion object {
-        const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
-        const val EXTRA_QR_CODE_TYPE = "EXTRA_QR_CODE_TYPE"
-
-        fun deserializeFrom(intent: Intent): DynamicQRCodeArgs = DynamicQRCodeArgs(
-            walletId = intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
-            qrCodeType = intent.extras?.getInt(EXTRA_QR_CODE_TYPE) ?: ExportWalletQRCodeType.BC_UR2_LEGACY,
+    override suspend fun execute(parameters: Params): List<String> {
+        return nunchukNativeSdk.exportBCR2020010Wallet(
+            walletId = parameters.walletId,
+            density = parameters.density
         )
     }
+
+    class Params(val walletId: String, val density: Int)
 }
