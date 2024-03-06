@@ -40,16 +40,19 @@ import com.nunchuk.android.compose.SpanIndicator
 @Composable
 fun OnboardIntroScreen(
     modifier: Modifier = Modifier,
+    onOpenUnassistedIntro: () -> Unit = {},
     viewModel: OnboardIntroViewModel = hiltViewModel(),
 ) {
     OnboardIntroContent(
         modifier = modifier,
+        onOpenUnassistedIntro = onOpenUnassistedIntro,
     )
 }
 
 @Composable
 fun OnboardIntroContent(
     modifier: Modifier = Modifier,
+    onOpenUnassistedIntro: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.systemBarsPadding(),
@@ -112,8 +115,8 @@ fun OnboardIntroContent(
             )
             OptionCard(
                 containerColor = colorResource(id = R.color.nc_denim_tint_color),
-                title = "Assisted wallet",
-                description = "For those new to Bitcoin, need expert guidance, or want advanced features like inheritance planning, spending limits, and multi-user wallets.",
+                title = stringResource(R.string.nc_assisted_wallet),
+                description = stringResource(R.string.nc_assisted_wallet_option_desc),
                 painter = painterResource(id = R.drawable.ic_onboard_assisted_wallet)
             ) {
 
@@ -121,13 +124,11 @@ fun OnboardIntroContent(
             Spacer(modifier = Modifier.height(16.dp))
             OptionCard(
                 containerColor = colorResource(id = R.color.nc_beeswax_tint),
-                title = "Unassisted wallet",
-                description = "For those who are comfortable with managing their Bitcoin wallets themselves.",
-                painter = painterResource(id = R.drawable.ic_onboard_unassisted_wallet)
-            ) {
-
-            }
-            Spacer(modifier = Modifier.weight(1f))
+                title = stringResource(R.string.nc_unassisted_wallet),
+                description = stringResource(R.string.nc_unassisted_wallet_option_desc),
+                painter = painterResource(id = R.drawable.ic_onboard_unassisted_wallet),
+                onClick = onOpenUnassistedIntro
+            )
         }
     }
 }
