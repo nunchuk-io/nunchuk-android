@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.app.onboard.intro.onboardIntro
 import com.nunchuk.android.app.onboard.intro.onboardIntroRoute
+import com.nunchuk.android.app.onboard.unassisted.navigateToUnassistedIntro
+import com.nunchuk.android.app.onboard.unassisted.unassistedIntro
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,7 +27,12 @@ class OnboardActivity : BaseComposeActivity() {
                             navController = navController,
                             startDestination = onboardIntroRoute
                         ) {
-                            onboardIntro()
+                            onboardIntro(
+                                onOpenUnassistedIntro = {
+                                    navController.navigateToUnassistedIntro()
+                                },
+                            )
+                            unassistedIntro()
                         }
                     }
                 }
