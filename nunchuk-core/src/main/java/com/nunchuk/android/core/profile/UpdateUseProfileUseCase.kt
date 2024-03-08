@@ -30,10 +30,10 @@ interface UpdateUseProfileUseCase {
 
 internal class UpdateUseProfileUseCaseImpl @Inject constructor(
     private val accountManager: AccountManager,
-    private val userProfileRepository: UserProfileRepository
+    private val userRepository: UserRepository
 ) : UpdateUseProfileUseCase {
 
-    override fun execute(name: String?, avatarUrl: String?) = userProfileRepository.updateUserProfile(name, avatarUrl)
+    override fun execute(name: String?, avatarUrl: String?) = userRepository.updateUserProfile(name, avatarUrl)
         .map {
             accountManager.storeAccount(accountManager.getAccount().copy(name = it.name.orEmpty(), avatarUrl = it.avatar.orEmpty()))
             it.chatId.orEmpty()

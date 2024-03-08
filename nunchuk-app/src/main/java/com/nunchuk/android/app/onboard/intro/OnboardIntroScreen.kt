@@ -41,17 +41,23 @@ import com.nunchuk.android.compose.SpanIndicator
 fun OnboardIntroScreen(
     modifier: Modifier = Modifier,
     onOpenUnassistedIntro: () -> Unit = {},
+    onSkip: () -> Unit = {},
+    onSignIn: () -> Unit = {},
     viewModel: OnboardIntroViewModel = hiltViewModel(),
 ) {
     OnboardIntroContent(
         modifier = modifier,
         onOpenUnassistedIntro = onOpenUnassistedIntro,
+        onSkip = onSkip,
+        onSignIn = onSignIn
     )
 }
 
 @Composable
 fun OnboardIntroContent(
     modifier: Modifier = Modifier,
+    onSkip: () -> Unit = {},
+    onSignIn: () -> Unit = {},
     onOpenUnassistedIntro: () -> Unit = {},
 ) {
     Scaffold(
@@ -63,7 +69,8 @@ fun OnboardIntroContent(
             ) {
                 Text(
                     modifier = Modifier
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .clickable(onClick = onSkip),
                     text = stringResource(id = R.string.nc_text_skip),
                     style = NunchukTheme.typography.textLink
                 )
@@ -77,16 +84,14 @@ fun OnboardIntroContent(
                 NcSpannedClickableText(
                     modifier = Modifier
                         .padding(16.dp),
-                    text = "Already have an account? [A]Sign in[/A]",
+                    text = stringResource(R.string.nc_already_have_an_account_sign_in),
                     baseStyle = NunchukTheme.typography.body,
                     styles = mapOf(
                         SpanIndicator('A') to SpanStyle(
                             fontWeight = FontWeight.Bold,
                         )
                     ),
-                    onClick = {
-
-                    }
+                    onClick = { onSignIn() }
                 )
             }
         },
@@ -107,7 +112,7 @@ fun OnboardIntroContent(
                     .align(Alignment.CenterHorizontally)
             )
             Text(
-                text = "How will you use Nunchuk?",
+                text = stringResource(R.string.nc_how_will_you_use_nunchuk),
                 style = NunchukTheme.typography.titleLarge,
                 modifier = Modifier
                     .padding(vertical = 24.dp)

@@ -19,4 +19,6 @@
     <string name="nc_assisted_wallet">Assisted wallet</string>
     <string name="nc_assisted_wallet_option_desc">For those new to Bitcoin, need expert guidance, or want advanced features like inheritance planning, spending limits, and multi-user wallets.</string>
     <string name="nc_unassisted_wallet_option_desc">For those who are comfortable with managing their Bitcoin wallets themselves.</string>
+    <string name="nc_how_will_you_use_nunchuk">How will you use Nunchuk?</string>
+    <string name="nc_already_have_an_account_sign_in">Already have an account? [A]Sign in[/A]</string>
 </resources>

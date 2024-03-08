@@ -27,9 +27,9 @@ interface DeleteUserDevicesUseCase {
 }
 
 internal class DeleteUserDevicesUseCaseImpl @Inject constructor(
-    private val userProfileRepository: UserProfileRepository
+    private val userRepository: UserRepository
 ) : DeleteUserDevicesUseCase {
 
-    override fun execute(devices: List<String>) = userProfileRepository.deleteDevices(devices)
+    override fun execute(devices: List<String>) = userRepository.deleteDevices(devices)
 
 }

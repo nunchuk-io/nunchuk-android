@@ -15,6 +15,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class OnboardActivity : BaseComposeActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -31,6 +32,12 @@ class OnboardActivity : BaseComposeActivity() {
                                 onOpenUnassistedIntro = {
                                     navController.navigateToUnassistedIntro()
                                 },
+                                onSkip = {
+                                    navigator.openMainScreen(this@OnboardActivity)
+                                },
+                                onSignIn = {
+                                    navigator.openSignInScreen(this@OnboardActivity)
+                                }
                             )
                             unassistedIntro()
                         }

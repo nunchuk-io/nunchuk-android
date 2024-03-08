@@ -25,7 +25,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CleanUpCryptoAssetsUseCase
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.profile.SendSignOutUseCase
-import com.nunchuk.android.core.profile.UserProfileRepository
+import com.nunchuk.android.core.profile.UserRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.settings.DeleteAccountEvent.*
 import com.nunchuk.android.utils.onException
@@ -40,7 +40,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class DeleteAccountViewModel @Inject constructor(
     private val accountManager: AccountManager,
-    private val repository: UserProfileRepository,
+    private val repository: UserRepository,
     private val cleanUpCryptoAssetsUseCase: CleanUpCryptoAssetsUseCase,
     private val sendSignOutUseCase: SendSignOutUseCase,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,

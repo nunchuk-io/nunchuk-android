@@ -27,12 +27,12 @@ import javax.inject.Inject
 
 class GetUserProfileUseCase @Inject constructor(
     private val accountManager: AccountManager,
-    private val userProfileRepository: UserProfileRepository,
+    private val userRepository: UserRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<Unit, String>(ioDispatcher) {
 
     override suspend fun execute(parameters: Unit): String {
-        val user = userProfileRepository.getUserProfile()
+        val user = userRepository.getUserProfile()
         accountManager.storeAccount(
             accountManager.getAccount()
                 .copy(

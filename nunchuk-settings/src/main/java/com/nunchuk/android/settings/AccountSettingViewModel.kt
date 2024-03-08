@@ -26,7 +26,7 @@ import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.DeletePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
-import com.nunchuk.android.core.profile.UserProfileRepository
+import com.nunchuk.android.core.profile.UserRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.settings.AccountSettingEvent.CheckNeedPassphraseSent
@@ -47,7 +47,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class AccountSettingViewModel @Inject constructor(
-    private val repository: UserProfileRepository,
+    private val repository: UserRepository,
     private val deletePrimaryKeyUseCase: DeletePrimaryKeyUseCase,
     private val appScope: CoroutineScope,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,

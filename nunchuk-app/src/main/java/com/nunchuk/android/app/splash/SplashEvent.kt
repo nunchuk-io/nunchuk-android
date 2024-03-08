@@ -21,9 +21,11 @@ package com.nunchuk.android.app.splash
 
 sealed class SplashEvent {
 
-    object NavActivateAccountEvent : SplashEvent()
+    data object NavActivateAccountEvent : SplashEvent()
 
-    object NavSignInEvent : SplashEvent()
+    data object NavSignInEvent : SplashEvent()
+
+    data object OnboardingEvent : SplashEvent()
 
     data class NavHomeScreenEvent(
         val loginHalfToken: String?,

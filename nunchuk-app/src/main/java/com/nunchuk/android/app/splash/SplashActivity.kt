@@ -25,6 +25,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.app.onboard.OnboardActivity
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.utils.NotificationUtils
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -49,19 +51,18 @@ internal class SplashActivity : AppCompatActivity() {
     }
 
     private fun handleEvent(event: SplashEvent) {
-        // TODO Hai
-//        when (event) {
-//            NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
-//            NavSignInEvent -> navigator.openSignInScreen(this, false)
-//            is NavHomeScreenEvent -> {
-//                navigator.openMainScreen(this, loginHalfToken = event.loginHalfToken, deviceId = event.deviceId)
-//                if (NotificationUtils.areNotificationsEnabled(this).not()) {
-//                    navigator.openTurnNotificationScreen(this)
-//                }
-//            }
-//            is InitErrorEvent -> NCToastMessage(this).showError(event.error)
-//        }
-        startActivity(Intent(this, OnboardActivity::class.java))
+        when (event) {
+            SplashEvent.NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
+            SplashEvent.NavSignInEvent -> navigator.openSignInScreen(this, false)
+            is SplashEvent.NavHomeScreenEvent -> {
+                navigator.openMainScreen(this, loginHalfToken = event.loginHalfToken, deviceId = event.deviceId)
+                if (NotificationUtils.areNotificationsEnabled(this).not()) {
+                    navigator.openTurnNotificationScreen(this)
+                }
+            }
+            is SplashEvent.InitErrorEvent -> NCToastMessage(this).showError(event.error)
+            SplashEvent.OnboardingEvent -> startActivity(Intent(this, OnboardActivity::class.java))
+        }
         overridePendingTransition(0, 0)
         finish()
     }

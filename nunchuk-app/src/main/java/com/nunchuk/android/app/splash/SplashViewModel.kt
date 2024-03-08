@@ -22,15 +22,16 @@ package com.nunchuk.android.app.splash
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.profile.GetOnBoardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class SplashViewModel @Inject constructor(
     private val accountManager: AccountManager,
+    private val getOnBoardUseCase: GetOnBoardUseCase,
 ) : NunchukViewModel<Unit, SplashEvent>() {
 
     override val initialState = Unit
@@ -38,7 +39,9 @@ internal class SplashViewModel @Inject constructor(
     fun initFlow() {
         viewModelScope.launch {
             val account = accountManager.getAccount()
+            val shouldShowOnBoard = getOnBoardUseCase(Unit).first().getOrDefault(false)
             when {
+                shouldShowOnBoard -> event(SplashEvent.OnboardingEvent)
                 accountManager.isAccountExisted()
                         && accountManager.isAccountActivated().not() -> event(
                     SplashEvent.NavActivateAccountEvent
