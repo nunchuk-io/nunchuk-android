@@ -314,4 +314,6 @@ internal class WalletDetailsViewModel @Inject constructor(
         get() = getState().groupId
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
+
+    fun isNeedBackup() = getState().walletExtended.wallet.needBackup
 }

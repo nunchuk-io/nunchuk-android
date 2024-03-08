@@ -83,8 +83,8 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
                     navigator.openSelectPhraseScreen(
                         requireActivity(),
                         mnemonic = event.mnemonic,
+                        passphrase = args.passphrase,
                         primaryKeyFlow = args.primaryKeyFlow,
-                        passphrase = args.passphrase
                     )
                 }
             }

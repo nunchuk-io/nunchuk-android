@@ -42,13 +42,15 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
         setLightStatusBar()
         val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
         val passphrase = intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
+        val walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 replace(R.id.fragment_container, CreateNewSeedFragment().apply {
                     arguments = CreateNewSeedFragmentArgs(
                         isQuickWallet = false,
                         primaryKeyFlow = primaryKeyFlow,
-                        passphrase = passphrase
+                        passphrase = passphrase,
+                        walletId = walletId
                     ).toBundle()
                 })
             }
@@ -58,8 +60,14 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
     companion object {
         private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
+        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
 
-        fun start(activityContext: Context, primaryKeyFlow: Int, passphrase: String) {
+        fun start(
+            activityContext: Context,
+            primaryKeyFlow: Int,
+            passphrase: String,
+            walletId: String
+        ) {
             activityContext.startActivity(
                 Intent(
                     activityContext,
@@ -72,6 +80,10 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                     putExtra(
                         EXTRA_PASSPHRASE,
                         passphrase
+                    )
+                    putExtra(
+                        EXTRA_WALLET_ID,
+                        walletId
                     )
                 })
         }

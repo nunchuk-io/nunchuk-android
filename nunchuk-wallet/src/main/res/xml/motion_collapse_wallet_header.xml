@@ -15,7 +15,7 @@
 
     <ConstraintSet android:id="@+id/start">
 
-        <Constraint android:id="@+id/tv_assisted_downgrade_hint">
+        <Constraint android:id="@+id/tv_wallet_warning">
             <PropertySet
                 app:applyMotionScene="false"
                 app:visibilityMode="ignore" />

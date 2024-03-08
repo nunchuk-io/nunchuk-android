@@ -137,8 +137,14 @@ interface SignerNavigatorDelegate : SignerNavigator {
         activityContext: Context,
         passphrase: String,
         primaryKeyFlow: Int,
+        walletId: String,
     ) {
-        CreateNewSeedActivity.start(activityContext, primaryKeyFlow, passphrase)
+        CreateNewSeedActivity.start(
+            activityContext = activityContext,
+            primaryKeyFlow = primaryKeyFlow,
+            passphrase = passphrase,
+            walletId = walletId
+        )
     }
 
     override fun openRecoverSeedScreen(
@@ -154,8 +160,15 @@ interface SignerNavigatorDelegate : SignerNavigator {
         mnemonic: String,
         passphrase: String,
         primaryKeyFlow: Int,
+        masterSignerId: String,
     ) {
-        ConfirmSeedActivity.start(activityContext, mnemonic, passphrase, primaryKeyFlow)
+        ConfirmSeedActivity.start(
+            activityContext = activityContext,
+            mnemonic = mnemonic,
+            passphrase = passphrase,
+            primaryKeyFlow = primaryKeyFlow,
+            masterSignerId = masterSignerId
+        )
     }
 
     override fun openAddSoftwareSignerNameScreen(

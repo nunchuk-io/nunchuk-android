@@ -91,4 +91,7 @@
     <string name="nc_are_you_sure_you_want_to_remove_this_alias">Are you sure you want to remove this alias?</string>
     <string name="nc_change_alias">Change alias</string>
     <string name="nc_platform_key_updated_as_below">The platform key\'s co-signing policies will be updated as below.</string>
+    <string name="nc_write_down_the_seed_pharse_warning">"Please write down the seed phrase. It’s the backup for your key. "</string>
+    <string name="nc_do_it_now">Do it now.</string>
+    <string name="nc_back_up_seed_phrase_confirmation">This action cannot be repeated. Please make sure that you are ready before proceeding.</string>
 </resources>

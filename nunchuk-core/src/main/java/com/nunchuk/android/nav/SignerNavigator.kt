@@ -82,6 +82,7 @@ interface SignerNavigator {
         activityContext: Context,
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        walletId: String = "",
     )
 
     fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
@@ -103,6 +104,7 @@ interface SignerNavigator {
         mnemonic: String,
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        masterSignerId: String = "",
     )
 
     /**

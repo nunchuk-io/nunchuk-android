@@ -500,8 +500,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             status = it.keyStatus,
                             signers = it.signers,
                             onAccept = {
-                                it.group?.id?.let {
-                                    walletsViewModel.acceptInviteMember(it)
+                                it.group?.id?.let { groupId ->
+                                    walletsViewModel.acceptInviteMember(groupId)
                                 }
                             },
                             onDeny = {

@@ -39,7 +39,11 @@ class OnboardActivity : BaseComposeActivity() {
                                     navigator.openSignInScreen(this@OnboardActivity)
                                 }
                             )
-                            unassistedIntro()
+                            unassistedIntro(
+                                openMainScreen = {
+                                    navigator.openMainScreen(this@OnboardActivity)
+                                }
+                            )
                         }
                     }
                 }

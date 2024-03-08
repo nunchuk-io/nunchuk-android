@@ -37,6 +37,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
+        <TextView
+            android:id="@+id/tv_warning"
+            style="@style/NCText.Title.Small"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:background="@drawable/nc_rounded_beeswax_background"
+            android:drawablePadding="@dimen/nc_padding_8"
+            android:padding="@dimen/nc_padding_12"
+            android:gravity="center_vertical"
+            tools:text="Please write down the seed phrase. It’s the backup for your key. Do it now."
+            android:visibility="gone"
+            app:drawableStartCompat="@drawable/ic_warning_outline"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+
         <ImageView
             android:id="@+id/signerTypeIcon"
             android:layout_width="96dp"
@@ -47,7 +63,7 @@
             android:src="@drawable/ic_logo_dark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/tv_warning" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/signerName"
