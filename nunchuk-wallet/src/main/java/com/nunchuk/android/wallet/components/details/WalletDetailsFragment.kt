@@ -467,6 +467,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 onYesClick = {
                     navigator.openCreateNewSeedScreen(
                         activityContext = requireActivity(),
+                        walletId = args.walletId
                     )
                 }
             )
