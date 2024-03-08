@@ -50,7 +50,7 @@ internal interface UserProfileDomainModule {
 internal interface UserProfileDataModule {
 
     @Binds
-    fun bindGetUserProfileRepository(userCase: UserProfileRepositoryImpl): UserProfileRepository
+    fun bindGetUserProfileRepository(userCase: UserRepositoryImpl): UserRepository
 
 }
 

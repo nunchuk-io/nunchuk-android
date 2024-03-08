@@ -25,10 +25,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 data class SendSignOutUseCase @Inject constructor(
-    private val userProfileRepository: UserProfileRepository,
+    private val userRepository: UserRepository,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : UseCase<Unit, Unit>(dispatcher){
     override suspend fun execute(parameters: Unit) {
-        userProfileRepository.sendSignOut()
+        userRepository.sendSignOut()
     }
 }

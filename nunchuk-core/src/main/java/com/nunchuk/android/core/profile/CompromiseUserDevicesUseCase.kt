@@ -27,9 +27,9 @@ interface CompromiseUserDevicesUseCase {
 }
 
 internal class CompromiseUserDevicesUseCaseImpl @Inject constructor(
-    private val userProfileRepository: UserProfileRepository
+    private val userRepository: UserRepository
 ) : CompromiseUserDevicesUseCase {
 
-    override fun execute(devices: List<String>) = userProfileRepository.compromiseDevices(devices)
+    override fun execute(devices: List<String>) = userRepository.compromiseDevices(devices)
 
 }

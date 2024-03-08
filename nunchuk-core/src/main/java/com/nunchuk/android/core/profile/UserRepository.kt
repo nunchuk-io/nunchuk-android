@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-interface UserProfileRepository {
+interface UserRepository {
 
     suspend fun getUserProfile(): UserProfileResponse
 
@@ -46,13 +46,17 @@ interface UserProfileRepository {
 
     fun compromiseDevices(devices: List<String>): Flow<Unit>
 
+    fun showOnBoard(): Flow<Boolean>
+
+    suspend fun markOnboardDone()
+
     suspend fun clearDataStore()
 }
 
-internal class UserProfileRepositoryImpl @Inject constructor(
+internal class UserRepositoryImpl @Inject constructor(
     private val userProfileApi: UserProfileApi,
     private val ncDataStore: NcDataStore,
-) : UserProfileRepository {
+) : UserRepository {
 
     override suspend fun getUserProfile() : UserProfileResponse  {
        return userProfileApi.getUserProfile().data.user
@@ -101,6 +105,10 @@ internal class UserProfileRepositoryImpl @Inject constructor(
         userProfileApi.compromiseUserDevices(CompromiseDevicesPayload(devices = devices))
         emit(Unit)
     }
+
+    override fun showOnBoard() = ncDataStore.showOnBoard
+
+    override suspend fun markOnboardDone() = ncDataStore.setShowOnBoard(false)
 
     override suspend fun clearDataStore() = ncDataStore.clear()
 }

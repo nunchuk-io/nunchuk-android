@@ -49,7 +49,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class NcDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gson: Gson,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
     private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
@@ -65,6 +65,7 @@ class NcDataStore @Inject constructor(
     private val securityQuestionKey = booleanPreferencesKey("security_question")
     private val groupIdKey = stringPreferencesKey("group_id")
     private val currentStepKey = intPreferencesKey("current_step")
+    private val showOnBoardKey = booleanPreferencesKey("show_on_board")
 
     /**
      * Current membership plan key
@@ -261,6 +262,17 @@ class NcDataStore @Inject constructor(
     suspend fun setCurrentStep(step: MembershipStep) {
         context.dataStore.edit {
             it[currentStepKey] = step.ordinal
+        }
+    }
+
+    val showOnBoard: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[showOnBoardKey] ?: true
+        }
+
+    suspend fun setShowOnBoard(value: Boolean) {
+        context.dataStore.edit { settings ->
+            settings[showOnBoardKey] = value
         }
     }
 

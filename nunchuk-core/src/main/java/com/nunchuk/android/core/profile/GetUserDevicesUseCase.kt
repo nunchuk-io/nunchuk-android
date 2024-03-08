@@ -27,9 +27,9 @@ interface GetUserDevicesUseCase {
 }
 
 internal class GetUserDevicesUseCaseImpl @Inject constructor(
-    private val userProfileRepository: UserProfileRepository
+    private val userRepository: UserRepository
 ) : GetUserDevicesUseCase {
 
-    override fun execute() = userProfileRepository.getUserDevices()
+    override fun execute() = userRepository.getUserDevices()
 
 }

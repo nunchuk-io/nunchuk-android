@@ -10,7 +10,7 @@ class MarkHotWalletBackedUpUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<String, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: String): Unit {
+    override suspend fun execute(parameters: String) {
         return nativeSdk.markHotWalletExported(parameters)
     }
 }

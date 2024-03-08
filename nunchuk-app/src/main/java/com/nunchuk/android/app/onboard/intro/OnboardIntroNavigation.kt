@@ -6,10 +6,16 @@ import androidx.navigation.compose.composable
 
 const val onboardIntroRoute = "onboard_intro"
 fun NavGraphBuilder.onboardIntro(
-    onOpenUnassistedIntro: () -> Unit
+    onOpenUnassistedIntro: () -> Unit,
+    onSkip: () -> Unit = {},
+    onSignIn: () -> Unit = {},
 ) {
     composable(onboardIntroRoute) {
-        OnboardIntroScreen(onOpenUnassistedIntro = onOpenUnassistedIntro)
+        OnboardIntroScreen(
+            onOpenUnassistedIntro = onOpenUnassistedIntro,
+            onSkip = onSkip,
+            onSignIn = onSignIn,
+        )
     }
 }
 
