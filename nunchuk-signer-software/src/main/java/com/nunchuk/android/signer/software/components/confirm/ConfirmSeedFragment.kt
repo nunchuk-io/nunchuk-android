@@ -35,6 +35,7 @@ import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.databinding.FragmentConfirmSeedBinding
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -95,7 +96,18 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     private fun openSetPassphrase() {
         if (args.masterSignerId.isNotEmpty()) {
-            // TODO Hai
+            // TODO Hai confirm backup seed
+            navigator.returnToMainScreen()
+            navigator.openSignerInfoScreen(
+                activityContext = requireActivity(),
+                id = args.masterSignerId,
+                isInAssistedWallet = false,
+                isInWallet = true,
+                masterFingerprint = args.masterSignerId,
+                type = SignerType.SOFTWARE,
+                name = "",
+                isMasterSigner = true
+            )
         } else if (args.isQuickWallet) {
             findNavController().navigate(
                 ConfirmSeedFragmentDirections.actionConfirmSeedFragmentToSetPassphraseFragment(
