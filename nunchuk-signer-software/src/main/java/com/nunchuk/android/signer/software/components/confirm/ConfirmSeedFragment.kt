@@ -43,7 +43,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     override fun initializeBinding(
         inflater: LayoutInflater,
-        container: ViewGroup?
+        container: ViewGroup?,
     ): FragmentConfirmSeedBinding {
         return FragmentConfirmSeedBinding.inflate(inflater, container, false)
     }
@@ -74,7 +74,9 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     }
 
     private fun openSetPassphrase() {
-        if (args.isQuickWallet) {
+        if (args.masterSignerId.isNotEmpty()) {
+            // TODO Hai
+        } else if (args.isQuickWallet) {
             findNavController().navigate(
                 ConfirmSeedFragmentDirections.actionConfirmSeedFragmentToSetPassphraseFragment(
                     mnemonic = args.mnemonic,
@@ -89,7 +91,12 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     }
 
     private fun openSetNameScreen() {
-        navigator.openAddSoftwareSignerNameScreen(requireActivity(), args.mnemonic, args.primaryKeyFlow, passphrase = args.passphrase)
+        navigator.openAddSoftwareSignerNameScreen(
+            requireActivity(),
+            args.mnemonic,
+            args.primaryKeyFlow,
+            passphrase = args.passphrase
+        )
     }
 
     private fun setupViews() {

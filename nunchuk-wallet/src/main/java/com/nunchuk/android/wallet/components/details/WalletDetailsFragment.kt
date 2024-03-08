@@ -64,7 +64,6 @@ import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
@@ -78,6 +77,7 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SendMone
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.UpdateUnusedAddress
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -109,10 +109,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                         if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
                         else findNavController().popBackStack()
                     }
+
                     WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
                     WalletConfigAction.FORCE_REFRESH -> viewModel.setForceRefreshWalletProcessing(
                         true
                     )
+
                     null -> {}
                 }
             }
@@ -144,7 +146,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private val args: WalletDetailsFragmentArgs by navArgs()
 
     override fun initializeBinding(
-        inflater: LayoutInflater, container: ViewGroup?
+        inflater: LayoutInflater, container: ViewGroup?,
     ): FragmentWalletDetailBinding {
         return FragmentWalletDetailBinding.inflate(inflater, container, false)
     }
@@ -329,9 +331,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun setupViews() {
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        binding.tvAssistedDowngradeHint.isVisible = viewModel.isInactiveAssistedWallet()
-        if (binding.tvAssistedDowngradeHint.isVisible) {
-            handleInactiveAssistedWallet()
+        binding.tvWalletWarning.isVisible =
+            viewModel.isInactiveAssistedWallet() || viewModel.isNeedBackup()
+        if (binding.tvWalletWarning.isVisible) {
+            if (viewModel.isNeedBackup()) handleNeedBackupWallet()
+            else handleInactiveAssistedWallet()
         }
         binding.transactionList.isNestedScrollingEnabled = false
         binding.transactionList.setHasFixedSize(false)
@@ -389,10 +393,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             viewModel.updateHideWalletDetailLocal()
         }
         binding.container.setTransitionDuration(150)
-        binding.transactionList.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+        binding.transactionList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    if(!recyclerView.canScrollVertically(-1)){
+                    if (!recyclerView.canScrollVertically(-1)) {
                         animateLayout(false)
                     } else {
                         animateLayout(true)
@@ -422,12 +426,43 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun handleInactiveAssistedWallet() {
-        binding.tvAssistedDowngradeHint.makeTextLink(
+        binding.tvWalletWarning.makeTextLink(
             getString(R.string.nc_assisted_wallet_downgrade_hint),
             ClickAbleText(content = "renew your subscription", onClick = {
                 requireActivity().openExternalLink(RENEW_ACCOUNT_LINK)
             })
         )
+        binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
+            R.drawable.ic_info, 0, 0, 0
+        )
+        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
+    }
+
+    private fun handleNeedBackupWallet() {
+        binding.tvWalletWarning.makeTextLink(
+            getString(R.string.nc_write_down_the_seed_pharse_warning),
+            ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
+                showConfirmBackupDialog()
+            })
+        )
+        binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
+            R.drawable.ic_warning_outline, 0, 0, 0
+        )
+        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_beeswax_background)
+    }
+
+    private fun showConfirmBackupDialog() {
+        NCInfoDialog(requireActivity())
+            .showDialog(
+                message = getString(R.string.nc_back_up_seed_phrase_confirmation),
+                btnYes = getString(R.string.nc_text_continue),
+                btnInfo = getString(R.string.nc_text_do_this_later),
+                onYesClick = {
+                    navigator.openCreateNewSeedScreen(
+                        activityContext = requireActivity(),
+                    )
+                }
+            )
     }
 
     private fun onMoreClicked() {

@@ -43,7 +43,6 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.everglade
 import com.nunchuk.android.compose.ming
 import com.nunchuk.android.compose.yellowishOrange
@@ -98,6 +97,11 @@ fun PendingWalletView(
         listOf(NcColor.greyDark, NcColor.greyDark)
     } else if (group != null || isAssistedWallet) {
         listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
+    } else if (walletsExtended.wallet.needBackup) {
+        listOf(
+            colorResource(id = R.color.nc_beeswax_dark),
+            colorResource(id = R.color.nc_beeswax_dark)
+        )
     } else {
         listOf(
             colorResource(id = R.color.nc_primary_light_color),
@@ -171,7 +175,12 @@ fun PendingWalletView(
                     )
                     .padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                AssistedWalletBottomContent(badgeCount = badgeCount, isLocked = isLocked, signers = signers, status = status)
+                AssistedWalletBottomContent(
+                    badgeCount = badgeCount,
+                    isLocked = isLocked,
+                    signers = signers,
+                    status = status
+                )
             }
         }
     }
@@ -207,7 +216,7 @@ fun RowScope.PendingWalletInviteMember(
 fun RowScope.AssistedWalletBottomContent(
     badgeCount: Int = 0,
     isLocked: Boolean = false,
-    signers: List<SignerModel>, status: Map<String, KeyHealthStatus>
+    signers: List<SignerModel>, status: Map<String, KeyHealthStatus>,
 ) {
     if (isLocked) {
         Box(
@@ -237,7 +246,12 @@ fun RowScope.AssistedWalletBottomContent(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     items(signers.filter { it.type != SignerType.SERVER }) {
-                        NcCircleImage(resId = it.toReadableDrawableResId(), size = 36.dp, iconSize = 18.dp, color = status[it.fingerPrint]?.lastHealthCheckTimeMillis.healthCheckTimeColor())
+                        NcCircleImage(
+                            resId = it.toReadableDrawableResId(),
+                            size = 36.dp,
+                            iconSize = 18.dp,
+                            color = status[it.fingerPrint]?.lastHealthCheckTimeMillis.healthCheckTimeColor()
+                        )
                     }
                 }
             } else {
@@ -387,10 +401,13 @@ fun RowScope.ByzantineBottomContent(
                 isContact = primaryOwnerMember.isPendingRequest().not()
             )
 
-            Text(modifier = Modifier.padding(start = 8.dp)
-                .weight(1f),
+            Text(
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .weight(1f),
                 text = primaryOwnerMember.user?.name ?: primaryOwnerMember.emailOrUsername,
-                style = NunchukTheme.typography.titleSmall)
+                style = NunchukTheme.typography.titleSmall
+            )
 
             Row(
                 horizontalArrangement = Arrangement.Center,

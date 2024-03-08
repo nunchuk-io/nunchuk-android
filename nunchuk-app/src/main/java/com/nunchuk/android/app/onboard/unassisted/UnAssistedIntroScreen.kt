@@ -2,6 +2,7 @@ package com.nunchuk.android.app.onboard.unassisted
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -24,25 +27,48 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.R
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 
 @Composable
 fun UnAssistedIntroScreen(
     modifier: Modifier = Modifier,
+    openMainScreen: () -> Unit = {},
     viewModel: UnAssistedIntroViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    if (state.isLoading) {
+        NcLoadingDialog()
+    }
+    LaunchedEffect(state.openMainScreen) {
+        if (state.openMainScreen) {
+            openMainScreen()
+            viewModel.handledOpenMainScreen()
+        }
+    }
     UnAssistedIntroContent(
         modifier = modifier,
+        onCreateHotWallet = {
+            viewModel.createHotWallet()
+        },
+        onSkip = {
+            openMainScreen()
+        },
+        openMainScreen = openMainScreen
     )
 }
 
 @Composable
 private fun UnAssistedIntroContent(
     modifier: Modifier = Modifier,
+    onCreateHotWallet: () -> Unit = {},
+    openMainScreen: () -> Unit = {},
+    onSkip: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.systemBarsPadding(),
@@ -53,7 +79,7 @@ private fun UnAssistedIntroContent(
                     Text(
                         modifier = Modifier
                             .align(Alignment.Top)
-                            .padding(end = 16.dp),
+                            .padding(end = 16.dp).clickable(onClick = onSkip),
                         text = stringResource(id = R.string.nc_text_skip),
                         style = NunchukTheme.typography.textLink
                     )
@@ -75,7 +101,8 @@ private fun UnAssistedIntroContent(
                     modifier = Modifier
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
-                    onClick = { /*TODO*/ }) {
+                    onClick = onCreateHotWallet
+                ) {
                     Text(text = stringResource(R.string.nc_create_a_hot_wallet_now))
                 }
 
@@ -83,7 +110,8 @@ private fun UnAssistedIntroContent(
                     modifier = Modifier
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
-                    onClick = { /*TODO*/ }) {
+                    onClick = openMainScreen,
+                ) {
                     Text(text = stringResource(R.string.nc_i_ll_explore_on_my_own))
                 }
             }
@@ -132,6 +160,6 @@ private fun UnAssistedIntroContent(
 @Composable
 fun UnAssistedIntroScreenPreview() {
     NunchukTheme {
-        UnAssistedIntroScreen()
+        UnAssistedIntroContent()
     }
 }

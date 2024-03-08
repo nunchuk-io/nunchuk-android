@@ -5,9 +5,13 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 
 const val unassistedIntroRoute = "unassisted_intro"
-fun NavGraphBuilder.unassistedIntro() {
+fun NavGraphBuilder.unassistedIntro(
+    openMainScreen: () -> Unit = {},
+) {
     composable(unassistedIntroRoute) {
-        UnAssistedIntroScreen()
+        UnAssistedIntroScreen(
+            openMainScreen = openMainScreen
+        )
     }
 }
 

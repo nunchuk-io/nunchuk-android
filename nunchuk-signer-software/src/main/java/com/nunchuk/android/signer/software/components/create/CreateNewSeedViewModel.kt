@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.software.components.create
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
@@ -27,28 +28,64 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.usecase.GenerateMnemonicUseCase
+import com.nunchuk.android.usecase.wallet.GetHotWalletMnemonicUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class CreateNewSeedViewModel @Inject constructor(
-    private val generateMnemonicUseCase: GenerateMnemonicUseCase
+    private val generateMnemonicUseCase: GenerateMnemonicUseCase,
+    private val savedStateHandle: SavedStateHandle,
+    private val getHotWalletMnemonicUseCase: GetHotWalletMnemonicUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CreateNewSeedEvent>()
     private val _state = MutableStateFlow(CreateNewSeedState())
+    private val args = CreateNewSeedFragmentArgs.fromSavedStateHandle(savedStateHandle)
     val event = _event.asSharedFlow()
     val state = _state.asStateFlow()
 
     fun init() {
-        viewModelScope.launch {
-            when (val result = generateMnemonicUseCase.execute()) {
-                is Success -> _state.value = _state.value.copy(seeds = result.data.toPhrases(), mnemonic = result.data)
-                is Error -> _event.emit(GenerateMnemonicCodeErrorEvent(result.exception.message.orUnknownError()))
+        if (args.walletId.isNotEmpty()) {
+            viewModelScope.launch {
+                getHotWalletMnemonicUseCase(args.walletId)
+                    .onSuccess { mnemonic ->
+                        _state.update { state ->
+                            state.copy(
+                                seeds = mnemonic.toPhrases(),
+                                mnemonic = mnemonic
+                            )
+                        }
+                    }
+            }
+            viewModelScope.launch {
+                getWalletDetail2UseCase(args.walletId)
+                    .onSuccess { walletDetail ->
+                        _state.update { state ->
+                            state.copy(
+                                masterSignerId = walletDetail.signers.first().masterSignerId
+                            )
+                        }
+                    }
+            }
+        } else {
+            viewModelScope.launch {
+                when (val result = generateMnemonicUseCase.execute()) {
+                    is Success -> _state.update { state ->
+                        state.copy(
+                            seeds = result.data.toPhrases(),
+                            mnemonic = result.data
+                        )
+                    }
+                    is Error -> _event.emit(GenerateMnemonicCodeErrorEvent(result.exception.message.orUnknownError()))
+                }
             }
         }
     }
@@ -64,6 +101,7 @@ private fun Int.toCountable() = (this + 1).let {
     if (it < 10) "0$it" else "$it"
 }
 
-internal fun String.toPhrases() = this.split(PHRASE_SEPARATOR).mapIndexed { index, s -> "${index.toCountable()}. $s" }
+internal fun String.toPhrases() =
+    this.split(PHRASE_SEPARATOR).mapIndexed { index, s -> "${index.toCountable()}. $s" }
 
 internal const val PHRASE_SEPARATOR = " "
