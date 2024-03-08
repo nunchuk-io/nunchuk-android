@@ -21,12 +21,13 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.wallet.AddressWithQrView
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
-import com.nunchuk.android.compose.wallet.AddressWithQrView
 import com.nunchuk.android.main.membership.byzantine.payment.feerate.toTitle
 import com.nunchuk.android.main.membership.byzantine.payment.toResId
 import com.nunchuk.android.model.FeeRate
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.payment.PaymentCalculationMethod
 import com.nunchuk.android.model.payment.PaymentDestinationType
 import com.nunchuk.android.model.payment.PaymentFrequency
@@ -51,8 +52,11 @@ fun PaymentSummaryContent(
     currency: String?,
     useAmount: Boolean,
     bsms: String?,
+    groupWalletType: GroupWalletType?,
     openQRDetailScreen: (address: String) -> Unit = {},
 ) {
+    val is3Of5PlatformKey = groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE
+            || groupWalletType == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY
     Column(
         modifier = modifier
             .padding(horizontal = 16.dp)
@@ -60,7 +64,11 @@ fun PaymentSummaryContent(
             .verticalScroll(rememberScrollState())
     ) {
         if (isCosign == true) {
-            NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_payment_cosign_enable_warning))))
+            if (is3Of5PlatformKey) {
+                NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_payment_cosign_enable_warning_3_of_5))))
+            } else {
+                NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_payment_cosign_enable_warning))))
+            }
         }
         NcTextField(
             modifier = Modifier

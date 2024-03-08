@@ -35,6 +35,7 @@ import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerUseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageUseCase
 import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -54,6 +55,7 @@ import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.FinalizeDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTxRequestTokenUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.UpdateGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
@@ -97,6 +99,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getDummyTxRequestTokenUseCase: GetDummyTxRequestTokenUseCase,
     private val networkStatusFlowUseCase: NetworkStatusFlowUseCase,
     private val application: Application,
+    private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -116,7 +119,7 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _event.emit(WalletAuthenticationEvent.Loading(true))
-            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
+            if (!args.dummyTransactionId.isNullOrEmpty()) {
                 getGroupDummyTransactionUseCase(
                     GetGroupDummyTransactionUseCase.Param(
                         groupId = args.groupId.orEmpty(),
@@ -313,10 +316,17 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun handleImportAirgapTransaction(transaction: Transaction) {
         viewModelScope.launch {
             val signatures = _state.value.signatures
-            _state.value.singleSigners.filter {
+            val validSignatures = _state.value.singleSigners.filter {
                 transaction.signers[it.masterFingerprint] == true
                         && signatures.contains(it.masterFingerprint).not()
-            }.forEach {
+            }
+            if (validSignatures.isEmpty()) {
+                getInteractSingleSigner()?.let {
+                    _event.emit(WalletAuthenticationEvent.SignFailed(it))
+                }
+                return@launch
+            }
+            validSignatures.forEach {
                 handleSignatureResult(
                     getDummyTransactionSignatureUseCase(
                         GetDummyTransactionSignatureUseCase.Param(
@@ -354,7 +364,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 return
             }
             signatures[singleSigner.masterFingerprint] = signature
-            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty()) {
+            if (!args.dummyTransactionId.isNullOrEmpty()) {
                 if (uploadSignature(singleSigner.masterFingerprint, signature, signatures)) {
                     val status = _state.value.transactionStatus
                     if (status != TransactionStatus.CONFIRMED) {
@@ -397,6 +407,11 @@ class WalletAuthenticationViewModel @Inject constructor(
                 )
             }
             if (updateInfo.status == TransactionStatus.CONFIRMED) {
+                if (args.action == TargetAction.CLAIM_KEY.name) {
+                    runCatching {
+                        syncGroupWalletUseCase(args.groupId.orEmpty())
+                    }
+                }
                 _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess())
             }
         }.isSuccess
@@ -466,7 +481,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun deleteDummyTransaction() {
         viewModelScope.launch(NonCancellable) {
             val isDraft = state.value.isDraft
-            if (!args.groupId.isNullOrEmpty() && !args.dummyTransactionId.isNullOrEmpty() && isDraft) {
+            if (!args.dummyTransactionId.isNullOrEmpty() && isDraft) {
                 deleteGroupDummyTransactionUseCase(
                     DeleteGroupDummyTransactionUseCase.Param(
                         groupId = args.groupId.orEmpty(),
@@ -500,8 +515,10 @@ class WalletAuthenticationViewModel @Inject constructor(
                 R.string.nc_txt_run_health_check_success_event,
                 getInteractSingleSigner()?.name.orEmpty()
             )
+
             DummyTransactionType.CREATE_RECURRING_PAYMENT -> application.getString(R.string.nc_the_recurring_payment_has_been_approved)
             DummyTransactionType.CANCEL_RECURRING_PAYMENT -> application.getString(R.string.nc_pending_cancellation_has_been_cancelled)
+            DummyTransactionType.UPDATE_SECURITY_QUESTIONS -> application.getString(R.string.nc_security_questions_updated)
             else -> ""
         }
 

@@ -29,6 +29,7 @@ enum class AlertType {
     KEY_RECOVERY_APPROVED,
     RECURRING_PAYMENT_CANCELATION_PENDING,
     TRANSACTION_SIGNATURE_REQUEST,
+    UPDATE_SECURITY_QUESTIONS
 }
 
 fun String?.toAlertType() = AlertType.values().find { it.name == this } ?: AlertType.NONE

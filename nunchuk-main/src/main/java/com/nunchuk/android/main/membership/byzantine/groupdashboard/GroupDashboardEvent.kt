@@ -36,6 +36,7 @@ sealed class GroupDashboardEvent {
 }
 
 data class GroupDashboardState(
+    val groupId: String = "",
     val wallet: Wallet = Wallet(),
     val group: ByzantineGroup? = null,
     val alerts: List<Alert> = emptyList(),

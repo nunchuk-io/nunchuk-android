@@ -33,9 +33,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -74,6 +72,7 @@ import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SpendingPolicy
@@ -118,13 +117,16 @@ class CosigningPolicyFragment : Fragment() {
         }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                CosigningPolicyScreen(viewModel)
+                CosigningPolicyScreen(
+                    viewModel,
+                    args.dummyTransactionId
+                )
             }
         }
     }
@@ -142,6 +144,7 @@ class CosigningPolicyFragment : Fragment() {
                             keyPolicy = viewModel.state.value.keyPolicy,
                             xfp = args.signer?.fingerPrint.orEmpty(),
                         )
+
                         CosigningPolicyEvent.OnEditSpendingLimitClicked -> navigator.openConfigServerKeyActivity(
                             launcher = launcher,
                             activityContext = requireActivity(),
@@ -149,13 +152,15 @@ class CosigningPolicyFragment : Fragment() {
                             keyPolicy = viewModel.state.value.keyPolicy,
                             xfp = args.signer?.fingerPrint.orEmpty(),
                         )
+
                         CosigningPolicyEvent.OnDiscardChange -> NCWarningDialog(requireActivity()).showDialog(
                             title = getString(R.string.nc_confirmation),
                             message = getString(R.string.nc_are_you_sure_discard_the_change),
                             onYesClick = {
-                                requireActivity().finish()
+                                viewModel.cancelChange()
                             }
                         )
+
                         is CosigningPolicyEvent.OnSaveChange -> openWalletAuthentication(event)
                         is CosigningPolicyEvent.Loading -> showOrHideLoading(event.isLoading)
                         is CosigningPolicyEvent.ShowError -> showError(event.error)
@@ -166,6 +171,8 @@ class CosigningPolicyFragment : Fragment() {
                                 R.string.nc_policy_updated
                             )
                         )
+
+                        CosigningPolicyEvent.CancelChangeSuccess -> requireActivity().finish()
                     }
                 }
         }
@@ -181,20 +188,30 @@ class CosigningPolicyFragment : Fragment() {
                 requiredSignatures = event.required.requiredSignatures,
                 type = event.required.type,
                 launcher = signLauncher,
-                activityContext = requireActivity()
+                activityContext = requireActivity(),
+                dummyTransactionId = event.dummyTransactionId,
             )
+            if (args.dummyTransactionId.isNotEmpty()) {
+                requireActivity().finish()
+            }
         }
     }
 }
 
 @Composable
-private fun CosigningPolicyScreen(viewModel: CosigningPolicyViewModel = viewModel()) {
+private fun CosigningPolicyScreen(
+    viewModel: CosigningPolicyViewModel = viewModel(),
+    dummyTransactionId: String,
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     CosigningPolicyContent(
         isAutoBroadcast = state.keyPolicy.autoBroadcastTransaction,
         keyPolicy = state.keyPolicy,
         spendingPolicy = state.keyPolicy.spendingPolicy,
         isUpdateFlow = state.isUpdateFlow,
+        walletName = state.walletName,
+        requiredSignature = state.requiredSignature,
+        isEditable = dummyTransactionId.isEmpty(),
         onEditSingingDelayClicked = viewModel::onEditSigningDelayClicked,
         onEditSpendingLimitClicked = viewModel::onEditSpendingLimitClicked,
         onSaveChangeClicked = viewModel::onSaveChangeClicked,
@@ -207,7 +224,10 @@ private fun CosigningPolicyContent(
     isAutoBroadcast: Boolean = true,
     keyPolicy: KeyPolicy = KeyPolicy(),
     spendingPolicy: SpendingPolicy? = null,
+    requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
+    walletName: String = "",
     isUpdateFlow: Boolean = false,
+    isEditable: Boolean = true,
     onEditSpendingLimitClicked: () -> Unit = {},
     onEditSingingDelayClicked: () -> Unit = {},
     onSaveChangeClicked: () -> Unit = {},
@@ -215,20 +235,36 @@ private fun CosigningPolicyContent(
 ) {
 
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(topBar = {
+            NcTopAppBar(title = "")
+        }) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
+                    .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcTopAppBar(title = "")
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.nc_cosigning_policies),
-                    style = NunchukTheme.typography.heading
-                )
+                if (!isEditable && walletName.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = stringResource(
+                            R.string.nc_cosigning_policies_change, walletName
+                        ),
+                        style = NunchukTheme.typography.heading
+                    )
+
+                    Text(
+                        text = stringResource(R.string.nc_platform_key_updated_as_below),
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = stringResource(R.string.nc_cosigning_policies),
+                        style = NunchukTheme.typography.heading
+                    )
+                }
                 if (spendingPolicy != null) {
                     Row(
                         modifier = Modifier
@@ -240,11 +276,13 @@ private fun CosigningPolicyContent(
                             text = stringResource(R.string.nc_spending_limit),
                             style = NunchukTheme.typography.title
                         )
-                        Text(
-                            modifier = Modifier.clickable(onClick = onEditSpendingLimitClicked),
-                            text = stringResource(R.string.nc_edit),
-                            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-                        )
+                        if (isEditable) {
+                            Text(
+                                modifier = Modifier.clickable(onClick = onEditSpendingLimitClicked),
+                                text = stringResource(R.string.nc_edit),
+                                style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                            )
+                        }
                     }
                     Column(
                         modifier = Modifier
@@ -264,7 +302,11 @@ private fun CosigningPolicyContent(
                         ) {
                             Text(
                                 modifier = Modifier.weight(1.0f),
-                                text = "${spendingPolicy.limit.formatDecimalWithoutZero(maxFractionDigits = USD_FRACTION_DIGITS)} ${spendingPolicy.currencyUnit}/${
+                                text = "${
+                                    spendingPolicy.limit.formatDecimalWithoutZero(
+                                        maxFractionDigits = USD_FRACTION_DIGITS
+                                    )
+                                } ${spendingPolicy.currencyUnit}/${
                                     spendingPolicy.timeUnit.name.lowercase()
                                         .capitalize(Locale.current)
                                 }",
@@ -290,11 +332,13 @@ private fun CosigningPolicyContent(
                         text = stringResource(R.string.nc_co_signing_delay),
                         style = NunchukTheme.typography.title
                     )
-                    Text(
-                        modifier = Modifier.clickable(onClick = onEditSingingDelayClicked),
-                        text = stringResource(R.string.nc_edit),
-                        style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-                    )
+                    if (isEditable) {
+                        Text(
+                            modifier = Modifier.clickable(onClick = onEditSingingDelayClicked),
+                            text = stringResource(R.string.nc_edit),
+                            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                        )
+                    }
                 }
                 Column(
                     modifier = Modifier
@@ -346,31 +390,36 @@ private fun CosigningPolicyContent(
                             text = stringResource(R.string.nc_enable_co_signing_delay),
                             style = NunchukTheme.typography.body
                         )
-                        val delayTime = if (keyPolicy.getSigningDelayInHours() == 0 && keyPolicy.getSigningDelayInMinutes() == 0) {
-                            stringResource(R.string.nc_off)
-                        } else if (keyPolicy.getSigningDelayInHours() == 0) {
-                            pluralStringResource(
-                                R.plurals.nc_plural_minute,
-                                keyPolicy.getSigningDelayInMinutes(),
-                                keyPolicy.getSigningDelayInMinutes()
-                            )
-                        } else if (keyPolicy.getSigningDelayInMinutes() == 0) {
-                            pluralStringResource(
-                                R.plurals.nc_plural_hour,
-                                keyPolicy.getSigningDelayInHours(),
-                                keyPolicy.getSigningDelayInHours()
-                            )
-                        } else {
-                            "${pluralStringResource(
-                                R.plurals.nc_plural_hour,
-                                keyPolicy.getSigningDelayInHours(),
-                                keyPolicy.getSigningDelayInHours()
-                            )} ${pluralStringResource(
-                                R.plurals.nc_plural_minute,
-                                keyPolicy.getSigningDelayInMinutes(),
-                                keyPolicy.getSigningDelayInMinutes()
-                            )}"
-                        }
+                        val delayTime =
+                            if (keyPolicy.getSigningDelayInHours() == 0 && keyPolicy.getSigningDelayInMinutes() == 0) {
+                                stringResource(R.string.nc_off)
+                            } else if (keyPolicy.getSigningDelayInHours() == 0) {
+                                pluralStringResource(
+                                    R.plurals.nc_plural_minute,
+                                    keyPolicy.getSigningDelayInMinutes(),
+                                    keyPolicy.getSigningDelayInMinutes()
+                                )
+                            } else if (keyPolicy.getSigningDelayInMinutes() == 0) {
+                                pluralStringResource(
+                                    R.plurals.nc_plural_hour,
+                                    keyPolicy.getSigningDelayInHours(),
+                                    keyPolicy.getSigningDelayInHours()
+                                )
+                            } else {
+                                "${
+                                    pluralStringResource(
+                                        R.plurals.nc_plural_hour,
+                                        keyPolicy.getSigningDelayInHours(),
+                                        keyPolicy.getSigningDelayInHours()
+                                    )
+                                } ${
+                                    pluralStringResource(
+                                        R.plurals.nc_plural_minute,
+                                        keyPolicy.getSigningDelayInMinutes(),
+                                        keyPolicy.getSigningDelayInMinutes()
+                                    )
+                                }"
+                            }
                         Text(
                             modifier = Modifier.weight(1.0f),
                             textAlign = TextAlign.End,
@@ -387,7 +436,16 @@ private fun CosigningPolicyContent(
                             .fillMaxWidth(),
                         onClick = onSaveChangeClicked,
                     ) {
-                        Text(text = stringResource(R.string.nc_continue_save_changes))
+                        if (!isEditable) {
+                            Text(
+                                text = stringResource(
+                                    R.string.nc_text_continue_signature_pending,
+                                    requiredSignature.requiredSignatures
+                                )
+                            )
+                        } else {
+                            Text(text = stringResource(R.string.nc_continue_save_changes))
+                        }
                     }
                     TextButton(
                         modifier = Modifier

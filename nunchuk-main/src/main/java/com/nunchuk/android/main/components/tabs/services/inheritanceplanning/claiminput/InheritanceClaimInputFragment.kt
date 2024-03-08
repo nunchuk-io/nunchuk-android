@@ -143,8 +143,8 @@ fun InheritanceClaimScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     InheritanceClaimInputContent(suggestions = state.suggestions,
-        magicalPhrase = state.magicalPhrase,
-        backupDownloads = state.backupPasswords,
+        magicalPhrase = state._magicalPhrase,
+        backupDownloads = state._backupPasswords,
         onMagicalPhraseTextChange = {
             viewModel.handleInputEvent(it)
         }, onSuggestClick = {

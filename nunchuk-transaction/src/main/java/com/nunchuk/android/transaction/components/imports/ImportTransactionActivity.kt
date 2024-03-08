@@ -98,7 +98,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         }
         setResult(Activity.RESULT_OK, intent)
         hideLoading()
-        NcToastManager.scheduleShowMessage(getString(R.string.nc_transaction_imported))
         finish()
     }
 

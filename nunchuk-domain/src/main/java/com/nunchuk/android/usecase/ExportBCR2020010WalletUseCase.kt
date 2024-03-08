@@ -17,21 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.domain.membership
+package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.repository.PremiumWalletRepository
-import com.nunchuk.android.usecase.UseCase
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetInheritanceClaimStateUserDataUseCase @Inject constructor(
+class ExportBCR2020010WalletUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val userWalletRepository: PremiumWalletRepository,
-) : UseCase<String, String>(
-    dispatcher
-) {
-    override suspend fun execute(parameters: String): String {
-        return userWalletRepository.generateInheritanceClaimStatusUserData(parameters)
+    private val nunchukNativeSdk: NunchukNativeSdk,
+) : UseCase<ExportBCR2020010WalletUseCase.Params, List<String>>(dispatcher) {
+
+    override suspend fun execute(parameters: Params): List<String> {
+        return nunchukNativeSdk.exportBCR2020010Wallet(
+            walletId = parameters.walletId,
+            density = parameters.density
+        )
     }
+
+    class Params(val walletId: String, val density: Int)
 }

@@ -13,8 +13,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -43,6 +45,7 @@ import com.nunchuk.android.main.membership.byzantine.formatAmount
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
 import com.nunchuk.android.nav.NunchukNavigator
@@ -62,9 +65,18 @@ class RecurringPaymentRequestReviewFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
+                var groupType by remember {
+                    mutableStateOf<GroupWalletType?>(null)
+                }
+                LaunchedEffect(Unit) {
+                    if (args.recurringPayment.allowCosigning == true) {
+                        groupType = viewModel.getGroupConfig()
+                    }
+                }
                 RecurringPaymentRequestReviewContent(
                     recurringPayment = args.recurringPayment,
                     pendingSignatures = args.pendingSignatures,
+                    groupType = groupType,
                     openDummyTransactionScreen = {
                         setFragmentResult(
                             AlertActionIntroFragment.REQUEST_KEY, bundleOf(
@@ -109,6 +121,7 @@ class RecurringPaymentRequestReviewFragment : Fragment() {
 private fun RecurringPaymentRequestReviewContent(
     recurringPayment: RecurringPayment,
     pendingSignatures: Int = 0,
+    groupType: GroupWalletType? = null,
     openDummyTransactionScreen: () -> Unit = {},
     deleteRecurringPayment: () -> Unit = {},
     openQRDetailScreen: (address: String) -> Unit,
@@ -171,6 +184,7 @@ private fun RecurringPaymentRequestReviewContent(
                 useAmount = recurringPayment.paymentType == RecurringPaymentType.FIXED_AMOUNT,
                 openQRDetailScreen = openQRDetailScreen,
                 bsms = recurringPayment.bsms,
+                groupWalletType = groupType,
             )
         }
 

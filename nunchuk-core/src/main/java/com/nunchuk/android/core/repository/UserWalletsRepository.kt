@@ -41,7 +41,6 @@ import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
-import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequestBody
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
@@ -69,7 +68,7 @@ import com.nunchuk.android.core.data.model.membership.TransactionServerDto
 import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
-import com.nunchuk.android.core.data.model.membership.toExternalModel
+import com.nunchuk.android.core.data.model.membership.toGroupKeyPolicy
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -281,7 +280,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             userWalletApiManager.groupWalletApi.getGroupServerKey(groupId, xfp, derivationPath)
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
-        return policy.toExternalModel()
+        return policy.toGroupKeyPolicy()
     }
 
     override suspend fun updateServerKeys(
@@ -291,7 +290,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         token: String,
         securityQuestionToken: String,
         body: String,
-    ): KeyPolicy {
+    ): String {
         val headers = mutableMapOf(VERIFY_TOKEN to token)
         if (securityQuestionToken.isNotEmpty()) {
             headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
@@ -307,12 +306,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             derivationPath = derivationPath,
             body = gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
         )
-        val serverPolicy =
-            response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
-        return KeyPolicy(
-            autoBroadcastTransaction = serverPolicy.autoBroadcastTransaction,
-            signingDelayInSeconds = serverPolicy.signingDelaySeconds
-        )
+        return response.data.dummyTransaction?.id.orEmpty()
     }
 
     override suspend fun updateGroupServerKeys(
@@ -777,7 +771,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun generateInheritanceClaimStatusUserData(magic: String): String {
         val body = InheritanceClaimStatusRequest.Body(
-            magic = magic
+            magic = magic,
         )
         val nonce = getNonce()
         val request = InheritanceClaimStatusRequest(
@@ -984,9 +978,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.dummyTransaction?.id.orEmpty()
     }
 
-    override suspend fun inheritanceClaimDownloadBackup(magic: String): List<BackupKey> {
+    override suspend fun inheritanceClaimDownloadBackup(magic: String, hashedBps: List<String>): List<BackupKey> {
         val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackups(
-            InheritanceClaimDownloadBackupRequest(magic = magic)
+            InheritanceClaimDownloadBackupRequest(magic = magic, hashedBps = hashedBps)
         )
         return response.data.keys?.map { it.toBackupKey() }.orEmpty()
     }
@@ -1022,7 +1016,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         securityQuestionToken: String,
         confirmCodeToken: String,
         confirmCodeNonce: String,
-    ) {
+        draft: Boolean,
+    ): String {
         var request = gson.fromJson(userData, SecurityQuestionsUpdateRequest::class.java)
         if (confirmCodeNonce.isNotEmpty()) {
             request = request.copy(nonce = confirmCodeNonce)
@@ -1033,7 +1028,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             securityQuestionToken = securityQuestionToken,
             confirmCodeToken = confirmCodeToken
         )
-        return userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request)
+        val response = userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request, draft)
+        if (response.isSuccess.not()) throw response.error
+        return response.data.dummyTransaction?.id.orEmpty()
     }
 
     override suspend fun getNonce(): String {
@@ -1084,7 +1081,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 questionId = it.questionId, answer = it.answer, change = it.change
             )
         }
-        val body = QuestionsAndAnswerRequestBody(questionsAndAnswerRequests, walletId = walletId)
+        val body = SecurityQuestionsUpdateRequest.Body(questionsAndAnswerRequests, walletId = walletId)
         val nonce = getNonce()
         val request = SecurityQuestionsUpdateRequest(
             nonce = nonce, body = body
@@ -2039,34 +2036,49 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return saveWalletToLib(wallet, groupAssistedKeys)
     }
 
-    override fun getAlerts(groupId: String): Flow<List<Alert>> {
+    override fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>> {
         return alertDao.getAlertsFlow(
-            groupId,
-            chatId = accountManager.getAccount().chatId,
+            groupId = groupId.orEmpty(),
+            walletId = walletId.orEmpty(),
             chain.value
-        )
-            .map { alerts ->
+        ).map { alerts ->
                 alerts.map { alert ->
                     alert.toAlert()
                 }
             }
     }
 
-    override suspend fun getAlertsRemote(groupId: String): List<Alert> {
-        return syncer.syncAlerts(groupId) ?: emptyList()
+    override suspend fun getAlertsRemote(groupId: String?, walletId: String?): List<Alert> {
+        return syncer.syncAlerts(groupId = groupId, walletId = walletId) ?: emptyList()
     }
 
-    override suspend fun markAlertAsRead(groupId: String, alertId: String) {
-        userWalletApiManager.groupWalletApi.markAlertAsRead(groupId, alertId)
+    override suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String) {
+        if (groupId.isNullOrEmpty().not()) {
+            userWalletApiManager.groupWalletApi.markAlertAsRead(groupId!!, alertId)
+        } else if (walletId.isNullOrEmpty().not()) {
+            userWalletApiManager.walletApi.markAlertAsRead(walletId!!, alertId)
+        }
     }
 
-    override suspend fun dismissAlert(groupId: String, alertId: String) {
-        val response = userWalletApiManager.groupWalletApi.dismissAlert(groupId, alertId)
+    override suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String) {
+        val response = if (groupId.isNullOrEmpty().not()) {
+            userWalletApiManager.groupWalletApi.dismissAlert(groupId!!, alertId)
+        } else if (walletId.isNullOrEmpty().not()) {
+            userWalletApiManager.walletApi.dismissAlert(walletId!!, alertId)
+        } else {
+            throw NullPointerException("groupId and walletId is null")
+        }
         if (response.isSuccess.not()) throw response.error
     }
 
-    override suspend fun getAlertTotal(groupId: String): Int {
-        val response = userWalletApiManager.groupWalletApi.getAlertTotal(groupId)
+    override suspend fun getAlertTotal(groupId: String?, walletId: String?): Int {
+        val response = if (groupId.isNullOrEmpty().not()) {
+            userWalletApiManager.groupWalletApi.getAlertTotal(groupId!!)
+        } else if (walletId.isNullOrEmpty().not()) {
+            userWalletApiManager.walletApi.getAlertTotal(walletId!!)
+        } else {
+            throw NullPointerException("groupId and walletId is null")
+        }
         return response.data.total ?: 0
     }
 
@@ -2121,10 +2133,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     EditGroupMemberRequest.Body::class.java
                 )
 
-                TargetAction.UPDATE_SECURITY_QUESTIONS.name -> gson.fromJson(
-                    userData,
-                    QuestionsAndAnswerRequestBody::class.java
-                )
+                TargetAction.UPDATE_SECURITY_QUESTIONS.name -> {
+                    val request = gson.fromJson(
+                        userData,
+                        SecurityQuestionsUpdateRequest::class.java
+                    )
+                    request.body
+                }
 
                 TargetAction.EMERGENCY_LOCKDOWN.name -> {
                     val request = gson.fromJson(

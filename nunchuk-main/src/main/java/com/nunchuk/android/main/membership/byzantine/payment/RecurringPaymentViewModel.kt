@@ -14,16 +14,19 @@ import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.key.toRecurringPaymentType
+import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.payment.PaymentCalculationMethod
 import com.nunchuk.android.model.payment.PaymentDestinationType
 import com.nunchuk.android.model.payment.PaymentFrequency
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.premier.CreateRecurringPaymentUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
@@ -31,6 +34,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -46,6 +51,7 @@ class RecurringPaymentViewModel @Inject constructor(
     private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
     private val getAddressWalletUseCase: GetAddressWalletUseCase,
     private val getWallets2UseCase: GetWallets2UseCase,
+    private val getGroupUseCase: GetGroupUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val groupId = savedStateHandle.get<String>(RecurringPaymentActivity.GROUP_ID).orEmpty()
@@ -334,5 +340,11 @@ class RecurringPaymentViewModel @Inject constructor(
                 openBsmsScreen = null,
             )
         }
+    }
+
+    suspend fun getGroupConfig(): GroupWalletType? {
+        return getGroupUseCase(GetGroupUseCase.Params(groupId))
+            .map { it.getOrNull() }
+            .firstOrNull()?.walletConfig?.toGroupWalletType()
     }
 }

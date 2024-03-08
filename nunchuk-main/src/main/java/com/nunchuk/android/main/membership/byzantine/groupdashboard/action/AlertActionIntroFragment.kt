@@ -208,6 +208,9 @@ private fun AlertActionIntroContent(
             id = R.string.nc_recurring_payment_cancelation_pending_desc,
             alert.payload.paymentName.orEmpty()
         )
+        AlertType.UPDATE_SECURITY_QUESTIONS -> stringResource(
+            id = R.string.nc_security_questions_answer_will_be_updated
+        )
 
         else -> alert.body
     }

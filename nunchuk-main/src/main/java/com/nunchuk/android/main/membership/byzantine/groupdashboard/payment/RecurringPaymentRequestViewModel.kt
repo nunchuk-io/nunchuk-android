@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.byzantine.ParseRecurringPaymentPayloadUseCase
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.payment.RecurringPayment
-import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionPayloadUseCase
+import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecurringPaymentRequestViewModel @Inject constructor(
-    private val getGroupDummyTransactionPayloadUseCase: GetGroupDummyTransactionPayloadUseCase,
+    private val getDummyTransactionPayloadUseCase: GetDummyTransactionPayloadUseCase,
     private val getGroupUseCase: GetGroupUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val parseRecurringPaymentPayloadUseCase: ParseRecurringPaymentPayloadUseCase,
@@ -35,8 +35,8 @@ class RecurringPaymentRequestViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getGroupDummyTransactionPayloadUseCase(
-                GetGroupDummyTransactionPayloadUseCase.Param(
+            getDummyTransactionPayloadUseCase(
+                GetDummyTransactionPayloadUseCase.Param(
                     groupId = args.groupId,
                     walletId = args.walletId,
                     transactionId = args.dummyTransactionId

@@ -13,14 +13,23 @@ import kotlinx.coroutines.flow.Flow
 interface AlertDao : BaseDao<AlertEntity> {
 
     companion object {
-        const val GET_ALERTS_STATEMENT = "SELECT * FROM $TABLE_ALERT WHERE group_id = :groupId AND chat_id = :chatId AND chain = :chain"
+        const val GET_ALERTS_STATEMENT =
+            "SELECT * FROM $TABLE_ALERT WHERE (group_id = :groupId AND wallet_id = :walletId) AND chain = :chain"
     }
 
     @Query(GET_ALERTS_STATEMENT)
-    fun getAlertsFlow(groupId: String, chatId: String, chain: Chain): Flow<List<AlertEntity>>
+    fun getAlertsFlow(
+        groupId: String,
+        walletId: String,
+        chain: Chain,
+    ): Flow<List<AlertEntity>>
 
     @Query(GET_ALERTS_STATEMENT)
-    fun getAlerts(groupId: String, chatId: String, chain: Chain): List<AlertEntity>
+    fun getAlerts(
+        groupId: String,
+        walletId: String,
+        chain: Chain
+    ): List<AlertEntity>
 
     @Transaction
     suspend fun updateData(

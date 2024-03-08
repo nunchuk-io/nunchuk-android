@@ -22,6 +22,7 @@ package com.nunchuk.android.core.domain.membership
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.SecurityQuestion
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,8 +31,15 @@ import javax.inject.Inject
 class InheritanceClaimDownloadBackupUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletsRepository: PremiumWalletRepository,
-) : UseCase<String, List<BackupKey>>(dispatcher) {
-    override suspend fun execute(parameters: String): List<BackupKey> {
-        return userWalletsRepository.inheritanceClaimDownloadBackup(parameters)
+    private val nunchukNativeSdk: NunchukNativeSdk
+) : UseCase<InheritanceClaimDownloadBackupUseCase.Param, List<BackupKey>>(dispatcher) {
+    override suspend fun execute(parameters: Param): List<BackupKey> {
+        val hashedBps = arrayListOf<String>()
+        parameters.backupPasswords.forEach {
+            hashedBps.add(nunchukNativeSdk.hashSHA256(nunchukNativeSdk.hashSHA256(it)))
+        }
+        return userWalletsRepository.inheritanceClaimDownloadBackup(magic = parameters.magic, hashedBps = hashedBps)
     }
+
+    class Param(val magic: String, val backupPasswords: List<String>)
 }

@@ -48,7 +48,8 @@ class CosigningPolicyActivity : BaseActivity<ActivityNavigationBinding>() {
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.cosigning_policy_navigation)
-        if (intent.hasExtra("group_id")) {
+        val groupId = intent.getStringExtra("group_id")
+        if (!groupId.isNullOrEmpty()) {
             graph.setStartDestination(R.id.cosigningGroupPolicyFragment)
         } else {
             graph.setStartDestination(R.id.cosigningPolicyFragment)

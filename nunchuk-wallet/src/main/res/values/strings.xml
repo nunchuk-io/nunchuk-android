@@ -90,4 +90,5 @@
     <string name="nc_alias_removed">Alias removed</string>
     <string name="nc_are_you_sure_you_want_to_remove_this_alias">Are you sure you want to remove this alias?</string>
     <string name="nc_change_alias">Change alias</string>
+    <string name="nc_platform_key_updated_as_below">The platform key\'s co-signing policies will be updated as below.</string>
 </resources>

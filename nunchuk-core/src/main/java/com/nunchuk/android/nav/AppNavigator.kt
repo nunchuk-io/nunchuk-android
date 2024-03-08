@@ -103,7 +103,7 @@ interface AppNavigator {
     )
 
     fun openGroupDashboardScreen(
-        groupId: String,
+        groupId: String? = null,
         walletId: String? = null,
         message: String? = null,
         activityContext: Context

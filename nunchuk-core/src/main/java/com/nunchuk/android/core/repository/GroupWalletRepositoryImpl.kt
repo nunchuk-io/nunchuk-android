@@ -52,7 +52,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
     private val byzantineSyncer: ByzantineSyncer,
     applicationScope: CoroutineScope,
-    private val assistedWalletDao: AssistedWalletDao
+    private val assistedWalletDao: AssistedWalletDao,
 ) : GroupWalletRepository {
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
@@ -259,13 +259,23 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         xfp: String,
         draft: Boolean,
     ): DummyTransactionPayload {
-        val response = userWalletApiManager.groupWalletApi.healthCheck(
-            groupId = groupId,
-            walletId = walletId,
-            xfp = xfp,
-            draft = draft,
-            request = HealthCheckRequest(nonce = getNonce())
-        )
+        val response =
+            if (groupId.isEmpty()) {
+                userWalletApiManager.walletApi.healthCheck(
+                    walletId = walletId,
+                    xfp = xfp,
+                    draft = draft,
+                    request = HealthCheckRequest(nonce = getNonce())
+                )
+            } else {
+                userWalletApiManager.groupWalletApi.healthCheck(
+                    groupId = groupId,
+                    walletId = walletId,
+                    xfp = xfp,
+                    draft = draft,
+                    request = HealthCheckRequest(nonce = getNonce())
+                )
+            }
         return response.data.dummyTransaction?.toDomainModel()
             ?: throw NullPointerException("dummyTransaction null")
     }

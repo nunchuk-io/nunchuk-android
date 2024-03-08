@@ -77,7 +77,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
         val stateValue = _state.value
         if (stateValue.magicalPhrase.isBlank()) return@launch
         _event.emit(InheritanceClaimInputEvent.Loading(true))
-        val result = inheritanceClaimDownloadBackupUseCase(stateValue.magicalPhrase)
+        val result = inheritanceClaimDownloadBackupUseCase(InheritanceClaimDownloadBackupUseCase.Param(stateValue.magicalPhrase, stateValue.backupPasswords))
         _event.emit(InheritanceClaimInputEvent.Loading(false))
         if (result.isSuccess) {
             val backupKeys = result.getOrThrow()
@@ -126,6 +126,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
             _event.emit(InheritanceClaimInputEvent.Loading(true))
             val signers = masterSigners.map { masterSignerMapper(it) }
             val derivationPaths = backupKeys.map { it.derivationPath }
+
             val result = getInheritanceClaimStateUseCase(
                 GetInheritanceClaimStateUseCase.Param(
                     signerModels = signers,
@@ -149,21 +150,21 @@ class InheritanceClaimInputViewModel @Inject constructor(
         }
 
     fun updateBackupPassword(password: String, index: Int) {
-        val updatedPasswords = _state.value.backupPasswords.toMutableList()
+        val updatedPasswords = _state.value._backupPasswords.toMutableList()
         updatedPasswords[index] = password
-        _state.update { it.copy(backupPasswords = updatedPasswords) }
+        _state.update { it.copy(_backupPasswords = updatedPasswords) }
     }
 
     fun handleInputEvent(mnemonic: String) {
-        val withoutSpace = mnemonic.trim()
+        val withoutSpace = mnemonic
         if (withoutSpace != _state.value.magicalPhrase) {
-            _state.update { it.copy(magicalPhrase = withoutSpace) }
+            _state.update { it.copy(_magicalPhrase = withoutSpace) }
             val word = withoutSpace.lastWord()
             if (word.isNotEmpty()) {
                 filter(word)
             }
         } else {
-            _state.update { it.copy(magicalPhrase = mnemonic) }
+            _state.update { it.copy(_magicalPhrase = mnemonic) }
         }
     }
 
@@ -176,7 +177,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
     fun handleSelectWord(word: String) {
         _state.update { it.copy(suggestions = bip39Words) }
         val updatedMnemonic = _state.value.magicalPhrase.replaceLastWord(word)
-        _state.update { it.copy(magicalPhrase = "$updatedMnemonic ") }
+        _state.update { it.copy(_magicalPhrase = "$updatedMnemonic ") }
     }
 
     companion object {

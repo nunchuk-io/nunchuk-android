@@ -3,16 +3,22 @@ package com.nunchuk.android.main.membership.byzantine.groupdashboard.payment
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.main.membership.model.toGroupWalletType
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class RecurringPaymentRequestReviewViewModel @Inject constructor(
     private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
+    private val getGroupUseCase: GetGroupUseCase,
     saveStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = RecurringPaymentRequestReviewFragmentArgs.fromSavedStateHandle(saveStateHandle)
@@ -32,6 +38,12 @@ class RecurringPaymentRequestReviewViewModel @Inject constructor(
                 _event.emit(RecurringPaymentRequestReviewEvent.ShowError(it.message.orEmpty()))
             }
         }
+    }
+
+    suspend fun getGroupConfig(): GroupWalletType? {
+        return getGroupUseCase(GetGroupUseCase.Params(args.groupId))
+            .map { it.getOrNull() }
+            .firstOrNull()?.walletConfig?.toGroupWalletType()
     }
 }
 

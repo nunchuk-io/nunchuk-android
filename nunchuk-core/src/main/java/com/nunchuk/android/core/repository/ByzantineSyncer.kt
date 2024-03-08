@@ -41,14 +41,20 @@ internal class ByzantineSyncer @Inject constructor(
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
 
     suspend fun syncAlerts(
-        groupId: String
+        groupId: String?,
+        walletId: String?,
     ): List<Alert>? {
         val remoteList = arrayListOf<Alert>()
         var index = 0
         runCatching {
             while (true) {
-                val response =
-                    userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
+                val response = if (groupId.isNullOrEmpty().not()) {
+                    userWalletApiManager.groupWalletApi.getAlerts(groupId!!, offset = index)
+                } else if (walletId.isNullOrEmpty().not()) {
+                    userWalletApiManager.walletApi.getAlerts(walletId!!, offset = index)
+                } else {
+                    return null
+                }
                 if (response.isSuccess.not()) return null
                 val alertList = response.data.alerts.orEmpty().map { it.toAlert() }
                 remoteList.addAll(alertList)
@@ -61,7 +67,8 @@ internal class ByzantineSyncer @Inject constructor(
 
         val updateOrInsertList = mutableListOf<AlertEntity>()
 
-        val localMap = alertDao.getAlerts(groupId, getChatId(), chain.value).associateByTo(mutableMapOf()) { it.id }
+        val localMap = alertDao.getAlerts(groupId = groupId.orEmpty(), walletId = walletId.orEmpty(), chain.value)
+            .associateByTo(mutableMapOf()) { it.id }
 
         remoteList.forEach { remote ->
             val local = localMap[remote.id]
@@ -77,7 +84,10 @@ internal class ByzantineSyncer @Inject constructor(
                 )
                 localMap.remove(remote.id)
             } else {
-                updateOrInsertList += remote.toAlertEntity(groupId)
+                updateOrInsertList += remote.toAlertEntity(
+                    groupId = groupId.orEmpty(),
+                    walletId = walletId.orEmpty()
+                )
             }
         }
 
@@ -130,9 +140,13 @@ internal class ByzantineSyncer @Inject constructor(
 
     suspend fun syncKeyHealthStatus(groupId: String, walletId: String): List<KeyHealthStatus>? {
         runCatching {
-            val localMap = keyHealthStatusDao.getKeys(groupId, walletId, getChatId(), chain.value).associateByTo(mutableMapOf()) { it.xfp }
-            val response =
+            val localMap = keyHealthStatusDao.getKeys(groupId, walletId, getChatId(), chain.value)
+                .associateByTo(mutableMapOf()) { it.xfp }
+            val response = if (groupId.isEmpty()) {
+                userWalletApiManager.walletApi.getWalletHealthStatus(walletId)
+            } else {
                 userWalletApiManager.groupWalletApi.getWalletHealthStatus(groupId, walletId)
+            }
             val remoteList = arrayListOf<KeyHealthStatusDto>()
             remoteList.addAll(response.data.statuses)
             val updateOrInsertList = mutableListOf<KeyHealthStatusEntity>()
@@ -162,7 +176,8 @@ internal class ByzantineSyncer @Inject constructor(
     }
 
     private fun Alert.toAlertEntity(
-        groupId: String
+        groupId: String,
+        walletId: String,
     ): AlertEntity {
         return AlertEntity(
             id = id,
@@ -175,13 +190,14 @@ internal class ByzantineSyncer @Inject constructor(
             type = type.name,
             chain = chain.value,
             payload = gson.toJson(payload),
-            groupId = groupId
+            groupId = groupId,
+            walletId = walletId
         )
     }
 
     private fun KeyHealthStatusDto.toKeyHealthStatusEntity(
         groupId: String,
-        walletId: String
+        walletId: String,
     ): KeyHealthStatusEntity {
         return KeyHealthStatusEntity(
             xfp = xfp,

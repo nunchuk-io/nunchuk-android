@@ -11,7 +11,8 @@
 
         <argument
             android:name="group_id"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true"/>
 
         <argument
             android:name="wallet_id"
@@ -244,6 +245,9 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="my_role"
+            app:argType="com.nunchuk.android.model.byzantine.AssistedWalletRole" />
     </fragment>
 
     <include app:graph="@navigation/inheritance_planning_success_navigation" />

@@ -103,8 +103,8 @@ class DynamicQRCodeActivity : AppCompatActivity() {
     }
 
     companion object {
-        fun buildIntent(activityContext: Context, walletId: String) =
-            DynamicQRCodeArgs(walletId).buildIntent(
+        fun buildIntent(activityContext: Context, walletId: String, qrCodeType: Int) =
+            DynamicQRCodeArgs(walletId = walletId, qrCodeType = qrCodeType).buildIntent(
                 activityContext
             )
     }

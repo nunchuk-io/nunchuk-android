@@ -76,7 +76,7 @@ interface PremiumWalletRepository {
         token: String,
         securityQuestionToken: String,
         body: String,
-    ): KeyPolicy
+    ): String
 
     suspend fun updateGroupServerKeys(
         signatures: Map<String, String>,
@@ -159,8 +159,9 @@ interface PremiumWalletRepository {
         userData: String,
         securityQuestionToken: String,
         confirmCodeToken: String,
-        confirmCodeNonce: String
-    )
+        confirmCodeNonce: String,
+        draft: Boolean
+    ): String
 
     suspend fun getNonce(): String
     suspend fun generateSecurityQuestionUserData(
@@ -216,9 +217,7 @@ interface PremiumWalletRepository {
         groupId: String?
     ): String
 
-    suspend fun generateInheritanceClaimStatusUserData(
-        magic: String
-    ): String
+    suspend fun generateInheritanceClaimStatusUserData(magic: String): String
 
     suspend fun generateInheritanceClaimCreateTransactionUserData(
         magic: String,
@@ -285,7 +284,7 @@ interface PremiumWalletRepository {
         groupId: String
     ): String
 
-    suspend fun inheritanceClaimDownloadBackup(magic: String): List<BackupKey>
+    suspend fun inheritanceClaimDownloadBackup(magic: String, hashedBps: List<String>): List<BackupKey>
 
     suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
 
@@ -379,11 +378,11 @@ interface PremiumWalletRepository {
         groupAssistedKeys: MutableSet<String> = mutableSetOf()
     ): Boolean
 
-    fun getAlerts(groupId: String): Flow<List<Alert>>
-    suspend fun getAlertsRemote(groupId: String): List<Alert>
-    suspend fun markAlertAsRead(groupId: String, alertId: String)
-    suspend fun dismissAlert(groupId: String, alertId: String)
-    suspend fun getAlertTotal(groupId: String): Int
+    fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>>
+    suspend fun getAlertsRemote(groupId: String?, walletId: String?): List<Alert>
+    suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String)
+    suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String)
+    suspend fun getAlertTotal(groupId: String? = null, walletId: String? = null): Int
     suspend fun createOrUpdateGroupChat(roomId: String, groupId: String, historyPeriodId: String?): GroupChat
     suspend fun getGroupChatByGroupId(groupId: String): GroupChat
     suspend fun deleteGroupChat(groupId: String)

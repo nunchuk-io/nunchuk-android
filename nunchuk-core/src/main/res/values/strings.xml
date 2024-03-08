@@ -519,6 +519,7 @@
     <string name="nc_check_back_in">Please check back in [B]%s[/B]</string>
     <string name="nc_update_buffer_period">Update buffer period</string>
     <string name="nc_recommended">Recommended</string>
+    <string name="nc_recommended_for_multisig">Recommended for multisig</string>
     <string name="nc_do_not_need_buffer_period">I don’t need a buffer period</string>
     <string name="nc_set_up_buffer_period_desc">A buffer period is extra time that you can add after the claimant has provided the secrets and before the inheritance can be claimed. The buffer period helps you prevent unauthorized claims.\n\nAn email notification will be sent when the buffer period begins.</string>
     <string name="nc_add_coldcard_from_file_hint">For extra security, you can disable NFC on COLDCARD between uses.</string>
@@ -661,6 +662,10 @@
     <string name="nc_bip329">BIP329</string>
     <string name="nc_select_import_format">Select the import format</string>
     <string name="nc_select_export_format">Select the export format</string>
+    <string name="nc_select_qr_type">Select QR type</string>
+    <string name="nc_bc_ur2_legacy">BC-UR2 (legacy)</string>
+    <string name="nc_bc_ur2_legacy_desc">For Jade, Passport, Keystone and SeedSigner</string>
+    <string name="nc_bc_ur2">BC-UR2</string>
     <string name="nc_no_filter">No filter</string>
     <string name="nc_select_import_format_desc">The import might overwrite existing labels. Are you sure you want to continue?</string>
     <string name="nc_select_export_format_desc">Please note that certain Nunchuk labels might not be supported by BIP329. Are you sure you want to continue?</string>
@@ -678,6 +683,8 @@
     <string name="nc_create_inheritance_plan_group_change_by">%1$s is requesting to create the inheritance plan for %2$s:</string>
     <string name="nc_update_inheritance_plan_group_change_by">%1$s is requesting to make the following changes to the inheritance plan for %2$s:</string>
     <string name="nc_cancel_inheritance_plan_group_change_by">%1$s is requesting to cancel the inheritance plan for %2$s.</string>
+    <string name="nc_cancel_inheritance_plan_normal_assisted">The inheritance plan for %1$s will be canceled.</string>
+    <string name="nc_activation_date_inheritance_plan_normal_assisted">The Activation Date for the inheritance plan for %1$s will change from %2$s to %3$s.</string>
     <string name="nc_no_internet_connection_try_again_later">No Internet connection. Please try again later.</string>
     <string name="nc_acct_x">Acct %1$s</string>
     <string name="nc_withdrawal_in_progress">Withdrawal in progress...</string>

@@ -56,7 +56,7 @@
     <string name="nc_transaction_imported_failed">Import failed :</string>
     <string name="nc_export_transaction_file">Export transaction via file</string>
     <string name="nc_input_fee_invalid_error">Rate cannot be lower than the minimum fee rate</string>
-    <string name="nc_wait_to_estimate_fee">Please wait to estimate fee</string>
+    <string name="nc_wait_to_estimate_fee">Please wait for fee estimate to be updated</string>
     <string name="nc_address_detected_please_enter_amount">Address detected. Please enter a send amount.</string>
     <string name="nc_server_key_signed">The platform key has signed this transaction</string>
     <string name="nc_transaction_has_succesfully_broadcast">The transaction has successfully been broadcast</string>

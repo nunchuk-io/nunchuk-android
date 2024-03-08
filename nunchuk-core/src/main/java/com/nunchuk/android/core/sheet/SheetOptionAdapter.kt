@@ -19,12 +19,19 @@
 
 package com.nunchuk.android.core.sheet
 
+import android.graphics.Color
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.TextUtils
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.databinding.ItemSheetOptionBinding
+import com.nunchuk.android.core.util.getString
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 class SheetOptionAdapter(
@@ -67,6 +74,22 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
         } ?: run {
             binding.tvLabel.setText(option.stringId)
         }
+
+        if (option.subStringId != 0) {
+            val line1 = binding.tvLabel.text
+            val line2 = "\n${getString(option.subStringId)}"
+
+            val spannable1 = SpannableString(line1)
+            spannable1.setSpan(AbsoluteSizeSpan(16, true), 0, line1.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+            spannable1.setSpan(ForegroundColorSpan(Color.parseColor("#000000")), 0, line1.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+
+            val spannable2 = SpannableString(line2)
+            spannable2.setSpan(AbsoluteSizeSpan(12, true), 0, line2.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+            spannable2.setSpan(ForegroundColorSpan(Color.parseColor("#595959")), 0, line2.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+
+            binding.tvLabel.text = TextUtils.concat(spannable1, spannable2)
+        }
+
         if (option.isDeleted) {
             binding.tvLabel.setTextColor(
                 ContextCompat.getColor(

@@ -22,18 +22,22 @@ package com.nunchuk.android.core.qr
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.util.ExportWalletQRCodeType
 
-data class DynamicQRCodeArgs(val walletId: String) : ActivityArgs {
+data class DynamicQRCodeArgs(val walletId: String, val qrCodeType: Int) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, DynamicQRCodeActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
+        putExtra(EXTRA_QR_CODE_TYPE, qrCodeType)
     }
 
     companion object {
         const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        const val EXTRA_QR_CODE_TYPE = "EXTRA_QR_CODE_TYPE"
 
         fun deserializeFrom(intent: Intent): DynamicQRCodeArgs = DynamicQRCodeArgs(
-            intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
+            walletId = intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
+            qrCodeType = intent.extras?.getInt(EXTRA_QR_CODE_TYPE) ?: ExportWalletQRCodeType.BC_UR2_LEGACY,
         )
     }
 }

@@ -189,8 +189,9 @@ internal interface UserWalletsApi {
 
     @PUT("/v1.1/user-wallets/security-questions/update")
     suspend fun securityQuestionsUpdate(
-        @HeaderMap headers: Map<String, String>, @Body payload: SecurityQuestionsUpdateRequest
-    )
+        @HeaderMap headers: Map<String, String>, @Body payload: SecurityQuestionsUpdateRequest,
+        @Query("draft") draft: Boolean = false
+    ): Data<UpdateSecurityQuestionResponse>
 
     @GET("/v1.1/user-wallets/nonce")
     suspend fun getNonce(): Data<GetNonceResponse>
@@ -395,4 +396,66 @@ internal interface UserWalletsApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: CreateOrUpdateServerTransactionRequest
     ): Data<TransactionResponse>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/alerts")
+    suspend fun getAlerts(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT,
+    ): Data<GroupAlertResponse>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/alerts/{alert_id}/mark-as-read")
+    suspend fun markAlertAsRead(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("alert_id") alertId: String,
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/alerts/{alert_id}/dismiss")
+    suspend fun dismissAlert(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("alert_id") alertId: String,
+    ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/alerts/total")
+    suspend fun getAlertTotal(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<TotalAlertResponse>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/health")
+    suspend fun getWalletHealthStatus(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<WalletHealthStatusResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/health/{xfp}/health-check")
+    suspend fun healthCheck(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+        @Query("draft") draft: Boolean,
+        @Body request: HealthCheckRequest,
+    ): Data<DummyTransactionResponse>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun getDummyTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<DummyTransactionResponse>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun updateDummyTransaction(
+        @HeaderMap headers: Map<String, String>,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<DummyTransactionResponse>
+
+    @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
+    suspend fun deleteDummyTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}/finalize")
+    suspend fun finalizeDummyTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<DummyTransactionResponse>
 }

@@ -37,7 +37,19 @@ sealed class InheritanceClaimInputEvent {
 }
 
 data class InheritanceClaimInputState(
-    val magicalPhrase: String = "",
-    val backupPasswords: List<String> = arrayListOf("",""),
+    var _magicalPhrase: String = "",
+    var _backupPasswords: List<String> = arrayListOf("",""),
     val suggestions: List<String> = emptyList()
-)
+) {
+    var magicalPhrase: String
+        get() = _magicalPhrase.trim()
+        set(value) {
+            _magicalPhrase = value
+        }
+
+    var backupPasswords: List<String>
+        get() = _backupPasswords.filter { it.isNotBlank() }.map { it.trim() }
+        set(value) {
+            _backupPasswords = value
+        }
+}

@@ -88,7 +88,7 @@ class DummyTransactionIntroFragment : Fragment() {
                     pendingSignature = uiState.pendingSignature,
                     dummyTransactionType = uiState.dummyTransactionType,
                     onContinueClicked = {
-                        if (isGroup && !args.dummyTransactionId.isNullOrEmpty()) {
+                        if (!args.dummyTransactionId.isNullOrEmpty()) {
                             activityViewModel.finalizeDummyTransaction(false)
                         } else {
                             findNavController().navigate(
@@ -118,7 +118,6 @@ class DummyTransactionIntroFragment : Fragment() {
                     })
                     requireActivity().finish()
                 } else {
-                    requireActivity().setResult(Activity.RESULT_OK)
                     findNavController().navigate(
                         DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
                     )

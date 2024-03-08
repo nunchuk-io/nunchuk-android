@@ -95,7 +95,7 @@ internal fun GroupKeyPolicy.toDto(): KeyPoliciesDto = if (isApplyAll) {
         })
 }
 
-internal fun KeyPoliciesDto.toExternalModel() : GroupKeyPolicy {
+internal fun KeyPoliciesDto.toGroupKeyPolicy() : GroupKeyPolicy {
    return if (applySamePendingLimit == true) {
         val spendingLimit = spendingLimit?.let {
             SpendingPolicy(limit = it.limit,
@@ -122,4 +122,17 @@ internal fun KeyPoliciesDto.toExternalModel() : GroupKeyPolicy {
             isApplyAll = false
         )
     }
+}
+
+internal fun KeyPoliciesDto.toKeyPolicy() : KeyPolicy {
+    val spendingLimit = spendingLimit?.let {
+        SpendingPolicy(limit = it.limit,
+            currencyUnit = it.currency,
+            timeUnit = runCatching { SpendingTimeUnit.valueOf(it.interval) }.getOrElse { SpendingTimeUnit.DAILY })
+    }
+    return KeyPolicy(
+        autoBroadcastTransaction = autoBroadcastTransaction,
+        signingDelayInSeconds = signingDelaySeconds,
+        spendingPolicy = spendingLimit
+    )
 }

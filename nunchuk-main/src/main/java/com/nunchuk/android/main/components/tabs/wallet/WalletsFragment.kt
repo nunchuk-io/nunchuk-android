@@ -497,6 +497,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             isLocked = it.group?.isLocked.orFalse(),
                             primaryOwnerMember = it.primaryOwnerMember,
                             role = it.role,
+                            status = it.keyStatus,
+                            signers = it.signers,
                             onAccept = {
                                 it.group?.id?.let {
                                     walletsViewModel.acceptInviteMember(it)
@@ -510,9 +512,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 }
                             },
                             onGroupClick = {
-                                if (it.group?.id == null || it.role.toRole.isKeyHolderLimited && it.badgeCount == 0) return@PendingWalletView
+                                if (it.group?.id != null && it.role.toRole.isKeyHolderLimited && it.badgeCount == 0) return@PendingWalletView
                                 navigator.openGroupDashboardScreen(
-                                    groupId = it.group.id,
+                                    groupId = it.group?.id,
                                     walletId = it.wallet?.wallet?.id,
                                     activityContext = requireActivity()
                                 )
@@ -598,5 +600,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         super.onResume()
         walletsViewModel.retrieveData()
         walletsViewModel.updateBadge()
+        walletsViewModel.getKeyHealthStatus()
     }
 }

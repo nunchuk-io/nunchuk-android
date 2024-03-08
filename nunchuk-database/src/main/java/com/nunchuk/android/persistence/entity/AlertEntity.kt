@@ -39,6 +39,9 @@ data class AlertEntity(
     @ColumnInfo(name = "group_id")
     val groupId: String = "",
 
+    @ColumnInfo(name = "wallet_id", defaultValue = "")
+    val walletId: String = "",
+
     @ColumnInfo(name = "chain", defaultValue = "MAIN")
     val chain: Chain = Chain.MAIN,
 )

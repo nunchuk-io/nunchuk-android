@@ -25,7 +25,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
+import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.HIGH_DENSITY
+import com.nunchuk.android.usecase.ExportBCR2020010WalletUseCase
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.utils.onException
@@ -39,11 +41,13 @@ import javax.inject.Inject
 class DynamicQRCodeViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val exportKeystoneWalletUseCase: ExportKeystoneWalletUseCase,
+    private val exportBCR2020010WalletUseCase: ExportBCR2020010WalletUseCase,
     private val getQrDensitySettingUseCase: GetQrDensitySettingUseCase,
     private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val walletId = savedStateHandle.get<String>(DynamicQRCodeArgs.EXTRA_WALLET_ID).orEmpty()
+    val type = savedStateHandle.get<Int>(DynamicQRCodeArgs.EXTRA_QR_CODE_TYPE) ?: ExportWalletQRCodeType.BC_UR2_LEGACY
 
     private val _state = MutableStateFlow(DynamicQRCodeState())
     val state = _state.asStateFlow()
@@ -69,15 +73,25 @@ class DynamicQRCodeViewModel @Inject constructor(
     }
 
     private fun handleExportWalletQR(density: Int) {
-        viewModelScope.launch {
-            exportKeystoneWalletUseCase.execute(walletId, density)
-                .map { list -> list.mapNotNull { it.convertToQRCode() } }
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect { bitmaps ->
-                    _state.update { it.copy(bitmaps = bitmaps) }
-                }
+        if (type == ExportWalletQRCodeType.BC_UR2_LEGACY) {
+            viewModelScope.launch {
+                exportKeystoneWalletUseCase.execute(walletId, density)
+                    .map { list -> list.mapNotNull { it.convertToQRCode() } }
+                    .flowOn(Dispatchers.IO)
+                    .onException { }
+                    .flowOn(Dispatchers.Main)
+                    .collect { bitmaps ->
+                        _state.update { it.copy(bitmaps = bitmaps) }
+                    }
+            }
+        } else if (type == ExportWalletQRCodeType.BC_UR2) {
+            viewModelScope.launch {
+                exportBCR2020010WalletUseCase(ExportBCR2020010WalletUseCase.Params(walletId, density))
+                    .map { list -> list.mapNotNull { it.convertToQRCode() } }
+                    .onSuccess { bitmaps ->
+                        _state.update { it.copy(bitmaps = bitmaps) }
+                    }
+            }
         }
     }
 }
