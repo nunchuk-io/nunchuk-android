@@ -71,7 +71,7 @@ fun TextView.makeTextLink(fullText: String, vararg texts: ClickAbleText) {
                     text.onClick.invoke()
                 }
             }
-            startIndexOfLink = this.text.toString().indexOf(text.content, startIndexOfLink + 1)
+            startIndexOfLink = fullText.indexOf(text.content, startIndexOfLink + 1)
             spannableString.setSpan(
                 clickableSpan,
                 startIndexOfLink,

@@ -316,7 +316,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.ivSendBtc.isClickable = wallet.balance.value > 0
 
         binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
-        if (state.isAssistedWallet) {
+        if (state.walletExtended.wallet.needBackup) {
+            binding.container.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.nc_beeswax_dark))
+            requireActivity().window.statusBarColor =
+                ContextCompat.getColor(requireContext(), R.color.nc_beeswax_dark)
+        } else if (state.isAssistedWallet) {
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
@@ -326,16 +330,19 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         updateFabIcon(state.hideWalletDetailLocal)
         binding.ivViewCoin.isEnabled = state.isHasCoin
         binding.ivViewCoin.alpha = if (state.isHasCoin) 1.0f else 0.7f
+        if (state.walletExtended.wallet.needBackup) {
+            binding.tvWalletWarning.isVisible = true
+            handleNeedBackupWallet()
+        }
     }
 
     private fun setupViews() {
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         binding.tvWalletWarning.isVisible =
-            viewModel.isInactiveAssistedWallet() || viewModel.isNeedBackup()
+            viewModel.isInactiveAssistedWallet()
         if (binding.tvWalletWarning.isVisible) {
-            if (viewModel.isNeedBackup()) handleNeedBackupWallet()
-            else handleInactiveAssistedWallet()
+            handleInactiveAssistedWallet()
         }
         binding.transactionList.isNestedScrollingEnabled = false
         binding.transactionList.setHasFixedSize(false)
