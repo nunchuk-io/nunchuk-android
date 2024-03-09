@@ -21,6 +21,8 @@ package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.data.api.BannerApi
 import com.nunchuk.android.core.data.model.banner.SubmitEmailViewAssistedWalletRequest
+import com.nunchuk.android.core.data.model.onboarding.SendOnboardNoAdvisorRequest
+import com.nunchuk.android.model.Country
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
 import com.nunchuk.android.model.banner.BannerPageItem
@@ -64,5 +66,24 @@ internal class BannerRepositoryImpl @Inject constructor(
             title = banner.content?.title.orEmpty(),
             url = banner.content?.imageUrl.orEmpty()
         )
+    }
+
+    override suspend fun getCountries(): List<Country> {
+        val response = api.getOnboardingCountries()
+        return response.data.countries.map {
+            Country(
+                name = it.name,
+                code = it.code
+            )
+        }
+    }
+
+    override suspend fun sendOnboardingNoAdvisor(email: String, countryCode: String, note: String?) {
+        val response = api.sendOnboardingNoAdvisor(SendOnboardNoAdvisorRequest(
+            email = email,
+            countryCode = countryCode,
+            note = note
+        ))
+        if (response.isSuccess.not()) throw response.error
     }
 }

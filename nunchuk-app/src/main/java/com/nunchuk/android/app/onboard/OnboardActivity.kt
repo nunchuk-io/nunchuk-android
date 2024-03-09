@@ -5,6 +5,10 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAdvisorInput
+import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAdvisorIntro
+import com.nunchuk.android.app.onboard.advisor.onboardAdvisorInput
+import com.nunchuk.android.app.onboard.advisor.onboardAdvisorIntro
 import com.nunchuk.android.app.onboard.intro.onboardIntro
 import com.nunchuk.android.app.onboard.intro.onboardIntroRoute
 import com.nunchuk.android.app.onboard.unassisted.navigateToUnassistedIntro
@@ -44,6 +48,14 @@ class OnboardActivity : BaseComposeActivity() {
                                     navigator.openMainScreen(this@OnboardActivity)
                                 }
                             )
+                            onboardAdvisorIntro(onSkip = {
+                                navigator.openMainScreen(this@OnboardActivity)
+                            }, onSignIn = {
+                                navigator.openSignInScreen(this@OnboardActivity)
+                            }, navigateToOnboardAdvisorInput = {
+                                navController.navigateToOnboardAdvisorInput()
+                            })
+                            onboardAdvisorInput()
                         }
                     }
                 }

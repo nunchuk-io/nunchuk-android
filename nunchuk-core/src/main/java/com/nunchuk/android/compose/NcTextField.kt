@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,6 +60,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 
@@ -67,6 +69,7 @@ import com.nunchuk.android.core.R
 fun NcTextField(
     modifier: Modifier = Modifier,
     title: String,
+    titleHint: String = "",
     titleStyle: TextStyle = NunchukTheme.typography.titleSmall,
     value: String,
     rightContent: @Composable (() -> Unit)? = null,
@@ -88,6 +91,7 @@ fun NcTextField(
     maxLength: Int = Int.MAX_VALUE,
     enableMaxLength: Boolean = false,
     colors: TextFieldColors = TextFieldDefaults.colors(),
+    inputBoxHeight: Dp = Dp.Unspecified,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
     textStyle: TextStyle = NunchukTheme.typography.body,
@@ -103,11 +107,26 @@ fun NcTextField(
     Column(modifier = modifier) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             if (title.isNotEmpty()) {
-                Text(
-                    modifier = Modifier.padding(bottom = 4.dp),
-                    text = title,
-                    style = titleStyle
-                )
+                if (titleHint.isNotEmpty()) {
+                    Row {
+                        Text(
+                            modifier = Modifier.padding(bottom = 4.dp),
+                            text = title,
+                            style = titleStyle
+                        )
+                        Text(
+                            modifier = Modifier.padding(bottom = 4.dp, start = 4.dp),
+                            text = titleHint,
+                            style = NunchukTheme.typography.bodySmall.copy(color = colorResource(id = R.color.nc_grey_dark_color))
+                        )
+                    }
+                } else {
+                    Text(
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        text = title,
+                        style = titleStyle
+                    )
+                }
             }
             if (enableMaxLength) {
                 Text(
@@ -128,6 +147,7 @@ fun NcTextField(
                     minWidth = TextFieldDefaults.MinWidth,
                 )
                 .clickable(onClick = onClick)
+                .height(inputBoxHeight)
                 .fillMaxWidth(),
             value = value,
             textStyle = textStyle,
@@ -192,6 +212,7 @@ fun NcTextField(
     readOnly: Boolean = false,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
+    inputBoxHeight: Dp = Dp.Unspecified,
     colors: TextFieldColors = TextFieldDefaults.colors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
@@ -218,6 +239,7 @@ fun NcTextField(
                     .defaultMinSize(
                         minWidth = TextFieldDefaults.MinWidth,
                     )
+                    .height(inputBoxHeight)
                     .fillMaxWidth(),
                 value = value,
                 textStyle = NunchukTheme.typography.body,

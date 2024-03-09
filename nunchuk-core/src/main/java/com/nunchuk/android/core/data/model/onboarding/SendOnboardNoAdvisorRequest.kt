@@ -17,16 +17,15 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.core.data.model.onboarding
 
-import com.nunchuk.android.model.Country
-import com.nunchuk.android.model.banner.Banner
-import com.nunchuk.android.model.banner.BannerPage
+import com.google.gson.annotations.SerializedName
 
-interface BannerRepository {
-    suspend fun submitEmail(reminderId: String?, email: String)
-    suspend fun getAssistedWalletContent(reminderId: String): BannerPage
-    suspend fun getBanners(): Banner?
-    suspend fun getCountries(): List<Country>
-    suspend fun sendOnboardingNoAdvisor(email: String, countryCode: String, note: String?)
-}
+data class SendOnboardNoAdvisorRequest(
+    @SerializedName("email")
+    val email: String,
+    @SerializedName("country_code")
+    val countryCode: String,
+    @SerializedName("note")
+    val note: String?,
+)
