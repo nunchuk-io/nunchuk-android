@@ -21,4 +21,13 @@
     <string name="nc_unassisted_wallet_option_desc">For those who are comfortable with managing their Bitcoin wallets themselves.</string>
     <string name="nc_how_will_you_use_nunchuk">How will you use Nunchuk?</string>
     <string name="nc_already_have_an_account_sign_in">Already have an account? [A]Sign in[/A]</string>
+    <string name="nc_send_query">Send query</string>
+    <string name="nc_have_an_advisor">I have an advisor</string>
+    <string name="nc_have_advisor_desc">Your advisor should have sent you an invitation to join a group wallet. Please sign up for a new account and make sure to use the email address included in the invitation.\n\nIf you already signed up, please sign in.</string>
+    <string name="nc_your_country">Your country</string>
+    <string name="nc_your_email_address">Your email address</string>
+    <string name="nc_select_a_country">Select a country</string>
+    <string name="nc_dont_have_an_advisor">I don’t have an advisor</string>
+    <string name="nc_dont_have_an_advisor_desc">If you are looking for a white-glove, personalized service offered by a Bitcoin Advisor, enter your country and email address below, and we’ll send you the best Bitcoin Advisors in your area.\n\nAlternatively, check out the assisted services offered by our platform.</string>
+    <string name="nc_learn_more_about_assisted_services">Learn more about Nunchuk assisted services</string>
 </resources>

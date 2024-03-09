@@ -17,16 +17,27 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Country
 import com.nunchuk.android.model.banner.Banner
-import com.nunchuk.android.model.banner.BannerPage
+import com.nunchuk.android.repository.BannerRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface BannerRepository {
-    suspend fun submitEmail(reminderId: String?, email: String)
-    suspend fun getAssistedWalletContent(reminderId: String): BannerPage
-    suspend fun getBanners(): Banner?
-    suspend fun getCountries(): List<Country>
-    suspend fun sendOnboardingNoAdvisor(email: String, countryCode: String, note: String?)
+class SendOnboardNoAdvisorUseCase @Inject constructor(
+    private val repository: BannerRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<SendOnboardNoAdvisorUseCase.Params, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: Params) {
+        repository.sendOnboardingNoAdvisor(email = parameters.email, countryCode = parameters.countryCode, note = parameters.note)
+    }
+
+    class Params(
+        val email: String,
+        val countryCode: String,
+        val note: String?
+    )
 }

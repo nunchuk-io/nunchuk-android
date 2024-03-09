@@ -458,4 +458,6 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("dummy_transaction_id") transactionId: String,
     ): Data<DummyTransactionResponse>
+
+
 }

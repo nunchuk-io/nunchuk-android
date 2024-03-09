@@ -22,6 +22,8 @@ package com.nunchuk.android.core.data.api
 import com.nunchuk.android.core.data.model.banner.AssistedContentResponse
 import com.nunchuk.android.core.data.model.banner.BannerListResponse
 import com.nunchuk.android.core.data.model.banner.SubmitEmailViewAssistedWalletRequest
+import com.nunchuk.android.core.data.model.onboarding.CountryDataResponse
+import com.nunchuk.android.core.data.model.onboarding.SendOnboardNoAdvisorRequest
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -37,4 +39,10 @@ internal interface BannerApi {
 
     @GET("/v1.1/banners/reminders/home")
     suspend fun getBanners(): Data<BannerListResponse>
+
+    @GET("/v1.1/banners/onboarding/countries")
+    suspend fun getOnboardingCountries(): Data<CountryDataResponse>
+
+    @POST("/v1.1/banners/onboarding/no-advisor")
+    suspend fun sendOnboardingNoAdvisor(@Body payload: SendOnboardNoAdvisorRequest): Data<Unit>
 }
