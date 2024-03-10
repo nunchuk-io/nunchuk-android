@@ -28,6 +28,7 @@ import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.QuickWalletNavigationDirections
 import com.nunchuk.android.app.intro.GuestModeIntroActivity
 import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
+import com.nunchuk.android.app.onboard.OnboardActivity
 import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
@@ -316,5 +317,9 @@ interface AppNavigatorDelegate : AppNavigator {
         activityContext: Context
     ) {
         GroupDashboardActivity.navigate(activityContext, groupId = groupId, walletId = walletId, message = message)
+    }
+
+    override fun openHotWalletScreen(activityContext: Context) {
+        OnboardActivity.openHotWalletIntroScreen(activityContext)
     }
 }

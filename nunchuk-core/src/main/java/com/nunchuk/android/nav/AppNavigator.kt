@@ -115,4 +115,6 @@ interface AppNavigator {
         walletId: String,
         @PrimaryOwnerFlow.PrimaryOwnerFlowInfo flowInfo: Int
     )
+
+    fun openHotWalletScreen(activityContext: Context)
 }
