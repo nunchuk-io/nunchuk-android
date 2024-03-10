@@ -49,5 +49,6 @@ class AppEvenBus {
 typealias AppEventListener = (AppEvent) -> Unit
 
 sealed class AppEvent {
-    object AppResumedEvent : AppEvent()
+    data object AppResumedEvent : AppEvent()
+    data object OpenServiceTabEvent : AppEvent()
 }

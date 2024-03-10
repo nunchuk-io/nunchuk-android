@@ -25,6 +25,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -51,6 +52,8 @@ import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -101,6 +104,11 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     private val appEventListener: AppEventListener = {
         if (it is AppEvent.AppResumedEvent) {
             viewModel.checkAppUpdateRecommend(true)
+        } else if (it is AppEvent.OpenServiceTabEvent) {
+            lifecycleScope.launch {
+                delay(300L)
+                setBottomNavViewPosition(R.id.navigation_services)
+            }
         }
     }
     private var dialogUpdateRecommend: Dialog? = null

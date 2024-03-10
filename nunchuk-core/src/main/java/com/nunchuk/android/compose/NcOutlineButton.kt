@@ -36,7 +36,8 @@ fun NcOutlineButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     borderColor: Color = MaterialTheme.colorScheme.primary,
-    onClick: () -> Unit, content: @Composable RowScope.() -> Unit
+    onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
     val color = if (enabled) borderColor else MaterialTheme.colorScheme.whisper
     OutlinedButton(

@@ -68,10 +68,10 @@
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_16"
+        android:layout_margin="@dimen/nc_padding_24"
         android:visibility="gone"
         tools:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/btnCreateNewWallet"
+        app:layout_constraintTop_toBottomOf="@id/message"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Create new assisted wallet (2 remaining)" />
 
@@ -80,10 +80,10 @@
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_16"
+        android:layout_margin="@dimen/nc_padding_24"
         android:visibility="gone"
         tools:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/btnCreateNewWallet"
+        app:layout_constraintTop_toBottomOf="@+id/message"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Create new assisted wallet (2 remaining)" />
 
@@ -94,7 +94,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_text_create_new_wallet"
-        app:layout_constraintBottom_toTopOf="@+id/btnRecoverWallet"
+        app:layout_constraintTop_toBottomOf="@+id/btnCreateGroupWallet"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.nunchuk.android.widget.NCFontButton
@@ -104,7 +104,14 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_text_recover_wallet"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnCreateNewWallet"
         app:layout_constraintStart_toStartOf="parent" />
+    
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/composeView"
+        android:layout_width="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnRecoverWallet"
+        android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

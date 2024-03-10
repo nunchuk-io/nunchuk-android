@@ -22,5 +22,7 @@
     <string name="nc_group_wallet">Group wallet</string>
     <string name="nc_personal_honey_badger_wallet">Personal Honey Badger wallet</string>
     <string name="nc_invalid_qr">Invalid QR</string>
+    <string name="nc_create_hot_wallet">Create hot wallet</string>
+    <string name="nc_create_hot_wallet_desc">Quickly create a hot wallet for immediate use and back it up later.</string>
 
 </resources>

@@ -25,10 +25,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.OptionCard
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -58,7 +69,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
 
     override fun initializeBinding(
         inflater: LayoutInflater,
-        container: ViewGroup?
+        container: ViewGroup?,
     ): FragmentWalletIntermediaryBinding {
         return FragmentWalletIntermediaryBinding.inflate(inflater, container, false)
     }
@@ -87,9 +98,11 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD -> navigator.openSetupMk4(
                 requireActivity(), false, ColdcardAction.RECOVER_MULTI_SIG_WALLET
             )
+
             SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> navigator.openSetupMk4(
                 requireActivity(), false, ColdcardAction.RECOVER_SINGLE_SIG_WALLET
             )
+
             SheetOptionType.TYPE_GROUP_WALLET -> openCreateGroupWallet()
             SheetOptionType.TYPE_HONEY_BADGER_WALLET -> openCreateAssistedWallet()
         }
@@ -126,9 +139,13 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     )
                 }
             }
-            val assistedVisible = binding.btnCreateGroupWallet.isVisible || binding.btnCreateGroupWallet.isVisible
+            val assistedVisible =
+                binding.btnCreateGroupWallet.isVisible || binding.btnCreateGroupWallet.isVisible
             binding.btnCreateNewWallet.setBackgroundResource(if (assistedVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
-            val textColor = ContextCompat.getColor(requireActivity(), if (assistedVisible) R.color.nc_primary_color else R.color.nc_white_color)
+            val textColor = ContextCompat.getColor(
+                requireActivity(),
+                if (assistedVisible) R.color.nc_primary_color else R.color.nc_white_color
+            )
             binding.btnCreateNewWallet.setTextColor(textColor)
         }
     }
@@ -151,6 +168,29 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             binding.message.text = getString(R.string.nc_create_single_sig_for_sweep)
             binding.btnCreateNewWallet.text = getString(R.string.nc_text_continue)
             binding.btnRecoverWallet.text = getString(R.string.nc_create_my_own_wallet)
+        }
+
+        binding.composeView.setContent {
+            NunchukTheme {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 24.dp),
+                        text = "Or", style = NunchukTheme.typography.bodySmall
+                    )
+
+                    OptionCard(
+                        modifier = Modifier.padding(top = 24.dp),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        title = stringResource(R.string.nc_create_hot_wallet),
+                        description = stringResource(R.string.nc_create_hot_wallet_desc),
+                        painter = painterResource(id = R.drawable.ic_create_hot_wallet),
+                    ) {
+                        navigator.openHotWalletScreen(requireActivity())
+                    }
+                }
+            }
         }
     }
 
