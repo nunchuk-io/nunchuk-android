@@ -218,6 +218,9 @@ class GroupDashboardViewModel @Inject constructor(
                             dismissAlert(alert.id, silentLoading = true)
                         }
                     }
+                    is PushEvent.InheritanceEvent -> {
+                        getInheritance(silentLoading = true)
+                    }
 
                     else -> {}
                 }
@@ -618,6 +621,7 @@ class GroupDashboardViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
+            getInheritance(silentLoading = true)
             val groupDeferred = viewModelScope.async { getGroupUseCase() }
             val keysStatus = viewModelScope.async { getKeysStatusUseCase() }
             val alerts = viewModelScope.async { getAlertsUseCase() }
