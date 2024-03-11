@@ -69,7 +69,6 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -81,7 +80,6 @@ import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
-import com.nunchuk.android.usecase.byzantine.GetGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.byzantine.GetListGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
@@ -107,7 +105,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -249,6 +246,13 @@ internal class WalletsViewModel @Inject constructor(
 
                     is PushEvent.WalletChanged, is PushEvent.SignedChanged -> {
                         retrieveData()
+                    }
+
+                    is PushEvent.InheritanceEvent -> {
+                        val assistedWallets = getState().assistedWallets.filter { it.localId == event.walletId}
+                        if (assistedWallets.isNotEmpty()) {
+                            checkInheritance(assistedWallets)
+                        }
                     }
 
                     else -> {}

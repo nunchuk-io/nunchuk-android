@@ -90,6 +90,7 @@ class ServicesTabViewModel @Inject constructor(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
+    private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -119,6 +120,15 @@ class ServicesTabViewModel @Inject constructor(
                     val groups = result.getOrDefault(emptyList())
                     _state.update { it -> it.copy(accountId = accountManager.getAccount().id, allGroups = groups.associateWith { byzantineGroupUtils.getCurrentUserRole(it).toRole }) }
                     updateGroupInfo(groups)
+                }
+        }
+        viewModelScope.launch {
+            getAssistedWalletsFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .distinctUntilChanged()
+                .collect { assistedWallets ->
+                    _state.update { it.copy(assistedWallets = assistedWallets) }
+                    getRowItems()
                 }
         }
     }

@@ -66,6 +66,9 @@ const val TRANSACTION_REPLACED = "io.nunchuk.custom.transaction_replaced"
 const val SET_ALIAS = "io.nunchuk.custom.group_wallet_alias_set"
 const val REMOVE_ALIAS = "io.nunchuk.custom.group_wallet_alias_removed"
 const val COIN_UPDATE = "io.nunchuk.custom.coin_control_updated"
+const val WALLET_INHERITANCE_UPDATED = "io.nunchuk.custom.wallet_inheritance_updated"
+const val WALLET_INHERITANCE_CHANGE = "io.nunchuk.custom.wallet_inheritance_change"
+const val WALLET_INHERITANCE_CANCELED = "io.nunchuk.custom.wallet_inheritance_canceled"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
     return if (isSupportRoom.not()) {
@@ -192,3 +195,6 @@ fun TimelineEvent.isRemoveAlias() =
 
 fun TimelineEvent.isCoinControlUpdated() =
     getMsgType() == COIN_UPDATE
+
+fun TimelineEvent.isInheritanceEvent() =
+    getMsgType() == WALLET_INHERITANCE_UPDATED || getMsgType() == WALLET_INHERITANCE_CHANGE || getMsgType() == WALLET_INHERITANCE_CANCELED
