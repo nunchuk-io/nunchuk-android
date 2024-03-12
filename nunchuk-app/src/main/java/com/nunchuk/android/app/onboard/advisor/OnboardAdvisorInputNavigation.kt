@@ -9,12 +9,12 @@ import com.nunchuk.android.app.onboard.intro.onboardIntroRoute
 const val onboardAdvisorInputRoute = "onboard_advisor_input"
 fun NavGraphBuilder.onboardAdvisorInput(
     onSkip: () -> Unit = {},
-    onSignIn: () -> Unit = {},
+    onOpenMainScreen: () -> Unit = {}
 ) {
     composable(onboardAdvisorInputRoute) {
         OnboardAdvisorInputScreen(
             onSkip = onSkip,
-            onSignIn = onSignIn
+            onOpenMainScreen = onOpenMainScreen
         )
     }
 }

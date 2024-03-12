@@ -17,21 +17,29 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.R
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcSpannedClickableText
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
@@ -42,12 +50,14 @@ fun OnboardAdvisorIntroScreen(
     onOpenOnboardAdvisorInputScreen: () -> Unit = {},
     onSkip: () -> Unit = {},
     onSignIn: () -> Unit = {},
+    onCreateAccount: () -> Unit = {},
 ) {
     OnboardAdvisorIntroContent(
         modifier = modifier,
         onOpenOnboardAdvisorInputScreen = onOpenOnboardAdvisorInputScreen,
         onSkip = onSkip,
-        onSignIn = onSignIn
+        onSignIn = onSignIn,
+        onCreateAccount = onCreateAccount
     )
 }
 
@@ -56,6 +66,7 @@ fun OnboardAdvisorIntroContent(
     modifier: Modifier = Modifier,
     onSkip: () -> Unit = {},
     onSignIn: () -> Unit = {},
+    onCreateAccount: () -> Unit = {},
     onOpenOnboardAdvisorInputScreen: () -> Unit = {},
 ) {
     Scaffold(
@@ -117,7 +128,7 @@ fun OnboardAdvisorIntroContent(
 
             NcPrimaryDarkButton(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { /* Handle button click */ },
+                onClick = onCreateAccount,
                 content = { Text(text = stringResource(id = R.string.nc_text_create_an_account)) }
             )
 
@@ -130,7 +141,7 @@ fun OnboardAdvisorIntroContent(
                         onOpenOnboardAdvisorInputScreen()
                     },
                 textAlign = TextAlign.Center,
-                text = "I don't have an advisor",
+                text = stringResource(id = R.string.nc_dont_have_an_advisor),
                 style = NunchukTheme.typography.title
             )
         }

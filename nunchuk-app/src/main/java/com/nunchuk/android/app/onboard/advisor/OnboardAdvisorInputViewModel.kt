@@ -3,6 +3,7 @@ package com.nunchuk.android.app.onboard.advisor
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Country
 import com.nunchuk.android.usecase.GetListCountryUseCase
 import com.nunchuk.android.usecase.SendOnboardNoAdvisorUseCase
@@ -52,8 +53,20 @@ class OnboardAdvisorInputViewModel @Inject constructor(
                     countryCode = state.selectedCountry?.code.orEmpty(),
                     note = state.note
                 )
-            )
+            ).onSuccess {
+                _state.update { it.copy(sendQuerySuccess = Any()) }
+            }.onFailure {
+                _state.update { it.copy(errorMessage = it.errorMessage.orUnknownError()) }
+            }
         }
+    }
+
+    fun onErrorMessageEventConsumed() {
+        _state.update { state -> state.copy(errorMessage = null) }
+    }
+
+    fun onSendQuerySuccessEventConsumed() {
+        _state.update { state -> state.copy(sendQuerySuccess = null) }
     }
 }
 
@@ -62,5 +75,7 @@ data class OnboardAdvisorInputUiState(
     val email: String = "",
     val note: String = "",
     val countries: List<Country> = emptyList(),
-    val selectedCountry: Country? = null
+    val selectedCountry: Country? = null,
+    val errorMessage: String? = null,
+    val sendQuerySuccess: Any? = null
 )

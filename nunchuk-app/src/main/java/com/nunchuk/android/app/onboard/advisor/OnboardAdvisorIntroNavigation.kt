@@ -8,13 +8,15 @@ const val onboardAdvisorIntroRoute = "onboard_advisor_intro"
 fun NavGraphBuilder.onboardAdvisorIntro(
     onSkip: () -> Unit = {},
     onSignIn: () -> Unit = {},
-    navigateToOnboardAdvisorInput: () -> Unit
+    navigateToOnboardAdvisorInput: () -> Unit,
+    onCreateAccount: () -> Unit = {}
 ) {
     composable(onboardAdvisorIntroRoute) {
         OnboardAdvisorIntroScreen(
             onSkip = onSkip,
             onSignIn = onSignIn,
-            onOpenOnboardAdvisorInputScreen = { navigateToOnboardAdvisorInput() }
+            onOpenOnboardAdvisorInputScreen = { navigateToOnboardAdvisorInput() },
+            onCreateAccount = onCreateAccount
         )
     }
 }

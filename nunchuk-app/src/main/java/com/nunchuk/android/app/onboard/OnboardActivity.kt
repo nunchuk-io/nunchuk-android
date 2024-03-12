@@ -7,6 +7,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.R
 import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAdvisorInput
 import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAdvisorIntro
 import com.nunchuk.android.app.onboard.advisor.onboardAdvisorInput
@@ -69,12 +70,28 @@ class OnboardActivity : BaseComposeActivity() {
                             )
                             onboardAdvisorIntro(onSkip = {
                                 navigator.openMainScreen(this@OnboardActivity)
+                                finish()
                             }, onSignIn = {
                                 navigator.openSignInScreen(this@OnboardActivity)
+                                finish()
                             }, navigateToOnboardAdvisorInput = {
                                 navController.navigateToOnboardAdvisorInput()
+                            }, onCreateAccount = {
+                                navigator.openSignUpScreen(this@OnboardActivity)
+                                finish()
                             })
-                            onboardAdvisorInput()
+                            onboardAdvisorInput(
+                                onSkip = {
+                                    navigator.openMainScreen(this@OnboardActivity)
+                                    finish()
+                                },
+                                onOpenMainScreen = {
+                                    navigator.openMainScreen(
+                                        this@OnboardActivity,
+                                        messages = arrayListOf(getString(R.string.nc_query_sent))
+                                    )
+                                },
+                            )
                         }
                     }
                 }

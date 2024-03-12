@@ -25,6 +25,7 @@
     <string name="nc_hot_wallet_desc">A hot wallet is a wallet that is frequently connected to the Internet.\n\nFor securing large amounts of funds, consider moving to a cold wallet, a multisig wallet or an assisted multisig wallet for better security.</string>
     <string name="nc_learn_more_about_assisted_wallet">Learn more about assisted wallet</string>
     <string name="nc_send_query">Send query</string>
+    <string name="nc_query_sent">Query sent</string>
     <string name="nc_have_an_advisor">I have an advisor</string>
     <string name="nc_have_advisor_desc">Your advisor should have sent you an invitation to join a group wallet. Please sign up for a new account and make sure to use the email address included in the invitation.\n\nIf you already signed up, please sign in.</string>
     <string name="nc_your_country">Your country</string>
