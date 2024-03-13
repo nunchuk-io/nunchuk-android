@@ -83,6 +83,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                 append(getString(R.string.nc_seed_phase_confirmation_desc_one))
             }.append(getString(R.string.nc_seed_phase_confirmation_desc_two)),
             btnInfo = getString(R.string.nc_i_ve_backed_it_up),
+            btnYes = getString(R.string.nc_review_seed_phrase),
             onYesClick = {
                 if (args.isQuickWallet) {
                     findNavController().popBackStack()
@@ -96,7 +97,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     private fun openSetPassphrase() {
         if (args.masterSignerId.isNotEmpty()) {
-            // TODO Hai confirm backup seed
+            viewModel.markHotWalletBackedUp(args.walletId)
             navigator.returnToMainScreen()
             navigator.openSignerInfoScreen(
                 activityContext = requireActivity(),

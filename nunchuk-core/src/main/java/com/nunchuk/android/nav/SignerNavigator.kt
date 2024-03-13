@@ -94,6 +94,7 @@ interface SignerNavigator {
         activityContext: Context,
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        isRecoverHotWallet: Boolean = false
     )
 
     /**
@@ -105,6 +106,7 @@ interface SignerNavigator {
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         masterSignerId: String = "",
+        walletId: String = "",
     )
 
     /**

@@ -56,7 +56,8 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
             mnemonic: String,
             passphrase: String,
             primaryKeyFlow: Int,
-            masterSignerId: String
+            masterSignerId: String,
+            walletId: String
         ) {
             activityContext.startActivity(
                 Intent(
@@ -67,7 +68,8 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
                         mnemonic = mnemonic,
                         primaryKeyFlow = primaryKeyFlow,
                         passphrase = passphrase,
-                        masterSignerId = masterSignerId
+                        masterSignerId = masterSignerId,
+                        walletId = walletId
                     ).toBundle()
                 )
             )

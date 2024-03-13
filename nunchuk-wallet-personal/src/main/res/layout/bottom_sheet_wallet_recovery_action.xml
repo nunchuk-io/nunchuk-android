@@ -45,4 +45,16 @@
         android:text="@string/nc_recover_from_coldcard"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_recover_hot_wallet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_recover_hot_wallet"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16" />
 </LinearLayout>
