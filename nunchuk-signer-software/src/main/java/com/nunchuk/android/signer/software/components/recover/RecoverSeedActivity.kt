@@ -26,6 +26,7 @@ import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.signer.software.R
@@ -46,6 +47,10 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
     private val viewModel: RecoverSeedViewModel by viewModels()
 
     private lateinit var adapter: RecoverSeedSuggestionAdapter
+
+    private val isHotWalletRecovery: Boolean by lazy {
+        intent.getBooleanExtra(EXTRA_RECOVER_HOT_WALLET, false)
+    }
 
     override fun initializeBinding() = ActivityRecoverSeedBinding.inflate(layoutInflater)
 
@@ -70,7 +75,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
     private fun handleEvent(event: RecoverSeedEvent) {
         when (event) {
             MnemonicRequiredEvent -> binding.mnemonic.setError(getString(R.string.nc_text_required))
-            InvalidMnemonicEvent -> binding.mnemonic.setError(getString(R.string.nc_error_invalid_signer_spec))
+            InvalidMnemonicEvent -> binding.mnemonic.setError(getString(R.string.nc_invalid_seed_phrase))
             is ValidMnemonicEvent -> {
                 when (val primaryKeyFlow =
                     intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)) {
@@ -81,6 +86,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                             primaryKeyFlow
                         )
                     }
+
                     else -> {
                         val passphrase = intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
                         navigator.openAddSoftwareSignerNameScreen(
@@ -92,8 +98,14 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                     }
                 }
             }
+
             is UpdateMnemonicEvent -> updateMnemonic(event.mnemonic)
             is CanGoNextStepEvent -> binding.btnContinue.bindEnableState(event.canGoNext)
+            is RecoverSeedEvent.RecoverHotWalletSuccess -> {
+                navigator.returnToMainScreen()
+                navigator.openWalletDetailsScreen(activityContext = this, walletId = event.walletId)
+                NcToastManager.scheduleShowMessage(getString(R.string.nc_my_hot_wallet_has_been_recovered))
+            }
         }
     }
 
@@ -104,6 +116,9 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
     }
 
     private fun setupViews() {
+        if (isHotWalletRecovery) {
+            binding.toolbarTitle.text = getString(R.string.nc_recover_hot_wallet)
+        }
         binding.mnemonic.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
         binding.mnemonic.addTextChangedCallback(viewModel::handleInputEvent)
         adapter = RecoverSeedSuggestionAdapter(viewModel::handleSelectWord)
@@ -114,15 +129,21 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             finish()
         }
         binding.btnContinue.setOnClickListener {
-            viewModel.handleContinueEvent()
+            viewModel.handleContinueEvent(isHotWalletRecovery)
         }
     }
 
     companion object {
         private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
+        private const val EXTRA_RECOVER_HOT_WALLET = "EXTRA_RECOVER_HOT_WALLET"
 
-        fun start(activityContext: Context, passphrase: String, primaryKeyFlow: Int) {
+        fun start(
+            activityContext: Context,
+            passphrase: String,
+            primaryKeyFlow: Int,
+            isRecoverHotWallet: Boolean = false,
+        ) {
             activityContext.startActivity(
                 Intent(
                     activityContext,
@@ -136,7 +157,12 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         EXTRA_PASSPHRASE,
                         passphrase
                     )
-                })
+                    putExtra(
+                        EXTRA_RECOVER_HOT_WALLET,
+                        isRecoverHotWallet
+                    )
+                },
+            )
         }
     }
 

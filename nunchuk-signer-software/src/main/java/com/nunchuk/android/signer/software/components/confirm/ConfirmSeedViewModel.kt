@@ -25,7 +25,9 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.components.create.PHRASE_SEPARATOR
+import com.nunchuk.android.usecase.wallet.MarkHotWalletBackedUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -35,6 +37,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ConfirmSeedViewModel @Inject constructor(
+    private val markHotWalletBackedUpUseCase: MarkHotWalletBackedUpUseCase,
+    private val coroutineScope: CoroutineScope,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ConfirmSeedEvent>()
@@ -71,6 +75,12 @@ internal class ConfirmSeedViewModel @Inject constructor(
             }
         }
         _state.value = _state.value.copy(groups = groups)
+    }
+
+    fun markHotWalletBackedUp(walletId: String) {
+        coroutineScope.launch {
+            markHotWalletBackedUpUseCase(walletId)
+        }
     }
 
     private fun PhraseWordGroup.isCorrectSelected() = (firstWord.selected && firstWord.correct) ||

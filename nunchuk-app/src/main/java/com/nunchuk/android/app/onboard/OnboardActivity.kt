@@ -9,7 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.R
 import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAdvisorInput
-import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAdvisorIntro
 import com.nunchuk.android.app.onboard.advisor.onboardAdvisorInput
 import com.nunchuk.android.app.onboard.advisor.onboardAdvisorIntro
 import com.nunchuk.android.app.onboard.hotwallet.hotWalletIntro
@@ -68,18 +67,23 @@ class OnboardActivity : BaseComposeActivity() {
                                     AppEvenBus.instance.publish(AppEvent.OpenServiceTabEvent)
                                 }
                             )
-                            onboardAdvisorIntro(onSkip = {
-                                navigator.openMainScreen(this@OnboardActivity)
-                                finish()
-                            }, onSignIn = {
-                                navigator.openSignInScreen(this@OnboardActivity)
-                                finish()
-                            }, navigateToOnboardAdvisorInput = {
-                                navController.navigateToOnboardAdvisorInput()
-                            }, onCreateAccount = {
-                                navigator.openSignUpScreen(this@OnboardActivity)
-                                finish()
-                            })
+                            onboardAdvisorIntro(
+                                onSkip = {
+                                    navigator.openMainScreen(this@OnboardActivity)
+                                    finish()
+                                },
+                                onSignIn = {
+                                    navigator.openSignInScreen(this@OnboardActivity)
+                                    finish()
+                                },
+                                navigateToOnboardAdvisorInput = {
+                                    navController.navigateToOnboardAdvisorInput()
+                                },
+                                onCreateAccount = {
+                                    navigator.openSignUpScreen(this@OnboardActivity)
+                                    finish()
+                                },
+                            )
                             onboardAdvisorInput(
                                 onSkip = {
                                     navigator.openMainScreen(this@OnboardActivity)

@@ -316,8 +316,24 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.ivSendBtc.isClickable = wallet.balance.value > 0
 
         binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
+        handleWalletBackground(state)
+        updateFabIcon(state.hideWalletDetailLocal)
+        binding.ivViewCoin.isEnabled = state.isHasCoin
+        binding.ivViewCoin.alpha = if (state.isHasCoin) 1.0f else 0.7f
+        binding.tvWalletWarning.isVisible = state.walletExtended.wallet.needBackup
         if (state.walletExtended.wallet.needBackup) {
-            binding.container.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.nc_beeswax_dark))
+            handleNeedBackupWallet()
+        }
+    }
+
+    private fun handleWalletBackground(state: WalletDetailsState) {
+        if (state.walletExtended.wallet.needBackup) {
+            binding.container.setBackgroundColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.nc_beeswax_dark
+                )
+            )
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_beeswax_dark)
         } else if (state.isAssistedWallet) {
@@ -326,13 +342,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
             binding.shareIcon.text =
                 Utils.maskValue(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
-        }
-        updateFabIcon(state.hideWalletDetailLocal)
-        binding.ivViewCoin.isEnabled = state.isHasCoin
-        binding.ivViewCoin.alpha = if (state.isHasCoin) 1.0f else 0.7f
-        if (state.walletExtended.wallet.needBackup) {
-            binding.tvWalletWarning.isVisible = true
-            handleNeedBackupWallet()
+        } else {
+            binding.container.setBackgroundResource(R.drawable.nc_header_gradient_background)
+            requireActivity().window.statusBarColor =
+                ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
         }
     }
 

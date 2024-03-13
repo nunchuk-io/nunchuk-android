@@ -57,4 +57,8 @@
     <string name="nc_i_ve_backed_it_up">I’ve backed it up</string>
     <string name="nc_seed_phase_confirmation_desc_one">You won’t be able to view the seed phrase again in the app.</string>
     <string name="nc_seed_phase_confirmation_desc_two">" Please make sure that you have it backed up, or risk losing your funds."</string>
+    <string name="nc_invalid_seed_phrase">Invalid seed phrase</string>
+    <string name="nc_recover_hot_wallet">Recover hot wallet</string>
+    <string name="nc_my_hot_wallet_has_been_recovered">My hot wallet has been recovered.</string>
+    <string name="nc_review_seed_phrase">Review seed phrase</string>
 </resources>

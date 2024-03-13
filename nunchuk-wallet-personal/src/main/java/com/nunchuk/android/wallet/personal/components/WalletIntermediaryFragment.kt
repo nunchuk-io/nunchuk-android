@@ -205,6 +205,10 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 RecoverWalletOption.QrCode -> requestCameraPermissionOrExecuteAction()
                 RecoverWalletOption.BSMSFile -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
                 RecoverWalletOption.ColdCard -> showOptionImportFromColdCard()
+                RecoverWalletOption.HotWallet -> navigator.openRecoverSeedScreen(
+                    activityContext = requireActivity(),
+                    isRecoverHotWallet = true
+                )
             }
         }
     }

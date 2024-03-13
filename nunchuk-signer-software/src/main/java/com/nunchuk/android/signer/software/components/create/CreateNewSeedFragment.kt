@@ -85,7 +85,8 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
                         mnemonic = event.mnemonic,
                         passphrase = args.passphrase,
                         primaryKeyFlow = args.primaryKeyFlow,
-                        masterSignerId = viewModel.state.value.masterSignerId
+                        masterSignerId = viewModel.state.value.masterSignerId,
+                        walletId = args.walletId
                     )
                 }
             }

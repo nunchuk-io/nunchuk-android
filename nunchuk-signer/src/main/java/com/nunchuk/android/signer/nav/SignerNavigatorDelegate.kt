@@ -151,8 +151,9 @@ interface SignerNavigatorDelegate : SignerNavigator {
         activityContext: Context,
         passphrase: String,
         primaryKeyFlow: Int,
+        isRecoverHotWallet: Boolean,
     ) {
-        RecoverSeedActivity.start(activityContext, passphrase, primaryKeyFlow)
+        RecoverSeedActivity.start(activityContext, passphrase, primaryKeyFlow, isRecoverHotWallet)
     }
 
     override fun openSelectPhraseScreen(
@@ -161,13 +162,15 @@ interface SignerNavigatorDelegate : SignerNavigator {
         passphrase: String,
         primaryKeyFlow: Int,
         masterSignerId: String,
+        walletId: String,
     ) {
         ConfirmSeedActivity.start(
             activityContext = activityContext,
             mnemonic = mnemonic,
             passphrase = passphrase,
             primaryKeyFlow = primaryKeyFlow,
-            masterSignerId = masterSignerId
+            masterSignerId = masterSignerId,
+            walletId = walletId
         )
     }
 

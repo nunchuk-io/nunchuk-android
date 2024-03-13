@@ -20,11 +20,12 @@
 package com.nunchuk.android.signer.software.components.recover
 
 sealed class RecoverSeedEvent {
-    object MnemonicRequiredEvent : RecoverSeedEvent()
-    object InvalidMnemonicEvent : RecoverSeedEvent()
+    data object MnemonicRequiredEvent : RecoverSeedEvent()
+    data object InvalidMnemonicEvent : RecoverSeedEvent()
     data class UpdateMnemonicEvent(val mnemonic: String) : RecoverSeedEvent()
     data class ValidMnemonicEvent(val mnemonic: String) : RecoverSeedEvent()
     data class CanGoNextStepEvent(val canGoNext: Boolean) : RecoverSeedEvent()
+    data class RecoverHotWalletSuccess(val walletId: String) : RecoverSeedEvent()
 }
 
 data class RecoverSeedState(

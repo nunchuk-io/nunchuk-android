@@ -27,11 +27,15 @@ import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.wallet.personal.databinding.BottomSheetWalletRecoveryActionBinding
 
-internal class RecoverWalletActionBottomSheet : BaseBottomSheet<BottomSheetWalletRecoveryActionBinding>() {
+internal class RecoverWalletActionBottomSheet :
+    BaseBottomSheet<BottomSheetWalletRecoveryActionBinding>() {
 
     lateinit var listener: (RecoverWalletOption) -> Unit
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): BottomSheetWalletRecoveryActionBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): BottomSheetWalletRecoveryActionBinding {
         return BottomSheetWalletRecoveryActionBinding.inflate(inflater, container, false)
     }
 
@@ -45,6 +49,7 @@ internal class RecoverWalletActionBottomSheet : BaseBottomSheet<BottomSheetWalle
         binding.btnUsingQrCode.setOnClickListener { onActionClicked(RecoverWalletOption.QrCode) }
         binding.btnUsingBSMSFile.setOnClickListener { onActionClicked(RecoverWalletOption.BSMSFile) }
         binding.btnRecoverFromColdcard.setOnClickListener { onActionClicked(RecoverWalletOption.ColdCard) }
+        binding.btnRecoverHotWallet.setOnClickListener { onActionClicked(RecoverWalletOption.HotWallet) }
     }
 
     private fun onActionClicked(option: RecoverWalletOption) {
@@ -62,9 +67,10 @@ internal class RecoverWalletActionBottomSheet : BaseBottomSheet<BottomSheetWalle
 }
 
 sealed class RecoverWalletOption {
-    object QrCode : RecoverWalletOption()
-    object BSMSFile : RecoverWalletOption()
-    object ColdCard : RecoverWalletOption()
+    data object QrCode : RecoverWalletOption()
+    data object BSMSFile : RecoverWalletOption()
+    data object ColdCard : RecoverWalletOption()
+    data object HotWallet : RecoverWalletOption()
 }
 
 

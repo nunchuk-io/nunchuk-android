@@ -58,6 +58,10 @@
             android:name="masterSignerId"
             android:defaultValue=""
             app:argType="string" />
+        <argument
+            android:name="wallet_id"
+            android:defaultValue=""
+            app:argType="string" />
         <action
             android:id="@+id/action_confirmSeedFragment_to_setPassphraseFragment"
             app:destination="@id/setPassphraseFragment"

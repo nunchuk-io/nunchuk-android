@@ -32,6 +32,7 @@ import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.U
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
+import com.nunchuk.android.usecase.wallet.RecoverHotWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +45,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class RecoverSeedViewModel @Inject constructor(
     private val getBip39WordListUseCase: GetBip39WordListUseCase,
-    private val checkMnemonicUseCase: CheckMnemonicUseCase
+    private val checkMnemonicUseCase: CheckMnemonicUseCase,
+    private val recoverHotWalletUseCase: RecoverHotWalletUseCase,
 ) : NunchukViewModel<RecoverSeedState, RecoverSeedEvent>() {
 
     private var bip39Words = ArrayList<String>()
@@ -78,10 +80,12 @@ internal class RecoverSeedViewModel @Inject constructor(
         updateState { copy(suggestions = filteredWords) }
     }
 
-    fun handleContinueEvent() {
+    fun handleContinueEvent(isHotWalletRecovery: Boolean) {
         val mnemonic = getState().mnemonic
         if (mnemonic.isEmpty()) {
             event(MnemonicRequiredEvent)
+        } else if (isHotWalletRecovery) {
+            recoverHotWallet(mnemonic)
         } else {
             checkMnemonic(mnemonic)
         }
@@ -94,6 +98,17 @@ internal class RecoverSeedViewModel @Inject constructor(
         val canGoNext = updatedMnemonic.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
         event(CanGoNextStepEvent(canGoNext))
         event(UpdateMnemonicEvent(updatedMnemonic))
+    }
+
+    private fun recoverHotWallet(mnemonic: String) {
+        viewModelScope.launch {
+            recoverHotWalletUseCase(mnemonic)
+                .onSuccess {
+                    setEvent(RecoverSeedEvent.RecoverHotWalletSuccess(it.id))
+                }.onFailure {
+                    setEvent(InvalidMnemonicEvent)
+                }
+        }
     }
 
     private fun checkMnemonic(mnemonic: String) {
