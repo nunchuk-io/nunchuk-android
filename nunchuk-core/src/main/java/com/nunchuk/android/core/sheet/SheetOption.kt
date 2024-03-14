@@ -139,4 +139,5 @@ object SheetOptionType {
     const val TYPE_EDIT_PRIMARY_OWNER = 77
     const val TYPE_QR_BC_UR2_LEGACY = 78
     const val TYPE_QR_BC_UR2 = 79
+    const val TYPE_SEARCH_TX = 80
 }

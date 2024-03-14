@@ -172,7 +172,8 @@ internal class WalletDetailsViewModel @Inject constructor(
                     updateState {
                         copy(
                             walletExtended = it,
-                            isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+                            isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
+                            groupId = assistedWalletManager.getGroupId(args.walletId)
                         )
                     }
                     if (shouldRefreshTransaction) {
@@ -306,7 +307,11 @@ internal class WalletDetailsViewModel @Inject constructor(
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom
 
-    fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
+    val isAssistedWallet: Boolean
+        get() = getState().isAssistedWallet
 
-    fun isShowSetupInheritance() = assistedWalletManager.isShowSetupInheritance(args.walletId)
+    val groupId: String?
+        get() = getState().groupId
+
+    fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
 }
