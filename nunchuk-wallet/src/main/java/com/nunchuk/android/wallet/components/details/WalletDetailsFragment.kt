@@ -23,6 +23,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
@@ -156,12 +158,34 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         observeEvent()
     }
 
+    private fun configureToolbar(state: WalletDetailsState) {
+        val searchMenu = binding.toolbar.menu.findItem(R.id.menu_search)
+        searchMenu.isVisible = state.walletExtended.wallet.name.isNotEmpty()
+        if (state.groupId.isNullOrEmpty().not()) {
+            searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_groups_menu)
+        } else if (state.isAssistedWallet) {
+            searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_health_check_menu)
+        } else {
+            searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_search_white)
+        }
+    }
+
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_IMPORT_TX -> showImportTransactionOption()
             SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
             SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
+            SheetOptionType.TYPE_SEARCH_TX -> openSearchTransaction()
+            else -> {}
         }
+    }
+
+    private fun openSearchTransaction() {
+        if (viewModel.isHideWalletDetailLocal) return
+        navigator.openSearchTransaction(
+            requireContext(), walletId = args.walletId,
+            roomId = viewModel.getRoomWallet()?.roomId.orEmpty(),
+        )
     }
 
     private fun setupPaginationAdapter() {
@@ -278,6 +302,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         val wallet = state.walletExtended.wallet
         adapter.setHideWalletDetail(state.hideWalletDetailLocal)
         binding.toolbarTitle.text = wallet.name
+        configureToolbar(state)
         binding.configuration.bindWalletConfiguration(
             wallet,
             hideWalletDetail = state.hideWalletDetailLocal
@@ -334,11 +359,14 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.toolbar.setOnMenuItemClickListener { menu ->
             when (menu.itemId) {
                 R.id.menu_search -> {
-                    if (viewModel.isHideWalletDetailLocal.not()) {
-                        navigator.openSearchTransaction(
-                            requireContext(), walletId = args.walletId,
-                            roomId = viewModel.getRoomWallet()?.roomId.orEmpty(),
+                    if (viewModel.isAssistedWallet) {
+                        navigator.openGroupDashboardScreen(
+                            groupId = viewModel.groupId,
+                            walletId = args.walletId,
+                            activityContext = requireActivity()
                         )
+                    } else {
+                        openSearchTransaction()
                     }
                     true
                 }
@@ -403,13 +431,23 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun onMoreClicked() {
-        val options = mutableListOf(
+        val options = mutableListOf<SheetOption>()
+        options.add(
             SheetOption(
                 SheetOptionType.TYPE_IMPORT_TX,
                 R.drawable.ic_import,
                 R.string.nc_import_transaction
-            ),
+            )
         )
+        if (viewModel.isAssistedWallet) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_SEARCH_TX,
+                    R.drawable.ic_search_dark,
+                    R.string.nc_search_transactions
+                )
+            )
+        }
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }

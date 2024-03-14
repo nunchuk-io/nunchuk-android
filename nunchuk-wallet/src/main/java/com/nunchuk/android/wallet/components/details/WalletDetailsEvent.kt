@@ -28,7 +28,7 @@ sealed class WalletDetailsEvent {
     data class SendMoneyEvent(val walletExtended: WalletExtended) : WalletDetailsEvent()
     data class WalletDetailsError(val message: String) : WalletDetailsEvent()
     data class PaginationTransactions(val hasTransactions: Boolean = true) : WalletDetailsEvent()
-    object ImportPSBTSuccess : WalletDetailsEvent()
+    data object ImportPSBTSuccess : WalletDetailsEvent()
 }
 
 data class WalletDetailsState(
@@ -39,4 +39,5 @@ data class WalletDetailsState(
     val isForceRefreshProcessing: Boolean = false,
     val hideWalletDetailLocal: Boolean = false,
     val isHasCoin: Boolean = true,
+    val groupId: String? = null,
 )
