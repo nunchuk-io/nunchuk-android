@@ -39,6 +39,7 @@ import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -65,7 +66,6 @@ class NcDataStore @Inject constructor(
     private val securityQuestionKey = booleanPreferencesKey("security_question")
     private val groupIdKey = stringPreferencesKey("group_id")
     private val currentStepKey = intPreferencesKey("current_step")
-    private val showOnBoardKey = booleanPreferencesKey("show_on_board")
 
     /**
      * Current membership plan key
@@ -80,6 +80,11 @@ class NcDataStore @Inject constructor(
     private fun getLocalCurrencyKey(): Preferences.Key<String> {
         val userId = accountManager.getAccount().chatId
         return stringPreferencesKey("local_currency-${userId}")
+    }
+
+    private fun getShowOnBoardKey(): Preferences.Key<Boolean> {
+        val userId = accountManager.getAccount().chatId
+        return booleanPreferencesKey("show-onboard-${userId}")
     }
 
     val syncRoomSuccess: Flow<Boolean>
@@ -119,12 +124,12 @@ class NcDataStore @Inject constructor(
     val membershipPlan: Flow<MembershipPlan>
         get() = context.dataStore.data.map {
             val ordinal = it[membershipPlanKey] ?: 0
-            MembershipPlan.values()[ordinal]
+            MembershipPlan.entries[ordinal]
         }
 
     val chain: Flow<Chain>
         get() = context.dataStore.data.map {
-            Chain.values()[it[chainKey] ?: 0]
+            Chain.entries[it[chainKey] ?: 0]
         }
 
     val isHideUpsellBanner: Flow<Boolean>
@@ -256,7 +261,7 @@ class NcDataStore @Inject constructor(
 
     val currentStep: Flow<MembershipStep?>
         get() = context.dataStore.data.map {
-            it[currentStepKey]?.let { index -> MembershipStep.values()[index] }
+            it[currentStepKey]?.let { index -> MembershipStep.entries[index] }
         }
 
     suspend fun setCurrentStep(step: MembershipStep) {
@@ -267,12 +272,13 @@ class NcDataStore @Inject constructor(
 
     val showOnBoard: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[showOnBoardKey] ?: true
+            it[getShowOnBoardKey()] ?: true
         }
 
     suspend fun setShowOnBoard(value: Boolean) {
+        Timber.d("CongHai setShowOnBoard ${getShowOnBoardKey()} value: $value")
         context.dataStore.edit { settings ->
-            settings[showOnBoardKey] = value
+            settings[getShowOnBoardKey()] = value
         }
     }
 

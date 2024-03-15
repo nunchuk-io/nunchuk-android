@@ -62,8 +62,7 @@ import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
 import javax.inject.Inject
 
-internal class NunchukNavigatorImpl @Inject constructor(
-) : NunchukNavigator,
+internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
     AppNavigatorDelegate,
     AuthNavigatorDelegate,
     SignerNavigatorDelegate,
@@ -80,7 +79,7 @@ internal class NunchukNavigatorImpl @Inject constructor(
         deviceId: String?,
         bottomNavViewPosition: Int?,
         messages: ArrayList<String>?,
-        isClearTask: Boolean
+        isClearTask: Boolean,
     ) {
         MainActivity.start(
             activityContext, loginHalfToken, deviceId, bottomNavViewPosition,
@@ -102,7 +101,7 @@ internal class NunchukNavigatorImpl @Inject constructor(
 
     override fun openQuickWalletScreen(
         launcher: ActivityResultLauncher<Intent>,
-        activityContext: Context
+        activityContext: Context,
     ) {
         QuickWalletActivity.start(launcher, activityContext)
     }
@@ -118,7 +117,7 @@ internal class NunchukNavigatorImpl @Inject constructor(
         walletId: String,
         txId: String,
         inputs: List<UnspentOutput>,
-        amount: Double
+        amount: Double,
     ) {
         val intent = CoinActivity.buildIntent(
             context = context,
@@ -134,7 +133,7 @@ internal class NunchukNavigatorImpl @Inject constructor(
         launcher: ActivityResultLauncher<Intent>?,
         context: Context,
         walletId: String,
-        output: UnspentOutput
+        output: UnspentOutput,
     ) {
         val intent = CoinActivity.buildIntent(
             context = context,
@@ -148,7 +147,7 @@ internal class NunchukNavigatorImpl @Inject constructor(
         activityContext: Context,
         groupId: String,
         walletId: String,
-        @PrimaryOwnerFlow.PrimaryOwnerFlowInfo flowInfo: Int
+        @PrimaryOwnerFlow.PrimaryOwnerFlowInfo flowInfo: Int,
     ) {
         PrimaryOwnerActivity.navigate(
             activity = activityContext,
@@ -173,7 +172,7 @@ interface AppNavigatorDelegate : AppNavigator {
         groupStep: MembershipStage,
         walletId: String?,
         groupId: String?,
-        addOnHoneyBadger: Boolean
+        addOnHoneyBadger: Boolean,
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
@@ -191,7 +190,7 @@ interface AppNavigatorDelegate : AppNavigator {
         groupStep: MembershipStage,
         walletId: String?,
         groupId: String?,
-        addOnHoneyBadger: Boolean
+        addOnHoneyBadger: Boolean,
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
@@ -208,7 +207,7 @@ interface AppNavigatorDelegate : AppNavigator {
         activityContext: Activity,
         groupStep: MembershipStage,
         keyPolicy: KeyPolicy?,
-        xfp: String?
+        xfp: String?,
     ) {
         launcher?.launch(
             ConfigServerKeyActivity.buildIntent(
@@ -233,7 +232,7 @@ interface AppNavigatorDelegate : AppNavigator {
         groupStep: MembershipStage,
         keyPolicy: GroupKeyPolicy?,
         xfp: String?,
-        groupId: String?
+        groupId: String?,
     ) {
         launcher?.launch(
             ConfigServerKeyActivity.buildGroupIntent(
@@ -258,7 +257,12 @@ interface AppNavigatorDelegate : AppNavigator {
         KeyRecoveryActivity.navigate(activityContext, role.orEmpty())
     }
 
-    override fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String, groupId: String?, walletId: String?) {
+    override fun openEmergencyLockdownScreen(
+        activityContext: Context,
+        verifyToken: String,
+        groupId: String?,
+        walletId: String?,
+    ) {
         EmergencyLockdownActivity.navigate(activityContext, verifyToken, groupId, walletId)
     }
 
@@ -271,7 +275,7 @@ interface AppNavigatorDelegate : AppNavigator {
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
         @InheritanceSourceFlow.InheritanceSourceFlowInfo sourceFlow: Int,
         groupId: String?,
-        dummyTransactionId: String?
+        dummyTransactionId: String?,
     ) {
         InheritancePlanningActivity.navigate(
             launcher = launcher,
@@ -295,7 +299,7 @@ interface AppNavigatorDelegate : AppNavigator {
         activityContext: Activity,
         groupId: String?,
         dummyTransactionId: String?,
-        action: String?
+        action: String?,
     ) {
         WalletAuthenticationActivity.start(
             walletId = walletId,
@@ -314,12 +318,21 @@ interface AppNavigatorDelegate : AppNavigator {
         groupId: String?,
         walletId: String?,
         message: String?,
-        activityContext: Context
+        activityContext: Context,
     ) {
-        GroupDashboardActivity.navigate(activityContext, groupId = groupId, walletId = walletId, message = message)
+        GroupDashboardActivity.navigate(
+            activityContext,
+            groupId = groupId,
+            walletId = walletId,
+            message = message
+        )
     }
 
     override fun openHotWalletScreen(activityContext: Context) {
         OnboardActivity.openHotWalletIntroScreen(activityContext)
+    }
+
+    override fun openOnBoardingScreen(activityContext: Context) {
+        activityContext.startActivity(Intent(activityContext, OnboardActivity::class.java))
     }
 }

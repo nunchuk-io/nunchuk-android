@@ -177,6 +177,10 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         when (event) {
             is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
             MainAppEvent.ConsumeSyncEventCompleted -> walletViewModel.retrieveData()
+            MainAppEvent.ShowOnBoardEvent -> {
+                finish()
+                navigator.openOnBoardingScreen(this)
+            }
             else -> {}
         }
     }

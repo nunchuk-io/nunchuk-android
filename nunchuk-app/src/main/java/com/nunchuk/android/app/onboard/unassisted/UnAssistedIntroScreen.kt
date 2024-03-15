@@ -57,9 +57,11 @@ fun UnAssistedIntroScreen(
             viewModel.createHotWallet()
         },
         onSkip = {
-            openMainScreen()
+            viewModel.markOnBoardDone()
         },
-        openMainScreen = openMainScreen
+        openMainScreen = {
+            viewModel.markOnBoardDone()
+        }
     )
 }
 

@@ -37,5 +37,4 @@ internal class LoginWithMatrixUseCaseImpl @Inject constructor(
         password = password,
         encryptedDeviceId = encryptedDeviceId
     )
-
 }

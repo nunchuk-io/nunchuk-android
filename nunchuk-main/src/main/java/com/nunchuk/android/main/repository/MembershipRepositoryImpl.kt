@@ -133,6 +133,7 @@ class MembershipRepositoryImpl @Inject constructor(
                 data.plan?.slug.toMembershipPlan()
             }
             ncDataStore.setMembershipPlan(plan)
+
             return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
         } else {
             throw result.error

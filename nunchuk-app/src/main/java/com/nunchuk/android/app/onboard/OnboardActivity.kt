@@ -43,7 +43,7 @@ class OnboardActivity : BaseComposeActivity() {
                                 onOpenUnassistedIntro = {
                                     navController.navigateToUnassistedIntro()
                                 },
-                                onSkip = {
+                                openMainScreen = {
                                     navigator.openMainScreen(this@OnboardActivity)
                                     finish()
                                 },

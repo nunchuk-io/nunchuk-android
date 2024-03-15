@@ -16,6 +16,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.R
 import com.nunchuk.android.compose.NcSpannedClickableText
 import com.nunchuk.android.compose.NunchukTheme
@@ -36,14 +39,24 @@ import com.nunchuk.android.compose.SpanIndicator
 fun OnboardIntroScreen(
     modifier: Modifier = Modifier,
     onOpenUnassistedIntro: () -> Unit = {},
-    onSkip: () -> Unit = {},
+    openMainScreen: () -> Unit = {},
     onSignIn: () -> Unit = {},
     viewModel: OnboardIntroViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(state.openMainScreen) {
+        if (state.openMainScreen) {
+            openMainScreen()
+            viewModel.handledOpenMainScreen()
+        }
+    }
     OnboardIntroContent(
         modifier = modifier,
         onOpenUnassistedIntro = onOpenUnassistedIntro,
-        onSkip = onSkip,
+        onSkip = {
+            viewModel.markOnBoardDone()
+            openMainScreen()
+        },
         onSignIn = onSignIn
     )
 }
