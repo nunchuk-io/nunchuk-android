@@ -39,7 +39,6 @@ import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -276,7 +275,6 @@ class NcDataStore @Inject constructor(
         }
 
     suspend fun setShowOnBoard(value: Boolean) {
-        Timber.d("CongHai setShowOnBoard ${getShowOnBoardKey()} value: $value")
         context.dataStore.edit { settings ->
             settings[getShowOnBoardKey()] = value
         }

@@ -121,9 +121,7 @@ class AddKeyListViewModel @Inject constructor(
                         return@map addKeyData.copy(
                             signer = _state.value.signers.find { it.fingerPrint == info.masterSignerId },
                             verifyType = info.verifyType
-                        ).also {
-                            Timber.d("CongHai: ${it.signer?.fingerPrint}")
-                        }
+                        )
                     }
                     addKeyData.copy(verifyType = info.verifyType)
                 }
