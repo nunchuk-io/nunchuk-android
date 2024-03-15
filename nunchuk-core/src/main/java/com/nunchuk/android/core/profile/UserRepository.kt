@@ -48,8 +48,8 @@ interface UserRepository {
 
     fun showOnBoard(): Flow<Boolean>
 
-    suspend fun markOnboardDone()
-
+    suspend fun setShowOnBoard(isShow: Boolean)
+    suspend fun checkShowOnboardForFreshInstall()
     suspend fun clearDataStore()
 }
 
@@ -108,7 +108,7 @@ internal class UserRepositoryImpl @Inject constructor(
 
     override fun showOnBoard() = ncDataStore.showOnBoard
 
-    override suspend fun markOnboardDone() = ncDataStore.setShowOnBoard(false)
-
+    override suspend fun setShowOnBoard(isShow: Boolean) = ncDataStore.setShowOnBoard(isShow)
+    override suspend fun checkShowOnboardForFreshInstall() = ncDataStore.checkShowOnboardForFreshInstall()
     override suspend fun clearDataStore() = ncDataStore.clear()
 }

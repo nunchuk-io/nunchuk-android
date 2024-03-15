@@ -78,6 +78,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -143,10 +144,9 @@ internal class MainActivityViewModel @Inject constructor(
                 .map { it.getOrElse { false } }
                 .onException { Timber.e(it) }
                 .distinctUntilChanged()
+                .filter { it }
                 .collect {
-                    if (it) {
-                        setEvent(MainAppEvent.ShowOnBoardEvent)
-                    }
+                    setEvent(MainAppEvent.ShowOnBoardEvent)
                 }
         }
         viewModelScope.launch {

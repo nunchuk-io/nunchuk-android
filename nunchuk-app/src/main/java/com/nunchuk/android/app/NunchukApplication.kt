@@ -29,6 +29,7 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
+import com.nunchuk.android.core.profile.CheckShowOnBoardFreshInstallUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
@@ -66,6 +67,9 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     lateinit var getUserProfileUseCase: GetUserProfileUseCase
 
     @Inject
+    lateinit var checkShowOnBoardFreshInstallUseCase: CheckShowOnBoardFreshInstallUseCase
+
+    @Inject
     lateinit var applicationScope: CoroutineScope
 
     private val foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
@@ -85,6 +89,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
             Timber.plant(FileLogTree(this))
         }
         runBlocking {
+            checkShowOnBoardFreshInstallUseCase(Unit)
             matrixInitializerUseCase(Unit)
             val account = accountManager.getAccount()
             val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
