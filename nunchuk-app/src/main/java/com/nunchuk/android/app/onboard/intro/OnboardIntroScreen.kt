@@ -39,6 +39,7 @@ import com.nunchuk.android.compose.SpanIndicator
 fun OnboardIntroScreen(
     modifier: Modifier = Modifier,
     onOpenUnassistedIntro: () -> Unit = {},
+    onOpenAssistedIntro: () -> Unit = {},
     openMainScreen: () -> Unit = {},
     onSignIn: () -> Unit = {},
     viewModel: OnboardIntroViewModel = hiltViewModel(),
@@ -53,6 +54,7 @@ fun OnboardIntroScreen(
     OnboardIntroContent(
         modifier = modifier,
         onOpenUnassistedIntro = onOpenUnassistedIntro,
+        onOpenAssistedIntro = onOpenAssistedIntro,
         onSkip = {
             viewModel.markOnBoardDone()
             openMainScreen()
@@ -67,6 +69,7 @@ fun OnboardIntroContent(
     onSkip: () -> Unit = {},
     onSignIn: () -> Unit = {},
     onOpenUnassistedIntro: () -> Unit = {},
+    onOpenAssistedIntro: () -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier.systemBarsPadding(),
@@ -130,10 +133,9 @@ fun OnboardIntroContent(
                 containerColor = colorResource(id = R.color.nc_denim_tint_color),
                 title = stringResource(R.string.nc_assisted_wallet),
                 description = stringResource(R.string.nc_assisted_wallet_option_desc),
-                painter = painterResource(id = R.drawable.ic_onboard_assisted_wallet)
-            ) {
-
-            }
+                painter = painterResource(id = R.drawable.ic_onboard_assisted_wallet),
+                onClick = onOpenAssistedIntro
+            )
             Spacer(modifier = Modifier.height(16.dp))
             OptionCard(
                 containerColor = colorResource(id = R.color.nc_beeswax_tint),
