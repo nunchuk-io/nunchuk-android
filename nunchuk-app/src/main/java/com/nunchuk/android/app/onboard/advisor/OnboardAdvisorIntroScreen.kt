@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.R
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -47,15 +48,27 @@ import com.nunchuk.android.compose.SpanIndicator
 @Composable
 fun OnboardAdvisorIntroScreen(
     modifier: Modifier = Modifier,
+    viewModel: OnboardAdvisorIntroViewModel = hiltViewModel(),
     onOpenOnboardAdvisorInputScreen: () -> Unit = {},
     onSkip: () -> Unit = {},
     onSignIn: () -> Unit = {},
     onCreateAccount: () -> Unit = {},
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(state.openMainScreen) {
+        if (state.openMainScreen) {
+            onSkip()
+            viewModel.handledOpenMainScreen()
+        }
+    }
+
     OnboardAdvisorIntroContent(
         modifier = modifier,
         onOpenOnboardAdvisorInputScreen = onOpenOnboardAdvisorInputScreen,
-        onSkip = onSkip,
+        onSkip = {
+            viewModel.markOnboardDone()
+        },
         onSignIn = onSignIn,
         onCreateAccount = onCreateAccount
     )

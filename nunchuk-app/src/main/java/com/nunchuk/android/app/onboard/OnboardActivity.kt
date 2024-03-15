@@ -9,8 +9,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.R
 import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAdvisorInput
+import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAdvisorIntro
+import com.nunchuk.android.app.onboard.advisor.navigateToOnboardAssistedWalletIntro
 import com.nunchuk.android.app.onboard.advisor.onboardAdvisorInput
 import com.nunchuk.android.app.onboard.advisor.onboardAdvisorIntro
+import com.nunchuk.android.app.onboard.advisor.onboardAssistedWalletIntro
 import com.nunchuk.android.app.onboard.hotwallet.hotWalletIntro
 import com.nunchuk.android.app.onboard.hotwallet.hotWalletIntroRoute
 import com.nunchuk.android.app.onboard.intro.onboardIntro
@@ -43,6 +46,9 @@ class OnboardActivity : BaseComposeActivity() {
                                 onOpenUnassistedIntro = {
                                     navController.navigateToUnassistedIntro()
                                 },
+                                onOpenAssistedIntro = {
+                                    navController.navigateToOnboardAssistedWalletIntro()
+                                },
                                 openMainScreen = {
                                     navigator.openMainScreen(this@OnboardActivity)
                                     finish()
@@ -67,6 +73,18 @@ class OnboardActivity : BaseComposeActivity() {
                                     AppEvenBus.instance.publish(AppEvent.OpenServiceTabEvent)
                                 }
                             )
+                            onboardAssistedWalletIntro(
+                                onSkip = {
+                                    navigator.openMainScreen(this@OnboardActivity)
+                                    finish()
+                                },
+                                openOnboardAdvisorInputScreen = {
+                                    navController.navigateToOnboardAdvisorInput()
+                                },
+                                onOpenOnboardAdvisorIntroScreen = {
+                                    navController.navigateToOnboardAdvisorIntro()
+                                }
+                            )
                             onboardAdvisorIntro(
                                 onSkip = {
                                     navigator.openMainScreen(this@OnboardActivity)
@@ -74,14 +92,12 @@ class OnboardActivity : BaseComposeActivity() {
                                 },
                                 onSignIn = {
                                     navigator.openSignInScreen(this@OnboardActivity)
-                                    finish()
                                 },
                                 navigateToOnboardAdvisorInput = {
                                     navController.navigateToOnboardAdvisorInput()
                                 },
                                 onCreateAccount = {
                                     navigator.openSignUpScreen(this@OnboardActivity)
-                                    finish()
                                 },
                             )
                             onboardAdvisorInput(

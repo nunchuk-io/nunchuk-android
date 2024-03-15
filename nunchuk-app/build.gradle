@@ -185,6 +185,8 @@ dependencies {
     implementation navigationDeps.values()
     implementation coroutineDeps.values()
 
+    implementation "com.github.skydoves:landscapist-glide:2.2.2"
+
     implementation 'com.google.android.gms:play-services-base:18.2.0'
     implementation 'com.google.firebase:firebase-messaging-ktx:23.2.0'
 

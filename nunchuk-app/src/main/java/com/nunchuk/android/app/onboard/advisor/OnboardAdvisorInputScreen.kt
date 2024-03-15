@@ -57,6 +57,13 @@ fun OnboardAdvisorInputScreen(
 
     val snackState = remember { SnackbarHostState() }
 
+    LaunchedEffect(state.openMainScreen) {
+        if (state.openMainScreen) {
+            onSkip()
+            viewModel.handledOpenMainScreen()
+        }
+    }
+
     LaunchedEffect(state.sendQuerySuccess) {
         if (state.sendQuerySuccess != null) {
             onOpenMainScreen()
@@ -79,7 +86,10 @@ fun OnboardAdvisorInputScreen(
     OnboardAdvisorInputContent(
         modifier = modifier,
         uiState = state,
-        onSkip = onSkip,
+        onSkip = {
+            viewModel.markOnboardDone()
+            onSkip()
+        },
         onCountrySelected = { viewModel.onCountrySelected(it) },
         onEmailChanged = { viewModel.onEmailChanged(it) },
         onNoteChanged = { viewModel.onNoteChanged(it) },
@@ -126,7 +136,7 @@ fun OnboardAdvisorInputContent(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 

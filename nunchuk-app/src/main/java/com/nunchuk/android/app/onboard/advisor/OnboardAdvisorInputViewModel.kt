@@ -1,8 +1,8 @@
 package com.nunchuk.android.app.onboard.advisor
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Country
 import com.nunchuk.android.usecase.GetListCountryUseCase
@@ -16,9 +16,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardAdvisorInputViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     private val getListCountryUseCase: GetListCountryUseCase,
-    private val sendOnboardNoAdvisorUseCase: SendOnboardNoAdvisorUseCase
+    private val sendOnboardNoAdvisorUseCase: SendOnboardNoAdvisorUseCase,
+    private val setOnBoardUseCase: SetOnBoardUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardAdvisorInputUiState())
@@ -27,7 +27,7 @@ class OnboardAdvisorInputViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getListCountryUseCase(Unit).onSuccess { countries ->
-                _state.update {  it.copy(countries = countries) }
+                _state.update { it.copy(countries = countries) }
             }
         }
     }
@@ -61,12 +61,20 @@ class OnboardAdvisorInputViewModel @Inject constructor(
         }
     }
 
+    fun markOnboardDone() = viewModelScope.launch {
+        setOnBoardUseCase(false)
+    }
+
     fun onErrorMessageEventConsumed() {
         _state.update { state -> state.copy(errorMessage = null) }
     }
 
     fun onSendQuerySuccessEventConsumed() {
         _state.update { state -> state.copy(sendQuerySuccess = null) }
+    }
+
+    fun handledOpenMainScreen() {
+        _state.update { it.copy(openMainScreen = false) }
     }
 }
 
@@ -77,5 +85,6 @@ data class OnboardAdvisorInputUiState(
     val countries: List<Country> = emptyList(),
     val selectedCountry: Country? = null,
     val errorMessage: String? = null,
-    val sendQuerySuccess: Any? = null
+    val sendQuerySuccess: Any? = null,
+    val openMainScreen: Boolean = false
 )
