@@ -2,17 +2,20 @@ package com.nunchuk.android.app.onboard.unassisted
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.profile.MarkOnBoardUseCase
 import com.nunchuk.android.usecase.wallet.CreateHotWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class UnAssistedIntroViewModel @Inject constructor(
     private val createHotWalletUseCase: CreateHotWalletUseCase,
+    private val markOnBoardUseCase: MarkOnBoardUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(UnAssistedIntroState())
     val state = _state.asStateFlow()
@@ -22,6 +25,7 @@ class UnAssistedIntroViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             createHotWalletUseCase(Unit)
                 .onSuccess {
+                    markOnBoardUseCase(Unit)
                     _state.update { it.copy(openMainScreen = true) }
                 }
             _state.update { it.copy(isLoading = false) }
@@ -30,6 +34,18 @@ class UnAssistedIntroViewModel @Inject constructor(
 
     fun handledOpenMainScreen() {
         _state.update { it.copy(openMainScreen = false) }
+    }
+
+    fun markOnBoardDone() {
+        viewModelScope.launch {
+            runCatching {
+                markOnBoardUseCase(Unit)
+            }.onSuccess {
+                _state.update { it.copy(openMainScreen = true) }
+            }.onFailure {
+                Timber.e(it)
+            }
+        }
     }
 }
 

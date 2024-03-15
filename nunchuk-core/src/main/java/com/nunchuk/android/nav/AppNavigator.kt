@@ -117,4 +117,5 @@ interface AppNavigator {
     )
 
     fun openHotWalletScreen(activityContext: Context)
+    fun openOnBoardingScreen(activityContext: Context)
 }

@@ -27,9 +27,10 @@ internal sealed class MainAppEvent {
         val connectionStatus: ConnectionStatus
     ) : MainAppEvent()
 
-    object SyncCompleted : MainAppEvent()
+    data object SyncCompleted : MainAppEvent()
 
-    object ConsumeSyncEventCompleted : MainAppEvent()
+    data object ConsumeSyncEventCompleted : MainAppEvent()
+    data object ShowOnBoardEvent : MainAppEvent()
 
     data class UpdateAppRecommendEvent(
         val data: AppUpdateResponse

@@ -25,10 +25,30 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
 import com.nunchuk.android.core.data.model.SyncFileModel
-import com.nunchuk.android.core.domain.*
+import com.nunchuk.android.core.domain.CheckUpdateRecommendUseCase
+import com.nunchuk.android.core.domain.CreateOrUpdateSyncFileUseCase
+import com.nunchuk.android.core.domain.DeleteSyncFileUseCase
+import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
+import com.nunchuk.android.core.domain.GetLocalBtcPriceFlowUseCase
+import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
+import com.nunchuk.android.core.domain.GetSyncFileUseCase
+import com.nunchuk.android.core.domain.GetSyncSettingUseCase
+import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.matrix.*
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.matrix.BackupFileUseCase
+import com.nunchuk.android.core.matrix.ConsumeSyncFileUseCase
+import com.nunchuk.android.core.matrix.ConsumerSyncEventUseCase
+import com.nunchuk.android.core.matrix.DownloadFileUseCase
+import com.nunchuk.android.core.matrix.RegisterDownloadBackUpFileUseCase
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.matrix.UploadFileUseCase
+import com.nunchuk.android.core.profile.GetOnBoardUseCase
+import com.nunchuk.android.core.util.AppUpdateStateHolder
+import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
+import com.nunchuk.android.core.util.BTC_CURRENCY_EXCHANGE_RATE
+import com.nunchuk.android.core.util.PAGINATION
+import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.ConsumeSyncEventCompleted
@@ -55,7 +75,16 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.NoOpMatrixCallback
 import org.matrix.android.sdk.api.session.Session
@@ -90,7 +119,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
     private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase,
     private val sessionHolder: SessionHolder,
-    @IoDispatcher private val dispatcher: CoroutineDispatcher
+    private val getOnBoardUseCase: GetOnBoardUseCase,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -108,6 +138,17 @@ internal class MainActivityViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     init {
+        viewModelScope.launch {
+            getOnBoardUseCase(Unit)
+                .map { it.getOrElse { false } }
+                .onException { Timber.e(it) }
+                .distinctUntilChanged()
+                .collect {
+                    if (it) {
+                        setEvent(MainAppEvent.ShowOnBoardEvent)
+                    }
+                }
+        }
         viewModelScope.launch {
             timelineListenerAdapter.data.collect(::handleTimelineEvents)
         }
@@ -154,6 +195,7 @@ internal class MainActivityViewModel @Inject constructor(
                                 downloadKeys(it)
                             }
                         }
+
                         else -> {}
                     }
                 }
@@ -258,7 +300,7 @@ internal class MainActivityViewModel @Inject constructor(
                 mineType: String,
                 fileJsonInfo: String,
                 data: ByteArray,
-                dataLength: Int
+                dataLength: Int,
             ) {
                 Timber.tag(TAG).d("[App] upload: $fileName")
                 uploadFile(fileName, fileJsonInfo, mineType, data)
@@ -269,7 +311,7 @@ internal class MainActivityViewModel @Inject constructor(
                 fileName: String,
                 mineType: String,
                 fileJsonInfo: String,
-                fileUrl: String
+                fileUrl: String,
             ) {
                 Timber.tag(TAG).d("[App] download: $fileUrl")
                 downloadFile(fileJsonInfo, fileUrl)
@@ -281,7 +323,7 @@ internal class MainActivityViewModel @Inject constructor(
         fileName: String,
         fileJsonInfo: String,
         data: ByteArray,
-        mineType: String
+        mineType: String,
     ) {
         viewModelScope.launch {
             createOrUpdateSyncFileUseCase.execute(
@@ -302,7 +344,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun createOrUpdateDownloadSyncFile(
         fileJsonInfo: String,
-        fileUrl: String
+        fileUrl: String,
     ) {
         viewModelScope.launch {
             createOrUpdateSyncFileUseCase.execute(
@@ -321,7 +363,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun deleteDownloadSyncFile(
         fileJsonInfo: String,
-        fileUrl: String
+        fileUrl: String,
     ) {
         viewModelScope.launch {
             deleteSyncFileUseCase.execute(
@@ -342,7 +384,7 @@ internal class MainActivityViewModel @Inject constructor(
         fileName: String,
         fileJsonInfo: String,
         data: ByteArray,
-        mineType: String
+        mineType: String,
     ) {
         viewModelScope.launch {
             deleteSyncFileUseCase.execute(
@@ -365,7 +407,7 @@ internal class MainActivityViewModel @Inject constructor(
         fileName: String,
         fileJsonInfo: String,
         mineType: String,
-        data: ByteArray
+        data: ByteArray,
     ) {
         viewModelScope.launch {
             uploadFileUseCase.execute(fileName = fileName, fileType = mineType, fileData = data)

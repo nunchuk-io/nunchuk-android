@@ -19,11 +19,9 @@
 
 package com.nunchuk.android.app.splash
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.nunchuk.android.app.onboard.OnboardActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
@@ -61,7 +59,6 @@ internal class SplashActivity : AppCompatActivity() {
                 }
             }
             is SplashEvent.InitErrorEvent -> NCToastMessage(this).showError(event.error)
-            SplashEvent.OnboardingEvent -> startActivity(Intent(this, OnboardActivity::class.java))
         }
         overridePendingTransition(0, 0)
         finish()
