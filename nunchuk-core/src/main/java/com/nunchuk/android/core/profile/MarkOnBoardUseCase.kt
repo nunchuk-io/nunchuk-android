@@ -11,7 +11,6 @@ class MarkOnBoardUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : UseCase<Unit, Unit>(dispatcher) {
     override suspend fun execute(parameters: Unit) {
-        Timber.d("CongHai MarkOnBoardUseCase")
         repository.markOnboardDone()
     }
 }
