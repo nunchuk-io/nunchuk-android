@@ -271,12 +271,20 @@ class NcDataStore @Inject constructor(
 
     val showOnBoard: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[getShowOnBoardKey()] ?: true
+            it[getShowOnBoardKey()] ?: false
         }
 
     suspend fun setShowOnBoard(value: Boolean) {
         context.dataStore.edit { settings ->
             settings[getShowOnBoardKey()] = value
+        }
+    }
+
+    suspend fun checkShowOnboardForFreshInstall() {
+        context.dataStore.edit { settings ->
+            if (settings.asMap().size <= 1) {
+                settings[getShowOnBoardKey()] = true
+            }
         }
     }
 

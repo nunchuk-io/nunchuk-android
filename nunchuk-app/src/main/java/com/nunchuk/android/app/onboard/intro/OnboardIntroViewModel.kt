@@ -2,7 +2,7 @@ package com.nunchuk.android.app.onboard.intro
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.profile.MarkOnBoardUseCase
+import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardIntroViewModel @Inject constructor(
-    private val markOnBoardUseCase: MarkOnBoardUseCase,
+    private val setOnBoardUseCase: SetOnBoardUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(OnboardIntroState())
     val state = _state.asStateFlow()
@@ -21,7 +21,7 @@ class OnboardIntroViewModel @Inject constructor(
     fun markOnBoardDone() {
         viewModelScope.launch {
             runCatching {
-                markOnBoardUseCase(Unit)
+                setOnBoardUseCase(false)
             }.onSuccess {
                 _state.update { it.copy(openMainScreen = true) }
             }.onFailure {

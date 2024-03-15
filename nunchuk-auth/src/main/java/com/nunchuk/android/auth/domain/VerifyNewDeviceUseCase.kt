@@ -23,14 +23,8 @@ import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
-import com.nunchuk.android.core.profile.MarkOnBoardUseCase
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
-import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 interface VerifyNewDeviceUseCase {
@@ -47,9 +41,7 @@ internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
     private val authRepository: AuthRepository,
     private val accountManager: AccountManager,
     private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
-    private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
-    private val markOnBoardUseCase: MarkOnBoardUseCase
+    private val checkShowOnboardUseCase: CheckShowOnboardUseCase,
 ) : VerifyNewDeviceUseCase {
 
     override fun execute(
@@ -78,30 +70,10 @@ internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
 
         runCatching {
             getUserProfileUseCase(Unit)
+            checkShowOnboardUseCase(Unit)
         }
 
-        supervisorScope {
-            val subscription = async {
-                getUserSubscriptionUseCase(Unit)
-                    .onSuccess {
-                        if (it.plan != MembershipPlan.NONE) {
-                            markOnBoardUseCase(Unit)
-                        }
-                    }
-            }
 
-            val groupWallets = async {
-                syncGroupWalletsUseCase(Unit)
-                    .onSuccess {
-                        if (it) {
-                            markOnBoardUseCase(Unit)
-                        }
-                    }
-            }
-
-            subscription.await()
-            groupWallets.await()
-        }
         return response.tokenId to response.deviceId
     }
 

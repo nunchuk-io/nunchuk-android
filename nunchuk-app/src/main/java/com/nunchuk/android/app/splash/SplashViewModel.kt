@@ -22,6 +22,7 @@ package com.nunchuk.android.app.splash
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.profile.CheckShowOnBoardFreshInstallUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,12 +30,14 @@ import javax.inject.Inject
 @HiltViewModel
 internal class SplashViewModel @Inject constructor(
     private val accountManager: AccountManager,
+    private val checkShowOnBoardFreshInstallUseCase: CheckShowOnBoardFreshInstallUseCase
 ) : NunchukViewModel<Unit, SplashEvent>() {
 
     override val initialState = Unit
 
     fun initFlow() {
         viewModelScope.launch {
+            checkShowOnBoardFreshInstallUseCase(Unit)
             val account = accountManager.getAccount()
             when {
                 accountManager.isAccountExisted()
