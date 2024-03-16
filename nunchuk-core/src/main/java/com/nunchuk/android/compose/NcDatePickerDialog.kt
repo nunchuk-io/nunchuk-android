@@ -3,6 +3,7 @@ package com.nunchuk.android.compose
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -21,7 +22,14 @@ fun NcDatePickerDialog(
     dateValidator: (Long) -> Boolean = { it > System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1) },
 ) {
     val calendar = Calendar.getInstance()
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = calendar.timeInMillis)
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = calendar.timeInMillis,
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return dateValidator(utcTimeMillis)
+            }
+        },
+    )
     DatePickerDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
@@ -42,7 +50,6 @@ fun NcDatePickerDialog(
     ) {
         DatePicker(
             state = datePickerState,
-            dateValidator = dateValidator,
         )
     }
 }
