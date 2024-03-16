@@ -124,6 +124,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         slots: List<SatsCardSlot>,
         inputs: List<UnspentOutput>,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
+        isConsolidateFlow: Boolean,
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -136,6 +137,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             slots = slots,
             claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs,
+            isConsolidateFlow = isConsolidateFlow
         )
     }
 
@@ -145,7 +147,6 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         availableAmount: Double,
         txReceipts: List<TxReceipt>,
         privateNote: String,
-        estimatedFee: Double,
         subtractFeeFromAmount: Boolean,
         manualFeeRate: Int,
         sweepType: SweepType,
@@ -156,10 +157,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            txReceipts = txReceipts,
             availableAmount = availableAmount,
+            txReceipts = txReceipts,
             privateNote = privateNote,
-            estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
             sweepType = sweepType,

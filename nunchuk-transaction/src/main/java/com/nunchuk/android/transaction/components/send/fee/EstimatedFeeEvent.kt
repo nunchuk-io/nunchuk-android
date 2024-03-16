@@ -32,7 +32,6 @@ sealed class EstimatedFeeEvent {
     data class GetFeeRateSuccess(val estimateFeeRates: EstimateFeeRates) : EstimatedFeeEvent()
     data class EstimatedFeeErrorEvent(val message: String) : EstimatedFeeEvent()
     data class EstimatedFeeCompletedEvent(
-        val estimatedFee: Double,
         val subtractFeeFromAmount: Boolean,
         val manualFeeRate: Int
     ) : EstimatedFeeEvent()

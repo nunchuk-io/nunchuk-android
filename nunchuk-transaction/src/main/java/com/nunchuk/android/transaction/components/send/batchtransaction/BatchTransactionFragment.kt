@@ -170,7 +170,6 @@ class BatchTransactionFragment : Fragment() {
                 )
 
                 is EstimatedFeeEvent.EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(
-                    estimatedFee = event.estimatedFee,
                     subtractFeeFromAmount = event.subtractFeeFromAmount,
                     manualFeeRate = event.manualFeeRate
                 )
@@ -202,17 +201,15 @@ class BatchTransactionFragment : Fragment() {
     }
 
     private fun openTransactionConfirmScreen(
-        estimatedFee: Double,
         subtractFeeFromAmount: Boolean,
         manualFeeRate: Int
     ) {
         navigator.openTransactionConfirmScreen(
             activityContext = requireActivity(),
             walletId = args.walletId,
-            txReceipts = viewModel.getTxReceiptList(),
             availableAmount = args.availableAmount.toDouble(),
+            txReceipts = viewModel.getTxReceiptList(),
             privateNote = viewModel.getNote(),
-            estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
             slots = emptyList(),

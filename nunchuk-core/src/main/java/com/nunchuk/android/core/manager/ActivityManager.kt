@@ -22,7 +22,7 @@ package com.nunchuk.android.core.manager
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import java.util.*
+import java.util.Stack
 
 object ActivityManager : Application.ActivityLifecycleCallbacks {
     private val activityStack = Stack<Activity>()
@@ -47,7 +47,7 @@ object ActivityManager : Application.ActivityLifecycleCallbacks {
 
     fun <T : Activity> popUntil(clazz: Class<T>, inclusive: Boolean = false) {
         if (activityStack.isNotEmpty()) {
-            while (activityStack.isNotEmpty() && !(activityStack.lastElement() instanceOf clazz)) {
+            while (activityStack.isNotEmpty() && !(activityStack.lastElement() instanceOf clazz) && activityStack.size > 1) {
                 activityStack.pop().finish()
             }
             if (inclusive && activityStack.isNotEmpty() && activityStack.lastElement() instanceOf clazz) {

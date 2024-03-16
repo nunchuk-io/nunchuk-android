@@ -23,7 +23,6 @@ import com.nunchuk.android.core.domain.data.BTC
 import com.nunchuk.android.core.domain.data.BTC_AND_FIXED_PRECISION
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
-import com.nunchuk.android.domain.di.NativeSdkProvider
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
@@ -35,11 +34,7 @@ fun Wallet.getBTCAmount() = balance.getBTCAmount()
 
 fun Wallet.getCurrencyAmount() = balance.getCurrencyAmount()
 
-fun Amount.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
-    SAT -> "${value.beautifySATFormat()} sat"
-    BTC -> "${NativeSdkProvider.instance.nativeSdk.valueFromAmount(this).trimEnd { it == '0' }.trimEnd { it == '.' }} BTC"
-    else -> "${NativeSdkProvider.instance.nativeSdk.valueFromAmount(this)} BTC"
-}
+fun Amount.getBTCAmount() = pureBTC().getBTCAmount()
 
 fun Double.getBtcSat() =  when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> this.roundToLong()

@@ -288,13 +288,13 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             activityContext = this,
             walletId = args.walletId,
             availableAmount = args.availableAmount,
-            txReceipts = listOf(TxReceipt(address, finalAmount)) ,
+            txReceipts = listOf(TxReceipt(address, finalAmount)),
             privateNote = privateNote,
             subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = args.sweepType,
             slots = args.slots,
-            claimInheritanceTxParam = args.claimInheritanceTxParam,
-            inputs = args.inputs
+            inputs = args.inputs,
+            claimInheritanceTxParam = args.claimInheritanceTxParam
         )
     }
 

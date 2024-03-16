@@ -78,6 +78,7 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+        isConsolidateFlow: Boolean = false
     )
 
     fun openTransactionConfirmScreen(
@@ -86,7 +87,6 @@ interface TransactionNavigator {
         availableAmount: Double,
         txReceipts: List<TxReceipt>,
         privateNote: String,
-        estimatedFee: Double,
         subtractFeeFromAmount: Boolean = false,
         manualFeeRate: Int = 0,
         sweepType: SweepType = SweepType.NONE,

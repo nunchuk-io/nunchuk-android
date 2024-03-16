@@ -417,4 +417,24 @@
             android:name="output"
             app:argType="com.nunchuk.android.model.UnspentOutput" />
     </fragment>
+    <fragment
+        android:id="@+id/consolidateCoinFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.consolidate.ConsolidateCoinFragment"
+        android:label="ConsolidateCoinFragment">
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="selected_coins"
+            app:argType="com.nunchuk.android.model.UnspentOutput[]" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_global_consolidateCoinFragment"
+        app:destination="@id/consolidateCoinFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:launchSingleTop="true"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 </navigation>

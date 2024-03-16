@@ -55,10 +55,12 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                             showSuccess(getString(R.string.nc_coin_locked))
                             resetSelect()
                         }
+
                         CoinListEvent.CoinUnlocked -> {
                             showSuccess(getString(R.string.nc_coin_unlocked))
                             resetSelect()
                         }
+
                         is CoinListEvent.Error -> showError(event.message)
                         CoinListEvent.RemoveCoinFromTagSuccess -> {
                             coinListViewModel.refresh()
@@ -82,10 +84,12 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                 walletId,
                 getSelectedCoins()
             )
+
             SheetOptionType.TYPE_UNLOCK_COIN -> coinListViewModel.onUnlockCoin(
                 walletId,
                 getSelectedCoins()
             )
+
             SheetOptionType.TYPE_ADD_COLLECTION -> findNavController().navigate(
                 CoinNavigationDirections.actionGlobalCoinCollectionListFragment(
                     walletId = walletId,
@@ -93,6 +97,7 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                     coins = getSelectedCoins().toTypedArray()
                 )
             )
+
             SheetOptionType.TYPE_ADD_TAG -> findNavController().navigate(
                 CoinNavigationDirections.actionGlobalCoinTagListFragment(
                     walletId = walletId,
@@ -100,11 +105,24 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                     coins = getSelectedCoins().toTypedArray()
                 )
             )
+
+            SheetOptionType.TYPE_CONSOLIDATE_COIN -> {
+                findNavController().navigate(
+                    CoinNavigationDirections.actionGlobalConsolidateCoinFragment(
+                        walletId = walletId,
+                        selectedCoins = getSelectedCoins().toTypedArray()
+                    )
+                )
+            }
         }
     }
 
     open fun showSelectCoinOptions() {
         val options = listOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_CONSOLIDATE_COIN,
+                label = getString(R.string.nc_consolidate_coins)
+            ),
             SheetOption(
                 type = SheetOptionType.TYPE_LOCK_COIN,
                 label = getString(R.string.nc_lock_coin)

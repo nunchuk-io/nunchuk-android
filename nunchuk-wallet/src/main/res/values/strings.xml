@@ -94,4 +94,7 @@
     <string name="nc_write_down_the_seed_pharse_warning">Please write down the seed phrase. It’s the backup for your key. Do it now.</string>
     <string name="nc_do_it_now">Do it now</string>
     <string name="nc_back_up_seed_phrase_confirmation">This action cannot be repeated. Please make sure that you are ready before proceeding.</string>
+    <string name="nc_consolidate_coins">Consolidate coins</string>
+    <string name="nc_consolidate_coin_desc">Merge multiple coins and turn them into one larger coin.</string>
+    <string name="nc_customize_transaction">Customize transaction</string>
 </resources>

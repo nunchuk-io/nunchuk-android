@@ -40,7 +40,6 @@ data class TransactionConfirmArgs(
     val availableAmount: Double,
     val txReceipts: List<TxReceipt>,
     val privateNote: String,
-    val estimatedFee: Double,
     val subtractFeeFromAmount: Boolean = false,
     val manualFeeRate: Int = 0,
     val sweepType: SweepType,
@@ -54,7 +53,6 @@ data class TransactionConfirmArgs(
             putExtra(EXTRA_WALLET_ID, walletId)
             putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
             putExtra(EXTRA_PRIVATE_NOTE, privateNote)
-            putExtra(EXTRA_ESTIMATE_FEE, estimatedFee)
             putExtra(EXTRA_SUBTRACT_FEE_FROM_AMOUNT, subtractFeeFromAmount)
             putExtra(EXTRA_MANUAL_FEE_RATE, manualFeeRate)
             putExtra(EXTRA_SWEEP_TYPE, sweepType)
@@ -68,7 +66,6 @@ data class TransactionConfirmArgs(
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_AVAILABLE_AMOUNT = "EXTRA_AVAILABLE_AMOUNT"
         private const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
-        private const val EXTRA_ESTIMATE_FEE = "EXTRA_ESTIMATE_FEE"
         private const val EXTRA_SUBTRACT_FEE_FROM_AMOUNT = "EXTRA_SUBTRACT_FEE_FROM_AMOUNT"
         private const val EXTRA_MANUAL_FEE_RATE = "EXTRA_MANUAL_FEE_RATE"
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
@@ -83,7 +80,6 @@ data class TransactionConfirmArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
                 availableAmount = extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
                 privateNote = extras.getStringValue(EXTRA_PRIVATE_NOTE),
-                estimatedFee = extras.getDoubleValue(EXTRA_ESTIMATE_FEE),
                 subtractFeeFromAmount = extras.getBooleanValue(EXTRA_SUBTRACT_FEE_FROM_AMOUNT),
                 manualFeeRate = extras.getIntValue(EXTRA_MANUAL_FEE_RATE),
                 sweepType = extras?.serializable(EXTRA_SWEEP_TYPE)!!,

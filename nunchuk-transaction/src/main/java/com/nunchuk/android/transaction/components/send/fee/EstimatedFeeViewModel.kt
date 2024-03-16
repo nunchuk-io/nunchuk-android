@@ -26,7 +26,6 @@ import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.sum
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
@@ -258,7 +257,6 @@ class EstimatedFeeViewModel @Inject constructor(
         getState().apply {
             event(
                 EstimatedFeeCompletedEvent(
-                    estimatedFee = estimatedFee.pureBTC(),
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     manualFeeRate = manualFeeRate
                 )

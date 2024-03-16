@@ -38,6 +38,7 @@ import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
@@ -111,6 +112,17 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             nfcViewModel.clearScanInfo()
         }
         flowObserver(viewModel.uiState) { uiState ->
+            binding.estimatedFeeBTC.text = uiState.transaction.fee.getBTCAmount()
+            binding.estimatedFeeUSD.text = uiState.transaction.fee.getCurrencyAmount()
+            val totalAmount: Double
+            val outputAmount = args.txReceipts.sumOf { it.amount }
+            totalAmount = if (args.subtractFeeFromAmount) {
+                outputAmount
+            } else {
+                outputAmount + uiState.transaction.fee.pureBTC()
+            }
+            binding.totalAmountBTC.text = totalAmount.getBTCAmount()
+            binding.totalAmountUSD.text = totalAmount.getCurrencyAmount()
             if (args.inputs.isNotEmpty()) {
                 binding.composeCoin.setContent {
                     TransactionConfirmCoinList(args.inputs, uiState.allTags)
@@ -120,22 +132,12 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
     }
 
     private fun setupViews() {
-        binding.toolbarTitle.text = args.sweepType.toTitle(this, getString(R.string.nc_transaction_confirm_transaction))
+        binding.toolbarTitle.text =
+            args.sweepType.toTitle(this, getString(R.string.nc_transaction_confirm_transaction))
         binding.btnConfirm.text = when (args.sweepType) {
             SweepType.NONE -> getString(R.string.nc_transaction_confirm_and_create_transaction)
             else -> getString(R.string.nc_confirm_and_sweep)
         }
-        binding.estimatedFeeBTC.text = args.estimatedFee.getBTCAmount()
-        binding.estimatedFeeUSD.text = args.estimatedFee.getCurrencyAmount()
-        val totalAmount: Double
-        val outputAmount = args.txReceipts.sumOf { it.amount }
-        totalAmount = if (args.subtractFeeFromAmount) {
-            outputAmount
-        } else {
-            outputAmount + args.estimatedFee
-        }
-        binding.totalAmountBTC.text = totalAmount.getBTCAmount()
-        binding.totalAmountUSD.text = totalAmount.getCurrencyAmount()
         binding.noteContent.isVisible = args.privateNote.isNotEmpty()
         binding.privateNote.isVisible = args.privateNote.isNotEmpty()
         binding.noteContent.text = args.privateNote
@@ -177,6 +179,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                 viewModel.isInheritanceClaimingFlow(),
                 transaction = if (viewModel.isInheritanceClaimingFlow()) event.transaction else null
             )
+
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             is LoadingEvent -> showLoading(message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else null)
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
@@ -200,7 +203,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             }
 
             is TransactionConfirmEvent.DraftTransactionSuccess -> {
-                val coins = event.transaction.outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
+                val coins = if (event.transaction.outputs.size == 1) event.transaction.outputs else
+                    event.transaction.outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
                 TxReceiptViewBinder(binding.receiptList, coins) {
                     handleCopyContent(it)
                 }.bindItems()
@@ -239,7 +243,6 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             availableAmount: Double,
             txReceipts: List<TxReceipt>,
             privateNote: String,
-            estimatedFee: Double,
             subtractFeeFromAmount: Boolean = false,
             manualFeeRate: Int = 0,
             sweepType: SweepType = SweepType.NONE,
@@ -253,7 +256,6 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     availableAmount = availableAmount,
                     txReceipts = txReceipts,
                     privateNote = privateNote,
-                    estimatedFee = estimatedFee,
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     manualFeeRate = manualFeeRate,
                     sweepType = sweepType,
