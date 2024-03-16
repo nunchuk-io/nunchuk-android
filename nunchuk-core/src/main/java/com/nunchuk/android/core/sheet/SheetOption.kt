@@ -140,4 +140,6 @@ object SheetOptionType {
     const val TYPE_QR_BC_UR2_LEGACY = 78
     const val TYPE_QR_BC_UR2 = 79
     const val TYPE_SEARCH_TX = 80
+
+    const val TYPE_CONSOLIDATE_COIN = 81
 }

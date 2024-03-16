@@ -30,7 +30,13 @@ import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.setUnderline
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
@@ -90,6 +96,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
     @OptIn(FlowPreview::class)
     private fun setupViews() {
+        binding.tvCustomize.isVisible = !args.isConsolidateFlow
         binding.tvCustomize.setUnderline()
         binding.toolbarTitle.text = args.sweepType.toTitle(this, getString(R.string.nc_customize_transaction))
         val subtractFeeFromAmount = args.subtractFeeFromAmount
@@ -199,7 +206,6 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         when (event) {
             is EstimatedFeeErrorEvent -> onEstimatedFeeError(event)
             is EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(
-                estimatedFee = event.estimatedFee,
                 subtractFeeFromAmount = event.subtractFeeFromAmount,
                 manualFeeRate = event.manualFeeRate
             )
@@ -220,23 +226,21 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun openTransactionConfirmScreen(
-        estimatedFee: Double,
         subtractFeeFromAmount: Boolean,
         manualFeeRate: Int
     ) {
         navigator.openTransactionConfirmScreen(
             activityContext = this,
             walletId = args.walletId,
-            txReceipts = args.txReceipts,
             availableAmount = args.availableAmount,
+            txReceipts = args.txReceipts,
             privateNote = args.privateNote,
-            estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
             sweepType = args.sweepType,
             slots = args.slots,
-            claimInheritanceTxParam = args.claimInheritanceTxParam,
-            inputs = viewModel.getSelectedCoins()
+            inputs = viewModel.getSelectedCoins(),
+            claimInheritanceTxParam = args.claimInheritanceTxParam
         )
     }
 
@@ -252,7 +256,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             sweepType: SweepType = SweepType.NONE,
             slots: List<SatsCardSlot>,
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-            inputs: List<UnspentOutput> = emptyList()
+            inputs: List<UnspentOutput> = emptyList(),
+            isConsolidateFlow: Boolean = false
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -264,7 +269,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     sweepType = sweepType,
                     slots = slots,
                     claimInheritanceTxParam = claimInheritanceTxParam,
-                    inputs = inputs
+                    inputs = inputs,
+                    isConsolidateFlow = isConsolidateFlow
                 ).buildIntent(activityContext)
             )
         }

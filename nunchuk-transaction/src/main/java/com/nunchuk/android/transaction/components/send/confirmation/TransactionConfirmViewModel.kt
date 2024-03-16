@@ -49,7 +49,6 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
-import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
@@ -80,7 +79,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
     private val pushEventManager: PushEventManager,
     private val isMyCoinUseCase: IsMyCoinUseCase,
-    ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
+) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
 
@@ -206,7 +205,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private fun draftInheritanceTransaction() {
         event(LoadingEvent())
         viewModelScope.launch {
-           val result = inheritanceClaimCreateTransactionUseCase(
+            val result = inheritanceClaimCreateTransactionUseCase(
                 InheritanceClaimCreateTransactionUseCase.Param(
                     masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
                     address = txReceipts.first().address,
@@ -230,6 +229,9 @@ class TransactionConfirmViewModel @Inject constructor(
         )
 
     private fun onDraftTransactionSuccess(data: Transaction) {
+        _state.update { state ->
+            state.copy(transaction = data)
+        }
         setEvent(DraftTransactionSuccess(data))
         val hasChange: Boolean = data.hasChangeIndex()
         if (hasChange) {
@@ -283,8 +285,11 @@ class TransactionConfirmViewModel @Inject constructor(
                     setEvent(
                         AssignTagEvent(
                             walletId = walletId,
-                            txId =  transaction.txId,
-                            output = UnspentOutput(txid = transaction.txId, vout = transaction.changeIndex),
+                            txId = transaction.txId,
+                            output = UnspentOutput(
+                                txid = transaction.txId,
+                                vout = transaction.changeIndex
+                            ),
                             tags = tags
                         )
                     )
@@ -322,6 +327,9 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 }
 
-data class TransactionConfirmUiState(val allTags: Map<Int, CoinTag> = emptyMap())
+data class TransactionConfirmUiState(
+    val allTags: Map<Int, CoinTag> = emptyMap(),
+    val transaction: Transaction = Transaction(),
+)
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)
