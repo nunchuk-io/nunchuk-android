@@ -91,7 +91,7 @@ class OnboardActivity : BaseComposeActivity() {
                                     finish()
                                 },
                                 onSignIn = {
-                                    navigator.openSignInScreen(this@OnboardActivity)
+                                    navigator.openSignInScreen(this@OnboardActivity, isNeedNewTask = false)
                                 },
                                 navigateToOnboardAdvisorInput = {
                                     navController.navigateToOnboardAdvisorInput()

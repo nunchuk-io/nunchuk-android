@@ -93,7 +93,10 @@ fun OnboardAdvisorInputScreen(
         onCountrySelected = { viewModel.onCountrySelected(it) },
         onEmailChanged = { viewModel.onEmailChanged(it) },
         onNoteChanged = { viewModel.onNoteChanged(it) },
-        onSendQuery = { viewModel.onSendQuery() }
+        onSendQuery = { viewModel.onSendQuery() },
+        onOpenLearnMore = {
+            viewModel.markOnboardDone()
+        }
     )
 }
 
@@ -106,6 +109,7 @@ fun OnboardAdvisorInputContent(
     onEmailChanged: (String) -> Unit = {},
     onNoteChanged: (String) -> Unit = {},
     onSendQuery: () -> Unit = {},
+    onOpenLearnMore: () -> Unit = {},
 ) {
 
     val context = LocalContext.current
@@ -154,6 +158,7 @@ fun OnboardAdvisorInputContent(
                             .fillMaxWidth()
                             .padding(vertical = 16.dp)
                             .clickable {
+                                onOpenLearnMore()
                                 context.openExternalLink("https://nunchuk.io/individuals")
                             },
                         text = stringResource(R.string.nc_learn_more_about_assisted_services),

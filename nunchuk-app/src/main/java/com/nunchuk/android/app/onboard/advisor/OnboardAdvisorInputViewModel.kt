@@ -54,6 +54,7 @@ class OnboardAdvisorInputViewModel @Inject constructor(
                     note = state.note
                 )
             ).onSuccess {
+                markOnboardDone()
                 _state.update { it.copy(sendQuerySuccess = Any()) }
             }.onFailure {
                 _state.update { it.copy(errorMessage = it.errorMessage.orUnknownError()) }

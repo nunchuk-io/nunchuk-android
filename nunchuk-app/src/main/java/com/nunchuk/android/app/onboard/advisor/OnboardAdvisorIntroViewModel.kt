@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -20,7 +21,13 @@ class OnboardAdvisorIntroViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun markOnboardDone() = viewModelScope.launch {
-        setOnBoardUseCase(false)
+        runCatching {
+            setOnBoardUseCase(false)
+        }.onSuccess {
+            _state.update { it.copy(openMainScreen = true) }
+        }.onFailure {
+            Timber.e(it)
+        }
     }
 
     fun handledOpenMainScreen() {
