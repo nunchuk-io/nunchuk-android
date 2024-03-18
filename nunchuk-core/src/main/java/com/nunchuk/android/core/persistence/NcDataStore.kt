@@ -269,9 +269,9 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    val showOnBoard: Flow<Boolean>
+    val showOnBoard: Flow<Boolean?>
         get() = context.dataStore.data.map {
-            it[getShowOnBoardKey()] ?: false
+            it[getShowOnBoardKey()]
         }
 
     suspend fun setShowOnBoard(value: Boolean) {

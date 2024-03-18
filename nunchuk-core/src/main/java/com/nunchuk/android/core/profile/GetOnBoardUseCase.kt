@@ -9,8 +9,8 @@ import javax.inject.Inject
 class GetOnBoardUseCase @Inject constructor(
     private val repository: UserRepository,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
-) : FlowUseCase<Unit, Boolean>(dispatcher) {
-    override fun execute(parameters: Unit): Flow<Boolean> {
+) : FlowUseCase<Unit, Boolean?>(dispatcher) {
+    override fun execute(parameters: Unit): Flow<Boolean?> {
         return repository.showOnBoard()
     }
 }
