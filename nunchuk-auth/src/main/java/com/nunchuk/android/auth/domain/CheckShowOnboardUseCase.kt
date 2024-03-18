@@ -21,11 +21,12 @@ class CheckShowOnboardUseCase @Inject constructor(
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
 ) : UseCase<Unit, Unit>(dispatcher) {
     override suspend fun execute(parameters: Unit) {
-        val shouldShowOnboard = getOnBoardUseCase(Unit).first().getOrElse { true }
-        if (!shouldShowOnboard) {
+        val shouldShowOnboard = getOnBoardUseCase(Unit).first().getOrElse { null }
+        if (shouldShowOnboard != false) {
             supervisorScope {
                 val subscription = async {
-                    getUserSubscriptionUseCase(Unit).map { it.plan }.getOrElse { MembershipPlan.NONE }
+                    getUserSubscriptionUseCase(Unit).map { it.plan }
+                        .getOrElse { MembershipPlan.NONE }
                 }
 
                 val groupWallets = async {

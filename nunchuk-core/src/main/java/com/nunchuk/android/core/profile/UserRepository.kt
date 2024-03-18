@@ -46,7 +46,7 @@ interface UserRepository {
 
     fun compromiseDevices(devices: List<String>): Flow<Unit>
 
-    fun showOnBoard(): Flow<Boolean>
+    fun showOnBoard(): Flow<Boolean?>
 
     suspend fun setShowOnBoard(isShow: Boolean)
     suspend fun checkShowOnboardForFreshInstall()
@@ -106,7 +106,7 @@ internal class UserRepositoryImpl @Inject constructor(
         emit(Unit)
     }
 
-    override fun showOnBoard() = ncDataStore.showOnBoard
+    override fun showOnBoard(): Flow<Boolean?> = ncDataStore.showOnBoard
 
     override suspend fun setShowOnBoard(isShow: Boolean) = ncDataStore.setShowOnBoard(isShow)
     override suspend fun checkShowOnboardForFreshInstall() = ncDataStore.checkShowOnboardForFreshInstall()

@@ -2,6 +2,7 @@ package com.nunchuk.android.app.onboard.intro
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,8 +15,13 @@ import javax.inject.Inject
 @HiltViewModel
 class OnboardIntroViewModel @Inject constructor(
     private val setOnBoardUseCase: SetOnBoardUseCase,
+    accountManager: AccountManager,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(OnboardIntroState())
+    private val _state = MutableStateFlow(
+        OnboardIntroState(
+            isLoggedIn = accountManager.getAccount().chatId.isNotEmpty()
+        ),
+    )
     val state = _state.asStateFlow()
 
     fun markOnBoardDone() {
@@ -37,4 +43,5 @@ class OnboardIntroViewModel @Inject constructor(
 
 data class OnboardIntroState(
     val openMainScreen: Boolean = false,
+    val isLoggedIn: Boolean = false,
 )

@@ -52,6 +52,7 @@ fun OnboardIntroScreen(
         }
     }
     OnboardIntroContent(
+        state = state,
         modifier = modifier,
         onOpenUnassistedIntro = onOpenUnassistedIntro,
         onOpenAssistedIntro = onOpenAssistedIntro,
@@ -66,6 +67,7 @@ fun OnboardIntroScreen(
 @Composable
 fun OnboardIntroContent(
     modifier: Modifier = Modifier,
+    state: OnboardIntroState = OnboardIntroState(),
     onSkip: () -> Unit = {},
     onSignIn: () -> Unit = {},
     onOpenUnassistedIntro: () -> Unit = {},
@@ -88,22 +90,24 @@ fun OnboardIntroContent(
             }
         },
         bottomBar = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                NcSpannedClickableText(
-                    modifier = Modifier
-                        .padding(16.dp),
-                    text = stringResource(R.string.nc_already_have_an_account_sign_in),
-                    baseStyle = NunchukTheme.typography.body,
-                    styles = mapOf(
-                        SpanIndicator('A') to SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                        )
-                    ),
-                    onClick = { onSignIn() }
-                )
+            if (!state.isLoggedIn) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    NcSpannedClickableText(
+                        modifier = Modifier
+                            .padding(16.dp),
+                        text = stringResource(R.string.nc_already_have_an_account_sign_in),
+                        baseStyle = NunchukTheme.typography.body,
+                        styles = mapOf(
+                            SpanIndicator('A') to SpanStyle(
+                                fontWeight = FontWeight.Bold,
+                            )
+                        ),
+                        onClick = { onSignIn() }
+                    )
+                }
             }
         },
     ) { innerPadding ->
