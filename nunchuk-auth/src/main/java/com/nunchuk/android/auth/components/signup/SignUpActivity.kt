@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signup.SignUpEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySignupBinding
@@ -41,6 +42,10 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
 
     override fun initializeBinding() = ActivitySignupBinding.inflate(layoutInflater)
 
+    private val isOnboardingFlow: Boolean by lazy {
+        intent.getBooleanExtra(EXTRA_IS_ONBOARDING_FLOW, false)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -53,9 +58,13 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
         binding.signUp.setOnDebounceClickListener { onRegisterClicked() }
         binding.signIn.setOnDebounceClickListener { openLoginScreen() }
         binding.signUpPrimaryKey.setOnDebounceClickListener { openSignUpPrimaryKeyScreen() }
+        binding.ivBack.setOnDebounceClickListener { finish() }
 
         binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_term), TERM_URL)
         binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_policy), PRIVACY_URL)
+
+        binding.signUpPrimaryKey.isVisible = isOnboardingFlow.not()
+        binding.ivBack.isVisible = isOnboardingFlow
     }
 
     private fun onRegisterClicked() {
@@ -127,8 +136,12 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     companion object {
         private const val PRIVACY_URL = "https://www.nunchuk.io/privacy"
         private const val TERM_URL = "https://www.nunchuk.io/terms"
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, SignUpActivity::class.java))
+        const val EXTRA_IS_ONBOARDING_FLOW = "is_onboarding_flow"
+        fun start(activityContext: Context, isOnboardingFlow: Boolean = false) {
+            val intent = Intent(activityContext, SignUpActivity::class.java).apply {
+                putExtra(EXTRA_IS_ONBOARDING_FLOW, isOnboardingFlow)
+            }
+            activityContext.startActivity(intent)
         }
     }
 }

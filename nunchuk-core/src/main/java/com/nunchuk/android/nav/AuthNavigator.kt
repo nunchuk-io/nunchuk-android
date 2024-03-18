@@ -26,7 +26,7 @@ import androidx.activity.result.ActivityResultLauncher
 interface AuthNavigator {
     fun openSignInScreen(activityContext: Context, isNeedNewTask: Boolean = true, isAccountDeleted: Boolean = false)
 
-    fun openSignUpScreen(activityContext: Context)
+    fun openSignUpScreen(activityContext: Context, isOnboardingFlow: Boolean = false)
 
     fun openChangePasswordScreen(activityContext: Context)
 

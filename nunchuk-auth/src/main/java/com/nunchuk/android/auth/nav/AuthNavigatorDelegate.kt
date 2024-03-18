@@ -36,8 +36,8 @@ interface AuthNavigatorDelegate : AuthNavigator {
         SignInActivity.start(activityContext, isNeedNewTask, isAccountDeleted)
     }
 
-    override fun openSignUpScreen(activityContext: Context) {
-        SignUpActivity.start(activityContext)
+    override fun openSignUpScreen(activityContext: Context, isOnboardingFlow: Boolean) {
+        SignUpActivity.start(activityContext, isOnboardingFlow)
     }
 
     override fun openChangePasswordScreen(activityContext: Context) {

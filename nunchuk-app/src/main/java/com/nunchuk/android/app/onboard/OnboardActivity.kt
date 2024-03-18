@@ -97,7 +97,7 @@ class OnboardActivity : BaseComposeActivity() {
                                     navController.navigateToOnboardAdvisorInput()
                                 },
                                 onCreateAccount = {
-                                    navigator.openSignUpScreen(this@OnboardActivity)
+                                    navigator.openSignUpScreen(this@OnboardActivity, isOnboardingFlow = true)
                                 },
                             )
                             onboardAdvisorInput(
@@ -108,7 +108,8 @@ class OnboardActivity : BaseComposeActivity() {
                                 onOpenMainScreen = {
                                     navigator.openMainScreen(
                                         this@OnboardActivity,
-                                        messages = arrayListOf(getString(R.string.nc_query_sent))
+                                        messages = arrayListOf(getString(R.string.nc_query_sent)),
+                                        isClearTask = true
                                     )
                                 },
                             )
