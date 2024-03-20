@@ -29,7 +29,12 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -78,10 +83,17 @@ internal class ImportTransactionViewModel @Inject constructor(
         if (isProcessing) return
         viewModelScope.launch {
             isProcessing = true
-            val result = parseKeystoneDummyTransaction(ParseKeystoneDummyTransaction.Param(args.walletId, qrDataList.toList()))
-            if (result.isSuccess) {
-                setEvent(ImportTransactionSuccess(result.getOrThrow()))
-            }
+            parseKeystoneDummyTransaction(
+                ParseKeystoneDummyTransaction.Param(
+                    args.walletId,
+                    qrDataList.toList()
+                )
+            )
+                .onSuccess {
+                    setEvent(ImportTransactionSuccess())
+                }.onFailure {
+                    Timber.e(it, "[ImportTransaction]")
+                }
             isProcessing = false
         }
     }
@@ -91,15 +103,17 @@ internal class ImportTransactionViewModel @Inject constructor(
         if (!isProcessing) {
             viewModelScope.launch {
                 Timber.d("[ImportTransaction]execute($args.walletId, $qrDataList)")
-                    importKeystoneTransactionUseCase.execute(
-                        walletId = args.walletId,
-                        qrData = qrDataList.toList(),
-                        initEventId = args.initEventId,
-                        masterFingerPrint = args.masterFingerPrint
-                    )
+                importKeystoneTransactionUseCase.execute(
+                    walletId = args.walletId,
+                    qrData = qrDataList.toList(),
+                    initEventId = args.initEventId,
+                    masterFingerPrint = args.masterFingerPrint
+                )
                     .onStart { isProcessing = true }
                     .flowOn(IO)
-                    .onException {  }
+                    .onException {
+                        Timber.e(it, "[ImportTransaction]")
+                    }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
                     .collect { event(ImportTransactionSuccess()) }

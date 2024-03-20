@@ -126,7 +126,8 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         when (option.type) {
             TransactionOption.EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
             TransactionOption.IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
-            SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen()
+            SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen(false)
+            SheetOptionType.TYPE_EXPORT_BBQR -> openExportTransactionScreen(true)
             SheetOptionType.TYPE_EXPORT_FILE -> viewModel.exportTransactionToFile(
                 walletAuthenticationViewModel.getDataToSign()
             )
@@ -465,13 +466,14 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         binding.estimatedFeeUSD.text = transaction.fee.getCurrencyAmount()
     }
 
-    private fun openExportTransactionScreen() {
+    private fun openExportTransactionScreen(isBBQR: Boolean) {
         navigator.openExportTransactionScreen(
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             txToSign = walletAuthenticationViewModel.getDataToSign(),
             isDummyTx = true,
-            walletId = walletAuthenticationViewModel.getWalletId()
+            walletId = walletAuthenticationViewModel.getWalletId(),
+            isBBQR = isBBQR
         )
     }
 
@@ -491,6 +493,11 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                     type = SheetOptionType.TYPE_EXPORT_QR,
                     resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
                     label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_qr),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_BBQR,
+                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
+                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_bbqr),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_FILE,

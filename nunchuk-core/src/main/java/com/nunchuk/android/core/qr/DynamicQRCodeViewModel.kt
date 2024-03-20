@@ -27,13 +27,20 @@ import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.HIGH_DENSITY
+import com.nunchuk.android.core.util.LOW_DENSITY
+import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.usecase.ExportBCR2020010WalletUseCase
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.qr.ExportBBQRWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -44,10 +51,12 @@ class DynamicQRCodeViewModel @Inject constructor(
     private val exportBCR2020010WalletUseCase: ExportBCR2020010WalletUseCase,
     private val getQrDensitySettingUseCase: GetQrDensitySettingUseCase,
     private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
+    private val exportBBQRWalletUseCase: ExportBBQRWalletUseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val walletId = savedStateHandle.get<String>(DynamicQRCodeArgs.EXTRA_WALLET_ID).orEmpty()
-    val type = savedStateHandle.get<Int>(DynamicQRCodeArgs.EXTRA_QR_CODE_TYPE) ?: ExportWalletQRCodeType.BC_UR2_LEGACY
+    val type = savedStateHandle.get<Int>(DynamicQRCodeArgs.EXTRA_QR_CODE_TYPE)
+        ?: ExportWalletQRCodeType.BC_UR2_LEGACY
 
     private val _state = MutableStateFlow(DynamicQRCodeState())
     val state = _state.asStateFlow()
@@ -86,7 +95,25 @@ class DynamicQRCodeViewModel @Inject constructor(
             }
         } else if (type == ExportWalletQRCodeType.BC_UR2) {
             viewModelScope.launch {
-                exportBCR2020010WalletUseCase(ExportBCR2020010WalletUseCase.Params(walletId, density))
+                exportBCR2020010WalletUseCase(
+                    ExportBCR2020010WalletUseCase.Params(
+                        walletId,
+                        density
+                    )
+                )
+                    .map { list -> list.mapNotNull { it.convertToQRCode() } }
+                    .onSuccess { bitmaps ->
+                        _state.update { it.copy(bitmaps = bitmaps) }
+                    }
+            }
+        } else if (type == ExportWalletQRCodeType.BBQR) {
+            viewModelScope.launch {
+                val convertDensity = when (density) {
+                    LOW_DENSITY -> 3
+                    MEDIUM_DENSITY -> 10
+                    else -> 27
+                }
+                exportBBQRWalletUseCase(ExportBBQRWalletUseCase.Params(walletId, convertDensity))
                     .map { list -> list.mapNotNull { it.convertToQRCode() } }
                     .onSuccess { bitmaps ->
                         _state.update { it.copy(bitmaps = bitmaps) }
@@ -96,4 +123,8 @@ class DynamicQRCodeViewModel @Inject constructor(
     }
 }
 
-data class DynamicQRCodeState(val bitmaps: List<Bitmap> = emptyList(), val density: Int = HIGH_DENSITY, val name: String = "")
+data class DynamicQRCodeState(
+    val bitmaps: List<Bitmap> = emptyList(),
+    val density: Int = HIGH_DENSITY,
+    val name: String = "",
+)

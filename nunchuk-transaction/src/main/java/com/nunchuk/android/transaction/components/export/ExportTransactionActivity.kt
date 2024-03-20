@@ -43,7 +43,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @AndroidEntryPoint
 class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>() {
@@ -163,7 +162,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             txToSign: String = "",
             initEventId: String = "",
             masterFingerPrint: String = "",
-            isDummyTx: Boolean = false
+            isDummyTx: Boolean = false,
+            isBBQR: Boolean = false
         ): Intent {
             return ExportTransactionArgs(
                 walletId = walletId,
@@ -171,7 +171,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 txToSign = txToSign,
                 initEventId = initEventId,
                 masterFingerPrint = masterFingerPrint,
-                isDummyTx = isDummyTx
+                isDummyTx = isDummyTx,
+                isBBQR = isBBQR
             ).buildIntent(activityContext)
         }
     }

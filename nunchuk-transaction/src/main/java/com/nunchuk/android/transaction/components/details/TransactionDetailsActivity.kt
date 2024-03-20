@@ -256,7 +256,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             SheetOptionType.IMPORT_TX_FROM_Mk4 -> startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
             IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
             EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
-            SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen()
+            SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen(false)
+            SheetOptionType.TYPE_EXPORT_BBQR -> openExportTransactionScreen(true)
             SheetOptionType.TYPE_EXPORT_FILE -> viewModel.exportTransactionToFile()
             SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
@@ -736,7 +737,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         )
     }
 
-    private fun openExportTransactionScreen() {
+    private fun openExportTransactionScreen(isBBQR: Boolean) {
         startActivity(
             ExportTransactionActivity.buildIntent(
                 activityContext = this,
@@ -744,6 +745,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 txId = args.txId,
                 initEventId = viewModel.getInitEventId(),
                 masterFingerPrint = viewModel.currentSigner()?.fingerPrint.orEmpty(),
+                isBBQR = isBBQR
             )
         )
     }
@@ -870,6 +872,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     type = SheetOptionType.TYPE_EXPORT_QR,
                     resId = R.drawable.ic_qr,
                     label = getString(R.string.nc_export_via_qr),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_BBQR,
+                    resId = R.drawable.ic_qr,
+                    label = getString(R.string.nc_export_via_bbqr),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_FILE,
