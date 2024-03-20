@@ -78,7 +78,9 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
-        binding.barcodeView.decodeContinuous { viewModel.importTransactionViaQR(it.text) }
+        binding.barcodeView.decodeContinuous {
+            viewModel.importTransactionViaQR(it.text)
+        }
         binding.toolbar.setNavigationOnClickListener { finish() }
     }
 

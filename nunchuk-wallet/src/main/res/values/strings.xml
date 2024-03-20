@@ -98,4 +98,6 @@
     <string name="nc_consolidate_coin_desc">Merge multiple coins and turn them into one larger coin.</string>
     <string name="nc_customize_transaction">Customize transaction</string>
     <string name="nc_consolidate_generate_address_error_msg">A consolidating address cannot be generated at this time. Please try again later.</string>
+    <string name="nc_export_via_qr">Export via QR</string>
+    <string name="nc_export_via_bbqr">Export via BBQR</string>
 </resources>

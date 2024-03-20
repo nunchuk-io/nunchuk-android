@@ -135,7 +135,8 @@ interface TransactionNavigator {
         walletId: String = "",
         txId: String = "",
         txToSign: String = "",
-        isDummyTx: Boolean = false
+        isDummyTx: Boolean = false,
+        isBBQR: Boolean = false
     )
 
     fun openReplaceTransactionFee(

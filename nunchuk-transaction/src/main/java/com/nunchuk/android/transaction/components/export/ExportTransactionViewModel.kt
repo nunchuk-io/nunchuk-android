@@ -25,11 +25,14 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.qr.convertToQRCode
+import com.nunchuk.android.core.util.LOW_DENSITY
+import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.membership.ExportKeystoneDummyTransaction
+import com.nunchuk.android.usecase.qr.ExportBBQRTransactionUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -49,6 +52,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private val exportKeystoneDummyTransaction: ExportKeystoneDummyTransaction,
     private val getQrDensitySettingUseCase: GetQrDensitySettingUseCase,
     private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
+    private val exportBBQRTransactionUseCase: ExportBBQRTransactionUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<ExportTransactionState, ExportTransactionEvent>() {
 
@@ -81,7 +85,40 @@ internal class ExportTransactionViewModel @Inject constructor(
     }
 
     private fun handleExportTransactionQRs() {
-        if (isDummyTxFlow) exportDummyKeystoneTransaction() else exportTransactionToQRs()
+        if (isDummyTxFlow) exportDummyKeystoneTransaction() else {
+            if (args.isBBQR) {
+                exportTransactionBBQR()
+            } else {
+                exportTransactionToQRs()
+            }
+        }
+    }
+
+    private fun exportTransactionBBQR() {
+        viewModelScope.launch {
+            val convertDensity = when (getState().density) {
+                LOW_DENSITY -> 3
+                MEDIUM_DENSITY -> 10
+                else -> 27
+            }
+            exportBBQRTransactionUseCase(ExportBBQRTransactionUseCase.Params(
+                walletId = args.walletId,
+                txId = args.txId,
+                density = convertDensity
+            )).onSuccess {
+                val bitmaps = withContext(ioDispatcher) {
+                    it.mapNotNull { it.convertToQRCode(getQrSize(), getQrSize()) }
+                }
+                updateState {
+                    getState().qrCodeBitmap.forEach { it.recycle() }
+                    copy(qrCodeBitmap = bitmaps)
+                }
+            }.onFailure {
+                if (it !is CancellationException) {
+                    setEvent(ExportTransactionError(it.message.orUnknownError()))
+                }
+            }
+        }
     }
 
     private fun exportDummyKeystoneTransaction() {

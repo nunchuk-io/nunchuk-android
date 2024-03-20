@@ -31,7 +31,8 @@ data class ExportTransactionArgs(
     val txToSign: String,
     val initEventId: String,
     val masterFingerPrint: String,
-    val isDummyTx: Boolean
+    val isDummyTx: Boolean,
+    val isBBQR: Boolean
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ExportTransactionActivity::class.java).apply {
@@ -41,6 +42,7 @@ data class ExportTransactionArgs(
         putExtra(EXTRA_INIT_EVENT_ID, initEventId)
         putExtra(EXTRA_MASTER_FINGERPRINT, masterFingerPrint)
         putExtra(EXTRA_IS_DUMMY_TX, isDummyTx)
+        putExtra(EXTRA_IS_BBQR, isBBQR)
     }
 
     companion object {
@@ -50,6 +52,7 @@ data class ExportTransactionArgs(
         private const val EXTRA_INIT_EVENT_ID = "EXTRA_INIT_EVENT_ID"
         private const val EXTRA_MASTER_FINGERPRINT = "EXTRA_MASTER_FINGERPRINT"
         private const val EXTRA_IS_DUMMY_TX = "EXTRA_IS_DUMMY_TX"
+        private const val EXTRA_IS_BBQR = "EXTRA_IS_BBQR"
 
         fun deserializeFrom(intent: Intent): ExportTransactionArgs {
             val extras = intent.extras
@@ -59,7 +62,8 @@ data class ExportTransactionArgs(
                 txToSign = extras.getStringValue(EXTRA_TX_TO_SIGN),
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
                 masterFingerPrint = extras.getStringValue(EXTRA_MASTER_FINGERPRINT),
-                isDummyTx = extras.getBooleanValue(EXTRA_IS_DUMMY_TX)
+                isDummyTx = extras.getBooleanValue(EXTRA_IS_DUMMY_TX),
+                isBBQR = extras.getBooleanValue(EXTRA_IS_BBQR)
             )
         }
     }

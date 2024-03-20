@@ -244,14 +244,16 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         txId: String,
         txToSign: String,
-        isDummyTx: Boolean
+        isDummyTx: Boolean,
+        isBBQR: Boolean
     ) {
         val intent = ExportTransactionActivity.buildIntent(
             activityContext = activityContext,
             walletId = walletId,
             txId = txId,
             txToSign = txToSign,
-            isDummyTx = isDummyTx
+            isDummyTx = isDummyTx,
+            isBBQR = isBBQR
         )
         if (launcher != null) {
             launcher.launch(intent)

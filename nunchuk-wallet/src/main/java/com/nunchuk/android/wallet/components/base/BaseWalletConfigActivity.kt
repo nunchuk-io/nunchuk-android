@@ -91,6 +91,11 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
                     stringId = R.string.nc_export_via_nfc
                 ),
                 SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_BBQR,
+                    resId = R.drawable.ic_qr,
+                    stringId = R.string.nc_export_via_bbqr
+                ),
+                SheetOption(
                     type = SheetOptionType.EXPORT_COLDCARD_VIA_FILE,
                     resId = R.drawable.ic_export,
                     stringId = R.string.nc_export_via_file_advance
