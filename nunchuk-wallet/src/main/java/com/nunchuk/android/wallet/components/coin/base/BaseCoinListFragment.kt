@@ -118,11 +118,7 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
     }
 
     open fun showSelectCoinOptions() {
-        val options = listOf(
-            SheetOption(
-                type = SheetOptionType.TYPE_CONSOLIDATE_COIN,
-                label = getString(R.string.nc_consolidate_coins)
-            ),
+        val options = mutableListOf(
             SheetOption(
                 type = SheetOptionType.TYPE_LOCK_COIN,
                 label = getString(R.string.nc_lock_coin)
@@ -139,7 +135,17 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                 type = SheetOptionType.TYPE_ADD_TAG,
                 label = getString(R.string.nc_add_tags)
             ),
-        )
+        ).apply {
+            if (getSelectedCoins().size > 1) {
+                add(
+                    index = 0,
+                    element = SheetOption(
+                        type = SheetOptionType.TYPE_CONSOLIDATE_COIN,
+                        label = getString(R.string.nc_consolidate_coins)
+                    )
+                )
+            }
+        }
         BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 
