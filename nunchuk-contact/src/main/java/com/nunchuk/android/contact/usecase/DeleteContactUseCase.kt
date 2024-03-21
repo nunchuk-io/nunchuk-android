@@ -17,43 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.contact.api
+package com.nunchuk.android.contact.usecase
 
-import com.google.gson.annotations.SerializedName
-import java.io.Serializable
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.Contact
+import com.nunchuk.android.repository.ContactsRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class AddContactPayload(
-    @SerializedName("emails")
-    val emails: List<String>
-) : Serializable
+class DeleteContactUseCase @Inject constructor(
+    private val contactsRepository: ContactsRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+) : UseCase<Contact, Unit>(dispatcher) {
 
-data class CancelRequestPayload(
-    @SerializedName("contact_id")
-    val accountId: String
-) : Serializable
-
-data class AcceptRequestPayload(
-    @SerializedName("contact_id")
-    val accountId: String
-) : Serializable
-
-data class AutoCompleteSearchContactPayload(
-    @SerializedName("q")
-    val keyword: String
-) : Serializable
-
-data class UpdateContactPayload(
-    @SerializedName("avatar_url")
-    val avatar: String
-) : Serializable
-
-
-data class InviteContactPayload(
-    @SerializedName("friendEmails")
-    val friendEmails: List<String>
-) : Serializable
-
-data class DeleteContactPayload(
-    @SerializedName("contact_id")
-    val accountId: String
-) : Serializable
+    override suspend fun execute(parameters: Contact) {
+        return contactsRepository.deleteContact(parameters)
+    }
+}

@@ -54,4 +54,9 @@ internal interface ContactApi {
     @POST("passport/invite")
     suspend fun invite(@Body payload: InviteContactPayload): Data<Unit>
 
+    @HTTP(method = "DELETE", path = "user/contacts/", hasBody = true)
+    suspend fun deleteContact(
+        @Body payload: DeleteContactPayload,
+    ): Data<Unit>
+
 }

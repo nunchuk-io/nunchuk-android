@@ -34,7 +34,13 @@ import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.contact.R
 import com.nunchuk.android.contact.databinding.FragmentContactsBinding
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.model.Contact
+import com.nunchuk.android.widget.NCDeleteConfirmationDialog
+import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -70,7 +76,14 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
     }
 
     private fun setupViews() {
-        adapter = ContactsAdapter {}
+        adapter = ContactsAdapter(deleteContact = {
+            NCWarningDialog(requireActivity()).showDialog(
+                message = getString(R.string.nc_remove_contact_confirm),
+                onYesClick = {
+                    viewModel.deleteContact(it)
+                }
+            )
+        }, listener = {})
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
         binding.fab.setOnClickListener {
@@ -97,6 +110,22 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
+        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+    }
+
+    private fun handleEvent(contactsEvent: ContactsEvent) {
+        when (contactsEvent) {
+            is ContactsEvent.Loading -> {
+                if (contactsEvent.loading) {
+                    showLoading()
+                } else {
+                    hideLoading()
+                }
+            }
+            is ContactsEvent.Error -> {
+                showError(contactsEvent.message)
+            }
+        }
     }
 
     private fun handleState(state: ContactsState) {
