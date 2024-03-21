@@ -140,7 +140,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 }
             }
             val assistedVisible =
-                binding.btnCreateGroupWallet.isVisible || binding.btnCreateGroupWallet.isVisible
+                binding.btnCreateGroupWallet.isVisible || binding.btnCreateAssistedWallet.isVisible
             binding.btnCreateNewWallet.setBackgroundResource(if (assistedVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
             val textColor = ContextCompat.getColor(
                 requireActivity(),

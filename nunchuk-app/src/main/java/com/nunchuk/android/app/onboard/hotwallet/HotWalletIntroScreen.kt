@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -22,11 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.R
+import com.nunchuk.android.app.onboard.unassisted.UnAssistedIntroState
 import com.nunchuk.android.app.onboard.unassisted.UnAssistedIntroViewModel
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.model.MembershipPlan
 
 @Composable
 fun HotWalletIntroScreen(
@@ -46,6 +48,7 @@ fun HotWalletIntroScreen(
         }
     }
     HotWalletIntroContent(
+        state = state,
         modifier = modifier,
         onCreateHotWallet = {
             viewModel.createHotWallet()
@@ -57,11 +60,12 @@ fun HotWalletIntroScreen(
 @Composable
 private fun HotWalletIntroContent(
     modifier: Modifier = Modifier,
+    state: UnAssistedIntroState = UnAssistedIntroState(),
     onCreateHotWallet: () -> Unit = {},
     openServiceTab: () -> Unit = {},
 ) {
     Scaffold(
-        modifier = modifier.systemBarsPadding(),
+        modifier = modifier.navigationBarsPadding(),
         topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_hot_wallet
@@ -81,14 +85,16 @@ private fun HotWalletIntroContent(
                     Text(text = stringResource(R.string.nc_text_continue))
                 }
 
-                Text(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .clickable(onClick = openServiceTab)
-                        .align(Alignment.CenterHorizontally),
-                    text = stringResource(R.string.nc_learn_more_about_assisted_wallet),
-                    style = NunchukTheme.typography.title,
-                )
+                if (state.plan == MembershipPlan.NONE) {
+                    Text(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .clickable(onClick = openServiceTab)
+                            .align(Alignment.CenterHorizontally),
+                        text = stringResource(R.string.nc_learn_more_about_assisted_wallet),
+                        style = NunchukTheme.typography.title,
+                    )
+                }
             }
         },
     ) { innerPadding ->
