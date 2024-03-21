@@ -1,48 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/nc_padding_8"
-    android:foreground="?attr/selectableItemBackground"
-    android:paddingTop="@dimen/nc_padding_2"
-    android:paddingBottom="@dimen/nc_padding_2">
+    android:background="@color/nc_white_color"
+    android:orientation="vertical">
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/avatar"
-        style="@style/NCText.Title"
-        android:layout_width="@dimen/nc_padding_48"
-        android:layout_height="@dimen/nc_padding_48"
-        android:background="@drawable/nc_circle_beeswax_light_background"
-        android:gravity="center"
-        app:layout_constraintBottom_toBottomOf="@+id/email"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="HN" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/name"
-        style="@style/NCText.Body"
-        android:layout_width="0dp"
+    <com.nunchuk.android.widget.swipe.SwipeLayout
+        android:id="@+id/swipeLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        app:fontTextStyle="semi_bold"
-        app:layout_constraintBottom_toTopOf="@+id/email"
-        app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toTopOf="@id/avatar"
-        app:layout_constraintVertical_chainStyle="spread"
-        tools:text="Hugo Nguyen" />
+        android:minHeight="55dp">
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/email"
-        style="@style/NCText.Body.Small"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        app:layout_constraintBottom_toBottomOf="@id/avatar"
-        app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/name"
-        tools:text="hugonguyen@gmail.com" />
+        <LinearLayout
+            android:foreground="?attr/selectableItemBackground"
+            android:id="@+id/actionLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/nc_padding_16"
+            tools:visibility="gone">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@color/nc_red_color"
+                android:gravity="center"
+                android:minWidth="90dp"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/delete"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:src="@drawable/ic_delete"
+                    app:tint="@color/nc_white_color" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/nc_white_color"
+            android:foreground="?attr/selectableItemBackground"
+            android:paddingTop="@dimen/nc_padding_2"
+            android:paddingBottom="@dimen/nc_padding_2">
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/avatar"
+                style="@style/NCText.Title"
+                android:layout_width="@dimen/nc_padding_48"
+                android:layout_height="@dimen/nc_padding_48"
+                android:background="@drawable/nc_circle_beeswax_light_background"
+                android:gravity="center"
+                app:layout_constraintBottom_toBottomOf="@+id/email"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="HN" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/name"
+                style="@style/NCText.Body"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                app:fontTextStyle="semi_bold"
+                app:layout_constraintBottom_toTopOf="@+id/email"
+                app:layout_constraintStart_toEndOf="@+id/avatar"
+                app:layout_constraintTop_toTopOf="@id/avatar"
+                app:layout_constraintVertical_chainStyle="spread"
+                tools:text="Hugo Nguyen" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/email"
+                style="@style/NCText.Body.Small"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                app:layout_constraintBottom_toBottomOf="@id/avatar"
+                app:layout_constraintStart_toEndOf="@+id/avatar"
+                app:layout_constraintTop_toBottomOf="@+id/name"
+                tools:text="hugonguyen@gmail.com" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.nunchuk.android.widget.swipe.SwipeLayout>
+</LinearLayout>

@@ -21,12 +21,15 @@ package com.nunchuk.android.contact.components.contacts
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.contact.components.add.AddContactsEvent
+import com.nunchuk.android.contact.usecase.DeleteContactUseCase
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
 import com.nunchuk.android.contact.usecase.GetSentContactsUseCase
 import com.nunchuk.android.core.domain.message.HandlePushMessageUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isContactUpdateEvent
@@ -55,7 +58,8 @@ class ContactsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val handlePushMessageUseCase: HandlePushMessageUseCase,
-) : NunchukViewModel<ContactsState, Unit>() {
+    private val deleteContactUseCase: DeleteContactUseCase
+) : NunchukViewModel<ContactsState, ContactsEvent>() {
     override val initialState = ContactsState.empty()
 
     private var timeline: Timeline? = null
@@ -128,6 +132,21 @@ class ContactsViewModel @Inject constructor(
 
     private fun onPendingContactSuccess(contacts: List<Contact>) {
         updateState { copy(pendingContacts = contacts) }
+    }
+
+    fun deleteContact(contact: Contact) {
+        event(ContactsEvent.Loading(true))
+        viewModelScope.launch {
+            deleteContactUseCase(contact)
+                .onSuccess {
+                    val newContacts = getState().contacts.filter { it.id != contact.id }
+                    updateState { copy(contacts = newContacts) }
+                }
+                .onFailure {
+                    event(ContactsEvent.Error(it.message.orUnknownError()))
+                }
+            event(ContactsEvent.Loading(false))
+        }
     }
 
     private fun retrieveTimelineEvents(room: Room) {

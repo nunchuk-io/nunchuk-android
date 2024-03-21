@@ -127,5 +127,16 @@ internal class ContactsRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun deleteContact(contact: Contact) {
+        val localContact = contactDao.getContact(accountManager.getAccount().email, contact.chatId) ?: return
+        val payload = DeleteContactPayload(contact.id)
+        val response = api.deleteContact(payload)
+        if (response.isSuccess) {
+            contactDao.delete(localContact)
+        } else {
+            throw IllegalStateException(response.error.message)
+        }
+    }
+
 }
 

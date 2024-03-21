@@ -36,3 +36,9 @@ data class ContactsState(
     }
 
 }
+
+sealed class ContactsEvent {
+    data class Error(val message: String) : ContactsEvent()
+    data class Loading(val loading: Boolean) : ContactsEvent()
+}
+

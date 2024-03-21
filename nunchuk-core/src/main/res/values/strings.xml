@@ -704,4 +704,5 @@
     <string name="nc_primary_owner_desc">Who is the primary owner of this wallet?</string>
     <string name="nc_primary_owner_hint">The name of primary owner will be used to index and organize your wallets.</string>
     <string name="nc_fee_rate">Fee rate</string>
+    <string name="nc_remove_contact_confirm">Are you sure to remove the contact?</string>
 </resources>

@@ -51,4 +51,5 @@ interface ContactsRepository {
 
     fun invite(friendEmails: List<String>): Flow<Unit>
 
+    suspend fun deleteContact(contact: Contact)
 }

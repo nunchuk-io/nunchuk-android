@@ -28,10 +28,12 @@ import com.nunchuk.android.contact.databinding.ItemContactBinding
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.model.Contact
+import com.nunchuk.android.widget.swipe.SwipeLayout
 import com.nunchuk.android.widget.util.inflate
 
 internal class ContactsAdapter(
-    private val listener: (Contact) -> Unit
+    private val listener: (Contact) -> Unit,
+    private val deleteContact: (Contact) -> Unit
 ) : RecyclerView.Adapter<ContactViewHolder>() {
 
     internal var items: List<Contact> = ArrayList()
@@ -42,7 +44,7 @@ internal class ContactsAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ContactViewHolder(
         parent.inflate(R.layout.item_contact),
-        listener
+        listener, deleteContact
     )
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
@@ -55,12 +57,17 @@ internal class ContactsAdapter(
 
 internal class ContactViewHolder(
     itemView: View,
-    val listener: (Contact) -> Unit
+    val listener: (Contact) -> Unit,
+    val deleteContact: (Contact) -> Unit
 ) : BaseViewHolder<Contact>(itemView) {
 
     private val binding = ItemContactBinding.bind(itemView)
 
     override fun bind(data: Contact) {
+        binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
+        binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
+        binding.delete.setOnClickListener { deleteContact(data) }
+
         binding.avatar.text = data.name.shorten()
         binding.name.text = data.name
         binding.email.text = data.email
