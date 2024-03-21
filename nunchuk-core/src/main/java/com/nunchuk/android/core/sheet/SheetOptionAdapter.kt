@@ -29,6 +29,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.resources.MaterialResources.getDimensionPixelSize
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.databinding.ItemSheetOptionBinding
 import com.nunchuk.android.core.util.getString
@@ -62,6 +63,10 @@ class SheetOptionAdapter(
 
 class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
     RecyclerView.ViewHolder(binding.root) {
+
+    private val textSize16 by lazy { binding.root.context.resources.getDimensionPixelSize(R.dimen.nc_text_size_16) }
+    private val textSize12 by lazy { binding.root.context.resources.getDimensionPixelSize(R.dimen.nc_text_size_12) }
+
     fun bind(option: SheetOption) {
         binding.tvLabel.setCompoundDrawablesRelativeWithIntrinsicBounds(
             option.resId,
@@ -80,11 +85,11 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
             val line2 = "\n${getString(option.subStringId)}"
 
             val spannable1 = SpannableString(line1)
-            spannable1.setSpan(AbsoluteSizeSpan(16, true), 0, line1.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+            spannable1.setSpan(AbsoluteSizeSpan(textSize16), 0, line1.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
             spannable1.setSpan(ForegroundColorSpan(Color.parseColor("#000000")), 0, line1.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
 
             val spannable2 = SpannableString(line2)
-            spannable2.setSpan(AbsoluteSizeSpan(12, true), 0, line2.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+            spannable2.setSpan(AbsoluteSizeSpan(textSize12), 0, line2.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
             spannable2.setSpan(ForegroundColorSpan(Color.parseColor("#595959")), 0, line2.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
 
             binding.tvLabel.text = TextUtils.concat(spannable1, spannable2)
