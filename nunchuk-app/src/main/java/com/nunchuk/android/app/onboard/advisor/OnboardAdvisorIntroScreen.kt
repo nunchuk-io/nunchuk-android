@@ -65,6 +65,7 @@ fun OnboardAdvisorIntroScreen(
 
     OnboardAdvisorIntroContent(
         modifier = modifier,
+        uiState = state,
         onOpenOnboardAdvisorInputScreen = onOpenOnboardAdvisorInputScreen,
         onSkip = {
             viewModel.markOnboardDone()
@@ -77,6 +78,7 @@ fun OnboardAdvisorIntroScreen(
 @Composable
 fun OnboardAdvisorIntroContent(
     modifier: Modifier = Modifier,
+    uiState: OnboardAdvisorIntroUiState = OnboardAdvisorIntroUiState(),
     onSkip: () -> Unit = {},
     onSignIn: () -> Unit = {},
     onCreateAccount: () -> Unit = {},
@@ -100,22 +102,24 @@ fun OnboardAdvisorIntroContent(
             )
         },
         bottomBar = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                NcSpannedClickableText(
-                    modifier = Modifier
-                        .padding(16.dp),
-                    text = stringResource(R.string.nc_already_have_an_account_sign_in),
-                    baseStyle = NunchukTheme.typography.body,
-                    styles = mapOf(
-                        SpanIndicator('A') to SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                        )
-                    ),
-                    onClick = { onSignIn() }
-                )
+            if (!uiState.isLoggedIn) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    NcSpannedClickableText(
+                        modifier = Modifier
+                            .padding(16.dp),
+                        text = stringResource(R.string.nc_already_have_an_account_sign_in),
+                        baseStyle = NunchukTheme.typography.body,
+                        styles = mapOf(
+                            SpanIndicator('A') to SpanStyle(
+                                fontWeight = FontWeight.Bold,
+                            )
+                        ),
+                        onClick = { onSignIn() }
+                    )
+                }
             }
         },
     ) { innerPadding ->
@@ -132,18 +136,27 @@ fun OnboardAdvisorIntroContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = stringResource(id = R.string.nc_have_advisor_desc),
-                style = NunchukTheme.typography.body
-            )
+            if (!uiState.isLoggedIn) {
+                Text(
+                    text = stringResource(id = R.string.nc_have_advisor_desc),
+                    style = NunchukTheme.typography.body
+                )
+            } else {
+                Text(
+                    text = stringResource(id = R.string.nc_have_advisor_desc_logged_in),
+                    style = NunchukTheme.typography.body
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            NcPrimaryDarkButton(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onCreateAccount,
-                content = { Text(text = stringResource(id = R.string.nc_text_create_an_account)) }
-            )
+            if (!uiState.isLoggedIn) {
+                NcPrimaryDarkButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onCreateAccount,
+                    content = { Text(text = stringResource(id = R.string.nc_text_create_an_account)) }
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

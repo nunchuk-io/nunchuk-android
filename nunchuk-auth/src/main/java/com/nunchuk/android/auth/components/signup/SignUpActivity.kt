@@ -130,7 +130,7 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     private fun openChangePasswordScreen() {
         hideLoading()
         finish()
-        navigator.openChangePasswordScreen(this)
+        navigator.openChangePasswordScreen(this, isOnboardingFlow)
     }
 
     companion object {

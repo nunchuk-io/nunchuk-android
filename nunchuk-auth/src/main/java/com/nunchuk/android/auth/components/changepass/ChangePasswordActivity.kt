@@ -39,6 +39,10 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
 
     private val viewModel: ChangePasswordViewModel by viewModels()
 
+    private val isOnboardingFlow: Boolean by lazy {
+        intent.getBooleanExtra(IS_ONBOARDING_FLOW, false)
+    }
+
     override fun initializeBinding() = ActivityChangePasswordBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,11 +73,17 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                 is ConfirmPasswordValidEvent -> binding.confirmPassword.hideError()
                 is ConfirmPasswordNotMatchedEvent -> binding.confirmPassword.setError(getString(R.string.nc_text_password_does_not_match))
                 is ChangePasswordSuccessError -> showChangePasswordError(it.errorMessage.orUnknownError())
-                is ChangePasswordSuccessEvent -> handleChangePasswordSuccess()
+                is ChangePasswordSuccessEvent -> if (isOnboardingFlow.not()) handleChangePasswordSuccess() else  openLoginPage()
                 is ShowEmailSentEvent -> showEmailConfirmation(it.email)
                 LoadingEvent -> showLoading()
             }
         }
+    }
+
+    private fun openLoginPage() {
+        NcToastManager.scheduleShowMessage(getString(R.string.nc_your_password_changed))
+        finish()
+        navigator.openSignInScreen(this)
     }
 
     private fun showEmailConfirmation(email: String) {
@@ -111,8 +121,13 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
 
     companion object {
 
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, ChangePasswordActivity::class.java))
+        private const val IS_ONBOARDING_FLOW = "is_onboarding_flow"
+
+        fun start(activityContext: Context, isOnboardingFlow: Boolean) {
+            activityContext.startActivity(Intent(activityContext, ChangePasswordActivity::class.java)
+                .apply {
+                    putExtra(IS_ONBOARDING_FLOW, isOnboardingFlow)
+                })
         }
     }
 

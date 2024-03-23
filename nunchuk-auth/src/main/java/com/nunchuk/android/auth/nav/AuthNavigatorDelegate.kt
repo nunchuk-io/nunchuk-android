@@ -40,8 +40,8 @@ interface AuthNavigatorDelegate : AuthNavigator {
         SignUpActivity.start(activityContext, isOnboardingFlow)
     }
 
-    override fun openChangePasswordScreen(activityContext: Context) {
-        ChangePasswordActivity.start(activityContext)
+    override fun openChangePasswordScreen(activityContext: Context, isOnboardingFlow: Boolean) {
+        ChangePasswordActivity.start(activityContext, isOnboardingFlow)
     }
 
     override fun openRecoverPasswordScreen(activityContext: Context, email: String) {

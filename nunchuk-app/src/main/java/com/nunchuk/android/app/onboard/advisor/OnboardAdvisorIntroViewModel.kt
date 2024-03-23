@@ -2,6 +2,7 @@ package com.nunchuk.android.app.onboard.advisor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,10 +15,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardAdvisorIntroViewModel @Inject constructor(
-    private val setOnBoardUseCase: SetOnBoardUseCase
+    private val setOnBoardUseCase: SetOnBoardUseCase,
+    accountManager: AccountManager,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(OnboardAdvisorIntroUiState())
+    private val _state = MutableStateFlow(OnboardAdvisorIntroUiState(
+        isLoggedIn = accountManager.getAccount().chatId.isNotEmpty()
+    ))
     val state = _state.asStateFlow()
 
     fun markOnboardDone() = viewModelScope.launch {
@@ -37,4 +41,5 @@ class OnboardAdvisorIntroViewModel @Inject constructor(
 
 data class OnboardAdvisorIntroUiState(
     val openMainScreen: Boolean = false,
+    val isLoggedIn: Boolean = false
 )
