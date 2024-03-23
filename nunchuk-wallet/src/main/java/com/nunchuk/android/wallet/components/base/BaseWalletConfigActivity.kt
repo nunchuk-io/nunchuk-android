@@ -55,6 +55,8 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         when (option.type) {
             SheetOptionType.EXPORT_COLDCARD_VIA_NFC -> handleColdcardExportToNfc()
             SheetOptionType.EXPORT_COLDCARD_VIA_FILE -> handleColdcardExportToFile()
+            SheetOptionType.TYPE_QR_BC_UR2_LEGACY -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2_LEGACY)
+            SheetOptionType.TYPE_QR_BC_UR2 -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2)
         }
     }
 
@@ -93,6 +95,23 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
                     resId = R.drawable.ic_export,
                     stringId = R.string.nc_export_via_file_advance
                 )
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    fun showExportQRTypeOption() {
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_select_qr_type),
+            options = listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_QR_BC_UR2_LEGACY,
+                    stringId = R.string.nc_bc_ur2_legacy,
+                    subStringId = R.string.nc_bc_ur2_legacy_desc
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_QR_BC_UR2,
+                    stringId = R.string.nc_bc_ur2
+                ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
     }
