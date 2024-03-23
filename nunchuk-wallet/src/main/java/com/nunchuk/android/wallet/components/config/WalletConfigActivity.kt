@@ -33,7 +33,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
@@ -112,7 +111,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         when (option.type) {
-            SheetOptionType.TYPE_EXPORT_AS_QR -> showQRTypeOption()
+            SheetOptionType.TYPE_EXPORT_AS_QR -> showExportQRTypeOption()
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
@@ -158,8 +157,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     flowInfo = PrimaryOwnerFlow.EDIT
                 )
             }
-            SheetOptionType.TYPE_QR_BC_UR2_LEGACY -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2_LEGACY)
-            SheetOptionType.TYPE_QR_BC_UR2 -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2)
         }
     }
 
@@ -475,23 +472,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_BIP329,
                     stringId = R.string.nc_bip329
-                ),
-            )
-        ).show(supportFragmentManager, "BottomSheetOption")
-    }
-
-    private fun showQRTypeOption() {
-        BottomSheetOption.newInstance(
-            title = getString(R.string.nc_select_qr_type),
-            options = listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_QR_BC_UR2_LEGACY,
-                    stringId = R.string.nc_bc_ur2_legacy,
-                    subStringId = R.string.nc_bc_ur2_legacy_desc
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_QR_BC_UR2,
-                    stringId = R.string.nc_bc_ur2
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
