@@ -21,7 +21,17 @@ package com.nunchuk.android.auth.components.changepass
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ChangePasswordSuccessError
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ChangePasswordSuccessEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ConfirmPasswordNotMatchedEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ConfirmPasswordRequiredEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ConfirmPasswordValidEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.LoadingEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.NewPasswordRequiredEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.NewPasswordValidEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordRequiredEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordValidEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ShowEmailSentEvent
 import com.nunchuk.android.auth.domain.ChangePasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
@@ -37,7 +47,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ChangePasswordViewModel @Inject constructor(
     private val changePasswordUseCase: ChangePasswordUseCase,
-    accountManager: AccountManager
+    accountManager: AccountManager,
 ) : NunchukViewModel<Unit, ChangePasswordEvent>() {
 
     private val account = accountManager.getAccount()
@@ -71,7 +81,10 @@ internal class ChangePasswordViewModel @Inject constructor(
         setEvent(ChangePasswordSuccessEvent)
     }
 
-    private fun validateConfirmPasswordMatched(newPassword: String, confirmPassword: String): Boolean {
+    private fun validateConfirmPasswordMatched(
+        newPassword: String,
+        confirmPassword: String
+    ): Boolean {
         val matched = newPassword == confirmPassword
         if (!matched) {
             event(ConfirmPasswordNotMatchedEvent)

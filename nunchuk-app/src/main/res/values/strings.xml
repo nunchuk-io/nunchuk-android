@@ -28,6 +28,7 @@
     <string name="nc_query_sent">Query sent</string>
     <string name="nc_have_an_advisor">I have an advisor</string>
     <string name="nc_have_advisor_desc">Your advisor should have sent you an invitation to join a group wallet. Please sign up for a new account and make sure to use the email address included in the invitation.\n\nIf you already signed up, please sign in.</string>
+    <string name="nc_have_advisor_desc_logged_in">Your advisor should have sent you an invitation to join a group wallet. If you don’t see one yet, ask them to resend the invitation.</string>
     <string name="nc_your_country">Your country</string>
     <string name="nc_your_email_address">Your email address</string>
     <string name="nc_select_a_country">Select a country</string>

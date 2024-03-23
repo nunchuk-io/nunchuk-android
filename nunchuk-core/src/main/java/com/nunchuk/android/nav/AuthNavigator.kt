@@ -28,7 +28,7 @@ interface AuthNavigator {
 
     fun openSignUpScreen(activityContext: Context, isOnboardingFlow: Boolean = false)
 
-    fun openChangePasswordScreen(activityContext: Context)
+    fun openChangePasswordScreen(activityContext: Context, isOnboardingFlow: Boolean = false)
 
     fun openRecoverPasswordScreen(activityContext: Context, email: String)
 
