@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.wallet.CreateHotWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ class UnAssistedIntroViewModel @Inject constructor(
     private val createHotWalletUseCase: CreateHotWalletUseCase,
     private val setOnBoardUseCase: SetOnBoardUseCase,
     private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
+    private val getGroupsUseCase: GetGroupsUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(UnAssistedIntroState())
     val state = _state.asStateFlow()
@@ -30,6 +32,13 @@ class UnAssistedIntroViewModel @Inject constructor(
                 .map { it.getOrElse { MembershipPlan.NONE } }
                 .collect {
                     _state.update { state -> state.copy(plan = it) }
+                }
+        }
+        viewModelScope.launch {
+            getGroupsUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .collect { groups ->
+                    _state.update { state -> state.copy(isInByzantineGroup = groups.isNotEmpty()) }
                 }
         }
     }
@@ -67,4 +76,5 @@ data class UnAssistedIntroState(
     val isLoading: Boolean = false,
     val openMainScreen: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
+    val isInByzantineGroup: Boolean = false,
 )
