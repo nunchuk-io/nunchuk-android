@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
-import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,13 +18,13 @@ import javax.inject.Inject
 data class ConsolidateCoinUiState(
     val address: String = "",
     val manualFeeRate: Int = 0,
-    val isLoading : Boolean = false
+    val isLoading : Boolean = false,
+    val showGenerateAddressError: Boolean = false
 )
 
 @HiltViewModel
 class ConsolidateCoinViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
     private val estimateFeeUseCase: EstimateFeeUseCase
 ) : ViewModel() {
@@ -40,6 +39,10 @@ class ConsolidateCoinViewModel @Inject constructor(
             getUnusedWalletAddressUseCase(args.walletId).onSuccess { addresses ->
                 _uiState.update { state ->
                     state.copy(address = addresses.first())
+                }
+            }.onFailure {
+                _uiState.update { state ->
+                    state.copy(showGenerateAddressError = true)
                 }
             }
         }
@@ -56,6 +59,12 @@ class ConsolidateCoinViewModel @Inject constructor(
             _uiState.update { state ->
                 state.copy(isLoading = false)
             }
+        }
+    }
+
+    fun handleGenerateAddressError() {
+        _uiState.update { state ->
+            state.copy(showGenerateAddressError = false)
         }
     }
 }

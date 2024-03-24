@@ -33,6 +33,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.wallet.AddressWithQrView
 import com.nunchuk.android.core.data.model.TxReceipt
@@ -53,7 +54,7 @@ class ConsolidateCoinFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -81,7 +82,7 @@ class ConsolidateCoinFragment : Fragment() {
                             subtractFeeFromAmount = true
                         )
                     },
-                    onCustomizeTransaction = {note ->
+                    onCustomizeTransaction = { note ->
                         val availableAmount =
                             args.selectedCoins.sumOf { it.amount.value }.toDouble().fromSATtoBTC()
 
@@ -101,6 +102,7 @@ class ConsolidateCoinFragment : Fragment() {
                             isConsolidateFlow = true
                         )
                     },
+                    handleGenerateAddressError = viewModel::handleGenerateAddressError
                 )
             }
         }
@@ -112,9 +114,17 @@ fun ConsolidateCoinScreen(
     state: ConsolidateCoinUiState,
     onCreateTransaction: (String) -> Unit = {},
     onCustomizeTransaction: (String) -> Unit = {},
+    handleGenerateAddressError: () -> Unit = {},
 ) {
     var note by rememberSaveable { mutableStateOf("") }
     NunchukTheme {
+        if (state.showGenerateAddressError) {
+            NcInfoDialog(
+                message = stringResource(R.string.nc_consolidate_generate_address_error_msg),
+                onPositiveClick = handleGenerateAddressError,
+                onDismiss = handleGenerateAddressError
+            )
+        }
         if (state.isLoading) {
             NcLoadingDialog()
         }
