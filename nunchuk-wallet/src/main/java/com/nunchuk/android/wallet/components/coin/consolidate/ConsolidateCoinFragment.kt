@@ -77,6 +77,7 @@ class ConsolidateCoinFragment : Fragment() {
                                 )
                             ),
                             privateNote = note,
+                            manualFeeRate = state.manualFeeRate,
                             subtractFeeFromAmount = true
                         )
                     },
