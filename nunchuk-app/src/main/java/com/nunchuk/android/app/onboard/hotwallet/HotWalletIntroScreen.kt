@@ -85,7 +85,7 @@ private fun HotWalletIntroContent(
                     Text(text = stringResource(R.string.nc_text_continue))
                 }
 
-                if (state.plan == MembershipPlan.NONE) {
+                if (state.plan == MembershipPlan.NONE && state.isInByzantineGroup.not()) {
                     Text(
                         modifier = Modifier
                             .padding(16.dp)
