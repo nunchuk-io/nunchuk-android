@@ -175,7 +175,7 @@ dependencies {
     implementation hiltDeps.hiltNavigation
 
     implementation networkDeps.values()
-    implementation platform('androidx.compose:compose-bom:2024.02.02')
+    implementation platform('androidx.compose:compose-bom:2024.03.00')
     implementation composeDeps.values()
 
     implementation androidxDeps.values()
