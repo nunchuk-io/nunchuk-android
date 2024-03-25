@@ -149,7 +149,7 @@
     <string name="nc_unknown">Unknown</string>
     <string name="nc_primary_key_account_xfp">XFP: %s</string>
     <string name="nc_text_nunchuk_as_signer">Add software key</string>
-    <string name="nc_text_ss_desc">The software key is managed by the app</string>
+    <string name="nc_text_ss_desc">The software key will be stored locally on this device.</string>
     <string name="nc_replace_primary_key">Replace Primary Key</string>
     <string name="nc_replace_primary_key_step_guide">A Primary Key is a dual-purpose key that can be used both for account-based authentication and for signing Bitcoin transactions. Please note the following:</string>
     <string name="nc_replace_primary_key_step_1">If you choose to proceed, your Primary Key will be replaced with a new one. Your current Primary Key will be downgraded to a regular key.</string>

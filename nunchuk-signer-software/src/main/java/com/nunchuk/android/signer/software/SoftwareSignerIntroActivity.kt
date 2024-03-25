@@ -22,14 +22,44 @@ package com.nunchuk.android.signer.software
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import com.nunchuk.android.core.base.BaseActivity
+import androidx.activity.compose.setContent
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSpannedText
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
-import com.nunchuk.android.signer.software.databinding.ActivitySoftwareSignerIntroBinding
-import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.core.util.ClickAbleText
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SoftwareSignerIntroActivity : BaseActivity<ActivitySoftwareSignerIntroBinding>() {
+class SoftwareSignerIntroActivity : BaseComposeActivity() {
 
     private val primaryKeyFlow: Int by lazy {
         intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
@@ -38,20 +68,16 @@ class SoftwareSignerIntroActivity : BaseActivity<ActivitySoftwareSignerIntroBind
         intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
     }
 
-    override fun initializeBinding() = ActivitySoftwareSignerIntroBinding.inflate(layoutInflater)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
-        setupViews()
-    }
-
-    private fun setupViews() {
-        binding.btnCreateSeed.setOnClickListener { openCreateNewSeedScreen() }
-        binding.btnRecoverSeed.setOnClickListener { openRecoverSeedScreen() }
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
+        setContent {
+            NunchukTheme {
+                SoftwareSignerIntroScreen(
+                    onCreateNewSeedClicked = ::openCreateNewSeedScreen,
+                    onRecoverSeedClicked = ::openRecoverSeedScreen
+                )
+            }
         }
     }
 
@@ -77,7 +103,7 @@ class SoftwareSignerIntroActivity : BaseActivity<ActivitySoftwareSignerIntroBind
         fun start(
             activityContext: Context,
             passphrase: String,
-            primaryKeyFlow: Int = PrimaryKeyFlow.NONE
+            primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         ) {
             activityContext.startActivity(
                 Intent(
@@ -89,5 +115,121 @@ class SoftwareSignerIntroActivity : BaseActivity<ActivitySoftwareSignerIntroBind
                 })
 
         }
+    }
+}
+
+@Composable
+fun SoftwareSignerIntroScreen(
+    onCreateNewSeedClicked: () -> Unit = {},
+    onRecoverSeedClicked: () -> Unit = {},
+) {
+    Scaffold(
+        topBar = {
+            NcTopAppBar(
+                title = stringResource(R.string.nc_before_you_start),
+                textStyle = NunchukTheme.typography.titleLarge,
+                actions = {
+                    IconButton(onClick = { }) {
+
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                NcHintMessage(
+                    messages = listOf(ClickAbleText("Upgrade software keys to hardware keys for improved security."))
+                )
+
+                NcPrimaryDarkButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onCreateNewSeedClicked) {
+                    Text(text = stringResource(id = R.string.nc_ssigner_new_seed))
+                }
+
+                NcOutlineButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onRecoverSeedClicked) {
+                    Text(text = stringResource(id = R.string.nc_ssigner_recover_seed))
+                }
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+                .fillMaxSize(),
+        ) {
+            NcCircleImage(
+                resId = R.drawable.ic_warning_outline,
+                modifier = Modifier
+                    .padding(top = 24.dp)
+                    .align(Alignment.CenterHorizontally),
+                size = 96.dp,
+                iconSize = 60.dp
+            )
+
+            NcSpannedText(
+                modifier = Modifier.padding(top = 24.dp),
+                text = "A software key will be generated locally on this device. [B]Deleting the app will also delete the software key.[/B]\n\nPlease make sure to:",
+                baseStyle = NunchukTheme.typography.body,
+                styles = mapOf(SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold)),
+            )
+
+            Section(
+                modifier = Modifier.padding(top = 24.dp),
+                iconResId = R.drawable.ic_replace_primary_key,
+                title = "Back up the key ",
+                content = "The backup will allow you to recover the key in worst case scenarios.",
+            )
+
+            Section(
+                modifier = Modifier.padding(top = 24.dp),
+                iconResId = R.drawable.ic_emergency_lockdown_dark,
+                title = "Keep your device secure",
+                content = "Since the software key resides on this device, keeping the device safe will prevent the software key from being compromised.",
+            )
+        }
+    }
+}
+
+@Composable
+private fun Section(
+    @DrawableRes iconResId: Int,
+    title: String,
+    content: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Image(painter = painterResource(id = iconResId), contentDescription = "Icon")
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = title,
+                style = NunchukTheme.typography.title,
+            )
+            Text(
+                text = content,
+                style = NunchukTheme.typography.body,
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun SoftwareSignerIntroPreview() {
+    NunchukTheme {
+        SoftwareSignerIntroScreen()
     }
 }

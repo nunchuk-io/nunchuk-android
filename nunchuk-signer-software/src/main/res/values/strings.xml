@@ -61,4 +61,5 @@
     <string name="nc_recover_hot_wallet">Recover hot wallet</string>
     <string name="nc_my_hot_wallet_has_been_recovered">My hot wallet has been recovered.</string>
     <string name="nc_review_seed_phrase">Review seed phrase</string>
+    <string name="nc_before_you_start">Before you start</string>
 </resources>
