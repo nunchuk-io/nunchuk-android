@@ -28,6 +28,7 @@ import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
+import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isValidPathForAssistedWallet
 import com.nunchuk.android.core.util.orUnknownError
@@ -121,7 +122,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         xfp: String?,
         newIndex: Int,
     ) {
-        val newSignerName = if (isMembershipFlow) "Hardware key${
+        val newSignerName = if (isMembershipFlow) "${signerTag.formattedName}${
             membershipStepManager.getNextKeySuffixByType(
                 SignerType.AIRGAP
             )
