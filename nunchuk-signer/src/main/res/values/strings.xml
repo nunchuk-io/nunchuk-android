@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nc_create_signer_title">Add air-gapped key</string>
+    <string name="nc_add_an_airgapped_key">Add an air-gapped key</string>
     <string name="nc_add_signer_title">Add a signer</string>
     <string name="nc_text_signer_info">Key Info</string>
     <string name="nc_error_invalid_signer_spec">Invalid Signer Spec</string>

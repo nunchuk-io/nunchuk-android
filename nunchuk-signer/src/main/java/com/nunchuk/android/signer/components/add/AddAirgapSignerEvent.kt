@@ -25,8 +25,6 @@ sealed class AddAirgapSignerEvent {
     data class AddAirgapSignerSuccessEvent(val singleSigner: SingleSigner) : AddAirgapSignerEvent()
     data class ParseKeystoneAirgapSignerSuccess(val signers: List<SingleSigner>) : AddAirgapSignerEvent()
     data class AddAirgapSignerErrorEvent(val message: String) : AddAirgapSignerEvent()
-    data object InvalidAirgapSignerSpecEvent : AddAirgapSignerEvent()
-    data object AirgapSignerNameRequiredEvent : AddAirgapSignerEvent()
     data object ErrorMk4TestNet : AddAirgapSignerEvent()
     data object AddSameKey : AddAirgapSignerEvent()
     data class LoadingEventAirgap(val isLoading: Boolean) : AddAirgapSignerEvent()

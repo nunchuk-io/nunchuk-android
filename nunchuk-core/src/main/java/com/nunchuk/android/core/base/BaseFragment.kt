@@ -39,7 +39,7 @@ abstract class BaseFragment<out Binding : ViewBinding> : Fragment() {
 
     abstract fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): Binding
 
-    final override fun onCreateView(
+    override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
