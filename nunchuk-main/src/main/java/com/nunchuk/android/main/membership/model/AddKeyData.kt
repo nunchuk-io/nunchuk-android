@@ -59,16 +59,16 @@ val MembershipStep.resId: Int
 
 fun MembershipStep.getLabel(context: Context): String {
     return when (this) {
-        MembershipStep.IRON_ADD_HARDWARE_KEY_1 -> "Hardware key"
-        MembershipStep.IRON_ADD_HARDWARE_KEY_2 -> "Hardware key #2"
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> "Hardware key #1"
+        MembershipStep.IRON_ADD_HARDWARE_KEY_1 -> "Key #1"
+        MembershipStep.IRON_ADD_HARDWARE_KEY_2 -> "Key #2"
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> "Key #1"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
         MembershipStep.HONEY_ADD_TAP_SIGNER, MembershipStep.BYZANTINE_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
         MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> "$TAPSIGNER_INHERITANCE_NAME #2"
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "Hardware key #2"
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> "Hardware key #3"
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> "Hardware key #4"
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> "Hardware key #5"
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "Key #2"
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> "Key #3"
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> "Key #4"
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> "Key #5"
         else -> ""
     }
 }

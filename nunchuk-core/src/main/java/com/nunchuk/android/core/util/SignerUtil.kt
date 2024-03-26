@@ -57,7 +57,11 @@ fun String?.toSignerType() = SignerType.values().find { it.name == this } ?: UNK
 fun SignerModel.toReadableSignerType(context: Context, isIgnorePrimary: Boolean = false) =
     type.toReadableString(context, if (isIgnorePrimary) false else isPrimaryKey)
 
-private fun toReadableDrawableResId(type: SignerType, tags: List<SignerTag>, isPrimaryKey: Boolean = false): Int {
+private fun toReadableDrawableResId(
+    type: SignerType,
+    tags: List<SignerTag>,
+    isPrimaryKey: Boolean = false,
+): Int {
     if (isPrimaryKey) return R.drawable.ic_signer_type_primary_key_small
     return when {
         type == AIRGAP && tags.contains(SignerTag.JADE) -> R.drawable.ic_air_gapped_jade
@@ -78,7 +82,8 @@ private fun toReadableDrawableResId(type: SignerType, tags: List<SignerTag>, isP
     }
 }
 
-fun SignerModel.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) = ContextCompat.getDrawable(
+fun SignerModel.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) =
+    ContextCompat.getDrawable(
         context,
         toReadableDrawableResId(type, tags, isPrimaryKey)
     ) ?: throw NullPointerException("Nunchuk can not get drawable")
@@ -91,15 +96,30 @@ fun SingleSigner.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
     return toReadableDrawableResId(type, tags, isPrimaryKey)
 }
 
-fun MasterSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) = ContextCompat.getDrawable(
-    context,
-    toReadableDrawableResId(type, tags, isPrimaryKey)
-) ?: throw NullPointerException("Nunchuk can not get drawable")
+fun MasterSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) =
+    ContextCompat.getDrawable(
+        context,
+        toReadableDrawableResId(type, tags, isPrimaryKey)
+    ) ?: throw NullPointerException("Nunchuk can not get drawable")
 
-fun SingleSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) = ContextCompat.getDrawable(
-    context,
-    toReadableDrawableResId(type, tags, isPrimaryKey)
-) ?: throw NullPointerException("Nunchuk can not get drawable")
+fun SingleSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) =
+    ContextCompat.getDrawable(
+        context,
+        toReadableDrawableResId(type, tags, isPrimaryKey)
+    ) ?: throw NullPointerException("Nunchuk can not get drawable")
 
 val SignerTag.isAirgapTag: Boolean
     get() = this == SignerTag.JADE || this == SignerTag.SEEDSIGNER || this == SignerTag.PASSPORT || this == SignerTag.KEYSTONE
+
+val SignerTag?.formattedName: String
+    get() = when (this) {
+        SignerTag.TREZOR -> "Trezor"
+        SignerTag.LEDGER -> "Ledger"
+        SignerTag.BITBOX -> "BitBox"
+        SignerTag.JADE -> "Jade"
+        SignerTag.SEEDSIGNER -> "Seed"
+        SignerTag.PASSPORT -> "Passport"
+        SignerTag.KEYSTONE -> "Keystone"
+        SignerTag.COLDCARD -> COLDCARD_DEFAULT_KEY_NAME
+        else -> "Hardware Key"
+    }
