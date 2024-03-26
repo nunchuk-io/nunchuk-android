@@ -121,7 +121,7 @@ private fun AirgapIntroContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_create_signer_title),
+                    text = stringResource(R.string.nc_add_an_airgapped_key),
                     style = NunchukTheme.typography.heading
                 )
                 Text(

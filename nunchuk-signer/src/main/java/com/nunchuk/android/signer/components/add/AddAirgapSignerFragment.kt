@@ -25,8 +25,37 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.isVisible
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -42,18 +71,13 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
-import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AirgapSignerNameRequiredEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
-import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.InvalidAirgapSignerSpecEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
 import com.nunchuk.android.signer.databinding.FragmentAddSignerBinding
+import com.nunchuk.android.utils.MaxLengthTransformation
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.heightExtended
-import com.nunchuk.android.widget.util.setMaxLength
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -80,11 +104,37 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
             }
         }
 
-    override fun initializeBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?
-    ): FragmentAddSignerBinding {
-        return FragmentAddSignerBinding.inflate(inflater, container, false)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+            setContent {
+                val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                AddAirgapSignerContent(remainTime = remainTime, uiState = uiState,
+                    isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow,
+                    onKeyNameChange = { viewModel.updateKeyName(it) },
+                    onKeySpecChange = { viewModel.updateKeySpec(it) },
+                    onImportFile = {
+                        importFileLauncher.launch("*/*")
+                    },
+                    onScanQr = {
+                        requestCameraPermissionOrExecuteAction()
+                    },
+                    onAddSigner = { keyName, keySpec ->
+                        viewModel.handleAddAirgapSigner(
+                            signerName = keyName,
+                            signerSpec = keySpec,
+                            isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow,
+                            signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag,
+                            xfp = (requireActivity() as AddAirgapSignerActivity).xfp,
+                            newIndex = (requireActivity() as AddAirgapSignerActivity).newIndex,
+                        )
+                    })
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,7 +149,6 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupViews()
         observeEvent()
         viewModel.init(
             (activity as AddAirgapSignerActivity).groupId,
@@ -109,7 +158,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
 
     override fun onOptionClicked(option: SheetOption) {
         viewModel.signers.getOrNull(option.type)?.let {
-            binding.signerSpec.getEditTextView().setText(it.descriptor)
+            viewModel.updateKeySpec(it.descriptor)
         }
     }
 
@@ -117,13 +166,18 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         openScanDynamicQRScreen()
     }
 
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentAddSignerBinding {
+        TODO("Not yet implemented")
+    }
+
     private fun observeEvent() {
         viewModel.event.observe(viewLifecycleOwner) {
             when (it) {
                 is AddAirgapSignerSuccessEvent -> openSignerInfo(it.singleSigner)
-                InvalidAirgapSignerSpecEvent -> binding.signerSpec.setError(getString(R.string.nc_error_invalid_signer_spec))
                 is AddAirgapSignerErrorEvent -> onAddAirSignerError(it.message)
-                AirgapSignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
                 is LoadingEventAirgap -> showOrHideLoading(it.isLoading)
                 is ParseKeystoneAirgapSignerSuccess -> handleResult(it.signers)
                 AddSameKey -> showError(getString(R.string.nc_error_add_same_key))
@@ -139,6 +193,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
                         finish()
                     }
                 }
+
                 AddAirgapSignerEvent.XfpNotMatchException -> showError(getString(R.string.nc_airgap_xfp_does_not_match))
             }
         }
@@ -167,52 +222,6 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         }
     }
 
-    private fun setupViews() {
-        val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
-        val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
-        val xfp = (requireActivity() as AddAirgapSignerActivity).xfp
-        val newIndex = (requireActivity() as AddAirgapSignerActivity).newIndex
-        binding.signerName.setMaxLength(MAX_LENGTH)
-        updateCounter(0)
-        with(isMembershipFlow) {
-            binding.signerName.isVisible = this.not()
-            binding.signerNameLabel.isVisible = this.not()
-            binding.signerNameCounter.isVisible = this.not()
-            binding.toolbarTitle.isVisible = this
-        }
-        if (isMembershipFlow) {
-            binding.toolbarTitle.textSize = 12f
-            binding.toolbarTitle.text = getString(
-                R.string.nc_estimate_remain_time,
-                membershipStepManager.remainingTime.value
-            )
-        }
-        binding.signerName.addTextChangedCallback {
-            updateCounter(it.length)
-        }
-
-        binding.scanContainer.setOnClickListener {
-            requestCameraPermissionOrExecuteAction()
-        }
-        binding.btnImportViaFile.setOnDebounceClickListener {
-            importFileLauncher.launch("*/*")
-        }
-        binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
-        binding.addSigner.setOnClickListener {
-            viewModel.handleAddAirgapSigner(
-                signerName = binding.signerName.getEditText(),
-                signerSpec = binding.signerSpec.getEditText(),
-                isMembershipFlow = isMembershipFlow,
-                signerTag = signerTag,
-                xfp = xfp,
-                newIndex = newIndex,
-            )
-        }
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
-    }
-
     private fun openScanDynamicQRScreen() {
         scanQrLauncher.launch(ScanDynamicQRActivity.buildIntent(requireActivity()))
     }
@@ -228,7 +237,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
     }
 
     private fun bindKey(key: SingleSigner) {
-        binding.signerSpec.getEditTextView().setText(key.descriptor)
+        viewModel.updateKeySpec(key.descriptor)
     }
 
     private fun showSelectKeysDialog(
@@ -237,20 +246,159 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
         val fragment = BottomSheetOption.newInstance(signers.mapIndexed { index, singleSigner ->
             SheetOption(
                 type = index,
-                label = if (singleSigner.derivationPath.isRecommendedPath) "${singleSigner.derivationPath} (${getString(R.string.nc_recommended_for_multisig)})" else singleSigner.derivationPath
+                label = if (singleSigner.derivationPath.isRecommendedPath) "${singleSigner.derivationPath} (${
+                    getString(
+                        R.string.nc_recommended_for_multisig
+                    )
+                })" else singleSigner.derivationPath
             )
         }, title = getString(R.string.nc_signer_select_key_dialog_title))
         fragment.show(childFragmentManager, "BottomSheetOption")
     }
+}
 
-    private fun updateCounter(length: Int) {
-        val counterValue = "$length/$MAX_LENGTH"
-        binding.signerNameCounter.text = counterValue
-    }
+@Composable
+private fun AddAirgapSignerContent(
+    remainTime: Int = 0,
+    uiState: AddAirgapSignerState = AddAirgapSignerState(),
+    isMembershipFlow: Boolean = false,
+    onAddSigner: (String, String) -> Unit = { _, _ -> },
+    onScanQr: () -> Unit = {},
+    onImportFile: () -> Unit = {},
+    onKeyNameChange: (String) -> Unit = {},
+    onKeySpecChange: (String) -> Unit = {},
+) {
+    NunchukTheme {
+        Scaffold(topBar = {
+            val title = if (isMembershipFlow) {
+                stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                )
+            } else {
+                ""
+            }
+            NcTopAppBar(title = title, actions = {
+                Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+            })
+        }, bottomBar = {
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                onClick = {
+                    onAddSigner(uiState.keyName, uiState.keySpec)
+                }) {
+                Text(text = stringResource(id = R.string.nc_text_add_signer))
+            }
+        }) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
 
-    companion object {
-        private const val MAX_LENGTH = 20
+                Text(
+                    text = stringResource(R.string.nc_add_an_airgapped_key),
+                    style = NunchukTheme.typography.heading
+                )
+
+                if (isMembershipFlow.not()) {
+                    NcTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
+                        title = stringResource(id = R.string.nc_text_signer_name),
+                        error = if (uiState.showKeyNameError) stringResource(id = R.string.nc_text_required) else null,
+                        value = uiState.keyName,
+                        maxLines = 1,
+                        maxLength = MAX_LENGTH,
+                        enableMaxLength = true,
+                        visualTransformation = MaxLengthTransformation(maxLength = MAX_LENGTH),
+                        onValueChange = {
+                            if (it.length <= MAX_LENGTH) {
+                                onKeyNameChange(it)
+                            }
+                        },
+                    )
+                }
+
+                NcTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    error = if (uiState.showKeySpecError) stringResource(id = R.string.nc_error_invalid_signer_spec) else "",
+                    title = stringResource(id = R.string.nc_text_signer_spec),
+                    value = uiState.keySpec,
+                    inputBoxHeight = 180.dp,
+                    onValueChange = {
+                        onKeySpecChange(it)
+                    }
+                )
+
+                Row(Modifier.padding(top = 16.dp)) {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .weight(1f, true)
+                            .padding(end = 4.dp)
+                            .height(36.dp),
+                        onClick = { onImportFile() },
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(start = 6.dp),
+                                text = stringResource(id = R.string.nc_import_via_file),
+                                style = NunchukTheme.typography.captionTitle
+                            )
+                            Image(
+                                modifier = Modifier
+                                    .padding(start = 8.dp)
+                                    .size(18.dp),
+                                painter = painterResource(id = R.drawable.ic_import),
+                                contentDescription = null,
+                            )
+                        }
+                    }
+
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .weight(1f, true)
+                            .padding(start = 4.dp)
+                            .height(36.dp),
+                        onClick = { onScanQr() },
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(start = 6.dp),
+                                text = stringResource(id = R.string.nc_scan_qr),
+                                style = NunchukTheme.typography.captionTitle
+                            )
+                            Image(
+                                modifier = Modifier
+                                    .padding(start = 8.dp)
+                                    .size(18.dp),
+                                painter = painterResource(id = R.drawable.ic_qr),
+                                contentDescription = null,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
+@Preview
+@Composable
+private fun AddAirgapSignerScreenPreview() {
+    AddAirgapSignerContent()
+}
+
 internal const val PASSPORT_EXTRA_KEYS = "PASSPORT_EXTRA_KEYS"
+internal const val MAX_LENGTH = 20

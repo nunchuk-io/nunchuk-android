@@ -41,9 +41,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
-import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AirgapSignerNameRequiredEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
-import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.InvalidAirgapSignerSpecEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
 import com.nunchuk.android.signer.util.isTestNetPath
@@ -104,6 +102,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
     }
+
+    val remainTime = membershipStepManager.remainingTime
 
     fun init(groupId: String, isMembershipFlow: Boolean) {
         this.groupId = groupId
@@ -216,13 +216,13 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         doAfterValidate: (SignerInput) -> Unit = {},
     ) {
         if (signerName.isEmpty()) {
-            event(AirgapSignerNameRequiredEvent)
+            _state.update { it.copy(showKeyNameError = true) }
         } else {
             try {
                 doAfterValidate(signerSpec.toSigner())
             } catch (e: InvalidSignerFormatException) {
                 CrashlyticsReporter.recordException(e)
-                event(InvalidAirgapSignerSpecEvent)
+                _state.update { it.copy(showKeySpecError = true) }
             }
         }
     }
@@ -294,9 +294,23 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         return _signers
     }
 
+    fun updateKeyName(keyName: String) {
+        _state.update { it.copy(keyName = keyName, showKeyNameError = false) }
+    }
+
+    fun updateKeySpec(keySpec: String) {
+        _state.update { it.copy(keySpec = keySpec, showKeySpecError = false) }
+    }
+
     companion object {
         private const val TAG = "AddSignerViewModel"
     }
 }
 
-data class AddAirgapSignerState(val progress: Double = 0.0)
+data class AddAirgapSignerState(
+    val progress: Double = 0.0,
+    val keySpec: String = "",
+    val keyName: String = "",
+    val showKeySpecError: Boolean = false,
+    val showKeyNameError: Boolean = false,
+)
