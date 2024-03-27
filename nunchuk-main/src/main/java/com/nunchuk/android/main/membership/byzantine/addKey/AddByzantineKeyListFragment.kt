@@ -43,7 +43,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragmentFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
@@ -176,12 +175,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 ::showAddColdcardOptions
             )
 
-            SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(
-                viewModel.getAirgap(),
-                SignerType.AIRGAP,
-                ::showAirgapOptions
-            )
-
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
                 activity = requireActivity(),
                 fromMembershipFlow = true,
@@ -199,7 +192,10 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
+            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleShowKeysOrCreate(
+                viewModel.getAirgap(getSignerTag(option.type)),
+                SignerType.AIRGAP
+            ) { handleSelectAddAirgapType(option.type) }
 
             SheetOptionType.TYPE_ADD_LEDGER -> {
                 selectedSignerTag = SignerTag.LEDGER
@@ -228,6 +224,16 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         }
     }
 
+    private fun getSignerTag(type: Int) : SignerTag? {
+        return when (type) {
+            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
+            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
+            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
+            else -> null
+        }
+    }
+
     private fun openRequestAddDesktopKey(tag: SignerTag) {
         membershipStepManager.currentStep?.let { step ->
             findNavController().navigate(
@@ -241,13 +247,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     }
 
     private fun handleSelectAddAirgapType(type: Int) {
-        val tag = when (type) {
-            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
-            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
-            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
-            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
-            else -> null
-        }
+        val tag = getSignerTag(type)
         viewModel.getUpdateSigner()?.let {
             if (tag != null) {
                 viewModel.onUpdateSignerTag(it, tag)
@@ -288,22 +288,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         BottomSheetOption.newInstance(
             title = getString(R.string.nc_what_type_of_airgap_you_have),
             options = listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
-                    label = getString(R.string.nc_blockstream_jade),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
-                    label = getString(R.string.nc_foudation_passport),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
-                    label = getString(R.string.nc_seedsigner),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-                    label = getString(R.string.nc_keystone),
-                ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
                     label = getString(R.string.nc_other),
@@ -385,24 +369,40 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     label = getString(R.string.nc_tapsigner)
                 ),
                 SheetOption(
+                    type = SheetOptionType.TYPE_ADD_BITBOX,
+                    label = getString(R.string.nc_bitbox)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
+                    label = getString(R.string.nc_blockstream_jade),
+                ),
+                SheetOption(
                     type = SignerType.COLDCARD_NFC.ordinal,
                     label = getString(R.string.nc_coldcard)
                 ),
                 SheetOption(
-                    type = SignerType.AIRGAP.ordinal,
-                    label = getString(R.string.nc_signer_air_gapped)
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
+                    label = getString(R.string.nc_foudation_passport),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
+                    label = getString(R.string.nc_signer_generic_air_gapped)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+                    label = getString(R.string.nc_keystone),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_LEDGER,
                     label = getString(R.string.nc_ledger)
                 ),
                 SheetOption(
-                    type = SheetOptionType.TYPE_ADD_TREZOR,
-                    label = getString(R.string.nc_trezor)
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
+                    label = getString(R.string.nc_seedsigner),
                 ),
                 SheetOption(
-                    type = SheetOptionType.TYPE_ADD_BITBOX,
-                    label = getString(R.string.nc_bitbox)
+                    type = SheetOptionType.TYPE_ADD_TREZOR,
+                    label = getString(R.string.nc_trezor)
                 ),
             )
         }
@@ -422,7 +422,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             findNavController().navigate(
                 AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToTapSignerListBottomSheetFragment(
                     signer.toTypedArray(),
-                    type
+                    type,
                 )
             )
         } else {
