@@ -26,6 +26,25 @@
             android:layout_marginHorizontal="@dimen/nc_padding_16">
 
             <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/tvCollaborativeWallet"
+                style="@style/NCText.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_28"
+                android:text="@string/nc_matrix_based_collaborative_wallet"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.nunchuk.android.widget.NCSwitchButton
+                android:id="@+id/switchCollaborativeWallet"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@id/tvCollaborativeWallet"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/tvCollaborativeWallet"
+                app:sb_checked_color="@color/nc_primary_color" />
+
+            <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/tvDebugMode"
                 style="@style/NCText.Body"
                 android:layout_width="wrap_content"
@@ -33,7 +52,7 @@
                 android:layout_marginTop="@dimen/nc_padding_28"
                 android:text="@string/nc_txt_debug_mode"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@+id/switchCollaborativeWallet" />
 
             <com.nunchuk.android.widget.NCSwitchButton
                 android:id="@+id/switchDebugMode"

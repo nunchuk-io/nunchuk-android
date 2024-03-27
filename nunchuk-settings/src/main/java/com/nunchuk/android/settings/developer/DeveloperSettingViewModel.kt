@@ -68,4 +68,14 @@ internal class DeveloperSettingViewModel @Inject constructor(
         }
     }
 
+    fun updateDebugMode(debugMode: Boolean) {
+        if (state.value?.developerSetting?.debugMode == debugMode) return
+        updateDeveloperSettings(state.value!!.developerSetting.copy(debugMode = debugMode))
+    }
+
+    fun updateMatrixBasedCollaborativeWallet(matrixBasedCollaborativeWallet: Boolean) {
+        if (state.value?.developerSetting?.matrixBasedCollaborativeWallet == matrixBasedCollaborativeWallet) return
+        updateDeveloperSettings(state.value!!.developerSetting.copy(matrixBasedCollaborativeWallet = matrixBasedCollaborativeWallet))
+    }
+
 }

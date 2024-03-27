@@ -80,8 +80,8 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
     }
 
     private fun handleState(state: ChatInfoState) {
-        binding.joinWalletLabel.isGone = state.isSupportRoom || args.isByzantineChat
-        binding.joinWalletContainer.isGone = state.isSupportRoom || args.isByzantineChat
+        binding.joinWalletLabel.isGone = state.isSupportRoom || args.isByzantineChat || args.isShowCollaborativeWallet.not()
+        binding.joinWalletContainer.isGone = state.isSupportRoom || args.isByzantineChat || args.isShowCollaborativeWallet.not()
         binding.avatar.isVisible = state.isSupportRoom
         if (state.isSupportRoom) {
             binding.name.text = getString(R.string.nc_support)
@@ -123,8 +123,8 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context, roomId: String, isByzantineChat: Boolean) {
-            activityContext.startActivity(ChatInfoArgs(roomId = roomId, isByzantineChat = isByzantineChat).buildIntent(activityContext))
+        fun start(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean) {
+            activityContext.startActivity(ChatInfoArgs(roomId = roomId, isByzantineChat = isByzantineChat, isShowCollaborativeWallet = isShowCollaborativeWallet).buildIntent(activityContext))
         }
     }
 

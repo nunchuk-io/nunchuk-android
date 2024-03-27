@@ -36,7 +36,7 @@ interface MessageNavigator {
 
     fun openCreateRoomScreen(fragmentManager: FragmentManager)
 
-    fun openChatInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean)
+    fun openChatInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean)
 
-    fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean)
+    fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean)
 }

@@ -64,6 +64,7 @@ class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>()
 
     private fun handleState(state: DeveloperSettingState) {
         binding.switchDebugMode.isChecked = state.developerSetting.debugMode
+        binding.switchCollaborativeWallet.isChecked = state.developerSetting.matrixBasedCollaborativeWallet
     }
 
     private fun handleEvent(event: DeveloperSettingEvent) {
@@ -76,9 +77,11 @@ class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>()
 
     private fun setupViews() {
         binding.switchDebugMode.setOnCheckedChangeListener { _, checked ->
-            updateDisplayUnitSetting(
-                debugMode = checked
-            )
+            updateSetting(debugMode = checked)
+        }
+        binding.switchCollaborativeWallet.setOnCheckedChangeListener { _, checked ->
+            updateSetting(matrixBasedCollaborativeWallet = checked)
+
         }
         binding.btnClearLog.setOnClickListener {
             try {
@@ -92,14 +95,12 @@ class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>()
         }
     }
 
-    private fun updateDisplayUnitSetting(
-        debugMode: Boolean
+    private fun updateSetting(
+        debugMode: Boolean? = null,
+        matrixBasedCollaborativeWallet: Boolean? = null,
     ) {
-        viewModel.updateDeveloperSettings(
-            developerSetting = DeveloperSetting(
-                debugMode = debugMode
-            )
-        )
+        debugMode?.let { viewModel.updateDebugMode(it) }
+        matrixBasedCollaborativeWallet?.let { viewModel.updateMatrixBasedCollaborativeWallet(it) }
     }
 
     private fun setupData() {

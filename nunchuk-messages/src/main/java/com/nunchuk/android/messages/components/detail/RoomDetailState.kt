@@ -34,6 +34,7 @@ data class RoomDetailState(
     val isSupportRoom: Boolean = false,
     val isGroupChatRoom: Boolean = false,
     val isHasByzantineGroup: Boolean = false,
+    val matrixBasedCollaborativeWalletEnabled: Boolean? = null, // null means not loaded yet
 ) {
 
     companion object {

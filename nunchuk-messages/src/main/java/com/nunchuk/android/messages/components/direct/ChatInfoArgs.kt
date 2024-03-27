@@ -23,20 +23,23 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 
-data class ChatInfoArgs(val roomId: String, val isByzantineChat: Boolean) : ActivityArgs {
+data class ChatInfoArgs(val roomId: String, val isByzantineChat: Boolean, val isShowCollaborativeWallet: Boolean) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ChatInfoActivity::class.java).apply {
         putExtra(EXTRA_ROOM_ID, roomId)
         putExtra(EXTRA_BYZANTINE_CHAT, isByzantineChat)
+        putExtra(EXTRA_SHOW_COLLABORATIVE_WALLET, isShowCollaborativeWallet)
     }
 
     companion object {
         private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
         private const val EXTRA_BYZANTINE_CHAT = "EXTRA_BYZANTINE_CHAT"
+        private const val EXTRA_SHOW_COLLABORATIVE_WALLET = "EXTRA_SHOW_COLLABORATIVE_WALLET"
 
         fun deserializeFrom(intent: Intent) = ChatInfoArgs(
             intent.extras?.getString(EXTRA_ROOM_ID, "").orEmpty(),
             intent.extras?.getBoolean(EXTRA_BYZANTINE_CHAT, false) ?: false,
+            intent.extras?.getBoolean(EXTRA_SHOW_COLLABORATIVE_WALLET, false) ?: false
         )
     }
 

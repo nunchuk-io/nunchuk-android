@@ -49,7 +49,8 @@
     <string name="nc_text_signet_server">Signet server</string>
     <string name="nc_txt_explorer_address">Explorer Address</string>
     <string name="nc_settings_developer_mode">Developer settings</string>
-    <string name="nc_txt_debug_mode">Enable debug mode</string>
+    <string name="nc_txt_debug_mode">Debug mode</string>
+    <string name="nc_matrix_based_collaborative_wallet">Matrix-based collaborative wallet</string>
     <string name="nc_txt_sync_mode">Enable sync</string>
     <string name="nc_settings_sync_mode">Multi-device sync</string>
     <string name="nc_create_account_to_take_advantage">Create an account or sign in to take advantage of our advanced features, such as collaborative wallets and encrypted messaging.</string>
