@@ -80,7 +80,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
@@ -318,7 +317,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 ),
                 SheetOption(
                     type = SignerType.AIRGAP.ordinal,
-                    label = getString(R.string.nc_signer_air_gapped)
+                    label = getString(R.string.nc_signer_generic_air_gapped)
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_LEDGER,

@@ -147,11 +147,14 @@ class AddByzantineKeyListViewModel @Inject constructor(
         val signers = _state.value.`signers`
         val news = key.value.map { addKeyData ->
             val info = getStepInfo(addKeyData.type)
-            var signer = if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null
+            var signer =
+                if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null
             if (signer != null) {
                 runCatching {
                     val extra = gson.fromJson(info.extraData, SignerExtra::class.java)
-                    signer = signer?.copy(index = getIndexFromPathUseCase(extra.derivationPath).getOrDefault(0))
+                    signer = signer?.copy(
+                        index = getIndexFromPathUseCase(extra.derivationPath).getOrDefault(0)
+                    )
                 }
             }
             addKeyData.copy(
@@ -233,8 +236,21 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 && isSignerExist(it.fingerPrint).not()
     }
 
-    fun getAirgap() =
-        _state.value.signers.filter { it.type == SignerType.AIRGAP && isSignerExist(it.fingerPrint).not() }
+    fun getAirgap(tag: SignerTag?): List<SignerModel> {
+        return if (tag == null) {
+            _state.value.signers.filter {
+                it.type == SignerType.AIRGAP
+                        && isSignerExist(it.fingerPrint).not()
+                        && it.tags.isEmpty()
+            }
+        } else {
+            _state.value.signers.filter {
+                it.type == SignerType.AIRGAP
+                        && isSignerExist(it.fingerPrint).not()
+                        && it.tags.contains(tag)
+            }
+        }
+    }
 
     fun getHardwareSigners(tag: SignerTag) =
         _state.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
