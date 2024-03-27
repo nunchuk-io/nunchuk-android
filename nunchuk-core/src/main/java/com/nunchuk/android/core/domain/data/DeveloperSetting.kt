@@ -20,5 +20,6 @@
 package com.nunchuk.android.core.domain.data
 
 data class DeveloperSetting(
-    val debugMode: Boolean = true
+    val debugMode: Boolean = true,
+    val matrixBasedCollaborativeWallet: Boolean = false,
 )

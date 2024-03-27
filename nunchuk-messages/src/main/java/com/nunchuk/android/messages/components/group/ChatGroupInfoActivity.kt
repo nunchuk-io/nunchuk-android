@@ -122,7 +122,7 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
             binding.joinWalletContainer.isVisible = false
             binding.createTransactionContainer.isVisible = true
         } ?: run {
-            binding.joinWalletContainer.isVisible = true && !args.isByzantineChat
+            binding.joinWalletContainer.isVisible = true && !args.isByzantineChat && args.isShowCollaborativeWallet
             binding.createTransactionContainer.isVisible = false
             walletBinding.root.isVisible = false
         }
@@ -150,8 +150,8 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context, roomId: String, isByzantineChat: Boolean) {
-            activityContext.startActivity(ChatGroupInfoArgs(roomId = roomId, isByzantineChat = isByzantineChat).buildIntent(activityContext))
+        fun start(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean) {
+            activityContext.startActivity(ChatGroupInfoArgs(roomId = roomId, isByzantineChat = isByzantineChat, isShowCollaborativeWallet = isShowCollaborativeWallet).buildIntent(activityContext))
         }
     }
 

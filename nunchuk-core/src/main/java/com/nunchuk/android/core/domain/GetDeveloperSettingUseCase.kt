@@ -43,7 +43,7 @@ internal class GetDeveloperSettingUseCaseImpl @Inject constructor(
     )?.let {
         flow { emit(it) }.flowOn(Dispatchers.IO)
     } ?: flow {
-        emit(DeveloperSetting(debugMode = false))
+        emit(DeveloperSetting(debugMode = false, matrixBasedCollaborativeWallet = false))
     }.flowOn(Dispatchers.IO)
 
 }

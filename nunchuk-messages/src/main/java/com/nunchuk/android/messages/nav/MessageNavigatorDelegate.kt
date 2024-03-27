@@ -48,12 +48,12 @@ interface MessageNavigatorDelegate : MessageNavigator {
         CreateRoomBottomSheet.show(fragmentManager)
     }
 
-    override fun openChatInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean) {
-        ChatInfoActivity.start(activityContext, roomId, isByzantineChat)
+    override fun openChatInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean) {
+        ChatInfoActivity.start(activityContext, roomId, isByzantineChat, isShowCollaborativeWallet)
     }
 
-    override fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean) {
-        ChatGroupInfoActivity.start(activityContext, roomId, isByzantineChat)
+    override fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean) {
+        ChatGroupInfoActivity.start(activityContext, roomId, isByzantineChat, isShowCollaborativeWallet)
     }
 
 }

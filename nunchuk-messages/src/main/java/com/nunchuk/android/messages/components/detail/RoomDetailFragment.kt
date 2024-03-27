@@ -197,6 +197,9 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         if (state.isSupportRoom || state.isGroupChatRoom || state.isHasByzantineGroup) {
             adapter.removeBannerNewChat()
             binding.memberCount.text = resources.getString(R.string.nc_message_transaction_view_details)
+        } else if (state.matrixBasedCollaborativeWalletEnabled == false) {
+            adapter.removeBannerNewChat()
+            binding.memberCount.text = resources.getQuantityString(R.plurals.nc_message_members, count, count)
         } else {
             binding.memberCount.text = resources.getQuantityString(R.plurals.nc_message_members, count, count)
         }
@@ -208,7 +211,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         val hasRoomWallet = state.roomWallet != null
         stickyBinding.root.isVisible = hasRoomWallet
         binding.sendAction.isVisible = state.isSupportRoom || args.isGroupChat
-        binding.addWallet.isVisible = !hasRoomWallet && !state.isSupportRoom && !args.isGroupChat && !state.isHasByzantineGroup && !state.isGroupChatRoom
+        binding.addWallet.isVisible = !hasRoomWallet && !state.isSupportRoom && !args.isGroupChat && !state.isHasByzantineGroup && !state.isGroupChatRoom && state.matrixBasedCollaborativeWalletEnabled == true
         binding.sendBTC.isVisible = hasRoomWallet
         binding.receiveBTC.isVisible = hasRoomWallet
         binding.expand.isVisible = hasRoomWallet
@@ -244,9 +247,10 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(
                 requireActivity(),
                 args.roomId,
-                viewModel.isByzantineChat()
+                viewModel.isByzantineChat(),
+                viewModel.isShowCollaborativeWallet()
             )
-            OpenChatInfoEvent -> navigator.openChatInfoScreen(requireActivity(), args.roomId, viewModel.isByzantineChat())
+            OpenChatInfoEvent -> navigator.openChatInfoScreen(requireActivity(), args.roomId, viewModel.isByzantineChat(), viewModel.isShowCollaborativeWallet())
             RoomWalletCreatedEvent -> showSuccess(getString(R.string.nc_message_wallet_created))
             HideBannerNewChatEvent -> adapter.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(

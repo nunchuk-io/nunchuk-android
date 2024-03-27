@@ -173,7 +173,10 @@ class RoomDetailViewModel @Inject constructor(
     private fun getDeveloperSettings() {
         viewModelScope.launch {
             getDeveloperSettingUseCase.execute().flowOn(ioDispatcher).onException { }
-                .collect { debugMode = it.debugMode }
+                .collect {
+                    debugMode = it.debugMode
+                    updateState { copy(matrixBasedCollaborativeWalletEnabled = it.matrixBasedCollaborativeWallet) }
+                }
         }
     }
 
@@ -533,6 +536,8 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun isByzantineChat() = getState().isHasByzantineGroup || getState().isGroupChatRoom
+
+    fun isShowCollaborativeWallet(): Boolean = getState().matrixBasedCollaborativeWalletEnabled == true
 
     override fun onCleared() {
         timeline?.apply {
