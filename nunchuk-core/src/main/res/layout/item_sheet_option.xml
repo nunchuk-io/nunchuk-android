@@ -1,18 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.nunchuk.android.widget.NCFontTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/tv_label"
-    style="@style/NCText.Body"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="4dp"
-    android:background="?attr/selectableItemBackground"
-    android:drawablePadding="@dimen/nc_padding_8"
-    android:gravity="center_vertical"
-    android:includeFontPadding="false"
-    android:paddingHorizontal="@dimen/nc_padding_14"
-    android:paddingVertical="@dimen/nc_padding_16"
-    android:textColor="@color/nc_black_color"
-    tools:drawableStart="@drawable/ic_backup"
-    tools:drawableEnd="@drawable/ic_check"
-    tools:text="Option" />
+    android:layout_height="wrap_content">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_label"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_14"
+        android:textColor="@color/nc_black_color"
+        tools:drawableEnd="@drawable/ic_check"
+        tools:drawableStart="@drawable/ic_backup"
+        tools:text="Option" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:background="@color/nc_whisper_color"
+        android:visibility="gone"
+        tools:visibility="visible" />
+</FrameLayout>

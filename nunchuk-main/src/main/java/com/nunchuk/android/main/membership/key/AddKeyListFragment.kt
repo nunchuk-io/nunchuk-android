@@ -309,27 +309,44 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             listOf(
                 SheetOption(
                     type = SignerType.NFC.ordinal,
-                    label = getString(R.string.nc_tapsigner)
+                    label = getString(R.string.nc_tapsigner),
+                    showDivider = true
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_BITBOX,
+                    label = getString(R.string.nc_bitbox)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
+                    label = getString(R.string.nc_blockstream_jade),
                 ),
                 SheetOption(
                     type = SignerType.COLDCARD_NFC.ordinal,
                     label = getString(R.string.nc_coldcard)
                 ),
                 SheetOption(
-                    type = SignerType.AIRGAP.ordinal,
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
+                    label = getString(R.string.nc_foudation_passport),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
                     label = getString(R.string.nc_signer_generic_air_gapped)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+                    label = getString(R.string.nc_keystone),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_LEDGER,
                     label = getString(R.string.nc_ledger)
                 ),
                 SheetOption(
-                    type = SheetOptionType.TYPE_ADD_TREZOR,
-                    label = getString(R.string.nc_trezor)
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
+                    label = getString(R.string.nc_seedsigner),
                 ),
                 SheetOption(
-                    type = SheetOptionType.TYPE_ADD_BITBOX,
-                    label = getString(R.string.nc_bitbox)
+                    type = SheetOptionType.TYPE_ADD_TREZOR,
+                    label = getString(R.string.nc_trezor)
                 ),
             ),
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),
