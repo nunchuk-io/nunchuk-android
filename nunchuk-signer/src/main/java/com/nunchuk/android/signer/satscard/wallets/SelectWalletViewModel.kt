@@ -131,7 +131,7 @@ class SelectWalletViewModel @Inject constructor(
 
     fun createInheritanceTransaction() = viewModelScope.launch {
         _event.emit(SelectWalletEvent.Loading(isLoading = true, isClaimInheritance = true))
-        val claimInheritanceTxParam = args.claimInheritanceTxParam
+        val claimInheritanceTxParam = args.claimParam
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
                 address = _state.value.selectWalletAddress,
