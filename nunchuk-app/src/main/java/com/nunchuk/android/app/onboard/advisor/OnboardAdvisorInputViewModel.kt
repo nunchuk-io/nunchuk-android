@@ -2,6 +2,7 @@ package com.nunchuk.android.app.onboard.advisor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Country
@@ -18,10 +19,11 @@ import javax.inject.Inject
 class OnboardAdvisorInputViewModel @Inject constructor(
     private val getListCountryUseCase: GetListCountryUseCase,
     private val sendOnboardNoAdvisorUseCase: SendOnboardNoAdvisorUseCase,
-    private val setOnBoardUseCase: SetOnBoardUseCase
+    private val setOnBoardUseCase: SetOnBoardUseCase,
+    accountManager: AccountManager
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(OnboardAdvisorInputUiState())
+    private val _state = MutableStateFlow(OnboardAdvisorInputUiState(email = accountManager.getAccount().email))
     val state = _state.asStateFlow()
 
     init {
