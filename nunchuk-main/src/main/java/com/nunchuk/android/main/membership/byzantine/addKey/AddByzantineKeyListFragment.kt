@@ -351,7 +351,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             listOf(
                 SheetOption(
                     type = SignerType.NFC.ordinal,
-                    label = getString(R.string.nc_tapsigner)
+                    label = getString(R.string.nc_tapsigner),
+                    showDivider = true
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_LEDGER,
@@ -366,7 +367,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             listOf(
                 SheetOption(
                     type = SignerType.NFC.ordinal,
-                    label = getString(R.string.nc_tapsigner)
+                    label = getString(R.string.nc_tapsigner),
+                    showDivider = true
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_BITBOX,

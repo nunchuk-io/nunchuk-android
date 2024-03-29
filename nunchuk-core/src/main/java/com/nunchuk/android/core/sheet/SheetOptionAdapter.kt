@@ -28,8 +28,8 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.resources.MaterialResources.getDimensionPixelSize
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.databinding.ItemSheetOptionBinding
 import com.nunchuk.android.core.util.getString
@@ -68,6 +68,7 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
     private val textSize12 by lazy { binding.root.context.resources.getDimensionPixelSize(R.dimen.nc_text_size_12) }
 
     fun bind(option: SheetOption) {
+        binding.divider.isVisible = option.showDivider
         binding.tvLabel.setCompoundDrawablesRelativeWithIntrinsicBounds(
             option.resId,
             0,
