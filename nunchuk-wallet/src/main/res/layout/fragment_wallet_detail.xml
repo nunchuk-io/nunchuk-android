@@ -101,12 +101,12 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/cashAmount"
-        style="@style/NCText.Body.Small"
+        style="@style/NCText.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_text_size_8"
         android:paddingHorizontal="@dimen/nc_padding_8"
-        android:textColor="@color/nc_white_color"
+        android:textColor="@color/nc_tealish_green"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btcAmount"

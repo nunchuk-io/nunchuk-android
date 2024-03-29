@@ -45,6 +45,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.everglade
 import com.nunchuk.android.compose.ming
+import com.nunchuk.android.compose.tealishGreen
 import com.nunchuk.android.compose.yellowishOrange
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
@@ -498,15 +499,17 @@ internal fun ActiveWallet(
                 text = wallet.name, style = NunchukTheme.typography.title, color = Color.White
             )
             Text(
+                modifier = Modifier.padding(top = 2.dp),
                 text = Utils.maskValue(
                     wallet.getBTCAmount(),
                     role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ), style = NunchukTheme.typography.titleSmall, color = Color.White
+                ), style = NunchukTheme.typography.titleLarge, color = Color.White
             )
             Text(
+                modifier = Modifier.padding(top = 2.dp),
                 text = Utils.maskValue(
                     balance, role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ), style = NunchukTheme.typography.bodySmall, color = Color.White
+                ), style = NunchukTheme.typography.body, color = MaterialTheme.colorScheme.tealishGreen
             )
         }
 
@@ -533,7 +536,7 @@ internal fun ActiveWallet(
                     }
                     Text(
                         modifier = Modifier.padding(
-                            start = 4.dp, end = 8.dp,
+                            start = 4.dp, end = 8.dp, top = 2.dp, bottom = 2.dp
                         ),
                         text = walletTypeName,
                         style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
@@ -555,7 +558,7 @@ internal fun ActiveWallet(
                 }
                 Text(
                     modifier = Modifier.padding(
-                        start = 8.dp, end = 8.dp
+                        horizontal = 8.dp, vertical = 2.dp
                     ),
                     text = text,
                     style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
