@@ -60,3 +60,6 @@ val ColorScheme.yellowishOrange: Color
 
 val ColorScheme.textColorMid: Color
     get() = Color(0xFF757575)
+
+val ColorScheme.tealishGreen: Color
+    get() = Color(0xFFA7F0BA)
