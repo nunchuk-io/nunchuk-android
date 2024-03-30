@@ -73,6 +73,7 @@ interface SignerNavigator {
         activityContext: Context,
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        groupId: String? = null,
     )
 
     /**
@@ -83,6 +84,7 @@ interface SignerNavigator {
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         walletId: String = "",
+        groupId: String? = null,
     )
 
     fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
@@ -94,7 +96,9 @@ interface SignerNavigator {
         activityContext: Context,
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
-        isRecoverHotWallet: Boolean = false
+        isRecoverHotWallet: Boolean = false,
+        walletId: String = "",
+        groupId: String? = null,
     )
 
     /**
@@ -107,6 +111,7 @@ interface SignerNavigator {
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         masterSignerId: String = "",
         walletId: String = "",
+        groupId: String? = null,
     )
 
     /**
@@ -132,6 +137,7 @@ interface SignerNavigator {
         signerName: String,
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        groupId: String? = null,
     )
 
     fun openPrimaryKeyIntroScreen(activityContext: Context)

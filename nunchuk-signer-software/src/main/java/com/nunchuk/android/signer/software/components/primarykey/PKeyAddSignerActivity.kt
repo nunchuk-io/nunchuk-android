@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.signer.software.databinding.ActivityPkeyAddSignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar

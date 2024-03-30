@@ -26,6 +26,11 @@
             android:name="wallet_id"
             android:defaultValue=""
             app:argType="string" />
+        <argument
+            android:name="group_id"
+            android:defaultValue="@null"
+            app:nullable="true"
+            app:argType="string" />
         <action
             android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
             app:destination="@id/confirmSeedFragment"
@@ -62,6 +67,11 @@
             android:name="wallet_id"
             android:defaultValue=""
             app:argType="string" />
+        <argument
+            android:name="group_id"
+            android:defaultValue="@null"
+            app:nullable="true"
+            app:argType="string" />
         <action
             android:id="@+id/action_confirmSeedFragment_to_setPassphraseFragment"
             app:destination="@id/setPassphraseFragment"
@@ -93,6 +103,11 @@
             android:name="primary_key_flow"
             android:defaultValue="0"
             app:argType="integer" />
+        <argument
+            android:name="group_id"
+            android:defaultValue="@null"
+            app:nullable="true"
+            app:argType="string" />
     </fragment>
 
 

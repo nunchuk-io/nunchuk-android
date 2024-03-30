@@ -137,12 +137,14 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
         private const val EXTRA_RECOVER_HOT_WALLET = "EXTRA_RECOVER_HOT_WALLET"
+        private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
 
         fun start(
             activityContext: Context,
             passphrase: String,
             primaryKeyFlow: Int,
             isRecoverHotWallet: Boolean = false,
+            groupId: String? = null,
         ) {
             activityContext.startActivity(
                 Intent(
@@ -161,6 +163,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         EXTRA_RECOVER_HOT_WALLET,
                         isRecoverHotWallet
                     )
+                    putExtra(EXTRA_GROUP_ID, groupId)
                 },
             )
         }

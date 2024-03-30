@@ -22,7 +22,7 @@ package com.nunchuk.android.main.membership.wallet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import com.nunchuk.android.GetDefaultSignerFromMasterSignerUseCase
+import com.nunchuk.android.GetDefaultSignersFromMasterSignersUseCase
 import com.nunchuk.android.core.domain.membership.CreateServerWalletUseCase
 import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.orUnknownError
@@ -58,7 +58,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateWalletViewModel @Inject constructor(
-    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
+    private val getDefaultSignersFromMasterSignersUseCase: GetDefaultSignersFromMasterSignersUseCase,
     private val createWalletUseCase: CreateWalletUseCase,
     private val getMembershipStepUseCase: GetMembershipStepUseCase,
     private val createSignerUseCase: CreateSignerUseCase,
@@ -139,8 +139,8 @@ class CreateWalletViewModel @Inject constructor(
             val walletRemoteSigners = signers.mapNotNull { entry -> remoteSigners.find { it.masterFingerprint == entry.key && it.derivationPath == entry.value.derivationPath } }
             val masterSigners =
                 signers.filter { entry -> !walletRemoteSigners.any { it.masterFingerprint == entry.key } }.map { it.key }
-            val getSingleSingerResult = getDefaultSignerFromMasterSignerUseCase(
-                GetDefaultSignerFromMasterSignerUseCase.Params(
+            val getSingleSingerResult = getDefaultSignersFromMasterSignersUseCase(
+                GetDefaultSignersFromMasterSignersUseCase.Params(
                     masterSigners,
                     WalletType.MULTI_SIG,
                     addressType

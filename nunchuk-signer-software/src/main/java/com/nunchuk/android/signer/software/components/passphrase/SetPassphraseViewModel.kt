@@ -26,15 +26,31 @@ import com.nunchuk.android.core.domain.ChangePrimaryKeyUseCase
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
+import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
+import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseNotMatchedEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseRequiredEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerErrorEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateWalletErrorEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateWalletSuccessEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.LoadingEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.PassPhraseRequiredEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.PassPhraseValidEvent
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
+import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +68,11 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase,
-    private val changePrimaryKeyUseCase: ChangePrimaryKeyUseCase
+    private val changePrimaryKeyUseCase: ChangePrimaryKeyUseCase,
+    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
+    private val membershipStepManager: MembershipStepManager,
+    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
+    private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
 
     private lateinit var mnemonic: String
@@ -131,27 +151,70 @@ internal class SetPassphraseViewModel @Inject constructor(
 
     private fun createSoftwareSigner(skipPassphrase: Boolean) {
         viewModelScope.launch {
-            createSoftwareSignerUseCase.execute(
-                name = signerName,
-                mnemonic = mnemonic,
-                passphrase = getState().passphrase,
-                isPrimaryKey = args.primaryKeyFlow.isPrimaryKeyFlow()
-            )
-                .flowOn(Dispatchers.IO)
-                .onStart { event(LoadingEvent(true)) }
-                .onException {
-                    event(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+            setEvent(LoadingEvent(true))
+            createSoftwareSignerUseCase(
+                CreateSoftwareSignerUseCase.Param(
+                    name = signerName,
+                    mnemonic = mnemonic,
+                    passphrase = getState().passphrase,
+                    isPrimaryKey = args.primaryKeyFlow.isPrimaryKeyFlow()
+                )
+            ).onSuccess {
+                if (!args.groupId.isNullOrEmpty()) {
+                    syncKeyToGroup(it, args.groupId.orEmpty())
+                } else if (args.isQuickWallet) {
+                    createQuickWallet(it)
+                } else {
+                    setEvent(CreateSoftwareSignerCompletedEvent(it, skipPassphrase))
                 }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    if (args.isQuickWallet) {
-                        createQuickWallet(it)
-                    } else {
-                        event(
-                            CreateSoftwareSignerCompletedEvent(it, skipPassphrase)
-                        )
-                    }
-                }
+            }.onFailure {
+                setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+            }
+            setEvent(LoadingEvent(false))
+        }
+    }
+
+    private fun syncKeyToGroup(masterSigner: MasterSigner, groupId: String) {
+        viewModelScope.launch {
+           getDefaultSignerFromMasterSignerUseCase(
+                GetDefaultSignerFromMasterSignerUseCase.Params(
+                    masterSignerId = masterSigner.id,
+                    walletType = WalletType.MULTI_SIG,
+                    addressType = AddressType.NATIVE_SEGWIT
+                )
+            ).onSuccess { signer ->
+               syncKeyToGroupUseCase(
+                   SyncKeyToGroupUseCase.Param(
+                       step = membershipStepManager.currentStep
+                           ?: throw IllegalArgumentException("Current step empty"),
+                       groupId = groupId,
+                       signer = signer
+                   )
+               ).onSuccess {
+                   saveMembershipStepUseCase(
+                       MembershipStepInfo(
+                           step = membershipStepManager.currentStep
+                               ?: throw IllegalArgumentException("Current step empty"),
+                           masterSignerId = signer.masterFingerprint,
+                           plan = membershipStepManager.plan,
+                           verifyType = VerifyType.APP_VERIFIED,
+                           extraData = gson.toJson(
+                               SignerExtra(
+                                   derivationPath = signer.derivationPath,
+                                   isAddNew = true,
+                                   signerType = signer.type
+                               )
+                           ),
+                           groupId = groupId
+                       )
+                   )
+                   setEvent(CreateSoftwareSignerCompletedEvent(masterSigner, masterSigner.device.needPassPhraseSent))
+               }.onFailure {
+                   setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+               }
+            }.onFailure {
+               setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+           }
         }
     }
 

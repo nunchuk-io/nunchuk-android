@@ -68,6 +68,9 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
     private val passphrase: String by lazy {
         intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
     }
+    private val groupId: String? by lazy {
+        intent.getStringExtra(EXTRA_GROUP_ID)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,7 +89,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         navigator.openCreateNewSeedScreen(
             this,
             passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow
+            primaryKeyFlow = primaryKeyFlow,
+            groupId = groupId
         )
     }
 
@@ -94,17 +98,20 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         navigator.openRecoverSeedScreen(
             this,
             passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow
+            primaryKeyFlow = primaryKeyFlow,
+            groupId = groupId
         )
     }
 
     companion object {
         private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
+        private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         fun start(
             activityContext: Context,
             passphrase: String,
             primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+            groupId: String? = null,
         ) {
             activityContext.startActivity(
                 Intent(
@@ -113,6 +120,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                 ).apply {
                     putExtra(EXTRA_PRIMARY_KEY_FLOW, primaryKeyFlow)
                     putExtra(EXTRA_PASSPHRASE, passphrase)
+                    groupId?.let { putExtra(EXTRA_GROUP_ID, it) }
                 })
 
         }

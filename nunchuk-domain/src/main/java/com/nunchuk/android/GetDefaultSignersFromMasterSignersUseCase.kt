@@ -17,33 +17,33 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class CreateSoftwareSignerUseCase @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk,
+class GetDefaultSignersFromMasterSignersUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : UseCase<CreateSoftwareSignerUseCase.Param, MasterSigner>(ioDispatcher) {
+    private val nunchukNativeSdk: NunchukNativeSdk
+) : UseCase<GetDefaultSignersFromMasterSignersUseCase.Params, List<SingleSigner>>(ioDispatcher) {
 
-    override suspend fun execute(parameters: Param): MasterSigner {
-        return nativeSdk.createSoftwareSigner(
-            name = parameters.name,
-            mnemonic = parameters.mnemonic,
-            passphrase = parameters.passphrase,
-            isPrimary = parameters.isPrimaryKey,
-        )
+    override suspend fun execute(parameters: Params): List<SingleSigner> {
+        return parameters.masterSignerIds.map { masterSignerId ->
+            nunchukNativeSdk.getDefaultSignerFromMasterSigner(
+                masterSignerId = masterSignerId,
+                walletType = parameters.walletType.ordinal,
+                addressType = parameters.addressType.ordinal
+            )
+        }
     }
 
-    data class Param(
-        val name: String,
-        val mnemonic: String,
-        val passphrase: String,
-        val isPrimaryKey: Boolean,
+    data class Params(
+        val masterSignerIds: List<String>, val walletType: WalletType, val addressType: AddressType
     )
 }
