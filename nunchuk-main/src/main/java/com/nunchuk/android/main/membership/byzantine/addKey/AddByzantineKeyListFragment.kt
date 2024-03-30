@@ -74,7 +74,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private var selectedSignerTag: SignerTag? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -145,6 +145,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     SignerType.HARDWARE -> selectedSignerTag?.let { tag ->
                         openRequestAddDesktopKey(tag)
                     }
+                    SignerType.SOFTWARE -> openAddSoftwareKey()
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -192,7 +193,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleShowKeysOrCreate(
+            SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
+            -> handleShowKeysOrCreate(
                 viewModel.getAirgap(getSignerTag(option.type)),
                 SignerType.AIRGAP
             ) { handleSelectAddAirgapType(option.type) }
@@ -221,10 +223,24 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     SignerType.HARDWARE
                 ) { openRequestAddDesktopKey(SignerTag.BITBOX) }
             }
+
+            SheetOptionType.TYPE_ADD_SOFTWARE_KEY -> {
+                handleShowKeysOrCreate(
+                    viewModel.getSoftwareSigners(),
+                    SignerType.SOFTWARE
+                ) { openAddSoftwareKey() }
+            }
         }
     }
 
-    private fun getSignerTag(type: Int) : SignerTag? {
+    private fun openAddSoftwareKey() {
+        navigator.openAddSoftwareSignerScreen(
+            activityContext = requireActivity(),
+            groupId = args.groupId
+        )
+    }
+
+    private fun getSignerTag(type: Int): SignerTag? {
         return when (type) {
             SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
@@ -340,74 +356,19 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> openSelectHardwareOption()
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4,
+            -> openSelectHardwareOption()
 
             else -> Unit
         }
     }
 
     private fun openSelectHardwareOption() {
-        val options = if (args.isKeyHolderLimited) {
-            listOf(
-                SheetOption(
-                    type = SignerType.NFC.ordinal,
-                    label = getString(R.string.nc_tapsigner),
-                    showDivider = true
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_LEDGER,
-                    label = getString(R.string.nc_ledger)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_TREZOR,
-                    label = getString(R.string.nc_trezor)
-                ),
-            )
-        } else {
-            listOf(
-                SheetOption(
-                    type = SignerType.NFC.ordinal,
-                    label = getString(R.string.nc_tapsigner),
-                    showDivider = true
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_BITBOX,
-                    label = getString(R.string.nc_bitbox)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
-                    label = getString(R.string.nc_blockstream_jade),
-                ),
-                SheetOption(
-                    type = SignerType.COLDCARD_NFC.ordinal,
-                    label = getString(R.string.nc_coldcard)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
-                    label = getString(R.string.nc_foudation_passport),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
-                    label = getString(R.string.nc_signer_generic_air_gapped)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-                    label = getString(R.string.nc_keystone),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_LEDGER,
-                    label = getString(R.string.nc_ledger)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
-                    label = getString(R.string.nc_seedsigner),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_TREZOR,
-                    label = getString(R.string.nc_trezor)
-                ),
-            )
-        }
+        val options = getKeyOptions(
+            context = requireContext(),
+            isKeyHolderLimited = args.isKeyHolderLimited,
+            isStandard = viewModel.getGroupWalletType()?.isStandard == true
+        )
         BottomSheetOption.newInstance(
             options = options,
             desc = getString(R.string.nc_key_limit_desc).takeIf { args.isKeyHolderLimited },
@@ -418,7 +379,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun handleShowKeysOrCreate(
         signer: List<SignerModel>,
         type: SignerType,
-        onEmptySigner: () -> Unit
+        onEmptySigner: () -> Unit,
     ) {
         if (signer.isNotEmpty()) {
             findNavController().navigate(
@@ -456,7 +417,7 @@ fun AddKeyListScreen(
     viewModel: AddByzantineKeyListViewModel = viewModel(),
     isAddOnly: Boolean = false,
     membershipStepManager: MembershipStepManager,
-    onMoreClicked: () -> Unit = {}
+    onMoreClicked: () -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()

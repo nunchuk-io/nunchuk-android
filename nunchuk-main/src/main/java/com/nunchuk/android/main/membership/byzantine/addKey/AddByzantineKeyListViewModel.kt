@@ -144,7 +144,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
-        val signers = _state.value.`signers`
+        val signers = _state.value.signers
         val news = key.value.map { addKeyData ->
             val info = getStepInfo(addKeyData.type)
             var signer =
@@ -255,6 +255,9 @@ class AddByzantineKeyListViewModel @Inject constructor(
     fun getHardwareSigners(tag: SignerTag) =
         _state.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
 
+    fun getSoftwareSigners() =
+        _state.value.signers.filter { it.type == SignerType.SOFTWARE && isSignerExist(it.fingerPrint).not() }
+
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
@@ -307,6 +310,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
             )
         }
     }
+
+    fun getGroupWalletType() = _state.value.groupWalletType
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"

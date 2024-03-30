@@ -50,14 +50,14 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
     }
 
     companion object {
-
         fun start(
             activityContext: Context,
             mnemonic: String,
             passphrase: String,
             primaryKeyFlow: Int,
             masterSignerId: String,
-            walletId: String
+            walletId: String,
+            groupId: String? = null
         ) {
             activityContext.startActivity(
                 Intent(
@@ -69,11 +69,11 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
                         primaryKeyFlow = primaryKeyFlow,
                         passphrase = passphrase,
                         masterSignerId = masterSignerId,
-                        walletId = walletId
+                        walletId = walletId,
+                        groupId = groupId
                     ).toBundle()
                 )
             )
         }
     }
-
 }

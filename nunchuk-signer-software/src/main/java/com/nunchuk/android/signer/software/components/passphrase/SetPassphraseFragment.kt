@@ -37,6 +37,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.software.R
+import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseNotMatchedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseRequiredEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
@@ -133,6 +134,8 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
                 setPassphrase = !skipPassphrase,
                 isReplacePrimaryKey = true
             )
+        } else if (!args.groupId.isNullOrEmpty()) {
+            ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
         } else {
             navigator.returnToMainScreen()
             navigator.openSignerInfoScreen(

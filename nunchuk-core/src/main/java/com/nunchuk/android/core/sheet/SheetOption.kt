@@ -144,4 +144,6 @@ object SheetOptionType {
 
     const val TYPE_CONSOLIDATE_COIN = 81
     const val TYPE_EXPORT_BBQR = 82
+
+    const val TYPE_ADD_SOFTWARE_KEY = 83
 }

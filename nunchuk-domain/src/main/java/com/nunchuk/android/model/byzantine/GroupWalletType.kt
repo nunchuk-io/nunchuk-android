@@ -14,7 +14,10 @@ enum class GroupWalletType(
     THREE_OF_FIVE(3, 5, false, false),
     THREE_OF_FIVE_INHERITANCE(3, 5, true, true),
     THREE_OF_FIVE_PLATFORM_KEY(3, 5, false, true),
-    TWO_OF_FOUR_MULTISIG_NO_INHERITANCE(2, 4, false, true)
+    TWO_OF_FOUR_MULTISIG_NO_INHERITANCE(2, 4, false, true);
+
+    val isStandard: Boolean
+        get() = this == TWO_OF_THREE || this == THREE_OF_FIVE
 }
 
 fun String.toGroupWalletType(): GroupWalletType? {

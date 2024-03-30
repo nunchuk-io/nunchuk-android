@@ -22,7 +22,7 @@ package com.nunchuk.android.wallet.shared.components.assign
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.GetDefaultSignerFromMasterSignerUseCase
+import com.nunchuk.android.GetDefaultSignersFromMasterSignersUseCase
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.CacheDefaultTapsignerMasterSignerXPubUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
@@ -63,7 +63,7 @@ internal class AssignSignerViewModel @AssistedInject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
     private val cacheDefaultTapsignerMasterSignerXPubUseCase: CacheDefaultTapsignerMasterSignerXPubUseCase,
-    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase
+    private val getDefaultSignersFromMasterSignersUseCase: GetDefaultSignersFromMasterSignersUseCase
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
     override val initialState = AssignSignerState()
@@ -93,8 +93,8 @@ internal class AssignSignerViewModel @AssistedInject constructor(
                 CacheDefaultTapsignerMasterSignerXPubUseCase.Data(isoDep, cvc, signer.id)
             )
             if (result.isSuccess) {
-                val signerResult = getDefaultSignerFromMasterSignerUseCase(
-                    GetDefaultSignerFromMasterSignerUseCase.Params(
+                val signerResult = getDefaultSignersFromMasterSignersUseCase(
+                    GetDefaultSignersFromMasterSignersUseCase.Params(
                         listOf(signer.id),
                         WalletType.MULTI_SIG,
                         args.addressType

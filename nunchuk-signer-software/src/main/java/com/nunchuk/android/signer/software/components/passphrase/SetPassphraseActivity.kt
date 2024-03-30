@@ -52,7 +52,8 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
             mnemonic: String,
             signerName: String,
             primaryKeyFlow: Int,
-            passphrase: String
+            passphrase: String,
+            groupId: String? = null,
         ) {
             activityContext.startActivity(
                 Intent(activityContext, SetPassphraseActivity::class.java).putExtras(
@@ -60,8 +61,9 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
                         mnemonic = mnemonic,
                         signerName = signerName,
                         primaryKeyFlow = primaryKeyFlow,
-                        passphrase = passphrase
-                        ).toBundle()
+                        passphrase = passphrase,
+                        groupId = groupId,
+                    ).toBundle()
                 )
             )
         }

@@ -129,8 +129,14 @@ interface SignerNavigatorDelegate : SignerNavigator {
         activityContext: Context,
         passphrase: String,
         primaryKeyFlow: Int,
+        groupId: String?,
     ) {
-        SoftwareSignerIntroActivity.start(activityContext, passphrase, primaryKeyFlow)
+        SoftwareSignerIntroActivity.start(
+            activityContext = activityContext,
+            passphrase = passphrase,
+            primaryKeyFlow = primaryKeyFlow,
+            groupId = groupId
+        )
     }
 
     override fun openCreateNewSeedScreen(
@@ -138,12 +144,14 @@ interface SignerNavigatorDelegate : SignerNavigator {
         passphrase: String,
         primaryKeyFlow: Int,
         walletId: String,
+        groupId: String?,
     ) {
         CreateNewSeedActivity.start(
             activityContext = activityContext,
             primaryKeyFlow = primaryKeyFlow,
             passphrase = passphrase,
-            walletId = walletId
+            walletId = walletId,
+            groupId = groupId
         )
     }
 
@@ -152,8 +160,16 @@ interface SignerNavigatorDelegate : SignerNavigator {
         passphrase: String,
         primaryKeyFlow: Int,
         isRecoverHotWallet: Boolean,
+        walletId: String,
+        groupId: String?,
     ) {
-        RecoverSeedActivity.start(activityContext, passphrase, primaryKeyFlow, isRecoverHotWallet)
+        RecoverSeedActivity.start(
+            activityContext = activityContext,
+            passphrase = passphrase,
+            primaryKeyFlow = primaryKeyFlow,
+            isRecoverHotWallet = isRecoverHotWallet,
+            groupId = groupId,
+        )
     }
 
     override fun openSelectPhraseScreen(
@@ -163,6 +179,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         primaryKeyFlow: Int,
         masterSignerId: String,
         walletId: String,
+        groupId: String?,
     ) {
         ConfirmSeedActivity.start(
             activityContext = activityContext,
@@ -170,7 +187,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             passphrase = passphrase,
             primaryKeyFlow = primaryKeyFlow,
             masterSignerId = masterSignerId,
-            walletId = walletId
+            walletId = walletId,
+            groupId = groupId
         )
     }
 
@@ -198,13 +216,15 @@ interface SignerNavigatorDelegate : SignerNavigator {
         signerName: String,
         passphrase: String,
         primaryKeyFlow: Int,
+        groupId: String?,
     ) {
         SetPassphraseActivity.start(
-            activityContext,
-            mnemonic,
-            signerName,
-            primaryKeyFlow,
-            passphrase
+            activityContext = activityContext,
+            mnemonic = mnemonic,
+            signerName = signerName,
+            primaryKeyFlow = primaryKeyFlow,
+            passphrase = passphrase,
+            groupId = groupId
         )
     }
 

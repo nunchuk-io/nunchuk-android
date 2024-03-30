@@ -31,6 +31,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
@@ -39,11 +40,15 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     private val args: ConfirmSeedFragmentArgs by navArgs()
     private val viewModel: ConfirmSeedViewModel by viewModels()
+
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -97,6 +102,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     private fun openSetPassphrase() {
         if (args.masterSignerId.isNotEmpty()) {
+            // hot wallet follow up
             viewModel.markHotWalletBackedUp(args.walletId)
             navigator.returnToMainScreen()
             navigator.openSignerInfoScreen(
@@ -117,6 +123,14 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                     isQuickWallet = true,
                     primaryKeyFlow = args.primaryKeyFlow
                 )
+            )
+        } else if (!args.groupId.isNullOrEmpty()) {
+            navigator.openSetPassphraseScreen(
+                activityContext = requireActivity(),
+                mnemonic = args.mnemonic,
+                signerName = "Key${membershipStepManager.getNextKeySuffixByType(SignerType.SOFTWARE)}",
+                primaryKeyFlow = args.primaryKeyFlow,
+                groupId = args.groupId
             )
         } else {
             openSetNameScreen()

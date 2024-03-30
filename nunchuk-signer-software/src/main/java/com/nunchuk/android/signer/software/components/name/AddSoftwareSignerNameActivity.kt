@@ -123,7 +123,7 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
 
     private fun openSetPassphraseScreen(signerName: String, passphrase: String) {
         navigator.openSetPassphraseScreen(
-            this,
+            activityContext = this,
             mnemonic = args.mnemonic,
             signerName = signerName,
             passphrase = passphrase,
