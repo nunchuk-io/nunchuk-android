@@ -28,7 +28,7 @@ import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.isByzantine
+import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
@@ -57,7 +57,7 @@ class WalletIntermediaryViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val application: Application,
     private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase,
-    private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase
+    private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
@@ -91,12 +91,13 @@ class WalletIntermediaryViewModel @Inject constructor(
 
     fun getAssistedWalletConfig() {
         if (getWalletConfigJob?.isActive == true || _state.value.plan == MembershipPlan.NONE) return
+        val plan = _state.value.plan
         getWalletConfigJob = viewModelScope.launch {
-            if (_state.value.plan.isByzantine()) {
+            if (plan.isByzantineOrFinney()) {
                 getGroupAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
                     _state.update {
                         it.copy(
-                            remainGroupCount = configs.remainingByzantineWallet + configs.remainingByzantineProWallet + configs.remainingPremierWallet,
+                            remainGroupCount = configs.remainingGroupWallet,
                             remainWalletCount = configs.remainingHoneyBadgerWallet
                         )
                     }

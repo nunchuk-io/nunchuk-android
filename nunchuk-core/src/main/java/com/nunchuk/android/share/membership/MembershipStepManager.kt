@@ -198,6 +198,28 @@ class MembershipStepManager @Inject constructor(
                     steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
                 }
 
+                MembershipPlan.FINNEY -> {
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                }
+
+                MembershipPlan.FINNEY_PRO -> {
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4] =
+                        MembershipStepFlow(totalStep = 8)
+                }
+
                 MembershipPlan.NONE -> Unit
             }
             _remainingTime.value = calculateRemainTime(steps.toMap().values)

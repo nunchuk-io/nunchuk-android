@@ -30,6 +30,8 @@ fun GroupWalletType.shortName(plan: MembershipPlan): Int =
         this == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> R.string.nc_premier
         this == GroupWalletType.THREE_OF_FIVE_INHERITANCE && plan == MembershipPlan.BYZANTINE_PREMIER -> R.string.nc_premier
         this == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY && plan == MembershipPlan.BYZANTINE_PREMIER -> R.string.nc_premier
+        this == GroupWalletType.THREE_OF_FIVE && plan == MembershipPlan.FINNEY -> R.string.nc_finney_cap
+        this == GroupWalletType.THREE_OF_FIVE && plan == MembershipPlan.FINNEY_PRO -> R.string.nc_finney_pro_cap
         else -> R.string.nc_standard
     }
 

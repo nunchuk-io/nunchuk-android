@@ -319,6 +319,8 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
             MembershipPlan.BYZANTINE -> getString(R.string.nc_byzantine)
             MembershipPlan.BYZANTINE_PRO -> getString(R.string.nc_byzantine_pro)
             MembershipPlan.BYZANTINE_PREMIER -> getString(R.string.nc_byzantine_premier)
+            MembershipPlan.FINNEY -> getString(R.string.nc_finney)
+            MembershipPlan.FINNEY_PRO -> getString(R.string.nc_finney_pro)
             MembershipPlan.NONE -> ""
         }
     }

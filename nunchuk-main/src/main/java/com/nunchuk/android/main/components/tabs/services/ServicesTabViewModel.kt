@@ -41,7 +41,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.model.isByzantine
+import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
@@ -428,7 +428,7 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     fun isByzantine(): Boolean {
-        return state.value.plan.isByzantine() || state.value.allGroups.isNotEmpty()
+        return state.value.plan.isByzantineOrFinney() || state.value.allGroups.isNotEmpty()
     }
 
     fun isShowClaimInheritanceLayout(): Boolean {

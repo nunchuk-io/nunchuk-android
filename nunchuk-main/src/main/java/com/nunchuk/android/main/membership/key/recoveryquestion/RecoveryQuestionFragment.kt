@@ -81,7 +81,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
-import com.nunchuk.android.model.isByzantine
+import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -156,7 +156,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
                     )
                 }
                 RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess -> {
-                    val message = if (viewModel.state.value.plan.isByzantine()) {
+                    val message = if (viewModel.state.value.plan.isByzantineOrFinney()) {
                         getString(R.string.nc_security_questions_updated)
                     } else {
                         getString(R.string.nc_key_recovery_questions_updated)

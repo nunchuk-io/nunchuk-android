@@ -251,7 +251,8 @@ internal class WalletsViewModel @Inject constructor(
                     }
 
                     is PushEvent.InheritanceEvent -> {
-                        val assistedWallets = getState().assistedWallets.filter { it.localId == event.walletId}
+                        val assistedWallets =
+                            getState().assistedWallets.filter { it.localId == event.walletId }
                         if (assistedWallets.isNotEmpty()) {
                             checkInheritance(assistedWallets)
                         }
@@ -426,8 +427,11 @@ internal class WalletsViewModel @Inject constructor(
                 var groupWalletUi = GroupWalletUi(
                     wallet = wallet,
                     isAssistedWallet = wallet.wallet.id in assistedWalletIds,
-                    badgeCount = if (alerts[groupId] == null) alerts[wallet.wallet.id].orDefault(0) else alerts[groupId].orDefault(0),
-                    keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty().associateBy { it.xfp },
+                    badgeCount = if (alerts[groupId] == null) alerts[wallet.wallet.id].orDefault(0) else alerts[groupId].orDefault(
+                        0
+                    ),
+                    keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty()
+                        .associateBy { it.xfp },
                     signers = signers
                 )
                 if (group != null) {
@@ -440,7 +444,10 @@ internal class WalletsViewModel @Inject constructor(
                         wallet = if (inviterName.isNotEmpty()) null else wallet,
                         group = group,
                         role = role,
-                        primaryOwnerMember = byzantineGroupUtils.getPrimaryOwnerMember(group, assistedWallet?.primaryMembershipId),
+                        primaryOwnerMember = byzantineGroupUtils.getPrimaryOwnerMember(
+                            group,
+                            assistedWallet?.primaryMembershipId
+                        ),
                         inviterName = inviterName
                     )
                 }
@@ -479,14 +486,16 @@ internal class WalletsViewModel @Inject constructor(
         if (isRetrievingAlert.get()) return
         viewModelScope.launch {
             val groupIds = getState().allGroups.map { it.id }
-            val assistedWalletIdsWithoutGroupId = getState().assistedWallets.filter { it.groupId.isEmpty() }.map { it.localId }
+            val assistedWalletIdsWithoutGroupId =
+                getState().assistedWallets.filter { it.groupId.isEmpty() }.map { it.localId }
             if (groupIds.isEmpty() && assistedWalletIdsWithoutGroupId.isEmpty()) return@launch
             isRetrievingAlert.set(true)
             val result = getPendingWalletNotifyCountUseCase(
                 GetPendingWalletNotifyCountUseCase.Param(
                     groupIds = groupIds,
                     walletIds = assistedWalletIdsWithoutGroupId
-                ))
+                )
+            )
             isRetrievingAlert.set(false)
             if (result.isSuccess) {
                 val alerts = result.getOrDefault(hashMapOf())
@@ -523,7 +532,10 @@ internal class WalletsViewModel @Inject constructor(
         event(AddWalletEvent)
     }
 
-    private fun checkSignerExistence(signer: SignerModel, walletExtendeds: List<WalletExtended>): Boolean {
+    private fun checkSignerExistence(
+        signer: SignerModel,
+        walletExtendeds: List<WalletExtended>,
+    ): Boolean {
         return walletExtendeds.any {
             it.wallet.signers.any anyLast@{ singleSigner ->
                 if (singleSigner.hasMasterSigner) {
@@ -606,12 +618,13 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
 
-            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.BYZANTINE_PREMIER -> {
+            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.BYZANTINE_PREMIER,
+            MembershipPlan.FINNEY, MembershipPlan.FINNEY_PRO -> {
                 val allGroups = getState().allGroups
                 return if (allGroups.isEmpty()) MembershipStage.NONE else MembershipStage.DONE
             }
 
-            else -> return MembershipStage.DONE // no subscription plan it means done
+            MembershipPlan.NONE -> return MembershipStage.DONE // no subscription plan it means done
         }
     }
 

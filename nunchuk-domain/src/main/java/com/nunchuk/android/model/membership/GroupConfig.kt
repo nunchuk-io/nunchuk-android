@@ -26,5 +26,9 @@ data class GroupConfig(
     val remainingByzantineProWallet : Int,
     val remainingHoneyBadgerWallet : Int,
     val remainingPremierWallet : Int,
+    val remainingFinneyWallet : Int,
+    val remainingFinneyProWallet : Int,
     val allowWalletTypes: List<GroupWalletType>
-)
+) {
+    val remainingGroupWallet = remainingByzantineWallet + remainingByzantineProWallet + remainingPremierWallet + remainingFinneyWallet + remainingFinneyProWallet
+}
