@@ -1521,6 +1521,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             remainingByzantineProWallet = response.data.byzantinePro?.remainingWalletCount ?: 0,
             remainingHoneyBadgerWallet = response.data.honeyBadger?.remainingWalletCount ?: 0,
             remainingPremierWallet = response.data.premier?.remainingWalletCount ?: 0,
+            remainingFinneyWallet = response.data.finney?.remainingWalletCount ?: 0,
+            remainingFinneyProWallet = response.data.finneyPro?.remainingWalletCount ?: 0,
             allowWalletTypes = response.data.allowGroupWalletTypes.mapNotNull { it.toGroupWalletType() }
         )
     }

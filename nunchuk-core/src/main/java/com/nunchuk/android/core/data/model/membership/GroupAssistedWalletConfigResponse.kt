@@ -26,5 +26,7 @@ data class GroupAssistedWalletConfigResponse(
     @SerializedName("byzantine_pro") val byzantinePro: AssistedWalletConfigResponse? = null,
     @SerializedName("honey_badger") val honeyBadger: AssistedWalletConfigResponse? = null,
     @SerializedName("byzantine_premier") val premier: AssistedWalletConfigResponse? = null,
+    @SerializedName("finney") val finney: AssistedWalletConfigResponse? = null,
+    @SerializedName("finney_pro") val finneyPro: AssistedWalletConfigResponse? = null,
     @SerializedName("allow_group_wallet_types") val allowGroupWalletTypes: List<String> = emptyList(),
 )

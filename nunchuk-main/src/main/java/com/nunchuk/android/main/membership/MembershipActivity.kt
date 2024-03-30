@@ -28,7 +28,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.isByzantine
+import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
@@ -61,7 +61,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         val plan = membershipStepManager.plan
         when (stage) {
             MembershipStage.NONE -> {
-                if (plan.isByzantine()) {
+                if (plan.isByzantineOrFinney()) {
                     if (groupId.isNotEmpty() || isCreateAssistedWallet) {
                         graph.setStartDestination(R.id.introAssistedWalletFragment)
                     } else {

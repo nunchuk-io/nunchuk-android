@@ -95,7 +95,9 @@
     <string name="nc_ssigner_primary_key_turn_notification">Turn on notifications</string>
     <string name="nc_ssigner_primary_key_not_now">Not now</string>
     <string name="nc_byzantine">Byzantine</string>
-    <string name="nc_byzantine_pro">Byzantine Pro</string>
-    <string name="nc_byzantine_premier">Byzantine Premier</string>
+    <string name="nc_byzantine_pro">Byzantine PRO</string>
+    <string name="nc_byzantine_premier">Byzantine PREMIER</string>
     <string name="nc_network_setting_guide">For instructions on how to connect to your own node, please refer to this guide.</string>
+    <string name="nc_finney">Finney</string>
+    <string name="nc_finney_pro">Finney PRO</string>
 </resources>

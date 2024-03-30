@@ -25,7 +25,6 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
-import com.nunchuk.android.model.User
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -40,7 +39,7 @@ internal data class WalletsState(
     val signers: List<SignerModel> = emptyList(),
     val connectionStatus: ConnectionStatus? = null,
     val chain: Chain = Chain.MAIN,
-    val plan: MembershipPlan? = null,
+    val plan: MembershipPlan = MembershipPlan.NONE,
     val remainingTime: Int = 0,
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val isSetupInheritance: Boolean = false,

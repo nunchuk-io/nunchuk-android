@@ -33,7 +33,7 @@ class SelectGroupViewModel @Inject constructor(
                 .onSuccess { config ->
                     _state.update {
                         it.copy(
-                            remainingByzantineWallet = config.remainingByzantineWallet,
+                            remainingByzantineWallet = config.remainingByzantineWallet + config.remainingFinneyWallet + config.remainingFinneyProWallet,
                             remainingByzantineProWallet = config.remainingByzantineProWallet,
                             remainingByzantinePremier = config.remainingPremierWallet,
                             options = config.allowWalletTypes,

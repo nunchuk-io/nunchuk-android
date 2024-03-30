@@ -23,27 +23,45 @@ import androidx.annotation.Keep
 
 @Keep
 enum class MembershipPlan {
-    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE, BYZANTINE_PRO, BYZANTINE_PREMIER
+    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE, BYZANTINE_PRO, BYZANTINE_PREMIER, FINNEY, FINNEY_PRO
 }
 
-fun MembershipPlan.isByzantine() = this == MembershipPlan.BYZANTINE || this == MembershipPlan.BYZANTINE_PRO || this == MembershipPlan.BYZANTINE_PREMIER
+fun MembershipPlan.isByzantineOrFinney() =
+    this == MembershipPlan.BYZANTINE
+            || this == MembershipPlan.BYZANTINE_PRO
+            || this == MembershipPlan.BYZANTINE_PREMIER
+            || this == MembershipPlan.FINNEY
+            || this == MembershipPlan.FINNEY_PRO
 
 fun String?.toMembershipPlan() = when (this) {
     IRON_HAND_PLAN, IRON_HAND_PLAN_TESTNET -> {
         MembershipPlan.IRON_HAND
     }
+
     HONEY_BADGER_PLAN, HONEY_BADGER_PLAN_TESTNET -> {
         MembershipPlan.HONEY_BADGER
     }
+
     BYZANTINE_PLAN_TESTNET, BYZANTINE_PLAN_ -> {
         MembershipPlan.BYZANTINE
     }
+
     BYZANTINE_PRO_PLAN_TESTNET, BYZANTINE_PRO_PLAN -> {
         MembershipPlan.BYZANTINE_PRO
     }
+
     BYZANTINE_PREMIER_TESTNET, BYZANTINE_PREMIER_PLAN -> {
         MembershipPlan.BYZANTINE_PREMIER
     }
+
+    FINNEY_PLAN, FINNEY_PLAN_TESTNET -> {
+        MembershipPlan.FINNEY
+    }
+
+    FINNEY_PRO_PLAN, FINNEY_PRO_PLAN_TESTNET -> {
+        MembershipPlan.FINNEY_PRO
+    }
+
     else -> {
         MembershipPlan.NONE
     }
@@ -59,3 +77,7 @@ private const val BYZANTINE_PRO_PLAN = "byzantine_pro"
 private const val BYZANTINE_PREMIER_PLAN = "byzantine_premier"
 private const val BYZANTINE_PLAN_ = "byzantine"
 private const val HONEY_BADGER_PLAN = "honey_badger"
+private const val FINNEY_PLAN = "finney"
+private const val FINNEY_PLAN_TESTNET = "finney_testnet"
+private const val FINNEY_PRO_PLAN = "finney_pro"
+private const val FINNEY_PRO_PLAN_TESTNET = "finney_pro_testnet"
