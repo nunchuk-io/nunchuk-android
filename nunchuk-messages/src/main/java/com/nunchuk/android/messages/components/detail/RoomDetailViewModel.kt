@@ -367,7 +367,7 @@ class RoomDetailViewModel @Inject constructor(
         val roomWallet = getState().roomWallet
         if (roomWallet == null) {
             setEvent(CreateNewSharedWallet)
-        } else {
+        } else if (roomWallet.walletId.isNotEmpty()) {
             viewModelScope.launch {
                 getWalletUseCase.execute(walletId = roomWallet.walletId).flowOn(ioDispatcher)
                     .onException { sendErrorEvent(it) }.collect { onGetWallet(it.wallet) }
@@ -379,7 +379,7 @@ class RoomDetailViewModel @Inject constructor(
         val roomWallet = getState().roomWallet
         if (roomWallet == null) {
             setEvent(CreateNewSharedWallet)
-        } else {
+        } else if (roomWallet.walletId.isNotEmpty()) {
             setEvent(ReceiveBTCEvent(roomWallet.walletId))
         }
     }
