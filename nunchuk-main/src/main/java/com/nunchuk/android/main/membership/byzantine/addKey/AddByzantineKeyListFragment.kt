@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.membership.byzantine.addKey
 
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.text.bold
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -59,6 +61,7 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -98,7 +101,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             if (data.signers.isNotEmpty()) {
                 val signer = data.signers.first()
                 when (signer.type) {
-                    SignerType.NFC -> {
+                    SignerType.NFC, SignerType.SOFTWARE -> {
                         findNavController().navigate(
                             AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
                                 signer
@@ -145,6 +148,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     SignerType.HARDWARE -> selectedSignerTag?.let { tag ->
                         openRequestAddDesktopKey(tag)
                     }
+
                     SignerType.SOFTWARE -> openAddSoftwareKey()
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
@@ -224,12 +228,27 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 ) { openRequestAddDesktopKey(SignerTag.BITBOX) }
             }
 
-            SheetOptionType.TYPE_ADD_SOFTWARE_KEY -> {
-                handleShowKeysOrCreate(
-                    viewModel.getSoftwareSigners(),
-                    SignerType.SOFTWARE
-                ) { openAddSoftwareKey() }
-            }
+            SheetOptionType.TYPE_ADD_SOFTWARE_KEY ->
+                checkTwoSoftwareKeySameDevice {
+                    handleShowKeysOrCreate(
+                        viewModel.getSoftwareSigners(),
+                        SignerType.SOFTWARE
+                    ) { openAddSoftwareKey() }
+                }
+        }
+    }
+
+    private fun checkTwoSoftwareKeySameDevice(onSuccess: () -> Unit) {
+        val total = viewModel.getCountWalletSoftwareSignersInDevice()
+        if (total >= 1) {
+            NCInfoDialog(requireActivity())
+                .showDialog(title = getString(R.string.nc_text_warning),
+                    message = SpannableStringBuilder().bold {
+                        append(getString(R.string.nc_info_software_key_same_device_part_1))
+                    }.append(getString(R.string.nc_info_software_key_same_device_part_2)),
+                    onYesClick = { onSuccess() })
+        } else {
+            onSuccess()
         }
     }
 

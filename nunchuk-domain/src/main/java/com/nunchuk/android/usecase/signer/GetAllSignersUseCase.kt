@@ -31,9 +31,14 @@ import javax.inject.Inject
 class GetAllSignersUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : UseCase<Unit, Pair<List<MasterSigner>, List<SingleSigner>>>(ioDispatcher) {
+) : UseCase<Boolean, Pair<List<MasterSigner>, List<SingleSigner>>>(ioDispatcher) {
 
-    override suspend fun execute(parameters: Unit): Pair<List<MasterSigner>, List<SingleSigner>> {
-        return nativeSdk.getMasterSigners().filter { it.isVisible } to nativeSdk.getRemoteSigners().filter { it.type != SignerType.SERVER && it.isVisible }
+    // should filter pass true
+    override suspend fun execute(parameters: Boolean): Pair<List<MasterSigner>, List<SingleSigner>> {
+        return if (parameters) {
+            nativeSdk.getMasterSigners().filter { it.isVisible } to nativeSdk.getRemoteSigners().filter { it.type != SignerType.SERVER && it.isVisible }
+        } else {
+            nativeSdk.getMasterSigners() to nativeSdk.getRemoteSigners()
+        }
     }
 }
