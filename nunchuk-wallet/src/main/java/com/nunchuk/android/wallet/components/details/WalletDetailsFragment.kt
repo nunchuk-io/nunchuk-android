@@ -336,16 +336,34 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             )
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_beeswax_dark)
+            binding.cashAmount.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.nc_beeswax_tint
+                )
+            )
         } else if (state.isAssistedWallet) {
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
             binding.shareIcon.text =
                 Utils.maskValue(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
+            binding.cashAmount.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.nc_denim_tint_color
+                )
+            )
         } else {
             binding.container.setBackgroundResource(R.drawable.nc_header_gradient_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
+            binding.cashAmount.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.nc_denim_tint_color
+                )
+            )
         }
     }
 
