@@ -33,7 +33,7 @@
             android:id="@+id/btcAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_16"
             android:layout_marginBottom="@dimen/nc_padding_8"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"

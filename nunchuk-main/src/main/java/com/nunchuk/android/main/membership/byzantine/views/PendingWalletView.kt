@@ -43,6 +43,7 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.denimTint
 import com.nunchuk.android.compose.everglade
 import com.nunchuk.android.compose.ming
 import com.nunchuk.android.compose.tealishGreen
@@ -143,7 +144,9 @@ fun PendingWalletView(
                     walletsExtended = walletsExtended,
                     hideWalletDetail = hideWalletDetail,
                     isAssistedWallet = isAssistedWallet,
-                    role = role
+                    role = role,
+                    group = group,
+                    isLocked = isLocked
                 )
             }
         }
@@ -490,6 +493,8 @@ internal fun ActiveWallet(
     hideWalletDetail: Boolean,
     isAssistedWallet: Boolean,
     role: String = AssistedWalletRole.NONE.name,
+    group: ByzantineGroup? = null,
+    isLocked: Boolean = false,
 ) {
     val wallet = walletsExtended.wallet
     val balance = "(${wallet.getCurrencyAmount()})"
@@ -505,11 +510,20 @@ internal fun ActiveWallet(
                     role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
                 ), style = NunchukTheme.typography.titleLarge, color = Color.White
             )
+            val color = if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name || isLocked) {
+                MaterialTheme.colorScheme.yellowishOrange
+            } else if (group != null || isAssistedWallet) {
+                MaterialTheme.colorScheme.denimTint
+            } else if (walletsExtended.wallet.needBackup) {
+                MaterialTheme.colorScheme.yellowishOrange
+            } else {
+                MaterialTheme.colorScheme.denimTint
+            }
             Text(
                 modifier = Modifier.padding(top = 2.dp),
                 text = Utils.maskValue(
                     balance, role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ), style = NunchukTheme.typography.body, color = MaterialTheme.colorScheme.tealishGreen
+                ), style = NunchukTheme.typography.body, color = color
             )
         }
 
