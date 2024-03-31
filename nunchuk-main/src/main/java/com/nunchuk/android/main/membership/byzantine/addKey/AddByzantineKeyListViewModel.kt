@@ -128,7 +128,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     }
 
     private suspend fun loadSigners() {
-        getAllSignersUseCase(Unit).onSuccess { pair ->
+        getAllSignersUseCase(false).onSuccess { pair ->
             val singleSigner = pair.second.distinctBy { it.masterFingerprint }
             singleSigners.apply {
                 clear()
@@ -312,6 +312,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     }
 
     fun getGroupWalletType() = _state.value.groupWalletType
+    fun getCountWalletSoftwareSignersInDevice() = key.value.count { it.signer != null && it.signer.type == SignerType.SOFTWARE && it.signer.isVisible }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"

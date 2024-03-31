@@ -56,7 +56,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -138,7 +137,7 @@ class AddKeyListViewModel @Inject constructor(
     }
 
     private suspend fun loadSigners() {
-        getAllSignersUseCase(Unit).onSuccess { pair ->
+        getAllSignersUseCase(false).onSuccess { pair ->
             _state.update {
                 singleSigners.apply {
                     clear()
