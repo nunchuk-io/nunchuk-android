@@ -28,6 +28,7 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -89,6 +90,7 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
             }
             viewModelScope.launch {
                 analyzeQrUseCase(qrDataList.toList()).onSuccess { value ->
+                    delay(150L)
                     _state.update { it.copy(progress = value.times(100.0)) }
                 }
             }
