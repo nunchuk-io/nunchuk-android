@@ -127,8 +127,9 @@ internal class ExportTransactionViewModel @Inject constructor(
         exportTransactionJob = viewModelScope.launch {
             exportKeystoneDummyTransaction(
                 ExportKeystoneDummyTransaction.Param(
-                    args.txToSign,
-                    getState().density
+                    txToSign = args.txToSign,
+                    density = getState().density,
+                    isBBQR = args.isBBQR
                 )
             ).onSuccess {
                 val bitmaps = withContext(ioDispatcher) {
