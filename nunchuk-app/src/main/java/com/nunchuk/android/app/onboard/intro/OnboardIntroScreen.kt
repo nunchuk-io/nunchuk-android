@@ -138,6 +138,7 @@ fun OnboardIntroContent(
                 title = stringResource(R.string.nc_assisted_wallet),
                 description = stringResource(R.string.nc_assisted_wallet_option_desc),
                 painter = painterResource(id = R.drawable.ic_onboard_assisted_wallet),
+                descTextStyle = NunchukTheme.typography.body,
                 onClick = onOpenAssistedIntro
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -146,6 +147,7 @@ fun OnboardIntroContent(
                 title = stringResource(R.string.nc_unassisted_wallet),
                 description = stringResource(R.string.nc_unassisted_wallet_option_desc),
                 painter = painterResource(id = R.drawable.ic_onboard_unassisted_wallet),
+                descTextStyle = NunchukTheme.typography.body,
                 onClick = onOpenUnassistedIntro
             )
         }
