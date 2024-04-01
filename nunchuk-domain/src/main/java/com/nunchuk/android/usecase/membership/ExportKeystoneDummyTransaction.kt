@@ -31,8 +31,12 @@ class ExportKeystoneDummyTransaction @Inject constructor(
 ) : UseCase<ExportKeystoneDummyTransaction.Param, List<String>>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): List<String> {
-        return nativeSdk.exportKeystoneDummyTransaction(parameters.txToSign, parameters.density)
+        return if (parameters.isBBQR) {
+            nativeSdk.exportBBQRTransaction(parameters.txToSign, parameters.density)
+        } else {
+            nativeSdk.exportKeystoneDummyTransaction(parameters.txToSign, parameters.density)
+        }
     }
 
-    data class Param(val txToSign: String, val density: Int)
+    data class Param(val txToSign: String, val density: Int, val isBBQR: Boolean = false)
 }
