@@ -149,7 +149,7 @@ data class ServicesTabState(
 
             MembershipPlan.BYZANTINE_PREMIER -> return getItemsByzantinePremier()
 
-            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO -> {
+            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.FINNEY, MembershipPlan.FINNEY_PRO  -> {
                 return if (hasPremierGroupWallet()) getItemsByzantinePremier() else getItemsByzantineAndPro()
             }
 
