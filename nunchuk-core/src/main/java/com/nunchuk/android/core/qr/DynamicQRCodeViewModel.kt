@@ -27,8 +27,7 @@ import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.HIGH_DENSITY
-import com.nunchuk.android.core.util.LOW_DENSITY
-import com.nunchuk.android.core.util.MEDIUM_DENSITY
+import com.nunchuk.android.core.util.toBBQRDensity
 import com.nunchuk.android.usecase.ExportBCR2020010WalletUseCase
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -108,11 +107,7 @@ class DynamicQRCodeViewModel @Inject constructor(
             }
         } else if (type == ExportWalletQRCodeType.BBQR) {
             viewModelScope.launch {
-                val convertDensity = when (density) {
-                    LOW_DENSITY -> 3
-                    MEDIUM_DENSITY -> 10
-                    else -> 27
-                }
+                val convertDensity = density.toBBQRDensity()
                 exportBBQRWalletUseCase(ExportBBQRWalletUseCase.Params(walletId, convertDensity))
                     .map { list -> list.mapNotNull { it.convertToQRCode() } }
                     .onSuccess { bitmaps ->

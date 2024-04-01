@@ -97,6 +97,12 @@ fun Int.densityToLevel(): Float = when (this) {
     else -> 2f
 }
 
+fun Int.toBBQRDensity(): Int = when (this) {
+    LOW_DENSITY -> 3
+    MEDIUM_DENSITY -> 10
+    else -> 27
+}
+
 fun Double.formatRoundDecimal(): String {
     val df = DecimalFormat("#.##")
     return df.format(this)
