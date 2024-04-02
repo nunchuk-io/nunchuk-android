@@ -8,7 +8,7 @@ import com.nunchuk.android.type.SignerType
 
 fun getKeyOptions(context: Context, isKeyHolderLimited: Boolean, isStandard: Boolean) =
     if (isKeyHolderLimited) {
-        listOf(
+        listOfNotNull(
             SheetOption(
                 type = SignerType.NFC.ordinal,
                 label = context.getString(R.string.nc_tapsigner),
@@ -18,6 +18,10 @@ fun getKeyOptions(context: Context, isKeyHolderLimited: Boolean, isStandard: Boo
                 type = SheetOptionType.TYPE_ADD_LEDGER,
                 label = context.getString(R.string.nc_ledger)
             ),
+            SheetOption(
+                type = SheetOptionType.TYPE_ADD_SOFTWARE_KEY,
+                label = context.getString(R.string.nc_signer_type_software),
+            ).takeIf { isStandard },
             SheetOption(
                 type = SheetOptionType.TYPE_ADD_TREZOR,
                 label = context.getString(R.string.nc_trezor)
