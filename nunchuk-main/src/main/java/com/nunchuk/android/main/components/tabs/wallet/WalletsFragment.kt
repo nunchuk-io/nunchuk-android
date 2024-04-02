@@ -379,7 +379,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
-        showPendingWallet(state.groupWalletUis, state.walletSecuritySetting.hideWalletDetail)
+        showPendingWallet(state.groupWalletUis, state.walletSecuritySetting.hideWalletDetail, state.useLargeFont)
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
@@ -480,7 +480,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showPendingWallet(groupWalletUis: List<GroupWalletUi>, hideWalletDetail: Boolean) {
+    private fun showPendingWallet(groupWalletUis: List<GroupWalletUi>, hideWalletDetail: Boolean, useLargeFont: Boolean) {
         binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
         binding.walletList.isVisible = groupWalletUis.isNotEmpty()
         binding.pendingWallet.setContent {
@@ -499,6 +499,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             role = it.role,
                             status = it.keyStatus,
                             signers = it.signers,
+                            useLargeFont = useLargeFont,
                             onAccept = {
                                 it.group?.id?.let { groupId ->
                                     walletsViewModel.acceptInviteMember(groupId)

@@ -24,6 +24,7 @@ import com.nunchuk.android.nav.SettingNavigator
 import com.nunchuk.android.settings.about.AboutActivity
 import com.nunchuk.android.settings.developer.DeveloperSettingActivity
 import com.nunchuk.android.settings.devices.UserDevicesActivity
+import com.nunchuk.android.settings.displaysettings.DisplaySettingsActivity
 import com.nunchuk.android.settings.localcurrency.LocalCurrencyActivity
 import com.nunchuk.android.settings.network.NetworkSettingActivity
 import com.nunchuk.android.settings.notification.TurnNotificationActivity
@@ -39,6 +40,10 @@ interface SettingNavigatorDelegate : SettingNavigator {
 
     override fun openDisplayUnitScreen(activityContext: Context) {
         DisplayUnitActivity.start(activityContext)
+    }
+
+    override fun openDisplaySettingsScreen(activityContext: Context) {
+        DisplaySettingsActivity.start(activityContext)
     }
 
     override fun openDeveloperScreen(activityContext: Context) {

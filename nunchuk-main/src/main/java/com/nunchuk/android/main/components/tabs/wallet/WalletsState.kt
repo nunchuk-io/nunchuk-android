@@ -52,6 +52,7 @@ internal data class WalletsState(
     val groupWalletUis: List<GroupWalletUi> = emptyList(),
     val alerts: Map<String, Int> = emptyMap(),
     val keyHealthStatus: Map<String, List<KeyHealthStatus>> = emptyMap(),
+    val useLargeFont: Boolean = false,
 )
 
 internal sealed class WalletsEvent {

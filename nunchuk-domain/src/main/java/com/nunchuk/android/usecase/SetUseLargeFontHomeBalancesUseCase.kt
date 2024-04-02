@@ -17,28 +17,19 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.setting.WalletSecuritySetting
-import com.nunchuk.android.type.Chain
-import kotlinx.coroutines.flow.Flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface SettingRepository {
-    val syncEnable: Flow<Boolean>
-    val isShowNfcUniversal: Flow<Boolean>
-    val chain: Flow<Chain>
-    val syncRoomSuccess: Flow<Boolean>
-    val qrDensity: Flow<Int>
-    val walletSecuritySetting: Flow<WalletSecuritySetting>
-    val walletPin: Flow<String>
-    val localCurrency: Flow<String>
-    val useLargeFontHomeBalances: Flow<Boolean>
-    suspend fun setSyncEnable(isEnable: Boolean)
-    suspend fun setQrDensity(density: Int)
-    suspend fun markSyncRoomSuccess()
-    suspend fun markIsShowNfcUniversal()
-    suspend fun setWalletSecuritySetting(config: String)
-    suspend fun setWalletPin(pin: String)
-    suspend fun setLocalCurrency(currency: String)
-    suspend fun setUseLargeFontHomeBalances(useLargeFontHomeBalances: Boolean)
+class SetUseLargeFontHomeBalancesUseCase @Inject constructor(
+    private val settingRepository: SettingRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<Boolean, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: Boolean) {
+        settingRepository.setUseLargeFontHomeBalances(parameters)
+    }
+
 }

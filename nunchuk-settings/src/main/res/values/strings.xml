@@ -59,6 +59,8 @@
     <string name="nc_clear_log">Clear log</string>
     <string name="nc_share_log">Share log</string>
     <string name="nc_display_unit">Display unit</string>
+    <string name="nc_use_large_font_home_balances">Use large font for home balances</string>
+    <string name="nc_display_settings">Display settings</string>
     <string name="nc_follow_us">Follow us</string>
     <string name="nc_contact_us">Contact us</string>
     <string name="scan_qr_to_sign_in_remotely">Scan QR to sign in remotely</string>

@@ -77,6 +77,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
+import com.nunchuk.android.usecase.GetUseLargeFontHomeBalancesUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
@@ -147,6 +148,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getListGroupWalletKeyHealthStatusUseCase: GetListGroupWalletKeyHealthStatusUseCase,
     private val cardIdManager: CardIdManager,
+    private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -278,6 +280,11 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             if (accountManager.getAccount().id.isEmpty()) {
                 getUserProfileUseCase(Unit)
+            }
+        }
+        viewModelScope.launch {
+            getUseLargeFontHomeBalancesUseCase(Unit).collect {
+                updateState { copy(useLargeFont = it.getOrDefault(false)) }
             }
         }
     }

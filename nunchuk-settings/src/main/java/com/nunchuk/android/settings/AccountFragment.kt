@@ -148,11 +148,6 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.accountSettings.isVisible = !isGuestMode
 
         binding.localCurrency.text = getString(R.string.nc_local_currency_data, state.localCurrency)
-
-        binding.unit.text = when (CURRENT_DISPLAY_UNIT_TYPE) {
-            SAT -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_sat))
-            else -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_btc))
-        }
     }
 
     private fun openAboutScreen() {
@@ -163,8 +158,8 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         navigator.openNetworkSettingScreen(requireActivity())
     }
 
-    private fun changeUnitSetting() {
-        navigator.openDisplayUnitScreen(requireActivity())
+    private fun openDisplaySettings() {
+        navigator.openDisplaySettingsScreen(requireActivity())
     }
 
     private fun changeAvatar() {
@@ -288,7 +283,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
             navigator.openSignUpScreen(requireActivity())
         }
 
-        binding.unit.setOnClickListener { changeUnitSetting() }
+        binding.displaySettings.setOnClickListener { openDisplaySettings() }
         binding.network.setOnClickListener { changeNetworkSetting() }
         binding.about.setOnClickListener { openAboutScreen() }
         binding.developerMode.setOnClickListener { openDeveloperScreen() }
