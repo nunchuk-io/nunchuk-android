@@ -59,5 +59,11 @@
             android:name=".localcurrency.LocalCurrencyActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".displaysettings.DisplaySettingsActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
     </application>
 </manifest>

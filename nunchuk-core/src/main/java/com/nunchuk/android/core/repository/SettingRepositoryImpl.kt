@@ -55,6 +55,9 @@ internal class SettingRepositoryImpl @Inject constructor(
     override val localCurrency: Flow<String>
         get() = ncDataStore.localCurrencyFlow
 
+    override val useLargeFontHomeBalances: Flow<Boolean>
+        get() = ncDataStore.useLargeFontHomeBalancesFlow
+
     override suspend fun markSyncRoomSuccess() {
         ncDataStore.markSyncRoomSuccess()
     }
@@ -81,5 +84,9 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setLocalCurrency(currency: String) {
         ncDataStore.setLocalCurrency(currency)
+    }
+
+    override suspend fun setUseLargeFontHomeBalances(useLargeFontHomeBalances: Boolean) {
+        ncDataStore.setUseLargeFontHomeBalances(useLargeFontHomeBalances)
     }
 }

@@ -182,23 +182,23 @@
                 app:layout_constraintTop_toBottomOf="@+id/signUp" />
 
             <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/unit"
-                style="@style/NCText.Settings"
-                android:layout_marginTop="@dimen/nc_padding_24"
-                android:drawableStart="@drawable/ic_bitcoin"
-                android:drawableEnd="@drawable/ic_arrow"
-                android:text="@string/nc_settings_unit"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/signIn" />
-
-            <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/account_settings"
                 style="@style/NCText.Settings"
+                android:layout_marginTop="@dimen/nc_padding_24"
                 android:drawableStart="@drawable/ic_accounts_settings"
                 android:drawableEnd="@drawable/ic_arrow"
                 android:text="@string/nc_settings_account_settings"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/unit" />
+                app:layout_constraintTop_toBottomOf="@+id/signIn" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/display_settings"
+                style="@style/NCText.Settings"
+                android:drawableStart="@drawable/ic_bitcoin"
+                android:drawableEnd="@drawable/ic_arrow"
+                android:text="@string/nc_display_settings"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/account_settings" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/local_currency"
@@ -207,7 +207,7 @@
                 android:drawableEnd="@drawable/ic_arrow"
                 android:text="@string/nc_local_currency_data"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/account_settings" />
+                app:layout_constraintTop_toBottomOf="@+id/display_settings" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/network"

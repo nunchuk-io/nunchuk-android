@@ -46,7 +46,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.denimTint
 import com.nunchuk.android.compose.everglade
 import com.nunchuk.android.compose.ming
-import com.nunchuk.android.compose.tealishGreen
 import com.nunchuk.android.compose.yellowishOrange
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
@@ -88,6 +87,7 @@ fun PendingWalletView(
     primaryOwnerMember: ByzantineMember? = null,
     signers: List<SignerModel> = emptyList(),
     status: Map<String, KeyHealthStatus> = emptyMap(),
+    useLargeFont: Boolean = false,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
     onGroupClick: () -> Unit = {},
@@ -145,8 +145,7 @@ fun PendingWalletView(
                     hideWalletDetail = hideWalletDetail,
                     isAssistedWallet = isAssistedWallet,
                     role = role,
-                    group = group,
-                    isLocked = isLocked
+                    useLargeFont = useLargeFont
                 )
             }
         }
@@ -217,7 +216,7 @@ fun RowScope.PendingWalletInviteMember(
 }
 
 @Composable
-fun RowScope.AssistedWalletBottomContent(
+fun AssistedWalletBottomContent(
     badgeCount: Int = 0,
     isLocked: Boolean = false,
     signers: List<SignerModel>, status: Map<String, KeyHealthStatus>,
@@ -493,8 +492,7 @@ internal fun ActiveWallet(
     hideWalletDetail: Boolean,
     isAssistedWallet: Boolean,
     role: String = AssistedWalletRole.NONE.name,
-    group: ByzantineGroup? = null,
-    isLocked: Boolean = false,
+    useLargeFont: Boolean = false,
 ) {
     val wallet = walletsExtended.wallet
     val balance = "(${wallet.getCurrencyAmount()})"
@@ -508,22 +506,13 @@ internal fun ActiveWallet(
                 text = Utils.maskValue(
                     wallet.getBTCAmount(),
                     role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ), style = NunchukTheme.typography.titleLarge, color = Color.White
+                ), style = if (useLargeFont) NunchukTheme.typography.title else NunchukTheme.typography.titleSmall, color = Color.White
             )
-            val color = if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name || isLocked) {
-                MaterialTheme.colorScheme.yellowishOrange
-            } else if (group != null || isAssistedWallet) {
-                MaterialTheme.colorScheme.denimTint
-            } else if (walletsExtended.wallet.needBackup) {
-                MaterialTheme.colorScheme.yellowishOrange
-            } else {
-                MaterialTheme.colorScheme.denimTint
-            }
             Text(
                 modifier = Modifier.padding(top = 2.dp),
                 text = Utils.maskValue(
                     balance, role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ), style = NunchukTheme.typography.body, color = color
+                ), style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall, color = Color.White
             )
         }
 

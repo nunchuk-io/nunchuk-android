@@ -65,6 +65,7 @@ class NcDataStore @Inject constructor(
     private val securityQuestionKey = booleanPreferencesKey("security_question")
     private val groupIdKey = stringPreferencesKey("group_id")
     private val currentStepKey = intPreferencesKey("current_step")
+    private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
 
     /**
      * Current membership plan key
@@ -256,6 +257,17 @@ class NcDataStore @Inject constructor(
     val isSetupSecurityQuestion: Flow<Boolean>
         get() = context.dataStore.data.map {
             it[securityQuestionKey] ?: false
+        }
+
+    suspend fun setUseLargeFontHomeBalances(largeFont: Boolean) {
+        context.dataStore.edit {
+            it[useLargeFontHomeBalances] = largeFont
+        }
+    }
+
+    val useLargeFontHomeBalancesFlow: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[useLargeFontHomeBalances] ?: false
         }
 
     val currentStep: Flow<MembershipStep?>
