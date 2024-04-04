@@ -16,6 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -52,6 +55,7 @@ fun AddByzantineKeyListContent(
     isRefreshing: Boolean = false,
     isAddOnly: Boolean = false,
     groupWalletType: GroupWalletType? = null,
+    isKeyHolderLimited: Boolean = false,
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
     NunchukTheme {
@@ -87,12 +91,12 @@ fun AddByzantineKeyListContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
+                        .padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item {
                         Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
                             text = stringResource(R.string.nc_let_add_your_keys),
                             style = NunchukTheme.typography.heading
                         )
@@ -100,12 +104,17 @@ fun AddByzantineKeyListContent(
                             GroupWalletType.TWO_OF_FOUR_MULTISIG -> stringResource(R.string.nc_byzantine_add_key_2_of_4_desc)
                             GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> stringResource(R.string.nc_byzantine_add_key_2_of_4_no_inheritance_desc)
                             GroupWalletType.TWO_OF_THREE -> stringResource(R.string.nc_byzantine_add_key_2_of_3_desc)
-                            GroupWalletType.THREE_OF_FIVE, GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> stringResource(R.string.nc_byzantine_add_key_3_of_5_desc)
+                            GroupWalletType.THREE_OF_FIVE, GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> stringResource(
+                                R.string.nc_byzantine_add_key_3_of_5_desc
+                            )
+
                             GroupWalletType.THREE_OF_FIVE_INHERITANCE -> stringResource(R.string.nc_byzantine_add_key_3_of_5_inheritance_desc)
                             null -> ""
                         }
                         NcSpannedText(
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                            modifier = Modifier
+                                .padding(top = 16.dp, bottom = 4.dp)
+                                .padding(horizontal = 16.dp),
                             text = description,
                             baseStyle = NunchukTheme.typography.body,
                             styles = mapOf(SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold))
@@ -113,17 +122,38 @@ fun AddByzantineKeyListContent(
                     }
 
                     items(keys) { key ->
-                        AddKeyCard(
-                            item = key,
-                            onAddClicked = onAddClicked,
-                            onVerifyClicked = onVerifyClicked,
-                        )
+                        BlurView(
+                            isBlur = key.signer?.isVisible == false && isKeyHolderLimited,
+                        ) { modifier ->
+                            AddKeyCard(
+                                modifier = modifier,
+                                item = key,
+                                onAddClicked = onAddClicked,
+                                onVerifyClicked = onVerifyClicked,
+                            )
+                        }
                     }
                 }
 
                 PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
             }
         }
+    }
+}
+
+@Composable
+private fun BlurView(
+    isBlur: Boolean,
+    content: @Composable (modifier: Modifier) -> Unit,
+) {
+    if (isBlur) {
+        content(Modifier
+            .graphicsLayer {
+                renderEffect = BlurEffect(16f, 16f, TileMode.Decal)
+            }
+            .padding(horizontal = 16.dp))
+    } else {
+        content(Modifier.padding(horizontal = 16.dp))
     }
 }
 
@@ -136,6 +166,7 @@ fun AddKeyListScreenHoneyBadgerPreview(
         keys = listOf(
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_TAP_SIGNER,
+                signer = signer.copy(isVisible = false),
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(
@@ -149,5 +180,7 @@ fun AddKeyListScreenHoneyBadgerPreview(
             AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
         ),
         remainingTime = 0,
+        isKeyHolderLimited = true,
+        groupWalletType = GroupWalletType.TWO_OF_FOUR_MULTISIG,
     )
 }
