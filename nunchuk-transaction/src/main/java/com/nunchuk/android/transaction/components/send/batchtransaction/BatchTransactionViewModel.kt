@@ -34,6 +34,7 @@ import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.utils.toSafeDoubleAmount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -129,9 +130,9 @@ class BatchTransactionViewModel @Inject constructor(
 
     private fun getTotalAmount() = _state.value.recipients.sumOf {
         if (it.isBtc) {
-            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toDouble().fromSATtoBTC() else it.amount.toDouble()
+            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toSafeDoubleAmount().fromSATtoBTC() else it.amount.toSafeDoubleAmount()
         } else {
-            it.amount.toDouble().fromCurrencyToBTC()
+            it.amount.toSafeDoubleAmount().fromCurrencyToBTC()
         }
     }
 
@@ -159,9 +160,9 @@ class BatchTransactionViewModel @Inject constructor(
     fun getTxReceiptList() = _state.value.recipients.map {
         TxReceipt(
             address = it.address, amount = if (it.isBtc) {
-                if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toDouble().fromSATtoBTC() else it.amount.toDouble()
+                if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toSafeDoubleAmount().fromSATtoBTC() else it.amount.toSafeDoubleAmount()
             } else {
-                it.amount.toDouble().fromCurrencyToBTC()
+                it.amount.toSafeDoubleAmount().fromCurrencyToBTC()
             }
         )
     }
