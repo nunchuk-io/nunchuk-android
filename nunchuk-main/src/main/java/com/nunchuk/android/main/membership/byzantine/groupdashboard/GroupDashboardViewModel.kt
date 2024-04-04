@@ -200,7 +200,7 @@ class GroupDashboardViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getInheritance(silentLoading = true)
+            getInheritance(silentLoading = true, isForceRequest = true)
         }
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
@@ -474,22 +474,35 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun getInheritance(token: String = "", isAlertFlow: Boolean = false, silentLoading: Boolean = false) = viewModelScope.launch {
-        getInheritanceUseCase(
-            GetInheritanceUseCase.Param(
-                getWalletId(),
-                getGroupId()
-            )
-        ).onSuccess { inheritance ->
-            _state.update {
-                it.copy(
-                    inheritanceOwnerId = inheritance.ownerId,
-                    isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty()
+    fun getInheritance(
+        token: String = "",
+        isAlertFlow: Boolean = false,
+        silentLoading: Boolean = false,
+        isForceRequest: Boolean = false
+    ) = viewModelScope.launch {
+        if (getGroupId().isEmpty() || _state.value.group?.walletConfig?.allowInheritance == true || isForceRequest) {
+            getInheritanceUseCase(
+                GetInheritanceUseCase.Param(
+                    getWalletId(),
+                    getGroupId()
                 )
+            ).onSuccess { inheritance ->
+                _state.update {
+                    it.copy(
+                        inheritanceOwnerId = inheritance.ownerId,
+                        isHasPendingRequestInheritance = inheritance.pendingRequests.isNotEmpty()
+                    )
+                }
+                if (silentLoading.not()) _event.emit(
+                    GroupDashboardEvent.GetInheritanceSuccess(
+                        inheritance,
+                        token,
+                        isAlertFlow
+                    )
+                )
+            }.onFailure {
+                if (silentLoading.not()) _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
             }
-            if (silentLoading.not()) _event.emit(GroupDashboardEvent.GetInheritanceSuccess(inheritance, token, isAlertFlow))
-        }.onFailure {
-            if (silentLoading.not()) _event.emit(GroupDashboardEvent.Error(it.message.orUnknownError()))
         }
     }
 
