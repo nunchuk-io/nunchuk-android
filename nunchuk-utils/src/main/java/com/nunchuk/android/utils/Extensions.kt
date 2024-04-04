@@ -20,6 +20,7 @@
 package com.nunchuk.android.utils
 
 import android.widget.EditText
+import java.text.DecimalFormatSymbols
 import kotlin.math.roundToInt
 
 fun CharSequence?.safeManualFee() = try {
@@ -46,4 +47,12 @@ inline fun <T> trySafe(func: () -> T): T? = try {
 } catch (t: Throwable) {
     CrashlyticsReporter.recordException(t)
     null
+}
+
+fun String.toSafeDoubleAmount() = try {
+    val value = replace("${DecimalFormatSymbols.getInstance().decimalSeparator}", ".")
+    value.toDouble()
+} catch (t: Throwable) {
+    CrashlyticsReporter.recordException(t)
+    0.0
 }
