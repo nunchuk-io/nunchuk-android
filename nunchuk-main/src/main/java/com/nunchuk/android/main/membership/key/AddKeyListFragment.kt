@@ -506,12 +506,13 @@ fun AddKeyListContent(
 @Composable
 fun AddKeyCard(
     item: AddKeyData,
+    modifier: Modifier = Modifier,
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
 ) {
     if (item.signer != null) {
         Box(
-            modifier = Modifier.background(
+            modifier = modifier.background(
                 color = if (item.verifyType != VerifyType.NONE)
                     colorResource(id = R.color.nc_green_color)
                 else
@@ -584,7 +585,7 @@ fun AddKeyCard(
     } else {
         if (item.verifyType != VerifyType.NONE) {
             Box(
-                modifier = Modifier.background(
+                modifier = modifier.background(
                     colorResource(id = R.color.nc_green_color),
                     shape = RoundedCornerShape(8.dp)
                 ),
@@ -593,7 +594,7 @@ fun AddKeyCard(
                 ConfigItem(item)
             }
         } else {
-            NcDashLineBox {
+            NcDashLineBox(modifier = modifier) {
                 ConfigItem(item, onAddClicked)
             }
         }

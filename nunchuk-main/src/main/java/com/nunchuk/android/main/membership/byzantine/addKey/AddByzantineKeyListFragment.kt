@@ -87,7 +87,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     viewModel = viewModel,
                     isAddOnly = args.isAddOnly,
                     membershipStepManager = membershipStepManager,
-                    onMoreClicked = ::handleShowMore
+                    onMoreClicked = ::handleShowMore,
+                    isKeyHolderLimited = args.isKeyHolderLimited
                 )
             }
         }
@@ -437,6 +438,7 @@ fun AddKeyListScreen(
     isAddOnly: Boolean = false,
     membershipStepManager: MembershipStepManager,
     onMoreClicked: () -> Unit = {},
+    isKeyHolderLimited: Boolean = false,
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -451,6 +453,7 @@ fun AddKeyListScreen(
         refresh = viewModel::refresh,
         isRefreshing = state.isRefreshing,
         isAddOnly = isAddOnly,
-        groupWalletType = state.groupWalletType
+        groupWalletType = state.groupWalletType,
+        isKeyHolderLimited = isKeyHolderLimited
     )
 }
