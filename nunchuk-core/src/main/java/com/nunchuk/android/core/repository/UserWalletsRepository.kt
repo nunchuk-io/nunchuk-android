@@ -420,6 +420,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getServerWallet(): WalletServerSync {
         val result = userWalletApiManager.walletApi.getServerWallet()
         val assistedKeys = mutableSetOf<String>()
+        var isNeedReload = false
+
+        val keyPolicyMap = hashMapOf<String, KeyPolicy>()
+        result.data.wallets.filter {
+            it.localId.isNullOrEmpty().not() && it.status != WALLET_DELETED_STATUS
+        }.forEach { walletServer ->
+            keyPolicyMap[walletServer.localId.orEmpty()] = KeyPolicy(
+                walletServer.serverKeyDto?.policies?.autoBroadcastTransaction ?: false,
+                (walletServer.serverKeyDto?.policies?.signingDelaySeconds
+                    ?: 0) / ONE_HOUR_TO_SECONDS
+            )
+            if (saveWalletToLib(walletServer, assistedKeys)) isNeedReload = true
+        }
+        val planWalletCreated = hashMapOf<String, String>()
         val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
         var deleteCount = 0
         if (partition.second.isNotEmpty()) {
@@ -438,20 +452,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 )
             })
         }
-        var isNeedReload = false
-
-        val keyPolicyMap = hashMapOf<String, KeyPolicy>()
-        result.data.wallets.filter {
-            it.localId.isNullOrEmpty().not() && it.status != WALLET_DELETED_STATUS
-        }.forEach { walletServer ->
-            keyPolicyMap[walletServer.localId.orEmpty()] = KeyPolicy(
-                walletServer.serverKeyDto?.policies?.autoBroadcastTransaction ?: false,
-                (walletServer.serverKeyDto?.policies?.signingDelaySeconds
-                    ?: 0) / ONE_HOUR_TO_SECONDS
-            )
-            if (saveWalletToLib(walletServer, assistedKeys)) isNeedReload = true
-        }
-        val planWalletCreated = hashMapOf<String, String>()
         ncDataStore.setAssistedKey(assistedKeys)
         result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
         return WalletServerSync(
@@ -2023,6 +2023,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): Boolean {
         val response = userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
+        val result = saveWalletToLib(wallet, groupAssistedKeys)
         membershipStepDao.deleteStepByGroupId(groupId)
         requestAddKeyDao.deleteRequests(groupId)
         assistedWalletDao.updateOrInsert(
@@ -2035,7 +2036,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 alias = wallet.alias.orEmpty()
             )
         )
-        return saveWalletToLib(wallet, groupAssistedKeys)
+        return result
     }
 
     override fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>> {
