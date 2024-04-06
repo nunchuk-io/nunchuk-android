@@ -90,7 +90,7 @@ internal class ImportTransactionViewModel @Inject constructor(
                 )
             )
                 .onSuccess {
-                    setEvent(ImportTransactionSuccess())
+                    setEvent(ImportTransactionSuccess(it))
                 }.onFailure {
                     Timber.e(it, "[ImportTransaction]")
                 }
