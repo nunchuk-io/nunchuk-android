@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nc_ssigner_title">Add a software key</string>
-    <string name="nc_ssigner_new_seed_title">New key seed</string>
+    <string name="nc_ssigner_new_seed_title">Seed phrase</string>
     <string name="nc_ssigner_new_seed">Create new seed</string>
     <string name="nc_ssigner_recover_seed">Recover existing seed</string>
     <string name="nc_ssigner_description">The private key is stored on this device. Please keep your device safe to prevent your key from being compromised.</string>
-    <string name="nc_ssigner_new_seed_note">Please take a moment to write down this seed phrase. It’s the backup for your key.</string>
+    <string name="nc_ssigner_new_seed_note">Please take a moment to write down this seed phrase. It’s the backup for your key. <b>This app will only show the seed phrase once.</b></string>
     <string name="nc_ssigner_new_seed_warning">Never share the seed phrase with anyone. Avoid having a digital copy.</string>
 
     <string name="nc_ssigner_recover_seed_phrase">Your seed phrase</string>
