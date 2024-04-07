@@ -320,6 +320,7 @@
     <string name="nc_security_questions_answer_will_be_updated">The security questions and answers will be updated.</string>
     <string name="nc_finney_cap">FINNEY</string>
     <string name="nc_finney_pro_cap">FINNEY PRO</string>
-    <string name="nc_info_software_key_same_device_part_1">Having two or more software keys on the same device significantly reduces the security of your wallet. </string>
+    <string name="nc_info_software_key_same_device_part_1">Having two or more software keys on the same device significantly reduces the security of your wallet.</string>
     <string name="nc_info_software_key_same_device_part_2">Are you sure you want to do this?</string>
+    <string name="nc_i_ll_choose_another_type_of_key">I’ll choose another type of key</string>
 </resources>

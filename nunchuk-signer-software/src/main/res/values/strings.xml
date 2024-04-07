@@ -19,6 +19,7 @@
     <string name="nc_ssigner_text_dont_set_passphrase">I don\'t need a passphrase</string>
     <string name="nc_ssigner_text_set_passphrase">Set passphrase</string>
     <string name="nc_ssigner_text_set_passphrase_note">Passphrase adds another layer of security to your key. You will need to enter the passphrase every time you sign using this key. You can think of it as the 25th word of your seed phrase. Passphrase is optional.</string>
+    <string name="nc_ssigner_text_set_passphrase_assisted_wallet_note"><![CDATA[<b>Only use this if you are an advanced user. We generally don’t recommend using passphrases in multisig wallets.</b><br><br>A passphrase adds another optional layer of security to your key. Note that forgetting a passphrase will render your key useless forever.]]></string>
     <string name="nc_ssigner_text_set_passphrase_primary_key_note">We strongly recommend adding a passphrase for your Primary Key.</string>
     <string name="nc_ssigner_text_set_passphrase_warn">Please back up your passphrase along with the seed. You will need both to recover your key.</string>
     <string name="nc_ssigner_confirm_passphrase">Confirm passphrase</string>
@@ -62,4 +63,5 @@
     <string name="nc_my_hot_wallet_has_been_recovered">My hot wallet has been recovered.</string>
     <string name="nc_review_seed_phrase">Review seed phrase</string>
     <string name="nc_before_you_start">Before you start</string>
+    <string name="nc_set_a_passphrase_optional">Set a passphrase (optional)</string>
 </resources>
