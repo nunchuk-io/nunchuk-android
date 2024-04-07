@@ -29,6 +29,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.core.util.bindEnableState
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.CanGoNextStepEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.InvalidMnemonicEvent
@@ -36,13 +37,18 @@ import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.M
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.UpdateMnemonicEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
 import com.nunchuk.android.signer.software.databinding.ActivityRecoverSeedBinding
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
+
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
 
     private val viewModel: RecoverSeedViewModel by viewModels()
 
@@ -50,6 +56,10 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
 
     private val isHotWalletRecovery: Boolean by lazy {
         intent.getBooleanExtra(EXTRA_RECOVER_HOT_WALLET, false)
+    }
+
+    private val groupId: String? by lazy {
+        intent.getStringExtra(EXTRA_GROUP_ID)
     }
 
     override fun initializeBinding() = ActivityRecoverSeedBinding.inflate(layoutInflater)
@@ -77,13 +87,23 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             MnemonicRequiredEvent -> binding.mnemonic.setError(getString(R.string.nc_text_required))
             InvalidMnemonicEvent -> binding.mnemonic.setError(getString(R.string.nc_invalid_seed_phrase))
             is ValidMnemonicEvent -> {
-                when (val primaryKeyFlow =
-                    intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)) {
-                    PrimaryKeyFlow.SIGN_IN -> {
+                val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
+                when  {
+                    primaryKeyFlow == PrimaryKeyFlow.SIGN_IN -> {
                         navigator.openPrimaryKeyEnterPassphraseScreen(
                             this,
                             event.mnemonic,
                             primaryKeyFlow
+                        )
+                    }
+
+                    !groupId.isNullOrEmpty() -> {
+                        navigator.openSetPassphraseScreen(
+                            activityContext = this,
+                            mnemonic = event.mnemonic,
+                            signerName = "Key${membershipStepManager.getNextKeySuffixByType(
+                                SignerType.SOFTWARE)}",
+                            groupId = groupId
                         )
                     }
 
