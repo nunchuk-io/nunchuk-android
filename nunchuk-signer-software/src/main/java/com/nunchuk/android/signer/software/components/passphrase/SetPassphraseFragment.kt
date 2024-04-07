@@ -32,6 +32,7 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
+import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showLoading
@@ -62,7 +63,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
 
     override fun initializeBinding(
         inflater: LayoutInflater,
-        container: ViewGroup?
+        container: ViewGroup?,
     ): FragmentSetPassphraseBinding {
         return FragmentSetPassphraseBinding.inflate(inflater, container, false)
     }
@@ -88,6 +89,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
                 event.masterSigner,
                 event.skipPassphrase
             )
+
             is CreateSoftwareSignerErrorEvent -> onCreateSignerError(event)
             PassPhraseValidEvent -> removeValidationError()
             is LoadingEvent -> showLoading()
@@ -184,6 +186,12 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
         binding.btnSecondary.setOnClickListener {
             if (args.primaryKeyFlow.isPrimaryKeyFlow()) showConfirmationDialog() else viewModel.confirmPassphraseEvent()
         }
-    }
 
+        // add key to assisted wallet flow
+        if (!args.groupId.isNullOrEmpty()) {
+            binding.toolbarTitle.text = getString(R.string.nc_set_a_passphrase_optional)
+            binding.note.text =
+                getHtmlText(getString(R.string.nc_ssigner_text_set_passphrase_assisted_wallet_note))
+        }
+    }
 }

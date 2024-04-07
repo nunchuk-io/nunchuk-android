@@ -161,7 +161,7 @@ fun AddKeyStepContent(
     val imageBannerId =
         when {
             isCreateWalletDone -> R.drawable.bg_inheritance
-            isSetupRecoverKeyDone -> R.drawable.bg_create_a_wallet
+            isSetupRecoverKeyDone && isConfigKeyDone -> R.drawable.bg_create_a_wallet
             isConfigKeyDone -> R.drawable.bg_setup_recovery_key
             else -> R.drawable.nc_bg_let_s_add_keys
         }

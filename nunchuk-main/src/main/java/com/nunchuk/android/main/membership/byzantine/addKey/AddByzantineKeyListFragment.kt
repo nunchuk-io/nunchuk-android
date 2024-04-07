@@ -243,11 +243,17 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         val total = viewModel.getCountWalletSoftwareSignersInDevice()
         if (total >= 1) {
             NCInfoDialog(requireActivity())
-                .showDialog(title = getString(R.string.nc_text_warning),
-                    message = SpannableStringBuilder().bold {
-                        append(getString(R.string.nc_info_software_key_same_device_part_1))
-                    }.append(getString(R.string.nc_info_software_key_same_device_part_2)),
-                    onYesClick = { onSuccess() })
+                .showDialog(
+                    title = getString(R.string.nc_text_warning),
+                    message = SpannableStringBuilder()
+                        .bold {
+                            append(getString(R.string.nc_info_software_key_same_device_part_1))
+                        }
+                        .append(" ")
+                        .append(getString(R.string.nc_info_software_key_same_device_part_2)),
+                    onYesClick = { onSuccess() },
+                    btnInfo = getString(R.string.nc_i_ll_choose_another_type_of_key),
+                )
         } else {
             onSuccess()
         }
