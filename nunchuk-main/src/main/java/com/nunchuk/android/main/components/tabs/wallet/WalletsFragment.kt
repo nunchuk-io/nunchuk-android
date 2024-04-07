@@ -58,7 +58,6 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GoToSatsCardScreen
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.Loading
@@ -68,8 +67,6 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPassphraseSuccess
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.WalletEmptySignerEvent
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
@@ -93,7 +90,6 @@ import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -232,6 +228,14 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
             nfcViewModel.clearScanInfo()
         }
+        with(walletsViewModel.getWalletSecurityManager()) {
+            onError = {
+                handleEvent(ShowErrorEvent(it))
+            }
+            openWalletDetailsScreen = {
+                this@WalletsFragment.openWalletDetailsScreen(it)
+            }
+        }
     }
 
     private fun handleEvent(event: WalletsEvent) {
@@ -266,16 +270,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
             is NfcLoading -> showOrHideNfcLoading(event.loading)
-            is CheckWalletPin -> {
-                if (event.match) {
-                    openWalletDetailsScreen(event.walletId)
-                } else {
-                    showError(message = getString(R.string.nc_incorrect_current_pin))
-                }
-            }
 
-            is VerifyPasswordSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
-            is VerifyPassphraseSuccess -> actionAfterCheckingPasswordOrPassphrase(event.walletId)
             WalletsEvent.DenyWalletInvitationSuccess -> showSuccess(message = getString(R.string.nc_deny_wallet_invitation_msg))
             is WalletsEvent.AcceptWalletInvitationSuccess -> navigator.openGroupDashboardScreen(
                 groupId = event.groupId,
@@ -286,43 +281,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             None -> {}
         }
         walletsViewModel.clearEvent()
-    }
-
-    private fun actionAfterCheckingPasswordOrPassphrase(walletId: String) {
-        if (walletsViewModel.isWalletPinEnable()) {
-            showInputPinDialog(walletId)
-        } else {
-            openWalletDetailsScreen(walletId)
-        }
-    }
-
-    private fun showInputPinDialog(walletId: String) {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(com.nunchuk.android.settings.R.string.nc_enter_your_pin),
-            onConfirmed = {
-                walletsViewModel.checkWalletPin(it, walletId)
-            }
-        )
-    }
-
-    private fun enterPasswordDialog(walletId: String) {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_password),
-            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
-            onConfirmed = {
-                walletsViewModel.confirmPassword(it, walletId)
-            }
-        )
-    }
-
-    private fun enterPassphraseDialog(walletId: String) {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_passphrase),
-            descMessage = getString(R.string.nc_re_enter_your_passphrase_dialog_desc),
-            onConfirmed = {
-                walletsViewModel.confirmPassphrase(it, walletId)
-            }
-        )
     }
 
     private fun openSatsCardActiveSlotScreen(event: GoToSatsCardScreen) {
@@ -523,7 +481,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             onWalletClick = {
                                 if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name || it.group?.isLocked == true) return@PendingWalletView
                                 val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
-                                checkWalletSecurity(walletId)
+                                walletsViewModel.getWalletSecurityManager().checkWalletSecurity(requireContext(), walletId)
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -539,18 +497,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             message = getString(R.string.nc_deny_wallet_invitation_dialog),
             onYesClick = action
         )
-    }
-
-    private fun checkWalletSecurity(walletId: String) {
-        if (walletsViewModel.isWalletPasswordEnable()) {
-            enterPasswordDialog(walletId)
-        } else if (walletsViewModel.isWalletPassphraseEnable()) {
-            enterPassphraseDialog(walletId)
-        } else if (walletsViewModel.isWalletPinEnable()) {
-            showInputPinDialog(walletId)
-        } else {
-            openWalletDetailsScreen(walletId)
-        }
     }
 
     private fun openWalletDetailsScreen(walletId: String) {
