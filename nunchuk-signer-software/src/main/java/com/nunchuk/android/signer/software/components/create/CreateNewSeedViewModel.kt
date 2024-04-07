@@ -23,8 +23,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.usecase.GenerateMnemonicUseCase
@@ -77,14 +75,16 @@ internal class CreateNewSeedViewModel @Inject constructor(
             }
         } else {
             viewModelScope.launch {
-                when (val result = generateMnemonicUseCase.execute()) {
-                    is Success -> _state.update { state ->
+                val count = if (args.groupId.isNullOrEmpty()) 24 else 12
+                generateMnemonicUseCase(count).onSuccess {
+                    _state.update { state ->
                         state.copy(
-                            seeds = result.data.toPhrases(),
-                            mnemonic = result.data
+                            seeds = it.toPhrases(),
+                            mnemonic = it
                         )
                     }
-                    is Error -> _event.emit(GenerateMnemonicCodeErrorEvent(result.exception.message.orUnknownError()))
+                }.onFailure {
+                    _event.emit(GenerateMnemonicCodeErrorEvent(it.message.orUnknownError()))
                 }
             }
         }
