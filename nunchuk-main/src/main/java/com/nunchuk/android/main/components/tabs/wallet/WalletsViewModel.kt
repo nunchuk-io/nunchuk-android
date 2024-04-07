@@ -48,7 +48,6 @@ import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.CheckWalletPin
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GoToSatsCardScreen
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.Loading
@@ -58,8 +57,7 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPassphraseSuccess
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.VerifyPasswordSuccess
+import com.nunchuk.android.main.util.WalletSecuritySettingsManager
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -70,7 +68,6 @@ import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
-import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
@@ -78,7 +75,6 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetUseLargeFontHomeBalancesUseCase
-import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.byzantine.GetListGroupWalletKeyHealthStatusUseCase
@@ -127,11 +123,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
-    private val checkWalletPinUseCase: CheckWalletPinUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-    private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
-    private val getWalletPinUseCase: GetWalletPinUseCase,
     private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase,
     private val getLocalCurrencyUseCase: GetLocalCurrencyUseCase,
     private val getRemotePriceConvertBTCUseCase: GetRemotePriceConvertBTCUseCase,
@@ -149,6 +140,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getListGroupWalletKeyHealthStatusUseCase: GetListGroupWalletKeyHealthStatusUseCase,
     private val cardIdManager: CardIdManager,
     private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
+    private val walletSecuritySettingsManager: WalletSecuritySettingsManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -190,21 +182,6 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             isHideUpsellBanner.collect {
                 updateState { copy(isHideUpsellBanner = it) }
-            }
-        }
-        viewModelScope.launch {
-            getWalletSecuritySettingUseCase(Unit)
-                .collect {
-                    updateState {
-                        copy(
-                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting()
-                        )
-                    }
-                }
-        }
-        viewModelScope.launch {
-            getWalletPinUseCase(Unit).collect {
-                updateState { copy(currentWalletPin = it.getOrDefault("")) }
             }
         }
         viewModelScope.launch {
@@ -288,6 +265,7 @@ internal class WalletsViewModel @Inject constructor(
                 updateState { copy(useLargeFont = it.getOrDefault(false)) }
             }
         }
+        walletSecuritySettingsManager.init(viewModelScope)
     }
 
     private fun syncGroup() {
@@ -636,47 +614,7 @@ internal class WalletsViewModel @Inject constructor(
 
     fun clearEvent() = event(None)
 
-    fun isWalletPinEnable() =
-        getState().walletSecuritySetting.protectWalletPin
-
-    fun isWalletPasswordEnable() =
-        accountManager.loginType() == SignInMode.EMAIL.value && getState().walletSecuritySetting.protectWalletPassword
-
-    fun isWalletPassphraseEnable() =
-        accountManager.loginType() == SignInMode.PRIMARY_KEY.value && getState().walletSecuritySetting.protectWalletPassphrase
-
-    fun checkWalletPin(input: String, walletId: String) = viewModelScope.launch {
-        val match = checkWalletPinUseCase(input).getOrDefault(false)
-        event(CheckWalletPin(match, walletId))
-    }
-
-    fun confirmPassword(password: String, walletId: String) = viewModelScope.launch {
-        if (password.isBlank()) {
-            return@launch
-        }
-        val result = verifiedPasswordTokenUseCase(
-            VerifiedPasswordTokenUseCase.Param(
-                password = password, targetAction = TargetAction.PROTECT_WALLET.name
-            )
-        )
-        if (result.isSuccess) {
-            event(VerifyPasswordSuccess(walletId))
-        } else {
-            event(ShowErrorEvent(result.exceptionOrNull()))
-        }
-    }
-
-    fun confirmPassphrase(passphrase: String, walletId: String) = viewModelScope.launch {
-        if (passphrase.isBlank()) {
-            return@launch
-        }
-        val result = verifiedPKeyTokenUseCase(passphrase)
-        if (result.isSuccess) {
-            event(VerifyPassphraseSuccess(walletId))
-        } else {
-            event(ShowErrorEvent(result.exceptionOrNull()))
-        }
-    }
+    fun getWalletSecurityManager() = walletSecuritySettingsManager
 
     fun acceptInviteMember(groupId: String) = viewModelScope.launch {
         setEvent(Loading(true))

@@ -183,10 +183,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     },
                     onWalletClick = {
                         args.walletId?.let {
-                            navigator.openWalletDetailsScreen(
-                                activityContext = requireActivity(),
-                                walletId = it
-                            )
+                            viewModel.getWalletSecuritySettingsManager().checkWalletSecurity(requireContext(), it)
                         }
                     },
                     onGroupChatClick = {
@@ -289,6 +286,18 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 }
             }
             clearFragmentResult(AlertActionIntroFragment.REQUEST_KEY)
+        }
+
+        with(viewModel.getWalletSecuritySettingsManager()) {
+            onError = {
+                showError(it?.message)
+            }
+            openWalletDetailsScreen = {
+                navigator.openWalletDetailsScreen(
+                    activityContext = requireActivity(),
+                    walletId = it
+                )
+            }
         }
 
         flowObserver(viewModel.event) { event ->
