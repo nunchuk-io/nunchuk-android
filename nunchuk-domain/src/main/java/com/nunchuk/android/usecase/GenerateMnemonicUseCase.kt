@@ -19,18 +19,17 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GenerateMnemonicUseCase {
-    suspend fun execute(): Result<String>
-}
+class GenerateMnemonicUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+) : UseCase<Int, String>(ioDispatcher) {
 
-internal class GenerateMnemonicUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), GenerateMnemonicUseCase {
-
-    override suspend fun execute() = exe { nativeSdk.generateMnemonic() }
-
+     override suspend fun execute(parameters: Int): String {
+        return nativeSdk.generateMnemonic(parameters)
+     }
 }

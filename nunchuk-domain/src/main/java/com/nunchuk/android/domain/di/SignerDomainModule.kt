@@ -25,8 +25,6 @@ import com.nunchuk.android.usecase.CreateKeystoneSignerUseCase
 import com.nunchuk.android.usecase.CreateKeystoneSignerUseCaseImpl
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreatePassportSignersUseCaseImpl
-import com.nunchuk.android.usecase.GenerateMnemonicUseCase
-import com.nunchuk.android.usecase.GenerateMnemonicUseCaseImpl
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCaseImpl
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
@@ -56,10 +54,6 @@ internal interface SignerDomainModule {
 
     @Binds
     fun bindCreateKeystoneSignerUseCase(useCase: CreateKeystoneSignerUseCaseImpl): CreateKeystoneSignerUseCase
-
-    // SOFTWARE SIGNER
-    @Binds
-    fun bindGenerateMnemonicUseCase(useCase: GenerateMnemonicUseCaseImpl): GenerateMnemonicUseCase
 
     @Binds
     fun bindGetBip39WordListUseCase(useCase: GetBip39WordListUseCaseImpl): GetBip39WordListUseCase
