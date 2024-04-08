@@ -144,7 +144,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             } else {
                 when (data.type) {
                     SignerType.NFC -> openSetupTapSigner()
-                    SignerType.AIRGAP -> showAirgapOptions()
+                    SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
                     SignerType.HARDWARE -> selectedSignerTag?.let { tag ->
                         openRequestAddDesktopKey(tag)
@@ -199,10 +199,13 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
-            -> handleShowKeysOrCreate(
-                viewModel.getAirgap(getSignerTag(option.type)),
-                SignerType.AIRGAP
-            ) { handleSelectAddAirgapType(option.type) }
+            -> {
+                selectedSignerTag = getSignerTag(option.type)
+                handleShowKeysOrCreate(
+                    viewModel.getAirgap(getSignerTag(option.type)),
+                    SignerType.AIRGAP
+                ) { handleSelectAddAirgapType(selectedSignerTag) }
+            }
 
             SheetOptionType.TYPE_ADD_LEDGER -> {
                 selectedSignerTag = SignerTag.LEDGER
@@ -288,8 +291,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         }
     }
 
-    private fun handleSelectAddAirgapType(type: Int) {
-        val tag = getSignerTag(type)
+    private fun handleSelectAddAirgapType(tag: SignerTag?) {
         viewModel.getUpdateSigner()?.let {
             if (tag != null) {
                 viewModel.onUpdateSignerTag(it, tag)
@@ -331,8 +333,20 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             title = getString(R.string.nc_what_type_of_airgap_you_have),
             options = listOf(
                 SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
-                    label = getString(R.string.nc_other),
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
+                    label = getString(R.string.nc_blockstream_jade),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
+                    label = getString(R.string.nc_foudation_passport),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
+                    label = getString(R.string.nc_seedsigner),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+                    label = getString(R.string.nc_keystone),
                 ),
             )
         ).show(childFragmentManager, "BottomSheetOption")
