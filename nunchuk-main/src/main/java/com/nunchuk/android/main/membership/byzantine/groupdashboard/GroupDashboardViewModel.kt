@@ -21,7 +21,6 @@ import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.main.util.WalletSecuritySettingsManager
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.Alert
@@ -105,7 +104,6 @@ class GroupDashboardViewModel @Inject constructor(
     private val recoverKeyUseCase: RecoverKeyUseCase,
     private val pushEventManager: PushEventManager,
     private val syncTransactionUseCase: SyncTransactionUseCase,
-    private val walletSecuritySettingsManager: WalletSecuritySettingsManager
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -233,7 +231,6 @@ class GroupDashboardViewModel @Inject constructor(
             getGroupUseCase()
         }
         getAlerts()
-        walletSecuritySettingsManager.init(viewModelScope)
     }
 
     fun getKeysStatus() {
@@ -676,8 +673,6 @@ class GroupDashboardViewModel @Inject constructor(
         }
         getInheritance(silentLoading = true)
     }
-
-   fun getWalletSecuritySettingsManager() = walletSecuritySettingsManager
 
     fun membershipPlan(): MembershipPlan = membershipStepManager.plan
 

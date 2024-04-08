@@ -24,16 +24,11 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.BaseNfcUseCase
-import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
-import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
@@ -57,7 +52,6 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
-import com.nunchuk.android.main.util.WalletSecuritySettingsManager
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -140,7 +134,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getListGroupWalletKeyHealthStatusUseCase: GetListGroupWalletKeyHealthStatusUseCase,
     private val cardIdManager: CardIdManager,
     private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
-    private val walletSecuritySettingsManager: WalletSecuritySettingsManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -265,7 +258,6 @@ internal class WalletsViewModel @Inject constructor(
                 updateState { copy(useLargeFont = it.getOrDefault(false)) }
             }
         }
-        walletSecuritySettingsManager.init(viewModelScope)
     }
 
     private fun syncGroup() {
@@ -613,8 +605,6 @@ internal class WalletsViewModel @Inject constructor(
     fun isPremiumUser() = getState().plan != null && getState().plan != MembershipPlan.NONE
 
     fun clearEvent() = event(None)
-
-    fun getWalletSecurityManager() = walletSecuritySettingsManager
 
     fun acceptInviteMember(groupId: String) = viewModelScope.launch {
         setEvent(Loading(true))
