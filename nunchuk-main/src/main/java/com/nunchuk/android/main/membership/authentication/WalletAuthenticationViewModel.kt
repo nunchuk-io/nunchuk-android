@@ -50,7 +50,9 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.FinalizeDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTxRequestTokenUseCase
@@ -61,6 +63,7 @@ import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCas
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
 import com.nunchuk.android.usecase.membership.GetTxToSignMessage
 import com.nunchuk.android.usecase.network.NetworkStatusFlowUseCase
+import com.nunchuk.android.usecase.signer.ClearSignerPassphraseUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -100,6 +103,9 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val networkStatusFlowUseCase: NetworkStatusFlowUseCase,
     private val application: Application,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
+    private val getMasterSignerUseCase: GetMasterSignerUseCase,
+    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val clearSignerPassphraseUseCase: ClearSignerPassphraseUseCase,
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -234,7 +240,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 _event.emit(WalletAuthenticationEvent.ScanColdCard)
             }
 
-            signerModel.type == SignerType.SOFTWARE -> handleSignCheckSoftware(singleSigner)
+            signerModel.type == SignerType.SOFTWARE -> checkSoftwarePassPhrase(singleSigner)
             signerModel.type == SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
             signerModel.type == SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
             else -> {}
@@ -340,16 +346,31 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
-    private fun handleSignCheckSoftware(singleSigner: SingleSigner) {
+    private fun checkSoftwarePassPhrase(singleSigner: SingleSigner) {
         viewModelScope.launch {
-            val result = checkSignMessageUseCase(
-                CheckSignMessageUseCase.Param(
-                    signer = singleSigner,
-                    messageToSign = dataToSign.value,
-                )
-            )
-            handleSignatureResult(result, singleSigner)
+            if (singleSigner.hasMasterSigner) {
+                getMasterSignerUseCase(singleSigner.masterSignerId).onSuccess {
+                    if (it.device.needPassPhraseSent) {
+                        _event.emit(WalletAuthenticationEvent.PromptPassphrase)
+                    } else {
+                        handleSignSoftware(singleSigner)
+                    }
+                }
+            }
         }
+    }
+
+    private suspend fun handleSignSoftware(singleSigner: SingleSigner, isRequiredPassphrase: Boolean = false) {
+        val result = checkSignMessageUseCase(
+            CheckSignMessageUseCase.Param(
+                signer = singleSigner,
+                messageToSign = dataToSign.value,
+            )
+        )
+        if (isRequiredPassphrase) {
+            clearSignerPassphraseUseCase(singleSigner.masterSignerId)
+        }
+        handleSignatureResult(result, singleSigner)
     }
 
     private suspend fun handleSignatureResult(
@@ -502,6 +523,16 @@ class WalletAuthenticationViewModel @Inject constructor(
     }
 
     fun getDummyTransactionType() = _state.value.dummyTransactionType
+    fun handlePassphrase(passphrase: String) {
+        val currentSigner = getInteractSingleSigner() ?: return
+        viewModelScope.launch {
+            sendSignerPassphrase.execute(currentSigner.masterSignerId, passphrase).flowOn(Dispatchers.IO)
+                .onException {
+                    _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+                }
+                .collect { handleSignSoftware(currentSigner, true) }
+        }
+    }
 
     val signedSuccessMessage: String
         get() = if (state.value.transactionStatus != TransactionStatus.CONFIRMED) {
