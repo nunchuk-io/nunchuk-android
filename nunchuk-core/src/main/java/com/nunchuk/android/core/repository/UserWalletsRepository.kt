@@ -913,7 +913,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         userData: String,
         securityQuestionToken: String,
         isUpdate: Boolean,
-        plan: MembershipPlan,
         draft: Boolean,
     ): String {
         val request = gson.fromJson(userData, CreateUpdateInheritancePlanRequest::class.java)

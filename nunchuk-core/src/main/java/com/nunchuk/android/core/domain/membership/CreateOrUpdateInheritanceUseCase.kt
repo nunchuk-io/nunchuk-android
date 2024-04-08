@@ -45,7 +45,6 @@ class CreateOrUpdateInheritanceUseCase @Inject constructor(
             userData = parameters.userData,
             securityQuestionToken = parameters.securityQuestionToken,
             isUpdate = parameters.isUpdate,
-            plan = parameters.plan,
             draft = parameters.draft
         )
     }
@@ -56,7 +55,6 @@ class CreateOrUpdateInheritanceUseCase @Inject constructor(
         val verifyToken: String,
         val securityQuestionToken: String,
         val isUpdate: Boolean,
-        val plan: MembershipPlan,
         val draft: Boolean,
     )
 }
