@@ -23,6 +23,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.gson
@@ -34,6 +35,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateSignerUseCase
@@ -44,6 +46,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -57,11 +61,20 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val createSignerUseCase: CreateSignerUseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ColdcardRecoverEvent>()
     val event = _event.asSharedFlow()
 
     val remainTime = membershipStepManager.remainingTime
+
+    private var chain: Chain = Chain.MAIN
+
+    init {
+        viewModelScope.launch {
+            chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
+        }
+    }
 
     fun onContinueClicked() {
         viewModelScope.launch {
@@ -96,7 +109,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
-                if (isTestNetPath(signer.derivationPath)) {
+                if (chain == Chain.MAIN &&isTestNetPath(signer.derivationPath)) {
                     _event.emit(ColdcardRecoverEvent.ErrorMk4TestNet)
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch

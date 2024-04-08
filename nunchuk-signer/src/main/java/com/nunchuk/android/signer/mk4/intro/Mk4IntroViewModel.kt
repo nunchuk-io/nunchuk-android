@@ -111,7 +111,7 @@ class Mk4IntroViewModel @Inject constructor(
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
-                    if (isTestNetPath(signer.derivationPath)) {
+                    if (chain == Chain.MAIN && isTestNetPath(signer.derivationPath)) {
                         _event.emit(Mk4IntroViewEvent.ErrorMk4TestNet)
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
