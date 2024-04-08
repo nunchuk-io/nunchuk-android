@@ -42,6 +42,7 @@ import com.bumptech.glide.Glide
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.base.BaseAuthenticationFragment
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -98,7 +99,7 @@ import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
+internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBinding>() {
 
     @Inject
     lateinit var accountManager: AccountManager
@@ -227,14 +228,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_AUTO_CARD_STATUS }) {
             walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
             nfcViewModel.clearScanInfo()
-        }
-        with(walletsViewModel.getWalletSecurityManager()) {
-            onError = {
-                handleEvent(ShowErrorEvent(it))
-            }
-            openWalletDetailsScreen = {
-                this@WalletsFragment.openWalletDetailsScreen(it)
-            }
         }
     }
 
@@ -481,7 +474,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             onWalletClick = {
                                 if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name || it.group?.isLocked == true) return@PendingWalletView
                                 val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
-                                walletsViewModel.getWalletSecurityManager().checkWalletSecurity(requireContext(), walletId)
+                                checkWalletSecurity(walletId)
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -499,7 +492,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         )
     }
 
-    private fun openWalletDetailsScreen(walletId: String) {
+    override fun openWalletDetailsScreen(walletId: String) {
         runCatching {
             findNavController().navigate(
                 WalletsFragmentDirections.actionNavigationWalletsToWalletDetailsFragment(

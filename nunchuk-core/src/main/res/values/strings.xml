@@ -705,4 +705,8 @@
     <string name="nc_primary_owner_hint">The name of primary owner will be used to index and organize your wallets.</string>
     <string name="nc_fee_rate">Fee rate</string>
     <string name="nc_remove_contact_confirm">Are you sure to remove the contact?</string>
+    <string name="nc_re_enter_your_passphrase">Re-enter your passphrase</string>
+    <string name="nc_re_enter_your_passphrase_dialog_desc">For security, please re-enter your passphrase.</string>
+    <string name="nc_enter_your_pin">Enter your PIN</string>
+    <string name="nc_incorrect_current_pin">Incorrect current PIN</string>
 </resources>

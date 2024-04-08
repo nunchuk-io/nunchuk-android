@@ -20,6 +20,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.core.base.BaseAuthenticationFragment
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -64,10 +66,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
+class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), BottomSheetOptionListener {
 
     @Inject
     lateinit var isNetworkConnectedUseCase: IsNetworkConnectedUseCase
@@ -156,6 +155,10 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         }
     }
 
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
+        TODO("Not yet implemented")
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -183,7 +186,7 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                     },
                     onWalletClick = {
                         args.walletId?.let {
-                            viewModel.getWalletSecuritySettingsManager().checkWalletSecurity(requireContext(), it)
+                            checkWalletSecurity(it)
                         }
                     },
                     onGroupChatClick = {
@@ -250,6 +253,13 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
         }
     }
 
+    override fun openWalletDetailsScreen(walletId: String) {
+        navigator.openWalletDetailsScreen(
+            activityContext = requireActivity(),
+            walletId = walletId
+        )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setFragmentResultListener(GroupChatHistoryFragment.REQUEST_KEY) { _, bundle ->
@@ -286,18 +296,6 @@ class GroupDashboardFragment : Fragment(), BottomSheetOptionListener {
                 }
             }
             clearFragmentResult(AlertActionIntroFragment.REQUEST_KEY)
-        }
-
-        with(viewModel.getWalletSecuritySettingsManager()) {
-            onError = {
-                showError(it?.message)
-            }
-            openWalletDetailsScreen = {
-                navigator.openWalletDetailsScreen(
-                    activityContext = requireActivity(),
-                    walletId = it
-                )
-            }
         }
 
         flowObserver(viewModel.event) { event ->
