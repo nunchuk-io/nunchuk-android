@@ -81,6 +81,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
@@ -106,6 +107,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel by activityViewModels<AddKeyListViewModel>()
+
+    private var selectedSignerTag: SignerTag? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -136,7 +139,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             } else {
                 when (data.type) {
                     SignerType.NFC -> openSetupTapSigner()
-                    SignerType.AIRGAP -> showAirgapOptions()
+                    SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -160,12 +163,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 ::showAddColdcardOptions
             )
 
-            SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(
-                viewModel.getAirgap(),
-                SignerType.AIRGAP,
-                ::showAirgapOptions
-            )
-
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 requireActivity(),
@@ -178,7 +175,13 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
-            -> handleSelectAddAirgapType(option.type)
+            -> {
+                selectedSignerTag = getSignerTag(option.type)
+                handleShowKeysOrCreate(
+                    viewModel.getAirgap(getSignerTag(option.type)),
+                    SignerType.AIRGAP
+                ) { handleSelectAddAirgapType(selectedSignerTag) }
+            }
 
             SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
             SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
@@ -198,14 +201,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         }
     }
 
-    private fun handleSelectAddAirgapType(type: Int) {
-        val tag = when (type) {
-            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
-            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
-            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
-            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
-            else -> null
-        }
+    private fun handleSelectAddAirgapType(tag: SignerTag?) {
         viewModel.getUpdateSigner()?.let {
             if (tag != null) {
                 viewModel.onUpdateSignerTag(it, tag)
@@ -241,6 +237,16 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         ).show(childFragmentManager, "BottomSheetOption")
     }
 
+    private fun getSignerTag(type: Int): SignerTag? {
+        return when (type) {
+            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
+            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
+            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
+            else -> null
+        }
+    }
+
     private fun showAirgapOptions() {
         BottomSheetOption.newInstance(
             title = getString(R.string.nc_what_type_of_airgap_you_have),
@@ -260,10 +266,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
                     label = getString(R.string.nc_keystone),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
-                    label = getString(R.string.nc_other),
                 ),
             )
         ).show(childFragmentManager, "BottomSheetOption")
@@ -305,50 +307,13 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun openSelectHardwareOption() {
+        val options = getKeyOptions(
+            context = requireContext(),
+            isKeyHolderLimited = false,
+            isStandard = false
+        )
         BottomSheetOption.newInstance(
-            listOf(
-                SheetOption(
-                    type = SignerType.NFC.ordinal,
-                    label = getString(R.string.nc_tapsigner),
-                    showDivider = true
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_BITBOX,
-                    label = getString(R.string.nc_bitbox)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
-                    label = getString(R.string.nc_blockstream_jade),
-                ),
-                SheetOption(
-                    type = SignerType.COLDCARD_NFC.ordinal,
-                    label = getString(R.string.nc_coldcard)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
-                    label = getString(R.string.nc_foudation_passport),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
-                    label = getString(R.string.nc_signer_generic_air_gapped)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-                    label = getString(R.string.nc_keystone),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_LEDGER,
-                    label = getString(R.string.nc_ledger)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
-                    label = getString(R.string.nc_seedsigner),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_TREZOR,
-                    label = getString(R.string.nc_trezor)
-                ),
-            ),
+            options = options,
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),
             showClosedIcon = true,
         ).show(childFragmentManager, "BottomSheetOption")

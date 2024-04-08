@@ -246,8 +246,21 @@ class AddKeyListViewModel @Inject constructor(
                 && isSignerExist(it.fingerPrint).not()
     }
 
-    fun getAirgap() =
-        _state.value.signers.filter { it.type == SignerType.AIRGAP && isSignerExist(it.fingerPrint).not() }
+    fun getAirgap(tag: SignerTag?): List<SignerModel> {
+        return if (tag == null) {
+            _state.value.signers.filter {
+                it.type == SignerType.AIRGAP
+                        && isSignerExist(it.fingerPrint).not()
+                        && it.tags.isEmpty()
+            }
+        } else {
+            _state.value.signers.filter {
+                it.type == SignerType.AIRGAP
+                        && isSignerExist(it.fingerPrint).not()
+                        && it.tags.contains(tag)
+            }
+        }
+    }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
