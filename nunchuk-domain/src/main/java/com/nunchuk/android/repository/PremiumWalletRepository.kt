@@ -264,7 +264,6 @@ interface PremiumWalletRepository {
         userData: String,
         securityQuestionToken: String,
         isUpdate: Boolean,
-        plan: MembershipPlan,
         draft: Boolean
     ): String
 

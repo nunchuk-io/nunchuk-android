@@ -151,7 +151,6 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                         userData = userData,
                         securityQuestionToken = "",
                         isUpdate = param.planFlow == InheritancePlanFlow.VIEW,
-                        plan = membershipStepManager.plan,
                         draft = true
                     )
                 ).onSuccess { transactionId ->
@@ -299,7 +298,6 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 userData = state.userData.orEmpty(),
                 securityQuestionToken = securityQuestionToken,
                 isUpdate = isUpdate,
-                plan = membershipStepManager.plan,
                 draft = false
             )
         )
