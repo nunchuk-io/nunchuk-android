@@ -74,6 +74,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEv
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -137,6 +138,12 @@ class CheckSignMessageFragment : Fragment() {
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> Unit
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError("Please use the desktop app to sign with this key")
+                        WalletAuthenticationEvent.PromptPassphrase -> NCInputDialog(requireActivity()).showDialog(
+                            title = getString(com.nunchuk.android.transaction.R.string.nc_transaction_enter_passphrase),
+                            onConfirmed = {
+                                walletAuthenticationViewModel.handlePassphrase(it)
+                            }
+                        )
                         is WalletAuthenticationEvent.ForceSyncSuccess,
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,

@@ -45,8 +45,9 @@ sealed class WalletAuthenticationEvent {
     data object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
     data object CanNotSignDummyTx : WalletAuthenticationEvent()
     data class FinalizeDummyTxSuccess(val isGoBack: Boolean) : WalletAuthenticationEvent()
-    data class ForceSyncSuccess(val isSuccess: Boolean,) : WalletAuthenticationEvent()
+    data class ForceSyncSuccess(val isSuccess: Boolean) : WalletAuthenticationEvent()
     data class SignFailed(val singleSigner: SingleSigner) : WalletAuthenticationEvent()
+    data object PromptPassphrase : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(
@@ -54,10 +55,10 @@ data class WalletAuthenticationState(
     val singleSigners: List<SingleSigner> = emptyList(),
     val signatures: Map<String, String> = emptyMap(),
     val transaction: Transaction? = null,
-    val pendingSignature : Int = 0,
+    val pendingSignature: Int = 0,
     val interactSingleSigner: SingleSigner? = null,
     val dummyTransactionType: DummyTransactionType = DummyTransactionType.NONE,
-    val enabledSigners : Set<String> = emptySet(),
+    val enabledSigners: Set<String> = emptySet(),
     val isDraft: Boolean = false,
     val transactionStatus: TransactionStatus = TransactionStatus.PENDING_SIGNATURES,
 )

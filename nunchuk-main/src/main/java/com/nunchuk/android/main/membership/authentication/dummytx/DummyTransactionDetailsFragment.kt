@@ -76,6 +76,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -203,6 +204,13 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                             getString(R.string.nc_transaction_updated)
                         )
                         else showError(getString(R.string.nc_transaction_not_updated))
+
+                        WalletAuthenticationEvent.PromptPassphrase -> NCInputDialog(requireActivity()).showDialog(
+                            title = getString(com.nunchuk.android.transaction.R.string.nc_transaction_enter_passphrase),
+                            onConfirmed = {
+                                walletAuthenticationViewModel.handlePassphrase(it)
+                            }
+                        )
 
                         is WalletAuthenticationEvent.SignFailed -> handleSignedFailed(event.singleSigner)
                         is WalletAuthenticationEvent.Loading,
