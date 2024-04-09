@@ -209,8 +209,8 @@ private fun CheckBackUpByAppContent(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth(),
-                    onFocusEvent = { focusState ->
-                        if (focusState.isFocused) {
+                    onFocusEvent = { isFocused ->
+                        if (isFocused) {
                             coroutineScope.launch {
                                 delay(500L)
                                 bringIntoViewRequester.bringIntoView()

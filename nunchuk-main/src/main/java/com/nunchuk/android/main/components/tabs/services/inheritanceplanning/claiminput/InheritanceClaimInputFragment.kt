@@ -205,8 +205,8 @@ private fun InheritanceClaimInputContent(
                     onValueChange = {
                         onMagicalPhraseTextChange(it.text)
                     },
-                    onFocusEvent = { focusState ->
-                        if (focusState.isFocused) {
+                    onFocusEvent = { isFocused ->
+                        if (isFocused) {
                             coroutineScope.launch {
                                 delay(500L)
                                 bringIntoViewRequester.bringIntoView()
