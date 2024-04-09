@@ -409,7 +409,7 @@ private fun InviteMembersContent(
                                 onInputEmailChange(index, email, name)
                             },
                             onFocusEvent = {
-                                if (it.isFocused) {
+                                if (it) {
                                     coroutineScope.launch {
                                         delay(500L)
                                         bringIntoViewRequester.bringIntoView()
@@ -460,7 +460,7 @@ private fun MemberView(
     onRemoveClick: () -> Unit = {},
     onInputEmailChange: (String, String) -> Unit = { _, _ -> },
     onSelectRoleClick: () -> Unit = {},
-    onFocusEvent: (FocusState) -> Unit = {},
+    onFocusEvent: (Boolean) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     val isMaster = role == AssistedWalletRole.MASTER.name

@@ -107,7 +107,6 @@ class AnswerSecurityQuestionFragment : Fragment() {
     companion object {
         const val QUESTION_ID = "question_id"
         const val QUESTION_ANSWER = "question_answer"
-        const val BACKUP_KEY = "backup_key"
     }
 }
 

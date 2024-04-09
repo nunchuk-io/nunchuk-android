@@ -23,6 +23,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -47,6 +48,8 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,7 +96,7 @@ fun NcTextField(
     colors: TextFieldColors = TextFieldDefaults.colors(),
     inputBoxHeight: Dp = Dp.Unspecified,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    onFocusEvent: (FocusState) -> Unit = {},
+    onFocusEvent: (Boolean) -> Unit = {},
     textStyle: TextStyle = NunchukTheme.typography.body,
     onValueChange: (value: String) -> Unit,
 ) {
@@ -104,6 +107,12 @@ fun NcTextField(
         borderErrorColor = colorResource(id = R.color.nc_orange_color)
     }
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    LaunchedEffect(isFocused) {
+        onFocusEvent(isFocused)
+    }
+
     Column(modifier = modifier) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             if (title.isNotEmpty()) {
@@ -142,7 +151,6 @@ fun NcTextField(
                     color = if (enabled.not()) disableBackgroundColor else backgroundErrorColor,
                     shape = RoundedCornerShape(8.dp)
                 )
-                .onFocusEvent(onFocusEvent)
                 .defaultMinSize(
                     minWidth = TextFieldDefaults.MinWidth,
                 )
@@ -158,6 +166,7 @@ fun NcTextField(
             readOnly = readOnly,
             minLines = minLines,
             onValueChange = onValueChange,
+            interactionSource = interactionSource,
             visualTransformation = visualTransformation,
             decorationBox = @Composable { innerTextField ->
                 // places leading icon, text field with label and placeholder, trailing icon
@@ -215,11 +224,16 @@ fun NcTextField(
     inputBoxHeight: Dp = Dp.Unspecified,
     colors: TextFieldColors = TextFieldDefaults.colors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    onFocusEvent: (FocusState) -> Unit = {},
+    onFocusEvent: (Boolean) -> Unit = {},
     onValueChange: (value: TextFieldValue) -> Unit,
 ) {
     val hasError = !error.isNullOrEmpty()
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    LaunchedEffect(isFocused) {
+        onFocusEvent(isFocused)
+    }
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
             Text(
@@ -235,7 +249,6 @@ fun NcTextField(
                         color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(8.dp)
                     )
-                    .onFocusEvent(onFocusEvent)
                     .defaultMinSize(
                         minWidth = TextFieldDefaults.MinWidth,
                     )

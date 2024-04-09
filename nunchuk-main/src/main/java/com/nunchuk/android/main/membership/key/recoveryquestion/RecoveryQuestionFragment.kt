@@ -21,6 +21,7 @@ package com.nunchuk.android.main.membership.key.recoveryquestion
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -423,9 +425,9 @@ fun QuestionRow(
             enabled = question.isValidQuestion,
             visualTransformation = vi,
             onValueChange = { onInputAnswerTextChange(it) },
-            onFocusEvent = { focusState ->
-                if (isRecoveryFlow && isShowMask && focusState.isFocused) {
-                    onFocusChange(focusState.isFocused)
+            onFocusEvent = { isFocused ->
+                if (isRecoveryFlow && isShowMask && isFocused) {
+                    onFocusChange(isFocused)
                 }
             })
 
