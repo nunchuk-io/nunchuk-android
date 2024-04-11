@@ -256,7 +256,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
         _state.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
 
     fun getSoftwareSigners() =
-        _state.value.signers.filter { it.type == SignerType.SOFTWARE && isSignerExist(it.fingerPrint).not() }
+        _state.value.signers.filter { (it.type == SignerType.SOFTWARE || it.type == SignerType.FOREIGN_SOFTWARE) && isSignerExist(it.fingerPrint).not() }
 
     fun refresh() {
         viewModelScope.launch {

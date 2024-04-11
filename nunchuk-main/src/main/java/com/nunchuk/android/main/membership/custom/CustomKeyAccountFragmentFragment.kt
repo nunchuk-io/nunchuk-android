@@ -187,6 +187,15 @@ class CustomKeyAccountFragmentFragment : MembershipFragment(), BottomSheetOption
                     )
                 }
 
+                args.signer.type == SignerType.FOREIGN_SOFTWARE -> {
+                    NCInfoDialog(requireActivity()).showDialog(
+                        message = getString(R.string.nc_foreign_key_index_not_available_msg),
+                        onYesClick = {
+                            findNavController().popBackStack()
+                        }
+                    )
+                }
+
                 else -> {
                     NCWarningDialog(requireActivity()).showDialog(
                         message = getString(R.string.nc_master_signer_new_index_not_available),
