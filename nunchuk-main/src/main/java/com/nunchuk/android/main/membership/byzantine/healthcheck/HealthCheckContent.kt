@@ -205,6 +205,7 @@ private fun HealthCheckItem(
                 modifier = Modifier
                     .weight(1f)
                     .height(36.dp),
+                enabled = signer.type != SignerType.FOREIGN_SOFTWARE,
                 onClick = { onHealthCheck(signer) },
             ) {
                 Text(

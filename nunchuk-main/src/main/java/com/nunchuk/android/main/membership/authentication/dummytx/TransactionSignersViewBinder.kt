@@ -27,6 +27,7 @@ import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.widget.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
@@ -72,7 +73,8 @@ internal class TransactionSignersViewBinder(
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = true
         } else {
-            binding.btnSign.isVisible = enabledSigners.isEmpty() || enabledSigners.contains(model.fingerPrint)
+            binding.btnSign.isVisible =
+                (enabledSigners.isEmpty() || enabledSigners.contains(model.fingerPrint)) && model.type != SignerType.FOREIGN_SOFTWARE
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
         }

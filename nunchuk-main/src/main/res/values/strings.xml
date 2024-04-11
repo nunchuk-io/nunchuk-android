@@ -323,4 +323,5 @@
     <string name="nc_info_software_key_same_device_part_1">Having two or more software keys on the same device significantly reduces the security of your wallet.</string>
     <string name="nc_info_software_key_same_device_part_2">Are you sure you want to do this?</string>
     <string name="nc_i_ll_choose_another_type_of_key">I’ll choose another type of key</string>
+    <string name="nc_foreign_key_index_not_available_msg">New account data needed. To add a new account, please use the original device that the software key was created on.</string>
 </resources>

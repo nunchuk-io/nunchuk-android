@@ -102,7 +102,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             if (data.signers.isNotEmpty()) {
                 val signer = data.signers.first()
                 when (signer.type) {
-                    SignerType.NFC, SignerType.SOFTWARE -> {
+                    SignerType.NFC, SignerType.SOFTWARE, SignerType.FOREIGN_SOFTWARE -> {
                         findNavController().navigate(
                             AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
                                 signer
