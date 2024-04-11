@@ -123,7 +123,7 @@ fun AddByzantineKeyListContent(
 
                     items(keys) { key ->
                         BlurView(
-                            isBlur = key.signer?.isVisible == false && isKeyHolderLimited,
+                            isBlur = (key.signer?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && isKeyHolderLimited,
                         ) { modifier ->
                             AddKeyCard(
                                 modifier = modifier,

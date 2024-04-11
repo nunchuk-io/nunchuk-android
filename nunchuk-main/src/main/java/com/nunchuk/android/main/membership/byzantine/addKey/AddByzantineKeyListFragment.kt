@@ -381,11 +381,13 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_SEVER_KEY -> {
-                navigator.openConfigGroupServerKeyActivity(
-                    activityContext = requireActivity(),
-                    groupStep = MembershipStage.NONE,
-                    groupId = args.groupId
-                )
+                if (!args.isKeyHolderLimited) {
+                    navigator.openConfigGroupServerKeyActivity(
+                        activityContext = requireActivity(),
+                        groupStep = MembershipStage.NONE,
+                        groupId = args.groupId
+                    )
+                }
             }
 
             MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> {
