@@ -84,10 +84,7 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
                 MembershipPlan.IRON_HAND -> findNavController().navigate(
                     ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigureServerKeySettingFragment()
                 )
-                MembershipPlan.HONEY_BADGER -> findNavController().navigate(
-                    ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
-                )
-                MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.BYZANTINE_PREMIER -> {
+                else -> {
                     val groupId = (requireActivity() as ConfigServerKeyActivity).groupId
                     if (groupId.isNotEmpty()) {
                         findNavController().navigate(
@@ -101,7 +98,6 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
                         )
                     }
                 }
-                MembershipPlan.FINNEY, MembershipPlan.FINNEY_PRO, MembershipPlan.NONE -> Unit
             }
         }
     }
