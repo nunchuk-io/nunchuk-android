@@ -17,21 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.core.domain.membership
 
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.membership.AssistedWalletConfig
-import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetAssistedWalletConfigUseCase @Inject constructor(
-    private val repository: PremiumWalletRepository,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<Unit, AssistedWalletConfig>(ioDispatcher) {
-
-    override suspend fun execute(parameters: Unit): AssistedWalletConfig {
-        return repository.getAssistedWalletConfig()
+class SetLocalMembershipPlanFlowUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val ncDataStore: NcDataStore
+) : UseCase<MembershipPlan, Unit>(dispatcher) {
+    override suspend fun execute(parameters: MembershipPlan) {
+        ncDataStore.setLocalMembershipPlan(parameters)
     }
 }

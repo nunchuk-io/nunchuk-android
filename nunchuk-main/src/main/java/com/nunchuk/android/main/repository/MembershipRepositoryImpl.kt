@@ -84,6 +84,16 @@ class MembershipRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getPersonalSteps(): Flow<List<MembershipStepInfo>> {
+        return membershipStepDao.getSteps(
+            accountManager.getAccount().chatId,
+            chain.value,
+            listOf(MembershipPlan.IRON_HAND, MembershipPlan.HONEY_BADGER)
+        ).map {
+            it.map { entity -> entity.toModel() }
+        }
+    }
+
     override suspend fun saveStepInfo(info: MembershipStepInfo) {
         membershipStepDao.updateOrInsert(
             listOf(
@@ -132,7 +142,8 @@ class MembershipRepositoryImpl @Inject constructor(
             } else {
                 data.plan?.slug.toMembershipPlan()
             }
-            ncDataStore.setMembershipPlan(plan)
+            ncDataStore.setLocalMembershipPlan(plan)
+            ncDataStore.setPlans(data.plan?.slug?.let { listOf(it) }.orEmpty()) // TODO Hai
 
             return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
         } else {
@@ -162,7 +173,7 @@ class MembershipRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan
+    override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.localMembershipPlan
 
     override fun isHideUpsellBanner(): Flow<Boolean> = ncDataStore.isHideUpsellBanner
 

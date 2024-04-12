@@ -34,6 +34,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.membership.model.toSteps
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.Result
@@ -94,7 +95,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     private val membershipStepState = getMembershipStepUseCase(
         GetMembershipStepUseCase.Param(
-            membershipStepManager.plan,
+            MembershipPlan.NONE,
             args.groupId
         )
     ).map { it.getOrElse { emptyList() } }
@@ -224,7 +225,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     private fun getStepInfo(step: MembershipStep) =
         membershipStepState.value.find { it.step == step } ?: run {
-            MembershipStepInfo(step = step, plan = membershipStepManager.plan, groupId = "")
+            MembershipStepInfo(step = step, groupId = args.groupId)
         }
 
     fun getTapSigners() =
@@ -295,7 +296,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
                     masterSignerId = signer.masterFingerprint,
-                    plan = membershipStepManager.plan,
+                    plan = MembershipPlan.NONE,
                     verifyType = VerifyType.APP_VERIFIED,
                     extraData = gson.toJson(
                         SignerExtra(

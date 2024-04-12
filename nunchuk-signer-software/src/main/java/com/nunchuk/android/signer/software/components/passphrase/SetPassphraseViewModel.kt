@@ -196,7 +196,7 @@ internal class SetPassphraseViewModel @Inject constructor(
                            step = membershipStepManager.currentStep
                                ?: throw IllegalArgumentException("Current step empty"),
                            masterSignerId = signer.masterFingerprint,
-                           plan = membershipStepManager.plan,
+                           plan = membershipStepManager.localMembershipPlan,
                            verifyType = VerifyType.APP_VERIFIED,
                            extraData = gson.toJson(
                                SignerExtra(

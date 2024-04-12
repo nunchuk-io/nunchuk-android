@@ -76,9 +76,9 @@ import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
 import com.nunchuk.android.usecase.byzantine.SyncDeletedWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
-import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
+import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
@@ -117,7 +117,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase,
     private val getLocalCurrencyUseCase: GetLocalCurrencyUseCase,
     private val getRemotePriceConvertBTCUseCase: GetRemotePriceConvertBTCUseCase,
     private val pushEventManager: PushEventManager,
@@ -134,6 +133,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getListGroupWalletKeyHealthStatusUseCase: GetListGroupWalletKeyHealthStatusUseCase,
     private val cardIdManager: CardIdManager,
     private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
+    private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -153,9 +153,6 @@ internal class WalletsViewModel @Inject constructor(
     override val initialState = WalletsState()
 
     init {
-        viewModelScope.launch {
-            getAssistedWalletConfigUseCase(Unit)
-        }
         viewModelScope.launch {
             getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
@@ -181,6 +178,13 @@ internal class WalletsViewModel @Inject constructor(
             getLocalCurrencyUseCase(Unit).collect {
                 LOCAL_CURRENCY = it.getOrDefault(USD_CURRENCY)
                 getRemotePriceConvertBTCUseCase(Unit)
+            }
+        }
+        viewModelScope.launch {
+            getPersonalMembershipStepUseCase(Unit).map {
+                it.getOrElse { emptyList() }
+            }.distinctUntilChanged().collect {
+                updateState { copy(personalSteps = it) }
             }
         }
         viewModelScope.launch {
@@ -311,14 +315,14 @@ internal class WalletsViewModel @Inject constructor(
                 if (getServerWalletResult.isFailure) return@launch
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
-                updateState { copy(plan = subscription.plan) }
+                updateState { copy(plans = listOf(subscription.plan)) }
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
                     retrieveData()
                 } else {
                     mapGroupWalletUi()
                 }
             } else {
-                updateState { copy(plan = MembershipPlan.NONE) }
+                updateState { copy(plans = emptyList()) }
             }
             if (result.getOrNull()?.subscriptionId.isNullOrEmpty() && isHideUpsellBanner.value.not()) {
                 val bannerResult = getBannerUseCase(Unit)
@@ -566,43 +570,29 @@ internal class WalletsViewModel @Inject constructor(
 
     // Don't change, logic is very complicated :D
     fun getGroupStage(): MembershipStage {
-        val plan = getState().plan
+        val allGroups = getState().allGroups
         val assistedWallets = getState().assistedWallets
-        when (plan) {
-            MembershipPlan.IRON_HAND -> {
-                return when {
-                    assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
-                    membershipStepManager.isNotConfig() -> MembershipStage.NONE
-                    else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
-                }
-            }
-
-            MembershipPlan.HONEY_BADGER -> {
-                return when {
-                    assistedWallets.all { it.isSetupInheritance } && assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
-                    // Only show setup Inheritance banner with first assisted wallet
-                    assistedWallets.isNotEmpty() && assistedWallets.first().isSetupInheritance.not() && membershipStepManager.isNotConfig() -> MembershipStage.SETUP_INHERITANCE
-                    assistedWallets.isEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.NONE
-                    assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
-                    else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
-                }
-            }
-
-            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.BYZANTINE_PREMIER,
-            MembershipPlan.FINNEY, MembershipPlan.FINNEY_PRO -> {
-                val allGroups = getState().allGroups
-                return if (allGroups.isEmpty()) MembershipStage.NONE else MembershipStage.DONE
-            }
-
-            MembershipPlan.NONE -> return MembershipStage.DONE // no subscription plan it means done
+        if (allGroups.isNotEmpty() || assistedWallets.isNotEmpty()) {
+            return MembershipStage.DONE
         }
+        val plans = getState().plans
+        if (!plans.isNullOrEmpty()) {
+            if (getState().personalSteps.isNotEmpty()) {
+                return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+            }
+            return MembershipStage.NONE
+        }
+
+        return MembershipStage.DONE
     }
 
     fun getAssistedWalletId() = getState().assistedWallets.firstOrNull()?.localId
 
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
 
-    fun isPremiumUser() = getState().plan != null && getState().plan != MembershipPlan.NONE
+    fun isPremiumUser() = !getState().plans.isNullOrEmpty()
+
+    fun getPlans() = getState().plans
 
     fun clearEvent() = event(None)
 
@@ -628,4 +618,6 @@ internal class WalletsViewModel @Inject constructor(
             event(ShowErrorEvent(result.exceptionOrNull()))
         }
     }
+
+    fun getPersonalSteps() = getState().personalSteps
 }

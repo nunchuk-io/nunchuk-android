@@ -594,7 +594,7 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             restartWizardUseCase(
                 RestartWizardUseCase.Param(
-                    plan = membershipStepManager.plan,
+                    plan = MembershipPlan.NONE,
                     groupId = getGroupId()
                 )
             ).onSuccess {
@@ -674,7 +674,7 @@ class GroupDashboardViewModel @Inject constructor(
         getInheritance(silentLoading = true)
     }
 
-    fun membershipPlan(): MembershipPlan = membershipStepManager.plan
+    fun membershipPlan(): MembershipPlan = membershipStepManager.localMembershipPlan
 
     private val currentSelectedAlert: Alert?
         get() = savedStateHandle.get<Alert>(EXTRA_SELECTED_ALERT)

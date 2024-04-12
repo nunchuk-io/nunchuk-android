@@ -32,7 +32,6 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
 import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
@@ -45,15 +44,12 @@ import com.nunchuk.android.share.model.TransactionOption.REQUEST_SIGNATURE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBottomSheetBinding>() {
-
-    @Inject
-    lateinit var membershipStepManager: MembershipStepManager
 
     private lateinit var listener: (TransactionOption) -> Unit
 
@@ -125,8 +121,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 
         binding.btnScheduleBroadcast.isVisible = args.isPending
                 && !args.isReceive
-                && args.isAssistedWallet
-                && (membershipStepManager.plan == MembershipPlan.HONEY_BADGER || membershipStepManager.plan == MembershipPlan.BYZANTINE_PRO || membershipStepManager.plan == MembershipPlan.BYZANTINE)
+                && args.isSupportScheduleBroadcast
         binding.btnScheduleBroadcast.text = if (args.isScheduleBroadcast) {
             getString(R.string.nc_cancel_scheduled_broadcast)
         } else {
@@ -164,12 +159,13 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             isPending: Boolean,
             isPendingConfirm: Boolean,
             isRejected: Boolean,
-            isAssistedWallet: Boolean,
+            isSupportScheduleBroadcast: Boolean,
             isScheduleBroadcast: Boolean,
             canBroadcast: Boolean,
             isShowRequestSignature: Boolean,
             userRole: String,
             isReceive: Boolean,
+            plan: MembershipPlan
         ): TransactionOptionsBottomSheet {
             return TransactionOptionsBottomSheet().apply {
                 arguments =
@@ -177,12 +173,13 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
                         isPending = isPending,
                         isPendingConfirm = isPendingConfirm,
                         isRejected = isRejected,
-                        isAssistedWallet = isAssistedWallet,
+                        isSupportScheduleBroadcast = isSupportScheduleBroadcast,
                         isScheduleBroadcast = isScheduleBroadcast,
                         canBroadcast = canBroadcast,
                         isShowRequestSignature = isShowRequestSignature,
                         userRole = userRole,
-                        isReceive = isReceive
+                        isReceive = isReceive,
+                        plan = plan
                     ).buildBundle()
                 show(fragmentManager, TAG)
             }
@@ -195,47 +192,51 @@ data class TransactionOptionsArgs(
     val isPending: Boolean,
     val isPendingConfirm: Boolean,
     val isRejected: Boolean,
-    val isAssistedWallet: Boolean,
+    val isSupportScheduleBroadcast: Boolean,
     val isScheduleBroadcast: Boolean,
     val canBroadcast: Boolean,
     val isShowRequestSignature: Boolean,
     val userRole: String,
     val isReceive: Boolean,
+    val plan: MembershipPlan,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
         putBoolean(EXTRA_IS_PENDING, isPending)
         putBoolean(EXTRA_IS_PENDING_CONFIRM, isPendingConfirm)
         putBoolean(EXTRA_IS_REJECTED, isRejected)
-        putBoolean(EXTRA_IS_ASSISTED_WALLET, isAssistedWallet)
+        putBoolean(EXTRA_IS_SUPPORT_SCHEDULE_BROADCAST, isSupportScheduleBroadcast)
         putBoolean(EXTRA_IS_SCHEDULE_BROADCAST, isScheduleBroadcast)
         putBoolean(EXTRA_CAN_BROADCAST, canBroadcast)
         putBoolean(EXTRA_SHOW_REQUEST_SIGNATURE, isShowRequestSignature)
         putString(EXTRA_USER_ROLE, userRole)
         putBoolean(EXTRA_IS_RECEIVE, isReceive)
+        putSerializable(EXTRA_PLAN, plan)
     }
 
     companion object {
         private const val EXTRA_IS_PENDING = "EXTRA_IS_PENDING"
         private const val EXTRA_IS_PENDING_CONFIRM = "EXTRA_IS_PENDING_CONFIRM"
         private const val EXTRA_IS_REJECTED = "EXTRA_IS_REJECTED"
-        private const val EXTRA_IS_ASSISTED_WALLET = "EXTRA_IS_ASSISTED_WALLET"
+        private const val EXTRA_IS_SUPPORT_SCHEDULE_BROADCAST = "EXTRA_IS_SUPPORT_SCHEDULE_BROADCAST"
         private const val EXTRA_IS_SCHEDULE_BROADCAST = "EXTRA_IS_SCHEDULE_BROADCAST"
         private const val EXTRA_CAN_BROADCAST = "EXTRA_CAN_BROADCAST"
         private const val EXTRA_SHOW_REQUEST_SIGNATURE = "EXTRA_SHOW_REQUEST_SIGNATURE"
         private const val EXTRA_USER_ROLE = "EXTRA_USER_ROLE"
         private const val EXTRA_IS_RECEIVE = "EXTRA_IS_RECEIVE"
+        private const val EXTRA_PLAN = "EXTRA_PLAN"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
             data?.getBooleanValue(EXTRA_IS_PENDING_CONFIRM).orFalse(),
             data?.getBooleanValue(EXTRA_IS_REJECTED).orFalse(),
-            data?.getBooleanValue(EXTRA_IS_ASSISTED_WALLET).orFalse(),
+            data?.getBooleanValue(EXTRA_IS_SUPPORT_SCHEDULE_BROADCAST).orFalse(),
             data?.getBooleanValue(EXTRA_IS_SCHEDULE_BROADCAST).orFalse(),
             data?.getBooleanValue(EXTRA_CAN_BROADCAST).orFalse(),
             data?.getBooleanValue(EXTRA_SHOW_REQUEST_SIGNATURE).orFalse(),
             data?.getString(EXTRA_USER_ROLE).orEmpty(),
             data?.getBooleanValue(EXTRA_IS_RECEIVE).orFalse(),
+            data?.serializable<MembershipPlan>(EXTRA_PLAN) ?: MembershipPlan.NONE
         )
     }
 }

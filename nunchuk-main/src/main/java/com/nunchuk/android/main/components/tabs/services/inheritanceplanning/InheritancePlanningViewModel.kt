@@ -4,10 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.InheritanceSourceFlow
-import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,12 +23,12 @@ class InheritancePlanningViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val groupId = savedStateHandle.get<String>(MembershipActivity.EXTRA_GROUP_ID).orEmpty()
+    private val groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
 
     private val _state = MutableStateFlow(
         InheritancePlanningState(
             groupId = savedStateHandle.get<String>(
-                MembershipActivity.EXTRA_GROUP_ID
+                MembershipFragment.EXTRA_GROUP_ID
             ).orEmpty()
         )
     )

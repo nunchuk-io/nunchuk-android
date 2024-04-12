@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
@@ -64,7 +65,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
         savedStateHandle.getStateFlow(MembershipActivity.EXTRA_KEY_WALLET_ID, "")
 
     private val groupId =
-        savedStateHandle.getStateFlow(MembershipActivity.EXTRA_GROUP_ID, "")
+        savedStateHandle.getStateFlow(MembershipFragment.EXTRA_GROUP_ID, "")
 
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()

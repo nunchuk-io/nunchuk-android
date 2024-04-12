@@ -25,7 +25,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
-import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
@@ -76,7 +76,7 @@ class ServicesTabViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getWalletUseCase: GetWalletUseCase,
     private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getInheritanceUseCase: GetInheritanceUseCase,
@@ -101,17 +101,17 @@ class ServicesTabViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getLocalMembershipPlanFlowUseCase(Unit)
-                .map { it.getOrElse { MembershipPlan.NONE } }
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
                 .combine(getAssistedWalletIdsFlowUseCase(Unit)
                     .map { it.getOrElse { emptyList() } }
                     .distinctUntilChanged()
-                ) { plan, wallets ->
-                    plan to wallets
+                ) { plans, wallets ->
+                    plans to wallets
                 }
-                .collect { (plan, wallets) ->
+                .collect { (plans, wallets) ->
                     _state.update { it.copy(assistedWallets = wallets) }
-                    handleAssistedWallet(wallets, plan)
+                    handleAssistedWallet(wallets, plans.first()) // TODO Thong
                 }
         }
         viewModelScope.launch {

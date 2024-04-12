@@ -34,6 +34,9 @@ interface MembershipStepDao : BaseDao<MembershipStepEntity> {
     @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND `plan` = :plan")
     fun getSteps(chatId: String, chain: Chain, plan: MembershipPlan): Flow<List<MembershipStepEntity>>
 
+    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND `plan` IN (:plans)")
+    fun getSteps(chatId: String, chain: Chain, plans: List<MembershipPlan>): Flow<List<MembershipStepEntity>>
+
     @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE chat_id = :chatId AND chain = :chain AND group_id = :groupId")
     fun getSteps(chatId: String, chain: Chain, groupId: String): Flow<List<MembershipStepEntity>>
 

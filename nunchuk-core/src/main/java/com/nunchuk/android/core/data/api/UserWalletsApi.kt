@@ -19,10 +19,62 @@
 
 package com.nunchuk.android.core.data.api
 
-import com.nunchuk.android.core.data.model.*
-import com.nunchuk.android.core.data.model.byzantine.*
+import com.nunchuk.android.core.data.model.CalculateRequiredSignaturesSecurityQuestionPayload
+import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
+import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
+import com.nunchuk.android.core.data.model.CreateSecurityQuestionResponse
+import com.nunchuk.android.core.data.model.CreateServerKeyResponse
+import com.nunchuk.android.core.data.model.CreateServerKeysPayload
+import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
+import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
+import com.nunchuk.android.core.data.model.EmptyRequest
+import com.nunchuk.android.core.data.model.InheritanceByzantineRequestPlanning
+import com.nunchuk.android.core.data.model.InheritanceCancelRequest
+import com.nunchuk.android.core.data.model.InheritanceCheckRequest
+import com.nunchuk.android.core.data.model.InheritanceCheckResponse
+import com.nunchuk.android.core.data.model.InheritanceClaimClaimRequest
+import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequest
+import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
+import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
+import com.nunchuk.android.core.data.model.LockdownUpdateRequest
+import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
+import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
+import com.nunchuk.android.core.data.model.SecurityQuestionDataResponse
+import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
+import com.nunchuk.android.core.data.model.SyncTransactionRequest
+import com.nunchuk.android.core.data.model.TransactionAdditionalResponse
+import com.nunchuk.android.core.data.model.UpdateKeyPayload
+import com.nunchuk.android.core.data.model.UpdateSecurityQuestionResponse
+import com.nunchuk.android.core.data.model.UpdateWalletPayload
+import com.nunchuk.android.core.data.model.byzantine.DummyTransactionResponse
+import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
+import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
+import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
+import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
-import com.nunchuk.android.core.data.model.membership.*
+import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
+import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
+import com.nunchuk.android.core.data.model.membership.ConfirmationCodeResponse
+import com.nunchuk.android.core.data.model.membership.ConfirmationCodeVerifyRequest
+import com.nunchuk.android.core.data.model.membership.ConfirmationCodeVerifyResponse
+import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
+import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
+import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
+import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
+import com.nunchuk.android.core.data.model.membership.GetNonceResponse
+import com.nunchuk.android.core.data.model.membership.GetWalletResponse
+import com.nunchuk.android.core.data.model.membership.GroupAssistedWalletConfigResponse
+import com.nunchuk.android.core.data.model.membership.InheritanceClaimStatusResponse
+import com.nunchuk.android.core.data.model.membership.InheritanceResponse
+import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
+import com.nunchuk.android.core.data.model.membership.PeriodResponse
+import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
+import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
+import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
+import com.nunchuk.android.core.data.model.membership.TransactionNoteResponse
+import com.nunchuk.android.core.data.model.membership.TransactionResponse
+import com.nunchuk.android.core.data.model.membership.TransactionsResponse
+import com.nunchuk.android.core.data.model.membership.VerifySecurityQuestionResponse
 import com.nunchuk.android.core.network.Data
 import com.nunchuk.android.model.DownloadBackupKeyResponseData
 import com.nunchuk.android.model.KeyResponse
@@ -30,7 +82,19 @@ import com.nunchuk.android.model.KeyResponseData
 import com.nunchuk.android.model.KeyVerifiedRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.HTTP
+import retrofit2.http.Header
+import retrofit2.http.HeaderMap
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
+import retrofit2.http.Path
+import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 internal const val TRANSACTION_PAGE_COUNT: Int = 20
 
@@ -307,9 +371,6 @@ internal interface UserWalletsApi {
         @HeaderMap headers: Map<String, String>,
         @Body payload: DeleteAssistedWalletRequest
     ): Data<TransactionResponse>
-
-    @GET("/v1.1/user-wallets/configs")
-    suspend fun getAssistedWalletConfig(): Data<AssistedWalletConfigResponse>
 
     @GET("/v1.1/group-wallets/configs")
     suspend fun getGroupAssistedWalletConfig(): Data<GroupAssistedWalletConfigResponse>

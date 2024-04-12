@@ -52,6 +52,7 @@ import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
@@ -172,14 +173,16 @@ interface AppNavigatorDelegate : AppNavigator {
         groupStep: MembershipStage,
         walletId: String?,
         groupId: String?,
-        addOnHoneyBadger: Boolean,
+        isPersonalWallet: Boolean,
+        walletType: GroupWalletType?,
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
             groupStep = groupStep,
             walletId = walletId,
             groupId = groupId,
-            addOnHoneyBadger = addOnHoneyBadger
+            isPersonalWallet = isPersonalWallet,
+            walletType = walletType
         )
         activityContext.startActivity(intent)
     }
@@ -190,14 +193,16 @@ interface AppNavigatorDelegate : AppNavigator {
         groupStep: MembershipStage,
         walletId: String?,
         groupId: String?,
-        addOnHoneyBadger: Boolean,
+        isPersonalWallet: Boolean,
+        walletType: GroupWalletType?,
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
             groupStep = groupStep,
             walletId = walletId,
             groupId = groupId,
-            addOnHoneyBadger = addOnHoneyBadger
+            isPersonalWallet = isPersonalWallet,
+            walletType = walletType
         )
         launcher.launch(intent)
     }

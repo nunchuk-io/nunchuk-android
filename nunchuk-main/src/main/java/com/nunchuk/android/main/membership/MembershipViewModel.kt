@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,11 +19,15 @@ import javax.inject.Inject
 @HiltViewModel
 class MembershipViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
-    savedStateHandle: SavedStateHandle
-) : ViewModel(){
-    private val groupId = savedStateHandle.get<String>(MembershipActivity.EXTRA_GROUP_ID).orEmpty()
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    private val groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
 
-    private val _state = MutableStateFlow(MembershipState(groupId = savedStateHandle.get<String>(MembershipActivity.EXTRA_GROUP_ID).orEmpty()))
+    private val _state = MutableStateFlow(
+        MembershipState(
+            groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
+        )
+    )
     val state = _state.asStateFlow()
 
     init {

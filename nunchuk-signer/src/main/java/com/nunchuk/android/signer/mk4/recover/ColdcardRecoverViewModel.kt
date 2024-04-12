@@ -156,7 +156,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
                     masterSignerId = coldcardSigner.masterFingerprint,
-                    plan = membershipStepManager.plan,
+                    plan = membershipStepManager.localMembershipPlan,
                     verifyType = VerifyType.APP_VERIFIED,
                     extraData = gson.toJson(
                         SignerExtra(

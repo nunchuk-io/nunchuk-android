@@ -97,8 +97,8 @@ class CreateWalletSuccessFragment : MembershipFragment() {
         }
         flowObserver(viewModel.event) {
             when (it) {
-                CreateWalletSuccessEvent.ContinueStepEvent -> {
-                    if (viewModel.plan == MembershipPlan.HONEY_BADGER) {
+                is CreateWalletSuccessEvent.ContinueStepEvent -> {
+                    if (groupId.isEmpty() && it.is2Of4MultisigWallet) {
                         findNavController().navigate(
                             CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyStepFragment(),
                             NavOptions.Builder()
@@ -129,7 +129,6 @@ private fun CreateWalletSuccessScreen(
     CreateWalletSuccessScreenContent(
         uiState = uiState,
         onContinueClicked = viewModel::onContinueClicked,
-        plan = viewModel.plan,
     )
 }
 
@@ -137,7 +136,6 @@ private fun CreateWalletSuccessScreen(
 fun CreateWalletSuccessScreenContent(
     uiState : CreateWalletSuccessUiState = CreateWalletSuccessUiState(),
     onContinueClicked: () -> Unit = {},
-    plan: MembershipPlan = MembershipPlan.IRON_HAND,
 ) {
     NunchukTheme {
         Scaffold(topBar = {
@@ -177,9 +175,7 @@ fun CreateWalletSuccessScreenContent(
                     onClick = onContinueClicked,
                 ) {
                     Text(
-                        text = if (plan == MembershipPlan.IRON_HAND)
-                            stringResource(id = R.string.nc_take_me_my_wallet)
-                        else if (uiState.allowInheritance)
+                        text = if (uiState.allowInheritance)
                             stringResource(id = R.string.nc_text_done)
                         else stringResource(id = R.string.nc_text_continue)
                     )

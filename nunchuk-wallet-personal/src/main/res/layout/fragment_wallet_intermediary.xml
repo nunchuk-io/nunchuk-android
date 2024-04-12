@@ -68,32 +68,12 @@
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_24"
+        android:layout_margin="@dimen/nc_padding_16"
         android:visibility="gone"
         tools:visibility="visible"
         app:layout_constraintTop_toBottomOf="@id/message"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Create new assisted wallet (2 remaining)" />
-
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnCreateAssistedWallet"
-        style="@style/NCPrimaryButton.Dark"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_24"
-        android:visibility="gone"
-        tools:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@+id/message"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:text="Create new assisted wallet (2 remaining)" />
-
-    <androidx.constraintlayout.widget.Barrier
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/barrier"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="btnCreateAssistedWallet,btnCreateGroupWallet"
-        />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnCreateNewWallet"
@@ -102,7 +82,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_text_create_new_wallet"
-        app:layout_constraintTop_toBottomOf="@+id/barrier"
+        app:layout_constraintTop_toBottomOf="@+id/btnCreateGroupWallet"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.nunchuk.android.widget.NCFontButton

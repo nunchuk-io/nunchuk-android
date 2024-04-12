@@ -690,12 +690,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isPending = event.isPendingTransaction,
             isPendingConfirm = event.isPendingConfirm,
             isRejected = event.isRejected,
-            isAssistedWallet = viewModel.isAssistedWallet(),
+            isSupportScheduleBroadcast = viewModel.isSupportScheduleBroadcast(),
             isScheduleBroadcast = viewModel.isScheduleBroadcast(),
             canBroadcast = event.canBroadcast,
             isShowRequestSignature = viewModel.getMembers().isNotEmpty(),
             userRole = viewModel.getUserRole().name,
             isReceive = viewModel.getTransaction().isReceive,
+            plan = viewModel.getWalletPlan(),
         ).setListener {
             when (it) {
                 CANCEL -> handleCancelTransaction()

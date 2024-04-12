@@ -41,7 +41,7 @@ class WaitingDesktopKeyViewModel @Inject constructor(
         viewModelScope.launch {
             checkRequestAddDesktopKeyStatusUseCase(
                 CheckRequestAddDesktopKeyStatusUseCase.Param(
-                    plan = membershipStepManager.plan,
+                    plan = membershipStepManager.localMembershipPlan,
                     groupId = args.groupId.orEmpty(),
                     requestId = args.requestId
                 )

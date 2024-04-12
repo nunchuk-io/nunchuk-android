@@ -18,6 +18,7 @@ val GroupWalletType.title: Int
             GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> R.string.nc_2_of_4_multisig_without_inheritance_planning
             GroupWalletType.THREE_OF_FIVE_INHERITANCE -> R.string.nc_3_of_5_multisig_with_inheritance_planning
             GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> R.string.nc_3_of_5_multisig_without_inheritance_planning
+            GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> R.string.nc_2_of_3_multisig_without_inheritance_planning
         }
     }
 
@@ -45,6 +46,7 @@ val GroupWalletType.desc: Int
             GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> R.string.nc_2_of_4_no_inheritance_desc
             GroupWalletType.THREE_OF_FIVE_INHERITANCE -> R.string.nc_3_of_5_multisig_with_inheritance_planning_desc
             GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> R.string.nc_3_of_5_multisig_without_inheritance_planning_desc
+            GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> R.string.nc_3_of_5_multisig_without_inheritance_planning_desc
         }
     }
 
@@ -99,6 +101,12 @@ fun GroupWalletType.toSteps(): List<MembershipStep> = when (this) {
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
+        MembershipStep.ADD_SEVER_KEY,
+    )
+
+    GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> listOf(
+        MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+        MembershipStep.IRON_ADD_HARDWARE_KEY_2,
         MembershipStep.ADD_SEVER_KEY,
     )
 }

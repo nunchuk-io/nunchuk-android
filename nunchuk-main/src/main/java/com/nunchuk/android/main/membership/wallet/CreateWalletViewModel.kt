@@ -78,13 +78,13 @@ class CreateWalletViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreateWalletState.EMPTY)
     val state = _state.asStateFlow()
 
-    val plan = membershipStepManager.plan
+    val plan = membershipStepManager.localMembershipPlan
 
     private var createWalletJob: Job? = null
 
     fun loadSignerFromDatabase() {
         viewModelScope.launch {
-            getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.plan, ""))
+            getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.localMembershipPlan, ""))
                 .filter { it.isSuccess }
                 .map { it.getOrThrow() }
                 .collect { steps ->
@@ -181,7 +181,7 @@ class CreateWalletViewModel @Inject constructor(
                 escrow = false,
             )
             val result = createServerWalletUseCase(
-                CreateServerWalletUseCase.Params(wallet, serverKeyId, membershipStepManager.plan)
+                CreateServerWalletUseCase.Params(wallet, serverKeyId)
             )
             if (result.isSuccess) {
                 createWalletUseCase.execute(

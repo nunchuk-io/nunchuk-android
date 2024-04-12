@@ -28,7 +28,10 @@ import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.isByzantineOrFinney
+import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.share.membership.MembershipFragment.Companion.EXTRA_GROUP_ID
+import com.nunchuk.android.share.membership.MembershipFragment.Companion.EXTRA_IS_PERSONAL_WALLET
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
@@ -47,9 +50,6 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (groupId.isEmpty()) {
-            membershipStepManager.initStep(groupId)
-        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val navHostFragment =
@@ -57,26 +57,19 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.membership_navigation)
         val stage = intent.serializable<MembershipStage>(EXTRA_GROUP_STEP)
-        val isCreateAssistedWallet = intent.getBooleanExtra(EXTRA_ADD_ON_HONEY_BADGER, false)
-        val plan = membershipStepManager.plan
-        when (stage) {
-            MembershipStage.NONE -> {
-                if (plan.isByzantineOrFinney()) {
-                    if (groupId.isNotEmpty() || isCreateAssistedWallet) {
-                        graph.setStartDestination(R.id.introAssistedWalletFragment)
-                    } else {
-                        graph.setStartDestination(R.id.groupWalletIntroFragment)
-                    }
-                } else {
-                    graph.setStartDestination(R.id.introAssistedWalletFragment)
-                }
-            }
-
-            MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS, MembershipStage.SETUP_INHERITANCE ->
-                graph.setStartDestination(if (groupId.isEmpty()) R.id.addKeyStepFragment else R.id.addGroupKeyStepFragment)
-
-            MembershipStage.ADD_KEY_ONLY -> graph.setStartDestination(R.id.groupPendingIntroFragment)
-            MembershipStage.REGISTER_WALLET -> graph.setStartDestination(R.id.registerWalletToAirgapFragment)
+        val isPersonalWallet = intent.getBooleanExtra(EXTRA_IS_PERSONAL_WALLET, false)
+        val walletType = intent.serializable<GroupWalletType>(MembershipFragment.EXTRA_WALLET_TYPE)
+        if (walletType != null) {
+            membershipStepManager.initStep(groupId, walletType)
+        }
+        when {
+            stage == MembershipStage.ADD_KEY_ONLY -> graph.setStartDestination(R.id.groupPendingIntroFragment)
+            stage == MembershipStage.REGISTER_WALLET -> graph.setStartDestination(R.id.registerWalletToAirgapFragment)
+            walletType == null && isPersonalWallet -> graph.setStartDestination(R.id.selectGroupFragment)
+            walletType == null && !isPersonalWallet -> graph.setStartDestination(R.id.groupWalletIntroFragment)
+            groupId.isEmpty() && stage == MembershipStage.NONE -> graph.setStartDestination(R.id.introAssistedWalletFragment)
+            groupId.isEmpty() && stage != MembershipStage.NONE -> graph.setStartDestination(R.id.addKeyStepFragment)
+            groupId.isNotEmpty() -> graph.setStartDestination(R.id.addGroupKeyStepFragment)
 
             else -> Unit
         }
@@ -102,22 +95,21 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     companion object {
         const val EXTRA_GROUP_STEP = "group_step"
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
-        const val EXTRA_GROUP_ID = "group_id"
-        const val EXTRA_ADD_ON_HONEY_BADGER = "add_on_honey_badger"
         private const val EXTRA_AIRGAP_INDEX = "airgap_index"
-        private const val EXTRA_IS_SINGLE_REGISTER = "is_single_register"
 
         fun buildIntent(
             activity: Activity,
             groupStep: MembershipStage,
+            walletType: GroupWalletType?,
+            isPersonalWallet: Boolean,
             walletId: String? = null,
             groupId: String? = null,
-            addOnHoneyBadger: Boolean = false,
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, groupStep)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
             putExtra(EXTRA_GROUP_ID, groupId)
-            putExtra(EXTRA_ADD_ON_HONEY_BADGER, addOnHoneyBadger)
+            putExtra(EXTRA_IS_PERSONAL_WALLET, isPersonalWallet)
+            putExtra(MembershipFragment.EXTRA_WALLET_TYPE, walletType)
         }
 
         fun openRegisterWalletIntent(
@@ -129,7 +121,6 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             putExtra(EXTRA_GROUP_STEP, MembershipStage.REGISTER_WALLET)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
             putExtra(EXTRA_GROUP_ID, groupId)
-            putExtra(EXTRA_ADD_ON_HONEY_BADGER, true)
             putExtra(EXTRA_AIRGAP_INDEX, airgapIndex)
         }
     }

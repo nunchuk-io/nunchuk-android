@@ -52,12 +52,12 @@ class MembershipStepManager @Inject constructor(
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val applicationScope: CoroutineScope,
     private val gson: Gson,
-    private val ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore,
 ) {
     private var job: Job? = null
-    private val _plan = MutableStateFlow(MembershipPlan.NONE)
-    val plan: MembershipPlan
-        get() = _plan.value
+    private val _localMembershipPlan = MutableStateFlow(MembershipPlan.NONE)
+    val localMembershipPlan: MembershipPlan
+        get() = _localMembershipPlan.value
     private val steps = mutableMapOf<MembershipStep, MembershipStepFlow>()
     private val _stepDone = MutableStateFlow<Set<MembershipStep>>(emptySet())
     val stepDone = _stepDone.asStateFlow()
@@ -83,8 +83,8 @@ class MembershipStepManager @Inject constructor(
                 }
         }
         applicationScope.launch {
-            ncDataStore.membershipPlan.collect {
-                _plan.value = it
+            ncDataStore.localMembershipPlan.collect {
+                _localMembershipPlan.value = it
             }
         }
         applicationScope.launch {
@@ -96,101 +96,97 @@ class MembershipStepManager @Inject constructor(
     }
 
     // Special case when set up wallet done and login in another device to setup inheritance we should mark all created wallet step to done
-    fun initStep(groupId: String, groupWalletType: GroupWalletType? = null) =
+    fun initStep(groupId: String, groupWalletType: GroupWalletType) =
         synchronized(this) {
             steps.clear()
-            val currentPlan = plan
-            if (groupWalletType != null) {
-                when (groupWalletType) {
-                    GroupWalletType.TWO_OF_THREE -> {
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
-                            MembershipStepFlow(totalStep = 8)
-                    }
-
-                    GroupWalletType.THREE_OF_FIVE -> {
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4] =
-                            MembershipStepFlow(totalStep = 8)
-                    }
-
-                    GroupWalletType.THREE_OF_FIVE_INHERITANCE -> {
-                        steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-                    }
-
-                    GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> {
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-                    }
-
-                    else -> {
-                        steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-                    }
+            when (groupWalletType) {
+                GroupWalletType.TWO_OF_THREE -> {
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
                 }
-                steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
-                steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-            } else {
-                when (currentPlan) {
-                    MembershipPlan.IRON_HAND -> {
-                        steps[MembershipStep.IRON_ADD_HARDWARE_KEY_1] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.IRON_ADD_HARDWARE_KEY_2] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.HONEY_ADD_TAP_SIGNER] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-                        steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
-                        steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-                    }
 
-                    MembershipPlan.HONEY_BADGER -> {
-                        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] =
-                            MembershipStepFlow(totalStep = 8)
-                        steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-                        steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
-                        steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-                        steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
-                    }
+                GroupWalletType.THREE_OF_FIVE -> {
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4] =
+                        MembershipStepFlow(totalStep = 8)
+                }
 
-                    else -> Unit
+                GroupWalletType.THREE_OF_FIVE_INHERITANCE -> {
+                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                }
+
+                GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> {
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                }
+
+                GroupWalletType.TWO_OF_FOUR_MULTISIG -> {
+                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                    steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
+                }
+
+                GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> {
+                    steps[MembershipStep.IRON_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.IRON_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.HONEY_ADD_TAP_SIGNER] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                }
+
+                GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> {
+                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
+                        MembershipStepFlow(totalStep = 8)
+                    steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
                 }
             }
+            steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
+            steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
             _remainingTime.value = calculateRemainTime(steps.toMap().values)
             _stepDone.value = emptySet()
-            observerStep(currentPlan, groupId)
+            val plan = when (groupWalletType) {
+                GroupWalletType.TWO_OF_FOUR_MULTISIG -> MembershipPlan.HONEY_BADGER
+                GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> MembershipPlan.IRON_HAND
+                else -> MembershipPlan.NONE
+            }
+            observerStep(plan, groupId)
         }
 
     private fun observerStep(currentPlan: MembershipPlan, groupId: String) {
@@ -256,7 +252,7 @@ class MembershipStepManager @Inject constructor(
     fun isNotConfig() = _stepDone.value.none { it != MembershipStep.SETUP_INHERITANCE }
 
     fun isConfigKeyDone(): Boolean {
-        val isConfigKeyDone = when (plan) {
+        val isConfigKeyDone = when (localMembershipPlan) {
             MembershipPlan.IRON_HAND -> {
                 _stepDone.value.containsAll(
                     listOf(
@@ -298,7 +294,7 @@ class MembershipStepManager @Inject constructor(
     fun getRemainTimeByOtherSteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.toMap().filter { it.key !in querySteps }.values)
 
-    fun getTapSignerName() = when(currentStep) {
+    fun getTapSignerName() = when (currentStep) {
         MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.HONEY_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
         MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> "$TAPSIGNER_INHERITANCE_NAME #2"
         else -> "TAPSIGNER${

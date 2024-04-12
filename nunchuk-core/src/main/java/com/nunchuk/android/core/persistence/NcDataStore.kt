@@ -35,6 +35,7 @@ import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -70,7 +71,8 @@ class NcDataStore @Inject constructor(
     /**
      * Current membership plan key
      */
-    private val membershipPlanKey = intPreferencesKey("membership_plan")
+    private val localMembershipPlanKey = intPreferencesKey("membership_plan")
+    private val membershipPlansKey = stringSetPreferencesKey("membership_plans")
 
     private fun getWalletSecuritySettingKey(): Preferences.Key<String> {
         val userId = accountManager.getAccount().chatId
@@ -121,9 +123,9 @@ class NcDataStore @Inject constructor(
             it[turnOnNotificationKey] ?: true
         }
 
-    val membershipPlan: Flow<MembershipPlan>
+    val localMembershipPlan: Flow<MembershipPlan>
         get() = context.dataStore.data.map {
-            val ordinal = it[membershipPlanKey] ?: 0
+            val ordinal = it[localMembershipPlanKey] ?: 0
             MembershipPlan.entries[ordinal]
         }
 
@@ -185,9 +187,9 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun setMembershipPlan(plan: MembershipPlan) {
+    suspend fun setLocalMembershipPlan(plan: MembershipPlan) {
         context.dataStore.edit {
-            it[membershipPlanKey] = plan.ordinal
+            it[localMembershipPlanKey] = plan.ordinal
         }
     }
 
@@ -248,6 +250,19 @@ class NcDataStore @Inject constructor(
             it[feeJsonPreferenceKey].orEmpty()
         }
 
+    val plans: Flow<List<MembershipPlan>>
+        get() = context.dataStore.data.map {
+            it[membershipPlansKey].orEmpty().map { plan ->
+                plan.toMembershipPlan()
+            }
+        }
+
+    suspend fun setPlans(plans: List<String>) {
+        context.dataStore.edit {
+            it[membershipPlansKey] = plans.toSet()
+        }
+    }
+
     suspend fun setSetupSecurityQuestion(isSetup: Boolean) {
         context.dataStore.edit {
             it[securityQuestionKey] = isSetup
@@ -304,7 +319,7 @@ class NcDataStore @Inject constructor(
         context.dataStore.edit {
             it.remove(syncEnableKey)
             it.remove(turnOnNotificationKey)
-            it.remove(membershipPlanKey)
+            it.remove(localMembershipPlanKey)
             it.remove(hideUpsellBannerKey)
             it.remove(syncRoomSuccessKey)
             it.remove(assistedKeysPreferenceKey)

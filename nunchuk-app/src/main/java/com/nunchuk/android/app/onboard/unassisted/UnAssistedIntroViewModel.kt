@@ -2,7 +2,7 @@ package com.nunchuk.android.app.onboard.unassisted
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.usecase.GetGroupsUseCase
@@ -20,7 +20,7 @@ import javax.inject.Inject
 class UnAssistedIntroViewModel @Inject constructor(
     private val createHotWalletUseCase: CreateHotWalletUseCase,
     private val setOnBoardUseCase: SetOnBoardUseCase,
-    private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     private val getGroupsUseCase: GetGroupsUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(UnAssistedIntroState())
@@ -28,10 +28,10 @@ class UnAssistedIntroViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getLocalMembershipPlanFlowUseCase(Unit)
-                .map { it.getOrElse { MembershipPlan.NONE } }
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
                 .collect {
-                    _state.update { state -> state.copy(plan = it) }
+                    _state.update { state -> state.copy(plans = it) }
                 }
         }
         viewModelScope.launch {
@@ -75,6 +75,6 @@ class UnAssistedIntroViewModel @Inject constructor(
 data class UnAssistedIntroState(
     val isLoading: Boolean = false,
     val openMainScreen: Boolean = false,
-    val plan: MembershipPlan = MembershipPlan.NONE,
+    val plans: List<MembershipPlan> = emptyList(),
     val isInByzantineGroup: Boolean = false,
 )

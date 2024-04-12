@@ -2,11 +2,13 @@ package com.nunchuk.android.main.membership.byzantine.select
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.model.isPersonalPlan
+import com.nunchuk.android.model.toMembershipPlan
+import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -18,9 +20,10 @@ import javax.inject.Inject
 @HiltViewModel
 class SelectGroupViewModel @Inject constructor(
     private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
-    private val membershipStepManager: MembershipStepManager,
+    private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
+    private val applicationScope: CoroutineScope
 ) : ViewModel() {
-    private val _state = MutableStateFlow(SelectGroupUiState(plan = membershipStepManager.plan))
+    private val _state = MutableStateFlow(SelectGroupUiState())
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<SelectGroupEvent>()
@@ -33,10 +36,9 @@ class SelectGroupViewModel @Inject constructor(
                 .onSuccess { config ->
                     _state.update {
                         it.copy(
-                            remainingByzantineWallet = config.remainingByzantineWallet + config.remainingFinneyWallet + config.remainingFinneyProWallet,
-                            remainingByzantineProWallet = config.remainingByzantineProWallet,
-                            remainingByzantinePremier = config.remainingPremierWallet,
-                            options = config.allowWalletTypes,
+                            walletsCount = config.walletsCount,
+                            groupOptions = config.groupOptions,
+                            personalOptions = config.personalOptions,
                             isLoaded = true
                         )
                     }
@@ -45,19 +47,17 @@ class SelectGroupViewModel @Inject constructor(
         }
     }
 
-    fun checkGroupTypeAvailable(groupWalletType: GroupWalletType): Boolean {
-        if (membershipStepManager.plan == MembershipPlan.BYZANTINE_PREMIER) {
-            return (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG && state.value.remainingByzantineProWallet > 0)
-                    || (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE && state.value.remainingByzantineProWallet > 0)
-                    || (groupWalletType == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY && state.value.remainingByzantinePremier > 0)
-                    || (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE && state.value.remainingByzantinePremier > 0)
-                    || state.value.remainingByzantineWallet > 0
+
+    fun setLocalMembershipPlan(slug: String) {
+        applicationScope.launch {
+            val plan = slug.toMembershipPlan()
+            if (plan.isPersonalPlan()) {
+                setLocalMembershipPlanFlowUseCase(slug.toMembershipPlan())
+            }
         }
-        return (groupWalletType == GroupWalletType.TWO_OF_FOUR_MULTISIG && state.value.remainingByzantineProWallet > 0)
-                || (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE && state.value.remainingByzantineProWallet > 0)
-                || (groupWalletType == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY && state.value.remainingByzantineProWallet > 0)
-                || state.value.remainingByzantineWallet > 0
     }
+
+    fun checkGroupTypeAvailable(slug: String): Boolean = (state.value.walletsCount[slug] ?: 0) > 0
 }
 
 sealed class SelectGroupEvent {
@@ -65,10 +65,8 @@ sealed class SelectGroupEvent {
 }
 
 data class SelectGroupUiState(
-    val remainingByzantineWallet: Int = 0,
-    val remainingByzantineProWallet: Int = 0,
-    val remainingByzantinePremier: Int = 0,
-    val options: List<GroupWalletType> = emptyList(),
+    val groupOptions: List<WalletOption> = emptyList(),
+    val personalOptions: List<WalletOption> = emptyList(),
     val isLoaded: Boolean = false,
-    val plan : MembershipPlan = MembershipPlan.NONE,
+    val walletsCount: Map<String, Int> = emptyMap(),
 )

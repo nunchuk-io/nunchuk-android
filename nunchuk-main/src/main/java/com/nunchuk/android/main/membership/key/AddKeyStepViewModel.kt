@@ -67,7 +67,7 @@ class AddKeyStepViewModel @Inject constructor(
         (assistedWallets.find { it.localId == id }?.registerAirgapCount ?: 0) > 0
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val plan = membershipStepManager.plan
+    val plan = membershipStepManager.localMembershipPlan
 
     val isConfigKeyDone =
         membershipStepManager.stepDone.combine(currentStage) { _, stage ->

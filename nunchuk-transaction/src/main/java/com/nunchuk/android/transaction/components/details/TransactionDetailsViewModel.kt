@@ -784,6 +784,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
+    private fun isIronHandWallet() = getState().signers.size == 3 && getState().signers.any { it.type == SignerType.SERVER }
+    fun isSupportScheduleBroadcast() = isAssistedWallet() && !isIronHandWallet()
 
     fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
 
@@ -855,6 +857,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun isMatchingEmailOrUserName(emailOrUsername: String) =
         emailOrUsername == accountManager.getAccount().email
                 || emailOrUsername == accountManager.getAccount().username
+
+    fun getWalletPlan() = assistedWalletManager.getWalletPlan(walletId)
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1

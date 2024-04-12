@@ -125,7 +125,7 @@ object SheetOptionType {
     const val TYPE_ADD_COLDCARD_USB = 66
 
     const val TYPE_GROUP_WALLET = 67
-    const val TYPE_HONEY_BADGER_WALLET = 68
+    const val TYPE_PERSONAL_WALLET = 68
     const val TYPE_PLATFORM_KEY_POLICY = 69
     const val TYPE_EMERGENCY_LOCKDOWN = 70
     const val TYPE_RECURRING_PAYMENT = 71

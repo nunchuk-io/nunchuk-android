@@ -24,16 +24,14 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.isByzantineOrFinney
-import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
-import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
-import com.nunchuk.android.usecase.membership.GetLocalCurrentSubscriptionPlan
+import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -53,11 +51,10 @@ class WalletIntermediaryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCompoundSignersUseCase: Lazy<GetCompoundSignersUseCase>,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
-    private val membershipStepManager: MembershipStepManager,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     private val application: Application,
-    private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase,
     private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
+    private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
@@ -77,34 +74,34 @@ class WalletIntermediaryViewModel @Inject constructor(
             }
         } else {
             viewModelScope.launch {
-                getLocalCurrentSubscriptionPlan(Unit)
-                    .map { it.getOrElse { MembershipPlan.NONE } }
-                    .collect { plan ->
-                        _state.update { it.copy(plan = plan) }
-                        if (plan != MembershipPlan.NONE) {
+                getLocalMembershipPlansFlowUseCase(Unit)
+                    .map { it.getOrElse { emptyList() } }
+                    .collect { plans ->
+                        if (plans.isNotEmpty()) {
                             getAssistedWalletConfig()
                         }
                     }
             }
         }
+        viewModelScope.launch {
+            getPersonalMembershipStepUseCase(Unit).map { result ->
+                result.getOrElse { emptyList() }
+            }.collect { steps ->
+                _state.update {
+                    it.copy(personalSteps = steps)
+                }
+            }
+        }
     }
 
     fun getAssistedWalletConfig() {
-        if (getWalletConfigJob?.isActive == true || _state.value.plan == MembershipPlan.NONE) return
-        val plan = _state.value.plan
+        if (getWalletConfigJob?.isActive == true) return
         getWalletConfigJob = viewModelScope.launch {
-            if (plan.isByzantineOrFinney()) {
-                getGroupAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
-                    _state.update {
-                        it.copy(
-                            remainGroupCount = configs.remainingGroupWallet,
-                            remainWalletCount = configs.remainingHoneyBadgerWallet
-                        )
-                    }
-                }
-            } else {
-                getAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
-                    _state.update { it.copy(remainWalletCount = configs.remainingWalletCount) }
+            getGroupAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
+                _state.update {
+                    it.copy(
+                        remainWalletCount = configs.remainWalletCount,
+                    )
                 }
             }
         }
@@ -122,18 +119,12 @@ class WalletIntermediaryViewModel @Inject constructor(
     }
 
     fun getGroupStage(): MembershipStage {
-        if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
+        if (state.value.personalSteps.isEmpty()) return MembershipStage.NONE
         return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }
 
     val hasSigner: Boolean
         get() = _state.value.isHasSigner
-
-    val remainWalletCount: Int
-        get() = _state.value.remainWalletCount
-
-    val remainGroupCount: Int
-        get() = _state.value.remainGroupCount
 }
 
 sealed class WalletIntermediaryEvent {
@@ -144,8 +135,7 @@ sealed class WalletIntermediaryEvent {
 
 data class WalletIntermediaryState(
     val isHasSigner: Boolean = false,
-    val plan: MembershipPlan = MembershipPlan.NONE,
     val remainWalletCount: Int = 0,
-    val remainGroupCount: Int = 0,
+    val personalSteps: List<MembershipStepInfo> = emptyList(),
 )
 

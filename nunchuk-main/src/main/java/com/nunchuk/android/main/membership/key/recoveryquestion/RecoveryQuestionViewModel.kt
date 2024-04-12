@@ -23,17 +23,28 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
-import com.nunchuk.android.core.domain.membership.*
+import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesSecurityQuestionUseCase
+import com.nunchuk.android.core.domain.membership.ConfigSecurityQuestionUseCase
+import com.nunchuk.android.core.domain.membership.CreateSecurityQuestionUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
+import com.nunchuk.android.core.domain.membership.GetSecurityQuestionsUserDataUseCase
+import com.nunchuk.android.core.domain.membership.SecurityQuestionsUpdateUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.QuestionsAndAnswer
 import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.model.VerificationType
-import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -42,11 +53,10 @@ class RecoveryQuestionViewModel @Inject constructor(
     private val getSecurityQuestionUseCase: GetSecurityQuestionUseCase,
     private val configSecurityQuestionUseCase: ConfigSecurityQuestionUseCase,
     private val createSecurityQuestionUseCase: CreateSecurityQuestionUseCase,
-    private val membershipStepManager: MembershipStepManager,
     private val calculateRequiredSignaturesSecurityQuestionUseCase: CalculateRequiredSignaturesSecurityQuestionUseCase,
     private val getSecurityQuestionsUserDataUseCase: GetSecurityQuestionsUserDataUseCase,
     private val securityQuestionsUpdateUseCase: SecurityQuestionsUpdateUseCase,
-    private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -82,10 +92,10 @@ class RecoveryQuestionViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getLocalMembershipPlanFlowUseCase(Unit)
-                .map { it.getOrElse { MembershipPlan.NONE } }
-                .collect { plan ->
-                    _state.update { it.copy(plan = plan) }
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .collect { plans ->
+                    _state.update { it.copy(plan = plans.first()) } // TODO Thong
                 }
         }
         viewModelScope.launch {
@@ -319,7 +329,6 @@ class RecoveryQuestionViewModel @Inject constructor(
         val result = configSecurityQuestionUseCase(
             ConfigSecurityQuestionUseCase.Param(
                 questionsAndAnswers,
-                membershipStepManager.plan
             )
         )
         _event.emit(RecoveryQuestionEvent.Loading(false))

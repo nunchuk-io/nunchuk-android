@@ -34,7 +34,7 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     ncDataStore: NcDataStore,
     applicationScope: CoroutineScope,
 ) : AssistedWalletManager {
-    private val plan = ncDataStore.membershipPlan.stateIn(
+    private val plan = ncDataStore.localMembershipPlan.stateIn(
         applicationScope,
         SharingStarted.Eagerly,
         MembershipPlan.NONE
@@ -55,17 +55,15 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     }
 
     override fun isInactiveAssistedWallet(walletId: String): Boolean {
-        return  _assistedWalletBrief.value[walletId] != null
+        return _assistedWalletBrief.value[walletId] != null
                 && (plan.value == MembershipPlan.NONE && getGroupId(walletId).isNullOrEmpty())
-    }
-
-    override fun isShowSetupInheritance(walletId: String): Boolean {
-        return _assistedWalletBrief.value[walletId]?.let {
-            return it.isSetupInheritance.not() && it.plan == MembershipPlan.HONEY_BADGER
-        } ?: return false
     }
 
     override fun getWalletAlias(walletId: String): String {
         return _assistedWalletBrief.value[walletId]?.alias.orEmpty()
+    }
+
+    override fun getWalletPlan(walletId: String): MembershipPlan {
+        return _assistedWalletBrief.value[walletId]?.plan ?: MembershipPlan.NONE
     }
 }
