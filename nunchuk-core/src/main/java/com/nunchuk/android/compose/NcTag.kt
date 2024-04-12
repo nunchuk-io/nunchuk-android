@@ -42,7 +42,7 @@ fun NcTag(modifier: Modifier = Modifier, label: String, backgroundColor: Color =
                 color = backgroundColor,
                 shape = RoundedCornerShape(20.dp)
             )
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 2.dp),
         text = label,
         style = TextStyle(
             color = MaterialTheme.colorScheme.primary,

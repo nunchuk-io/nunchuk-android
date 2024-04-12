@@ -309,7 +309,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             onYesClick = {
                 navigator.openMembershipActivity(
                     requireActivity(),
-                    viewModel.getGroupStage()
+                    viewModel.getGroupStage() // TODO Thong
                 )
             }
         )

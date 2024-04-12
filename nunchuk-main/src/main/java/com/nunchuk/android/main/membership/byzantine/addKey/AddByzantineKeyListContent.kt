@@ -109,7 +109,7 @@ fun AddByzantineKeyListContent(
                             )
 
                             GroupWalletType.THREE_OF_FIVE_INHERITANCE -> stringResource(R.string.nc_byzantine_add_key_3_of_5_inheritance_desc)
-                            null -> ""
+                            GroupWalletType.TWO_OF_THREE_PLATFORM_KEY, null -> ""
                         }
                         NcSpannedText(
                             modifier = Modifier

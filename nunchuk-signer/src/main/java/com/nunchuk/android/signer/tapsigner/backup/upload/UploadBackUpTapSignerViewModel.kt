@@ -76,7 +76,7 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                     cardId = cardIdManager.getCardId(args.masterSignerId),
                     filePath = args.filePath,
                     isAddNewKey = isAddNewKey,
-                    plan = membershipStepManager.plan,
+                    plan = membershipStepManager.localMembershipPlan,
                     groupId = groupId,
                     signerIndex = signerIndex,
                 )

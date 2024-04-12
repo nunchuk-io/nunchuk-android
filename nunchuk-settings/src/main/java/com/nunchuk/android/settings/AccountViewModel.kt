@@ -174,8 +174,9 @@ internal class AccountViewModel @Inject constructor(
         }
     }
 
+    // TODO Hai
     val plan: MembershipPlan
-        get() = membershipStepManager.plan
+        get() = membershipStepManager.localMembershipPlan
 
     override fun onCleared() {
         super.onCleared()

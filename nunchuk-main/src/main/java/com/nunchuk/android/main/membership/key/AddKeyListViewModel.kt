@@ -79,7 +79,7 @@ class AddKeyListViewModel @Inject constructor(
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
     private val membershipStepState =
-        getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.plan, ""))
+        getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.localMembershipPlan, ""))
             .map { it.getOrElse { emptyList() } }
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -94,7 +94,7 @@ class AddKeyListViewModel @Inject constructor(
                 membershipStepManager.setCurrentStep(it)
             }
         }
-        if (membershipStepManager.plan == MembershipPlan.IRON_HAND) {
+        if (membershipStepManager.localMembershipPlan == MembershipPlan.IRON_HAND) {
             _keys.value = listOf(
                 AddKeyData(type = MembershipStep.IRON_ADD_HARDWARE_KEY_1),
                 AddKeyData(type = MembershipStep.IRON_ADD_HARDWARE_KEY_2),
@@ -130,7 +130,7 @@ class AddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             checkRequestAddDesktopKeyStatusUseCase(
                 CheckRequestAddDesktopKeyStatusUseCase.Param(
-                    membershipStepManager.plan
+                    membershipStepManager.localMembershipPlan
                 )
             )
         }
@@ -163,7 +163,7 @@ class AddKeyListViewModel @Inject constructor(
                         step = membershipStepManager.currentStep
                             ?: throw IllegalArgumentException("Current step empty"),
                         masterSignerId = signer.fingerPrint,
-                        plan = membershipStepManager.plan,
+                        plan = membershipStepManager.localMembershipPlan,
                         verifyType = VerifyType.APP_VERIFIED,
                         extraData = gson.toJson(
                             SignerExtra(
@@ -234,7 +234,7 @@ class AddKeyListViewModel @Inject constructor(
 
     private fun getStepInfo(step: MembershipStep) =
         membershipStepState.value.find { it.step == step } ?: run {
-            MembershipStepInfo(step = step, plan = membershipStepManager.plan, groupId = "")
+            MembershipStepInfo(step = step, plan = membershipStepManager.localMembershipPlan, groupId = "")
         }
 
     fun getTapSigners() =

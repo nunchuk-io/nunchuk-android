@@ -28,7 +28,6 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
-import com.nunchuk.android.model.MembershipPlan
 
 @Composable
 fun HotWalletIntroScreen(
@@ -85,7 +84,7 @@ private fun HotWalletIntroContent(
                     Text(text = stringResource(R.string.nc_text_continue))
                 }
 
-                if (state.plan == MembershipPlan.NONE && state.isInByzantineGroup.not()) {
+                if (state.plans.isEmpty() && state.isInByzantineGroup.not()) {
                     Text(
                         modifier = Modifier
                             .padding(16.dp)

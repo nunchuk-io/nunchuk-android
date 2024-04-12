@@ -21,6 +21,7 @@ package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.persistence.NcEncryptedPreferences
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.type.Chain
@@ -88,5 +89,9 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setUseLargeFontHomeBalances(useLargeFontHomeBalances: Boolean) {
         ncDataStore.setUseLargeFontHomeBalances(useLargeFontHomeBalances)
+    }
+
+    override suspend fun setLocalMembershipPlan(plan: MembershipPlan) {
+        ncDataStore.setLocalMembershipPlan(plan)
     }
 }

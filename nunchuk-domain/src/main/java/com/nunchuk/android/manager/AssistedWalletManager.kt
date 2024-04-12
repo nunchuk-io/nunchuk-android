@@ -19,10 +19,12 @@
 
 package com.nunchuk.android.manager
 
+import com.nunchuk.android.model.MembershipPlan
+
 interface AssistedWalletManager {
     fun isActiveAssistedWallet(walletId: String): Boolean
     fun getGroupId(walletId: String): String?
     fun isInactiveAssistedWallet(walletId: String): Boolean
-    fun isShowSetupInheritance(walletId: String) : Boolean
     fun getWalletAlias(walletId: String): String
+    fun getWalletPlan(walletId: String): MembershipPlan
 }

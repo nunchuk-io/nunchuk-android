@@ -37,7 +37,7 @@ class ConfigureServerKeyIntroViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     val plan: MembershipPlan
-        get() = membershipStepManager.plan
+        get() = membershipStepManager.localMembershipPlan
 
     fun onContinueClicked() {
         viewModelScope.launch {

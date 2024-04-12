@@ -19,16 +19,12 @@
 
 package com.nunchuk.android.model.membership
 
-import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.wallet.WalletOption
 
 data class GroupConfig(
-    val remainingByzantineWallet : Int,
-    val remainingByzantineProWallet : Int,
-    val remainingHoneyBadgerWallet : Int,
-    val remainingPremierWallet : Int,
-    val remainingFinneyWallet : Int,
-    val remainingFinneyProWallet : Int,
-    val allowWalletTypes: List<GroupWalletType>
+    val walletsCount: Map<String, Int>,
+    val personalOptions: List<WalletOption>,
+    val groupOptions: List<WalletOption>,
 ) {
-    val remainingGroupWallet = remainingByzantineWallet + remainingByzantineProWallet + remainingPremierWallet + remainingFinneyWallet + remainingFinneyProWallet
+    val remainWalletCount = walletsCount.values.sum()
 }

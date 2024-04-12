@@ -29,7 +29,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.GROUP_CHAT_ROOM_TYPE
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
@@ -37,7 +36,6 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -109,7 +107,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-        flowObserver(viewModel.plan) {
+        flowObserver(viewModel.plans) {
             handleShowEmptyState()
         }
     }
@@ -132,10 +130,10 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun handleShowEmptyState() {
         val visibleRooms = viewModel.getVisibleRooms()
-        val plan = viewModel.plan.value
-        binding.viewStubEmptyState.container.isVisible = visibleRooms.isEmpty() && plan == MembershipPlan.NONE
+        val plans = viewModel.plans.value
+        binding.viewStubEmptyState.container.isVisible = visibleRooms.isEmpty() && plans.isEmpty()
         binding.containerEmptyPremiumUser.isVisible =
-            visibleRooms.isEmpty() && plan != MembershipPlan.NONE
+            visibleRooms.isEmpty() && plans.isNotEmpty()
     }
 
     private fun handleEvent(event: RoomsEvent) {

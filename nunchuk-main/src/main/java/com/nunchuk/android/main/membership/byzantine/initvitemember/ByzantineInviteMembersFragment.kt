@@ -49,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
@@ -198,7 +197,9 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                     navigator.openMembershipActivity(
                         activityContext = requireActivity(),
                         groupStep = MembershipStage.NONE,
-                        groupId = event.groupId
+                        groupId = event.groupId,
+                        isPersonalWallet = false,
+                        walletType = args.groupType.toGroupWalletType()
                     )
                     requireActivity().finish()
                 }

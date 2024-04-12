@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
@@ -55,7 +54,6 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.utils.parcelable
@@ -434,20 +432,26 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
         viewModel.setCurrentSelectedAlert(alert)
         if (alert.type == AlertType.GROUP_WALLET_PENDING) {
+            val isPersonalWallet = args.groupId.isNullOrEmpty()
+            val walletType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()
             if (role.isMasterOrAdmin) {
                 navigator.openMembershipActivity(
                     launcher = createWalletLauncher,
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
+                    walletId = args.walletId,
                     groupId = viewModel.getGroupId(),
-                    walletId = args.walletId
+                    isPersonalWallet = isPersonalWallet,
+                    walletType = walletType
                 )
             } else {
                 navigator.openMembershipActivity(
                     launcher = createWalletLauncher,
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.ADD_KEY_ONLY,
-                    groupId = viewModel.getGroupId()
+                    groupId = viewModel.getGroupId(),
+                    isPersonalWallet = isPersonalWallet,
+                    walletType = walletType
                 )
             }
         } else if (alert.type == AlertType.UPDATE_SERVER_KEY) {

@@ -19,10 +19,12 @@
 
 package com.nunchuk.android.main.membership.wallet
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,8 +36,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateWalletSuccessViewModel @Inject constructor(
-    membershipStepManager: MembershipStepManager,
-    private val getGroupRemoteUseCase: GetGroupRemoteUseCase
+    private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CreateWalletSuccessEvent>()
     val event = _event.asSharedFlow()
@@ -43,25 +46,47 @@ class CreateWalletSuccessViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreateWalletSuccessUiState())
     val state = _state.asStateFlow()
 
+    private val args = CreateWalletSuccessFragmentArgs.fromSavedStateHandle(savedStateHandle)
+
+    init {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(args.walletId)
+                .onSuccess {
+                    val is2Of4MultisigWallet = it.signers.size == GroupWalletType.TWO_OF_FOUR_MULTISIG.m
+                            && it.totalRequireSigns == GroupWalletType.TWO_OF_FOUR_MULTISIG.n
+                    _state.update { state ->
+                        state.copy(is2Of4MultisigWallet = is2Of4MultisigWallet)
+                    }
+                }
+        }
+    }
+
     fun loadGroup(id: String) {
         viewModelScope.launch {
             getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(id)).onSuccess { result ->
-                _state.update { it.copy(isSingleSetup = result.isSinglePersonSetup(), allowInheritance = result.walletConfig.allowInheritance) }
+                _state.update {
+                    it.copy(
+                        isSingleSetup = result.isSinglePersonSetup(),
+                        allowInheritance = result.walletConfig.allowInheritance
+                    )
+                }
             }
         }
     }
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            _event.emit(CreateWalletSuccessEvent.ContinueStepEvent)
+            _event.emit(CreateWalletSuccessEvent.ContinueStepEvent(state.value.is2Of4MultisigWallet))
         }
     }
-
-    val plan = membershipStepManager.plan
 }
 
-data class CreateWalletSuccessUiState(val isSingleSetup: Boolean = false, val allowInheritance: Boolean = false)
+data class CreateWalletSuccessUiState(
+    val isSingleSetup: Boolean = false,
+    val allowInheritance: Boolean = false,
+    val is2Of4MultisigWallet: Boolean = false,
+)
 
 sealed class CreateWalletSuccessEvent {
-    object ContinueStepEvent : CreateWalletSuccessEvent()
+    data class ContinueStepEvent(val is2Of4MultisigWallet: Boolean) : CreateWalletSuccessEvent()
 }

@@ -86,7 +86,7 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
                         signingDelayInSeconds = signingDelayInSeconds,
                         spendingPolicy = args.spendingLimit
                     ),
-                    plan = membershipStepManager.plan
+                    plan = membershipStepManager.localMembershipPlan
                 )
             )
             _event.emit(ConfigureServerKeySettingEvent.Loading(false))

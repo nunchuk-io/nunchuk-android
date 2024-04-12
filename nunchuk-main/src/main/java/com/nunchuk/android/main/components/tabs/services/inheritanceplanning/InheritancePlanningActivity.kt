@@ -31,9 +31,10 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
@@ -50,9 +51,10 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val groupId = intent.getStringExtra(MembershipActivity.EXTRA_GROUP_ID).orEmpty()
+
+        val groupId = intent.getStringExtra(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
         if (groupId.isEmpty()) {
-            membershipStepManager.initStep(groupId)
+            membershipStepManager.initStep("", GroupWalletType.TWO_OF_FOUR_MULTISIG)
         }
         membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -173,7 +175,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 .putExtra(EXTRA_INHERITANCE, inheritance)
                 .putExtra(EXTRA_SOURCE_FLOW, sourceFlow)
                 .putExtra(EXTRA_WALLET_ID, walletId)
-                .putExtra(MembershipActivity.EXTRA_GROUP_ID, groupId)
+                .putExtra(MembershipFragment.EXTRA_GROUP_ID, groupId)
                 .putExtra(EXTRA_DUMMY_TRANSACTION_ID, dummyTransactionId)
             if (launcher != null) {
                 launcher.launch(intent)

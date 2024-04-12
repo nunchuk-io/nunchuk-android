@@ -47,7 +47,6 @@ import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
-import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
@@ -57,7 +56,7 @@ import kotlinx.coroutines.flow.Flow
 interface PremiumWalletRepository {
     suspend fun getSecurityQuestions(): List<SecurityQuestion>
     suspend fun verifySecurityQuestions(questions: List<QuestionsAndAnswer>): String
-    suspend fun configSecurityQuestions(questions: List<QuestionsAndAnswer>, plan: MembershipPlan)
+    suspend fun configSecurityQuestions(questions: List<QuestionsAndAnswer>)
     suspend fun createServerKeys(
         name: String, keyPolicy: KeyPolicy, plan: MembershipPlan
     ): KeyPolicy
@@ -91,7 +90,7 @@ interface PremiumWalletRepository {
 
     suspend fun createSecurityQuestion(question: String): SecurityQuestion
     suspend fun createServerWallet(
-        wallet: Wallet, serverKeyId: String, plan: MembershipPlan
+        wallet: Wallet, serverKeyId: String
     ): SeverWallet
 
     suspend fun getServerWallet(): WalletServerSync
@@ -311,8 +310,6 @@ interface PremiumWalletRepository {
     )
 
     suspend fun updateServerKeyName(xfp: String, name: String)
-
-    suspend fun getAssistedWalletConfig(): AssistedWalletConfig
     suspend fun getGroupAssistedWalletConfig(): GroupConfig
 
     fun assistedKeys(): Flow<Set<String>>

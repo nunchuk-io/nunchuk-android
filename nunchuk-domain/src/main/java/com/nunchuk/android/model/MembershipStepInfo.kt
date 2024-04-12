@@ -26,7 +26,7 @@ data class MembershipStepInfo(
     val keyIdInServer: String = "",
     val verifyType: VerifyType = VerifyType.NONE,
     val extraData: String = "",
-    val plan: MembershipPlan,
+    val plan: MembershipPlan = MembershipPlan.NONE,
     val groupId: String,
 ) {
     val isVerifyOrAddKey: Boolean

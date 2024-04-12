@@ -22,7 +22,7 @@ class SecurityTradeOffFragment : BaseIntroFragment() {
 
     override fun onContinueClicked() {
         findNavController().navigate(
-            SecurityTradeOffFragmentDirections.actionSecurityTradeOffFragmentToSelectGroupFragment()
+            SecurityTradeOffFragmentDirections.actionSecurityTradeOffFragmentToSelectGroupFragment(false)
         )
     }
 

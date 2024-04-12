@@ -43,7 +43,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseAuthenticationFragment
-import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -83,8 +82,10 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
@@ -152,10 +153,20 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             return@setOnMenuItemClickListener false
         }
         binding.introContainer.setOnDebounceClickListener {
+            val personalSteps = walletsViewModel.getPersonalSteps()
+            val plans = walletsViewModel.getPlans().orEmpty()
+            val walletType = when {
+                personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
+                personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
+                else -> null
+            }
+            val isPersonalWallet = walletType != null || plans.none { it.isByzantineOrFinney() }
             navigator.openMembershipActivity(
                 activityContext = requireActivity(),
                 groupStep = walletsViewModel.getGroupStage(),
                 walletId = walletsViewModel.getAssistedWalletId(),
+                isPersonalWallet = isPersonalWallet,
+                walletType = walletType
             )
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {
@@ -403,14 +414,14 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         binding.introContainer.isGone = walletsViewModel.getGroupStage() == MembershipStage.DONE
                 || state.allGroups.isNotEmpty()
         binding.containerNonSubscriber.isVisible =
-            state.plan != null && state.plan == MembershipPlan.NONE
+            state.plans != null && state.plans.isEmpty()
                     && state.isHideUpsellBanner.not() && state.banner != null
                     && state.allGroups.isEmpty()
-        if (state.plan != null) {
+        if (state.plans != null) {
             val walletName = state.assistedWallets.firstOrNull()
                 ?.let { wallet -> state.wallets.find { wallet.localId == it.wallet.id }?.wallet?.name.orEmpty() }
             when {
-                state.plan != MembershipPlan.NONE -> showAssistedWalletStart(
+                state.plans.isNotEmpty() -> showAssistedWalletStart(
                     state.remainingTime,
                     walletName
                 )

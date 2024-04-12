@@ -23,6 +23,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
@@ -39,7 +40,7 @@ internal data class WalletsState(
     val signers: List<SignerModel> = emptyList(),
     val connectionStatus: ConnectionStatus? = null,
     val chain: Chain = Chain.MAIN,
-    val plan: MembershipPlan = MembershipPlan.NONE,
+    val plans: List<MembershipPlan>? = null,
     val remainingTime: Int = 0,
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val isSetupInheritance: Boolean = false,
@@ -52,6 +53,7 @@ internal data class WalletsState(
     val alerts: Map<String, Int> = emptyMap(),
     val keyHealthStatus: Map<String, List<KeyHealthStatus>> = emptyMap(),
     val useLargeFont: Boolean = false,
+    val personalSteps: List<MembershipStepInfo> = emptyList()
 )
 
 internal sealed class WalletsEvent {

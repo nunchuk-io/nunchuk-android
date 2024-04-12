@@ -71,6 +71,7 @@ import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toGroupKeyPolicy
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
+import com.nunchuk.android.core.data.model.membership.toWalletOption
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.manager.UserWalletApiManager
@@ -131,11 +132,9 @@ import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.model.byzantine.toGroupWalletType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletBriefExt
-import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.model.toMembershipPlan
@@ -210,7 +209,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun configSecurityQuestions(
         questions: List<QuestionsAndAnswer>,
-        plan: MembershipPlan,
     ) {
         val result = userWalletApiManager.walletApi.configSecurityQuestion(
             ConfigSecurityQuestionPayload(questionsAndAnswerRequests = questions.map {
@@ -351,7 +349,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createServerWallet(
-        wallet: Wallet, serverKeyId: String, plan: MembershipPlan,
+        wallet: Wallet, serverKeyId: String,
     ): SeverWallet {
         val chatId = accountManager.getAccount().chatId
         val inheritanceTapSigner = membershipStepDao.getStep(
@@ -375,7 +373,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             assistedWalletDao.insert(
                 AssistedWalletEntity(
                     localId = serverWallet.localId.orEmpty(),
-                    plan = plan,
+                    plan = serverWallet.slug.toMembershipPlan(),
                     id = serverWallet.id?.toLongOrNull() ?: 0L
                 )
             )
@@ -1499,30 +1497,35 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         assistedWalletDao.deleteBatch(listOf(walletId))
     }
 
-    override suspend fun getAssistedWalletConfig(): AssistedWalletConfig {
-        val response = userWalletApiManager.walletApi.getAssistedWalletConfig()
-        if (response.data.remainingWalletCount == 0) {
-            val chatId = accountManager.getAccount().chatId
-            membershipStepDao.deleteStepByChatId(chain.value, chatId)
-            requestAddKeyDao.deleteRequests(chatId, chain.value)
-        }
-        return AssistedWalletConfig(
-            totalAllowedWallet = response.data.totalAllowedWallet,
-            activeWalletCount = response.data.activeWalletCount,
-            remainingWalletCount = response.data.remainingWalletCount
-        )
-    }
-
     override suspend fun getGroupAssistedWalletConfig(): GroupConfig {
         val response = userWalletApiManager.walletApi.getGroupAssistedWalletConfig()
+        val walletCounts = mutableMapOf<String, Int>()
+        response.data.byzantine?.let {
+            walletCounts["byzantine"] = it.remainingWalletCount
+        }
+        response.data.byzantinePro?.let {
+            walletCounts["byzantine_pro"] = it.remainingWalletCount
+        }
+        response.data.honeyBadger?.let {
+            walletCounts["honey_badger"] = it.remainingWalletCount
+        }
+        response.data.premier?.let {
+            walletCounts["premier"] = it.remainingWalletCount
+        }
+        response.data.finney?.let {
+            walletCounts["finney"] = it.remainingWalletCount
+        }
+        response.data.finneyPro?.let {
+            walletCounts["finney_pro"] = it.remainingWalletCount
+        }
+        response.data.ironHand?.let {
+            walletCounts["iron_hand"] = it.remainingWalletCount
+        }
+
         return GroupConfig(
-            remainingByzantineWallet = response.data.byzantine?.remainingWalletCount ?: 0,
-            remainingByzantineProWallet = response.data.byzantinePro?.remainingWalletCount ?: 0,
-            remainingHoneyBadgerWallet = response.data.honeyBadger?.remainingWalletCount ?: 0,
-            remainingPremierWallet = response.data.premier?.remainingWalletCount ?: 0,
-            remainingFinneyWallet = response.data.finney?.remainingWalletCount ?: 0,
-            remainingFinneyProWallet = response.data.finneyPro?.remainingWalletCount ?: 0,
-            allowWalletTypes = response.data.allowGroupWalletTypes.mapNotNull { it.toGroupWalletType() }
+            walletsCount = walletCounts,
+            personalOptions = response.data.personalWalletTypes.mapNotNull { it.toWalletOption() },
+            groupOptions = response.data.groupWalletTypes.mapNotNull { it.toWalletOption() }
         )
     }
 

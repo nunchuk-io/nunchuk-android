@@ -60,10 +60,11 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
             if (it is MembershipEvent.RestartWizardSuccess) {
+                val isPersonalWallet = requireActivity().intent.getBooleanExtra(EXTRA_IS_PERSONAL_WALLET, false)
                 nunchukNavigator.openMembershipActivity(
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.NONE,
-                    addOnHoneyBadger = viewModel.groupId.isEmpty()
+                    isPersonalWallet = isPersonalWallet,
                 )
                 requireActivity().setResult(Activity.RESULT_OK)
                 requireActivity().finish()
@@ -113,7 +114,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     }
 
     private fun resetWizard() {
-        viewModel.resetWizard(membershipStepManager.plan)
+        viewModel.resetWizard(membershipStepManager.localMembershipPlan)
     }
 
     override fun onDestroy() {
@@ -125,4 +126,10 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
 
     open val isCountdown: Boolean = true
     open val allowRestartWizard: Boolean = true
+
+    companion object {
+        const val EXTRA_GROUP_ID = "group_id"
+        const val EXTRA_IS_PERSONAL_WALLET = "is_personal"
+        const val EXTRA_WALLET_TYPE = "wallet_type"
+    }
 }

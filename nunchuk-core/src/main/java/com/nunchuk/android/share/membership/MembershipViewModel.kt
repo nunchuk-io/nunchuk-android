@@ -38,7 +38,7 @@ class MembershipViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     // don't change the value group_id
-    val groupId = savedStateHandle.get<String>("group_id").orEmpty()
+    val groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
     private val _event = MutableSharedFlow<MembershipEvent>()
     val event = _event.asSharedFlow()
 

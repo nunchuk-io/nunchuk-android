@@ -22,18 +22,15 @@ package com.nunchuk.android.main.components.tabs.services.keyrecovery
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.MembershipPlan
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,7 +39,7 @@ import javax.inject.Inject
 @HiltViewModel
 class KeyRecoveryViewModel @Inject constructor(
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-    private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     savedStateHandle: SavedStateHandle) :
     ViewModel() {
 
@@ -56,10 +53,10 @@ class KeyRecoveryViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getLocalMembershipPlanFlowUseCase(Unit)
-                .map { it.getOrElse { MembershipPlan.NONE } }
-                .collect { plan ->
-                    _state.update { it.copy(plan = plan, myUserRole = args.role) }
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .collect { plans ->
+                    _state.update { it.copy(plan = plans.first(), myUserRole = args.role) } // TODO Thong
                     _state.update { it.copy(actionItems = it.initRowItems()) }
                 }
         }

@@ -33,6 +33,10 @@ fun MembershipPlan.isByzantineOrFinney() =
             || this == MembershipPlan.FINNEY
             || this == MembershipPlan.FINNEY_PRO
 
+fun MembershipPlan.isPersonalPlan() =
+    this == MembershipPlan.IRON_HAND
+            || this == MembershipPlan.HONEY_BADGER
+
 fun String?.toMembershipPlan() = when (this) {
     IRON_HAND_PLAN, IRON_HAND_PLAN_TESTNET -> {
         MembershipPlan.IRON_HAND

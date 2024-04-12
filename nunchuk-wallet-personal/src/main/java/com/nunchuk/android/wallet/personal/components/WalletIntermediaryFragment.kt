@@ -49,10 +49,11 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
-import com.nunchuk.android.model.isByzantineOrFinney
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
@@ -104,7 +105,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             )
 
             SheetOptionType.TYPE_GROUP_WALLET -> openCreateGroupWallet()
-            SheetOptionType.TYPE_HONEY_BADGER_WALLET -> openCreateAssistedWallet()
+            SheetOptionType.TYPE_PERSONAL_WALLET -> openCreateAssistedWallet()
         }
     }
 
@@ -117,11 +118,11 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         flowObserver(viewModel.state) {
-            if (!it.plan.isByzantineOrFinney()) {
-                val isCreateAssistedWalletVisible = it.remainWalletCount > 0
-                binding.btnCreateAssistedWallet.apply {
-                    isVisible = isCreateAssistedWalletVisible
-                    text = if (viewModel.getGroupStage() != MembershipStage.NONE) {
+            val isCreateAssistedWalletVisible = it.remainWalletCount > 0
+            binding.btnCreateGroupWallet.apply {
+                isVisible = isCreateAssistedWalletVisible
+                text =
+                    if (it.personalSteps.isNotEmpty()) {
                         getString(R.string.nc_continue_setting_your_wallet)
                     } else {
                         context.getString(
@@ -129,18 +130,8 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                             it.remainWalletCount
                         )
                     }
-                }
-            } else {
-                binding.btnCreateGroupWallet.apply {
-                    isVisible = true
-                    text = context.getString(
-                        R.string.nc_create_assisted_wallet,
-                        (it.remainGroupCount + it.remainWalletCount)
-                    )
-                }
             }
-            val assistedVisible =
-                binding.btnCreateGroupWallet.isVisible || binding.btnCreateAssistedWallet.isVisible
+            val assistedVisible = binding.btnCreateGroupWallet.isVisible
             binding.btnCreateNewWallet.setBackgroundResource(if (assistedVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
             val textColor = ContextCompat.getColor(
                 requireActivity(),
@@ -244,16 +235,11 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 openRecoverWalletScreen()
             }
         }
-        binding.btnCreateAssistedWallet.setOnDebounceClickListener {
-            openCreateAssistedWallet()
-        }
         binding.btnCreateGroupWallet.setOnDebounceClickListener {
-            if (viewModel.remainWalletCount > 0 && viewModel.remainGroupCount > 0) {
-                showOptionGroupWalletType()
-            } else if (viewModel.remainWalletCount > 0) {
+            if (viewModel.state.value.personalSteps.isNotEmpty()) {
                 openCreateAssistedWallet()
             } else {
-                openCreateGroupWallet()
+                showOptionGroupWalletType()
             }
         }
         binding.toolbar.setNavigationOnClickListener {
@@ -264,15 +250,22 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
     private fun openCreateGroupWallet() {
         navigator.openMembershipActivity(
             activityContext = requireActivity(),
-            groupStep = MembershipStage.NONE
+            groupStep = MembershipStage.NONE,
+            isPersonalWallet = false
         )
     }
 
     private fun openCreateAssistedWallet() {
+        val walletType = when {
+            viewModel.state.value.personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
+            viewModel.state.value.personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
+            else -> null
+        }
         navigator.openMembershipActivity(
             activityContext = requireActivity(),
             groupStep = viewModel.getGroupStage(),
-            addOnHoneyBadger = true
+            isPersonalWallet = true,
+            walletType = walletType
         )
     }
 
@@ -304,8 +297,8 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     stringId = R.string.nc_group_wallet,
                 ),
                 SheetOption(
-                    SheetOptionType.TYPE_HONEY_BADGER_WALLET,
-                    stringId = R.string.nc_personal_honey_badger_wallet,
+                    SheetOptionType.TYPE_PERSONAL_WALLET,
+                    stringId = R.string.nc_personal_wallet,
                 ),
             ),
             title = getString(R.string.nc_type_of_assisted_wallet)

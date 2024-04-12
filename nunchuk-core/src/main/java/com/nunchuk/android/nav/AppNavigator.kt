@@ -30,6 +30,7 @@ import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.GroupWalletType
 
 interface AppNavigator {
     fun restartApp(activityContext: Context)
@@ -39,7 +40,8 @@ interface AppNavigator {
         groupStep: MembershipStage,
         walletId: String? = null,
         groupId: String? = null,
-        addOnHoneyBadger: Boolean = false
+        isPersonalWallet: Boolean = false,
+        walletType: GroupWalletType? = null
     )
 
     fun openMembershipActivity(
@@ -48,7 +50,8 @@ interface AppNavigator {
         groupStep: MembershipStage,
         walletId: String? = null,
         groupId: String? = null,
-        addOnHoneyBadger: Boolean = false
+        isPersonalWallet: Boolean = false,
+        walletType: GroupWalletType? = null
     )
 
     fun openConfigServerKeyActivity(
