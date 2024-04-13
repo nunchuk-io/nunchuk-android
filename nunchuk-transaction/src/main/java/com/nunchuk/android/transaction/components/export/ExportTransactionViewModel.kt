@@ -38,6 +38,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -63,7 +64,9 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getQrDensitySettingUseCase(Unit).map { it.getOrThrow() }.collect {
+            getQrDensitySettingUseCase(Unit).map { it.getOrThrow() }
+                .distinctUntilChanged()
+                .collect {
                 updateState { copy(density = it) }
                 if (this@ExportTransactionViewModel::args.isInitialized) {
                     handleExportTransactionQRs()

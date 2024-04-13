@@ -86,6 +86,7 @@ const val DELAY_DYNAMIC_QR = 1000L
 const val LOW_DENSITY = 50
 const val MEDIUM_DENSITY = 100
 const val HIGH_DENSITY = 200
+const val ULTRA_DENSITY = 1000
 
 const val USD_CURRENCY = "USD"
 
@@ -94,13 +95,15 @@ var LOCAL_CURRENCY = USD_CURRENCY
 fun Int.densityToLevel(): Float = when (this) {
     LOW_DENSITY -> 0f
     MEDIUM_DENSITY -> 1f
-    else -> 2f
+    HIGH_DENSITY -> 2f
+    else -> 3f
 }
 
 fun Int.toBBQRDensity(): Int = when (this) {
     LOW_DENSITY -> 3
     MEDIUM_DENSITY -> 10
-    else -> 27
+    HIGH_DENSITY -> 27
+    else -> 40
 }
 
 fun Double.formatRoundDecimal(): String {

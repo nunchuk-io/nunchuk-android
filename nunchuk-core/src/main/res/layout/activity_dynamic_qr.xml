@@ -52,12 +52,14 @@
         android:stepSize="1"
         android:value="1"
         android:valueFrom="0"
-        android:valueTo="2"
+        android:valueTo="3"
         app:layout_constraintTop_toBottomOf="@+id/tv_density" />
 
     <TextView
+        android:id="@+id/tv_low"
         app:layout_constraintTop_toBottomOf="@+id/slider"
-        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
         android:layout_width="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         android:text="@string/nc_low"
@@ -65,20 +67,37 @@
         android:layout_height="wrap_content"/>
 
     <TextView
+        android:id="@+id/tv_medium"
+        app:layout_constraintTop_toBottomOf="@+id/slider"
+        android:layout_width="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.3"
+        android:text="@string/nc_medium"
+        style="@style/NCText.Body"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tv_high"
         app:layout_constraintTop_toBottomOf="@+id/slider"
         android:layout_marginEnd="@dimen/nc_padding_16"
         android:layout_width="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.68"
         android:text="@string/nc_high"
         style="@style/NCText.Body"
         android:layout_height="wrap_content"/>
 
     <TextView
+        android:id="@+id/tv_ultra_high"
         app:layout_constraintTop_toBottomOf="@+id/slider"
+        android:layout_marginEnd="@dimen/nc_padding_16"
         android:layout_width="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/nc_medium"
+        android:text="@string/nc_ultra_high"
         style="@style/NCText.Body"
         android:layout_height="wrap_content"/>
 
