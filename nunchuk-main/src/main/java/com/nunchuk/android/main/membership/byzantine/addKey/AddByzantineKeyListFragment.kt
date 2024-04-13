@@ -248,6 +248,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             NCInfoDialog(requireActivity())
                 .showDialog(
                     title = getString(R.string.nc_text_warning),
+                    btnYes = getString(R.string.nc_text_continue),
                     message = SpannableStringBuilder()
                         .bold {
                             append(getString(R.string.nc_info_software_key_same_device_part_1))
