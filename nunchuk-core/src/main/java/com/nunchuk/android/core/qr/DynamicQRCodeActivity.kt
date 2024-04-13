@@ -27,7 +27,13 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.databinding.ActivityDynamicQrBinding
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.DELAY_DYNAMIC_QR
+import com.nunchuk.android.core.util.HIGH_DENSITY
+import com.nunchuk.android.core.util.LOW_DENSITY
+import com.nunchuk.android.core.util.MEDIUM_DENSITY
+import com.nunchuk.android.core.util.ULTRA_DENSITY
+import com.nunchuk.android.core.util.densityToLevel
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
@@ -71,9 +77,10 @@ class DynamicQRCodeActivity : AppCompatActivity() {
         }
 
         binding.toolbar.setNavigationOnClickListener { finish() }
-        val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY)
+        val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY, ULTRA_DENSITY)
         binding.slider.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
+                showQrJob?.cancel()
                 viewModel.setQrDensity(densities[value.toInt()])
             }
         }

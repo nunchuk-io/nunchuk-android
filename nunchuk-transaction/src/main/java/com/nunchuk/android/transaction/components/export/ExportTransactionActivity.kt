@@ -31,6 +31,7 @@ import com.nunchuk.android.core.util.DELAY_DYNAMIC_QR
 import com.nunchuk.android.core.util.HIGH_DENSITY
 import com.nunchuk.android.core.util.LOW_DENSITY
 import com.nunchuk.android.core.util.MEDIUM_DENSITY
+import com.nunchuk.android.core.util.ULTRA_DENSITY
 import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.LoadingEvent
@@ -101,7 +102,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     private fun setupViews() {
-        val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY)
+        val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY, ULTRA_DENSITY)
         binding.slider.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
                 showQrJob?.cancel()

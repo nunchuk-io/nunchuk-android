@@ -158,8 +158,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     flowInfo = PrimaryOwnerFlow.EDIT
                 )
             }
-            SheetOptionType.TYPE_QR_BC_UR2_LEGACY -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2_LEGACY)
-            SheetOptionType.TYPE_QR_BC_UR2 -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2)
             SheetOptionType.TYPE_EXPORT_BBQR -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BBQR)
         }
     }
