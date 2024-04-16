@@ -17,26 +17,41 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model.signer
+package com.nunchuk.android.usecase
 
-import android.os.Parcelable
-import com.nunchuk.android.model.TapSigner
-import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import kotlinx.parcelize.Parcelize
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-@Parcelize
-data class SignerServer(
-    val name: String? = null,
-    val xfp: String? = null,
-    val derivationPath: String? = null,
-    val type: SignerType = SignerType.UNKNOWN,
-    val verifyType: VerifyType = VerifyType.NONE,
-    val index: Int = 0,
-    val isVisible: Boolean = true,
-    val tapsigner: TapSigner ?= null,
-    val xpub: String? = null,
-    val pubkey: String? = null,
-    val tags: List<String> = emptyList(),
-) : Parcelable
+class ChangeKeyTypeUseCase @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<ChangeKeyTypeUseCase.Params, Unit>(
+    ioDispatcher
+) {
 
+    override suspend fun execute(parameters: Params) {
+        val singleSigner = parameters.singleSigner.copy(
+            tags = parameters.signerTag?.let { listOf(it) } ?: emptyList()
+        )
+        nativeSdk.createSigner(
+            name = singleSigner.name,
+            xpub = singleSigner.xpub,
+            publicKey = singleSigner.publicKey,
+            derivationPath = singleSigner.derivationPath,
+            masterFingerprint = singleSigner.masterFingerprint,
+            type = singleSigner.type,
+            tags = singleSigner.tags,
+            replace = true
+        )
+    }
+
+    data class Params(
+        val singleSigner: SingleSigner,
+        val signerTag: SignerTag? = null,
+    )
+}

@@ -23,7 +23,14 @@
         android:id="@+id/addNfcNameFragment"
         android:name="com.nunchuk.android.signer.tapsigner.AddNfcNameFragment"
         android:label="AddNfcNameFragment"
-        tools:layout="@layout/fragment_add_name_key" />
+        tools:layout="@layout/fragment_add_name_key">
+
+        <argument
+            android:name="card_ident"
+            app:argType="string"
+            android:defaultValue=""/>
+
+    </fragment>
 
     <fragment
         android:id="@+id/setupChainCodeFragment"

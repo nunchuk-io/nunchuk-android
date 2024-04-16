@@ -326,4 +326,5 @@
     <string name="nc_i_ll_choose_another_type_of_key">I’ll choose another type of key</string>
     <string name="nc_foreign_key_index_not_available_msg">New account data needed. To add a new account, please use the original device that the software key was created on.</string>
     <string name="nc_2_of_3_multisig_without_inheritance_planning">2-of-3 multisig without inheritance planning</string>
+    <string name="nc_software_key_upgrade_to_hardware_key">The software key (%1$s) was upgraded to a hardware key from another device. Do you want to remove the software key from this device?</string>
 </resources>

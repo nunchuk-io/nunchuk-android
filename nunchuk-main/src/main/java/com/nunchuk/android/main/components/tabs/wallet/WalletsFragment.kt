@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.res.ColorStateList
 import android.nfc.tech.IsoDep
 import android.os.Bundle
@@ -37,16 +38,19 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseAuthenticationFragment
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orFalse
@@ -123,6 +127,8 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
                 (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
             }
         }
+
+    private var existingKeyDialog: Dialog? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -283,6 +289,24 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             )
 
             None -> {}
+            is WalletsEvent.ShowExistingKeyDialog -> {
+                existingKeyDialog = NCInfoDialog(requireActivity()).showDialog(
+                    message = getString(
+                        R.string.nc_software_key_upgrade_to_hardware_key,
+                        event.key.localSigner.masterFingerprint
+                    ),
+                    btnYes = getString(R.string.nc_text_yes),
+                    btnInfo = getString(R.string.nc_text_no),
+                    onYesClick = {
+                        walletsViewModel.setShouldShowExistingKeyDialog(true)
+                        openSignerInfoScreen(event.key.localSigner.toModel(), event.key)
+                    },
+                    onInfoClick = {
+                        walletsViewModel.setShouldShowExistingKeyDialog(true)
+                        walletsViewModel.updateExistingKey(event.key)
+                    }
+                )
+            }
         }
         walletsViewModel.clearEvent()
     }
@@ -533,7 +557,9 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         signerAdapter.submitList(signers)
     }
 
-    private fun openSignerInfoScreen(signer: SignerModel) {
+    private fun openSignerInfoScreen(signer: SignerModel,
+                                     existingKey: WalletsExistingKey? = null
+    ) {
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
             isMasterSigner = signer.isMasterSigner,
@@ -544,13 +570,22 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             derivationPath = signer.derivationPath,
             isInWallet = walletsViewModel.isInWallet(signer),
             isInAssistedWallet = walletsViewModel.isInAssistedWallet(signer),
+            existingKey = existingKey
         )
     }
 
     override fun onResume() {
         super.onResume()
-        walletsViewModel.retrieveData()
-        walletsViewModel.updateBadge()
-        walletsViewModel.getKeyHealthStatus()
+        with(walletsViewModel) {
+            retrieveData()
+            updateBadge()
+            getKeyHealthStatus()
+            checkAndShowExistingKey()
+        }
+    }
+
+    override fun onDestroy() {
+        existingKeyDialog?.dismiss()
+        super.onDestroy()
     }
 }

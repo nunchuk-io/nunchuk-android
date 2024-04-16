@@ -36,9 +36,11 @@ class CreateTapSignerUseCase @Inject constructor(
         return nunchukNativeSdk.createTapSigner(
             isoDep = parameters.isoDep,
             cvc = parameters.cvc,
-            name = parameters.name
+            name = parameters.name,
+            replace = parameters.replace
         )
     }
 
-    class Data(isoDep: IsoDep, val cvc: String, val name: String) : BaseNfcUseCase.Data(isoDep)
+    class Data(isoDep: IsoDep, val cvc: String, val name: String, val replace: Boolean) :
+        BaseNfcUseCase.Data(isoDep)
 }

@@ -30,6 +30,8 @@ import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
 import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
+import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.core.util.gson
@@ -43,7 +45,11 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.ChangeKeyTypeUseCase
+import com.nunchuk.android.usecase.CheckExistingKeyUseCase
+import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -69,6 +75,9 @@ class Mk4IntroViewModel @Inject constructor(
     private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
     private val createWallet2UseCase: CreateWallet2UseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
+    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
+    private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
+    private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -88,6 +97,7 @@ class Mk4IntroViewModel @Inject constructor(
         viewModelScope.launch {
             chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
+        checkAssistedSignerExistenceHelper.init(viewModelScope)
     }
 
     val mk4Signers: List<SingleSigner>
@@ -191,6 +201,37 @@ class Mk4IntroViewModel @Inject constructor(
         }
     }
 
+    fun checkExistingKey(signer: SingleSigner) {
+        viewModelScope.launch {
+            if (checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
+                checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
+                    .onSuccess {
+                        _event.emit(Mk4IntroViewEvent.CheckExistingKey(it, signer))
+                    }
+                    .onFailure {
+                        _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
+                    }
+            } else {
+                _event.emit(Mk4IntroViewEvent.CheckExistingKey(ResultExistingKey.None, signer))
+            }
+        }
+    }
+
+    fun changeKeyType() {
+        val singleSigner = _state.value.signer ?: return
+        viewModelScope.launch {
+            changeKeyTypeUseCase(
+                ChangeKeyTypeUseCase.Params(
+                    singleSigner = singleSigner,
+                    signerTag = null
+                )
+            ).onSuccess {
+                _event.emit(Mk4IntroViewEvent.AddMk4SuccessEvent(singleSigner))
+            }.onFailure {
+                _event.emit(Mk4IntroViewEvent.ShowError((it.message.orUnknownError())))
+            }
+        }
+    }
 
     fun importWalletFromMk4(records: List<NdefRecord>) {
         viewModelScope.launch {
@@ -258,4 +299,4 @@ class Mk4IntroViewModel @Inject constructor(
     }
 }
 
-data class Mk4IntroState(val wallets: List<Wallet> = emptyList())
+data class Mk4IntroState(val wallets: List<Wallet> = emptyList(), val signer: SingleSigner? = null)

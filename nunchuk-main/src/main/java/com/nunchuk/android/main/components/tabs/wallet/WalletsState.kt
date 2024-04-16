@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.wallet
 
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
@@ -70,6 +71,7 @@ internal sealed class WalletsEvent {
     data object DenyWalletInvitationSuccess : WalletsEvent()
     data object None : WalletsEvent()
     data class AcceptWalletInvitationSuccess(val walletId: String?, val groupId: String) : WalletsEvent()
+    data class ShowExistingKeyDialog(val key: WalletsExistingKey): WalletsEvent()
 }
 
 internal data class GroupWalletUi(

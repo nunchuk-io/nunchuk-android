@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.SignerIntroActivity
@@ -66,6 +67,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         isInAssistedWallet: Boolean,
         isReplacePrimaryKey: Boolean,
         customMessage: String,
+        existingKey: WalletsExistingKey?
     ) {
         SignerInfoActivity.start(
             activityContext = activityContext,
@@ -80,7 +82,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             derivationPath = derivationPath,
             masterFingerprint = masterFingerprint,
             isReplacePrimaryKey = isReplacePrimaryKey,
-            customMessage = customMessage
+            customMessage = customMessage,
+            existingKey = existingKey
         )
     }
 

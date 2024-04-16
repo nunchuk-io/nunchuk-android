@@ -44,6 +44,7 @@ import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideNfcLoading
@@ -88,6 +89,21 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
             ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
         setupViews()
         observeEvent()
+        if (args.existingKey != null) {
+            NCInfoDialog(requireActivity()).showDialog(
+                message = String.format(getString(R.string.nc_software_key_removed_from_device), args.name),
+                btnYes = getString(R.string.nc_delete_key),
+                btnInfo = getString(R.string.nc_text_cancel),
+                onYesClick = {
+                    args.existingKey?.let {
+                        viewModel.updateExistingKey(it, true)
+                    }
+                },
+                onInfoClick = {
+                    requireActivity().finish()
+                }
+            )
+        }
     }
 
     override fun onOptionClickListener(option: SingerOption) {
@@ -295,6 +311,15 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
             )
 
             SignerInfoEvent.NfcLoading -> showOrHideNfcLoading(true)
+            is SignerInfoEvent.DeleteExistingSignerSuccess -> {
+                hideLoading()
+                NCToastMessage(requireActivity()).showMessage(
+                    message = String.format(getString(R.string.nc_key_has_been_deleted), event.keyName),
+                    icon = R.drawable.ic_check_circle_outline
+                )
+                requireActivity().finish()
+            }
+            is SignerInfoEvent.Error -> showError(event.e.message.orUnknownError())
         }
     }
 

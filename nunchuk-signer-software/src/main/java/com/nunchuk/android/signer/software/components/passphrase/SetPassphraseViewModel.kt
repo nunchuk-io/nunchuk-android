@@ -22,11 +22,14 @@ package com.nunchuk.android.signer.software.components.passphrase
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.ChangePrimaryKeyUseCase
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.gson
+import com.nunchuk.android.core.util.nativeErrorCode
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipStepInfo
@@ -47,6 +50,8 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
+import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
+import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
@@ -73,6 +78,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
+    private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
 
     private lateinit var mnemonic: String
@@ -105,7 +111,8 @@ internal class SetPassphraseViewModel @Inject constructor(
             replacePrimaryKey()
             return
         }
-        createSoftwareSigner(true)
+        updateState { copy(skipPassphrase = true) }
+        createSoftwareSigner(isReplaceKey = false)
     }
 
     fun confirmPassphraseEvent() {
@@ -125,7 +132,8 @@ internal class SetPassphraseViewModel @Inject constructor(
                     replacePrimaryKey()
                     return
                 }
-                createSoftwareSigner(false)
+                updateState { copy(skipPassphrase = false) }
+                createSoftwareSigner(isReplaceKey = false)
             }
         }
     }
@@ -149,7 +157,7 @@ internal class SetPassphraseViewModel @Inject constructor(
         }
     }
 
-    private fun createSoftwareSigner(skipPassphrase: Boolean) {
+    fun createSoftwareSigner(isReplaceKey: Boolean) {
         viewModelScope.launch {
             setEvent(LoadingEvent(true))
             createSoftwareSignerUseCase(
@@ -157,7 +165,8 @@ internal class SetPassphraseViewModel @Inject constructor(
                     name = signerName,
                     mnemonic = mnemonic,
                     passphrase = getState().passphrase,
-                    isPrimaryKey = args.primaryKeyFlow.isPrimaryKeyFlow()
+                    isPrimaryKey = args.primaryKeyFlow.isPrimaryKeyFlow(),
+                    replace = isReplaceKey
                 )
             ).onSuccess {
                 if (!args.groupId.isNullOrEmpty()) {
@@ -165,10 +174,27 @@ internal class SetPassphraseViewModel @Inject constructor(
                 } else if (args.isQuickWallet) {
                     createQuickWallet(it)
                 } else {
-                    setEvent(CreateSoftwareSignerCompletedEvent(it, skipPassphrase))
+                    setEvent(
+                        CreateSoftwareSignerCompletedEvent(
+                            it,
+                            state.value?.skipPassphrase.orFalse()
+                        )
+                    )
                 }
             }.onFailure {
-                setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+                val errorCode = it.nativeErrorCode()
+                if (errorCode == NativeErrorCode.SIGNER_EXISTS) {
+                    getMasterFingerprintUseCase(
+                        GetMasterFingerprintUseCase.Param(
+                            mnemonic = mnemonic,
+                            passphrase = getState().passphrase
+                        )
+                    ).onSuccess {
+                        setEvent(SetPassphraseEvent.ExistingSignerEvent(it.orEmpty()))
+                    }
+                } else {
+                    setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+                }
             }
             setEvent(LoadingEvent(false))
         }

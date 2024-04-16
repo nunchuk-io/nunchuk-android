@@ -26,6 +26,7 @@ sealed class RecoverSeedEvent {
     data class ValidMnemonicEvent(val mnemonic: String) : RecoverSeedEvent()
     data class CanGoNextStepEvent(val canGoNext: Boolean) : RecoverSeedEvent()
     data class RecoverHotWalletSuccess(val walletId: String) : RecoverSeedEvent()
+    data class ExistingSignerEvent(val fingerprint: String) : RecoverSeedEvent()
 }
 
 data class RecoverSeedState(

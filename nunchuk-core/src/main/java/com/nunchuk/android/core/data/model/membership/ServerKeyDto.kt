@@ -20,6 +20,8 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.model.ServerKey
+import com.nunchuk.android.model.TapSigner
 
 internal data class ServerKeyDto(
     @SerializedName("name") val name: String? = null,
@@ -31,6 +33,21 @@ internal data class ServerKeyDto(
     @SerializedName("type") val type: String? = null,
     @SerializedName("tapsigner") val tapsigner: TapSignerDto? = null,
     @SerializedName("policies") val policies: KeyPoliciesDto? = null,
-    @SerializedName("tags") val tags: List<String> = emptyList(),
+    @SerializedName("tags") val tags: List<String>? = emptyList(),
     @SerializedName("key_index") val index: Int = 0,
 )
+
+internal fun ServerKeyDto.toModel(): ServerKey {
+    return ServerKey(
+        name = name ?: "",
+        xfp = xfp ?: "",
+        derivationPath = derivationPath ?: "",
+        xpub = xpub ?: "",
+        pubkey = pubkey ?: "",
+        id = id ?: "",
+        type = type ?: "",
+        tapsigner = tapsigner?.toModel() ?: TapSigner(),
+        tags = tags.orEmpty(),
+        index = index,
+    )
+}

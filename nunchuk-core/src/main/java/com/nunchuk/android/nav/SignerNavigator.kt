@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.type.SignerTag
@@ -45,6 +46,7 @@ interface SignerNavigator {
         isInAssistedWallet: Boolean = false,
         isReplacePrimaryKey: Boolean = false,
         customMessage: String = "",
+        existingKey: WalletsExistingKey? = null
     )
 
     fun openAddAirSignerScreen(

@@ -20,6 +20,7 @@
 package com.nunchuk.android.signer.components.add
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -51,6 +52,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
@@ -60,11 +62,13 @@ import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isRecommendedPath
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.signer.R
@@ -74,7 +78,9 @@ import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
-import com.nunchuk.android.signer.databinding.FragmentAddSignerBinding
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.utils.MaxLengthTransformation
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
@@ -82,7 +88,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
+class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
     BottomSheetOptionListener {
     @Inject
     lateinit var membershipStepManager: MembershipStepManager
@@ -157,8 +163,19 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
     }
 
     override fun onOptionClicked(option: SheetOption) {
-        viewModel.signers.getOrNull(option.type)?.let {
-            viewModel.updateKeySpec(it.descriptor)
+        when (option.type) {
+            SheetOptionType.TYPE_ADD_BITBOX -> viewModel.changeKeyType(signerTag = SignerTag.BITBOX)
+            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> viewModel.changeKeyType(signerTag = SignerTag.JADE)
+            SignerType.COLDCARD_NFC.ordinal -> viewModel.changeKeyType(signerTag = SignerTag.COLDCARD)
+            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT-> viewModel.changeKeyType(signerTag = SignerTag.PASSPORT)
+            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> viewModel.changeKeyType(signerTag = null)
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> viewModel.changeKeyType(signerTag = SignerTag.KEYSTONE)
+            SheetOptionType.TYPE_ADD_LEDGER -> viewModel.changeKeyType(signerTag = SignerTag.LEDGER)
+            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> viewModel.changeKeyType(signerTag = SignerTag.SEEDSIGNER)
+            SheetOptionType.TYPE_ADD_TREZOR -> viewModel.changeKeyType(signerTag = SignerTag.TREZOR)
+            else -> viewModel.signers.getOrNull(option.type)?.let {
+                viewModel.updateKeySpec(it.descriptor)
+            }
         }
     }
 
@@ -169,7 +186,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
-    ): FragmentAddSignerBinding {
+    ): ViewBinding {
         TODO("Not yet implemented")
     }
 
@@ -195,8 +212,69 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
                 }
 
                 AddAirgapSignerEvent.XfpNotMatchException -> showError(getString(R.string.nc_airgap_xfp_does_not_match))
+                is AddAirgapSignerEvent.CheckExisting -> {
+                    when (it.type) {
+                        ResultExistingKey.Software -> NCInfoDialog(requireActivity())
+                            .showDialog(
+                                message = String.format(getString(R.string.nc_existing_key_is_software_key_delete_key), it.singleSigner.masterFingerprint),
+                                btnYes = getString(R.string.nc_text_yes),
+                                btnInfo = getString(R.string.nc_text_no),
+                                onYesClick = {
+                                    openSelectHardwareOption()
+                                },
+                                onInfoClick = {}
+                            )
+                        ResultExistingKey.Hardware -> {
+                            NCInfoDialog(requireActivity())
+                                .showDialog(
+                                    message = String.format(getString(R.string.nc_existing_key_change_key_type), it.singleSigner.masterFingerprint),
+                                    btnYes = getString(R.string.nc_text_yes),
+                                    btnInfo = getString(R.string.nc_text_no),
+                                    onYesClick = {
+                                        openSelectHardwareOption()
+                                    },
+                                    onInfoClick = {}
+                                )
+                        }
+                        ResultExistingKey.None -> openSignerInfo(it.singleSigner)
+                    }
+                }
             }
         }
+    }
+
+    private fun openSelectHardwareOption() {
+        val options =
+            listOfNotNull(
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
+                    label = getString(com.nunchuk.android.core.R.string.nc_blockstream_jade),
+                ),
+                SheetOption(
+                    type = SignerType.COLDCARD_NFC.ordinal,
+                    label = getString(com.nunchuk.android.core.R.string.nc_coldcard)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
+                    label = getString(com.nunchuk.android.core.R.string.nc_foudation_passport),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
+                    label = getString(com.nunchuk.android.core.R.string.nc_signer_generic_air_gapped)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+                    label = getString(com.nunchuk.android.core.R.string.nc_keystone),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
+                    label = getString(com.nunchuk.android.core.R.string.nc_seedsigner),
+                ),
+            )
+        BottomSheetOption.newInstance(
+            options = options,
+            title = getString(R.string.nc_what_type_of_hardware_want_to_add),
+        ).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun onAddAirSignerError(message: String) {

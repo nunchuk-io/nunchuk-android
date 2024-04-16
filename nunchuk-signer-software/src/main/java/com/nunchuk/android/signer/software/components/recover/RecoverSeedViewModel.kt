@@ -21,8 +21,10 @@ package com.nunchuk.android.signer.software.components.recover
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.lastWord
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.replaceLastWord
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.CanGoNextStepEvent
@@ -32,6 +34,7 @@ import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.U
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
+import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.wallet.RecoverHotWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,6 +50,7 @@ internal class RecoverSeedViewModel @Inject constructor(
     private val getBip39WordListUseCase: GetBip39WordListUseCase,
     private val checkMnemonicUseCase: CheckMnemonicUseCase,
     private val recoverHotWalletUseCase: RecoverHotWalletUseCase,
+    private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
 ) : NunchukViewModel<RecoverSeedState, RecoverSeedEvent>() {
 
     private var bip39Words = ArrayList<String>()
@@ -85,7 +89,7 @@ internal class RecoverSeedViewModel @Inject constructor(
         if (mnemonic.isEmpty()) {
             event(MnemonicRequiredEvent)
         } else if (isHotWalletRecovery) {
-            recoverHotWallet(mnemonic)
+            recoverHotWallet(false)
         } else {
             checkMnemonic(mnemonic)
         }
@@ -100,13 +104,25 @@ internal class RecoverSeedViewModel @Inject constructor(
         event(UpdateMnemonicEvent(updatedMnemonic))
     }
 
-    private fun recoverHotWallet(mnemonic: String) {
+    fun recoverHotWallet(replace: Boolean) {
         viewModelScope.launch {
-            recoverHotWalletUseCase(mnemonic)
+            recoverHotWalletUseCase(RecoverHotWalletUseCase.Params(getState().mnemonic, replace))
                 .onSuccess {
                     setEvent(RecoverSeedEvent.RecoverHotWalletSuccess(it.id))
                 }.onFailure {
-                    setEvent(InvalidMnemonicEvent)
+                    val errorCode = it.nativeErrorCode()
+                    if (errorCode == NativeErrorCode.SIGNER_EXISTS) {
+                        getMasterFingerprintUseCase(
+                            GetMasterFingerprintUseCase.Param(
+                                mnemonic = getState().mnemonic,
+                                passphrase = ""
+                            )
+                        ).onSuccess {
+                            setEvent(RecoverSeedEvent.ExistingSignerEvent(it.orEmpty()))
+                        }
+                    } else {
+                        setEvent(InvalidMnemonicEvent)
+                    }
                 }
         }
     }

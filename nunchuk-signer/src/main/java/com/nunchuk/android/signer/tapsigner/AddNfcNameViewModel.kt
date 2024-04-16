@@ -20,10 +20,14 @@
 package com.nunchuk.android.signer.tapsigner
 
 import android.nfc.tech.IsoDep
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.CreateTapSignerUseCase
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
+import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,15 +42,27 @@ import javax.inject.Inject
 class AddNfcNameViewModel @Inject constructor(
     private val createTapSignerUseCase: CreateTapSignerUseCase,
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
-    private val updateMasterSignerUseCase: UpdateMasterSignerUseCase
+    private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
+    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val args = AddNfcNameFragmentArgs.fromSavedStateHandle(savedStateHandle)
+
     private val _event = MutableSharedFlow<AddNfcNameEvent>()
     val event = _event.asSharedFlow()
 
     private val _state = MutableStateFlow(AddNfcNameState())
 
+    init {
+        checkAssistedSignerExistenceHelper.init(viewModelScope)
+    }
+
     fun addNameForNfcKey(
-        isoDep: IsoDep?, cvc: String, name: String, shouldCreateBackUp: Boolean = false
+        isoDep: IsoDep?,
+        cvc: String,
+        name: String,
+        shouldCreateBackUp: Boolean = false,
     ) {
         isoDep ?: return
         viewModelScope.launch {
@@ -56,21 +72,30 @@ class AddNfcNameViewModel @Inject constructor(
                 _event.emit(AddNfcNameEvent.Loading(false))
                 return@launch
             }
-            val createTapSignerKeyResult =
-                createTapSignerUseCase(CreateTapSignerUseCase.Data(isoDep, cvc, name))
-            if (createTapSignerKeyResult.isSuccess) {
-                val signer = createTapSignerKeyResult.getOrThrow()
-                _state.update { it.copy(signer = signer) }
-                if (shouldCreateBackUp) {
-                    getBackUpTapSigner(isoDep, cvc, signer)
-                } else {
-                    _event.emit(AddNfcNameEvent.Success(signer))
+            createTapSignerUseCase(CreateTapSignerUseCase.Data(isoDep, cvc, name, _state.value.replace))
+                .onSuccess { signer ->
+                    _state.update { it.copy(signer = signer) }
+                    if (shouldCreateBackUp) {
+                        getBackUpTapSigner(isoDep, cvc, signer)
+                    } else {
+                        _event.emit(AddNfcNameEvent.Success(signer))
+                    }
+                }.onFailure {
+                    val errorCode = it.nativeErrorCode()
+                    if (errorCode == NativeErrorCode.SIGNER_EXISTS) {
+                        _event.emit(
+                            AddNfcNameEvent.SignerExist(cardIdent = args.cardIdent)
+                        )
+                    } else {
+                        _event.emit(AddNfcNameEvent.Error(it))
+                    }
                 }
-            } else {
-                _event.emit(AddNfcNameEvent.Error(createTapSignerKeyResult.exceptionOrNull()))
-            }
             _event.emit(AddNfcNameEvent.Loading(false))
         }
+    }
+
+    fun setReplaceKeyFlow(replace: Boolean) {
+        _state.update { it.copy(replace = replace) }
     }
 
     private suspend fun getBackUpTapSigner(
@@ -106,7 +131,11 @@ class AddNfcNameViewModel @Inject constructor(
     fun getMasterSigner(): MasterSigner? = _state.value.signer
 }
 
-data class AddNfcNameState(val signer: MasterSigner? = null, val filePath: String = "")
+data class AddNfcNameState(
+    val signer: MasterSigner? = null,
+    val filePath: String = "",
+    val replace: Boolean = false
+)
 
 sealed class AddNfcNameEvent {
     data class Loading(val isLoading: Boolean) : AddNfcNameEvent()
@@ -114,4 +143,5 @@ sealed class AddNfcNameEvent {
     data class BackUpSuccess(val filePath: String) : AddNfcNameEvent()
     data class Error(val e: Throwable?) : AddNfcNameEvent()
     data class UpdateError(val e: Throwable?) : AddNfcNameEvent()
+    data class SignerExist(val cardIdent: String) : AddNfcNameEvent()
 }

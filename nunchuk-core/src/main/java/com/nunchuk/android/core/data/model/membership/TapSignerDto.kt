@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.model.TapSigner
 
 internal data class TapSignerDto(
     @SerializedName("card_id")
@@ -33,3 +34,13 @@ internal data class TapSignerDto(
     @SerializedName("is_inheritance")
     val isInheritance: Boolean = false,
 )
+
+internal fun TapSignerDto.toModel(): TapSigner {
+    return TapSigner(
+        cardId = cardId,
+        version = version,
+        isTestnet = isTestnet,
+        birthHeight = birthHeight,
+        isInheritance = isInheritance,
+    )
+}

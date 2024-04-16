@@ -65,7 +65,8 @@ class SignInImportPrimaryKeyUseCase @Inject constructor(
             name = parameters.signerName,
             mnemonic = parameters.mnemonic,
             passphrase = parameters.passphrase,
-            isPrimary = true
+            isPrimary = true,
+            replace = false
         )
 
         accountManager.storeAccount(

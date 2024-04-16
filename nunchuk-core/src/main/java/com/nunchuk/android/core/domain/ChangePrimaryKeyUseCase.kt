@@ -76,7 +76,8 @@ class ChangePrimaryKeyUseCase @Inject constructor(
             name = parameters.signerName,
             mnemonic = parameters.mnemonic,
             passphrase = parameters.newKeyPassphrase,
-            isPrimary = true
+            isPrimary = true,
+            replace = false
         )
 
         val primaryKeyInfo = accountManager.getPrimaryKeyInfo()

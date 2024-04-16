@@ -44,6 +44,7 @@ import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
+import com.nunchuk.android.core.data.model.TapSignerPayload
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateDraftGroupWalletRequest
@@ -69,6 +70,7 @@ import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toGroupKeyPolicy
+import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.data.model.membership.toWalletOption
@@ -129,6 +131,7 @@ import com.nunchuk.android.model.VerifiedPasswordTokenRequest
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
+import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -136,6 +139,7 @@ import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletBriefExt
 import com.nunchuk.android.model.membership.GroupConfig
+import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.model.transaction.ExtendedTransaction
@@ -565,7 +569,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 xfp = signer.xfp.orEmpty(),
                 version = tapsigner.version.orEmpty(),
                 brithHeight = tapsigner.birthHeight,
-                isTestNet = tapsigner.isTestnet
+                isTestNet = tapsigner.isTestnet,
+                replace = false
             )
         } else {
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
@@ -575,7 +580,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 derivationPath = signer.derivationPath.orEmpty(),
                 masterFingerprint = signer.xfp.orEmpty(),
                 type = type,
-                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
+                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
+                replace = false)
         }
         return false
     }
@@ -608,7 +614,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateServerKey(xfp: String, name: String): Boolean {
-        return userWalletApiManager.walletApi.updateKeyName(xfp, UpdateKeyPayload(name)).isSuccess
+        return userWalletApiManager.walletApi.updateServerKey(xfp, UpdateKeyPayload(name)).isSuccess
     }
 
     override suspend fun getServerTransaction(
@@ -1623,7 +1629,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateServerKeyName(xfp: String, name: String) {
-        val response = userWalletApiManager.walletApi.updateKeyName(xfp, UpdateKeyPayload(name))
+        val response = userWalletApiManager.walletApi.updateServerKey(xfp, UpdateKeyPayload(name))
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -1765,7 +1771,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         derivationPath = key.derivationPath.orEmpty(),
                         masterFingerprint = key.xfp.orEmpty(),
                         type = type,
-                        tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
+                        tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
+                        replace = false)
                 }
                 membershipRepository.saveStepInfo(
                     MembershipStepInfo(
@@ -2312,6 +2319,45 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         }
 
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun getUserWalletsServer(): List<WalletServer> {
+        val result = userWalletApiManager.walletApi.getServerWallet()
+        return result.data.wallets.map { it.toModel() }
+    }
+
+    override suspend fun getGroupWalletsServer(): List<WalletServer> {
+        val response = userWalletApiManager.groupWalletApi.getWallets(0, 30, listOf("ACTIVE"))
+        val wallets = response.data.wallets
+        return wallets.map { it.toModel() }
+    }
+
+    override suspend fun updateKeyType(localSigner: SingleSigner, serverSigner: SignerServer) {
+        val tapSigner = if (localSigner.type == SignerType.NFC) {
+            val tapSignerStatus =
+                nunchukNativeSdk.getTapSignerStatusFromMasterSigner(localSigner.masterSignerId)
+            TapSignerPayload(
+                cardId = tapSignerStatus.ident,
+                version = tapSignerStatus.version,
+                birthHeight = tapSignerStatus.birthHeight,
+                isTestNet = tapSignerStatus.isTestNet,
+                isInheritance = localSigner.tags.find { it == SignerTag.INHERITANCE } != null,
+            )
+        } else {
+            null
+        }
+        val response = userWalletApiManager.walletApi.updateServerKey(
+            localSigner.masterFingerprint,
+            UpdateKeyPayload(
+                name = localSigner.name,
+                type = localSigner.type.name,
+                tags = localSigner.tags.map { it.name },
+                tapSignerPayload = tapSigner
+            )
+        )
         if (response.isSuccess.not()) {
             throw response.error
         }

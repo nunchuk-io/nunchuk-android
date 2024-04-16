@@ -24,8 +24,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusUseCase
+import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -37,9 +40,15 @@ import javax.inject.Inject
 class AddTapSignerIntroViewModel @Inject constructor(
     private val getTapSignerStatusUseCase: GetTapSignerStatusUseCase,
     private val membershipStepManager: MembershipStepManager,
+    private val getMasterSignerUseCase: GetMasterSignerUseCase,
+    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddTapSignerIntroEvent>()
     val event = _event.asSharedFlow()
+
+    init {
+        checkAssistedSignerExistenceHelper.init(viewModelScope)
+    }
 
     fun onContinueClicked() {
         viewModelScope.launch {
@@ -62,9 +71,20 @@ class AddTapSignerIntroViewModel @Inject constructor(
         }
     }
 
+    fun getMasterSigner(masterSignerId: String) = viewModelScope.launch {
+        if (masterSignerId.isEmpty()) return@launch
+       getMasterSignerUseCase(masterSignerId).onSuccess {
+            _event.emit(AddTapSignerIntroEvent.GetMasterSignerSuccess(it))
+        }.onFailure {
+            _event.emit(AddTapSignerIntroEvent.GetTapSignerStatusError(it))
+        }
+    }
+
     fun isKeyAddedToAssistedWallet(masterSignerId: String) = membershipStepManager.isKeyExisted(masterSignerId)
 
     fun getSignerName() = membershipStepManager.getTapSignerName()
+
+    fun isInAssistedWallet(masterSignerId: String) = checkAssistedSignerExistenceHelper.isInAssistedWallet(masterSignerId)
 }
 
 sealed class AddTapSignerIntroEvent {
@@ -74,5 +94,6 @@ sealed class AddTapSignerIntroEvent {
     ) : AddTapSignerIntroEvent()
 
     data class GetTapSignerStatusError(val e: Throwable?) : AddTapSignerIntroEvent()
-    object ContinueEventAddTapSigner : AddTapSignerIntroEvent()
+    data object ContinueEventAddTapSigner : AddTapSignerIntroEvent()
+    data class GetMasterSignerSuccess(val masterSigner: MasterSigner) : AddTapSignerIntroEvent()
 }

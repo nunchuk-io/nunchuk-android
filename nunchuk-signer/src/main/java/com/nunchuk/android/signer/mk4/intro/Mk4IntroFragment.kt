@@ -60,6 +60,7 @@ import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -76,6 +77,7 @@ import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -117,11 +119,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
             }
         } else if (option.type >= SIGNER_OFFSET) {
             val signer = viewModel.mk4Signers.getOrNull(option.type - SIGNER_OFFSET) ?: return
-            findNavController().navigate(
-                Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
-                    signer
-                )
-            )
+            viewModel.checkExistingKey(signer)
         }
     }
 
@@ -166,6 +164,51 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
                 Mk4IntroViewEvent.XfpNotMatchException -> {
                     showError(getString(R.string.nc_coldcard_xfp_does_not_match))
+                }
+
+                is Mk4IntroViewEvent.CheckExistingKey -> {
+                    when (it.type) {
+                        ResultExistingKey.Software -> NCInfoDialog(requireActivity())
+                            .showDialog(
+                                message = String.format(getString(R.string.nc_existing_key_is_software_key_delete_key), it.signer.masterFingerprint),
+                                btnYes = getString(R.string.nc_text_yes),
+                                btnInfo = getString(R.string.nc_text_no),
+                                onYesClick = {
+                                    viewModel.changeKeyType()
+                                },
+                                onInfoClick = {}
+                            )
+                        ResultExistingKey.Hardware -> {
+                            NCInfoDialog(requireActivity())
+                                .showDialog(
+                                    message = String.format(getString(R.string.nc_existing_key_change_key_type), it.signer.masterFingerprint),
+                                    btnYes = getString(R.string.nc_text_yes),
+                                    btnInfo = getString(R.string.nc_text_no),
+                                    onYesClick = {
+                                        viewModel.changeKeyType()
+                                    },
+                                    onInfoClick = {}
+                                )
+                        }
+                        ResultExistingKey.None -> findNavController().navigate(
+                            Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
+                                it.signer
+                            )
+                        )
+                    }
+                }
+
+                is Mk4IntroViewEvent.AddMk4SuccessEvent ->  {
+                    navigator.openSignerInfoScreen(
+                        activityContext = requireActivity(),
+                        isMasterSigner = it.signer.hasMasterSigner,
+                        id = it.signer.masterSignerId,
+                        masterFingerprint = it.signer.masterFingerprint,
+                        name = it.signer.name,
+                        type = it.signer.type,
+                        derivationPath = it.signer.derivationPath,
+                        justAdded = true,
+                    )
                 }
             }
         }

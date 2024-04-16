@@ -20,13 +20,14 @@
 package com.nunchuk.android.signer.software.components.passphrase
 
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.SingleSigner
 
 sealed class SetPassphraseEvent {
     data class LoadingEvent(val loading: Boolean) : SetPassphraseEvent()
-    object PassPhraseRequiredEvent : SetPassphraseEvent()
-    object PassPhraseValidEvent : SetPassphraseEvent()
-    object ConfirmPassPhraseRequiredEvent : SetPassphraseEvent()
-    object ConfirmPassPhraseNotMatchedEvent : SetPassphraseEvent()
+    data object PassPhraseRequiredEvent : SetPassphraseEvent()
+    data object PassPhraseValidEvent : SetPassphraseEvent()
+    data object ConfirmPassPhraseRequiredEvent : SetPassphraseEvent()
+    data object ConfirmPassPhraseNotMatchedEvent : SetPassphraseEvent()
     data class CreateSoftwareSignerCompletedEvent(
         val masterSigner: MasterSigner? = null,
         val skipPassphrase: Boolean
@@ -35,9 +36,11 @@ sealed class SetPassphraseEvent {
     data class CreateSoftwareSignerErrorEvent(val message: String) : SetPassphraseEvent()
     data class CreateWalletSuccessEvent(val walletId: String) : SetPassphraseEvent()
     data class CreateWalletErrorEvent(val message: String) : SetPassphraseEvent()
+    data class ExistingSignerEvent(val fingerprint: String) : SetPassphraseEvent()
 }
 
 data class SetPassphraseState(
     val passphrase: String = "",
-    val confirmPassphrase: String = ""
+    val confirmPassphrase: String = "",
+    val skipPassphrase: Boolean = false,
 )

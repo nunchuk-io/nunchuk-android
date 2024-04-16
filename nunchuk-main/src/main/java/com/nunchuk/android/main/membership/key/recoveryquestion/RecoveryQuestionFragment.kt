@@ -150,6 +150,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
                     navigator.openWalletAuthentication(
                         walletId = it.walletId,
                         userData = it.userData,
+                        groupId = it.groupId,
                         requiredSignatures = it.requiredSignatures,
                         type = it.type,
                         action = TargetAction.UPDATE_SECURITY_QUESTIONS.name,

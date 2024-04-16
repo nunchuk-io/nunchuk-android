@@ -32,6 +32,7 @@ import com.nunchuk.android.core.domain.membership.GetSecurityQuestionsUserDataUs
 import com.nunchuk.android.core.domain.membership.SecurityQuestionsUpdateUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.QuestionsAndAnswer
 import com.nunchuk.android.model.SecurityQuestion
@@ -58,6 +59,7 @@ class RecoveryQuestionViewModel @Inject constructor(
     private val getSecurityQuestionsUserDataUseCase: GetSecurityQuestionsUserDataUseCase,
     private val securityQuestionsUpdateUseCase: SecurityQuestionsUpdateUseCase,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -236,6 +238,7 @@ class RecoveryQuestionViewModel @Inject constructor(
         _state.update {
             it.copy(userData = userData)
         }
+        val groupId = assistedWalletManager.getGroupId(walletId).orEmpty()
         _event.emit(RecoveryQuestionEvent.Loading(false))
         if (resultCalculate.isSuccess) {
             val signatures = resultCalculate.getOrThrow()
@@ -258,7 +261,8 @@ class RecoveryQuestionViewModel @Inject constructor(
                             userData = userData,
                             requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
                             type = resultCalculate.getOrThrow().type,
-                            dummyTransactionId = transactionId
+                            dummyTransactionId = transactionId,
+                            groupId = groupId
                         )
                     )
                 }.onFailure {
@@ -272,7 +276,8 @@ class RecoveryQuestionViewModel @Inject constructor(
                         userData = userData,
                         requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
                         type = resultCalculate.getOrThrow().type,
-                        dummyTransactionId = ""
+                        dummyTransactionId = "",
+                        groupId = groupId
                     )
                 )
             }

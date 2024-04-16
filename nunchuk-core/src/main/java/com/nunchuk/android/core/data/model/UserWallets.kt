@@ -57,6 +57,25 @@ internal data class UpdateWalletPayload(
 internal data class UpdateKeyPayload(
     @SerializedName("name")
     val name: String? = null,
+    @SerializedName("type")
+    val type: String? = null,
+    @SerializedName("tags")
+    val tags: List<String>?=null,
+    @SerializedName("tapsigner")
+    val tapSignerPayload: TapSignerPayload? = null,
+)
+
+internal data class TapSignerPayload(
+    @SerializedName("card_id")
+    val cardId: String? = null,
+    @SerializedName("version")
+    val version: String? = null,
+    @SerializedName("birth_height")
+    val birthHeight: Int? = null,
+    @SerializedName("is_testnet")
+    val isTestNet: Boolean? = null,
+    @SerializedName("is_inheritance")
+    val isInheritance: Boolean? = null,
 )
 
 data class SecurityQuestionDataResponse(

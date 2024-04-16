@@ -20,32 +20,44 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class CreateSoftwareSignerUseCase @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk,
+class CheckExistingKeyUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : UseCase<CreateSoftwareSignerUseCase.Param, MasterSigner>(ioDispatcher) {
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<CheckExistingKeyUseCase.Params, ResultExistingKey>(
+    ioDispatcher
+) {
 
-    override suspend fun execute(parameters: Param): MasterSigner {
-        return nativeSdk.createSoftwareSigner(
-            name = parameters.name,
-            mnemonic = parameters.mnemonic,
-            passphrase = parameters.passphrase,
-            isPrimary = parameters.isPrimaryKey,
-            replace = parameters.replace
-        )
+    override suspend fun execute(parameters: Params): ResultExistingKey {
+        val softwareSigners = nativeSdk.getMasterSigners()
+        for (ss in softwareSigners) {
+            if (ss.id == parameters.singleSigner.masterFingerprint) {
+                return if (ss.type == SignerType.SOFTWARE) {
+                    ResultExistingKey.Software
+                } else {
+                    ResultExistingKey.Hardware
+                }
+            }
+        }
+        val remoteSigners = nativeSdk.getRemoteSigners()
+        for (rs in remoteSigners) {
+            if (rs.masterFingerprint == parameters.singleSigner.masterFingerprint && rs.derivationPath == parameters.singleSigner.derivationPath) {
+                return ResultExistingKey.Hardware
+            }
+        }
+        return ResultExistingKey.None
     }
 
-    data class Param(
-        val name: String,
-        val mnemonic: String,
-        val passphrase: String,
-        val isPrimaryKey: Boolean,
-        val replace: Boolean = false,
+    data class Params(
+        val singleSigner: SingleSigner,
     )
+}
+
+enum class ResultExistingKey {
+    Software, Hardware, None
 }

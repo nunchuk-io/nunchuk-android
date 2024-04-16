@@ -29,8 +29,12 @@ import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
+import com.nunchuk.android.core.domain.membership.CheckWalletsExistingKeyUseCase
+import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.push.PushEvent
@@ -59,7 +63,6 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
-import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -100,6 +103,7 @@ import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -134,6 +138,9 @@ internal class WalletsViewModel @Inject constructor(
     private val cardIdManager: CardIdManager,
     private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
+    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
+    private val checkWalletsExistingKeyUseCase: CheckWalletsExistingKeyUseCase,
+    private val updateExistingKeyUseCase: UpdateExistingKeyUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -149,6 +156,9 @@ internal class WalletsViewModel @Inject constructor(
     private var isRetrievingData = AtomicBoolean(false)
     private var isRetrievingAlert = AtomicBoolean(false)
     private var isRetrievingKeyHealthStatus = AtomicBoolean(false)
+    private var shouldShowExistingKeyDialog = AtomicBoolean(true)
+
+    private var signersExistingMap = ConcurrentHashMap<String, WalletsExistingKey>()
 
     override val initialState = WalletsState()
 
@@ -262,12 +272,14 @@ internal class WalletsViewModel @Inject constructor(
                 updateState { copy(useLargeFont = it.getOrDefault(false)) }
             }
         }
+        checkAssistedSignerExistenceHelper.init(viewModelScope)
     }
 
     private fun syncGroup() {
         viewModelScope.launch {
             syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
                 if (shouldReload) retrieveData()
+                checkWalletsExistingKey(true)
             }
         }
     }
@@ -321,6 +333,7 @@ internal class WalletsViewModel @Inject constructor(
                 } else {
                     mapGroupWalletUi()
                 }
+                checkWalletsExistingKey(false)
             } else {
                 updateState { copy(plans = emptyList()) }
             }
@@ -330,6 +343,42 @@ internal class WalletsViewModel @Inject constructor(
                     copy(banner = bannerResult.getOrNull())
                 }
             }
+        }
+    }
+
+    private fun checkWalletsExistingKey(isGroupWallet: Boolean) {
+        viewModelScope.launch {
+            checkWalletsExistingKeyUseCase(isGroupWallet).onSuccess { result ->
+                result.forEach { key ->
+                    key.signerServer.xfp?.let { xfp ->
+                        signersExistingMap[xfp] = key
+                    }
+                }
+            }
+            checkAndShowExistingKey()
+        }
+    }
+
+    fun checkAndShowExistingKey() {
+        if (shouldShowExistingKeyDialog.get().not()) return
+        val key = signersExistingMap.values.firstOrNull()
+        key?.let {
+            signersExistingMap.remove(it.signerServer.xfp)
+            setEvent(WalletsEvent.ShowExistingKeyDialog(key))
+            shouldShowExistingKeyDialog.set(false)
+        }
+    }
+
+    fun setShouldShowExistingKeyDialog(shouldShow: Boolean) {
+        shouldShowExistingKeyDialog.set(shouldShow)
+    }
+
+    fun updateExistingKey(key: WalletsExistingKey) {
+        viewModelScope.launch {
+            updateExistingKeyUseCase(UpdateExistingKeyUseCase.Params(key.signerServer, key.localSigner, false))
+                .onFailure {
+                    setEvent(ShowErrorEvent(it))
+                }
         }
     }
 
@@ -506,31 +555,6 @@ internal class WalletsViewModel @Inject constructor(
         event(AddWalletEvent)
     }
 
-    private fun checkSignerExistence(
-        signer: SignerModel,
-        walletExtendeds: List<WalletExtended>,
-    ): Boolean {
-        return walletExtendeds.any {
-            it.wallet.signers.any anyLast@{ singleSigner ->
-                if (singleSigner.hasMasterSigner) {
-                    return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
-                }
-                return@anyLast singleSigner.masterFingerprint == signer.fingerPrint && singleSigner.derivationPath == signer.derivationPath
-            }
-        }
-    }
-
-    fun isInWallet(signer: SignerModel): Boolean {
-        return checkSignerExistence(signer, getState().wallets)
-    }
-
-    fun isInAssistedWallet(signer: SignerModel): Boolean {
-        val assistedWalletSet = getState().assistedWallets.map { it.localId }.toHashSet()
-        val assistedWallets = getState().wallets.filter { it.wallet.id in assistedWalletSet }
-        return checkSignerExistence(signer, assistedWallets)
-    }
-
-
     fun hasSigner() = getState().signers.isNotEmpty()
 
     fun hasWallet() = getState().wallets.isNotEmpty()
@@ -620,4 +644,12 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun getPersonalSteps() = getState().personalSteps
+
+    fun isInWallet(signer: SignerModel): Boolean {
+        return checkAssistedSignerExistenceHelper.isInWallet(signer)
+    }
+
+    fun isInAssistedWallet(signer: SignerModel): Boolean {
+        return checkAssistedSignerExistenceHelper.isInAssistedWallet(signer)
+    }
 }

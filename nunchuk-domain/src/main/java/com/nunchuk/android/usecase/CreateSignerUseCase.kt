@@ -40,7 +40,8 @@ class CreateSignerUseCase @Inject constructor(
             derivationPath = parameters.derivationPath,
             masterFingerprint = parameters.masterFingerprint,
             type = parameters.type,
-            tags = parameters.tags
+            tags = parameters.tags,
+            replace = parameters.replace
         )
     }
 
@@ -51,5 +52,6 @@ class CreateSignerUseCase @Inject constructor(
         val derivationPath: String,
         val masterFingerprint: String,
         val tags : List<SignerTag> = emptyList(),
+        val replace: Boolean = false
     )
 }
