@@ -146,4 +146,5 @@ object SheetOptionType {
     const val TYPE_EXPORT_BBQR = 82
 
     const val TYPE_ADD_SOFTWARE_KEY = 83
+    const val TYPE_ADD_COLDCARD_QR = 84
 }

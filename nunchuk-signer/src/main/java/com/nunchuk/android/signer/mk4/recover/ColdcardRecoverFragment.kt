@@ -61,10 +61,14 @@ import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.add.PASSPORT_EXTRA_KEYS
+import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -83,6 +87,18 @@ class ColdcardRecoverFragment : MembershipFragment() {
         }
     }
 
+    private val scanQrLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) {
+                val keys = it.data?.parcelableArrayList<SingleSigner>(PASSPORT_EXTRA_KEYS).orEmpty()
+                viewModel.handleSigner(
+                    singleSigners = keys,
+                    groupId = (activity as Mk4Activity).groupId,
+                    newIndex = (activity as Mk4Activity).newIndex
+                )
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -90,7 +106,7 @@ class ColdcardRecoverFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                ColdcardRecoverScreen(viewModel, ::handleShowMore, args.isMembershipFlow)
+                ColdcardRecoverScreen(viewModel, ::handleShowMore, args.isMembershipFlow, args.scanQrCode)
             }
         }
     }
@@ -105,7 +121,11 @@ class ColdcardRecoverFragment : MembershipFragment() {
                             COLDCARD_GUIDE_URL
                         )
 
-                        ColdcardRecoverEvent.OnContinue -> launcher.launch("*/*")
+                        ColdcardRecoverEvent.OnContinue -> if (args.scanQrCode) {
+                            scanQrLauncher.launch(ScanDynamicQRActivity.buildIntent(requireActivity()))
+                        } else {
+                            launcher.launch("application/json")
+                        }
                         ColdcardRecoverEvent.CreateSignerSuccess -> {
                             requireActivity().apply {
                                 setResult(RESULT_OK)
@@ -136,6 +156,7 @@ private fun ColdcardRecoverScreen(
     viewModel: ColdcardRecoverViewModel = viewModel(),
     onMoreClicked: () -> Unit = {},
     isMembershipFlow: Boolean,
+    isScanQRCode: Boolean
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     ColdcardRecoverContent(
@@ -143,6 +164,7 @@ private fun ColdcardRecoverScreen(
         onContinueClicked = viewModel::onContinueClicked,
         onOpenGuideClicked = viewModel::onOpenGuideClicked,
         isMembershipFlow = isMembershipFlow,
+        isScanQRCode = isScanQRCode,
         onMoreClicked = onMoreClicked,
     )
 }
@@ -154,6 +176,7 @@ private fun ColdcardRecoverContent(
     onOpenGuideClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     isMembershipFlow: Boolean = false,
+    isScanQRCode: Boolean = false
 ) {
     NunchukTheme {
         Scaffold(topBar = {
@@ -229,19 +252,20 @@ private fun ColdcardRecoverContent(
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                        text = stringResource(R.string.nc_export_xpub_coldcard_desc),
+                        text = if (isScanQRCode) stringResource(R.string.nc_export_xpub_coldcard_scan_qr_code_desc)
+                        else stringResource(R.string.nc_export_xpub_coldcard_desc),
                         style = NunchukTheme.typography.body
                     )
                 }
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 4,
-                    title = stringResource(R.string.nc_import_xpub_into_app),
+                    title = if (isScanQRCode) stringResource(R.string.nc_scan_qr_code) else stringResource(R.string.nc_import_xpub_into_app),
                     titleStyle = NunchukTheme.typography.title,
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                        text = stringResource(R.string.nc_import_xpub_into_app_desc),
+                        text = if (isScanQRCode) stringResource(R.string.nc_scan_qr_code_desc) else stringResource(R.string.nc_import_xpub_into_app_desc),
                         style = NunchukTheme.typography.body
                     )
                 }

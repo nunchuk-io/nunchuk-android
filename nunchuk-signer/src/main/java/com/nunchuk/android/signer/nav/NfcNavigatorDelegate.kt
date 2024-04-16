@@ -35,6 +35,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
         groupId: String,
         newIndex: Int,
         xfp: String?,
+        isScanQRCode: Boolean,
     ) {
         Mk4Activity.navigate(
             activity = activity,
@@ -43,6 +44,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
             groupId = groupId,
             newIndex = newIndex,
             xfp = xfp,
+            isScanQRCode = isScanQRCode,
         )
     }
 

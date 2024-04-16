@@ -186,12 +186,13 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 fromMembershipFlow = true,
                 groupId = args.groupId
             )
-
+            SheetOptionType.TYPE_ADD_COLDCARD_QR,
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 activity = requireActivity(),
                 fromMembershipFlow = true,
                 action = ColdcardAction.RECOVER_KEY,
-                groupId = args.groupId
+                groupId = args.groupId,
+                isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR
             )
 
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,
@@ -314,6 +315,11 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     type = SheetOptionType.TYPE_ADD_COLDCARD_NFC,
                     label = getString(R.string.nc_add_coldcard_via_nfc),
                     resId = R.drawable.ic_nfc_indicator_small
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_QR,
+                    label = getString(R.string.nc_add_coldcard_via_qr),
+                    resId = R.drawable.ic_qr
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_COLDCARD_USB,

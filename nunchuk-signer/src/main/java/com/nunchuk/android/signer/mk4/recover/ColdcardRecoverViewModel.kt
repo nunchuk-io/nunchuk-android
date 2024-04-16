@@ -32,6 +32,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
@@ -102,78 +103,83 @@ class ColdcardRecoverViewModel @Inject constructor(
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
-                val signer =
-                    parseResult.getOrThrow().find { it.derivationPath.isRecommendedPath }
-                if (signer == null) {
-                    _event.emit(ColdcardRecoverEvent.ShowError("Can not find valid signer path"))
-                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
-                    return@launch
-                }
-                if (chain == Chain.MAIN &&isTestNetPath(signer.derivationPath)) {
-                    _event.emit(ColdcardRecoverEvent.ErrorMk4TestNet)
-                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
-                    return@launch
-                }
-                if (newIndex >= 0 && !signer.derivationPath.endsWith("${newIndex}h/2h")) {
-                    _event.emit(ColdcardRecoverEvent.NewIndexNotMatchException)
-                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
-                    return@launch
-                }
-                if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
-                    _event.emit(ColdcardRecoverEvent.AddSameKey)
-                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
-                    return@launch
-                }
-                val createSignerResult = createSignerUseCase(
-                    CreateSignerUseCase.Params(
-                        name = "$COLDCARD_DEFAULT_KEY_NAME${
-                            membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
-                        }",
-                        xpub = signer.xpub,
-                        derivationPath = signer.derivationPath,
-                        masterFingerprint = signer.masterFingerprint,
-                        type = SignerType.AIRGAP,
-                        tags = listOf(SignerTag.COLDCARD)
-                    )
-                )
-                if (createSignerResult.isFailure) {
-                    _event.emit(ColdcardRecoverEvent.ShowError(createSignerResult.exceptionOrNull()?.message.orUnknownError()))
-                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
-                    return@launch
-                }
-                val coldcardSigner = createSignerResult.getOrThrow()
-                saveMembershipStepUseCase(
-                    MembershipStepInfo(
-                        step = membershipStepManager.currentStep
-                            ?: throw IllegalArgumentException("Current step empty"),
-                        masterSignerId = coldcardSigner.masterFingerprint,
-                        plan = membershipStepManager.plan,
-                        verifyType = VerifyType.APP_VERIFIED,
-                        extraData = gson.toJson(
-                            SignerExtra(
-                                derivationPath = coldcardSigner.derivationPath,
-                                isAddNew = true,
-                                signerType = coldcardSigner.type
-                            )
-                        ),
-                        groupId = groupId
-                    )
-                )
-                if (groupId.isNotEmpty()) {
-                    syncKeyToGroupUseCase(
-                        SyncKeyToGroupUseCase.Param(
-                            step = membershipStepManager.currentStep
-                                ?: throw IllegalArgumentException("Current step empty"),
-                            groupId = groupId,
-                            signer = coldcardSigner
-                        )
-                    )
-                }
-                _event.emit(ColdcardRecoverEvent.CreateSignerSuccess)
+                handleSigner(parseResult.getOrThrow(), groupId, newIndex)
             }
             _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
         }
     }
+
+    fun handleSigner(singleSigners: List<SingleSigner>, groupId: String, newIndex: Int) =
+        viewModelScope.launch {
+            val signer =
+                singleSigners.find { it.derivationPath.isRecommendedPath }
+            if (signer == null) {
+                _event.emit(ColdcardRecoverEvent.ShowError("Can not find valid signer path"))
+                _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                return@launch
+            }
+            if (chain == Chain.MAIN && isTestNetPath(signer.derivationPath)) {
+                _event.emit(ColdcardRecoverEvent.ErrorMk4TestNet)
+                _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                return@launch
+            }
+            if (newIndex >= 0 && !signer.derivationPath.endsWith("${newIndex}h/2h")) {
+                _event.emit(ColdcardRecoverEvent.NewIndexNotMatchException)
+                _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                return@launch
+            }
+            if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
+                _event.emit(ColdcardRecoverEvent.AddSameKey)
+                _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                return@launch
+            }
+            val createSignerResult = createSignerUseCase(
+                CreateSignerUseCase.Params(
+                    name = "$COLDCARD_DEFAULT_KEY_NAME${
+                        membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
+                    }",
+                    xpub = signer.xpub,
+                    derivationPath = signer.derivationPath,
+                    masterFingerprint = signer.masterFingerprint,
+                    type = SignerType.AIRGAP,
+                    tags = listOf(SignerTag.COLDCARD)
+                )
+            )
+            if (createSignerResult.isFailure) {
+                _event.emit(ColdcardRecoverEvent.ShowError(createSignerResult.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                return@launch
+            }
+            val coldcardSigner = createSignerResult.getOrThrow()
+            saveMembershipStepUseCase(
+                MembershipStepInfo(
+                    step = membershipStepManager.currentStep
+                        ?: throw IllegalArgumentException("Current step empty"),
+                    masterSignerId = coldcardSigner.masterFingerprint,
+                    plan = membershipStepManager.plan,
+                    verifyType = VerifyType.APP_VERIFIED,
+                    extraData = gson.toJson(
+                        SignerExtra(
+                            derivationPath = coldcardSigner.derivationPath,
+                            isAddNew = true,
+                            signerType = coldcardSigner.type
+                        )
+                    ),
+                    groupId = groupId
+                )
+            )
+            if (groupId.isNotEmpty()) {
+                syncKeyToGroupUseCase(
+                    SyncKeyToGroupUseCase.Param(
+                        step = membershipStepManager.currentStep
+                            ?: throw IllegalArgumentException("Current step empty"),
+                        groupId = groupId,
+                        signer = coldcardSigner
+                    )
+                )
+            }
+            _event.emit(ColdcardRecoverEvent.CreateSignerSuccess)
+        }
 }
 
 sealed class ColdcardRecoverEvent {
