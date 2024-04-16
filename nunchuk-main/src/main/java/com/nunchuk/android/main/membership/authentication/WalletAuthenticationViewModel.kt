@@ -520,6 +520,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 || type == SignerType.HARDWARE
                 || type == SignerType.NFC
                 || type == SignerType.COLDCARD_NFC
+                || type == SignerType.FOREIGN_SOFTWARE
     }
 
     fun getDummyTransactionType() = _state.value.dummyTransactionType
