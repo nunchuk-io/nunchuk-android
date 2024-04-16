@@ -37,7 +37,8 @@ sealed class RecoveryQuestionEvent {
         val userData: String,
         val requiredSignatures: Int,
         val type: String,
-        val dummyTransactionId: String? = null
+        val dummyTransactionId: String? = null,
+        val groupId: String? = null,
     ) : RecoveryQuestionEvent()
 
     data class ShowError(val message: String) : RecoveryQuestionEvent()

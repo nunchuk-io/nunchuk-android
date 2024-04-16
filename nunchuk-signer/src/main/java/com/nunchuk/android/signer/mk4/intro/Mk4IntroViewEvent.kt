@@ -21,6 +21,7 @@ package com.nunchuk.android.signer.mk4.intro
 
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.usecase.ResultExistingKey
 
 sealed class Mk4IntroViewEvent {
     data class Loading(val isLoading: Boolean) : Mk4IntroViewEvent()
@@ -36,4 +37,6 @@ sealed class Mk4IntroViewEvent {
     data class ParseWalletFromMk4Success(val wallet: Wallet?) : Mk4IntroViewEvent()
     data object NewIndexNotMatchException : Mk4IntroViewEvent()
     data object XfpNotMatchException : Mk4IntroViewEvent()
+    data class CheckExistingKey(val type: ResultExistingKey, val signer: SingleSigner) : Mk4IntroViewEvent()
+    data class AddMk4SuccessEvent(val signer: SingleSigner) : Mk4IntroViewEvent()
 }

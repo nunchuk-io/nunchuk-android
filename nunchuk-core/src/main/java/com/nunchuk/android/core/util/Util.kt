@@ -22,12 +22,14 @@ package com.nunchuk.android.core.util
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.text.TextUtils.split
 import android.text.util.Linkify
 import android.widget.TextView
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
+import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -44,6 +46,16 @@ fun Throwable.readableMessage() = message ?: UNKNOWN_ERROR
 fun Exception.messageOrUnknownError() = message.orUnknownError()
 
 fun String?.orUnknownError() = this ?: UNKNOWN_ERROR
+
+fun Throwable.nativeErrorCode(): Int {
+    if (this is NCNativeException) {
+        val errorCode = this.message.split(":")[0]
+        if (errorCode.toIntOrNull() != null) {
+            return errorCode.toInt()
+        }
+    }
+    return -1
+}
 
 fun String.isValidCvc() = length in MIN_CVC_LENGTH..MAX_CVC_LENGTH
 

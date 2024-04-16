@@ -711,4 +711,14 @@
     <string name="nc_enter_your_pin">Enter your PIN</string>
     <string name="nc_incorrect_current_pin">Incorrect current PIN</string>
     <string name="nc_ultra_high">Ultra-High</string>
+    <string name="nc_existing_key_change_key_type">This key (%1$s) already exists. Do you want to change the key type?</string>
+    <string name="nc_existing_key_is_software_key_delete_key">This key (%1$s) already exists. Do you want to change the key type?\n[B]This action will delete the software key from this device.[/B]</string>
+    <string name="nc_tapsigner">TAPSIGNER</string>
+    <string name="nc_bitbox">BitBox</string>
+    <string name="nc_signer_generic_air_gapped">Generic air-gapped device</string>
+    <string name="nc_ledger">Ledger</string>
+    <string name="nc_trezor">Trezor</string>
+    <string name="nc_seedsigner">SeedSigner</string>
+    <string name="nc_select_the_key_type">Please select the key type</string>
+    <string name="nc_key_has_added_change_key">This key has already been added. Do you want to change the key type?</string>
 </resources>

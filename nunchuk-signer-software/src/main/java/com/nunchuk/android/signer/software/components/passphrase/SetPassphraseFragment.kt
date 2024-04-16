@@ -35,7 +35,7 @@ import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showLoading
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
@@ -49,6 +49,7 @@ import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEv
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.PassPhraseRequiredEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.PassPhraseValidEvent
 import com.nunchuk.android.signer.software.databinding.FragmentSetPassphraseBinding
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
@@ -92,7 +93,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
 
             is CreateSoftwareSignerErrorEvent -> onCreateSignerError(event)
             PassPhraseValidEvent -> removeValidationError()
-            is LoadingEvent -> showLoading()
+            is LoadingEvent -> showOrHideLoading(loading = event.loading)
             is CreateWalletErrorEvent -> showError(event.message)
             is CreateWalletSuccessEvent -> {
                 navigator.openBackupWalletScreen(requireActivity(), event.walletId, 1, true)
@@ -100,6 +101,22 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
                     setResult(Activity.RESULT_OK)
                     finish()
                 }
+            }
+
+            is SetPassphraseEvent.ExistingSignerEvent -> {
+                NCInfoDialog(requireActivity())
+                    .showDialog(
+                        message = String.format(
+                            getString(R.string.nc_existing_key_change_key_type),
+                            event.fingerprint
+                        ),
+                        btnYes = getString(R.string.nc_text_yes),
+                        btnInfo = getString(R.string.nc_text_no),
+                        onYesClick = {
+                            viewModel.createSoftwareSigner(isReplaceKey = true)
+                        },
+                        onInfoClick = {}
+                    )
             }
         }
     }

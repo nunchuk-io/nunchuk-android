@@ -21,6 +21,10 @@ package com.nunchuk.android.widget
 
 import android.app.Activity
 import android.app.Dialog
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
@@ -83,7 +87,24 @@ class NCInfoDialog @Inject constructor(
 
         binding.title.text = title
         binding.btnYes.text = btnYes
-        binding.message.text = message
+
+        try {
+            val pattern = "\\[B](.*?)\\[/B]".toRegex()
+            val matchResult = pattern.find(message)
+            matchResult?.let {
+                val boldText = it.groupValues[1]
+                val start = message.indexOf(boldText) - "[B]".length
+                val end = start + boldText.length
+                val spannableString = SpannableString(message.toString().replace("[B]", "").replace("[/B]", ""))
+                spannableString.setSpan(StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                binding.message.text = spannableString
+            } ?: run {
+                binding.message.text = message
+            }
+        } catch (e: Exception) {
+            binding.message.text = message
+        }
+
         binding.btnInfo.isVisible = btnInfo.isNotBlank()
         binding.btnInfo.text = btnInfo
         binding.btnYes.setOnDebounceClickListener {

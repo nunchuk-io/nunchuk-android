@@ -23,7 +23,7 @@ import com.google.gson.annotations.SerializedName
 
 internal class GetWalletsResponse(
     @SerializedName("wallets")
-    val wallets: List<DeletedWalletDto> = emptyList()
+    val wallets: List<WalletDto> = emptyList()
 )
 
 internal data class DeletedWalletDto(

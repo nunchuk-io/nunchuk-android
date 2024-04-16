@@ -62,16 +62,24 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.BaseChangeTapSignerNameFragment
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.signer.util.showNfcAlreadyAdded
+import com.nunchuk.android.usecase.ResultExistingKey
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val args by navArgs<AddTapSignerIntroFragmentArgs>()
     private val viewModel: AddTapSignerIntroViewModel by viewModels()
 
@@ -121,7 +129,9 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                 is AddTapSignerIntroEvent.GetTapSignerStatusError -> showError(it.e?.message.orUnknownError())
                 is AddTapSignerIntroEvent.GetTapSignerStatusSuccess -> requireActivity().handleTapSignerStatus(
                     it.status,
-                    onCreateSigner = ::handleCreateSigner,
+                    onCreateSigner = {
+                        handleCreateSigner(it.status.ident.orEmpty())
+                    },
                     onSetupNfc = ::handleSetupTapSigner,
                     onSignerExisted = {
                         if (args.isMembershipFlow) {
@@ -135,6 +145,15 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                                     )
                                 )
                             }
+                        } else if (viewModel.isInAssistedWallet(it.status.masterSignerId.orEmpty())) {
+                            NCInfoDialog(requireActivity()).showDialog(
+                                message = getString(R.string.nc_key_has_added_change_key),
+                                btnYes = getString(R.string.nc_text_yes),
+                                btnInfo = getString(R.string.nc_text_no),
+                                onYesClick = {
+                                    viewModel.getMasterSigner(it.status.masterSignerId.orEmpty())
+                                }
+                            ).show()
                         } else {
                             requireActivity().showNfcAlreadyAdded()
                         }
@@ -143,6 +162,19 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                 is AddTapSignerIntroEvent.Loading -> showOrHideLoading(
                     it.isLoading, message = getString(R.string.nc_keep_holding_nfc)
                 )
+
+                is AddTapSignerIntroEvent.GetMasterSignerSuccess -> {
+                    navigator.openSignerInfoScreen(
+                        activityContext = requireActivity(),
+                        isMasterSigner = true,
+                        id = it.masterSigner.id,
+                        masterFingerprint = it.masterSigner.device.masterFingerprint,
+                        name = it.masterSigner.name,
+                        type = it.masterSigner.type,
+                        justAdded = true
+                    )
+                    requireActivity().finish()
+                }
             }
         }
 
@@ -157,11 +189,11 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
         }
     }
 
-    private fun handleCreateSigner() {
+    private fun handleCreateSigner(cardIdent: String) {
         if (isMembershipFlow) {
             (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_ADD_KEY)
         } else {
-            findNavController().navigate(AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToAddNfcNameFragment())
+            findNavController().navigate(AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToAddNfcNameFragment(cardIdent))
         }
     }
 

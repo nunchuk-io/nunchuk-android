@@ -20,6 +20,7 @@
 package com.nunchuk.android.signer.components.add
 
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.usecase.ResultExistingKey
 
 sealed class AddAirgapSignerEvent {
     data class AddAirgapSignerSuccessEvent(val singleSigner: SingleSigner) : AddAirgapSignerEvent()
@@ -30,4 +31,5 @@ sealed class AddAirgapSignerEvent {
     data class LoadingEventAirgap(val isLoading: Boolean) : AddAirgapSignerEvent()
     data object NewIndexNotMatchException : AddAirgapSignerEvent()
     data object XfpNotMatchException : AddAirgapSignerEvent()
+    data class CheckExisting(val type: ResultExistingKey, val singleSigner: SingleSigner) : AddAirgapSignerEvent()
 }

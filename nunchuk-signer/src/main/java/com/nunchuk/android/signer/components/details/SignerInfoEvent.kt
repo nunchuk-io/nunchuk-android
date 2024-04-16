@@ -47,6 +47,8 @@ sealed class SignerInfoEvent {
     object TopUpXpubSuccess : SignerInfoEvent()
 
     data class TopUpXpubFailed(val e: Throwable?) : SignerInfoEvent()
+    data class Error(val e: Throwable) : SignerInfoEvent()
+    data class DeleteExistingSignerSuccess(val keyName: String) : SignerInfoEvent()
 }
 
 data class SignerInfoState(val remoteSigner: SingleSigner? = null, val masterSigner: MasterSigner? = null, val nfcCardId: String? = null)

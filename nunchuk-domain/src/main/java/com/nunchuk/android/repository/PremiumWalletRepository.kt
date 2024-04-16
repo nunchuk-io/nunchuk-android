@@ -43,11 +43,13 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TransactionAdditional
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConstraints
+import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.GroupConfig
+import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.SignerTag
@@ -428,4 +430,7 @@ interface PremiumWalletRepository {
         transactionId: String,
         newTxPsbt: String
     )
+    suspend fun getUserWalletsServer(): List<WalletServer>
+    suspend fun getGroupWalletsServer(): List<WalletServer>
+    suspend fun updateKeyType(localSigner: SingleSigner, serverSigner: SignerServer)
 }

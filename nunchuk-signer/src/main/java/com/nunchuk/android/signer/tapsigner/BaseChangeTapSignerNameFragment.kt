@@ -28,6 +28,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
@@ -35,6 +36,7 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.widget.NCInfoDialog
 import kotlinx.coroutines.flow.filter
 
 
@@ -56,7 +58,7 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
                             isoDep = IsoDep.get(it.tag),
                             cvc = nfcViewModel.inputCvc.orEmpty(),
                             name = signerName,
-                            shouldCreateBackUp = isMembershipFlow
+                            shouldCreateBackUp = isMembershipFlow,
                         )
                         nfcViewModel.clearScanInfo()
                     }
@@ -78,6 +80,20 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
                         )
                         is AddNfcNameEvent.Success -> onUpdateNameSuccess(event.masterSigner)
                         is AddNfcNameEvent.UpdateError -> showError(event.e?.message.orEmpty())
+
+                        is AddNfcNameEvent.SignerExist -> {
+                            NCInfoDialog(requireActivity())
+                                .showDialog(
+                                    message = String.format(getString(R.string.nc_existing_key_is_software_key_delete_key), event.cardIdent),
+                                    btnYes = getString(R.string.nc_text_yes),
+                                    btnInfo = getString(R.string.nc_text_no),
+                                    onYesClick = {
+                                        nameNfcViewModel.setReplaceKeyFlow(true)
+                                        (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_ADD_KEY)
+                                    },
+                                    onInfoClick = {}
+                                )
+                        }
                     }
                 }
             }

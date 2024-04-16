@@ -31,6 +31,8 @@ import com.nunchuk.android.core.domain.HealthCheckColdCardUseCase
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
 import com.nunchuk.android.core.domain.HealthCheckTapSignerUseCase
 import com.nunchuk.android.core.domain.TopUpXpubTapSignerUseCase
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
+import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
@@ -93,6 +95,7 @@ internal class SignerInfoViewModel @Inject constructor(
     private val generateColdCardHealthCheckMessageUseCase: GenerateColdCardHealthCheckMessageUseCase,
     private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
     private val updateServerKeyNameUseCase: UpdateServerKeyNameUseCase,
+    private val updateExistingKeyUseCase: UpdateExistingKeyUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : ViewModel() {
@@ -328,6 +331,18 @@ internal class SignerInfoViewModel @Inject constructor(
             } else {
                 _event.emit(NfcError(result.exceptionOrNull()))
             }
+        }
+    }
+
+    fun updateExistingKey(existingKey: WalletsExistingKey, replace: Boolean) {
+        viewModelScope.launch {
+            _event.emit(NfcLoading)
+            updateExistingKeyUseCase(UpdateExistingKeyUseCase.Params(serverSigner = existingKey.signerServer, existingKey.localSigner, replace))
+                .onSuccess {
+                    _event.emit(SignerInfoEvent.DeleteExistingSignerSuccess(existingKey.localSigner.name))
+                }.onFailure {
+                    _event.emit(SignerInfoEvent.Error(it))
+                }
         }
     }
 }

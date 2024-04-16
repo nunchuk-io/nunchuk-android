@@ -45,6 +45,10 @@
         <argument
             android:name="signer_type"
             app:argType="com.nunchuk.android.type.SignerType" />
+        <argument
+            android:name="existing_key"
+            app:argType="com.nunchuk.android.core.domain.membership.WalletsExistingKey"
+            app:nullable="true"/>
         <action
             android:id="@+id/action_signerInfoFragment_to_signMessageFragment"
             app:destination="@id/signMessageFragment"

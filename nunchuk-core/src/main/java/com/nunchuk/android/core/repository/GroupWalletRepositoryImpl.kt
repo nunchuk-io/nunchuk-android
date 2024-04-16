@@ -206,7 +206,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 xfp = signer.xfp.orEmpty(),
                 version = tapsigner.version.orEmpty(),
                 brithHeight = tapsigner.birthHeight,
-                isTestNet = tapsigner.isTestnet
+                isTestNet = tapsigner.isTestnet,
+                replace = false
             )
         } else {
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
@@ -216,7 +217,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 derivationPath = signer.derivationPath.orEmpty(),
                 masterFingerprint = signer.xfp.orEmpty(),
                 type = type,
-                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() })
+                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
+                replace = false)
         }
         return false
     }

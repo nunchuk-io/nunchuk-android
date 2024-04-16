@@ -20,6 +20,8 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.model.ServerKey
+import com.nunchuk.android.model.WalletServer
 
 internal data class WalletDto(
     @SerializedName("id") val id: String? = null,
@@ -35,3 +37,20 @@ internal data class WalletDto(
     @SerializedName("primary_membership_id") val primaryMembershipId: String? = null,
     @SerializedName("alias") val alias: String? = null,
 )
+
+internal fun WalletDto.toModel(): WalletServer {
+    return WalletServer(
+        id = id ?: "",
+        localId = localId ?: "",
+        name = name ?: "",
+        description = description ?: "",
+        bsms = bsms ?: "",
+        slug = slug ?: "",
+        serverKey = serverKeyDto?.toModel(),
+        signers = signerServerDtos.map { it.toModel() },
+        status = status ?: "",
+        createdTimeMilis = createdTimeMilis,
+        primaryMembershipId = primaryMembershipId ?: "",
+        alias = alias ?: "",
+    )
+}

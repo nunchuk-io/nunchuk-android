@@ -38,6 +38,7 @@ import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.U
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
 import com.nunchuk.android.signer.software.databinding.ActivityRecoverSeedBinding
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -125,6 +126,22 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                 navigator.returnToMainScreen()
                 navigator.openWalletDetailsScreen(activityContext = this, walletId = event.walletId)
                 NcToastManager.scheduleShowMessage(getString(R.string.nc_my_hot_wallet_has_been_recovered))
+            }
+
+            is RecoverSeedEvent.ExistingSignerEvent -> {
+                NCInfoDialog(this)
+                    .showDialog(
+                        message = String.format(
+                            getString(R.string.nc_existing_key_change_key_type),
+                            event.fingerprint
+                        ),
+                        btnYes = getString(R.string.nc_text_yes),
+                        btnInfo = getString(R.string.nc_text_no),
+                        onYesClick = {
+                            viewModel.recoverHotWallet(true)
+                        },
+                        onInfoClick = {}
+                    )
             }
         }
     }

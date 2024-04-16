@@ -376,7 +376,7 @@ internal interface UserWalletsApi {
     suspend fun getGroupAssistedWalletConfig(): Data<GroupAssistedWalletConfigResponse>
 
     @PUT("/v1.1/user-wallets/wallet-keys/{xfp}")
-    suspend fun updateKeyName(
+    suspend fun updateServerKey(
         @Path("xfp") xfp: String, @Body payload: UpdateKeyPayload
     ): Data<Unit>
 
@@ -519,6 +519,4 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("dummy_transaction_id") transactionId: String,
     ): Data<DummyTransactionResponse>
-
-
 }

@@ -25,8 +25,10 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
+import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileFromUri
@@ -48,6 +50,8 @@ import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.ChangeKeyTypeUseCase
+import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
@@ -86,6 +90,9 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
+    private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
+    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
+    private val changeKeyTypeUseCase: ChangeKeyTypeUseCase
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -101,6 +108,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         viewModelScope.launch {
             chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
+        checkAssistedSignerExistenceHelper.init(viewModelScope)
     }
 
     val remainTime = membershipStepManager.remainingTime
@@ -173,6 +181,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             )
             if (result.isSuccess) {
                 val airgap = result.getOrThrow()
+                _state.update { it.copy(airgap = airgap) }
                 if (isMembershipFlow) {
                     saveMembershipStepUseCase(
                         MembershipStepInfo(
@@ -201,8 +210,20 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                             )
                         )
                     }
+                    setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
+                } else {
+                    if (checkAssistedSignerExistenceHelper.isInAssistedWallet(airgap.toModel())) {
+                        checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(airgap))
+                            .onSuccess {
+                                setEvent(AddAirgapSignerEvent.CheckExisting(it, airgap))
+                            }
+                            .onFailure {
+                                setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                            }
+                    } else {
+                        setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
+                    }
                 }
-                setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
             } else {
                 setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
@@ -302,6 +323,24 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         _state.update { it.copy(keySpec = keySpec, showKeySpecError = false) }
     }
 
+    fun changeKeyType(
+        signerTag: SignerTag? = null,
+    ) {
+        val singleSigner = _state.value.airgap ?: return
+        viewModelScope.launch {
+            changeKeyTypeUseCase(
+                ChangeKeyTypeUseCase.Params(
+                    singleSigner = singleSigner,
+                    signerTag = signerTag
+                )
+            ).onSuccess {
+                setEvent(AddAirgapSignerSuccessEvent(singleSigner))
+            }.onFailure {
+                setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "AddSignerViewModel"
     }
@@ -313,4 +352,5 @@ data class AddAirgapSignerState(
     val keyName: String = "",
     val showKeySpecError: Boolean = false,
     val showKeyNameError: Boolean = false,
+    val airgap: SingleSigner? = null
 )

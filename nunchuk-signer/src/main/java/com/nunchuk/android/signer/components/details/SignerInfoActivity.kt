@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.fragment.NavHostFragment
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerType
@@ -57,7 +58,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             isInWallet: Boolean,
             isInAssistedWallet: Boolean,
             isReplacePrimaryKey: Boolean = false,
-            customMessage: String
+            customMessage: String,
+            existingKey: WalletsExistingKey? = null,
         ) {
             activityContext.startActivity(Intent(activityContext, SignerInfoActivity::class.java).apply {
                 putExtras(SignerInfoFragmentArgs(
@@ -72,7 +74,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                     isInAssistedWallet = isInAssistedWallet,
                     isReplacePrimaryKey = isReplacePrimaryKey,
                     customMessage = customMessage,
-                    isMasterSigner = isMasterSigner
+                    isMasterSigner = isMasterSigner,
+                    existingKey = existingKey
                 ).toBundle())
             })
         }
