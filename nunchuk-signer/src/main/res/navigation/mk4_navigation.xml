@@ -55,5 +55,8 @@
         <argument
             android:name="is_membership_flow"
             app:argType="boolean" />
+        <argument android:name="scan_qr_code"
+            app:argType="boolean"
+            android:defaultValue="false"/>
     </fragment>
 </navigation>

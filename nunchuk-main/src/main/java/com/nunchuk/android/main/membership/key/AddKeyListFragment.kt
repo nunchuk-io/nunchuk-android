@@ -164,10 +164,12 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             )
 
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
+            SheetOptionType.TYPE_ADD_COLDCARD_QR,
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 requireActivity(),
                 true,
-                ColdcardAction.RECOVER_KEY
+                ColdcardAction.RECOVER_KEY,
+                isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR
             )
 
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,
@@ -222,6 +224,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     type = SheetOptionType.TYPE_ADD_COLDCARD_NFC,
                     label = getString(R.string.nc_add_coldcard_via_nfc),
                     resId = R.drawable.ic_nfc_indicator_small
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_QR,
+                    label = getString(R.string.nc_add_coldcard_via_qr),
+                    resId = R.drawable.ic_qr
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_COLDCARD_USB,

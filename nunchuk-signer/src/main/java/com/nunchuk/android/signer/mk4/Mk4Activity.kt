@@ -80,6 +80,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
         private const val EXTRA_GROUP_ID = "group_id"
         private const val EXTRA_INDEX = "index"
         private const val EXTRA_XFP = "xfp"
+        private const val EXTRA_SCAN_QR_CODE = "scan_qr_code"
+
         fun navigate(
             activity: Activity,
             isMembershipFlow: Boolean,
@@ -87,6 +89,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             groupId: String,
             newIndex: Int = -1,
             xfp: String? = null,
+            isScanQRCode : Boolean = false
         ) {
             activity.startActivity(
                 buildIntent(
@@ -95,7 +98,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                     action = action,
                     groupId = groupId,
                     newIndex = newIndex,
-                    xfp = xfp
+                    xfp = xfp,
+                    isScanQRCode = isScanQRCode
                 )
             )
         }
@@ -107,6 +111,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             groupId: String,
             newIndex: Int = -1,
             xfp: String? = null,
+            isScanQRCode : Boolean = false
         ): Intent {
             return Intent(activity, Mk4Activity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
@@ -114,6 +119,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                 putExtra(EXTRA_GROUP_ID, groupId)
                 putExtra(EXTRA_INDEX, newIndex)
                 putExtra(EXTRA_XFP, xfp)
+                putExtra(EXTRA_SCAN_QR_CODE, isScanQRCode)
             }
         }
     }

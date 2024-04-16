@@ -276,6 +276,7 @@
     <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
     <string name="nc_export_xpubs_from_coldcard">Export XPUBs from COLDCARD</string>
     <string name="nc_import_xpub_into_app">Import XPUBs into this app</string>
+    <string name="nc_scan_qr_code">Scan QR code</string>
     <string name="nc_signer_before_start_title">Before you start</string>
     <string name="nc_signer_before_start_note">Please ensure to do the following before proceeding:</string>
     <string name="nc_signer_before_start_initialize">Initialize the device key</string>

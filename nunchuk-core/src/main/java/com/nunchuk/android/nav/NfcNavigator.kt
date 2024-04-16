@@ -32,6 +32,7 @@ interface NfcNavigator {
         groupId: String = "",
         newIndex: Int = -1,
         xfp: String? = null,
+        isScanQRCode: Boolean = false,
     )
 
     fun startSetupMk4ForResult(

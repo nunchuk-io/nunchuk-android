@@ -26,6 +26,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -33,15 +34,20 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
+class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>() {
 
     private val viewModel: AddAirgapSignerViewModel by viewModels()
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+
+    }
 
     override fun initializeBinding() = ActivityScanDynamicQrBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        requestCameraPermissionOrExecuteAction()
         setLightStatusBar()
         setupViews()
         observer()
