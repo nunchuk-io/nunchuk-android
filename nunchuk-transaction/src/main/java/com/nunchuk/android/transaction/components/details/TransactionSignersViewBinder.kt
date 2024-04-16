@@ -88,7 +88,9 @@ internal class TransactionSignersViewBinder(
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = true
         } else {
-            binding.btnSign.isVisible = model.type != SignerType.SERVER && txStatus.isPendingSignatures() && userRole.isObserver.not()
+            binding.btnSign.isVisible = model.type != SignerType.SERVER
+                    && model.type != SignerType.FOREIGN_SOFTWARE
+                    && txStatus.isPendingSignatures() && userRole.isObserver.not()
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
         }
@@ -110,12 +112,17 @@ internal class TransactionSignersViewBinder(
                 binding.xpf.text = serverTransaction?.spendingLimitMessage
             } else if (cosignedTime > 0L && isSigned.not() && txStatus.isPendingSignatures()) {
                 val cosignDate = Date(cosignedTime)
-               val spannable = if (DateUtils.isToday(cosignedTime)) {
+                val spannable = if (DateUtils.isToday(cosignedTime)) {
                     SpannableString("${context.getString(R.string.nc_cosign_at)} ${cosignDate.formatByHour()}")
                 } else {
-                   SpannableString("${context.getString(R.string.nc_cosign_at)} ${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}")
+                    SpannableString("${context.getString(R.string.nc_cosign_at)} ${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}")
                 }
-                spannable.setSpan(StyleSpan(Typeface.BOLD), context.getString(R.string.nc_cosign_at).length, spannable.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    context.getString(R.string.nc_cosign_at).length,
+                    spannable.length,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
                 binding.xpf.text = spannable
             }
             binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_beeswax_dark))
