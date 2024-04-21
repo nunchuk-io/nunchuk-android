@@ -21,18 +21,21 @@ package com.nunchuk.android.transaction.components.export
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.util.DELAY_DYNAMIC_QR
 import com.nunchuk.android.core.util.HIGH_DENSITY
 import com.nunchuk.android.core.util.LOW_DENSITY
 import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.core.util.ULTRA_DENSITY
 import com.nunchuk.android.core.util.densityToLevel
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.LoadingEvent
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
@@ -40,17 +43,24 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>() {
 
+    @Inject
+    @IoDispatcher
+    lateinit var ioDispatcher: CoroutineDispatcher
+
     private val args: ExportTransactionArgs by lazy { ExportTransactionArgs.deserializeFrom(intent) }
 
-    private lateinit var bitmaps: List<Bitmap>
+    private val qrBitmaps = mutableMapOf<String, Bitmap?>()
 
     private var index = 0
 
@@ -78,20 +88,25 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     override fun onDestroy() {
-        viewModel.state.value?.qrCodeBitmap?.forEach {
-            it.recycle()
-        }
+        qrBitmaps.values.forEach { it?.recycle() }
         super.onDestroy()
     }
 
-    private fun bindQrCodes() {
+    private suspend fun bindQrCodes() {
         calculateIndex()
-        binding.qrCode.setImageBitmap(bitmaps[index])
+        val qrString = viewModel.qrStrings[index]
+        val bitmap = qrBitmaps.getOrPut(qrString) {
+            withContext(ioDispatcher) {
+                val qrSize = getQrSize()
+                qrString.convertToQRCode(qrSize, qrSize)
+            }
+        }
+        binding.qrCode.setImageBitmap(bitmap)
     }
 
     private fun calculateIndex() {
         index++
-        if (index >= bitmaps.size) {
+        if (index >= viewModel.qrStrings.size) {
             index = 0
         }
     }
@@ -119,8 +134,9 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
     private fun handleState(state: ExportTransactionState) {
         binding.slider.value = state.density.densityToLevel()
-        if (state.qrCodeBitmap.isNotEmpty()) {
-            bitmaps = state.qrCodeBitmap
+        if (state.qrStrings.isNotEmpty()) {
+            qrBitmaps.values.forEach { it?.recycle() }
+            qrBitmaps.clear()
             showQrJob?.cancel()
             showQrJob = lifecycleScope.launch {
                 repeat(Int.MAX_VALUE) {
@@ -138,6 +154,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 hideLoading()
                 NCToastMessage(this).showError(event.message)
             }
+
             LoadingEvent -> showLoading()
         }
     }
@@ -154,6 +171,13 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         )
     }
 
+    private fun getQrSize(): Int {
+        return minOf(
+            Resources.getSystem().displayMetrics.widthPixels,
+            Resources.getSystem().displayMetrics.heightPixels
+        ).coerceAtMost(1080)
+    }
+
     companion object {
 
         fun buildIntent(
@@ -164,7 +188,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             initEventId: String = "",
             masterFingerPrint: String = "",
             isDummyTx: Boolean = false,
-            isBBQR: Boolean = false
+            isBBQR: Boolean = false,
         ): Intent {
             return ExportTransactionArgs(
                 walletId = walletId,
