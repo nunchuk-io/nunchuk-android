@@ -231,9 +231,9 @@ class AddByzantineKeyListViewModel @Inject constructor(
         _state.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
 
     fun getColdcard() = _state.value.signers.filter {
-        it.type == SignerType.COLDCARD_NFC
+        (it.type == SignerType.COLDCARD_NFC
                 && it.derivationPath.isRecommendedPath
-                && isSignerExist(it.fingerPrint).not()
+                && isSignerExist(it.fingerPrint).not()) || (it.type == SignerType.AIRGAP && it.tags.isEmpty())
     }
 
     fun getAirgap(tag: SignerTag?): List<SignerModel> {
