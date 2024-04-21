@@ -166,8 +166,6 @@ class MembershipRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.localMembershipPlan
-
     override fun isHideUpsellBanner(): Flow<Boolean> = ncDataStore.isHideUpsellBanner
 
     override suspend fun setRegisterAirgap(walletId: String, value: Int) {

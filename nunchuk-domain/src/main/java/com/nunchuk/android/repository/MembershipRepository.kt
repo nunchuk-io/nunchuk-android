@@ -30,7 +30,6 @@ interface MembershipRepository {
     suspend fun deleteStepBySignerId(masterSignerId: String)
     suspend fun getSubscription() : MemberSubscription
     suspend fun restart(plan: MembershipPlan, groupId: String)
-    fun getLocalCurrentPlan(): Flow<MembershipPlan>
     fun isHideUpsellBanner(): Flow<Boolean>
     fun getPersonalSteps(): Flow<List<MembershipStepInfo>>
     suspend fun setRegisterAirgap(walletId: String, value: Int)
