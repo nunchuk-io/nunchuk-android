@@ -176,7 +176,7 @@ class AddKeyListViewModel @Inject constructor(
                     )
                 )
             } else {
-                savedStateHandle[KEY_CURRENT_SIGNER] = signer
+                savedStateHandle[KEY_CURRENT_AIRGAP_SIGNER] = signer
                 _event.emit(AddKeyListEvent.SelectAirgapType)
             }
         }
@@ -189,7 +189,7 @@ class AddKeyListViewModel @Inject constructor(
                     val result =
                         updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
                     if (result is Result.Success) {
-                        savedStateHandle[KEY_CURRENT_SIGNER] = null
+                        savedStateHandle[KEY_CURRENT_AIRGAP_SIGNER] = null
                         loadSigners()
                         onSelectedExistingHardwareSigner(signer.copy(tags = listOf(tag)))
                     } else {
@@ -199,7 +199,7 @@ class AddKeyListViewModel @Inject constructor(
         }
     }
 
-    fun getUpdateSigner(): SignerModel? = savedStateHandle.get<SignerModel>(KEY_CURRENT_SIGNER)
+    fun getUpdateSigner(): SignerModel? = savedStateHandle.get<SignerModel>(KEY_CURRENT_AIRGAP_SIGNER)
 
     fun onAddKeyClicked(data: AddKeyData) {
         viewModelScope.launch {
@@ -241,9 +241,9 @@ class AddKeyListViewModel @Inject constructor(
         _state.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
 
     fun getColdcard() = _state.value.signers.filter {
-        it.type == SignerType.COLDCARD_NFC
+        (it.type == SignerType.COLDCARD_NFC
                 && it.derivationPath.isRecommendedPath
-                && isSignerExist(it.fingerPrint).not()
+                && isSignerExist(it.fingerPrint).not()) || (it.type == SignerType.AIRGAP && it.tags.isEmpty())
     }
 
     fun getAirgap(tag: SignerTag?): List<SignerModel> {
@@ -251,20 +251,19 @@ class AddKeyListViewModel @Inject constructor(
             _state.value.signers.filter {
                 it.type == SignerType.AIRGAP
                         && isSignerExist(it.fingerPrint).not()
-                        && it.tags.isEmpty()
             }
         } else {
             _state.value.signers.filter {
                 it.type == SignerType.AIRGAP
                         && isSignerExist(it.fingerPrint).not()
-                        && it.tags.contains(tag)
+                        && (it.tags.contains(tag) || it.tags.isEmpty())
             }
         }
     }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
-        private const val KEY_CURRENT_SIGNER = "current_signer"
+        private const val KEY_CURRENT_AIRGAP_SIGNER = "current_signer"
     }
 }
 
