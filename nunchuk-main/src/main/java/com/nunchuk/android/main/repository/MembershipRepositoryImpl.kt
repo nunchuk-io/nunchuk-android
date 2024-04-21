@@ -126,26 +126,19 @@ class MembershipRepositoryImpl @Inject constructor(
             ncSharePreferences.appSettings,
             AppSettings::class.java
         )?.chain ?: Chain.MAIN
-        var result = membershipApi.getCurrentSubscription()
+        var result = membershipApi.getSubscriptions()
         if (result.isSuccess.not() && chain != Chain.MAIN) {
             result = membershipApi.getTestnetCurrentSubscription()
         }
         if (result.isSuccess) {
             val data = result.data
-            val plan = if (chain == Chain.MAIN &&
-                (data.status == "PENDING"
-                        || (data.status == "ACTIVE" && Calendar.getInstance().timeInMillis <= data.graceValidUntilUtcMillis))
-            ) {
-                data.plan?.slug.toMembershipPlan()
-            } else if (chain == Chain.MAIN) {
-                MembershipPlan.NONE
-            } else {
-                data.plan?.slug.toMembershipPlan()
-            }
-            ncDataStore.setLocalMembershipPlan(plan)
-            ncDataStore.setPlans(data.plan?.slug?.let { listOf(it) }.orEmpty()) // TODO Hai
+            val validPlans = data
+                .subscriptions
+                .filter { plan -> plan.status == "PENDING" || (plan.status == "ACTIVE" && Calendar.getInstance().timeInMillis <= plan.graceValidUntilUtcMillis) }
+                .mapNotNull { it.plan?.slug }
+            ncDataStore.setPlans(validPlans)
 
-            return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
+            return MemberSubscription(validPlans.map { it.toMembershipPlan() })
         } else {
             throw result.error
         }

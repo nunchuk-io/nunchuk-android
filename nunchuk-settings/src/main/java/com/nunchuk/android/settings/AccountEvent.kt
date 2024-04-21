@@ -20,12 +20,14 @@
 package com.nunchuk.android.settings
 
 import com.nunchuk.android.core.account.AccountInfo
+import com.nunchuk.android.model.MembershipPlan
 
 data class AccountState(
     val account: AccountInfo = AccountInfo(),
     val syncProgress: Int = 0,
     val finishedSync: Boolean = false,
-    val localCurrency: String = ""
+    val localCurrency: String = "",
+    val plans : List<MembershipPlan> = emptyList(),
 ) {
     fun isSyncing() = syncProgress in 1..99
 }
