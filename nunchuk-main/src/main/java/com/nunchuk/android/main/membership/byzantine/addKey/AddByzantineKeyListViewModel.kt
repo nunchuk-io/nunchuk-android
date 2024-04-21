@@ -241,13 +241,12 @@ class AddByzantineKeyListViewModel @Inject constructor(
             _state.value.signers.filter {
                 it.type == SignerType.AIRGAP
                         && isSignerExist(it.fingerPrint).not()
-                        && it.tags.isEmpty()
             }
         } else {
             _state.value.signers.filter {
                 it.type == SignerType.AIRGAP
                         && isSignerExist(it.fingerPrint).not()
-                        && it.tags.contains(tag)
+                        && (it.tags.contains(tag) || it.tags.isEmpty())
             }
         }
     }
