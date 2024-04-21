@@ -2191,10 +2191,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteKey(xfp: String) {
-        val response = userWalletApiManager.walletApi.deleteKey(xfp)
-        if (response.isSuccess.not()) {
-            throw response.error
-        }
+        userWalletApiManager.walletApi.deleteKey(xfp)
     }
 
     override suspend fun syncConfirmedTransactionNotes(groupId: String?, walletId: String) {
