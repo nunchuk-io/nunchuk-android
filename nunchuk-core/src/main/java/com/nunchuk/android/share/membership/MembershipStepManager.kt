@@ -85,6 +85,11 @@ class MembershipStepManager @Inject constructor(
         applicationScope.launch {
             ncDataStore.localMembershipPlan.collect {
                 _localMembershipPlan.value = it
+                if (it == MembershipPlan.IRON_HAND) {
+                    initStep("", GroupWalletType.TWO_OF_THREE_PLATFORM_KEY)
+                } else if (it == MembershipPlan.HONEY_BADGER) {
+                    initStep("", GroupWalletType.TWO_OF_FOUR_MULTISIG)
+                }
             }
         }
         applicationScope.launch {
@@ -96,8 +101,13 @@ class MembershipStepManager @Inject constructor(
     }
 
     // Special case when set up wallet done and login in another device to setup inheritance we should mark all created wallet step to done
+    private var groupId : String? = null
+    private var groupWalletType : GroupWalletType? = null
     fun initStep(groupId: String, groupWalletType: GroupWalletType) =
         synchronized(this) {
+            if (this.groupId == groupId && this.groupWalletType == groupWalletType) return
+            this.groupId = groupId
+            this.groupWalletType = groupWalletType
             steps.clear()
             when (groupWalletType) {
                 GroupWalletType.TWO_OF_THREE -> {
@@ -161,8 +171,6 @@ class MembershipStepManager @Inject constructor(
                     steps[MembershipStep.IRON_ADD_HARDWARE_KEY_1] =
                         MembershipStepFlow(totalStep = 8)
                     steps[MembershipStep.IRON_ADD_HARDWARE_KEY_2] =
-                        MembershipStepFlow(totalStep = 8)
-                    steps[MembershipStep.HONEY_ADD_TAP_SIGNER] =
                         MembershipStepFlow(totalStep = 8)
                     steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
                 }

@@ -3,7 +3,6 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.core.profile.GetOnBoardUseCase
 import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
@@ -25,15 +24,15 @@ class CheckShowOnboardUseCase @Inject constructor(
         if (shouldShowOnboard != false) {
             supervisorScope {
                 val subscription = async {
-                    getUserSubscriptionUseCase(Unit).map { it.plan }
-                        .getOrElse { MembershipPlan.NONE }
+                    getUserSubscriptionUseCase(Unit).map { it.plans }
+                        .getOrElse { emptyList() }
                 }
 
                 val groupWallets = async {
                     syncGroupWalletsUseCase(Unit).getOrElse { false }
                 }
 
-                if (subscription.await() == MembershipPlan.NONE && !groupWallets.await()) {
+                if (subscription.await().isEmpty() && !groupWallets.await()) {
                     setOnBoardUseCase(true)
                 }
             }

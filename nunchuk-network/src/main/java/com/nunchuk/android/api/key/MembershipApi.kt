@@ -20,7 +20,7 @@
 package com.nunchuk.android.api.key
 
 import com.nunchuk.android.core.network.Data
-import com.nunchuk.android.model.MembershipSubscription
+import com.nunchuk.android.model.MembershipSubscriptions
 import com.nunchuk.android.model.VerifiedPKeyTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenResponse
@@ -30,11 +30,11 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface MembershipApi {
-    @GET("/v1.1/subscriptions/current")
-    suspend fun getCurrentSubscription(): Data<MembershipSubscription>
+    @GET("/v1.1/subscriptions/status")
+    suspend fun getSubscriptions(): Data<MembershipSubscriptions>
 
-    @GET("/v1.1/subscriptions/testnet")
-    suspend fun getTestnetCurrentSubscription(): Data<MembershipSubscription>
+    @GET("/v1.1/subscriptions/status-testnet")
+    suspend fun getTestnetCurrentSubscription(): Data<MembershipSubscriptions>
 
     @POST("/v1.1/passport/verified-password-token/{target_action}")
     suspend fun verifiedPasswordToken(

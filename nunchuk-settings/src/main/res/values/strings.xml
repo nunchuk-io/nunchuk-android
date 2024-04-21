@@ -96,4 +96,5 @@
     <string name="nc_network_setting_guide">For instructions on how to connect to your own node, please refer to this guide.</string>
     <string name="nc_finney">Finney</string>
     <string name="nc_finney_pro">Finney PRO</string>
+    <string name="nc_multiple_plans">Multiple subscriptions</string>
 </resources>

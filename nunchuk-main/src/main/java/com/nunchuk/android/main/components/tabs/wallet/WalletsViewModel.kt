@@ -315,7 +315,7 @@ internal class WalletsViewModel @Inject constructor(
                 if (getServerWalletResult.isFailure) return@launch
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
-                updateState { copy(plans = listOf(subscription.plan)) }
+                updateState { copy(plans = subscription.plans) }
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
                     retrieveData()
                 } else {
@@ -324,7 +324,7 @@ internal class WalletsViewModel @Inject constructor(
             } else {
                 updateState { copy(plans = emptyList()) }
             }
-            if (result.getOrNull()?.subscriptionId.isNullOrEmpty() && isHideUpsellBanner.value.not()) {
+            if (result.getOrNull()?.plans.isNullOrEmpty() && isHideUpsellBanner.value.not()) {
                 val bannerResult = getBannerUseCase(Unit)
                 updateState {
                     copy(banner = bannerResult.getOrNull())

@@ -20,7 +20,6 @@
 package com.nunchuk.android.settings
 
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -33,8 +32,6 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseCameraFragment
-import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.guestmode.isPrimaryKey
@@ -148,6 +145,9 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.accountSettings.isVisible = !isGuestMode
 
         binding.localCurrency.text = getString(R.string.nc_local_currency_data, state.localCurrency)
+
+        binding.premiumBadge.isVisible = state.plans.isNotEmpty()
+        binding.premiumBadge.text = getPlanName(state.plans)
     }
 
     private fun openAboutScreen() {
@@ -241,10 +241,8 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         )
         binding.takePicture.isVisible = false
         binding.name.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            binding.name.setTextAppearance(R.style.NCText_Title)
-            binding.subContent.setTextAppearance(R.style.NCText_Body)
-        }
+        binding.name.setTextAppearance(R.style.NCText_Title)
+        binding.subContent.setTextAppearance(R.style.NCText_Body)
         binding.name.text = getString(R.string.nc_do_more_with_nunchuk)
         binding.subContent.text = getString(R.string.nc_create_account_to_take_advantage)
     }
@@ -273,8 +271,6 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
     }
 
     private fun setupViews() {
-        binding.premiumBadge.isVisible = viewModel.plan != MembershipPlan.NONE
-        binding.premiumBadge.text = getPlanName(viewModel.plan)
         binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }
         binding.signIn.setOnClickListener {
             navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
@@ -312,16 +308,18 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         viewModel.getCurrentUser()
     }
 
-    private fun getPlanName(plan: MembershipPlan): String {
-        return when (plan) {
-            MembershipPlan.HONEY_BADGER -> getString(R.string.nc_honey_badger)
-            MembershipPlan.IRON_HAND -> getString(R.string.nc_iron_hand)
-            MembershipPlan.BYZANTINE -> getString(R.string.nc_byzantine)
-            MembershipPlan.BYZANTINE_PRO -> getString(R.string.nc_byzantine_pro)
-            MembershipPlan.BYZANTINE_PREMIER -> getString(R.string.nc_byzantine_premier)
-            MembershipPlan.FINNEY -> getString(R.string.nc_finney)
-            MembershipPlan.FINNEY_PRO -> getString(R.string.nc_finney_pro)
-            MembershipPlan.NONE -> ""
+    private fun getPlanName(plans: List<MembershipPlan>): String {
+        return when {
+            plans.size > 1 -> getString(R.string.nc_multiple_plans)
+            plans.isEmpty() -> ""
+            plans.first() == MembershipPlan.HONEY_BADGER -> getString(R.string.nc_honey_badger)
+            plans.first() == MembershipPlan.IRON_HAND -> getString(R.string.nc_iron_hand)
+            plans.first() == MembershipPlan.BYZANTINE -> getString(R.string.nc_byzantine)
+            plans.first() == MembershipPlan.BYZANTINE_PRO -> getString(R.string.nc_byzantine_pro)
+            plans.first() == MembershipPlan.BYZANTINE_PREMIER -> getString(R.string.nc_byzantine_premier)
+            plans.first() == MembershipPlan.FINNEY -> getString(R.string.nc_finney)
+            plans.first() == MembershipPlan.FINNEY_PRO -> getString(R.string.nc_finney_pro)
+            else -> ""
         }
     }
 

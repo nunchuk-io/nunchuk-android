@@ -28,6 +28,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.SyncFileCallBack
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.matrix.UploadFileUseCase
@@ -37,9 +38,7 @@ import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SyncFileEventHelper
-import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -64,9 +63,9 @@ internal class AccountViewModel @Inject constructor(
     private val appScope: CoroutineScope,
     private val signInModeHolder: SignInModeHolder,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
-    private val membershipStepManager: MembershipStepManager,
     private val getLocalCurrencyUseCase: GetLocalCurrencyUseCase,
     private val application: Application,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<AccountState, AccountEvent>() {
 
@@ -91,6 +90,11 @@ internal class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             getLocalCurrencyUseCase(Unit).collect { result ->
                 updateState { copy(localCurrency = result.getOrDefault(USD_CURRENCY)) }
+            }
+        }
+        viewModelScope.launch {
+            getLocalMembershipPlansFlowUseCase(Unit).collect { result ->
+                updateState { copy(plans = result.getOrDefault(emptyList())) }
             }
         }
     }
@@ -173,10 +177,6 @@ internal class AccountViewModel @Inject constructor(
             event(AccountEvent.SignOutEvent)
         }
     }
-
-    // TODO Hai
-    val plan: MembershipPlan
-        get() = membershipStepManager.localMembershipPlan
 
     override fun onCleared() {
         super.onCleared()

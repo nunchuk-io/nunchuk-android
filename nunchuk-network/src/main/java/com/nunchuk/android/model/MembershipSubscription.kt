@@ -21,6 +21,10 @@ package com.nunchuk.android.model
 
 import com.google.gson.annotations.SerializedName
 
+data class MembershipSubscriptions(
+    @SerializedName("subscriptions") val subscriptions: List<MembershipSubscription> = emptyList()
+)
+
 // Un comment when we need that information
 data class MembershipSubscription(
     @SerializedName("subscription_id") val subscriptionId: String? = null,
