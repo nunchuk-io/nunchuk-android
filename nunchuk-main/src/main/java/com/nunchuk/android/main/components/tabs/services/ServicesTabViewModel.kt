@@ -41,7 +41,10 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.containsByzantineOrFinney
+import com.nunchuk.android.model.containsPersonalPlan
 import com.nunchuk.android.model.isByzantineOrFinney
+import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
@@ -111,7 +114,7 @@ class ServicesTabViewModel @Inject constructor(
                 }
                 .collect { (plans, wallets) ->
                     _state.update { it.copy(assistedWallets = wallets) }
-                    handleAssistedWallet(wallets, plans.first()) // TODO Thong
+                    handleAssistedWallet(wallets, plans)
                 }
         }
         viewModelScope.launch {
@@ -168,14 +171,14 @@ class ServicesTabViewModel @Inject constructor(
 
     private fun handleAssistedWallet(
         assistedWallets: List<AssistedWalletBrief>,
-        plan: MembershipPlan
+        plans: List<MembershipPlan>
     ) {
-        if (plan == MembershipPlan.NONE) {
+        if (plans.isNonePlan()) {
             getNonSubscriberPageContent()
         } else {
             _state.update {
                 it.copy(
-                    plan = plan,
+                    plans = plans,
                     isPremiumUser = true,
                 )
             }
@@ -214,7 +217,7 @@ class ServicesTabViewModel @Inject constructor(
         if (pageResult.isSuccess) {
             _state.update {
                 it.copy(
-                    plan = MembershipPlan.NONE,
+                    plans = arrayListOf(),
                     isPremiumUser = false,
                     bannerPage = pageResult.getOrThrow()
                 )
@@ -428,14 +431,14 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     fun isByzantine(): Boolean {
-        return state.value.plan.isByzantineOrFinney() || state.value.allGroups.isNotEmpty()
+        return state.value.plans.containsByzantineOrFinney() || state.value.allGroups.isNotEmpty()
     }
 
     fun isShowClaimInheritanceLayout(): Boolean {
-        if (state.value.plan == MembershipPlan.HONEY_BADGER || state.value.plan == MembershipPlan.IRON_HAND) return false
-        if (state.value.allGroups.keys.any { it.isPremier() } || state.value.plan == MembershipPlan.BYZANTINE_PREMIER) return false
+        if (state.value.plans.containsPersonalPlan()) return false
+        if (state.value.allGroups.keys.any { it.isPremier() } || state.value.plans.contains(MembershipPlan.BYZANTINE_PREMIER)) return false
         if (state.value.userRole.toRole == AssistedWalletRole.OBSERVER) return true
         if (isNoByzantineWallet()) return true
-        return state.value.plan == MembershipPlan.NONE && state.value.joinedGroups.isEmpty()
+        return (state.value.plans.isNonePlan()) && state.value.joinedGroups.isEmpty()
     }
 }

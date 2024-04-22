@@ -37,9 +37,13 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.AssistedWalletBottomSheet
+import com.nunchuk.android.main.components.tabs.wallet.WalletsViewModel
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
@@ -54,6 +58,8 @@ import dagger.hilt.android.AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
     private val viewModel: ServicesTabViewModel by activityViewModels()
+    private val walletsViewModel: WalletsViewModel by activityViewModels()
+
     private lateinit var adapter: ServicesTabAdapter
     private var currentSelectedItem: ServiceTabRowItem? = null
 
@@ -307,9 +313,20 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnYes = textAction,
             btnInfo = getString(R.string.nc_text_got_it),
             onYesClick = {
+                val personalSteps = walletsViewModel.getPersonalSteps()
+                val plans = walletsViewModel.getPlans().orEmpty()
+                val walletType = when {
+                    personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
+                    personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
+                    else -> null
+                }
+                val isPersonalWallet = walletType != null || plans.none { it.isByzantineOrFinney() }
                 navigator.openMembershipActivity(
-                    requireActivity(),
-                    viewModel.getGroupStage() // TODO Thong
+                    activityContext = requireActivity(),
+                    groupStep = walletsViewModel.getGroupStage(),
+                    walletId = walletsViewModel.getAssistedWalletId(),
+                    isPersonalWallet = isPersonalWallet,
+                    walletType = walletType
                 )
             }
         )

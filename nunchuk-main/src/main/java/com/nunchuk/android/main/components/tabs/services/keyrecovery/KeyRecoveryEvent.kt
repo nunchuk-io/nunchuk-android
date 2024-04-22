@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.keyrecovery
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.containsPersonalPlan
 
 sealed class KeyRecoveryEvent {
     data class Loading(val isLoading: Boolean) : KeyRecoveryEvent()
@@ -33,13 +34,13 @@ sealed class KeyRecoveryEvent {
 
 data class KeyRecoveryState(
     val actionItems: List<KeyRecoveryActionItem> = arrayListOf(),
-    val plan: MembershipPlan = MembershipPlan.NONE,
+    val plans: List<MembershipPlan> = arrayListOf(),
     val myUserRole: String = AssistedWalletRole.NONE.name,
 ) {
     fun initRowItems(): List<KeyRecoveryActionItem> {
         val items = mutableListOf<KeyRecoveryActionItem>()
         items.add(KeyRecoveryActionItem.StartKeyRecovery)
-        if (plan == MembershipPlan.HONEY_BADGER || plan == MembershipPlan.IRON_HAND || myUserRole == AssistedWalletRole.MASTER.name) {
+        if (plans.containsPersonalPlan() || myUserRole == AssistedWalletRole.MASTER.name) {
             items.add(KeyRecoveryActionItem.UpdateRecoveryQuestion)
         }
         return items

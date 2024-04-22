@@ -36,6 +36,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.QuestionsAndAnswer
 import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.containsPersonalPlan
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -95,7 +96,7 @@ class RecoveryQuestionViewModel @Inject constructor(
             getLocalMembershipPlansFlowUseCase(Unit)
                 .map { it.getOrElse { emptyList() } }
                 .collect { plans ->
-                    _state.update { it.copy(plan = plans.first()) } // TODO Thong
+                    _state.update { it.copy(plans = plans) }
                 }
         }
         viewModelScope.launch {
@@ -375,7 +376,7 @@ class RecoveryQuestionViewModel @Inject constructor(
 
     private fun getWalletId(): String? {
         val stateValue = _state.value
-        if (stateValue.plan == MembershipPlan.HONEY_BADGER || stateValue.plan == MembershipPlan.IRON_HAND) return stateValue.assistedWallets.firstOrNull { it.groupId.isEmpty() }?.localId
+        if (stateValue.plans.containsPersonalPlan()) return stateValue.assistedWallets.firstOrNull { it.groupId.isEmpty() }?.localId
         return stateValue.assistedWallets.firstOrNull { it.groupId.isNotEmpty() }?.localId
     }
 
