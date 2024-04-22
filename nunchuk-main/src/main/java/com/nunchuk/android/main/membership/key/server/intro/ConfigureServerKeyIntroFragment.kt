@@ -80,23 +80,22 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
-            when (viewModel.plan) {
-                MembershipPlan.IRON_HAND -> findNavController().navigate(
-                    ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigureServerKeySettingFragment()
+            val groupId = (requireActivity() as ConfigServerKeyActivity).groupId
+            if (groupId.isNotEmpty()) {
+                findNavController().navigate(
+                    ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigByzantineSpendingLimitFragment(
+                        (requireActivity() as ConfigServerKeyActivity).groupId
+                    )
                 )
-                else -> {
-                    val groupId = (requireActivity() as ConfigServerKeyActivity).groupId
-                    if (groupId.isNotEmpty()) {
-                        findNavController().navigate(
-                            ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigByzantineSpendingLimitFragment(
-                                (requireActivity() as ConfigServerKeyActivity).groupId
-                            )
-                        )
-                    } else {
-                        findNavController().navigate(
-                            ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
-                        )
-                    }
+            } else {
+                if (viewModel.plan == MembershipPlan.IRON_HAND) {
+                    findNavController().navigate(
+                        ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigureServerKeySettingFragment()
+                    )
+                } else {
+                    findNavController().navigate(
+                        ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
+                    )
                 }
             }
         }

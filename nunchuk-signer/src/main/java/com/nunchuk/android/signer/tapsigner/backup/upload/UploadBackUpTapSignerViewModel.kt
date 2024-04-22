@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.KeyUpload
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
@@ -76,7 +77,7 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                     cardId = cardIdManager.getCardId(args.masterSignerId),
                     filePath = args.filePath,
                     isAddNewKey = isAddNewKey,
-                    plan = membershipStepManager.localMembershipPlan,
+                    plan = membershipStepManager.localMembershipPlan.takeIf { groupId.isEmpty() } ?: MembershipPlan.BYZANTINE,
                     groupId = groupId,
                     signerIndex = signerIndex,
                 )

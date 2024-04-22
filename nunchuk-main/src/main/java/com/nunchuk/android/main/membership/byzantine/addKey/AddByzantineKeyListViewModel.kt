@@ -166,13 +166,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
         _keys.value = news
     }
 
-    fun requestAddAirgapTag(signer: SignerModel) {
-        viewModelScope.launch {
-            savedStateHandle[KEY_CURRENT_SIGNER] = signer
-            _event.emit(AddKeyListEvent.SelectAirgapType)
-        }
-    }
-
     fun onUpdateSignerTag(signer: SignerModel, tag: SignerTag) {
         viewModelScope.launch {
             singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
@@ -180,7 +173,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
                     val result =
                         updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
                     if (result is Result.Success) {
-                        savedStateHandle[KEY_CURRENT_SIGNER] = null
                         loadSigners()
                         _event.emit(AddKeyListEvent.UpdateSignerTag(signer.copy(tags = listOf(tag))))
                     } else {
@@ -189,8 +181,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 }
         }
     }
-
-    fun getUpdateSigner(): SignerModel? = savedStateHandle.get<SignerModel>(KEY_CURRENT_SIGNER)
 
     fun onAddKeyClicked(data: AddKeyData) {
         viewModelScope.launch {
@@ -316,7 +306,6 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
-        private const val KEY_CURRENT_SIGNER = "current_signer"
     }
 }
 
