@@ -79,7 +79,12 @@ class AddKeyListViewModel @Inject constructor(
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
     private val membershipStepState =
-        getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.localMembershipPlan, ""))
+        getMembershipStepUseCase(
+            GetMembershipStepUseCase.Param(
+                membershipStepManager.localMembershipPlan,
+                ""
+            )
+        )
             .map { it.getOrElse { emptyList() } }
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -155,30 +160,23 @@ class AddKeyListViewModel @Inject constructor(
     // COLDCARD or Airgap
     fun onSelectedExistingHardwareSigner(signer: SignerModel) {
         viewModelScope.launch {
-            val hasTag =
-                signer.tags.any { it == SignerTag.SEEDSIGNER || it == SignerTag.KEYSTONE || it == SignerTag.PASSPORT || it == SignerTag.JADE }
-            if (signer.type == SignerType.COLDCARD_NFC || hasTag) {
-                saveMembershipStepUseCase(
-                    MembershipStepInfo(
-                        step = membershipStepManager.currentStep
-                            ?: throw IllegalArgumentException("Current step empty"),
-                        masterSignerId = signer.fingerPrint,
-                        plan = membershipStepManager.localMembershipPlan,
-                        verifyType = VerifyType.APP_VERIFIED,
-                        extraData = gson.toJson(
-                            SignerExtra(
-                                derivationPath = signer.derivationPath,
-                                isAddNew = false,
-                                signerType = signer.type
-                            )
-                        ),
-                        groupId = ""
-                    )
+            saveMembershipStepUseCase(
+                MembershipStepInfo(
+                    step = membershipStepManager.currentStep
+                        ?: throw IllegalArgumentException("Current step empty"),
+                    masterSignerId = signer.fingerPrint,
+                    plan = membershipStepManager.localMembershipPlan,
+                    verifyType = VerifyType.APP_VERIFIED,
+                    extraData = gson.toJson(
+                        SignerExtra(
+                            derivationPath = signer.derivationPath,
+                            isAddNew = false,
+                            signerType = signer.type
+                        )
+                    ),
+                    groupId = ""
                 )
-            } else {
-                savedStateHandle[KEY_CURRENT_AIRGAP_SIGNER] = signer
-                _event.emit(AddKeyListEvent.SelectAirgapType)
-            }
+            )
         }
     }
 
@@ -189,7 +187,6 @@ class AddKeyListViewModel @Inject constructor(
                     val result =
                         updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
                     if (result is Result.Success) {
-                        savedStateHandle[KEY_CURRENT_AIRGAP_SIGNER] = null
                         loadSigners()
                         onSelectedExistingHardwareSigner(signer.copy(tags = listOf(tag)))
                     } else {
@@ -198,8 +195,6 @@ class AddKeyListViewModel @Inject constructor(
                 }
         }
     }
-
-    fun getUpdateSigner(): SignerModel? = savedStateHandle.get<SignerModel>(KEY_CURRENT_AIRGAP_SIGNER)
 
     fun onAddKeyClicked(data: AddKeyData) {
         viewModelScope.launch {
@@ -234,7 +229,11 @@ class AddKeyListViewModel @Inject constructor(
 
     private fun getStepInfo(step: MembershipStep) =
         membershipStepState.value.find { it.step == step } ?: run {
-            MembershipStepInfo(step = step, plan = membershipStepManager.localMembershipPlan, groupId = "")
+            MembershipStepInfo(
+                step = step,
+                plan = membershipStepManager.localMembershipPlan,
+                groupId = ""
+            )
         }
 
     fun getTapSigners() =
@@ -263,7 +262,6 @@ class AddKeyListViewModel @Inject constructor(
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
-        private const val KEY_CURRENT_AIRGAP_SIGNER = "current_signer"
     }
 }
 

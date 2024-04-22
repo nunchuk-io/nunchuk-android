@@ -21,6 +21,7 @@ import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.isGroupMembershipRequestEvent
 import com.nunchuk.android.model.Alert
@@ -34,7 +35,6 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
@@ -99,7 +99,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
-    private val membershipStepManager: MembershipStepManager,
+    private val assistedWalletManager: AssistedWalletManager,
     private val markSetupInheritanceUseCase: MarkSetupInheritanceUseCase,
     private val recoverKeyUseCase: RecoverKeyUseCase,
     private val pushEventManager: PushEventManager,
@@ -674,7 +674,7 @@ class GroupDashboardViewModel @Inject constructor(
         getInheritance(silentLoading = true)
     }
 
-    fun membershipPlan(): MembershipPlan = membershipStepManager.localMembershipPlan
+    fun membershipPlan(): MembershipPlan = assistedWalletManager.getWalletPlan(getWalletId())
 
     private val currentSelectedAlert: Alert?
         get() = savedStateHandle.get<Alert>(EXTRA_SELECTED_ALERT)

@@ -132,7 +132,15 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
                     SignerType.AIRGAP,
                     SignerType.COLDCARD_NFC,
-                    -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
+                    -> {
+                        val signer = data.signers.first()
+                        val selectedSignerTag = selectedSignerTag
+                        if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
+                            viewModel.onUpdateSignerTag(signer, selectedSignerTag)
+                        } else {
+                            viewModel.onSelectedExistingHardwareSigner(signer)
+                        }
+                    }
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -158,15 +166,12 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             )
 
             SignerType.COLDCARD_NFC.ordinal -> {
-                viewModel.getUpdateSigner()?.let { signer ->
-                    viewModel.onUpdateSignerTag(signer, SignerTag.COLDCARD)
-                } ?: run {
-                    handleShowKeysOrCreate(
-                        viewModel.getColdcard(),
-                        SignerType.COLDCARD_NFC,
-                        ::showAddColdcardOptions
-                    )
-                }
+                selectedSignerTag = SignerTag.COLDCARD
+                handleShowKeysOrCreate(
+                    viewModel.getColdcard(),
+                    SignerType.COLDCARD_NFC,
+                    ::showAddColdcardOptions
+                )
             }
 
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
@@ -185,17 +190,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
             -> {
-                viewModel.getUpdateSigner()?.let { signer ->
-                    selectedSignerTag?.let {
-                        viewModel.onUpdateSignerTag(signer, it)
-                    }
-                } ?: run {
-                    selectedSignerTag = getSignerTag(option.type)
-                    handleShowKeysOrCreate(
-                        viewModel.getAirgap(getSignerTag(option.type)),
-                        SignerType.AIRGAP
-                    ) { handleSelectAddAirgapType(selectedSignerTag) }
-                }
+                selectedSignerTag = getSignerTag(option.type)
+                handleShowKeysOrCreate(
+                    viewModel.getAirgap(getSignerTag(option.type)),
+                    SignerType.AIRGAP
+                ) { handleSelectAddAirgapType(selectedSignerTag) }
             }
 
             SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
@@ -217,17 +216,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
-        viewModel.getUpdateSigner()?.let {
-            if (tag != null) {
-                viewModel.onUpdateSignerTag(it, tag)
-            }
-        } ?: run {
-            navigator.openAddAirSignerScreen(
-                activityContext = requireActivity(),
-                isMembershipFlow = true,
-                tag = tag
-            )
-        }
+        navigator.openAddAirSignerScreen(
+            activityContext = requireActivity(),
+            isMembershipFlow = true,
+            tag = tag
+        )
     }
 
     private fun showAddColdcardOptions() {
