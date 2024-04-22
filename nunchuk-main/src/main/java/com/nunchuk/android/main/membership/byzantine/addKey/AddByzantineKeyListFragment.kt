@@ -112,14 +112,15 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 
                     SignerType.AIRGAP -> {
                         val hasTag = signer.tags.any { it.isAirgapTag || it == SignerTag.COLDCARD }
-                        if (hasTag) {
+                        val selectedSignerTag = selectedSignerTag
+                        if (hasTag || selectedSignerTag == null) {
                             findNavController().navigate(
                                 AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
                                     signer
                                 )
                             )
                         } else {
-                            viewModel.requestAddAirgapTag(signer)
+                            viewModel.onUpdateSignerTag(signer, selectedSignerTag)
                         }
                     }
 
@@ -176,15 +177,12 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             )
 
             SignerType.COLDCARD_NFC.ordinal -> {
-                viewModel.getUpdateSigner()?.let { signer ->
-                    viewModel.onUpdateSignerTag(signer, SignerTag.COLDCARD)
-                } ?: run {
-                    handleShowKeysOrCreate(
-                        viewModel.getColdcard() + viewModel.getHardwareSigners(SignerTag.COLDCARD),
-                        SignerType.COLDCARD_NFC,
-                        ::showAddColdcardOptions
-                    )
-                }
+                selectedSignerTag = SignerTag.COLDCARD
+                handleShowKeysOrCreate(
+                    viewModel.getColdcard() + viewModel.getHardwareSigners(SignerTag.COLDCARD),
+                    SignerType.COLDCARD_NFC,
+                    ::showAddColdcardOptions
+                )
             }
 
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
@@ -210,16 +208,10 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
             -> {
                 selectedSignerTag = getSignerTag(option.type)
-                viewModel.getUpdateSigner()?.let { signer ->
-                    selectedSignerTag?.let {
-                        viewModel.onUpdateSignerTag(signer, it)
-                    }
-                } ?: run {
-                    handleShowKeysOrCreate(
-                        viewModel.getAirgap(getSignerTag(option.type)),
-                        SignerType.AIRGAP
-                    ) { handleSelectAddAirgapType(selectedSignerTag) }
-                }
+                handleShowKeysOrCreate(
+                    viewModel.getAirgap(getSignerTag(option.type)),
+                    SignerType.AIRGAP
+                ) { handleSelectAddAirgapType(selectedSignerTag) }
             }
 
             SheetOptionType.TYPE_ADD_LEDGER -> {
