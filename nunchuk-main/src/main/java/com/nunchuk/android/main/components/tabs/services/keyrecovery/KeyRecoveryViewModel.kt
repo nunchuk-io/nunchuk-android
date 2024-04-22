@@ -56,7 +56,7 @@ class KeyRecoveryViewModel @Inject constructor(
             getLocalMembershipPlansFlowUseCase(Unit)
                 .map { it.getOrElse { emptyList() } }
                 .collect { plans ->
-                    _state.update { it.copy(plan = plans.first(), myUserRole = args.role) } // TODO Thong
+                    _state.update { it.copy(plans = plans, myUserRole = args.role) }
                     _state.update { it.copy(actionItems = it.initRowItems()) }
                 }
         }

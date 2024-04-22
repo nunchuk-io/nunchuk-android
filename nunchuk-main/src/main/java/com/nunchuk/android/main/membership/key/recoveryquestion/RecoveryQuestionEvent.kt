@@ -51,7 +51,7 @@ data class RecoveryQuestionState(
     val interactQuestionIndex: Int = InitValue,
     val userData: String? = null,
     val clearFocusRequest: Boolean = false,
-    val plan: MembershipPlan = MembershipPlan.NONE,
+    val plans: List<MembershipPlan> = arrayListOf(),
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
 ) {
     companion object {

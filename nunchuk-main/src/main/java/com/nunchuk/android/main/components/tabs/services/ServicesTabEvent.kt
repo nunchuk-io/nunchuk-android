@@ -30,6 +30,7 @@ import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import kotlinx.parcelize.Parcelize
 
@@ -72,7 +73,7 @@ sealed class ServicesTabEvent {
 
 data class ServicesTabState(
     val isPremiumUser: Boolean? = null,
-    val plan: MembershipPlan = MembershipPlan.NONE,
+    val plans: List<MembershipPlan> = arrayListOf(),
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null,
@@ -86,74 +87,64 @@ data class ServicesTabState(
 ) {
     fun initRowItems(): List<Any> {
         val items = mutableListOf<Any>()
-        when (plan) {
-            MembershipPlan.NONE -> {
-                if (allGroups.isNotEmpty()) {
-                    if (isShowEmptyState()) items.add(EmptyState)
-                    else if (hasPremierGroupWallet()) return getItemsByzantinePremier()
-                    else return getItemsByzantineAndPro()
+        if (plans.isNonePlan()) {
+            if (allGroups.isNotEmpty()) {
+                if (isShowEmptyState()) items.add(EmptyState)
+                else if (hasPremierGroupWallet()) return getItemsByzantinePremier()
+                else return getItemsByzantineAndPro()
+            } else {
+                bannerPage?.let { bannerPage ->
+                    items.add(NonSubHeader(title = bannerPage.title, desc = bannerPage.desc))
+                    bannerPage.items.forEach {
+                        items.add(NonSubRow(url = it.url, title = it.title, desc = it.desc))
+                    }
+                }
+            }
+            return items
+        } else if (plans.contains(MembershipPlan.IRON_HAND)) {
+            items.apply {
+                add(ServiceTabRowCategory.Emergency)
+                add(ServiceTabRowItem.EmergencyLockdown)
+                add(ServiceTabRowItem.KeyRecovery)
+                add(ServiceTabRowCategory.Inheritance)
+                add(ServiceTabRowItem.ClaimInheritance)
+                add(ServiceTabRowCategory.Subscription)
+                if (assistedWallets.isNotEmpty()) {
+                    add(ServiceTabRowItem.CoSigningPolicies)
+                }
+                add(ServiceTabRowItem.OrderNewHardware)
+                add(ServiceTabRowItem.RollOverAssistedWallet)
+                add(ServiceTabRowItem.ManageSubscription)
+            }
+            if (banner != null) {
+                items.add(Banner(banner.id, banner.url, banner.title))
+            }
+            return items
+        } else if (plans.contains(MembershipPlan.HONEY_BADGER)){
+            items.apply {
+                add(ServiceTabRowCategory.Emergency)
+                add(ServiceTabRowItem.EmergencyLockdown)
+                add(ServiceTabRowItem.KeyRecovery)
+                add(ServiceTabRowCategory.Inheritance)
+                if (assistedWallets.isEmpty() || assistedWallets.all { it.isSetupInheritance.not() }) {
+                    add(ServiceTabRowItem.SetUpInheritancePlan)
                 } else {
-                    bannerPage?.let { bannerPage ->
-                        items.add(NonSubHeader(title = bannerPage.title, desc = bannerPage.desc))
-                        bannerPage.items.forEach {
-                            items.add(NonSubRow(url = it.url, title = it.title, desc = it.desc))
-                        }
-                    }
+                    add(ServiceTabRowItem.ViewInheritancePlan)
                 }
-                return items
-            }
-
-            MembershipPlan.IRON_HAND -> {
-                items.apply {
-                    add(ServiceTabRowCategory.Emergency)
-                    add(ServiceTabRowItem.EmergencyLockdown)
-                    add(ServiceTabRowItem.KeyRecovery)
-                    add(ServiceTabRowCategory.Inheritance)
-                    add(ServiceTabRowItem.ClaimInheritance)
-                    add(ServiceTabRowCategory.Subscription)
-                    if (assistedWallets.isNotEmpty()) {
-                        add(ServiceTabRowItem.CoSigningPolicies)
-                    }
-                    add(ServiceTabRowItem.OrderNewHardware)
-                    add(ServiceTabRowItem.RollOverAssistedWallet)
-                    add(ServiceTabRowItem.ManageSubscription)
+                add(ServiceTabRowItem.ClaimInheritance)
+                add(ServiceTabRowCategory.Subscription)
+                if (assistedWallets.isNotEmpty()) {
+                    add(ServiceTabRowItem.CoSigningPolicies)
                 }
-                if (banner != null) {
-                    items.add(Banner(banner.id, banner.url, banner.title))
-                }
-                return items
+                add(ServiceTabRowItem.OrderNewHardware)
+                add(ServiceTabRowItem.RollOverAssistedWallet)
+                add(ServiceTabRowItem.ManageSubscription)
             }
-
-            MembershipPlan.HONEY_BADGER -> {
-                items.apply {
-                    add(ServiceTabRowCategory.Emergency)
-                    add(ServiceTabRowItem.EmergencyLockdown)
-                    add(ServiceTabRowItem.KeyRecovery)
-                    add(ServiceTabRowCategory.Inheritance)
-                    if (assistedWallets.isEmpty() || assistedWallets.all { it.isSetupInheritance.not() }) {
-                        add(ServiceTabRowItem.SetUpInheritancePlan)
-                    } else {
-                        add(ServiceTabRowItem.ViewInheritancePlan)
-                    }
-                    add(ServiceTabRowItem.ClaimInheritance)
-                    add(ServiceTabRowCategory.Subscription)
-                    if (assistedWallets.isNotEmpty()) {
-                        add(ServiceTabRowItem.CoSigningPolicies)
-                    }
-                    add(ServiceTabRowItem.OrderNewHardware)
-                    add(ServiceTabRowItem.RollOverAssistedWallet)
-                    add(ServiceTabRowItem.ManageSubscription)
-                }
-                return items
-            }
-
-            MembershipPlan.BYZANTINE_PREMIER -> return getItemsByzantinePremier()
-
-            MembershipPlan.BYZANTINE, MembershipPlan.BYZANTINE_PRO, MembershipPlan.FINNEY, MembershipPlan.FINNEY_PRO  -> {
-                return if (hasPremierGroupWallet()) getItemsByzantinePremier() else getItemsByzantineAndPro()
-            }
-
-            else -> {}
+            return items
+        } else if (plans.contains(MembershipPlan.BYZANTINE) || plans.contains(MembershipPlan.BYZANTINE_PRO) || plans.contains(MembershipPlan.FINNEY) || plans.contains(MembershipPlan.FINNEY_PRO)) {
+            return if (hasPremierGroupWallet()) getItemsByzantinePremier() else getItemsByzantineAndPro()
+        } else if (plans.contains(MembershipPlan.BYZANTINE_PREMIER)) {
+            return getItemsByzantinePremier()
         }
         return items
     }
@@ -313,7 +304,7 @@ data class ServicesTabState(
     }
 
     private fun isShowEmptyState(): Boolean {
-       if (plan == MembershipPlan.NONE && allGroups.isNotEmpty() && joinedGroups.isEmpty()) return true
+       if (plans.isNonePlan() && allGroups.isNotEmpty() && joinedGroups.isEmpty()) return true
         if (allGroups.isEmpty()) return true
         return isMasterHasNotCreatedWallet
     }

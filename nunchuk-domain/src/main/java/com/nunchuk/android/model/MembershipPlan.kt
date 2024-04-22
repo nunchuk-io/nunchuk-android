@@ -71,6 +71,19 @@ fun String?.toMembershipPlan() = when (this) {
     }
 }
 
+fun List<MembershipPlan>.containsByzantineOrFinney() =
+    this.contains(MembershipPlan.BYZANTINE)
+            || this.contains(MembershipPlan.BYZANTINE_PRO)
+            || this.contains(MembershipPlan.BYZANTINE_PREMIER)
+            || this.contains(MembershipPlan.FINNEY)
+            || this.contains(MembershipPlan.FINNEY_PRO)
+
+fun List<MembershipPlan>.containsPersonalPlan() =
+    this.contains(MembershipPlan.IRON_HAND)
+            || this.contains(MembershipPlan.HONEY_BADGER)
+
+fun List<MembershipPlan>.isNonePlan() = this.isEmpty() || this.contains(MembershipPlan.NONE)
+
 private const val IRON_HAND_PLAN = "iron_hand"
 private const val IRON_HAND_PLAN_TESTNET = "iron_hand_testnet"
 private const val HONEY_BADGER_PLAN_TESTNET = "honey_badger_testnet"
