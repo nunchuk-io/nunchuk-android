@@ -46,6 +46,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -59,6 +60,7 @@ import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
 import com.nunchuk.android.wallet.personal.databinding.FragmentWalletIntermediaryBinding
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -104,9 +106,37 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 requireActivity(), false, ColdcardAction.RECOVER_SINGLE_SIG_WALLET
             )
 
-            SheetOptionType.TYPE_GROUP_WALLET -> openCreateGroupWallet()
-            SheetOptionType.TYPE_PERSONAL_WALLET -> openCreateAssistedWallet()
+            SheetOptionType.TYPE_GROUP_WALLET -> {
+                if (viewModel.isGroupWalletAvailable()) {
+                    openCreateGroupWallet()
+                } else {
+                    showRunOutWallet(false)
+                }
+            }
+            SheetOptionType.TYPE_PERSONAL_WALLET -> {
+                if (viewModel.isPersonalWalletAvailable()) {
+                    openCreateAssistedWallet()
+                } else {
+                    showRunOutWallet(true)
+                }
+            }
         }
+    }
+
+    private fun showRunOutWallet(isPersonalWallet: Boolean) {
+        val message = if (isPersonalWallet) {
+            getString(R.string.nc_run_out_of_personal_wallet)
+        } else {
+            getString(R.string.nc_run_out_of_group_wallet)
+        }
+        NCInfoDialog(requireActivity()).init(
+            message = message,
+            btnYes = getString(R.string.nc_take_me_there),
+            btnInfo = getString(R.string.nc_text_got_it),
+            onYesClick = {
+                requireActivity().openExternalLink("https://nunchuk.io/my-plan")
+            }
+        ).show()
     }
 
     private fun observer() {
@@ -118,7 +148,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         flowObserver(viewModel.state) {
-            val isCreateAssistedWalletVisible = it.remainWalletCount > 0
+            val isCreateAssistedWalletVisible = it.walletsCount.values.sum() > 0
             binding.btnCreateGroupWallet.apply {
                 isVisible = isCreateAssistedWalletVisible
                 text =
@@ -127,7 +157,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     } else {
                         context.getString(
                             R.string.nc_create_assisted_wallet,
-                            it.remainWalletCount
+                            it.walletsCount.values.sum()
                         )
                     }
             }
