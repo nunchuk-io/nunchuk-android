@@ -25,5 +25,7 @@
     <string name="nc_create_hot_wallet">Create hot wallet</string>
     <string name="nc_create_hot_wallet_desc">Quickly create a hot wallet for immediate use and back it up later.</string>
     <string name="nc_recover_hot_wallet">Recover hot wallet</string>
+    <string name="nc_run_out_of_group_wallet">You don\'t have any group wallets remaining. To purchase additional group wallets, please visit nunchuk.io/my-plan.</string>
+    <string name="nc_run_out_of_personal_wallet">You don\'t have any personal wallets remaining. To purchase additional personal wallets, please visit nunchuk.io/my-plan.</string>
 
 </resources>

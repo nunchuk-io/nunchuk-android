@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
@@ -67,9 +68,8 @@ class WalletIntermediaryViewModel @Inject constructor(
         val args = WalletIntermediaryFragmentArgs.fromSavedStateHandle(savedStateHandle)
         if (args.isQuickWallet) {
             viewModelScope.launch {
-                getCompoundSignersUseCase.get().execute().collect {
-                    _state.value =
-                        WalletIntermediaryState(isHasSigner = it.first.isNotEmpty() || it.second.isNotEmpty())
+                getCompoundSignersUseCase.get().execute().collect { signers ->
+                    _state.update { it.copy(isHasSigner = signers.first.isNotEmpty() || signers.second.isNotEmpty()) }
                 }
             }
         } else {
@@ -100,7 +100,9 @@ class WalletIntermediaryViewModel @Inject constructor(
             getGroupAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
                 _state.update {
                     it.copy(
-                        remainWalletCount = configs.remainWalletCount,
+                        walletsCount = configs.walletsCount,
+                        personalOptions = configs.personalOptions,
+                        groupOptions = configs.groupOptions
                     )
                 }
             }
@@ -123,6 +125,16 @@ class WalletIntermediaryViewModel @Inject constructor(
         return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }
 
+    fun isPersonalWalletAvailable() : Boolean {
+        val walletsCount = state.value.walletsCount
+        return state.value.personalOptions.sumOf { walletsCount[it.slug] ?: 0 } > 0
+    }
+
+    fun isGroupWalletAvailable() : Boolean {
+        val walletsCount = state.value.walletsCount
+        return state.value.groupOptions.sumOf { walletsCount[it.slug] ?: 0 } > 0
+    }
+
     val hasSigner: Boolean
         get() = _state.value.isHasSigner
 }
@@ -135,7 +147,9 @@ sealed class WalletIntermediaryEvent {
 
 data class WalletIntermediaryState(
     val isHasSigner: Boolean = false,
-    val remainWalletCount: Int = 0,
+    val walletsCount: Map<String, Int> = emptyMap(),
+    val personalOptions: List<WalletOption> = emptyList(),
+    val groupOptions: List<WalletOption> = emptyList(),
     val personalSteps: List<MembershipStepInfo> = emptyList(),
 )
 
