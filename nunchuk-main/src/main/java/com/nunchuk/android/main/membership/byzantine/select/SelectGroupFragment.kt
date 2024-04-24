@@ -96,7 +96,7 @@ class SelectGroupFragment : MembershipFragment() {
                             NCInfoDialog(requireActivity()).init(
                                 message = getString(
                                     R.string.nc_run_out_of_byzantine_wallet,
-                                    option.badge
+                                    option.planName
                                 ),
                                 btnYes = getString(R.string.nc_take_me_there),
                                 btnInfo = getString(R.string.nc_text_got_it),
@@ -298,7 +298,8 @@ private fun SelectGroupScreenPreview() {
                 description = "Byzantine is a group wallet that requires 3 hardware keys to sign transactions.",
                 badge = "PRO",
                 walletType = GroupWalletType.TWO_OF_THREE,
-                allowSoftKey = false
+                allowSoftKey = false,
+                planName = "Byzantine"
             ),
             WalletOption(
                 slug = "byzantine",
@@ -307,7 +308,8 @@ private fun SelectGroupScreenPreview() {
                 description = "Byzantine is a group wallet that requires 3 hardware keys to sign transactions.",
                 badge = "PRO",
                 walletType = GroupWalletType.TWO_OF_FOUR_MULTISIG,
-                allowSoftKey = false
+                allowSoftKey = false,
+                planName = "Byzantine"
             )
         )
     )

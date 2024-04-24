@@ -46,6 +46,7 @@ internal data class WalletOptionDto(
     @SerializedName("wallet_type") val walletType: String? = null,
     @SerializedName("wallet_config") val walletConfig: WalletConfigDto? = null,
     @SerializedName("allow_software_keys") val allowSoftwareKeys: Boolean? = null,
+    @SerializedName("plan_name") val planName: String? = null,
 )
 
 internal fun WalletOptionDto.toWalletOption(): WalletOption? {
@@ -58,6 +59,7 @@ internal fun WalletOptionDto.toWalletOption(): WalletOption? {
         recommended = recommended ?: false,
         walletType = walletType,
         allowSoftKey = allowSoftwareKeys ?: false,
+        planName = planName.orEmpty(),
     )
 }
 
