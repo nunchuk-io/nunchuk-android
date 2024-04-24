@@ -381,7 +381,7 @@ class RecoveryQuestionViewModel @Inject constructor(
 
     private fun getWalletId(): String? {
         val stateValue = _state.value
-        if (stateValue.plans.containsPersonalPlan()) return stateValue.assistedWallets.firstOrNull { it.groupId.isEmpty() }?.localId
+        if (stateValue.plans.containsPersonalPlan()) return stateValue.assistedWallets.firstOrNull { it.groupId.isEmpty() }?.localId.orEmpty()
         return stateValue.assistedWallets.firstOrNull { it.groupId.isNotEmpty() }?.localId
     }
 
