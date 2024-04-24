@@ -157,6 +157,10 @@ class CosigningPolicyViewModel @Inject constructor(
 
     fun cancelChange() {
         viewModelScope.launch {
+            if (args.dummyTransactionId.isEmpty()) {
+                _event.emit(CosigningPolicyEvent.CancelChangeSuccess)
+                return@launch
+            }
             _event.emit(CosigningPolicyEvent.Loading(true))
             deleteGroupDummyTransactionUseCase(
                 DeleteGroupDummyTransactionUseCase.Param(
