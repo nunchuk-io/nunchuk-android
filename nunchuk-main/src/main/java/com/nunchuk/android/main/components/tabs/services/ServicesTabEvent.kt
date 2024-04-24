@@ -30,6 +30,7 @@ import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.containsByzantineOrFinney
 import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import kotlinx.parcelize.Parcelize
@@ -141,7 +142,7 @@ data class ServicesTabState(
                 add(ServiceTabRowItem.ManageSubscription)
             }
             return items
-        } else if (plans.contains(MembershipPlan.BYZANTINE) || plans.contains(MembershipPlan.BYZANTINE_PRO) || plans.contains(MembershipPlan.FINNEY) || plans.contains(MembershipPlan.FINNEY_PRO)) {
+        } else if (plans.containsByzantineOrFinney()) {
             return if (hasPremierGroupWallet()) getItemsByzantinePremier() else getItemsByzantineAndPro()
         } else if (plans.contains(MembershipPlan.BYZANTINE_PREMIER)) {
             return getItemsByzantinePremier()
