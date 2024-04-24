@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
@@ -101,6 +102,7 @@ import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -293,7 +295,7 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
                 existingKeyDialog = NCInfoDialog(requireActivity()).showDialog(
                     message = getString(
                         R.string.nc_software_key_upgrade_to_hardware_key,
-                        event.key.localSigner.masterFingerprint
+                        event.key.localSigner.masterFingerprint.uppercase(Locale.getDefault())
                     ),
                     btnYes = getString(R.string.nc_text_yes),
                     btnInfo = getString(R.string.nc_text_no),

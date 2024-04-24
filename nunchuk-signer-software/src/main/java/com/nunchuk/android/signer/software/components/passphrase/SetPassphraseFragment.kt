@@ -24,6 +24,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.text.toUpperCase
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -54,6 +55,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 
 @AndroidEntryPoint
 class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
@@ -108,7 +110,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
                     .showDialog(
                         message = String.format(
                             getString(R.string.nc_existing_key_change_key_type),
-                            event.fingerprint
+                            event.fingerprint.uppercase(Locale.getDefault())
                         ),
                         btnYes = getString(R.string.nc_text_yes),
                         btnInfo = getString(R.string.nc_text_no),

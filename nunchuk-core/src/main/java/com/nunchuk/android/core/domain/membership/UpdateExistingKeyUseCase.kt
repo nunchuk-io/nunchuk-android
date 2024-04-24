@@ -56,7 +56,7 @@ class UpdateExistingKeyUseCase @Inject constructor(
                     masterFingerprint = parameters.serverSigner.xfp.orEmpty(),
                     type = parameters.serverSigner.type,
                     tags = parameters.serverSigner.tags.mapNotNull { tag -> tag.toSignerTag() },
-                    replace = false
+                    replace = true
                 )
             }
         } else {
