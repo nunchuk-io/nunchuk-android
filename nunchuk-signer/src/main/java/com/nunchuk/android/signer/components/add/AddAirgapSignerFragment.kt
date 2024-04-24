@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -85,6 +86,7 @@ import com.nunchuk.android.utils.MaxLengthTransformation
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -216,7 +218,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                     when (it.type) {
                         ResultExistingKey.Software -> NCInfoDialog(requireActivity())
                             .showDialog(
-                                message = String.format(getString(R.string.nc_existing_key_is_software_key_delete_key), it.singleSigner.masterFingerprint),
+                                message = String.format(getString(R.string.nc_existing_key_is_software_key_delete_key), it.singleSigner.masterFingerprint.uppercase(Locale.getDefault())),
                                 btnYes = getString(R.string.nc_text_yes),
                                 btnInfo = getString(R.string.nc_text_no),
                                 onYesClick = {
@@ -227,7 +229,9 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                         ResultExistingKey.Hardware -> {
                             NCInfoDialog(requireActivity())
                                 .showDialog(
-                                    message = String.format(getString(R.string.nc_existing_key_change_key_type), it.singleSigner.masterFingerprint),
+                                    message = String.format(getString(R.string.nc_existing_key_change_key_type),
+                                        it.singleSigner.masterFingerprint.uppercase(Locale.getDefault())
+                                    ),
                                     btnYes = getString(R.string.nc_text_yes),
                                     btnInfo = getString(R.string.nc_text_no),
                                     onYesClick = {

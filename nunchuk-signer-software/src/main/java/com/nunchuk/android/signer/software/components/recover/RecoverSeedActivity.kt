@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.compose.ui.text.toUpperCase
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
@@ -43,6 +44,7 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -133,7 +135,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                     .showDialog(
                         message = String.format(
                             getString(R.string.nc_existing_key_change_key_type),
-                            event.fingerprint
+                            event.fingerprint.uppercase(Locale.getDefault())
                         ),
                         btnYes = getString(R.string.nc_text_yes),
                         btnInfo = getString(R.string.nc_text_no),

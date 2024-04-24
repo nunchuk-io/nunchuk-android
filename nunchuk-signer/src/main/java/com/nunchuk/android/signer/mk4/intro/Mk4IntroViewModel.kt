@@ -202,6 +202,7 @@ class Mk4IntroViewModel @Inject constructor(
     }
 
     fun checkExistingKey(signer: SingleSigner) {
+        _state.update { it.copy(signer = signer) }
         viewModelScope.launch {
             if (checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
                 checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
@@ -222,11 +223,10 @@ class Mk4IntroViewModel @Inject constructor(
         viewModelScope.launch {
             changeKeyTypeUseCase(
                 ChangeKeyTypeUseCase.Params(
-                    singleSigner = singleSigner,
-                    signerTag = null
+                    singleSigner = singleSigner.copy(type = SignerType.COLDCARD_NFC, tags = emptyList())
                 )
             ).onSuccess {
-                _event.emit(Mk4IntroViewEvent.AddMk4SuccessEvent(singleSigner))
+                _event.emit(Mk4IntroViewEvent.AddMk4SuccessEvent(it))
             }.onFailure {
                 _event.emit(Mk4IntroViewEvent.ShowError((it.message.orUnknownError())))
             }

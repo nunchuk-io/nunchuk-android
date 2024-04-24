@@ -30,28 +30,24 @@ import javax.inject.Inject
 class ChangeKeyTypeUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
-) : UseCase<ChangeKeyTypeUseCase.Params, Unit>(
+) : UseCase<ChangeKeyTypeUseCase.Params, SingleSigner>(
     ioDispatcher
 ) {
 
-    override suspend fun execute(parameters: Params) {
-        val singleSigner = parameters.singleSigner.copy(
-            tags = parameters.signerTag?.let { listOf(it) } ?: emptyList()
-        )
-        nativeSdk.createSigner(
-            name = singleSigner.name,
-            xpub = singleSigner.xpub,
-            publicKey = singleSigner.publicKey,
-            derivationPath = singleSigner.derivationPath,
-            masterFingerprint = singleSigner.masterFingerprint,
-            type = singleSigner.type,
-            tags = singleSigner.tags,
+    override suspend fun execute(parameters: Params): SingleSigner {
+        return nativeSdk.createSigner(
+            name = parameters.singleSigner.name,
+            xpub = parameters.singleSigner.xpub,
+            publicKey = parameters.singleSigner.publicKey,
+            derivationPath = parameters.singleSigner.derivationPath,
+            masterFingerprint = parameters.singleSigner.masterFingerprint,
+            type = parameters.singleSigner.type,
+            tags = parameters.singleSigner.tags,
             replace = true
         )
     }
 
     data class Params(
         val singleSigner: SingleSigner,
-        val signerTag: SignerTag? = null,
     )
 }

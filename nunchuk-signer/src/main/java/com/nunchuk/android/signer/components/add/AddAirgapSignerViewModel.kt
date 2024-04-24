@@ -24,6 +24,7 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
@@ -33,6 +34,7 @@ import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isValidPathForAssistedWallet
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
@@ -46,6 +48,7 @@ import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
+import com.nunchuk.android.signer.tapsigner.AddNfcNameEvent
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
@@ -225,7 +228,27 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     }
                 }
             } else {
-                setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                val errorCode = result.exceptionOrNull()?.nativeErrorCode()
+                val signer = SingleSigner(
+                    name = signerName,
+                    xpub = signerInput.xpub,
+                    derivationPath = signerInput.derivationPath,
+                    masterFingerprint = signerInput.fingerPrint,
+                    type = SignerType.AIRGAP,
+                    tags = listOfNotNull(signerTag)
+                )
+                if (errorCode == NativeErrorCode.SIGNER_EXISTS && checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
+                    _state.update { it.copy(airgap = signer)}
+                    checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
+                        .onSuccess {
+                            setEvent(AddAirgapSignerEvent.CheckExisting(it, signer))
+                        }
+                        .onFailure {
+                            setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                        }
+                } else {
+                    setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                }
             }
             setEvent(LoadingEventAirgap(false))
         }
@@ -330,11 +353,10 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         viewModelScope.launch {
             changeKeyTypeUseCase(
                 ChangeKeyTypeUseCase.Params(
-                    singleSigner = singleSigner,
-                    signerTag = signerTag
+                    singleSigner = singleSigner.copy(type = SignerType.AIRGAP, tags = listOfNotNull(signerTag))
                 )
             ).onSuccess {
-                setEvent(AddAirgapSignerSuccessEvent(singleSigner))
+                setEvent(AddAirgapSignerSuccessEvent(it))
             }.onFailure {
                 setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
             }
@@ -352,5 +374,6 @@ data class AddAirgapSignerState(
     val keyName: String = "",
     val showKeySpecError: Boolean = false,
     val showKeyNameError: Boolean = false,
-    val airgap: SingleSigner? = null
+    val airgap: SingleSigner? = null,
+    val signerInput: SignerInput? = null,
 )
