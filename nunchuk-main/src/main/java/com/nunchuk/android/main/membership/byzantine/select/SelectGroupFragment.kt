@@ -52,6 +52,7 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
@@ -209,7 +210,7 @@ fun GroupWalletTypeOptionView(
 ) {
     NcRadioOption(modifier = modifier.fillMaxWidth(), isSelected = isSelected, onClick = onClick) {
         Row {
-            if (option.badge != "STANDARD") {
+            if (option.walletType.allowInheritance) {
                 ProBadgePlan(
                     modifier = Modifier.padding(end = 4.dp),
                     text = option.badge
@@ -289,6 +290,25 @@ fun StandardBadgePlan(modifier: Modifier) {
 @Composable
 private fun SelectGroupScreenPreview() {
     SelectGroupContent(
-
+        options = listOf(
+            WalletOption(
+                slug = "byzantine",
+                recommended = true,
+                name = "Byzantine",
+                description = "Byzantine is a group wallet that requires 3 hardware keys to sign transactions.",
+                badge = "PRO",
+                walletType = GroupWalletType.TWO_OF_THREE,
+                allowSoftKey = false
+            ),
+            WalletOption(
+                slug = "byzantine",
+                recommended = true,
+                name = "Byzantine",
+                description = "Byzantine is a group wallet that requires 3 hardware keys to sign transactions.",
+                badge = "PRO",
+                walletType = GroupWalletType.TWO_OF_FOUR_MULTISIG,
+                allowSoftKey = false
+            )
+        )
     )
 }
