@@ -58,6 +58,7 @@ import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
+import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
@@ -172,6 +173,20 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 return@launch
             }
             setEvent(LoadingEventAirgap(true))
+            val signer = signerInput.toSingleSigner(signerName, signerTag)
+            if (isMembershipFlow.not() && checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
+                _state.update { it.copy(airgap = signer.copy(derivationPath = signerInput.derivationPath)) }
+                val resultKey = checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
+                setEvent(LoadingEventAirgap(false))
+                if (resultKey.isSuccess) {
+                    resultKey.getOrNull()?.let {
+                        if (it != ResultExistingKey.None) {
+                            setEvent(AddAirgapSignerEvent.CheckExisting(it, signer))
+                            return@launch
+                        }
+                    }
+                }
+            }
             val result = createSignerUseCase(
                 CreateSignerUseCase.Params(
                     name = signerName,
@@ -184,7 +199,6 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             )
             if (result.isSuccess) {
                 val airgap = result.getOrThrow()
-                _state.update { it.copy(airgap = airgap) }
                 if (isMembershipFlow) {
                     saveMembershipStepUseCase(
                         MembershipStepInfo(
@@ -215,40 +229,10 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     }
                     setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
                 } else {
-                    if (checkAssistedSignerExistenceHelper.isInAssistedWallet(airgap.toModel())) {
-                        checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(airgap))
-                            .onSuccess {
-                                setEvent(AddAirgapSignerEvent.CheckExisting(it, airgap))
-                            }
-                            .onFailure {
-                                setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
-                            }
-                    } else {
-                        setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
-                    }
+                    setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
                 }
             } else {
-                val errorCode = result.exceptionOrNull()?.nativeErrorCode()
-                val signer = SingleSigner(
-                    name = signerName,
-                    xpub = signerInput.xpub,
-                    derivationPath = signerInput.derivationPath,
-                    masterFingerprint = signerInput.fingerPrint,
-                    type = SignerType.AIRGAP,
-                    tags = listOfNotNull(signerTag)
-                )
-                if (errorCode == NativeErrorCode.SIGNER_EXISTS && checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
-                    _state.update { it.copy(airgap = signer)}
-                    checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
-                        .onSuccess {
-                            setEvent(AddAirgapSignerEvent.CheckExisting(it, signer))
-                        }
-                        .onFailure {
-                            setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
-                        }
-                } else {
-                    setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
-                }
+                setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
             setEvent(LoadingEventAirgap(false))
         }
@@ -377,3 +361,14 @@ data class AddAirgapSignerState(
     val airgap: SingleSigner? = null,
     val signerInput: SignerInput? = null,
 )
+
+internal fun SignerInput.toSingleSigner(name: String, tag: SignerTag?): SingleSigner {
+    return SingleSigner(
+        name = name,
+        xpub = xpub,
+        derivationPath = derivationPath.replace("'", "h"),
+        masterFingerprint = fingerPrint,
+        type = SignerType.AIRGAP,
+        tags = listOfNotNull(tag)
+    )
+}
