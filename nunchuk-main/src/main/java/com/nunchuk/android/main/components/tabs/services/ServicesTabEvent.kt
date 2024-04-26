@@ -102,25 +102,6 @@ data class ServicesTabState(
                 }
             }
             return items
-        } else if (plans.contains(MembershipPlan.IRON_HAND)) {
-            items.apply {
-                add(ServiceTabRowCategory.Emergency)
-                add(ServiceTabRowItem.EmergencyLockdown)
-                add(ServiceTabRowItem.KeyRecovery)
-                add(ServiceTabRowCategory.Inheritance)
-                add(ServiceTabRowItem.ClaimInheritance)
-                add(ServiceTabRowCategory.Subscription)
-                if (assistedWallets.isNotEmpty()) {
-                    add(ServiceTabRowItem.CoSigningPolicies)
-                }
-                add(ServiceTabRowItem.OrderNewHardware)
-                add(ServiceTabRowItem.RollOverAssistedWallet)
-                add(ServiceTabRowItem.ManageSubscription)
-            }
-            if (banner != null) {
-                items.add(Banner(banner.id, banner.url, banner.title))
-            }
-            return items
         } else if (plans.contains(MembershipPlan.HONEY_BADGER)){
             items.apply {
                 add(ServiceTabRowCategory.Emergency)
@@ -140,6 +121,25 @@ data class ServicesTabState(
                 add(ServiceTabRowItem.OrderNewHardware)
                 add(ServiceTabRowItem.RollOverAssistedWallet)
                 add(ServiceTabRowItem.ManageSubscription)
+            }
+            return items
+        } else if (plans.contains(MembershipPlan.IRON_HAND)) {
+            items.apply {
+                add(ServiceTabRowCategory.Emergency)
+                add(ServiceTabRowItem.EmergencyLockdown)
+                add(ServiceTabRowItem.KeyRecovery)
+                add(ServiceTabRowCategory.Inheritance)
+                add(ServiceTabRowItem.ClaimInheritance)
+                add(ServiceTabRowCategory.Subscription)
+                if (assistedWallets.isNotEmpty()) {
+                    add(ServiceTabRowItem.CoSigningPolicies)
+                }
+                add(ServiceTabRowItem.OrderNewHardware)
+                add(ServiceTabRowItem.RollOverAssistedWallet)
+                add(ServiceTabRowItem.ManageSubscription)
+            }
+            if (banner != null) {
+                items.add(Banner(banner.id, banner.url, banner.title))
             }
             return items
         } else if (plans.containsByzantineOrFinney()) {
