@@ -25,17 +25,20 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.databinding.ItemRoomBinding
 import com.nunchuk.android.messages.util.lastMessage
+import com.nunchuk.android.messages.util.time
 import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.utils.formatMessageDate
 import com.nunchuk.android.widget.swipe.SwipeLayout
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import java.util.*
-import kotlin.collections.HashMap
+import java.util.Date
 
 class RoomAdapter(
+    private val sessionHolder: SessionHolder,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
@@ -48,12 +51,13 @@ class RoomAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
         return RoomViewHolder(
-            ItemRoomBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-            roomWallets,
-            groupChatRooms,
-            currentName,
-            enterRoom,
-            removeRoom
+            sessionHolder = sessionHolder,
+            binding = ItemRoomBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            roomWallets = roomWallets,
+            groupChatRooms = groupChatRooms,
+            currentName = currentName,
+            enterRoom = enterRoom,
+            removeRoom = removeRoom
         )
     }
 
@@ -63,6 +67,7 @@ class RoomAdapter(
 }
 
 class RoomViewHolder(
+    private val sessionHolder: SessionHolder,
     private val binding: ItemRoomBinding,
     private val roomWallets: MutableSet<String>,
     private val groupChatRooms: HashMap<String, GroupChatRoom>,
@@ -74,10 +79,7 @@ class RoomViewHolder(
     fun bind(data: RoomSummary) {
         val roomName = data.getRoomName(currentName)
         binding.name.text = roomName
-        data.latestPreviewableEvent?.let {
-            binding.message.text = it.lastMessage(itemView.context)
-            binding.time.text = it.root.originServerTs?.let { time -> Date(time).formatMessageDate() } ?: "-"
-        }
+        bindLastMessage(data)
         binding.message.isVisible = data.latestPreviewableEvent != null
         binding.time.isVisible = data.latestPreviewableEvent != null
 
@@ -99,7 +101,24 @@ class RoomViewHolder(
 
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
-        binding.swipeLayout.isSwipeEnabled = groupChatRooms[data.roomId]?.isMasterOrAdmin == true || groupChatRooms[data.roomId] == null
+        binding.swipeLayout.isSwipeEnabled =
+            groupChatRooms[data.roomId]?.isMasterOrAdmin == true || groupChatRooms[data.roomId] == null
+    }
+
+    private fun bindLastMessage(summary: RoomSummary) {
+        val room =
+            sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(summary.roomId) ?: return
+        val stateEvent =
+            room.stateService().getStateEvent("m.room.retention", QueryStringValue.IsEmpty)
+        val maxLifetime =
+            stateEvent?.content?.get("max_lifetime")?.toString()?.toDoubleOrNull()?.toLong()
+        summary.latestPreviewableEvent?.let { event ->
+            binding.message.text = event.lastMessage(itemView.context).takeIf {
+                System.currentTimeMillis() - event.time() <= (maxLifetime ?: Long.MAX_VALUE)
+            }
+            binding.time.text =
+                event.root.originServerTs?.let { time -> Date(time).formatMessageDate() } ?: "-"
+        }
     }
 
     private fun bindCount(data: RoomSummary) {

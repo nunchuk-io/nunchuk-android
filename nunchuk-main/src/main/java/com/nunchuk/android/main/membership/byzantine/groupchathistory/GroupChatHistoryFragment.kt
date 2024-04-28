@@ -160,15 +160,11 @@ private fun GroupChatHistoryScreenContentPreview() {
             id = "1",
             displayName = "30 days",
             enabled = true,
-            interval = "30 days",
-            intervalCount = 1
         ),
         HistoryPeriod(
             id = "1",
             displayName = "10 days",
             enabled = true,
-            interval = "10 days",
-            intervalCount = 1
         )
     )
     NunchukTheme {

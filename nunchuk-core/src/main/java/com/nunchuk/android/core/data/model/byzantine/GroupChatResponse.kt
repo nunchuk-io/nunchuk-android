@@ -33,7 +33,9 @@ data class HistoryPeriodResponseOrRequest(
     @SerializedName("interval")
     val interval: String? = null,
     @SerializedName("interval_count")
-    val intervalCount: Int? = null
+    val intervalCount: Int? = null,
+    @SerializedName("duration_in_millis")
+    val durationInMillis: Long = 0L
 )
 
 class HistoryPeriodResponse(

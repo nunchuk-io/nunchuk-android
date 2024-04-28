@@ -45,15 +45,41 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.copyToClipboard
+import com.nunchuk.android.core.util.hideKeyboard
+import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.messages.R
-import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.ContactNotFoundEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.CreateNewSharedWallet
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.CreateNewTransaction
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.GetRoomWalletSuccessEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.HasUpdatedEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.HideBannerNewChatEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.LeaveRoomEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.Loading
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.None
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.OnSendMediaSuccess
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.OpenChatGroupInfoEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.OpenChatInfoEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.OpenFile
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.ReceiveBTCEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.RoomNotFoundEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.RoomWalletCreatedEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.ShowError
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.ViewWalletConfigEvent
 import com.nunchuk.android.messages.databinding.FragmentRoomDetailBinding
 import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
 import com.nunchuk.android.messages.util.safeStartActivity
 import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.widget.util.*
+import com.nunchuk.android.widget.util.addTextChangedCallback
+import com.nunchuk.android.widget.util.isFirstItemVisible
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import com.nunchuk.android.widget.util.setOnEnterListener
+import com.nunchuk.android.widget.util.smoothScrollToLastItem
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -146,7 +172,6 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
 
         setupViews()
         observeEvent()
-        viewModel.initialize(args.roomId, args.isGroupChat)
         viewModel.checkShowBannerNewChat()
     }
 
@@ -196,12 +221,15 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         val count = state.roomInfo.memberCount
         if (state.isSupportRoom || state.isGroupChatRoom || state.isHasByzantineGroup) {
             adapter.removeBannerNewChat()
-            binding.memberCount.text = resources.getString(R.string.nc_message_transaction_view_details)
+            binding.memberCount.text =
+                resources.getString(R.string.nc_message_transaction_view_details)
         } else if (state.matrixBasedCollaborativeWalletEnabled == false) {
             adapter.removeBannerNewChat()
-            binding.memberCount.text = resources.getQuantityString(R.plurals.nc_message_members, count, count)
+            binding.memberCount.text =
+                resources.getQuantityString(R.plurals.nc_message_members, count, count)
         } else {
-            binding.memberCount.text = resources.getQuantityString(R.plurals.nc_message_members, count, count)
+            binding.memberCount.text =
+                resources.getQuantityString(R.plurals.nc_message_members, count, count)
         }
         binding.toolbarTitle.text = state.roomInfo.roomName
         binding.tvSelectedMessageCount.text =
@@ -211,7 +239,8 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         val hasRoomWallet = state.roomWallet != null
         stickyBinding.root.isVisible = hasRoomWallet
         binding.sendAction.isVisible = state.isSupportRoom || args.isGroupChat
-        binding.addWallet.isVisible = !hasRoomWallet && !state.isSupportRoom && !args.isGroupChat && !state.isHasByzantineGroup && !state.isGroupChatRoom && state.matrixBasedCollaborativeWalletEnabled == true
+        binding.addWallet.isVisible =
+            !hasRoomWallet && !state.isSupportRoom && !args.isGroupChat && !state.isHasByzantineGroup && !state.isGroupChatRoom && state.matrixBasedCollaborativeWalletEnabled == true
         binding.sendBTC.isVisible = hasRoomWallet
         binding.receiveBTC.isVisible = hasRoomWallet
         binding.expand.isVisible = hasRoomWallet
@@ -220,7 +249,12 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
             val transactions = state.transactions.map(TransactionExtended::transaction)
             val pendingTransaction = transactions.firstOrNull { it.status.isPending() }
             val walletId = it.walletId
-            val coins = pendingTransaction?.outputs?.filter { viewModel.isMyCoin(walletId = walletId, it.first) == pendingTransaction.isReceive }
+            val coins = pendingTransaction?.outputs?.filter {
+                viewModel.isMyCoin(
+                    walletId = walletId,
+                    it.first
+                ) == pendingTransaction.isReceive
+            }
             stickyBinding.bindRoomWallet(
                 wallet = it,
                 transactions = state.transactions.map(TransactionExtended::transaction),
@@ -244,23 +278,33 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
                 walletId = event.walletId,
                 availableAmount = event.availableAmount,
             )
+
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(
                 requireActivity(),
                 args.roomId,
                 viewModel.isByzantineChat(),
                 viewModel.isShowCollaborativeWallet()
             )
-            OpenChatInfoEvent -> navigator.openChatInfoScreen(requireActivity(), args.roomId, viewModel.isByzantineChat(), viewModel.isShowCollaborativeWallet())
+
+            OpenChatInfoEvent -> navigator.openChatInfoScreen(
+                requireActivity(),
+                args.roomId,
+                viewModel.isByzantineChat(),
+                viewModel.isShowCollaborativeWallet()
+            )
+
             RoomWalletCreatedEvent -> showSuccess(getString(R.string.nc_message_wallet_created))
             HideBannerNewChatEvent -> adapter.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(
                 requireActivity(),
                 event.roomWalletData
             )
+
             is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(
                 requireActivity(),
                 event.walletId
             )
+
             HasUpdatedEvent -> scrollToLastItem()
             GetRoomWalletSuccessEvent -> args.roomAction.let(::handleRoomAction)
             LeaveRoomEvent -> requireActivity().finish()
@@ -510,10 +554,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         val content = binding.editText.text.toString()
         if (content.trim().isNotBlank()) {
             viewModel.handleSendMessage(content)
-            viewLifecycleOwner.lifecycleScope.launch {
-                delay(300L)
-                binding.editText.setText("")
-            }
+            binding.editText.setText("")
         }
     }
 

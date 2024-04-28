@@ -45,7 +45,7 @@ class SessionHolder @Inject constructor(
     private var isLeaveRoom: Boolean = false
 
     // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
-    fun storeActiveSession(session: Session) {
+    suspend fun storeActiveSession(session: Session) {
         fileLog(message = "storeActiveSession of ${session.myUserId}")
         getSafeActiveSession()?.apply {
             removeListener(sessionListener)
@@ -57,6 +57,7 @@ class SessionHolder @Inject constructor(
             cryptoService().setWarnOnUnknownDevices(false)
             try {
                 open()
+                clearCache()
                 if (!syncService().hasAlreadySynced()) {
                     syncService().startSync(true)
                 } else {
