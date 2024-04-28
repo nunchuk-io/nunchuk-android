@@ -41,8 +41,10 @@ const val SUBSCRIPTION_SUBSCRIPTION_ACTIVE = "io.nunchuk.custom.subscription_act
 const val SUBSCRIPTION_SUBSCRIPTION_PENDING = "io.nunchuk.custom.subscription_pending"
 const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
     "io.nunchuk.custom.transaction_co_signed_and_broadcast"
-const val TRANSACTION_SCHEDULE_MISSING_SIGNATURES = "io.nunchuk.custom.transaction_schedule_missing_signatures"
-const val TRANSACTION_SCHEDULE_NETWORK_REJECTED = "io.nunchuk.custom.transaction_schedule_network_rejected"
+const val TRANSACTION_SCHEDULE_MISSING_SIGNATURES =
+    "io.nunchuk.custom.transaction_schedule_missing_signatures"
+const val TRANSACTION_SCHEDULE_NETWORK_REJECTED =
+    "io.nunchuk.custom.transaction_schedule_network_rejected"
 const val TRANSACTION_UPDATED = "io.nunchuk.custom.transaction_updated"
 const val TRANSACTION_RECEIVED = "io.nunchuk.custom.wallet_receive_transaction"
 const val ADD_DESKTOP_KEY_COMPLETED = "io.nunchuk.custom.draft_wallet_add_key_request_completed"
@@ -55,13 +57,15 @@ const val GROUP_MEMBERSHIP_REQUEST_DENIED = "io.nunchuk.custom.group_membership_
 const val DRAFT_WALLET_RESET = "io.nunchuk.custom.draft_wallet_reset"
 const val GROUP_WALLET_CREATED = "io.nunchuk.custom.group_wallet_created"
 const val GROUP_EMERGENCY_LOCKDOWN_STARTED = "io.nunchuk.custom.group_emergency_lockdown_started"
-const val WALLET_INHERITANCE_PLANNING_REQUEST_DENIED = "io.nunchuk.custom.wallet_inheritance_planning_request_denied"
+const val WALLET_INHERITANCE_PLANNING_REQUEST_DENIED =
+    "io.nunchuk.custom.wallet_inheritance_planning_request_denied"
 const val KEY_RECOVERY_REQUEST = "io.nunchuk.custom.key_recovery_request"
 const val KEY_RECOVERY_APPROVED = "io.nunchuk.custom.key_recovery_approved"
 const val TRANSACTION_SIGNATURE_REQUEST = "io.nunchuk.custom.transaction_signature_request"
 const val GROUP_WALLET_CHANGE_NAMED = "io.nunchuk.custom.group_wallet_name_changed"
 const val KEY_NAME_CHANGED = "io.nunchuk.custom.key_name_changed"
-const val GROUP_WALLET_PRIMARY_OWNER_UPDATED = "io.nunchuk.custom.group_wallet_primary_owner_updated"
+const val GROUP_WALLET_PRIMARY_OWNER_UPDATED =
+    "io.nunchuk.custom.group_wallet_primary_owner_updated"
 const val TRANSACTION_REPLACED = "io.nunchuk.custom.transaction_replaced"
 const val SET_ALIAS = "io.nunchuk.custom.group_wallet_alias_set"
 const val REMOVE_ALIAS = "io.nunchuk.custom.group_wallet_alias_removed"
@@ -70,7 +74,8 @@ const val WALLET_INHERITANCE_UPDATED = "io.nunchuk.custom.wallet_inheritance_upd
 const val WALLET_INHERITANCE_CHANGE = "io.nunchuk.custom.wallet_inheritance_change"
 const val WALLET_INHERITANCE_CANCELED = "io.nunchuk.custom.wallet_inheritance_canceled"
 
-fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
+fun TimelineEvent.isDisplayable(isSupportRoom: Boolean, maxLifetime: Long?): Boolean {
+    if (maxLifetime != null && (System.currentTimeMillis() - time()) > maxLifetime) return false
     return if (isSupportRoom.not()) {
         isMessageEvent() || isEncryptedEvent() || isNotificationEvent() || isNunchukEvent()
     } else {
@@ -89,7 +94,8 @@ fun TimelineEvent.isEncryptedEvent() = root.getClearType() == EventType.ENCRYPTE
 
 fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROOM_NAME
 
-fun TimelineEvent.isMessageEvent() = root.isTextMessage() || root.isVideoMessage() || root.isImageMessage() || root.isFileMessage()
+fun TimelineEvent.isMessageEvent() =
+    root.isTextMessage() || root.isVideoMessage() || root.isImageMessage() || root.isFileMessage()
 
 fun TimelineEvent.isNunchukEvent() =
     isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()
@@ -116,7 +122,8 @@ fun TimelineEvent.isContactRequestAcceptedEvent() =
 fun TimelineEvent.isContactInvitationAcceptedEvent() =
     getMsgType() == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED
 
-fun TimelineEvent.isServerTransactionEvent() = isCosignedEvent() || isBroadcastEvent() || isCosignedAndBroadcastEvent() || isTransactionUpdateEvent()
+fun TimelineEvent.isServerTransactionEvent() =
+    isCosignedEvent() || isBroadcastEvent() || isCosignedAndBroadcastEvent() || isTransactionUpdateEvent()
 
 fun TimelineEvent.isCosignedEvent() = getMsgType() == TRANSACTION_CO_SIGNED
 
@@ -128,15 +135,19 @@ fun TimelineEvent.isCosignedAndBroadcastEvent() =
 fun TimelineEvent.isTransactionUpdateEvent() =
     getMsgType() == TRANSACTION_UPDATED
 
-fun TimelineEvent.isTransactionScheduleMissingSignaturesEvent() = getMsgType() == TRANSACTION_SCHEDULE_MISSING_SIGNATURES
-fun TimelineEvent.isTransactionScheduleNetworkRejectedEvent() = getMsgType() == TRANSACTION_SCHEDULE_NETWORK_REJECTED
+fun TimelineEvent.isTransactionScheduleMissingSignaturesEvent() =
+    getMsgType() == TRANSACTION_SCHEDULE_MISSING_SIGNATURES
+
+fun TimelineEvent.isTransactionScheduleNetworkRejectedEvent() =
+    getMsgType() == TRANSACTION_SCHEDULE_NETWORK_REJECTED
 
 fun TimelineEvent.isTransactionReceived() = getMsgType() == TRANSACTION_RECEIVED
 fun TimelineEvent.isAddKeyCompleted() = getMsgType() == ADD_DESKTOP_KEY_COMPLETED
 fun TimelineEvent.isWalletCreated() = getMsgType() == EVENT_WALLET_CREATED
 fun TimelineEvent.isTransactionCancelled() = getMsgType() == EVENT_TRANSACTION_CANCEL
 
-fun TimelineEvent.isTransactionHandleErrorMessageEvent() = isTransactionScheduleMissingSignaturesEvent() || isTransactionScheduleNetworkRejectedEvent()
+fun TimelineEvent.isTransactionHandleErrorMessageEvent() =
+    isTransactionScheduleMissingSignaturesEvent() || isTransactionScheduleNetworkRejectedEvent()
 
 fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
 
@@ -188,8 +199,10 @@ fun TimelineEvent.isGroupWalletPrimaryOwnerUpdated() =
 
 fun TimelineEvent.isTransactionReplaced() =
     getMsgType() == TRANSACTION_REPLACED
+
 fun TimelineEvent.isSetAlias() =
     getMsgType() == SET_ALIAS
+
 fun TimelineEvent.isRemoveAlias() =
     getMsgType() == REMOVE_ALIAS
 

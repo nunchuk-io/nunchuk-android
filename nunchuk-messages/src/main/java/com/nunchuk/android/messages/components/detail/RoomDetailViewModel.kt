@@ -20,6 +20,8 @@
 package com.nunchuk.android.messages.components.detail
 
 import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -27,22 +29,92 @@ import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.GROUP_CHAT_ROOM_TYPE
+import com.nunchuk.android.core.util.PAGINATION
+import com.nunchuk.android.core.util.ROOM_RETENTION
+import com.nunchuk.android.core.util.SUPPORT_ROOM_USER_ID
+import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.core.util.isCreated
+import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.CreateNewSharedWallet
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.CreateNewTransaction
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.GetRoomWalletSuccessEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.HasUpdatedEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.HideBannerNewChatEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.LeaveRoomEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.Loading
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.None
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.OnSendMediaSuccess
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.OpenChatGroupInfoEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.OpenChatInfoEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.OpenFile
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.ReceiveBTCEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.RoomNotFoundEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.RoomWalletCreatedEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.ShowError
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.ViewWalletConfigEvent
 import com.nunchuk.android.messages.usecase.media.SendMediaUseCase
 import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
-import com.nunchuk.android.messages.util.*
-import com.nunchuk.android.model.*
+import com.nunchuk.android.messages.util.downloadFile
+import com.nunchuk.android.messages.util.getRoomInfo
+import com.nunchuk.android.messages.util.getRoomMemberList
+import com.nunchuk.android.messages.util.groupEvents
+import com.nunchuk.android.messages.util.isDirectChat
+import com.nunchuk.android.messages.util.isDisplayable
+import com.nunchuk.android.messages.util.isInitTransactionEvent
+import com.nunchuk.android.messages.util.isLocalEvent
+import com.nunchuk.android.messages.util.isNunchukErrorEvent
+import com.nunchuk.android.messages.util.isNunchukEvent
+import com.nunchuk.android.messages.util.isReceiveTransactionEvent
+import com.nunchuk.android.messages.util.latestPreviewableEventTs
+import com.nunchuk.android.messages.util.time
+import com.nunchuk.android.messages.util.toMessages
+import com.nunchuk.android.messages.util.toNunchukMatrixEvent
+import com.nunchuk.android.model.Contact
+import com.nunchuk.android.model.NunchukMatrixEvent
+import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.model.SendEventExecutor
+import com.nunchuk.android.model.SendEventHelper
+import com.nunchuk.android.model.TransactionExtended
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.toRoomWalletData
 import com.nunchuk.android.share.GetContactsUseCase
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.CancelWalletUseCase
+import com.nunchuk.android.usecase.ConsumeEventUseCase
+import com.nunchuk.android.usecase.CreateSharedWalletUseCase
+import com.nunchuk.android.usecase.GetGroupsUseCase
+import com.nunchuk.android.usecase.GetRoomWalletUseCase
+import com.nunchuk.android.usecase.GetTransactionsUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.trySafe
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.file.FileService
@@ -55,6 +127,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 // TODO cache transaction with event
 @HiltViewModel
@@ -76,8 +149,10 @@ class RoomDetailViewModel @Inject constructor(
     private val sendMediaUseCase: SendMediaUseCase,
     private val isMyCoinUseCase: IsMyCoinUseCase,
     private val getGroupsUseCase: GetGroupsUseCase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val savedStateHandle: SavedStateHandle,
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
+    private val args = RoomDetailFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private var debugMode: Boolean = false
 
@@ -101,6 +176,8 @@ class RoomDetailViewModel @Inject constructor(
 
     private val timelineListenerAdapter = TimelineListenerAdapter()
 
+    private var hideMessageJob: Job? = null
+
     init {
         viewModelScope.launch {
             timelineListenerAdapter.data.filter { it.isNotEmpty() }.collect(::handleTimelineEvents)
@@ -113,12 +190,39 @@ class RoomDetailViewModel @Inject constructor(
                     }
                 }
         }
+        viewModelScope.launch {
+            runCatching {
+                val room = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(args.roomId)
+                room?.stateService()?.getStateEventLive(ROOM_RETENTION, QueryStringValue.IsEmpty)
+                    ?.asFlow()
+                    ?.distinctUntilChanged()
+                    ?.collect {
+                        scheduleHideMessages()
+                    }
+            }
+        }
+        initialize()
     }
 
-    fun initialize(roomId: String, isGroupChatRoom: Boolean) {
-        val room = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)
+    private fun scheduleHideMessages() {
+        hideMessageJob?.cancel()
+        val stateEvent = room.stateService().getStateEvent("m.room.retention", QueryStringValue.IsEmpty)
+        val maxLifetime = stateEvent?.content?.get("max_lifetime")?.toString()?.toDoubleOrNull()?.toLong()
+        if (maxLifetime != null) {
+            hideMessageJob = viewModelScope.launch {
+                while (isActive) {
+                    handleUpdateMessagesContent()
+                    delay(10.seconds)
+                }
+            }
+        }
+    }
+
+    private fun initialize() {
+        val room = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(args.roomId)
         room?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
-        if (isGroupChatRoom) updateState { copy(isGroupChatRoom = true) }
+        room?.timelineService()?.getAttachmentMessages()
+        if (args.isGroupChat) updateState { copy(isGroupChatRoom = true) }
         else {
             room?.let {
                 val stateEvent = room.stateService()
@@ -237,7 +341,10 @@ class RoomDetailViewModel @Inject constructor(
 
     private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).d("handleTimelineEvents:${events.size}")
-        val displayableEvents = events.filter { it.isDisplayable(isSupportRoom) }
+        val stateEvent = room.stateService().getStateEvent("m.room.retention", QueryStringValue.IsEmpty)
+        val maxLifetime = stateEvent?.content?.get("max_lifetime")?.toString()?.toDoubleOrNull()?.toLong()
+        Timber.tag(TAG).d("maxLifetime:$maxLifetime")
+        val displayableEvents = events.filter { it.isDisplayable(isSupportRoom, maxLifetime) }
             .filterNot { !debugMode && it.isNunchukErrorEvent() }
             .groupEvents(loadMore = ::handleLoadMore)
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
@@ -419,7 +526,8 @@ class RoomDetailViewModel @Inject constructor(
 
     fun markMessageRead(eventId: String) {
         viewModelScope.launch(ioDispatcher) {
-            room.readService().setReadReceipt(eventId = eventId, threadId = ReadService.THREAD_ID_MAIN)
+            room.readService()
+                .setReadReceipt(eventId = eventId, threadId = ReadService.THREAD_ID_MAIN)
         }
     }
 
@@ -431,8 +539,10 @@ class RoomDetailViewModel @Inject constructor(
         loadMessageJob?.cancel()
         loadMessageJob = viewModelScope.launch {
             val newMessages = withContext(ioDispatcher) {
+                val stateEvent = room.stateService().getStateEvent("m.room.retention", QueryStringValue.IsEmpty)
+                val maxLifetime = stateEvent?.content?.get("max_lifetime")?.toString()?.toDoubleOrNull()?.toLong()
                 val displayableEvents = timelineListenerAdapter.getLastTimeEvents()
-                    .filter { it.isDisplayable(isSupportRoom) }
+                    .filter { it.isDisplayable(isSupportRoom, maxLifetime) }
                     .filterNot { !debugMode && it.isNunchukErrorEvent() }
                     .groupEvents(loadMore = ::handleLoadMore)
                 displayableEvents.toMessages(
@@ -537,7 +647,8 @@ class RoomDetailViewModel @Inject constructor(
 
     fun isByzantineChat() = getState().isHasByzantineGroup || getState().isGroupChatRoom
 
-    fun isShowCollaborativeWallet(): Boolean = getState().matrixBasedCollaborativeWalletEnabled == true
+    fun isShowCollaborativeWallet(): Boolean =
+        getState().matrixBasedCollaborativeWalletEnabled == true
 
     override fun onCleared() {
         timeline?.apply {

@@ -189,8 +189,7 @@ internal fun HistoryPeriodResponseOrRequest?.toHistoryPeriod(): HistoryPeriod {
         displayName = this?.displayName.orEmpty(),
         enabled = this?.enabled.orFalse(),
         id = this?.id.orEmpty(),
-        interval = this?.interval.orEmpty(),
-        intervalCount = this?.intervalCount.orDefault(0)
+        durationInMillis = this?.durationInMillis ?: 0
     )
 }
 

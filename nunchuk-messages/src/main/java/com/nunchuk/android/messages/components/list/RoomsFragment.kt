@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
@@ -54,6 +55,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     @Inject
     lateinit var roomShareViewPool: RoomShareViewPool
 
+    @Inject
+    lateinit var sessionHolder: SessionHolder
+
     private lateinit var adapter: RoomAdapter
 
     override fun initializeBinding(
@@ -69,9 +73,10 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun setupViews() {
         adapter = RoomAdapter(
-            accountManager.getAccount().name,
-            ::openRoomDetailScreen,
-            ::handleRemoveRoom
+            sessionHolder = sessionHolder,
+            currentName = accountManager.getAccount().name,
+            enterRoom = ::openRoomDetailScreen,
+            removeRoom = ::handleRemoveRoom
         )
         binding.recyclerView.setRecycledViewPool(roomShareViewPool.recycledViewPool)
         binding.recyclerView.setHasFixedSize(true)

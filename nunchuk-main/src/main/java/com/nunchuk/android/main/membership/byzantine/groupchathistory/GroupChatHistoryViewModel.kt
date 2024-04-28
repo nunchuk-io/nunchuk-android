@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.byzantine.groupchathistory
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.byzantine.SetRoomRetentionUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.usecase.byzantine.CreateOrUpdateGroupChatUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,10 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class GroupChatHistoryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val setRoomRetentionUseCase: SetRoomRetentionUseCase,
     private val createOrUpdateGroupChatUseCase: CreateOrUpdateGroupChatUseCase
 ) : ViewModel() {
 
@@ -29,7 +32,7 @@ class GroupChatHistoryViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-       setHistoryPeriod(args.historyPeriodId)
+        setHistoryPeriod(args.historyPeriodId)
         _state.value = _state.value.copy(
             historyPeriods = args.periods.toList()
         )
@@ -37,10 +40,22 @@ class GroupChatHistoryViewModel @Inject constructor(
 
     fun saveHistoryPeriod() {
         viewModelScope.launch {
-            val historyPeriod = _state.value.historyPeriods.find { it.id == _state.value.selectedHistoryPeriodId} ?: return@launch
+            val historyPeriod =
+                _state.value.historyPeriods.find { it.id == _state.value.selectedHistoryPeriodId }
+                    ?: return@launch
+            setRoomRetentionUseCase(
+                SetRoomRetentionUseCase.Param(
+                    args.roomId,
+                    historyPeriod.durationInMillis.milliseconds
+                )
+            )
             _event.emit(GroupChatHistoryEvent.Loading(true))
             val result = createOrUpdateGroupChatUseCase(
-                CreateOrUpdateGroupChatUseCase.Param(groupId = args.groupId, roomId = args.roomId, historyPeriodId = _state.value.selectedHistoryPeriodId)
+                CreateOrUpdateGroupChatUseCase.Param(
+                    groupId = args.groupId,
+                    roomId = args.roomId,
+                    historyPeriodId = _state.value.selectedHistoryPeriodId
+                )
             )
             _event.emit(GroupChatHistoryEvent.Loading(false))
             if (result.isSuccess) {
