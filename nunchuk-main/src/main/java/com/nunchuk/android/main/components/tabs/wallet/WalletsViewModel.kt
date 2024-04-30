@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
+import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
@@ -65,6 +66,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
@@ -72,6 +74,7 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetUseLargeFontHomeBalancesUseCase
+import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.byzantine.GetListGroupWalletKeyHealthStatusUseCase
@@ -141,6 +144,7 @@ internal class WalletsViewModel @Inject constructor(
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkWalletsExistingKeyUseCase: CheckWalletsExistingKeyUseCase,
     private val updateExistingKeyUseCase: UpdateExistingKeyUseCase,
+    private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -262,6 +266,16 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         getAppSettings()
+        viewModelScope.launch {
+            getWalletSecuritySettingUseCase(Unit)
+                .collect {
+                    updateState {
+                        copy(
+                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting()
+                        )
+                    }
+                }
+        }
         viewModelScope.launch {
             if (accountManager.getAccount().id.isEmpty()) {
                 getUserProfileUseCase(Unit)

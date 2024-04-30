@@ -89,7 +89,7 @@ class WalletSecuritySettingsViewModel @Inject constructor(
         }
 
     fun isWalletPinEnabled() =
-        walletSecuritySetting.protectWalletPin
+        walletSecuritySetting.protectWalletPin && currentWalletPin.isNotEmpty()
 
     fun isWalletPasswordEnabled() =
         accountManager.loginType() == SignInMode.EMAIL.value && walletSecuritySetting.protectWalletPassword
