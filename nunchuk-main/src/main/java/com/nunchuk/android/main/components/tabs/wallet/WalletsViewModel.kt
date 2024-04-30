@@ -27,7 +27,6 @@ import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
