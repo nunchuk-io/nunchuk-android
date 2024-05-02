@@ -25,15 +25,64 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyDark
+import com.nunchuk.android.compose.latoBold
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_GENERATE_HEAL_CHECK_MSG
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_IMPORT_SIGNATURE
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_HEALTH_CHECK
@@ -44,65 +93,113 @@ import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.formatMMMddyyyyDate
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showWarning
-import com.nunchuk.android.core.util.toReadableDrawable
+import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableString
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
+import com.nunchuk.android.model.HealthCheckHistory
+import com.nunchuk.android.model.KeyHealthType
+import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.FragmentSignerInfoBinding
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.healthCheckLabel
+import com.nunchuk.android.utils.healthCheckTimeColor
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
     SingerInfoOptionBottomSheet.OptionClickListener {
 
-    @Inject
-    lateinit var accountManager: AccountManager
-
     private val viewModel: SignerInfoViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
+
+    private val args: SignerInfoFragmentArgs by navArgs()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
-    ): FragmentSignerInfoBinding = FragmentSignerInfoBinding.inflate(inflater, container, false)
+    ): FragmentSignerInfoBinding {
+        TODO("Not yet implemented")
+    }
 
-    private val args: SignerInfoFragmentArgs by navArgs()
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+            setContent {
+                val uiState by viewModel.state.collectAsStateWithLifecycle()
+                val isPrimaryKey =
+                    uiState.masterSigner?.let { viewModel.isPrimaryKey(it.device.masterFingerprint) }
+                        ?: false
+                SignerInfoContent(
+                    uiState = uiState, isPrimaryKey = isPrimaryKey,
+                    justAdded = args.justAdded,
+                    onBackClicked = ::openMainScreen,
+                    onMoreClicked = {
+                        val type = viewModel.state.value.masterSigner?.type
+                            ?: viewModel.state.value.remoteSigner?.type
+                        type?.let { signerType ->
+                            SingerInfoOptionBottomSheet.newInstance(signerType)
+                                .show(childFragmentManager, "SingerInfoOptionBottomSheet")
+                        }
+                    },
+                    onDoneClicked = ::openMainScreen,
+                    onEditClicked = { onEditClicked(uiState.signerName) },
+                    onHealthCheckClicked = ::handleRunHealthCheck
+                )
+            }
+
+            if (args.existingKey != null) {
+                NCInfoDialog(requireActivity()).showDialog(
+                    message = String.format(
+                        getString(R.string.nc_software_key_removed_from_device),
+                        args.name
+                    ),
+                    btnYes = getString(R.string.nc_delete_key),
+                    btnInfo = getString(R.string.nc_text_cancel),
+                    onYesClick = {
+                        args.existingKey?.let {
+                            viewModel.updateExistingKey(it, true)
+                        }
+                    },
+                    onInfoClick = {
+                        requireActivity().finish()
+                    }
+                )
+            }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requireActivity().window.statusBarColor =
-            ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
         setupViews()
         observeEvent()
-        if (args.existingKey != null) {
-            NCInfoDialog(requireActivity()).showDialog(
-                message = String.format(getString(R.string.nc_software_key_removed_from_device), args.name),
-                btnYes = getString(R.string.nc_delete_key),
-                btnInfo = getString(R.string.nc_text_cancel),
-                onYesClick = {
-                    args.existingKey?.let {
-                        viewModel.updateExistingKey(it, true)
-                    }
-                },
-                onInfoClick = {
-                    requireActivity().finish()
-                }
-            )
+
+        childFragmentManager.setFragmentResultListener(
+            AssistedWalletBottomSheet.TAG,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
+            if (walletId.isNotEmpty()) {
+                viewModel.onHealthCheck(walletId)
+            }
         }
     }
 
@@ -170,7 +267,6 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
 
     private fun observeEvent() {
         flowObserver(viewModel.event, ::handleEvent)
-        flowObserver(viewModel.state, ::handleState)
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }) {
             requestViewBackupKey(it)
@@ -225,47 +321,10 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
         )
     }
 
-    private fun handleState(state: SignerInfoState) {
-        state.remoteSigner?.let(::bindRemoteSigner)
-        state.masterSigner?.let(::bindMasterSigner)
-        binding.tvCardId.isVisible = state.nfcCardId != null
-        binding.tvCardIdLabel.isVisible = binding.tvCardId.isVisible
-        state.nfcCardId?.let { cardId ->
-            binding.tvCardId.text = cardId
-        }
-    }
-
-    private fun bindMasterSigner(signer: MasterSigner) {
-        val isPrimaryKey = isPrimaryKey(signer.device.masterFingerprint)
-        binding.signerName.text = signer.name
-        binding.signerTypeIcon.setImageDrawable(
-            signer.toReadableDrawable(
-                requireContext(),
-                isPrimaryKey
-            )
-        )
-        binding.fingerprint.isVisible = true
-        binding.fingerprint.text = signer.device.masterFingerprint
-        binding.signerSpec.isVisible = false
-        binding.signerType.text = signer.type.toReadableString(requireContext(), false)
-        binding.signerPrimaryKeyType.isVisible = isPrimaryKey
-    }
-
-    private fun bindRemoteSigner(signer: SingleSigner) {
-        binding.signerName.text = signer.name
-        binding.signerTypeIcon.setImageDrawable(signer.toReadableDrawable(requireActivity()))
-        binding.signerSpec.isVisible = true
-        binding.signerSpec.text = signer.descriptor
-        binding.fingerprint.isVisible = false
-        binding.signerType.text =
-            signer.type.toReadableString(requireActivity(), isPrimaryKey(signer.masterSignerId))
-    }
-
     private fun handleEvent(event: SignerInfoEvent) {
         showOrHideNfcLoading(event is SignerInfoEvent.NfcLoading)
         when (event) {
             is SignerInfoEvent.UpdateNameSuccessEvent -> {
-                binding.signerName.text = event.signerName
                 showEditSignerNameSuccess()
             }
 
@@ -279,7 +338,7 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
             SignerInfoEvent.HealthCheckSuccessEvent -> NCToastMessage(requireActivity()).showMessage(
                 message = getString(
                     R.string.nc_txt_run_health_check_success_event,
-                    binding.signerName.text
+                    viewModel.getSignerName()
                 ),
                 icon = R.drawable.ic_check_circle_outline
             )
@@ -314,12 +373,29 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
             is SignerInfoEvent.DeleteExistingSignerSuccess -> {
                 hideLoading()
                 NCToastMessage(requireActivity()).showMessage(
-                    message = String.format(getString(R.string.nc_key_has_been_deleted), event.keyName),
+                    message = String.format(
+                        getString(R.string.nc_key_has_been_deleted),
+                        event.keyName
+                    ),
                     icon = R.drawable.ic_check_circle_outline
                 )
                 requireActivity().finish()
             }
+
             is SignerInfoEvent.Error -> showError(event.e.message.orUnknownError())
+            is SignerInfoEvent.GetHealthCheckPayload -> {
+                hideLoading()
+                navigator.openWalletAuthentication(
+                    activityContext = requireActivity(),
+                    walletId = event.walletId,
+                    requiredSignatures = event.payload.requiredSignatures,
+                    type = VerificationType.SIGN_DUMMY_TX,
+                    groupId = event.groupId,
+                    dummyTransactionId = event.payload.dummyTransactionId,
+                )
+            }
+
+            is SignerInfoEvent.Loading -> showOrHideLoading(event.loading)
         }
     }
 
@@ -328,7 +404,7 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
             val errorMessage = if (event.e?.message.isNullOrEmpty()) {
                 getString(
                     R.string.nc_txt_run_health_check_error_event,
-                    binding.signerName.text
+                    viewModel.getSignerName()
                 )
             } else {
                 event.e?.message.orEmpty()
@@ -340,7 +416,6 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
     }
 
     private fun setupViews() {
-        binding.signerName.text = args.name
         if (args.customMessage.isNotBlank()) {
             NCToastMessage(requireActivity()).showMessage(
                 message = args.customMessage,
@@ -364,25 +439,20 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
                 )
             }
         }
-        binding.btnDone.isVisible = args.justAdded
-        binding.toolbar.setNavigationOnClickListener { openMainScreen() }
-        binding.toolbar.setOnMenuItemClickListener {
-            if (it.itemId == R.id.menu_more) {
-                val type = viewModel.state.value.masterSigner?.type
-                    ?: viewModel.state.value.remoteSigner?.type
-                type?.let { signerType ->
-                    SingerInfoOptionBottomSheet.newInstance(signerType)
-                        .show(childFragmentManager, "SingerInfoOptionBottomSheet")
-                }
-            }
-            false
-        }
-        binding.btnDone.setOnClickListener { openMainScreen() }
-        binding.signerName.setOnClickListener { onEditClicked() }
-        binding.btnHealthCheck.setOnClickListener { handleRunHealthCheck() }
     }
 
     private fun handleRunHealthCheck() {
+        if (viewModel.getAssistedWalletIds().isNotEmpty()) {
+            if (viewModel.getAssistedWalletIds().size == 1) {
+                viewModel.onHealthCheck(viewModel.getAssistedWalletIds().first())
+            } else {
+                AssistedWalletBottomSheet.show(
+                    childFragmentManager,
+                    assistedWalletIds = viewModel.getAssistedWalletIds()
+                )
+            }
+            return
+        }
         val masterSigner = viewModel.state.value.masterSigner
         val remoteSigner = viewModel.state.value.remoteSigner
         if (masterSigner != null) {
@@ -413,25 +483,338 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
         navigator.returnToMainScreen()
     }
 
-    private fun onEditClicked() {
+    private fun onEditClicked(signerName: String) {
         val bottomSheet = SignerUpdateBottomSheet.show(
             fragmentManager = childFragmentManager,
-            signerName = binding.signerName.text.toString()
+            signerName = signerName
         )
         bottomSheet.setListener(viewModel::handleEditCompletedEvent)
     }
 
     private fun showEditSignerNameSuccess() {
-        binding.signerName.post {
-            NCToastMessage(requireActivity()).showMessage(
-                message = getString(R.string.nc_text_change_signer_success),
-                icon = R.drawable.ic_check_circle_outline
-            )
+        NCToastMessage(requireActivity()).showMessage(
+            message = getString(R.string.nc_text_change_signer_success),
+            icon = R.drawable.ic_check_circle_outline
+        )
+    }
+}
+
+@Composable
+private fun SignerInfoContent(
+    uiState: SignerInfoState = SignerInfoState(),
+    justAdded: Boolean = false,
+    isPrimaryKey: Boolean = false,
+    onBackClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
+    onDoneClicked: () -> Unit = {},
+    onEditClicked: () -> Unit = {},
+    onHealthCheckClicked: () -> Unit = {}
+) {
+    val context = LocalContext.current
+    val label by remember(uiState.lastHealthCheckTimeMillis) {
+        derivedStateOf {
+            uiState.lastHealthCheckTimeMillis.healthCheckLabel(context)
         }
     }
+    val color = uiState.lastHealthCheckTimeMillis.healthCheckTimeColor()
 
-    private fun isPrimaryKey(xfp: String): Boolean {
-        val accountInfo = accountManager.getAccount()
-        return accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == xfp
+    NunchukTheme {
+        Scaffold(modifier = Modifier
+            .navigationBarsPadding(), topBar = {
+            Column(
+                modifier = Modifier
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                colorResource(id = R.color.nc_primary_light_color),
+                                colorResource(id = R.color.nc_primary_dark_color)
+                            ),
+                            start = Offset(0f, 1000f),
+                            end = Offset(0f, 0f)
+                        ),
+                        shape = RectangleShape
+                    ),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                NcTopAppBar(
+                    textStyle = NunchukTheme.typography.titleLarge.copy(color = Color.White),
+                    backgroundColor = Color.Transparent,
+                    title = stringResource(id = R.string.nc_text_signer_info),
+                    tintColor = Color.White,
+                    onBackPress = onBackClicked,
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more_horizontal),
+                                contentDescription = "More",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                )
+                val resId = if (uiState.masterSigner != null) {
+                    uiState.masterSigner.toReadableDrawableResId(isPrimaryKey = isPrimaryKey)
+                } else if (uiState.remoteSigner != null) {
+                    uiState.remoteSigner.toReadableDrawableResId()
+                } else {
+                    null
+                }
+                resId?.let {
+                    NcCircleImage(
+                        modifier = Modifier.padding(top = 12.dp),
+                        resId = resId,
+                        size = 96.dp,
+                        iconSize = 60.dp,
+                        color = if (uiState.assistedWalletIds.isEmpty()) Color.White else color
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .clickable { onEditClicked() }
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = uiState.signerName,
+                        style = NunchukTheme.typography.heading.copy(color = Color.White)
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_edit),
+                        contentDescription = "",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .size(18.dp)
+                    )
+                }
+
+                Row(modifier = Modifier.padding(top = 8.dp)) {
+                    if (isPrimaryKey) {
+                        Text(
+                            modifier = Modifier
+                                .background(
+                                    color = colorResource(id = R.color.nc_beeswax_light),
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .padding(horizontal = 8.dp),
+                            text = stringResource(id = R.string.nc_signer_type_primary_key),
+                            style = TextStyle(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.W500,
+                                fontFamily = latoBold
+                            )
+                        )
+                    }
+                    val signerType =
+                        uiState.masterSigner?.type?.toReadableString(
+                            LocalContext.current,
+                            false
+                        )
+                            ?: uiState.remoteSigner?.type?.toReadableString(
+                                LocalContext.current,
+                                isPrimaryKey
+                            )
+                            ?: ""
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .background(
+                                color = colorResource(id = R.color.nc_whisper_color),
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                            .padding(horizontal = 8.dp),
+                        text = signerType,
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W500,
+                            fontFamily = latoBold
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }, bottomBar = {
+            Column(modifier = Modifier.padding()) {
+                if (justAdded) {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                        onClick = onDoneClicked
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_done))
+                    }
+                }
+                NcOutlineButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = if (justAdded) 0.dp else 16.dp,
+                            bottom = 16.dp
+                        ),
+                    onClick = onHealthCheckClicked
+                ) {
+                    Text(text = stringResource(id = R.string.nc_txt_run_health_check))
+                }
+            }
+        }) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+            ) {
+                uiState.nfcCardId?.let {
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.nc_card_id),
+                            style = NunchukTheme.typography.titleSmall
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = uiState.nfcCardId,
+                            style = NunchukTheme.typography.body
+                        )
+                    }
+                }
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = stringResource(R.string.nc_text_signer_spec),
+                        style = NunchukTheme.typography.titleSmall
+                    )
+                    val keySpec = if (uiState.masterSigner != null) {
+                        uiState.masterSigner.device.masterFingerprint
+                    } else if (uiState.remoteSigner != null) {
+                        uiState.remoteSigner.descriptor
+                    } else {
+                        ""
+                    }
+                    Text(
+                        modifier = Modifier.padding(top = 4.dp),
+                        text = keySpec,
+                        style = NunchukTheme.typography.body
+                    )
+                }
+                if (uiState.assistedWalletIds.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        HorizontalDivider()
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .background(
+                                        color = color,
+                                        shape = RoundedCornerShape(size = 20.dp)
+                                    )
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_health_check_dark),
+                                    contentDescription = ""
+                                )
+                                Text(
+                                    text = label,
+                                    style = NunchukTheme.typography.bodySmall
+                                )
+                            }
+
+                            Text(
+                                modifier = Modifier.padding(top = 16.dp),
+                                text = stringResource(R.string.nc_health_check_history),
+                                style = NunchukTheme.typography.title
+                            )
+                            if (uiState.healthCheckHistories.isNullOrEmpty()) {
+                                Text(
+                                    modifier = Modifier.padding(top = 16.dp),
+                                    text = stringResource(R.string.nc_no_history),
+                                    style = NunchukTheme.typography.body
+                                )
+                            }
+                        }
+
+                    }
+
+                    items(uiState.healthCheckHistories.orEmpty()) {
+                        HealthCheckHistoryItem(it)
+                    }
+                }
+            }
+        }
     }
+}
+
+@Composable
+fun HealthCheckHistoryItem(history: HealthCheckHistory) {
+    Column {
+        Row(
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = history.createdTimeMillis.formatMMMddyyyyDate,
+                    style = NunchukTheme.typography.body,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                val status = when (history.type) {
+                    KeyHealthType.HEALTH_CHECK.name, KeyHealthType.DUMMY_TRANSACTION.name -> {
+                        "Health check succeeded"
+                    }
+
+                    KeyHealthType.TRANSACTION.name -> {
+                        "Transaction signed"
+                    }
+
+                    else -> {
+                        ""
+                    }
+                }
+                Text(
+                    modifier = Modifier.padding(top = 4.dp),
+                    text = status,
+                    style = NunchukTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.greyDark,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            if (history.type == KeyHealthType.TRANSACTION.name) {
+                Image(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = R.drawable.ic_right_arrow_dark),
+                    contentDescription = "Arrow"
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun SignerInfoScreenPreview() {
+    SignerInfoContent(
+        justAdded = true,
+    )
 }

@@ -17,7 +17,7 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components
+package com.nunchuk.android.core.wallet
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -28,9 +28,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseBottomSheet
+import com.nunchuk.android.core.databinding.BottomSheetAssistedWalletBinding
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.main.components.tabs.AssistedWalletViewModel
-import com.nunchuk.android.main.databinding.BottomSheetAssistedWalletBinding
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint

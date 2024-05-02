@@ -189,3 +189,6 @@ val String.isRecommendedPath: Boolean
 val String.isValidPathForAssistedWallet: Boolean
     get() = this.startsWith(SIGNER_PATH_PREFIX)
 
+val Long.formatMMMddyyyyDate: String
+    get() = SimpleDateFormat("MMM dd, yyyy", Locale.US).format(Date(this))
+

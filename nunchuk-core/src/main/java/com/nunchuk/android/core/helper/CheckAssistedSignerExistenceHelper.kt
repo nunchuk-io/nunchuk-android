@@ -72,4 +72,17 @@ class CheckAssistedSignerExistenceHelper @Inject constructor(
             }
         }
     }
+
+    fun getAssistedWallets(signer: SignerModel): List<String> {
+        val assistedWalletSet = assistedWallets.map { it.localId }.toHashSet()
+        val assistedWallets = wallets.filter { it.wallet.id in assistedWalletSet }
+        return assistedWallets.filter {
+            it.wallet.signers.any anyLast@{ singleSigner ->
+                if (singleSigner.hasMasterSigner) {
+                    return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
+                }
+                return@anyLast singleSigner.masterFingerprint == signer.fingerPrint && singleSigner.derivationPath == signer.derivationPath
+            }
+        }.map { it.wallet.id }
+    }
 }

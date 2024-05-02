@@ -19,36 +19,50 @@
 
 package com.nunchuk.android.signer.components.details
 
+import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.byzantine.KeyHealthStatus
 
 sealed class SignerInfoEvent {
 
-    object NfcLoading : SignerInfoEvent()
+    data object NfcLoading : SignerInfoEvent()
 
     data class UpdateNameSuccessEvent(val signerName: String) : SignerInfoEvent()
 
     data class UpdateNameErrorEvent(val message: String) : SignerInfoEvent()
 
-    object RemoveSignerCompletedEvent : SignerInfoEvent()
+    data object RemoveSignerCompletedEvent : SignerInfoEvent()
 
     data class RemoveSignerErrorEvent(val message: String) : SignerInfoEvent()
 
-    object HealthCheckSuccessEvent : SignerInfoEvent()
+    data object HealthCheckSuccessEvent : SignerInfoEvent()
 
-    data class HealthCheckErrorEvent(val message: String? = null, val e: Throwable? = null) : SignerInfoEvent()
+    data class HealthCheckErrorEvent(val message: String? = null, val e: Throwable? = null) :
+        SignerInfoEvent()
 
     data class GetTapSignerBackupKeyEvent(val backupKeyPath: String) : SignerInfoEvent()
 
     data class NfcError(val e: Throwable?) : SignerInfoEvent()
 
-    object GenerateColdcardHealthMessagesSuccess : SignerInfoEvent()
+    data object GenerateColdcardHealthMessagesSuccess : SignerInfoEvent()
 
-    object TopUpXpubSuccess : SignerInfoEvent()
+    data object TopUpXpubSuccess : SignerInfoEvent()
 
     data class TopUpXpubFailed(val e: Throwable?) : SignerInfoEvent()
     data class Error(val e: Throwable) : SignerInfoEvent()
     data class DeleteExistingSignerSuccess(val keyName: String) : SignerInfoEvent()
+    data class Loading(val loading: Boolean) : SignerInfoEvent()
+    class GetHealthCheckPayload(val payload: DummyTransactionPayload, val walletId: String, val groupId: String) : SignerInfoEvent()
 }
 
-data class SignerInfoState(val remoteSigner: SingleSigner? = null, val masterSigner: MasterSigner? = null, val nfcCardId: String? = null)
+data class SignerInfoState(
+    val remoteSigner: SingleSigner? = null,
+    val masterSigner: MasterSigner? = null,
+    val nfcCardId: String? = null,
+    val healthCheckHistories: List<HealthCheckHistory>? = null,
+    val lastHealthCheckTimeMillis: Long = 0,
+    val signerName: String = "",
+    val assistedWalletIds: List<String> = emptyList(),
+)

@@ -135,6 +135,8 @@
     <string name="nc_signer_address_copied_to_clipboard">Address copied to clipboard</string>
     <string name="nc_signer_copy_signature">Copy signature</string>
     <string name="nc_signer_export_signature">Export signature</string>
+    <string name="nc_health_check_history">Health check history</string>
+    <string name="nc_no_history">No history</string>
     <string name="nc_health_check_is_unavailable_for_this_key">Health check is unavailable for this key.</string>
     <string name="nc_coldcard_xfp_does_not_match">Key fingerprint (XFP) does not match. Please try a different COLDCARD.</string>
     <string name="nc_airgap_xfp_does_not_match">Key fingerprint (XFP) does not match. Please try a different Airgap.</string>

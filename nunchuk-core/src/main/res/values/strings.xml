@@ -726,4 +726,8 @@
     <string name="nc_create_new_wallet_desc">Create a new wallet using existing keys.</string>
     <string name="nc_create_hot_wallet">Create a hot wallet</string>
     <string name="nc_create_hot_wallet_desc">Quickly create a hot wallet for immediate use and back it up later. No existing keys required.</string>
+    <string name="nc_last_checked_more_than_1_year_ago">Last checked: More than 1 year ago</string>
+    <string name="nc_last_checked_less_than_6_months_ago">Last checked: Less than 6 months ago</string>
+    <string name="nc_last_checked_more_than_6_months_ago">Last checked: More than 6 months ago</string>
+    <string name="nc_not_checked_yet">Not checked yet</string>
 </resources>

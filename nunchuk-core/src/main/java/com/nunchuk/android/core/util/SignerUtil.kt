@@ -103,6 +103,10 @@ fun MasterSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = fa
         toReadableDrawableResId(type, tags, isPrimaryKey)
     ) ?: throw NullPointerException("Nunchuk can not get drawable")
 
+fun MasterSigner.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
+    return toReadableDrawableResId(type, tags, isPrimaryKey)
+}
+
 fun SingleSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) =
     ContextCompat.getDrawable(
         context,

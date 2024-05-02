@@ -147,9 +147,6 @@
     <string name="nc_savings_account">Savings account</string>
     <string name="nc_health_check">Health check</string>
     <string name="nc_request_health_check">Request check</string>
-    <string name="nc_last_checked_more_than_1_year_ago">Last checked: More than 1 year ago</string>
-    <string name="nc_last_checked_less_than_6_months_ago">Last checked: Less than 6 months ago</string>
-    <string name="nc_last_checked_more_than_6_months_ago">Last checked: More than 6 months ago</string>
     <string name="nc_health_check_request_sent">Health check request sent</string>
     <string name="nc_health_check_request_sent_description">The keyholders have been notified of the health check request. Once the request is completed, the health status will be updated in the group dashboard.</string>
     <string name="nc_cancel_request">Cancel request</string>
