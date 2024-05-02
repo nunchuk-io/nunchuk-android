@@ -54,7 +54,6 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.byzantine.healthCheckTimeColor
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
@@ -71,6 +70,7 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.Utils
+import com.nunchuk.android.utils.healthCheckTimeColor
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 

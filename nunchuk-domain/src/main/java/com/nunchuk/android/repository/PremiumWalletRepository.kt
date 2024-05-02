@@ -28,6 +28,7 @@ import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
+import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceAdditional
@@ -412,6 +413,7 @@ interface PremiumWalletRepository {
     suspend fun syncDeletedWallet(): Boolean
 
     suspend fun deleteKey(xfp: String)
+    suspend fun healthCheckHistory(xfp: String): List<HealthCheckHistory>
 
     suspend fun syncConfirmedTransactionNotes(groupId: String?, walletId: String)
 

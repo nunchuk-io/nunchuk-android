@@ -12,8 +12,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.addPaymentWalletAddress
 import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.navigateToPaymentWalletAddress
 import com.nunchuk.android.main.membership.byzantine.payment.address.whitelist.addWhitelistAddress

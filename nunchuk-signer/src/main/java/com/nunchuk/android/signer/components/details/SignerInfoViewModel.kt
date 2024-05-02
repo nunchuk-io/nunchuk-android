@@ -25,16 +25,21 @@ import android.nfc.tech.Ndef
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GenerateColdCardHealthCheckMessageUseCase
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.HealthCheckColdCardUseCase
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
 import com.nunchuk.android.core.domain.HealthCheckTapSignerUseCase
 import com.nunchuk.android.core.domain.TopUpXpubTapSignerUseCase
-import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -57,14 +62,17 @@ import com.nunchuk.android.usecase.DeleteMasterSignerUseCase
 import com.nunchuk.android.usecase.DeleteRemoteSignerUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
+import com.nunchuk.android.usecase.HealthCheckHistoryUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
+import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -96,6 +104,11 @@ internal class SignerInfoViewModel @Inject constructor(
     private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
     private val updateServerKeyNameUseCase: UpdateServerKeyNameUseCase,
     private val updateExistingKeyUseCase: UpdateExistingKeyUseCase,
+    private val healthCheckHistoryUseCase: HealthCheckHistoryUseCase,
+    private val accountManager: AccountManager,
+    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
+    private val assistedWalletManager: AssistedWalletManager,
+    private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : ViewModel() {
@@ -104,7 +117,7 @@ internal class SignerInfoViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<SignerInfoEvent>()
     val event = _event.asSharedFlow()
-    
+
     private fun getState() = _state.value
 
     private val assistedKeys = getAssistedKeysUseCase(Unit)
@@ -115,12 +128,18 @@ internal class SignerInfoViewModel @Inject constructor(
         SignerInfoFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     init {
+        _state.update { it.copy(signerName = args.name) }
+        checkAssistedSignerExistenceHelper.init(viewModelScope)
         viewModelScope.launch {
             if (args.isMasterSigner) {
                 val result = getMasterSignerUseCase(args.id)
                 if (result.isSuccess) {
-
-                    _state.update { state -> state.copy(masterSigner = result.getOrThrow()) }
+                    _state.update { state ->
+                        state.copy(
+                            masterSigner = result.getOrThrow(),
+                            signerName = result.getOrThrow().name
+                        )
+                    }
                 } else {
                     Timber.e("Get software signer error")
                 }
@@ -132,7 +151,12 @@ internal class SignerInfoViewModel @Inject constructor(
                     )
                 )
                 if (result.isSuccess) {
-                    _state.update { state -> state.copy(remoteSigner = result.getOrThrow()) }
+                    _state.update { state ->
+                        state.copy(
+                            remoteSigner = result.getOrThrow(),
+                            signerName = result.getOrThrow().name
+                        )
+                    }
                 }
             }
         }
@@ -141,6 +165,31 @@ internal class SignerInfoViewModel @Inject constructor(
                 val cardId = cardIdManager.getCardId(args.id)
                 _state.update { state -> state.copy(nfcCardId = cardId) }
             }
+        }
+        viewModelScope.launch {
+            val xfp = args.id
+            val result = healthCheckHistoryUseCase(HealthCheckHistoryUseCase.Params(xfp))
+            if (result.isSuccess) {
+                val histories = result.getOrThrow()
+                _state.update { state ->
+                    state.copy(healthCheckHistories = histories,
+                        lastHealthCheckTimeMillis = if (histories.isEmpty()) 0 else histories.maxOf { it.createdTimeMillis })
+                }
+            }
+        }
+        viewModelScope.launch {
+            delay(500)
+            val assistedWalletIds = checkAssistedSignerExistenceHelper.getAssistedWallets(
+                SignerModel(
+                    id = args.id,
+                    name = args.name,
+                    derivationPath = args.derivationPath,
+                    fingerPrint = args.masterFingerprint,
+                    isMasterSigner = args.isMasterSigner,
+                    type = args.signerType
+                )
+            )
+            _state.update { state -> state.copy(assistedWalletIds = assistedWalletIds) }
         }
     }
 
@@ -151,7 +200,7 @@ internal class SignerInfoViewModel @Inject constructor(
                 state.masterSigner?.let { signer ->
                     updateMasterSignerUseCase(parameters = signer.copy(name = updateSignerName))
                         .onSuccess {
-                            _event.emit(UpdateNameSuccessEvent(updateSignerName))
+                            _state.update { it.copy(signerName = updateSignerName) }
                             updateServerKeyName(signer.id, updateSignerName)
                         }
                         .onFailure { e ->
@@ -196,10 +245,12 @@ internal class SignerInfoViewModel @Inject constructor(
                 }
             } else {
                 state.remoteSigner?.let {
-                    deleteRemoteSignerUseCase(DeleteRemoteSignerUseCase.Params(
-                        masterFingerprint = it.masterFingerprint,
-                        derivationPath = it.derivationPath
-                    )).onSuccess {
+                    deleteRemoteSignerUseCase(
+                        DeleteRemoteSignerUseCase.Params(
+                            masterFingerprint = it.masterFingerprint,
+                            derivationPath = it.derivationPath
+                        )
+                    ).onSuccess {
                         _event.emit(RemoveSignerCompletedEvent)
                     }.onFailure { exception ->
                         _event.emit(RemoveSignerErrorEvent(exception.message.orUnknownError()))
@@ -337,12 +388,51 @@ internal class SignerInfoViewModel @Inject constructor(
     fun updateExistingKey(existingKey: WalletsExistingKey, replace: Boolean) {
         viewModelScope.launch {
             _event.emit(NfcLoading)
-            updateExistingKeyUseCase(UpdateExistingKeyUseCase.Params(serverSigner = existingKey.signerServer, existingKey.localSigner, replace))
+            updateExistingKeyUseCase(
+                UpdateExistingKeyUseCase.Params(
+                    serverSigner = existingKey.signerServer,
+                    existingKey.localSigner,
+                    replace
+                )
+            )
                 .onSuccess {
                     _event.emit(SignerInfoEvent.DeleteExistingSignerSuccess(existingKey.localSigner.name))
                 }.onFailure {
                     _event.emit(SignerInfoEvent.Error(it))
                 }
         }
+    }
+
+    fun onHealthCheck(walletId: String) {
+        viewModelScope.launch {
+            val groupId = assistedWalletManager.getGroupId(walletId)
+            _event.emit(SignerInfoEvent.Loading(true))
+            keyHealthCheckUseCase(
+                KeyHealthCheckUseCase.Params(
+                    groupId = groupId.orEmpty(),
+                    walletId = walletId,
+                    xfp = args.masterFingerprint,
+                    draft = true
+                )
+            ).onSuccess {
+                _event.emit(SignerInfoEvent.GetHealthCheckPayload(payload = it, walletId = walletId, groupId = groupId.orEmpty()))
+            }.onFailure {
+                _event.emit(SignerInfoEvent.Error(it))
+            }
+            _event.emit(SignerInfoEvent.Loading(false))
+        }
+    }
+
+    fun isPrimaryKey(xfp: String): Boolean {
+        val accountInfo = accountManager.getAccount()
+        return accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == xfp
+    }
+
+    fun getSignerName(): String {
+        return getState().signerName
+    }
+
+    fun getAssistedWalletIds(): List<String> {
+        return getState().assistedWalletIds
     }
 }

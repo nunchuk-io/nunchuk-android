@@ -109,6 +109,7 @@ import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.GroupStatus
+import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceAdditional
@@ -2236,6 +2237,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun deleteKey(xfp: String) {
         userWalletApiManager.walletApi.deleteKey(xfp)
+    }
+
+    override suspend fun healthCheckHistory(xfp: String): List<HealthCheckHistory> {
+        val response = userWalletApiManager.walletApi.healthCheckHistory(xfp)
+        return response.data.history?.map {
+            HealthCheckHistory(
+                id = it.id.orEmpty(),
+                type = it.type.orEmpty(),
+                createdTimeMillis = it.createdTimeMillis.orDefault(0),
+                walletId = it.payload?.walletId.orEmpty(),
+                walletLocalId = it.payload?.walletLocalId.orEmpty(),
+                dummyTransactionId = it.payload?.dummyTransactionId.orEmpty(),
+            )
+        }.orEmpty()
     }
 
     override suspend fun syncConfirmedTransactionNotes(groupId: String?, walletId: String) {

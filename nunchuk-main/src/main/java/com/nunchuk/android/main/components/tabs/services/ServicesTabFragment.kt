@@ -34,9 +34,9 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.components.tabs.wallet.WalletsViewModel
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity

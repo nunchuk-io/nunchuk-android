@@ -22,11 +22,11 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.byzantine.formatAmount
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.toResId
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
+import com.nunchuk.android.utils.formatAmount
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import java.util.Date
 

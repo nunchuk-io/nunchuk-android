@@ -17,16 +17,15 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components
+package com.nunchuk.android.core.wallet
 
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import androidx.core.view.isVisible
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.databinding.ItemWalletBinding
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
-import com.nunchuk.android.main.R
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
@@ -35,7 +34,7 @@ import com.nunchuk.android.widget.util.AbsViewBinder
 internal class WalletsViewBinder(
     container: ViewGroup,
     wallets: List<WalletExtended>,
-    val assistedWalletIds: (String) -> Boolean = {false},
+    val assistedWalletIds: (String) -> Boolean = { false },
     val lockdownWalletIds: Set<String>,
     private val hideWalletDetail: Boolean = false,
     val callback: (String) -> Unit = {}
@@ -44,7 +43,7 @@ internal class WalletsViewBinder(
     override fun initializeBinding() = ItemWalletBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: WalletExtended) {
-      val isAssistedWallet = assistedWalletIds(model.wallet.id)
+        val isAssistedWallet = assistedWalletIds(model.wallet.id)
         val wallet = model.wallet
         val balance = "(${wallet.getCurrencyAmount()})"
         val binding = ItemWalletBinding.bind(container[position])

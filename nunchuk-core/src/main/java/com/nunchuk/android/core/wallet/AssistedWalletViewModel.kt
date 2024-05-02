@@ -17,40 +17,35 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.compose
+package com.nunchuk.android.core.wallet
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.nunchuk.android.core.R
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.usecase.GetWalletsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
 
-@Composable
-fun NcTag(
-    modifier: Modifier = Modifier,
-    label: String,
-    backgroundColor: Color = colorResource(id = R.color.nc_whisper_color)
-) {
-    Text(
-        modifier = modifier
-            .background(
-                color = backgroundColor,
-                shape = RoundedCornerShape(20.dp)
-            )
-            .padding(horizontal = 8.dp, vertical = 2.dp),
-        text = label,
-        style = TextStyle(
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 10.sp, fontWeight = FontWeight.W900, fontFamily = latoBold
-        )
-    )
+@HiltViewModel
+class AssistedWalletViewModel @Inject constructor(
+    private val getWalletsUseCase: GetWalletsUseCase
+) : ViewModel() {
+
+    private val _state = MutableStateFlow<List<WalletExtended>>(emptyList())
+    val state = _state.asStateFlow()
+
+    fun loadWallets(assistedWalletIds: List<String>) {
+        viewModelScope.launch {
+            getWalletsUseCase.execute()
+                .catch { Timber.e(it) }
+                .collect { wallets ->
+                    _state.value = wallets.filter { it.wallet.id in assistedWalletIds }
+                }
+        }
+    }
 }

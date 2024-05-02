@@ -66,6 +66,7 @@ import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
 import com.nunchuk.android.core.data.model.membership.GetNonceResponse
 import com.nunchuk.android.core.data.model.membership.GetWalletResponse
 import com.nunchuk.android.core.data.model.membership.GroupAssistedWalletConfigResponse
+import com.nunchuk.android.core.data.model.membership.HealthCheckHistoryResponseData
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimStatusResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceResponse
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
@@ -448,6 +449,11 @@ internal interface UserWalletsApi {
     suspend fun deleteKey(
         @Path("xfp") xfp: String,
     ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/wallet-keys/{xfp}/history")
+    suspend fun healthCheckHistory(
+        @Path("xfp") xfp: String,
+    ): Data<HealthCheckHistoryResponseData>
 
     @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/notes?limit=${TRANSACTION_PAGE_COUNT}&statuses=CONFIRMED,NETWORK_REJECTED")
     suspend fun getConfirmedAndRejectedTransactions(

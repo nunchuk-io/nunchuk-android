@@ -26,6 +26,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -46,16 +47,19 @@ fun NcTopAppBar(
     textStyle: TextStyle = NunchukTheme.typography.titleSmall,
     actions: @Composable RowScope.() -> Unit = {},
     isBack: Boolean = true,
-    backgroundColor: Color = MaterialTheme.colorScheme.background
+    backgroundColor: Color = MaterialTheme.colorScheme.background,
+    tintColor: Color = LocalContentColor.current,
+    onBackPress: (() -> Unit)? = null
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = backgroundColor),
         navigationIcon = {
-            IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
+            IconButton(onClick = { if (onBackPress != null) onBackPress.invoke() else onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                 Icon(
                     painter = painterResource(id = if (isBack) R.drawable.ic_back else R.drawable.ic_close),
-                    contentDescription = "Back"
+                    contentDescription = "Back",
+                    tint = tintColor
                 )
             }
         },

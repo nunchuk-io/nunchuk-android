@@ -23,13 +23,13 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.byzantine.formatAmount
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
+import com.nunchuk.android.utils.formatAmount
 
 @Composable
 fun RecurringPaymentDetailRoute(

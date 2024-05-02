@@ -41,7 +41,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.byzantine.formatAmount
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
@@ -49,6 +48,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.utils.formatAmount
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

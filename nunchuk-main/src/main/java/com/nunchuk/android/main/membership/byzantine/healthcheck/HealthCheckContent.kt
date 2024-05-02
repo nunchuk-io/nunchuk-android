@@ -43,11 +43,11 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardState
-import com.nunchuk.android.main.membership.byzantine.healthCheckLabel
-import com.nunchuk.android.main.membership.byzantine.healthCheckTimeColor
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.healthCheckLabel
+import com.nunchuk.android.utils.healthCheckTimeColor
 
 @Composable
 fun HealthCheckContent(
