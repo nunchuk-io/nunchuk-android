@@ -39,19 +39,7 @@ class TapSignerVerifyBackUpOptionViewModel @Inject constructor(
     private val _event = MutableSharedFlow<TapSignerVerifyBackUpOptionEvent>()
     val event = _event.asSharedFlow()
 
-    private val _options = MutableStateFlow(
-        listOf(
-            TsBackUpOption(
-                type = TsBackUpOptionType.BY_APP,
-                labelId = R.string.nc_verify_backup_via_the_app,
-                isSelected = true
-            ),
-            TsBackUpOption(
-                type = TsBackUpOptionType.BY_MYSELF,
-                labelId = R.string.nc_verify_backup_myself
-            ),
-        )
-    )
+    private val _options = MutableStateFlow(OPTIONS)
     val options = _options.asStateFlow()
 
     fun onContinueClicked() {
@@ -68,6 +56,24 @@ class TapSignerVerifyBackUpOptionViewModel @Inject constructor(
 
     val selectedOptionType: TsBackUpOptionType
         get() = _options.value.first { it.isSelected }.type
+
+    companion object {
+        val OPTIONS = listOf(
+            TsBackUpOption(
+                type = TsBackUpOptionType.BY_MYSELF,
+                labelId = R.string.nc_verify_backup_myself,
+                isSelected = true
+            ),
+            TsBackUpOption(
+                type = TsBackUpOptionType.BY_APP,
+                labelId = R.string.nc_verify_backup_via_the_app,
+            ),
+            TsBackUpOption(
+                type = TsBackUpOptionType.SKIP,
+                labelId = R.string.nc_skip_verification
+            )
+        )
+    }
 }
 
 sealed class TapSignerVerifyBackUpOptionEvent

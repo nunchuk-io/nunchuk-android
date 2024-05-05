@@ -23,10 +23,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -53,6 +59,7 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.backup.verify.components.TsVerifyBackUpOption
 import com.nunchuk.android.signer.tapsigner.backup.verify.model.TsBackUpOption
 import com.nunchuk.android.signer.tapsigner.backup.verify.model.TsBackUpOptionType
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -90,12 +97,23 @@ class TapSignerVerifyBackUpOptionFragment : MembershipFragment() {
                     )
                 )
             }
+
             TsBackUpOptionType.BY_MYSELF -> {
                 findNavController().navigate(
                     TapSignerVerifyBackUpOptionFragmentDirections.actionTapSignerVerifyBackUpOptionFragmentToCheckBackUpBySelfFragment(
                         args.filePath,
                         args.masterSignerId
                     )
+                )
+            }
+
+            TsBackUpOptionType.SKIP -> {
+                NCWarningDialog(requireActivity()).showDialog(
+                    title = getString(R.string.nc_confirmation),
+                    message = getString(R.string.nc_skip_back_up_desc),
+                    onYesClick = {
+                        requireActivity().finish()
+                    }
                 )
             }
         }
@@ -152,7 +170,7 @@ private fun TapSignerVerifyBackUpOptionContent(
                         modifier = Modifier.fillMaxWidth(),
                         isSelected = item.isSelected,
                         label = stringResource(id = item.labelId),
-                        isRecommend = item.type == TsBackUpOptionType.BY_APP
+                        isRecommend = item.type == TsBackUpOptionType.BY_MYSELF
                     ) {
                         onItemClicked(item)
                     }
@@ -162,7 +180,7 @@ private fun TapSignerVerifyBackUpOptionContent(
             NcHintMessage(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 messages = listOf(ClickAbleText(content = stringResource(R.string.nc_verify_backup_hint))),
-                type = HighlightMessageType.WARNING,
+                type = HighlightMessageType.HINT,
             )
             NcPrimaryDarkButton(
                 modifier = Modifier
@@ -182,18 +200,7 @@ private fun TapSignerVerifyBackUpOptionContent(
 private fun UploadBackUpTapSignerScreenPreview() {
     NunchukTheme {
         TapSignerVerifyBackUpOptionContent(
-            options = listOf(
-                TsBackUpOption(
-                    type = TsBackUpOptionType.BY_APP,
-                    false,
-                    R.string.nc_verify_backup_via_the_app
-                ),
-                TsBackUpOption(
-                    type = TsBackUpOptionType.BY_MYSELF,
-                    false,
-                    R.string.nc_verify_backup_myself
-                ),
-            )
+            options = TapSignerVerifyBackUpOptionViewModel.OPTIONS
         )
     }
 }
