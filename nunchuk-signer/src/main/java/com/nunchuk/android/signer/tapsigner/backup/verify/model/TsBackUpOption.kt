@@ -24,5 +24,5 @@ import androidx.annotation.StringRes
 data class TsBackUpOption(val type : TsBackUpOptionType, val isSelected: Boolean = false, @StringRes val labelId: Int)
 
 enum class TsBackUpOptionType {
-    BY_APP, BY_MYSELF
+    BY_APP, BY_MYSELF, SKIP
 }

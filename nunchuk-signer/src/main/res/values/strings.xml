@@ -139,4 +139,6 @@
     <string name="nc_coldcard_xfp_does_not_match">Key fingerprint (XFP) does not match. Please try a different COLDCARD.</string>
     <string name="nc_airgap_xfp_does_not_match">Key fingerprint (XFP) does not match. Please try a different Airgap.</string>
     <string name="nc_software_key_removed_from_device">The software key (%1$s) will be removed from this device. Please tap ‘Delete key’ to confirm.</string>
+    <string name="nc_skip_verification">Skip verification</string>
+    <string name="nc_skip_back_up_desc">Are you sure you want to skip the backup verification?</string>
 </resources>
