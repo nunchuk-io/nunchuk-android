@@ -326,6 +326,7 @@ class NcDataStore @Inject constructor(
             it.remove(securityQuestionKey)
             it.remove(groupIdKey)
             it.remove(groupAssistedKeysPreferenceKey)
+            it.remove(membershipPlansKey)
         }
     }
 }

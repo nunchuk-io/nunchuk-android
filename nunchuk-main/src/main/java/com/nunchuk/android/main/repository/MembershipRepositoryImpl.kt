@@ -140,6 +140,7 @@ class MembershipRepositoryImpl @Inject constructor(
 
             return MemberSubscription(validPlans.map { it.toMembershipPlan() })
         } else {
+            ncDataStore.setPlans(emptyList())
             throw result.error
         }
     }
