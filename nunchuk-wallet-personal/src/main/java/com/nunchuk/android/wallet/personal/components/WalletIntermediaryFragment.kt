@@ -148,7 +148,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         flowObserver(viewModel.state) {
-            val isCreateAssistedWalletVisible = it.walletsCount.values.sum() > 0
+            val isCreateAssistedWalletVisible = it.isMembership
             binding.btnCreateGroupWallet.apply {
                 isVisible = isCreateAssistedWalletVisible
                 text =

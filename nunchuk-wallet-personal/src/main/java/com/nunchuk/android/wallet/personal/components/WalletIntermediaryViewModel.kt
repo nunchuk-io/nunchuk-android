@@ -77,6 +77,7 @@ class WalletIntermediaryViewModel @Inject constructor(
                 getLocalMembershipPlansFlowUseCase(Unit)
                     .map { it.getOrElse { emptyList() } }
                     .collect { plans ->
+                        _state.update { it.copy(isMembership = plans.isNotEmpty()) }
                         if (plans.isNotEmpty()) {
                             getAssistedWalletConfig()
                         }
@@ -147,6 +148,7 @@ sealed class WalletIntermediaryEvent {
 
 data class WalletIntermediaryState(
     val isHasSigner: Boolean = false,
+    val isMembership: Boolean = false,
     val walletsCount: Map<String, Int> = emptyMap(),
     val personalOptions: List<WalletOption> = emptyList(),
     val groupOptions: List<WalletOption> = emptyList(),
