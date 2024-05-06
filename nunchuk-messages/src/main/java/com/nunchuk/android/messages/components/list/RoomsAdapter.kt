@@ -33,24 +33,28 @@ import com.nunchuk.android.messages.util.time
 import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.utils.formatMessageDate
 import com.nunchuk.android.widget.swipe.SwipeLayout
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import java.util.Date
 
 class RoomAdapter(
+    private val scope: CoroutineScope,
     private val sessionHolder: SessionHolder,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
-) : ListAdapter<RoomSummary, RoomViewHolder>(
-    RoomSummaryComparator
-) {
+) : ListAdapter<RoomSummary, RoomViewHolder>(RoomSummaryComparator) {
 
     val roomWallets: MutableSet<String> = mutableSetOf()
     val groupChatRooms: HashMap<String, GroupChatRoom> = hashMapOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
         return RoomViewHolder(
+            scope = scope,
             sessionHolder = sessionHolder,
             binding = ItemRoomBinding.inflate(LayoutInflater.from(parent.context), parent, false),
             roomWallets = roomWallets,
@@ -64,9 +68,14 @@ class RoomAdapter(
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
+
+    override fun onViewDetachedFromWindow(holder: RoomViewHolder) {
+        holder.cancelHideMessageJob()
+    }
 }
 
 class RoomViewHolder(
+    private val scope: CoroutineScope,
     private val sessionHolder: SessionHolder,
     private val binding: ItemRoomBinding,
     private val roomWallets: MutableSet<String>,
@@ -75,6 +84,7 @@ class RoomViewHolder(
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
+    private var hideMessageJob : Job? = null
 
     fun bind(data: RoomSummary) {
         val roomName = data.getRoomName(currentName)
@@ -113,12 +123,24 @@ class RoomViewHolder(
         val maxLifetime =
             stateEvent?.content?.get("max_lifetime")?.toString()?.toDoubleOrNull()?.toLong()
         summary.latestPreviewableEvent?.let { event ->
+            val age = System.currentTimeMillis() - event.time()
             binding.message.text = event.lastMessage(itemView.context).takeIf {
-                System.currentTimeMillis() - event.time() <= (maxLifetime ?: Long.MAX_VALUE)
+                age <= (maxLifetime ?: Long.MAX_VALUE)
             }
             binding.time.text =
                 event.root.originServerTs?.let { time -> Date(time).formatMessageDate() } ?: "-"
+
+            if (maxLifetime != null && age < maxLifetime) {
+                hideMessageJob = scope.launch {
+                    delay(maxLifetime - age)
+                    binding.message.text = ""
+                }
+            }
         }
+    }
+
+    fun cancelHideMessageJob() {
+        hideMessageJob?.cancel()
     }
 
     private fun bindCount(data: RoomSummary) {
