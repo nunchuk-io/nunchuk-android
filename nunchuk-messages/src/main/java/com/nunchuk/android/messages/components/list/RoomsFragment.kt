@@ -25,6 +25,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
@@ -73,6 +74,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun setupViews() {
         adapter = RoomAdapter(
+            scope = viewLifecycleOwner.lifecycleScope,
             sessionHolder = sessionHolder,
             currentName = accountManager.getAccount().name,
             enterRoom = ::openRoomDetailScreen,
