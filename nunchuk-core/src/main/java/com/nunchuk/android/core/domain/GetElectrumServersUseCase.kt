@@ -17,42 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.repository
+package com.nunchuk.android.core.domain
 
-import com.nunchuk.android.core.data.api.PriceConverterAPI
-import com.nunchuk.android.core.persistence.NcDataStore
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import com.nunchuk.android.core.repository.BtcRepository
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.ElectrumServers
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface BtcPriceRepository {
-    suspend fun getRemotePrice()
-    fun getLocalPrice(): Flow<Double>
-    suspend fun getForexCurrencies(): HashMap<String, String>
-}
+class GetElectrumServersUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val priceRepository: BtcRepository,
+) : UseCase<Unit, ElectrumServers>(ioDispatcher) {
 
-internal class BtcPriceRepositoryImpl @Inject constructor(
-    private val priceConverterAPI: PriceConverterAPI,
-    private val ncDataStore: NcDataStore
-) : BtcPriceRepository {
-
-    override suspend fun getRemotePrice() {
-        coroutineScope {
-            val ratesResult = async { priceConverterAPI.getForexRates() }
-            val btcPriceResult = async { priceConverterAPI.getPrices() }
-            val rates = ratesResult.await()
-            val btcPrice = btcPriceResult.await().data.prices.btc?.usd ?: 0.0
-            val localCurrency = ncDataStore.localCurrencyFlow.first()
-            val rate = rates[localCurrency] ?: 0.0
-            ncDataStore.updateBtcPrice(rate * btcPrice)
-        }
-    }
-
-    override fun getLocalPrice(): Flow<Double> = ncDataStore.btcPriceFlow
-
-    override suspend fun getForexCurrencies(): HashMap<String, String> {
-        return priceConverterAPI.getForexCurrencies()
+    override suspend fun execute(parameters: Unit): ElectrumServers {
+        return priceRepository.getElectrumServers()
     }
 }

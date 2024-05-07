@@ -32,7 +32,7 @@ import javax.inject.Singleton
 internal interface DataModule {
     @Binds
     @Singleton
-    fun bindPriceConverterAPIRepository(repository: BtcPriceRepositoryImpl): BtcPriceRepository
+    fun bindPriceConverterAPIRepository(repository: BtcRepositoryImpl): BtcRepository
 
     @Binds
     @Singleton

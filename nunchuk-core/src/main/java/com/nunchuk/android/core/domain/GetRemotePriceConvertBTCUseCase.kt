@@ -19,7 +19,7 @@
 
 package com.nunchuk.android.core.domain
 
-import com.nunchuk.android.core.repository.BtcPriceRepository
+import com.nunchuk.android.core.repository.BtcRepository
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 class GetRemotePriceConvertBTCUseCase @Inject constructor(
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
-    private val priceRepository: BtcPriceRepository,
+    private val priceRepository: BtcRepository,
 ) : UseCase<Unit, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Unit) {
