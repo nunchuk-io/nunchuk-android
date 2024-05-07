@@ -19,11 +19,12 @@
 
 package com.nunchuk.android.core.data.api
 
+import com.nunchuk.android.core.data.model.ElectrumServersDto
 import com.nunchuk.android.core.data.model.PriceWrapperResponse
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.GET
 
-interface PriceConverterAPI {
+internal interface PriceConverterAPI {
 
     @GET("prices")
     suspend fun getPrices(): Data<PriceWrapperResponse>
@@ -33,4 +34,7 @@ interface PriceConverterAPI {
 
     @GET("/v1.1/forex/currencies")
     suspend fun getForexCurrencies(): HashMap<String, String>
+
+    @GET("/v1.1/app/electrum")
+    suspend fun getElectrumServers(): Data<ElectrumServersDto>
 }

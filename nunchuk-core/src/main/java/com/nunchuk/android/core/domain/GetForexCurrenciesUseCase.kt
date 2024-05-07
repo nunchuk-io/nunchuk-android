@@ -19,16 +19,15 @@
 
 package com.nunchuk.android.core.domain
 
-import com.nunchuk.android.core.repository.BtcPriceRepository
+import com.nunchuk.android.core.repository.BtcRepository
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import java.util.SortedMap
 import javax.inject.Inject
 
 class GetForexCurrenciesUseCase @Inject constructor(
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
-    private val priceRepository: BtcPriceRepository,
+    private val priceRepository: BtcRepository,
 ) : UseCase<Unit, LinkedHashMap<String, String>>(ioDispatcher) {
 
     override suspend fun execute(parameters: Unit): LinkedHashMap<String, String> {
