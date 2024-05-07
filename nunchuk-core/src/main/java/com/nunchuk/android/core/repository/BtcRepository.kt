@@ -21,24 +21,31 @@ package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.data.api.PriceConverterAPI
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.model.ElectrumServer
 import com.nunchuk.android.model.ElectrumServers
+import com.nunchuk.android.persistence.dao.ElectrumServerDao
+import com.nunchuk.android.persistence.entity.ElectrumServerEntity
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface BtcRepository {
     suspend fun getRemotePrice()
     fun getLocalPrice(): Flow<Double>
     suspend fun getForexCurrencies(): HashMap<String, String>
-
     suspend fun getElectrumServers(): ElectrumServers
+    fun getLocalElectrumServers(): Flow<List<ElectrumServer>>
+    suspend fun addElectrumServer(server: ElectrumServer)
+    suspend fun removeElectrumServer(server: ElectrumServer)
 }
 
 internal class BtcRepositoryImpl @Inject constructor(
     private val priceConverterAPI: PriceConverterAPI,
-    private val ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore,
+    private val electrumServerDao: ElectrumServerDao
 ) : BtcRepository {
 
     override suspend fun getRemotePrice() {
@@ -65,6 +72,39 @@ internal class BtcRepositoryImpl @Inject constructor(
             mainnet = dto.mainnet.map { it.url },
             testnet = dto.testnet.map { it.url },
             signet = dto.signet.map { it.url }
+        )
+    }
+
+    override fun getLocalElectrumServers(): Flow<List<ElectrumServer>> {
+        return electrumServerDao.getAll()
+            .map {
+                it.map { entity ->
+                    ElectrumServer(
+                        id = entity.id,
+                        url = entity.url,
+                        chain = entity.chain
+                    )
+                }
+            }
+    }
+
+    override suspend fun addElectrumServer(server: ElectrumServer) {
+        electrumServerDao.insert(
+            ElectrumServerEntity(
+                id = server.id,
+                url = server.url,
+                chain = server.chain
+            )
+        )
+    }
+
+    override suspend fun removeElectrumServer(server: ElectrumServer) {
+        electrumServerDao.delete(
+            ElectrumServerEntity(
+                id = server.id,
+                url = server.url,
+                chain = server.chain
+            )
         )
     }
 }

@@ -17,20 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.persistence
+package com.nunchuk.android.core.domain
 
-const val DATABASE_NAME = "NunchukDatabase.db"
-const val DATABASE_VERSION = 23
+import com.nunchuk.android.core.repository.BtcRepository
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.ElectrumServer
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-const val TABLE_CONTACT = "contact"
-const val TABLE_SYNC_FILE = "sync_file"
-const val TABLE_SYNC_EVENT = "sync_event"
-const val TABLE_ADD_DESKTOP_KEY = "add_desktop_key"
-const val TABLE_HANDLED_EVENT = "handled_event"
-const val TABLE_MEMBERSHIP_STEP = "membership_flow"
-const val TABLE_ASSISTED_WALLET = "assisted_wallet"
-const val TABLE_GROUP = "byzantine_group"
-const val TABLE_ALERT = "byzantine_alert"
-const val TABLE_DUMMY_TRANSACTION = "dummy_transaction"
-const val TABLE_KEY_HEALTH_STATUS = "key_health_status"
-const val TABLE_ELECTRUM_SERVER = "electrum_server"
+class RemoveLocalElectrumServersUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val priceRepository: BtcRepository,
+) : UseCase<ElectrumServer, Unit>(ioDispatcher) {
+
+    override suspend fun execute(parameters: ElectrumServer) {
+        return priceRepository.removeElectrumServer(parameters)
+    }
+}

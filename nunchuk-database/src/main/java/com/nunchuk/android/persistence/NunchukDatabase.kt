@@ -27,6 +27,7 @@ import com.nunchuk.android.persistence.dao.AlertDao
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.dao.DummyTransactionDao
+import com.nunchuk.android.persistence.dao.ElectrumServerDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.HandledEventDao
 import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
@@ -38,6 +39,7 @@ import com.nunchuk.android.persistence.entity.AlertEntity
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
 import com.nunchuk.android.persistence.entity.ContactEntity
 import com.nunchuk.android.persistence.entity.DummyTransactionEntity
+import com.nunchuk.android.persistence.entity.ElectrumServerEntity
 import com.nunchuk.android.persistence.entity.GroupEntity
 import com.nunchuk.android.persistence.entity.HandledEventEntity
 import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
@@ -60,6 +62,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         AlertEntity::class,
         KeyHealthStatusEntity::class,
         DummyTransactionEntity::class,
+        ElectrumServerEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
@@ -80,6 +83,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         AutoMigration(from = 18, to = 19),
         AutoMigration(from = 20, to = 21),
         AutoMigration(from = 21, to = 22),
+        AutoMigration(from = 22, to = 23),
     ]
 )
 @TypeConverters(Converters::class)
@@ -95,4 +99,5 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun alertDao(): AlertDao
     abstract fun keyHealthStatusDao(): KeyHealthStatusDao
     abstract fun dummyTransactionDao(): DummyTransactionDao
+    abstract fun electrumServerDao(): ElectrumServerDao
 }
