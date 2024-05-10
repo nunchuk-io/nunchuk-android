@@ -23,6 +23,7 @@ import com.nunchuk.android.core.data.api.PriceConverterAPI
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.ElectrumServer
 import com.nunchuk.android.model.ElectrumServers
+import com.nunchuk.android.model.RemoteElectrumServer
 import com.nunchuk.android.persistence.dao.ElectrumServerDao
 import com.nunchuk.android.persistence.entity.ElectrumServerEntity
 import kotlinx.coroutines.async
@@ -39,7 +40,7 @@ interface BtcRepository {
     suspend fun getElectrumServers(): ElectrumServers
     fun getLocalElectrumServers(): Flow<List<ElectrumServer>>
     suspend fun addElectrumServer(server: ElectrumServer)
-    suspend fun removeElectrumServer(server: ElectrumServer)
+    suspend fun removeElectrumServer(ids: List<Long>)
 }
 
 internal class BtcRepositoryImpl @Inject constructor(
@@ -69,9 +70,9 @@ internal class BtcRepositoryImpl @Inject constructor(
     override suspend fun getElectrumServers(): ElectrumServers {
         val dto = priceConverterAPI.getElectrumServers().data
         return ElectrumServers(
-            mainnet = dto.mainnet.map { it.url },
-            testnet = dto.testnet.map { it.url },
-            signet = dto.signet.map { it.url }
+            mainnet = dto.mainnet.map { RemoteElectrumServer(name = it.name, url = it.url) },
+            testnet = dto.testnet.map { RemoteElectrumServer(name = it.name, url = it.url) },
+            signet = dto.signet.map { RemoteElectrumServer(name = it.name, url = it.url) }
         )
     }
 
@@ -98,13 +99,7 @@ internal class BtcRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun removeElectrumServer(server: ElectrumServer) {
-        electrumServerDao.delete(
-            ElectrumServerEntity(
-                id = server.id,
-                url = server.url,
-                chain = server.chain
-            )
-        )
+    override suspend fun removeElectrumServer(ids: List<Long>) {
+        electrumServerDao.deleteByIds(ids)
     }
 }

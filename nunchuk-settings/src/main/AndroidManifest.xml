@@ -65,5 +65,9 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
+        <activity android:name="com.nunchuk.android.settings.network.SelectElectrumServerActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
+
     </application>
 </manifest>

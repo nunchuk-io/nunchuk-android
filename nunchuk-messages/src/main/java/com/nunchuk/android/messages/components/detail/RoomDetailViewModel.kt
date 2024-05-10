@@ -127,7 +127,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.minutes
 
 // TODO cache transaction with event
 @HiltViewModel
@@ -212,7 +212,7 @@ class RoomDetailViewModel @Inject constructor(
             hideMessageJob = viewModelScope.launch {
                 while (isActive) {
                     handleUpdateMessagesContent()
-                    delay(10.seconds)
+                    delay(1.minutes)
                 }
             }
         }

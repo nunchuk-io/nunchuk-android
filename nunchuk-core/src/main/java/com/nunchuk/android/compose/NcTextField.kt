@@ -53,8 +53,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusState
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -97,11 +95,12 @@ fun NcTextField(
     inputBoxHeight: Dp = Dp.Unspecified,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (Boolean) -> Unit = {},
+    borderColor : Color = Color(0xFFDEDEDE),
     textStyle: TextStyle = NunchukTheme.typography.body,
     onValueChange: (value: String) -> Unit,
 ) {
     var backgroundErrorColor = textFieldColor
-    var borderErrorColor = Color(0xFFDEDEDE)
+    var borderErrorColor = borderColor
     if (hasError && showErrorMessageOnly.not()) {
         backgroundErrorColor = colorResource(id = R.color.nc_red_tint_color)
         borderErrorColor = colorResource(id = R.color.nc_orange_color)

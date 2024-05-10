@@ -30,5 +30,6 @@ import kotlinx.coroutines.flow.Flow
 interface ElectrumServerDao : BaseDao<ElectrumServerEntity> {
     @Query("SELECT * FROM $TABLE_ELECTRUM_SERVER")
     fun getAll(): Flow<List<ElectrumServerEntity>>
-
+    @Query("DELETE FROM $TABLE_ELECTRUM_SERVER WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<Long>)
 }

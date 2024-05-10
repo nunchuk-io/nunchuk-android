@@ -22,7 +22,8 @@ package com.nunchuk.android.settings.network
 import com.nunchuk.android.model.AppSettings
 
 data class NetworkSettingState(
-    val appSetting: AppSettings = AppSettings()
+    val appSetting: AppSettings = AppSettings(),
+    val customServerName: String = "",
 )
 
 sealed class NetworkSettingEvent {

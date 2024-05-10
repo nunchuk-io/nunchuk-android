@@ -37,16 +37,6 @@
                     app:layout_constraintStart_toEndOf="@+id/tvMainNetHost"
                     app:layout_constraintTop_toTopOf="@+id/tvMainNetHost" />
 
-                <com.nunchuk.android.widget.NCFontButton
-                    android:id="@+id/btnResetMainNet"
-                    style="@style/NCPrimaryButton.Light"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/nc_padding_16"
-                    android:text="@string/nc_text_reset"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvMainNetHost" />
-
                 <com.nunchuk.android.widget.NCFontEditText
                     android:id="@+id/tvMainNetHost"
                     style="@style/NCText.Body"
@@ -55,11 +45,24 @@
                     android:layout_marginHorizontal="@dimen/nc_padding_16"
                     android:background="@drawable/nc_edit_text_bg"
                     android:gravity="start|center_vertical"
-                    android:padding="@dimen/nc_padding_12"
+                    android:paddingVertical="@dimen/nc_padding_12"
+                    android:paddingStart="@dimen/nc_padding_12"
+                    android:paddingEnd="@dimen/nc_padding_48"
                     app:layout_constraintEnd_toStartOf="@+id/rbMainNet"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvMainNetSeverTitle"
                     tools:text="mainset.5001" />
+                
+                <ImageView
+                    android:id="@+id/ivMainNetArrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_arrow"
+                    android:padding="16.dp"
+                    app:layout_constraintEnd_toEndOf="@+id/tvMainNetHost"
+                    app:layout_constraintTop_toTopOf="@+id/tvMainNetHost"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvMainNetHost"
+                    />
 
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/tvMainNetSeverTitle"
@@ -92,16 +95,6 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/tvTestNetHost"
                     app:layout_constraintTop_toTopOf="@+id/tvTestNetHost" />
-
-                <com.nunchuk.android.widget.NCFontButton
-                    android:id="@+id/btnResetTestNet"
-                    style="@style/NCPrimaryButton.Light"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/nc_padding_16"
-                    android:text="@string/nc_text_reset"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTestNetHost" />
 
                 <com.nunchuk.android.widget.NCFontEditText
                     android:id="@+id/tvTestNetHost"
@@ -214,16 +207,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvExploreAddressSigNet"
                     tools:text="signet.5001" />
-
-                <com.nunchuk.android.widget.NCFontButton
-                    android:id="@+id/btnResetSigNet"
-                    style="@style/NCPrimaryButton.Light"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/nc_padding_16"
-                    android:text="@string/nc_text_reset"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/edtExploreAddressSigNetHost"/>
 
                 <androidx.constraintlayout.widget.Group
                     android:id="@+id/groupSigNetExplorer"
