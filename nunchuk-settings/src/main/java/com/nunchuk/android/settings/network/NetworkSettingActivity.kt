@@ -34,14 +34,13 @@ import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.view.View
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
-import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
-import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
@@ -50,6 +49,7 @@ import com.nunchuk.android.utils.getTrimmedText
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 // TODO: refactor network list to recyclerview
@@ -57,6 +57,15 @@ import dagger.hilt.android.AndroidEntryPoint
 class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
     private val viewModel: NetworkSettingViewModel by viewModels()
+
+    private val selectServerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val server =
+                    result.data?.getStringExtra(SelectElectrumServerActivity.EXTRA_SERVER).orEmpty()
+                binding.tvMainNetHost.setText(server)
+            }
+        }
 
     override fun initializeBinding() = ActivityNetworkSettingBinding.inflate(layoutInflater)
 
@@ -67,7 +76,6 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         showToolbarBackButton()
 
         setupViews()
-        setupData()
         observeEvent()
     }
 
@@ -85,16 +93,16 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
     private fun handleState(state: NetworkSettingState) {
         binding.rbMainNet.isChecked = state.appSetting.chain == Chain.MAIN
-        binding.btnResetMainNet.isVisible = state.appSetting.chain == Chain.MAIN
         binding.rbTestNet.isChecked = state.appSetting.chain == Chain.TESTNET
-        binding.btnResetTestNet.isVisible = state.appSetting.chain == Chain.TESTNET
         binding.rbSigNet.isChecked = state.appSetting.chain == Chain.SIGNET
-        binding.btnResetSigNet.isVisible = state.appSetting.chain == Chain.SIGNET
 
-        binding.groupSigNetExplorer.isVisible =  state.appSetting.chain == Chain.SIGNET
+        binding.ivMainNetArrow.isVisible = binding.rbMainNet.isChecked
+
+        binding.groupSigNetExplorer.isVisible = state.appSetting.chain == Chain.SIGNET
 
         binding.edtExploreAddressSigNetHost.setText(state.appSetting.signetExplorerHost)
-        binding.edtExploreAddressSigNetHost.isVisible = state.appSetting.signetExplorerHost.isNotEmpty() && state.appSetting.chain == Chain.SIGNET
+        binding.edtExploreAddressSigNetHost.isVisible =
+            state.appSetting.signetExplorerHost.isNotEmpty() && state.appSetting.chain == Chain.SIGNET
         binding.exploreAddressSwitch.isChecked = state.appSetting.signetExplorerHost.isNotEmpty()
 
         binding.tvMainNetHost.setupNetworkViewInfo(
@@ -113,7 +121,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         setupViewsWhenAppSettingChanged()
     }
 
-    private fun isAppSettingChanged() : Boolean {
+    private fun isAppSettingChanged(): Boolean {
         return viewModel.currentAppSettings?.copy(
             signetExplorerHost = binding.edtExploreAddressSigNetHost.getTrimmedText()
         ) != viewModel.initAppSettings
@@ -123,7 +131,10 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         background = if (currentChain == selectedChain) {
             ContextCompat.getDrawable(this@NetworkSettingActivity, R.drawable.nc_edit_text_bg)
         } else {
-            ContextCompat.getDrawable(this@NetworkSettingActivity, R.drawable.nc_edit_text_bg_disabled)
+            ContextCompat.getDrawable(
+                this@NetworkSettingActivity,
+                R.drawable.nc_edit_text_bg_disabled
+            )
         }
         setTextColor(
             ColorStateList.valueOf(
@@ -148,6 +159,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             is NetworkSettingEvent.UpdateSettingSuccessEvent -> {
                 handleUpdateAppSettingsSuccess()
             }
+
             is NetworkSettingEvent.ResetTextHostServerEvent -> {
                 binding.tvMainNetHost.setText(
                     event.appSetting.mainnetServers[0]
@@ -163,6 +175,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                     }
                 )
             }
+
             is NetworkSettingEvent.LoadingEvent -> showLoading()
             NetworkSettingEvent.SignOutSuccessEvent -> {
                 hideLoading()
@@ -227,15 +240,6 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.btnReset.setOnClickListener {
             viewModel.resetToDefaultAppSetting()
         }
-        binding.btnResetMainNet.setOnClickListener {
-            handleResetNetwork(Chain.MAIN)
-        }
-        binding.btnResetTestNet.setOnClickListener {
-            handleResetNetwork(Chain.TESTNET)
-        }
-        binding.btnResetSigNet.setOnClickListener {
-            handleResetNetwork(Chain.SIGNET)
-        }
 
         binding.tvMainNetHost.addTextChangedCallback {
             handleNetworkHostTextCallBack(it, Chain.MAIN)
@@ -245,6 +249,15 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         }
         binding.tvSigNetHost.addTextChangedCallback {
             handleNetworkHostTextCallBack(it, Chain.SIGNET)
+        }
+        binding.ivMainNetArrow.setOnDebounceClickListener {
+            selectServerLauncher.launch(
+                SelectElectrumServerActivity.buildIntent(
+                    activity = this,
+                    chain = Chain.MAIN,
+                    server = viewModel.currentAppSettings?.mainnetServers?.firstOrNull().orEmpty()
+                )
+            )
         }
 
         binding.exploreAddressSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -279,20 +292,37 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             override fun updateDrawState(ds: TextPaint) {
                 super.updateDrawState(ds)
                 ds.isUnderlineText = true
-                ds.color = ContextCompat.getColor(this@NetworkSettingActivity, R.color.nc_black_color)
+                ds.color =
+                    ContextCompat.getColor(this@NetworkSettingActivity, R.color.nc_black_color)
             }
         }
 
         val clickableTextStart = fullText.indexOf(clickableText)
         val clickableTextEnd = clickableTextStart + clickableText.length
 
-        spannableString.setSpan(StyleSpan(Typeface.BOLD), clickableTextStart, clickableTextEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableString.setSpan(UnderlineSpan(), clickableTextStart, clickableTextEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableString.setSpan(clickableSpan, clickableTextStart, clickableTextEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableString.setSpan(
+            StyleSpan(Typeface.BOLD),
+            clickableTextStart,
+            clickableTextEnd,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        spannableString.setSpan(
+            UnderlineSpan(),
+            clickableTextStart,
+            clickableTextEnd,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        spannableString.setSpan(
+            clickableSpan,
+            clickableTextStart,
+            clickableTextEnd,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
 
         binding.guideText.text = spannableString
         binding.guideText.movementMethod = LinkMovementMethod.getInstance()
-        binding.guideText.highlightColor = ContextCompat.getColor(this@NetworkSettingActivity, android.R.color.transparent)
+        binding.guideText.highlightColor =
+            ContextCompat.getColor(this@NetworkSettingActivity, android.R.color.transparent)
     }
 
     private fun handleExplorerHostTextChange() {
@@ -314,7 +344,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
     }
 
     private fun handleCheckboxChangeListener(chainId: Int) {
-        val chain = when(chainId) {
+        val chain = when (chainId) {
             R.id.rbSigNet -> Chain.SIGNET
             R.id.rbTestNet -> Chain.TESTNET
             R.id.rbMainNet -> Chain.MAIN
@@ -330,53 +360,31 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
     }
 
     private fun handleNetworkHostTextCallBack(text: String, chain: Chain) {
-        when(chain) {
+        when (chain) {
             Chain.SIGNET -> viewModel.currentAppSettings?.copy(
                 signetServers = listOf(text)
             )
+
             Chain.TESTNET -> viewModel.currentAppSettings?.copy(
                 testnetServers = listOf(text)
             )
+
             Chain.MAIN -> viewModel.currentAppSettings?.copy(
                 mainnetServers = listOf(text)
             )
+
             else -> viewModel.currentAppSettings
         }?.let(viewModel::updateCurrentState)
     }
 
-    private fun handleResetNetwork(chain: Chain) {
-        val servers = when(chain) {
-            Chain.SIGNET -> listOf(SIG_NET_HOST)
-            Chain.TESTNET -> listOf(TEST_NET_HOST)
-            Chain.MAIN -> listOf(MAIN_NET_HOST)
-            else -> emptyList()
-        }
-
-        when(chain) {
-            Chain.SIGNET -> viewModel.currentAppSettings?.copy(
-                signetServers = servers,
-                signetExplorerHost = GLOBAL_SIGNET_EXPLORER
-            )
-            Chain.TESTNET -> viewModel.currentAppSettings?.copy(
-                testnetServers = servers
-            )
-            Chain.MAIN -> viewModel.currentAppSettings?.copy(
-                mainnetServers = servers
-            )
-            else -> viewModel.currentAppSettings
-        }?.let {
-            viewModel.updateCurrentState(it)
-            viewModel.fireResetTextHostServerEvent(it)
-        }
-    }
-
-    private fun setupData() {
-        viewModel.getAppSettings()
-    }
-
     companion object {
         fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, NetworkSettingActivity::class.java))
+            activityContext.startActivity(
+                Intent(
+                    activityContext,
+                    NetworkSettingActivity::class.java
+                )
+            )
         }
     }
 }

@@ -49,30 +49,22 @@ internal class NetworkSettingViewModel @Inject constructor(
 
     var initAppSettings: AppSettings? = null
 
-    fun updateCurrentState(appSettings: AppSettings) {
-        updateState {
-            copy(appSetting = appSettings)
-        }
-    }
-
-    fun fireResetTextHostServerEvent(appSettings: AppSettings) {
-        event(
-            NetworkSettingEvent.ResetTextHostServerEvent(appSettings)
-        )
-    }
-
-    fun getAppSettings() {
+    init {
         viewModelScope.launch {
             val result = getAppSettingUseCase(Unit)
             if (result.isSuccess) {
                 initAppSettings = result.getOrThrow()
-                updateState {
-                    copy(appSetting = result.getOrThrow())
-                }
+                updateCurrentState(result.getOrThrow())
                 event(
                     NetworkSettingEvent.ResetTextHostServerEvent(result.getOrThrow())
                 )
             }
+        }
+    }
+
+    fun updateCurrentState(appSettings: AppSettings) {
+        updateState {
+            copy(appSetting = appSettings)
         }
     }
 

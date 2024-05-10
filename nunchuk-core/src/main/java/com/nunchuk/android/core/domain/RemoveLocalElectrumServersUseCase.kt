@@ -21,7 +21,6 @@ package com.nunchuk.android.core.domain
 
 import com.nunchuk.android.core.repository.BtcRepository
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.ElectrumServer
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -29,9 +28,9 @@ import javax.inject.Inject
 class RemoveLocalElectrumServersUseCase @Inject constructor(
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     private val priceRepository: BtcRepository,
-) : UseCase<ElectrumServer, Unit>(ioDispatcher) {
+) : UseCase<List<Long>, Unit>(ioDispatcher) {
 
-    override suspend fun execute(parameters: ElectrumServer) {
+    override suspend fun execute(parameters: List<Long>) {
         return priceRepository.removeElectrumServer(parameters)
     }
 }

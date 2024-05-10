@@ -19,8 +19,12 @@
 
 package com.nunchuk.android.messages.util
 
+import com.nunchuk.android.utils.formatByDay
+import com.nunchuk.android.utils.formatByHour
+import com.nunchuk.android.utils.formatByWeek
+import com.nunchuk.android.utils.simpleDateFormat
 import org.junit.Assert.assertEquals
-import java.util.*
+import java.util.Date
 
 class DateFormatterTest {
 
