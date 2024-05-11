@@ -128,6 +128,7 @@
     <string name="nc_confirm_changes">Confirm changes</string>
     <string name="nc_confirm_new_security_questions">Confirm new security questions</string>
     <string name="nc_confirm_recovery">Confirm recovery</string>
+    <string name="nc_confirm_email">Confirm email</string>
     <string name="nc_confirm_changes_msg">We’ve sent a code to [B]%1$s[/B]. Please enter it below.</string>
     <string name="nc_code">Code</string>
     <string name="nc_observing">Observing</string>
@@ -287,6 +288,7 @@
     <string name="nc_recurring_payment_cancelation_pending_desc">Continue to cancel the recurring payment %1$s.</string>
     <string name="nc_authorize_this_payment">To authorize this recurring payment</string>
     <string name="nc_authorize_this_cancellation">To cancel this recurring payment</string>
+    <string name="nc_change_the_email_address">To change the email address associated with the account</string>
     <string name="nc_sort_title">Sort</string>
     <string name="nc_clear_all">Clear all</string>
     <string name="nc_sort_by_start_date">Sort by start date</string>
@@ -310,6 +312,7 @@
     <string name="nc_recurring_payment_denied">Recurring payment denied</string>
     <string name="nc_pending_cancellation_has_been_canceled">Pending cancellation has been canceled</string>
     <string name="nc_the_end_date_should_be_after_the_start_date">The end date should be after the start date.</string>
+    <string name="nc_change_email_request_has_been_canceled">Email address change has been canceled.</string>
     <string name="nc_approve">Approve</string>
     <string name="nc_coldcard_index_not_match">The account imported does not match the account that you entered (%1$d). Please try again.</string>
     <string name="nc_new_account_needed_airgap">New account data needed. Please import your key again using the given account.</string>
@@ -319,6 +322,7 @@
     <string name="nc_3_of_5_multisig_without_inheritance_planning_desc">A master account and secondary account(s) control four keys; Nunchuk holds the fifth key on a secure server to assist in daily wallet operation.</string>
     <string name="nc_primary_owner_update_success">Primary owner updated</string>
     <string name="nc_security_questions_answer_will_be_updated">The security questions and answers will be updated.</string>
+    <string name="nc_change_email_request_desc">Changing email from [A]%1$s[/A] to [B]%2$s[/B].</string>
     <string name="nc_finney_cap">FINNEY</string>
     <string name="nc_finney_pro_cap">FINNEY PRO</string>
     <string name="nc_info_software_key_same_device_part_1">Having two or more software keys on the same device significantly reduces the security of your wallet.</string>

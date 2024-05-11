@@ -40,4 +40,5 @@ fun DummyTransactionDto.toDomainModel() = DummyTransactionPayload(
     pendingSignatures = pendingSignatures,
     requestByUserId = requesterUserId.orEmpty(),
     dummyTransactionId = id.orEmpty(),
+    groupId = kotlin.runCatching { payload?.get("group_id")?.asString.orEmpty() }.getOrDefault(""),
 )

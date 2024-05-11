@@ -51,6 +51,12 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue="@null"/>
+
+        <argument
+            android:name="new_email"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
     </activity>
     <fragment
         android:id="@+id/answerSecurityQuestionFragment2"

@@ -52,4 +52,8 @@ data class PayloadResponse(
     val membershipId: String? = null,
     @SerializedName("transaction_id")
     val transactionId: String? = null,
+    @SerializedName("old_email")
+    val oldEmail: String? = null,
+    @SerializedName("new_email")
+    val newEmail: String? = null,
 )

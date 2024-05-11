@@ -12,6 +12,7 @@ data class DummyTransactionPayload(
     val requiredSignatures: Int = 0,
     val pendingSignatures: Int = 0,
     val requestByUserId: String = "",
+    val groupId: String = "",
 )
 
 @Keep
@@ -29,7 +30,8 @@ enum class DummyTransactionType : Parcelable {
     REQUEST_INHERITANCE_PLANNING,
     KEY_RECOVERY_REQUEST,
     CREATE_RECURRING_PAYMENT,
-    CANCEL_RECURRING_PAYMENT
+    CANCEL_RECURRING_PAYMENT,
+    CHANGE_EMAIL,
 }
 
 fun DummyTransactionType.isInheritanceFlow() =

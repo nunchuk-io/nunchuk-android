@@ -102,7 +102,8 @@ interface AppNavigator {
         activityContext: Activity,
         groupId: String? = null,
         dummyTransactionId: String? = null,
-        action: String? = null
+        action: String? = null,
+        newEmail: String? = null
     )
 
     fun openGroupDashboardScreen(

@@ -152,6 +152,7 @@ fun DummyTransactionIntroContent(
         DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_approve_key_recovery)
         DummyTransactionType.CREATE_RECURRING_PAYMENT -> stringResource(R.string.nc_authorize_this_payment)
         DummyTransactionType.CANCEL_RECURRING_PAYMENT -> stringResource(R.string.nc_authorize_this_cancellation)
+        DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(R.string.nc_change_the_email_address)
         else -> stringResource(R.string.nc_authorize_these_change)
     }
     val lastSentences = when {

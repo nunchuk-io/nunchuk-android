@@ -18,9 +18,24 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"
             />
+        <action
+            android:id="@+id/action_accountSettingFragment_to_changeEmailFragment"
+            app:destination="@id/changeEmailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            />
     </fragment>
     <fragment
         android:id="@+id/signInQrFragment"
         android:name="com.nunchuk.android.settings.signin.SignInQrFragment"
         android:label="SignInQrFragment" />
+
+    <fragment
+        android:id="@+id/changeEmailFragment"
+        android:name="com.nunchuk.android.settings.changeemail.ChangeEmailFragment"
+        android:label="ChangeEmailFragment">
+        <argument android:name="verify_token" app:argType="string" />
+    </fragment>
 </navigation>

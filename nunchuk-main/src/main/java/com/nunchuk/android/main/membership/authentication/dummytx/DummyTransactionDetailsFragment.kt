@@ -252,6 +252,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         return !args.dummyTransactionId.isNullOrEmpty() && args.action != TargetAction.CLAIM_KEY.name
                 && walletAuthenticationViewModel.getDummyTransactionType().isInheritanceFlow().not()
                 && walletAuthenticationViewModel.getDummyTransactionType() != DummyTransactionType.KEY_RECOVERY_REQUEST
+                && walletAuthenticationViewModel.getDummyTransactionType() != DummyTransactionType.CHANGE_EMAIL
     }
 
     private fun openGroupDashboard(message: String = walletAuthenticationViewModel.signedSuccessMessage) {
