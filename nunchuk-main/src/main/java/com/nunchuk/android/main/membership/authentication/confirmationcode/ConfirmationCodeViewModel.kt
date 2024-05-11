@@ -33,11 +33,14 @@ class ConfirmationCodeViewModel @Inject constructor(
     private val _state = MutableStateFlow(ConfirmChangeState())
     val state = _state.asStateFlow()
 
-    val email = accountManager.getAccount().email
+    var email = accountManager.getAccount().email
     private var codeId: String? = null
     private var nonce: String? = null
 
     init {
+        if (args.newEmail.isNullOrEmpty().not()) {
+            email = args.newEmail.orEmpty()
+        }
         viewModelScope.launch {
             if (args.action.isNullOrEmpty()) return@launch
             _event.emit(ConfirmChangeEvent.Loading(true))

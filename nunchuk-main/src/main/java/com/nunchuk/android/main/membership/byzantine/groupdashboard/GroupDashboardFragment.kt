@@ -22,6 +22,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseAuthenticationFragment
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -29,6 +30,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
@@ -130,6 +132,8 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                                 type = KeyRecoverySuccessState.KEY_RECOVERY_APPROVED.name
                             )
                         )
+                    } else if (dummyTransactionType == DummyTransactionType.CHANGE_EMAIL) {
+                        viewModel.handleSignOutEvent()
                     }
                 }
             }
@@ -409,6 +413,14 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                         isRequestSignatureFlow = true,
                     )
                 }
+
+                GroupDashboardEvent.SignOutEvent -> {
+                    hideLoading()
+                    NcToastManager.scheduleShowMessage(
+                        message = getString(com.nunchuk.android.settings.R.string.nc_email_has_been_changed),
+                    )
+                    navigator.restartApp(requireActivity())
+                }
             }
         }
     }
@@ -474,15 +486,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                 groupId = viewModel.getGroupId(),
                 dummyTransactionId = alert.payload.dummyTransactionId
             )
-        } else if (alert.type == AlertType.HEALTH_CHECK_REQUEST || alert.type == AlertType.HEALTH_CHECK_PENDING) {
-            findNavController().navigate(
-                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                    viewModel.getGroupId(),
-                    viewModel.getWalletId(),
-                    alert
-                )
-            )
-        } else if (alert.type == AlertType.CREATE_INHERITANCE_PLAN_SUCCESS) {
+        }  else if (alert.type == AlertType.CREATE_INHERITANCE_PLAN_SUCCESS) {
             viewModel.getInheritance(isAlertFlow = true)
         } else if (alert.type == AlertType.GROUP_WALLET_SETUP) {
             if (alert.payload.claimKey) {
@@ -496,15 +500,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
             } else {
                 viewModel.handleRegisterSigners(alert.id, alert.payload.xfps)
             }
-        } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-            findNavController().navigate(
-                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
-                    viewModel.getGroupId(),
-                    viewModel.getWalletId(),
-                    alert
-                )
-            )
-        } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
+        }  else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
             navigator.openInheritancePlanningScreen(
                 walletId = viewModel.getWalletId(),
                 activityContext = requireContext(),
@@ -515,6 +511,10 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
         } else if (alert.type == AlertType.KEY_RECOVERY_REQUEST
             || alert.type == AlertType.RECURRING_PAYMENT_CANCELATION_PENDING
             || alert.type == AlertType.UPDATE_SECURITY_QUESTIONS
+            || alert.type == AlertType.REQUEST_INHERITANCE_PLANNING
+            || alert.type == AlertType.HEALTH_CHECK_REQUEST
+            || alert.type == AlertType.HEALTH_CHECK_PENDING
+            || alert.type == AlertType.CHANGE_EMAIL_REQUEST
         ) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(

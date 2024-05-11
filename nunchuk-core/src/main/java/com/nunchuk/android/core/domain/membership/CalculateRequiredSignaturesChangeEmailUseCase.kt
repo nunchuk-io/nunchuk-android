@@ -17,19 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.settings
+package com.nunchuk.android.core.domain.membership
 
-sealed class AccountSettingEvent {
-    data class Loading(val isLoading: Boolean) : AccountSettingEvent()
-    data object RequestDeleteSuccess : AccountSettingEvent()
-    data object DeletePrimaryKeySuccess : AccountSettingEvent()
-    data class Error(val message: String) : AccountSettingEvent()
-    data class CheckNeedPassphraseSent(val isNeeded: Boolean) : AccountSettingEvent()
-    data class CheckPasswordSuccess(val token: String) : AccountSettingEvent()
-    data object None : AccountSettingEvent()
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.CalculateRequiredSignatures
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
+
+class CalculateRequiredSignaturesChangeEmailUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletsRepository: PremiumWalletRepository,
+) : UseCase<CalculateRequiredSignaturesChangeEmailUseCase.Param, CalculateRequiredSignatures>(
+    dispatcher
+) {
+    override suspend fun execute(parameters: Param): CalculateRequiredSignatures {
+        return userWalletsRepository.calculateRequiredSignaturesChangeEmail(newEmail = parameters.newEmail)
+    }
+
+    class Param(val newEmail: String)
 }
-
-data class AccountSettingState(
-    val isSyncEnable: Boolean = false,
-    val hasAssistedWallets: Boolean = false,
-)

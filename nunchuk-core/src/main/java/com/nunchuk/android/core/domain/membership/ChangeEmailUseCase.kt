@@ -17,19 +17,38 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.settings
+package com.nunchuk.android.core.domain.membership
 
-sealed class AccountSettingEvent {
-    data class Loading(val isLoading: Boolean) : AccountSettingEvent()
-    data object RequestDeleteSuccess : AccountSettingEvent()
-    data object DeletePrimaryKeySuccess : AccountSettingEvent()
-    data class Error(val message: String) : AccountSettingEvent()
-    data class CheckNeedPassphraseSent(val isNeeded: Boolean) : AccountSettingEvent()
-    data class CheckPasswordSuccess(val token: String) : AccountSettingEvent()
-    data object None : AccountSettingEvent()
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
+
+class ChangeEmailUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletsRepository: PremiumWalletRepository,
+) : UseCase<ChangeEmailUseCase.Param, DummyTransactionPayload?>(
+    dispatcher
+) {
+    override suspend fun execute(parameters: Param): DummyTransactionPayload? {
+        return userWalletsRepository.changeEmail(
+            newEmail = parameters.newEmail,
+            verifyToken = parameters.verifyToken,
+            securityQuestionToken = parameters.securityQuestionToken,
+            confirmCodeToken = parameters.confirmCodeToken,
+            confirmCodeNonce = parameters.confirmCodeNonce,
+            draft = parameters.draft
+        )
+    }
+
+    class Param(
+        val newEmail: String,
+        val verifyToken: String,
+        val securityQuestionToken: String,
+        val confirmCodeToken: String,
+        val confirmCodeNonce: String,
+        val draft: Boolean
+    )
 }
-
-data class AccountSettingState(
-    val isSyncEnable: Boolean = false,
-    val hasAssistedWallets: Boolean = false,
-)

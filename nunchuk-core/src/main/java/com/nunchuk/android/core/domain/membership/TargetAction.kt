@@ -12,5 +12,6 @@ enum class TargetAction {
     DELETE_WALLET,
     PROTECT_WALLET,
     EDIT_GROUP_MEMBERS,
-    CLAIM_KEY
+    CLAIM_KEY,
+    CHANGE_EMAIL
 }

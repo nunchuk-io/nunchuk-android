@@ -46,6 +46,7 @@ import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.GroupConfig
@@ -207,6 +208,19 @@ interface PremiumWalletRepository {
         periodId: String,
         groupId: String?
     ): CalculateRequiredSignatures
+
+    suspend fun calculateRequiredSignaturesChangeEmail(
+        newEmail: String,
+    ): CalculateRequiredSignatures
+
+    suspend fun changeEmail(
+        newEmail: String,
+        verifyToken: String,
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String,
+        draft: Boolean
+    ): DummyTransactionPayload?
 
     suspend fun generateInheritanceUserData(
         note: String,

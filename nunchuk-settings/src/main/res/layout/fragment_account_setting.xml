@@ -27,6 +27,14 @@
         android:text="@string/scan_qr_to_sign_in_remotely" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/change_email"
+        style="@style/NCText.Settings"
+        android:background="?android:selectableItemBackground"
+        android:drawableStart="@drawable/ic_change_email"
+        android:drawableEnd="@drawable/ic_arrow"
+        android:text="@string/nc_change_email" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/password"
         style="@style/NCText.Settings"
         android:background="?android:selectableItemBackground"

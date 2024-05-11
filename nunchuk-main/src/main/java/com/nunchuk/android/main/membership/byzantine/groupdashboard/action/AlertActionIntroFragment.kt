@@ -36,6 +36,7 @@ import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showError
@@ -81,7 +82,7 @@ class AlertActionIntroFragment : Fragment() {
                             AlertType.REQUEST_INHERITANCE_PLANNING -> {
                                 getString(R.string.nc_cancel_inheritance_planning_request)
                             }
-                            AlertType.KEY_RECOVERY_REQUEST -> {
+                            AlertType.KEY_RECOVERY_REQUEST, AlertType.CHANGE_EMAIL_REQUEST -> {
                                 getString(R.string.nc_cancel_this_change)
                             }
                             AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> {
@@ -125,6 +126,11 @@ class AlertActionIntroFragment : Fragment() {
                                 AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> {
                                     showSuccess(
                                         message = getString(R.string.nc_pending_cancellation_has_been_canceled),
+                                    )
+                                }
+                                AlertType.CHANGE_EMAIL_REQUEST -> {
+                                    NcToastManager.scheduleShowMessage(
+                                        message = getString(R.string.nc_change_email_request_has_been_canceled),
                                     )
                                 }
                                 else -> Unit
@@ -193,8 +199,8 @@ private fun AlertActionIntroContent(
     val cancelButton = when (alert.type) {
         AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
         AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_deny)
-        AlertType.KEY_RECOVERY_REQUEST, AlertType.RECURRING_PAYMENT_CANCELATION_PENDING
-        -> stringResource(R.string.nc_cancel)
+        AlertType.CHANGE_EMAIL_REQUEST -> stringResource(R.string.nc_cancel_change)
+        AlertType.KEY_RECOVERY_REQUEST, AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> stringResource(R.string.nc_cancel)
         else -> stringResource(id = R.string.nc_cancel_request)
     }
 
@@ -211,7 +217,9 @@ private fun AlertActionIntroContent(
         AlertType.UPDATE_SECURITY_QUESTIONS -> stringResource(
             id = R.string.nc_security_questions_answer_will_be_updated
         )
-
+        AlertType.CHANGE_EMAIL_REQUEST -> stringResource(
+            id = R.string.nc_change_email_request_desc, state.changeEmail?.oldEmail.orEmpty(), state.changeEmail?.newEmail.orEmpty()
+        )
         else -> alert.body
     }
 
@@ -287,7 +295,7 @@ private fun AlertActionIntroScreenPreview() {
                 keyXfp = "keyXfp",
                 requestId = "123",
                 membershipId = "123",
-                transactionId = "123"
+                transactionId = "123",
             ),
             body = "There is a health check request for [key name].",
             createdTimeMillis = 0,

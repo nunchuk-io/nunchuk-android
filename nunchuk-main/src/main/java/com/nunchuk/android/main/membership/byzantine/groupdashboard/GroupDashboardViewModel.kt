@@ -4,12 +4,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -35,6 +37,7 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.settings.changeemail.ChangeEmailEvent
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
@@ -56,6 +59,7 @@ import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -104,6 +108,9 @@ class GroupDashboardViewModel @Inject constructor(
     private val recoverKeyUseCase: RecoverKeyUseCase,
     private val pushEventManager: PushEventManager,
     private val syncTransactionUseCase: SyncTransactionUseCase,
+    private val sendSignOutUseCase: SendSignOutUseCase,
+    private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
+    private val appScope: CoroutineScope,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -672,6 +679,15 @@ class GroupDashboardViewModel @Inject constructor(
             )
         }
         getInheritance(silentLoading = true)
+    }
+
+    fun handleSignOutEvent() {
+        appScope.launch {
+            _event.emit(GroupDashboardEvent.Loading(true))
+            clearInfoSessionUseCase.invoke(Unit)
+            sendSignOutUseCase(Unit)
+            _event.emit(GroupDashboardEvent.SignOutEvent)
+        }
     }
 
     fun membershipPlan(): MembershipPlan = assistedWalletManager.getWalletPlan(getWalletId())

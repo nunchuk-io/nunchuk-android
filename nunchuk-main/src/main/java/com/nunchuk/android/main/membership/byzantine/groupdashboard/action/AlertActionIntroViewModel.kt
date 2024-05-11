@@ -1,8 +1,11 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard.action
 
+import androidx.core.app.NotificationCompat.getGroup
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.data.model.byzantine.ChangeEmail
+import com.nunchuk.android.core.domain.byzantine.ParseChangeEmailPayloadUseCase
 import com.nunchuk.android.core.domain.membership.ApproveInheritanceRequestPlanningUseCase
 import com.nunchuk.android.core.domain.membership.DenyInheritanceRequestPlanningUseCase
 import com.nunchuk.android.core.util.orUnknownError
@@ -32,6 +35,7 @@ class AlertActionIntroViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
     private val denyInheritanceRequestPlanningUseCase: DenyInheritanceRequestPlanningUseCase,
     private val approveInheritanceRequestPlanningUseCase: ApproveInheritanceRequestPlanningUseCase,
+    private val parseChangeEmailPayloadUseCase: ParseChangeEmailPayloadUseCase,
     saveStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = AlertActionIntroFragmentArgs.fromSavedStateHandle(saveStateHandle)
@@ -47,15 +51,21 @@ class AlertActionIntroViewModel @Inject constructor(
             getGroup(args.alert.payload.membershipId)
         } else {
             viewModelScope.launch {
-                getDummyTransactionPayloadUseCase(
+                val result = getDummyTransactionPayloadUseCase(
                     GetDummyTransactionPayloadUseCase.Param(
                         groupId = args.groupId,
                         walletId = args.walletId,
                         transactionId = args.alert.payload.dummyTransactionId
                     )
-                ).onSuccess {
+                )
+                if (result.isSuccess) {
                     _state.update { state ->
-                        state.copy(dummyTransaction = it)
+                        state.copy(dummyTransaction = result.getOrNull())
+                    }
+                    if (args.alert.type == AlertType.CHANGE_EMAIL_REQUEST) {
+                        parseChangeEmailPayloadUseCase(result.getOrNull()!!).onSuccess { changeEmail ->
+                            _state.update { state -> state.copy(changeEmail = changeEmail) }
+                        }
                     }
                 }
             }
@@ -150,5 +160,6 @@ sealed class AlertActionIntroEvent {
 data class AlertActionIntroUiState(
     val dummyTransaction: DummyTransactionPayload? = null,
     val walletName: String = "",
-    val requester: ByzantineMember? = null
+    val requester: ByzantineMember? = null,
+    val changeEmail: ChangeEmail? = null,
 )

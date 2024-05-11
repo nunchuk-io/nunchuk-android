@@ -20,6 +20,8 @@
 package com.nunchuk.android.core.data.api
 
 import com.nunchuk.android.core.data.model.CalculateRequiredSignaturesSecurityQuestionPayload
+import com.nunchuk.android.core.data.model.ChangeEmailRequest
+import com.nunchuk.android.core.data.model.ChangeEmailSignatureRequest
 import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionResponse
@@ -292,6 +294,18 @@ internal interface UserWalletsApi {
     suspend fun calculateRequiredSignaturesLockdown(
         @Body payload: LockdownUpdateRequest.Body
     ): Data<CalculateRequiredSignaturesResponse>
+
+    @POST("/v1.1/user-wallets/email-change/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesChangeEmail(
+        @Body payload: ChangeEmailSignatureRequest
+    ): Data<CalculateRequiredSignaturesResponse>
+
+    @POST("/v1.1/user-wallets/email-change/change")
+    suspend fun changeEmail(
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: ChangeEmailRequest,
+        @Query("draft") draft: Boolean = false
+    ): Data<DummyTransactionResponse>
 
     @Multipart
     @POST("/v1.1/user-wallets/user-keys/upload-backup")

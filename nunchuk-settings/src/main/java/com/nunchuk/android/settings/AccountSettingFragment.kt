@@ -32,6 +32,7 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isPrimaryKey
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.settings.AccountSettingEvent.*
 import com.nunchuk.android.settings.databinding.FragmentAccountSettingBinding
 import com.nunchuk.android.widget.NCDeleteConfirmationDialog
@@ -39,6 +40,7 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -78,8 +80,8 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
 
     private fun handleEvent(event: AccountSettingEvent) {
         when (event) {
-            Loading -> showLoading()
-            is RequestDeleteError -> showRequestError(event.message)
+            is Loading -> showOrHideLoading(event.isLoading)
+            is Error -> showRequestError(event.message)
             RequestDeleteSuccess -> handleRequestSuccess()
             DeletePrimaryKeySuccess -> {
                 hideLoading()
@@ -89,6 +91,16 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
                 hideLoading()
                 showEnterPassphraseDialog(event.isNeeded)
             }
+
+            is CheckPasswordSuccess -> {
+                hideLoading()
+                findNavController().navigate(
+                    AccountSettingFragmentDirections.actionAccountSettingFragmentToChangeEmailFragment(verifyToken = event.token)
+                )
+                viewModel.resetEvent()
+            }
+
+            else -> {}
         }
     }
 
@@ -129,6 +141,9 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
                 AccountSettingFragmentDirections.actionAccountSettingFragmentToSignInQrFragment()
             )
         }
+        binding.changeEmail.setOnDebounceClickListener {
+            enterPasswordDialog()
+        }
     }
 
     private fun showDeletePrimaryKeyConfirmation() {
@@ -160,6 +175,16 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
         } else {
             viewModel.deletePrimaryKey("")
         }
+    }
+
+    private fun enterPasswordDialog() {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(R.string.nc_re_enter_your_password),
+            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
+            onConfirmed = {
+                viewModel.confirmPassword(it)
+            }
+        )
     }
 
     companion object {

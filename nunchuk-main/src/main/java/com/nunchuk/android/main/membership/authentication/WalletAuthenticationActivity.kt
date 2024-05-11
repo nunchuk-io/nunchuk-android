@@ -86,7 +86,8 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
             activityContext: Activity,
             groupId: String? = null,
             dummyTransactionId: String? = null,
-            action: String? = null
+            action: String? = null,
+            newEmail: String? = null
         ) {
             val intent = Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
                 putExtras(
@@ -97,7 +98,8 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
                         type = type,
                         groupId = groupId,
                         dummyTransactionId = dummyTransactionId,
-                        action = action
+                        action = action,
+                        newEmail = newEmail
                     ).toBundle()
                 )
             }

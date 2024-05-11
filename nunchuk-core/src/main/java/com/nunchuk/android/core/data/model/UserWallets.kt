@@ -143,6 +143,23 @@ data class LockdownUpdateRequest(
     )
 }
 
+data class ChangeEmailSignatureRequest(
+    @SerializedName("new_email")
+    val newEmail: String? = null
+)
+
+data class ChangeEmailRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("new_email")
+        val newEmail: String? = null
+    )
+}
+
 data class CreateUpdateInheritancePlanRequest(
     @SerializedName("nonce")
     val nonce: String? = null,

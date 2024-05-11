@@ -721,4 +721,5 @@
     <string name="nc_seedsigner">SeedSigner</string>
     <string name="nc_select_the_key_type">Please select the key type</string>
     <string name="nc_key_has_added_change_key">This key has already been added. Do you want to change the key type?</string>
+    <string name="nc_email_has_been_changed">Email has been changed. Please sign in again.</string>
 </resources>

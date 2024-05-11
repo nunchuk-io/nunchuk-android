@@ -25,6 +25,8 @@ import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.api.TRANSACTION_PAGE_COUNT
 import com.nunchuk.android.core.data.model.CalculateRequiredSignaturesSecurityQuestionPayload
+import com.nunchuk.android.core.data.model.ChangeEmailRequest
+import com.nunchuk.android.core.data.model.ChangeEmailSignatureRequest
 import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
@@ -52,6 +54,7 @@ import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
+import com.nunchuk.android.core.data.model.byzantine.toDomainModel
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
@@ -134,6 +137,7 @@ import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -735,6 +739,36 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         }
         return response.data.result.toCalculateRequiredSignatures()
+    }
+
+    override suspend fun calculateRequiredSignaturesChangeEmail(newEmail: String): CalculateRequiredSignatures {
+        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesChangeEmail(
+            ChangeEmailSignatureRequest(newEmail)
+        )
+        return response.data.result.toCalculateRequiredSignatures()
+    }
+
+    override suspend fun changeEmail(
+        newEmail: String,
+        verifyToken: String,
+        securityQuestionToken: String,
+        confirmCodeToken: String,
+        confirmCodeNonce: String,
+        draft: Boolean
+    ): DummyTransactionPayload? {
+        val headers = getHeaders(
+            authorizations = emptyList(),
+            verifyToken = verifyToken,
+            securityQuestionToken = securityQuestionToken,
+            confirmCodeToken = confirmCodeToken
+        )
+        val response = userWalletApiManager.walletApi.changeEmail(
+            payload = ChangeEmailRequest(nonce = confirmCodeNonce, body = ChangeEmailRequest.Body(newEmail)),
+            headers = headers,
+            draft = draft
+        )
+        if (response.isSuccess.not()) throw response.error
+        return response.data.dummyTransaction?.toDomainModel()
     }
 
     private suspend fun markGroupWalletAsLocked(isLocked: Boolean, groupId: String) {
@@ -2163,6 +2197,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
                 TargetAction.DOWNLOAD_KEY_BACKUP.name -> {
                     EmptyRequest()
+                }
+                TargetAction.CHANGE_EMAIL.name -> {
+                    gson.fromJson(
+                        userData,
+                        ChangeEmailRequest.Body::class.java
+                    )
                 }
 
                 else -> null

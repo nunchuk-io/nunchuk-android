@@ -305,6 +305,7 @@ interface AppNavigatorDelegate : AppNavigator {
         groupId: String?,
         dummyTransactionId: String?,
         action: String?,
+        newEmail: String?,
     ) {
         WalletAuthenticationActivity.start(
             walletId = walletId,
@@ -315,7 +316,8 @@ interface AppNavigatorDelegate : AppNavigator {
             activityContext = activityContext,
             groupId = groupId,
             dummyTransactionId = dummyTransactionId,
-            action = action
+            action = action,
+            newEmail = newEmail
         )
     }
 

@@ -26,13 +26,16 @@ import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.DeletePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
+import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.profile.UserRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.settings.AccountSettingEvent.CheckNeedPassphraseSent
 import com.nunchuk.android.settings.AccountSettingEvent.DeletePrimaryKeySuccess
+import com.nunchuk.android.settings.AccountSettingEvent.Error
 import com.nunchuk.android.settings.AccountSettingEvent.Loading
-import com.nunchuk.android.settings.AccountSettingEvent.RequestDeleteError
 import com.nunchuk.android.settings.AccountSettingEvent.RequestDeleteSuccess
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,6 +58,7 @@ internal class AccountSettingViewModel @Inject constructor(
     private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getSyncSettingUseCase: GetSyncSettingUseCase,
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
 ) : NunchukViewModel<AccountSettingState, AccountSettingEvent>() {
 
     override val initialState = AccountSettingState()
@@ -79,19 +83,19 @@ internal class AccountSettingViewModel @Inject constructor(
     fun sendRequestDeleteAccount() {
         viewModelScope.launch {
             repository.requestDeleteAccount()
-                .onStart { event(Loading) }
+                .onStart { event(Loading(true)) }
                 .flowOn(Dispatchers.IO)
-                .onException { event(RequestDeleteError(it.message.orUnknownError())) }
+                .onException { event(Error(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect { event(RequestDeleteSuccess) }
         }
     }
 
     fun deletePrimaryKey(passphrase: String) = viewModelScope.launch {
-        setEvent(Loading)
+        setEvent(Loading(true))
         val result = deletePrimaryKeyUseCase(DeletePrimaryKeyUseCase.Param(passphrase))
         if (result.isFailure) {
-            setEvent(RequestDeleteError(result.exceptionOrNull()?.message.orUnknownError()))
+            setEvent(Error(result.exceptionOrNull()?.message.orUnknownError()))
             return@launch
         }
         if (result.isSuccess) {
@@ -103,11 +107,34 @@ internal class AccountSettingViewModel @Inject constructor(
     }
 
     fun checkNeedPassphraseSent() {
-        setEvent(Loading)
+        setEvent(Loading(true))
         viewModelScope.launch {
             val isNeeded = primaryKeySignerInfoHolder.isNeedPassphraseSent()
             setEvent(CheckNeedPassphraseSent(isNeeded))
         }
     }
 
+    fun confirmPassword(
+        password: String,
+    ) = viewModelScope.launch {
+        if (password.isBlank()) {
+            return@launch
+        }
+        setEvent(Loading(true))
+        val result = verifiedPasswordTokenUseCase(
+            VerifiedPasswordTokenUseCase.Param(
+                targetAction = TargetAction.CHANGE_EMAIL.name,
+                password = password
+            )
+        )
+        if (result.isSuccess) {
+            event(AccountSettingEvent.CheckPasswordSuccess(result.getOrThrow().orEmpty()))
+        } else {
+            setEvent(Error(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    fun resetEvent() {
+        setEvent(AccountSettingEvent.None)
+    }
 }
