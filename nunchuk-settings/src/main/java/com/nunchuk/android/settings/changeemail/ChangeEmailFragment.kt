@@ -29,10 +29,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.gson.JsonObject
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
-import com.nunchuk.android.compose.NcToastMessage
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -94,16 +92,18 @@ class ChangeEmailFragment : Fragment() {
             setContent {
                 ChangeEmailScreen(viewModel,
                     onEmailChangeClick = { email ->
-                        navigator.openWalletAuthentication(
-                            walletId = "",
-                            userData = viewModel.getUserData(),
-                            requiredSignatures = 0,
-                            type = VerificationType.CONFIRMATION_CODE,
-                            launcher = launcher,
-                            action = TargetAction.CHANGE_EMAIL.name,
-                            newEmail = email,
-                            activityContext = requireActivity()
-                        )
+                        if (viewModel.isEmailValid(email)) {
+                            navigator.openWalletAuthentication(
+                                walletId = "",
+                                userData = viewModel.getUserData(),
+                                requiredSignatures = 0,
+                                type = VerificationType.CONFIRMATION_CODE,
+                                launcher = launcher,
+                                action = TargetAction.CHANGE_EMAIL.name,
+                                newEmail = email,
+                                activityContext = requireActivity()
+                            )
+                        }
                     })
             }
         }
@@ -136,6 +136,7 @@ class ChangeEmailFragment : Fragment() {
                         activityContext = requireActivity()
                     )
                 }
+
                 ChangeEmailEvent.SignOutEvent -> {
                     handleLogout()
                 }
@@ -162,13 +163,15 @@ fun ChangeEmailScreen(
     ChangeEmailScreenContent(
         email = state.email,
         onEmailChangeClick = onEmailChangeClick,
-        onInputChange = viewModel::updateEmail
+        onInputChange = viewModel::updateEmail,
+        isValidEmail = state.isValidEmail
     )
 }
 
 @Composable
 fun ChangeEmailScreenContent(
     email: String = "",
+    isValidEmail : Boolean = false,
     onEmailChangeClick: (String) -> Unit = {},
     onInputChange: (String) -> Unit = {},
 ) {
@@ -195,6 +198,7 @@ fun ChangeEmailScreenContent(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     title = stringResource(id = R.string.nc_new_email),
                     value = email,
+                    error = if (isValidEmail.not()) stringResource(id = R.string.nc_text_email_invalid) else "",
                     onValueChange = onInputChange
                 )
                 NcPrimaryDarkButton(
@@ -216,5 +220,5 @@ fun ChangeEmailScreenContent(
 @Preview
 @Composable
 private fun ChangeEmailScreenContentPreview() {
-    ChangeEmailScreenContent(email = "nugenthomas@gmail.com")
+    ChangeEmailScreenContent(email = "nugenthomas@gmail.com", isValidEmail = false)
 }
