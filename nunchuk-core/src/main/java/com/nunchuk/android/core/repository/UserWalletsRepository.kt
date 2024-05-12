@@ -440,16 +440,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             if (saveWalletToLib(walletServer, assistedKeys)) isNeedReload = true
         }
         val planWalletCreated = hashMapOf<String, String>()
-        val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
-        var deleteCount = 0
-        if (partition.second.isNotEmpty()) {
-            partition.second.filter { it.status == WALLET_DELETED_STATUS }
-                .forEach { runCatching { nunchukNativeSdk.deleteWallet(it.localId.orEmpty()) } }
-            deleteCount =
-                assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
-        }
-        if (partition.first.isNotEmpty()) {
-            assistedWalletDao.insert(partition.first.map { wallet ->
+        val activeWallets = result.data.wallets.filter { it.status == WALLET_ACTIVE_STATUS }
+        val deleteCount = assistedWalletDao.deleteAllPersonalWalletsExcept(activeWallets.map { it.localId.orEmpty() })
+        if (activeWallets.isNotEmpty()) {
+            assistedWalletDao.insert(activeWallets.map { wallet ->
                 AssistedWalletEntity(
                     localId = wallet.localId.orEmpty(),
                     plan = wallet.slug.toMembershipPlan(),

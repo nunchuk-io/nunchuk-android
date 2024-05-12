@@ -16,6 +16,7 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupStatus
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.persistence.dao.AlertDao
+import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
 import com.nunchuk.android.persistence.entity.AlertEntity
@@ -31,6 +32,7 @@ internal class ByzantineSyncer @Inject constructor(
     private val groupDao: GroupDao,
     private val keyHealthStatusDao: KeyHealthStatusDao,
     private val userWalletApiManager: UserWalletApiManager,
+    private val assistedWalletDao: AssistedWalletDao,
     private val accountManager: AccountManager,
     ncDataStore: NcDataStore,
     private val gson: Gson,
@@ -117,6 +119,7 @@ internal class ByzantineSyncer @Inject constructor(
             allGroupIds.removeAll(addGroupIds)
             if (allGroupIds.isNotEmpty()) {
                 groupDao.deleteGroups(allGroupIds.toList(), chatId = chatId)
+                assistedWalletDao.deleteByGroupIds(allGroupIds.toList())
             }
             return finalGroups.map { it.toByzantineGroup() }
         }.onFailure { return null }
