@@ -11,6 +11,7 @@ import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.settings.AccountSettingEvent
+import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -137,6 +138,12 @@ class ChangeEmailViewModel @Inject constructor(
             _event.emit(ChangeEmailEvent.SignOutEvent)
         }
     }
+
+    fun isEmailValid(email: String): Boolean {
+        val isValid = EmailValidator.valid(email) && email.isNotEmpty()
+        _state.update { it.copy(isValidEmail = isValid)}
+        return isValid
+    }
 }
 
 data class ChangeEmailState(
@@ -145,6 +152,7 @@ data class ChangeEmailState(
     val action: String = "",
     val confirmCodeNonce: String = "",
     val confirmCodeToken: String = "",
+    val isValidEmail: Boolean = true,
 )
 
 sealed class ChangeEmailEvent {
