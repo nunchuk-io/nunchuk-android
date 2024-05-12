@@ -28,10 +28,10 @@ import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
-import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
-import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.membership.CheckWalletsExistingKeyUseCase
+import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
@@ -171,12 +171,12 @@ internal class WalletsViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect {
                     updateState { copy(assistedWallets = it) }
-                    checkMemberMembership()
                     checkInheritance(it)
                     mapGroupWalletUi()
                     getKeyHealthStatus()
                 }
         }
+        checkMemberMembership()
         viewModelScope.launch {
             membershipStepManager.remainingTime.collect {
                 updateState { copy(remainingTime = it) }
