@@ -45,4 +45,10 @@ interface AssistedWalletDao : BaseDao<AssistedWalletEntity> {
 
     @Query("SELECT * FROM $TABLE_ASSISTED_WALLET WHERE group_id =:id ")
     suspend fun getByGroupId(id: String): AssistedWalletEntity?
+
+    @Query("DELETE FROM $TABLE_ASSISTED_WALLET WHERE group_id IN (:groupIds)")
+    suspend fun deleteByGroupIds(groupIds: List<String>): Int
+
+    @Query("DELETE FROM $TABLE_ASSISTED_WALLET WHERE local_id NOT IN (:ids) AND group_id = ''")
+    suspend fun deleteAllPersonalWalletsExcept(ids: List<String>): Int
 }
