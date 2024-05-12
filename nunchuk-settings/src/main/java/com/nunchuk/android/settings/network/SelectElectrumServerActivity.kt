@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -41,6 +42,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.model.ElectrumServer
 import com.nunchuk.android.model.RemoteElectrumServer
+import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.AndroidEntryPoint
@@ -80,6 +82,12 @@ private fun SelectElectrumServerScreen(
     onSelectServer: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.addSuccessEvent) {
+        if (uiState.addSuccessEvent is StateEvent.String) {
+            onSelectServer((uiState.addSuccessEvent as StateEvent.String).data)
+            viewModel.onHandleAddSuccessEvent()
+        }
+    }
     SelectElectrumServerContent(
         uiState = uiState,
         onSave = viewModel::onSave,
@@ -161,7 +169,8 @@ private fun SelectElectrumServerContent(
                 }
                 items(
                     uiState.localElectrumServers.filter { !uiState.pendingRemoveIds.contains(it.id) },
-                    key = { it.id }) {
+                    key = { it.id },
+                ) {
                     ElectrumSeverItem(
                         isRemote = false,
                         name = it.url,

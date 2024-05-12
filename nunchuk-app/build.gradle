@@ -123,7 +123,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion '1.5.2'
+        kotlinCompilerExtensionVersion '1.5.4'
     }
     packagingOptions {
         resources {
@@ -175,7 +175,7 @@ dependencies {
     implementation hiltDeps.hiltNavigation
 
     implementation networkDeps.values()
-    implementation platform('androidx.compose:compose-bom:2024.03.00')
+    implementation platform('androidx.compose:compose-bom:2024.05.00')
     implementation composeDeps.values()
 
     implementation androidxDeps.values()

@@ -9,6 +9,7 @@ import com.nunchuk.android.core.domain.GetLocalElectrumServersUseCase
 import com.nunchuk.android.core.domain.RemoveLocalElectrumServersUseCase
 import com.nunchuk.android.model.ElectrumServer
 import com.nunchuk.android.model.RemoteElectrumServer
+import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,7 +54,12 @@ class SelectElectrumServerViewModel @Inject constructor(
 
     fun onAddNewServer(server: String) {
         viewModelScope.launch {
-            addLocalElectrumServersUseCase(ElectrumServer(url = server, chain = chain))
+            val isLocalExist = _uiState.value.localElectrumServers.any { it.url == server }
+            val isRemoteExist = _uiState.value.remoteServers.any { it.url == server }
+            if (!isLocalExist && !isRemoteExist) {
+                addLocalElectrumServersUseCase(ElectrumServer(url = server, chain = chain))
+                _uiState.update { it.copy(addSuccessEvent = StateEvent.String(server)) }
+            }
         }
     }
 
@@ -67,6 +73,10 @@ class SelectElectrumServerViewModel @Inject constructor(
             _uiState.update { it.copy(pendingRemoveIds = emptySet()) }
         }
     }
+
+    fun onHandleAddSuccessEvent() {
+        _uiState.update { it.copy(addSuccessEvent = StateEvent.None) }
+    }
 }
 
 data class SelectElectrumServerUiState(
@@ -74,5 +84,6 @@ data class SelectElectrumServerUiState(
     val remoteServers: List<RemoteElectrumServer> = emptyList(),
     val localElectrumServers: List<ElectrumServer> = emptyList(),
     val chain: Chain = Chain.MAIN,
-    val pendingRemoveIds: Set<Long> = emptySet()
+    val pendingRemoveIds: Set<Long> = emptySet(),
+    val addSuccessEvent: StateEvent = StateEvent.None
 )
