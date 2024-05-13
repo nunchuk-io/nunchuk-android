@@ -53,13 +53,24 @@ class SelectElectrumServerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            SelectElectrumServerScreen { url, name ->
-                setResult(Activity.RESULT_OK, Intent().apply {
-                    putExtra(EXTRA_SERVER, url)
-                    putExtra(EXTRA_NAME, name)
-                })
-                finish()
-            }
+            SelectElectrumServerScreen(
+                onSelectServer = { url, name ->
+                    setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra(EXTRA_SERVER, url)
+                        putExtra(EXTRA_NAME, name)
+                    })
+                    finish()
+                },
+                onPreSelectServer = { url, name ->
+                    setResult(
+                        Activity.RESULT_OK,
+                        Intent().apply {
+                            putExtra(EXTRA_SERVER, url)
+                            putExtra(EXTRA_NAME, name)
+                        },
+                    )
+                },
+            )
         }
     }
 
@@ -82,6 +93,7 @@ class SelectElectrumServerActivity : ComponentActivity() {
 private fun SelectElectrumServerScreen(
     viewModel: SelectElectrumServerViewModel = hiltViewModel(),
     onSelectServer: (String, String?) -> Unit = { _, _ -> },
+    onPreSelectServer: (String, String?) -> Unit = { _, _ -> },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.addSuccessEvent) {
@@ -89,6 +101,14 @@ private fun SelectElectrumServerScreen(
             val url = (uiState.addSuccessEvent as StateEvent.String).data
             onSelectServer((uiState.addSuccessEvent as StateEvent.String).data, url)
             viewModel.onHandleAddSuccessEvent()
+        }
+    }
+    LaunchedEffect(uiState.autoSelectServer) {
+        if (uiState.autoSelectServer is StateEvent.Unit) {
+            uiState.remoteServers.firstOrNull()?.let { remote ->
+                onPreSelectServer(remote.url, remote.name)
+            }
+            viewModel.onHandleAutoSelectServer()
         }
     }
     SelectElectrumServerContent(

@@ -27,9 +27,12 @@ class SelectElectrumServerViewModel @Inject constructor(
     private val removeLocalElectrumServersUseCase: RemoveLocalElectrumServersUseCase,
     saveStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val chain = saveStateHandle.get<Chain>(SelectElectrumServerActivity.EXTRA_CHAIN) ?: Chain.MAIN
-    private val server = saveStateHandle.get<String>(SelectElectrumServerActivity.EXTRA_SERVER).orEmpty()
-    private val _uiState = MutableStateFlow(SelectElectrumServerUiState(chain = chain, server = server))
+    private val chain =
+        saveStateHandle.get<Chain>(SelectElectrumServerActivity.EXTRA_CHAIN) ?: Chain.MAIN
+    private val server =
+        saveStateHandle.get<String>(SelectElectrumServerActivity.EXTRA_SERVER).orEmpty()
+    private val _uiState =
+        MutableStateFlow(SelectElectrumServerUiState(chain = chain, server = server))
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -69,13 +72,28 @@ class SelectElectrumServerViewModel @Inject constructor(
 
     fun onSave() {
         viewModelScope.launch {
-            removeLocalElectrumServersUseCase(_uiState.value.pendingRemoveIds.toList())
+            val selectedId =
+                _uiState.value.localElectrumServers.firstOrNull { it.url == _uiState.value.server }?.id
+            val removeIds = _uiState.value.pendingRemoveIds
+            removeLocalElectrumServersUseCase(removeIds.toList())
+            if (selectedId in removeIds) {
+                _uiState.update {
+                    it.copy(
+                        autoSelectServer = StateEvent.Unit,
+                        server = _uiState.value.remoteServers.firstOrNull()?.url.orEmpty()
+                    )
+                }
+            }
             _uiState.update { it.copy(pendingRemoveIds = emptySet()) }
         }
     }
 
     fun onHandleAddSuccessEvent() {
         _uiState.update { it.copy(addSuccessEvent = StateEvent.None) }
+    }
+
+    fun onHandleAutoSelectServer() {
+        _uiState.update { it.copy(autoSelectServer = StateEvent.None) }
     }
 }
 
@@ -85,5 +103,6 @@ data class SelectElectrumServerUiState(
     val localElectrumServers: List<ElectrumServer> = emptyList(),
     val chain: Chain = Chain.MAIN,
     val pendingRemoveIds: Set<Long> = emptySet(),
-    val addSuccessEvent: StateEvent = StateEvent.None
+    val addSuccessEvent: StateEvent = StateEvent.None,
+    val autoSelectServer: StateEvent = StateEvent.None
 )
