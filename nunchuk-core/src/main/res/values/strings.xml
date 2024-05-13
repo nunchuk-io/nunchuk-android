@@ -722,4 +722,8 @@
     <string name="nc_select_the_key_type">Please select the key type</string>
     <string name="nc_key_has_added_change_key">This key has already been added. Do you want to change the key type?</string>
     <string name="nc_email_has_been_changed">Email has been changed. Please sign in again.</string>
+    <string name="nc_create_new_wallet">Create a new wallet</string>
+    <string name="nc_create_new_wallet_desc">Create a new wallet using existing keys.</string>
+    <string name="nc_create_hot_wallet">Create a hot wallet</string>
+    <string name="nc_create_hot_wallet_desc">Quickly create a hot wallet for immediate use and back it up later. No existing keys required.</string>
 </resources>
