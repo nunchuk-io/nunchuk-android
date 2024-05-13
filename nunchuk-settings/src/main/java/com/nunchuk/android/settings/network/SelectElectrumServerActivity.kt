@@ -53,9 +53,10 @@ class SelectElectrumServerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            SelectElectrumServerScreen {
+            SelectElectrumServerScreen { url, name ->
                 setResult(Activity.RESULT_OK, Intent().apply {
-                    putExtra(EXTRA_SERVER, it)
+                    putExtra(EXTRA_SERVER, url)
+                    putExtra(EXTRA_NAME, name)
                 })
                 finish()
             }
@@ -65,6 +66,7 @@ class SelectElectrumServerActivity : ComponentActivity() {
     companion object {
         internal const val EXTRA_CHAIN = "chain"
         internal const val EXTRA_SERVER = "server"
+        internal const val EXTRA_NAME = "name"
         fun buildIntent(activity: Activity, chain: Chain, server: String) =
             Intent(
                 activity,
@@ -79,12 +81,13 @@ class SelectElectrumServerActivity : ComponentActivity() {
 @Composable
 private fun SelectElectrumServerScreen(
     viewModel: SelectElectrumServerViewModel = hiltViewModel(),
-    onSelectServer: (String) -> Unit = {},
+    onSelectServer: (String, String?) -> Unit = { _, _ -> },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.addSuccessEvent) {
         if (uiState.addSuccessEvent is StateEvent.String) {
-            onSelectServer((uiState.addSuccessEvent as StateEvent.String).data)
+            val url = (uiState.addSuccessEvent as StateEvent.String).data
+            onSelectServer((uiState.addSuccessEvent as StateEvent.String).data, url)
             viewModel.onHandleAddSuccessEvent()
         }
     }
@@ -102,7 +105,7 @@ private fun SelectElectrumServerContent(
     uiState: SelectElectrumServerUiState = SelectElectrumServerUiState(),
     onSave: () -> Unit = {},
     onAddNewSever: (String) -> Unit = {},
-    onSelectServer: (String) -> Unit = {},
+    onSelectServer: (String, String?) -> Unit = { _, _ -> },
     onRemove: (Long) -> Unit = {},
 ) {
     var isEditing by rememberSaveable { mutableStateOf(false) }
@@ -142,13 +145,15 @@ private fun SelectElectrumServerContent(
                     },
                 )
             }, bottomBar = {
-                NcOutlineButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = { showAddSeverBottomSheet = true }
-                ) {
-                    Text(text = stringResource(id = R.string.nc_add_electrum_server))
+                if (!isEditing) {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = { showAddSeverBottomSheet = true }
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_add_electrum_server))
+                    }
                 }
             }
         ) { innerPadding ->
@@ -163,7 +168,7 @@ private fun SelectElectrumServerContent(
                         name = it.name,
                         isSelected = it.url == uiState.server,
                         isEditing = false,
-                        onSelectServer = { onSelectServer(it.url) },
+                        onSelectServer = { onSelectServer(it.url, it.name) },
                         onRemove = {}
                     )
                 }
@@ -177,7 +182,7 @@ private fun SelectElectrumServerContent(
                         isSelected = it.url == uiState.server,
                         isEditing = isEditing,
                         onSelectServer = {
-                            onSelectServer(it.url)
+                            onSelectServer(it.url, it.url)
                         },
                         onRemove = {
                             onRemove(it.id)

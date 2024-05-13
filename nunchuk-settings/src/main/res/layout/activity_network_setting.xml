@@ -37,7 +37,7 @@
                     app:layout_constraintStart_toEndOf="@+id/tvMainNetHost"
                     app:layout_constraintTop_toTopOf="@+id/tvMainNetHost" />
 
-                <com.nunchuk.android.widget.NCFontEditText
+                <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/tvMainNetHost"
                     style="@style/NCText.Body"
                     android:layout_width="0dp"

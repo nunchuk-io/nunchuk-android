@@ -55,7 +55,7 @@ internal class NetworkSettingViewModel @Inject constructor(
             if (result.isSuccess) {
                 initAppSettings = result.getOrThrow()
                 updateCurrentState(result.getOrThrow())
-                event(
+                setEvent(
                     NetworkSettingEvent.ResetTextHostServerEvent(result.getOrThrow())
                 )
             }
@@ -76,7 +76,7 @@ internal class NetworkSettingViewModel @Inject constructor(
                 updateState {
                     copy(appSetting = result.getOrThrow())
                 }
-                event(NetworkSettingEvent.UpdateSettingSuccessEvent(result.getOrThrow()))
+                setEvent(NetworkSettingEvent.UpdateSettingSuccessEvent(result.getOrThrow()))
             }
         }
     }
@@ -89,7 +89,8 @@ internal class NetworkSettingViewModel @Inject constructor(
                 updateState {
                     copy(appSetting = it)
                 }
-                event(NetworkSettingEvent.UpdateSettingSuccessEvent(it))
+                setEvent(NetworkSettingEvent.ResetTextHostServerEvent(it))
+                setEvent(NetworkSettingEvent.UpdateSettingSuccessEvent(it))
             }
         }
     }
