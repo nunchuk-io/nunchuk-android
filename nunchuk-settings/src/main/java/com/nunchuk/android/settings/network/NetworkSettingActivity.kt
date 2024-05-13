@@ -51,6 +51,7 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 // TODO: refactor network list to recyclerview
 @AndroidEntryPoint
@@ -63,7 +64,13 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             if (result.resultCode == RESULT_OK) {
                 val server =
                     result.data?.getStringExtra(SelectElectrumServerActivity.EXTRA_SERVER).orEmpty()
-                binding.tvMainNetHost.setText(server)
+                val name =
+                    result.data?.getStringExtra(SelectElectrumServerActivity.EXTRA_NAME)
+                binding.tvMainNetHost.text = name ?: server
+                Timber.d("Selected server: $server")
+                viewModel.currentAppSettings?.copy(
+                    mainnetServers = listOf(server)
+                )?.let(viewModel::updateCurrentState)
             }
         }
 
@@ -205,7 +212,6 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.electrumServerSwitch.isChecked = true
         binding.electrumServerSwitch.isClickable = false
         binding.electrumServerSwitch.isEnabled = false
-        binding.tvMainNetHost.inputType = InputType.TYPE_CLASS_TEXT
         binding.tvTestNetHost.inputType = InputType.TYPE_CLASS_TEXT
         binding.tvSigNetHost.inputType = InputType.TYPE_CLASS_TEXT
 
@@ -238,11 +244,8 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         }
 
         binding.btnReset.setOnClickListener {
+            currentFocus?.clearFocus()
             viewModel.resetToDefaultAppSetting()
-        }
-
-        binding.tvMainNetHost.addTextChangedCallback {
-            handleNetworkHostTextCallBack(it, Chain.MAIN)
         }
         binding.tvTestNetHost.addTextChangedCallback {
             handleNetworkHostTextCallBack(it, Chain.TESTNET)
@@ -250,7 +253,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.tvSigNetHost.addTextChangedCallback {
             handleNetworkHostTextCallBack(it, Chain.SIGNET)
         }
-        binding.ivMainNetArrow.setOnDebounceClickListener {
+        val openSelectElectrumServer : () -> Unit = {
             selectServerLauncher.launch(
                 SelectElectrumServerActivity.buildIntent(
                     activity = this,
@@ -258,6 +261,12 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                     server = viewModel.currentAppSettings?.mainnetServers?.firstOrNull().orEmpty()
                 )
             )
+        }
+        binding.ivMainNetArrow.setOnDebounceClickListener {
+            openSelectElectrumServer()
+        }
+        binding.tvMainNetHost.setOnDebounceClickListener {
+            openSelectElectrumServer()
         }
 
         binding.exploreAddressSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -353,7 +362,6 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
         viewModel.currentAppSettings?.copy(
             chain = chain,
-            mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
             testnetServers = listOf(binding.tvTestNetHost.text.toString()),
             signetServers = listOf(binding.tvSigNetHost.text.toString())
         )?.let(viewModel::updateCurrentState)
