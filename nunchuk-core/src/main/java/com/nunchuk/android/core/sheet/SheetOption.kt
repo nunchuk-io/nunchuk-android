@@ -147,4 +147,7 @@ object SheetOptionType {
 
     const val TYPE_ADD_SOFTWARE_KEY = 83
     const val TYPE_ADD_COLDCARD_QR = 84
+
+    const val TYPE_CREATE_NEW_WALLET = 85
+    const val TYPE_CREATE_HOT_WALLET = 86
 }

@@ -120,6 +120,18 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     showRunOutWallet(true)
                 }
             }
+            SheetOptionType.TYPE_CREATE_NEW_WALLET -> {
+                if (args.isQuickWallet) {
+                    navigator.openCreateNewSeedScreen(this, true)
+                } else if (hasSigner) {
+                    openCreateNewWalletScreen()
+                } else {
+                    openWalletEmptySignerScreen()
+                }
+            }
+            SheetOptionType.TYPE_CREATE_HOT_WALLET -> {
+                navigator.openHotWalletScreen(requireActivity())
+            }
         }
     }
 
@@ -190,29 +202,6 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             binding.btnCreateNewWallet.text = getString(R.string.nc_text_continue)
             binding.btnRecoverWallet.text = getString(R.string.nc_create_my_own_wallet)
         }
-
-        binding.composeView.setContent {
-            NunchukTheme {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 24.dp),
-                        text = "Or", style = NunchukTheme.typography.bodySmall
-                    )
-
-                    OptionCard(
-                        modifier = Modifier.padding(top = 24.dp),
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        title = stringResource(R.string.nc_create_hot_wallet),
-                        description = stringResource(R.string.nc_create_hot_wallet_desc),
-                        painter = painterResource(id = R.drawable.ic_create_hot_wallet),
-                    ) {
-                        navigator.openHotWalletScreen(requireActivity())
-                    }
-                }
-            }
-        }
     }
 
     private fun openCreateNewWalletScreen() {
@@ -249,13 +238,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
 
     private fun setupViews() {
         binding.btnCreateNewWallet.setOnClickListener {
-            if (args.isQuickWallet) {
-                navigator.openCreateNewSeedScreen(this, true)
-            } else if (hasSigner) {
-                openCreateNewWalletScreen()
-            } else {
-                openWalletEmptySignerScreen()
-            }
+            showCreateWalletOption()
         }
         binding.btnRecoverWallet.setOnClickListener {
             if (args.isQuickWallet) {
@@ -332,6 +315,25 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 ),
             ),
             title = getString(R.string.nc_type_of_assisted_wallet)
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showCreateWalletOption() {
+        BottomSheetOption.newInstance(
+            options = listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_CREATE_NEW_WALLET,
+                    resId = R.drawable.ic_circle_new_wallet,
+                    stringId = R.string.nc_create_new_wallet,
+                    subStringId = R.string.nc_create_new_wallet_desc
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_CREATE_HOT_WALLET,
+                    resId = R.drawable.ic_circle_hot_wallet,
+                    stringId = R.string.nc_create_hot_wallet,
+                    subStringId = R.string.nc_create_hot_wallet_desc,
+                ),
+            )
         ).show(childFragmentManager, "BottomSheetOption")
     }
 }

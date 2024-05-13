@@ -94,12 +94,5 @@
         android:text="@string/nc_text_recover_wallet"
         app:layout_constraintTop_toBottomOf="@+id/btnCreateNewWallet"
         app:layout_constraintStart_toStartOf="parent" />
-    
-    <androidx.compose.ui.platform.ComposeView
-        android:id="@+id/composeView"
-        android:layout_width="match_parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnRecoverWallet"
-        android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
