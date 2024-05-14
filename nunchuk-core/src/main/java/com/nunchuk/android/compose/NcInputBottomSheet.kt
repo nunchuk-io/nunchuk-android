@@ -42,12 +42,6 @@ fun NcInputBottomSheet(
     onDismiss: () -> Unit,
 ) {
     var text by remember { mutableStateOf("") }
-    val focusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(Unit) {
-        delay(300L)
-        focusRequester.requestFocus()
-    }
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -82,8 +76,7 @@ fun NcInputBottomSheet(
 
             NcTextField(
                 modifier = Modifier
-                    .padding(top = 8.dp, start = 4.dp, end = 4.dp)
-                    .focusRequester(focusRequester),
+                    .padding(top = 8.dp, start = 4.dp, end = 4.dp),
                 title = "",
                 value = text,
                 minLines = 5,

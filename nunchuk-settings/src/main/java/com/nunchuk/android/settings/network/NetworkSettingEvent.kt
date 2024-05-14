@@ -23,6 +23,7 @@ import com.nunchuk.android.model.AppSettings
 
 data class NetworkSettingState(
     val appSetting: AppSettings = AppSettings(),
+    val customMainnetServerName: String? = null,
 )
 
 sealed class NetworkSettingEvent {

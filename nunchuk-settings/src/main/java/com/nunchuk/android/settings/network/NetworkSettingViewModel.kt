@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.domain.GetElectrumServersUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.core.profile.SendSignOutUseCase
@@ -40,6 +41,7 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val sendSignOutUseCase: SendSignOutUseCase,
     private val appScope: CoroutineScope,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
+    private val getElectrumServersUseCase: GetElectrumServersUseCase,
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
     override val initialState = NetworkSettingState()
@@ -51,13 +53,24 @@ internal class NetworkSettingViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val result = getAppSettingUseCase(Unit)
-            if (result.isSuccess) {
-                initAppSettings = result.getOrThrow()
-                updateCurrentState(result.getOrThrow())
+            getAppSettingUseCase(Unit).onSuccess { appSettings ->
+                initAppSettings = appSettings
+                updateCurrentState(appSettings)
+                loadCustomMainnetServer(appSettings.mainnetServers.firstOrNull())
                 setEvent(
-                    NetworkSettingEvent.ResetTextHostServerEvent(result.getOrThrow())
+                    NetworkSettingEvent.ResetTextHostServerEvent(appSettings)
                 )
+            }
+        }
+    }
+
+    private fun loadCustomMainnetServer(url: String?) {
+        viewModelScope.launch {
+            getElectrumServersUseCase(Unit).onSuccess {
+                val customMainnetServer = it.mainnet.find { server -> server.url == url }
+                updateState {
+                    copy(customMainnetServerName = customMainnetServer?.name)
+                }
             }
         }
     }
