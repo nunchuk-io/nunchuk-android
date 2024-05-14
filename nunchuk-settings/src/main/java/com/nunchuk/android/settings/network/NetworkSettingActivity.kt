@@ -46,6 +46,7 @@ import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.utils.getTrimmedText
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -53,7 +54,6 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
-// TODO: refactor network list to recyclerview
 @AndroidEntryPoint
 class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
@@ -66,6 +66,9 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                     result.data?.getStringExtra(SelectElectrumServerActivity.EXTRA_SERVER).orEmpty()
                 val name =
                     result.data?.getStringExtra(SelectElectrumServerActivity.EXTRA_NAME)
+                if (result.data?.getBooleanExtra(SelectElectrumServerActivity.EXTRA_SHOW_MESSAGE, false) == true) {
+                    NCToastMessage(this).show(getString(R.string.nc_server_added))
+                }
                 binding.tvMainNetHost.text = name ?: server
                 Timber.d("Selected server: $server")
                 viewModel.currentAppSettings?.copy(
