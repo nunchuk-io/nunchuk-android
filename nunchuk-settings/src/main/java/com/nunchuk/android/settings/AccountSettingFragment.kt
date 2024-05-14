@@ -31,7 +31,6 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isPrimaryKey
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.settings.AccountSettingEvent.*
 import com.nunchuk.android.settings.databinding.FragmentAccountSettingBinding
@@ -40,7 +39,6 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -76,6 +74,7 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
 
     private fun handleState(state: AccountSettingState) {
         binding.enableSync.isVisible = state.hasAssistedWallets.not() || state.isSyncEnable
+        binding.changeEmail.isVisible = viewModel.isPremiumUser()
     }
 
     private fun handleEvent(event: AccountSettingEvent) {
