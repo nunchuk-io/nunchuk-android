@@ -26,25 +26,37 @@ import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.DeletePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.profile.UserRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.containsByzantineOrFinney
+import com.nunchuk.android.model.containsPersonalPlan
+import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.settings.AccountSettingEvent.CheckNeedPassphraseSent
 import com.nunchuk.android.settings.AccountSettingEvent.DeletePrimaryKeySuccess
 import com.nunchuk.android.settings.AccountSettingEvent.Error
 import com.nunchuk.android.settings.AccountSettingEvent.Loading
 import com.nunchuk.android.settings.AccountSettingEvent.RequestDeleteSuccess
+import com.nunchuk.android.usecase.GetGroupsUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -59,7 +71,8 @@ internal class AccountSettingViewModel @Inject constructor(
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getSyncSettingUseCase: GetSyncSettingUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-) : NunchukViewModel<AccountSettingState, AccountSettingEvent>() {
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
+    ) : NunchukViewModel<AccountSettingState, AccountSettingEvent>() {
 
     override val initialState = AccountSettingState()
 
@@ -75,6 +88,15 @@ internal class AccountSettingViewModel @Inject constructor(
                             hasAssistedWallets = it.first.getOrElse { emptyList() }.isNotEmpty(),
                             isSyncEnable = it.second.getOrElse { false }
                         )
+                    }
+                }
+        }
+        viewModelScope.launch {
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .collect {
+                    updateState {
+                        copy(plans = it)
                     }
                 }
         }
@@ -132,6 +154,12 @@ internal class AccountSettingViewModel @Inject constructor(
         } else {
             setEvent(Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
+    }
+
+    fun isPremiumUser(): Boolean {
+        if (getState().hasAssistedWallets) return true
+        if (getState().plans.isNonePlan().not()) return true
+        return false
     }
 
     fun resetEvent() {

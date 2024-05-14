@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.settings
 
+import com.nunchuk.android.model.MembershipPlan
+
 sealed class AccountSettingEvent {
     data class Loading(val isLoading: Boolean) : AccountSettingEvent()
     data object RequestDeleteSuccess : AccountSettingEvent()
@@ -32,4 +34,5 @@ sealed class AccountSettingEvent {
 data class AccountSettingState(
     val isSyncEnable: Boolean = false,
     val hasAssistedWallets: Boolean = false,
+    val plans: List<MembershipPlan> = emptyList(),
 )

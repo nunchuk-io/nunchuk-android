@@ -57,45 +57,49 @@ class ChangeEmailViewModel @Inject constructor(
             _event.emit(ChangeEmailEvent.Loading(false))
             if (resultCalculate.isSuccess) {
                 val signatures = resultCalculate.getOrThrow()
-                if (signatures.type == VerificationType.SIGN_DUMMY_TX) {
-                    _event.emit(ChangeEmailEvent.Loading(true))
-                    changeEmailUseCase(
-                        ChangeEmailUseCase.Param(
-                            verifyToken = args.verifyToken,
-                            securityQuestionToken = "",
-                            confirmCodeNonce = confirmCodeNonce,
-                            confirmCodeToken = confirmCodeToken,
-                            newEmail = state.value.email,
-                            draft = true
-                        )
-                    ).onSuccess { dummyTransactionPayload ->
+                when (signatures.type) {
+                    VerificationType.SIGN_DUMMY_TX -> {
+                        _event.emit(ChangeEmailEvent.Loading(true))
+                        changeEmailUseCase(
+                            ChangeEmailUseCase.Param(
+                                verifyToken = args.verifyToken,
+                                securityQuestionToken = "",
+                                confirmCodeNonce = confirmCodeNonce,
+                                confirmCodeToken = confirmCodeToken,
+                                newEmail = state.value.email,
+                                draft = true
+                            )
+                        ).onSuccess { dummyTransactionPayload ->
+                            _event.emit(
+                                ChangeEmailEvent.CalculateRequiredSignaturesSuccess(
+                                    userData = state.value.email,
+                                    requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
+                                    type = resultCalculate.getOrThrow().type,
+                                    dummyTransactionId = dummyTransactionPayload?.dummyTransactionId.orEmpty(),
+                                    newEmail = state.value.email,
+                                    walletId = dummyTransactionPayload?.walletId.orEmpty(),
+                                    groupId = dummyTransactionPayload?.groupId.orEmpty()
+                                )
+                            )
+                        }.onFailure {
+                            _event.emit(ChangeEmailEvent.Error(it.message.orUnknownError()))
+                        }
+                        _event.emit(ChangeEmailEvent.Loading(false))
+                    }
+                    VerificationType.SECURITY_QUESTION -> {
                         _event.emit(
                             ChangeEmailEvent.CalculateRequiredSignaturesSuccess(
                                 userData = state.value.email,
                                 requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
                                 type = resultCalculate.getOrThrow().type,
-                                dummyTransactionId = dummyTransactionPayload?.dummyTransactionId.orEmpty(),
+                                dummyTransactionId = "",
                                 newEmail = state.value.email,
-                                walletId = dummyTransactionPayload?.walletId.orEmpty(),
-                                groupId = dummyTransactionPayload?.groupId.orEmpty()
                             )
                         )
-                    }.onFailure {
-                        _event.emit(ChangeEmailEvent.Error(it.message.orUnknownError()))
                     }
-                    _event.emit(ChangeEmailEvent.Loading(false))
-                } else if (signatures.type == VerificationType.SECURITY_QUESTION) {
-                    _event.emit(
-                        ChangeEmailEvent.CalculateRequiredSignaturesSuccess(
-                            userData = state.value.email,
-                            requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
-                            type = resultCalculate.getOrThrow().type,
-                            dummyTransactionId = "",
-                            newEmail = state.value.email,
-                        )
-                    )
-                } else {
-                    changeEmail("")
+                    else -> {
+                        changeEmail("")
+                    }
                 }
             } else {
                 _event.emit(ChangeEmailEvent.Error(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
