@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.core.domain.byzantine.SetRoomRetentionUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -37,7 +38,6 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.settings.changeemail.ChangeEmailEvent
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
@@ -76,6 +76,7 @@ import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class GroupDashboardViewModel @Inject constructor(
@@ -110,6 +111,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val syncTransactionUseCase: SyncTransactionUseCase,
     private val sendSignOutUseCase: SendSignOutUseCase,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
+    private val setRoomRetentionUseCase: SetRoomRetentionUseCase,
     private val appScope: CoroutineScope,
 ) : ViewModel() {
 
@@ -211,7 +213,7 @@ class GroupDashboardViewModel @Inject constructor(
         }
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
-                when(event) {
+                when (event) {
                     PushEvent.DismissGroupWalletCreatedAlert -> {
                         val groupWalletSetupAlert =
                             _state.value.alerts.find { alert -> alert.type == AlertType.GROUP_WALLET_SETUP }
@@ -219,12 +221,15 @@ class GroupDashboardViewModel @Inject constructor(
                             dismissAlert(groupWalletSetupAlert.id, silentLoading = true)
                         }
                     }
+
                     is PushEvent.SignedTxSuccess -> {
-                        val alert = _state.value.alerts.find { alert -> alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST &&  alert.payload.transactionId == event.txId  }
+                        val alert =
+                            _state.value.alerts.find { alert -> alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST && alert.payload.transactionId == event.txId }
                         if (alert != null) {
                             dismissAlert(alert.id, silentLoading = true)
                         }
                     }
+
                     is PushEvent.InheritanceEvent -> {
                         getInheritance(silentLoading = true)
                     }
@@ -277,9 +282,15 @@ class GroupDashboardViewModel @Inject constructor(
 
     private fun getGroupChat() = viewModelScope.launch {
         if (getGroupId().isEmpty()) return@launch
-        val result = getGroupChatUseCase(getGroupId())
-        if (result.isSuccess) {
-            _state.value = _state.value.copy(groupChat = result.getOrNull())
+        getGroupChatUseCase(getGroupId()).onSuccess {
+            _state.update { state -> state.copy(groupChat = it) }
+            // remove next release
+            setRoomRetentionUseCase(
+                SetRoomRetentionUseCase.Param(
+                    getGroupId(),
+                    it.historyPeriod.durationInMillis.milliseconds
+                )
+            )
         }
     }
 
@@ -420,7 +431,8 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun dismissAlert(alertId: String, silentLoading: Boolean = false) {
         viewModelScope.launch {
-            val result = dismissAlertUseCase(DismissAlertUseCase.Param(alertId, getGroupId(), getWalletId()))
+            val result =
+                dismissAlertUseCase(DismissAlertUseCase.Param(alertId, getGroupId(), getWalletId()))
             if (result.isSuccess) {
                 _state.update {
                     it.copy(alerts = it.alerts.filterNot { alert -> alert.id == alertId })
@@ -433,7 +445,13 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun markAsReadAlert(alertId: String) {
         viewModelScope.launch {
-            markAlertAsReadUseCase(MarkAlertAsReadUseCase.Param(alertId, getGroupId(), getWalletId()))
+            markAlertAsReadUseCase(
+                MarkAlertAsReadUseCase.Param(
+                    alertId,
+                    getGroupId(),
+                    getWalletId()
+                )
+            )
         }
     }
 
@@ -654,7 +672,8 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun syncTransaction(txId: String) = viewModelScope.launch {
         _event.emit(GroupDashboardEvent.Loading(true))
-        val result = syncTransactionUseCase(SyncTransactionUseCase.Params(getGroupId(), getWalletId()))
+        val result =
+            syncTransactionUseCase(SyncTransactionUseCase.Params(getGroupId(), getWalletId()))
         _event.emit(GroupDashboardEvent.Loading(false))
         if (result.isSuccess) {
             _event.emit(GroupDashboardEvent.SyncTransactionSuccess(txId))
