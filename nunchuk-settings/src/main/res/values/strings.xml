@@ -99,8 +99,8 @@
     <string name="nc_finney">Finney</string>
     <string name="nc_finney_pro">Finney PRO</string>
     <string name="nc_multiple_plans">Multiple subscriptions</string>
-    <string name="nc_select_mainnet_server">Select mainnet Server</string>
-    <string name="nc_mainnet_server">Mainnet Server</string>
+    <string name="nc_select_mainnet_server">Select mainnet server</string>
+    <string name="nc_mainnet_server">Mainnet server</string>
     <string name="nc_add_electrum_server">Add server</string>
     <string name="nc_server_list_updated">Server list updated</string>
     <string name="nc_server_added">Server added</string>
