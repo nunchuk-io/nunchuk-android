@@ -25,8 +25,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
+import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.wallet.WalletOption
@@ -56,6 +58,7 @@ class WalletIntermediaryViewModel @Inject constructor(
     private val application: Application,
     private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
+    private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
@@ -134,6 +137,12 @@ class WalletIntermediaryViewModel @Inject constructor(
     fun isGroupWalletAvailable() : Boolean {
         val walletsCount = state.value.walletsCount
         return state.value.groupOptions.sumOf { walletsCount[it.slug] ?: 0 } > 0
+    }
+
+    fun setLocalMembershipPlan(plan: MembershipPlan) {
+        viewModelScope.launch {
+            setLocalMembershipPlanFlowUseCase(plan)
+        }
     }
 
     val hasSigner: Boolean
