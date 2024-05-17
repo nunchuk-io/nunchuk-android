@@ -19,18 +19,18 @@
 
 package com.nunchuk.android.core.domain.membership
 
-import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 class SetLocalMembershipPlanFlowUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val ncDataStore: NcDataStore
+    private val settingRepository: SettingRepository
 ) : UseCase<MembershipPlan, Unit>(dispatcher) {
     override suspend fun execute(parameters: MembershipPlan) {
-        ncDataStore.setLocalMembershipPlan(parameters)
+        settingRepository.setLocalMembershipPlan(parameters)
     }
 }

@@ -25,21 +25,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.OptionCard
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -273,6 +262,11 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             viewModel.state.value.personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
             viewModel.state.value.personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
             else -> null
+        }
+        when(walletType) {
+            GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> viewModel.setLocalMembershipPlan(MembershipPlan.IRON_HAND)
+            GroupWalletType.TWO_OF_FOUR_MULTISIG -> viewModel.setLocalMembershipPlan(MembershipPlan.HONEY_BADGER)
+            else -> Unit
         }
         navigator.openMembershipActivity(
             activityContext = requireActivity(),
