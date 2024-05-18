@@ -245,6 +245,9 @@ class AddKeyListViewModel @Inject constructor(
                 && isSignerExist(it.fingerPrint).not()) || (it.type == SignerType.AIRGAP && it.tags.isEmpty())
     }
 
+    fun getHardwareSigners(tag: SignerTag) =
+        _state.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
+
     fun getAirgap(tag: SignerTag?): List<SignerModel> {
         return if (tag == null) {
             _state.value.signers.filter {
