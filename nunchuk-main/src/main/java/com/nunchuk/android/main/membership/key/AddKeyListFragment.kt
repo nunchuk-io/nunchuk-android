@@ -132,6 +132,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
                     SignerType.AIRGAP,
                     SignerType.COLDCARD_NFC,
+                    SignerType.HARDWARE
                     -> {
                         val signer = data.signers.first()
                         val selectedSignerTag = selectedSignerTag
@@ -197,10 +198,28 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 ) { handleSelectAddAirgapType(selectedSignerTag) }
             }
 
-            SheetOptionType.TYPE_ADD_LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
-            SheetOptionType.TYPE_ADD_TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
+            SheetOptionType.TYPE_ADD_LEDGER -> {
+                selectedSignerTag = SignerTag.LEDGER
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.LEDGER),
+                    SignerType.HARDWARE
+                ) { openRequestAddDesktopKey(SignerTag.LEDGER) }
+            }
+            SheetOptionType.TYPE_ADD_TREZOR -> {
+                selectedSignerTag = SignerTag.TREZOR
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.TREZOR),
+                    SignerType.HARDWARE
+                ) { openRequestAddDesktopKey(SignerTag.TREZOR) }
+            }
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
-            SheetOptionType.TYPE_ADD_BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
+            SheetOptionType.TYPE_ADD_BITBOX -> {
+                selectedSignerTag = SignerTag.BITBOX
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.BITBOX),
+                    SignerType.HARDWARE
+                ) { openRequestAddDesktopKey(SignerTag.BITBOX) }
+            }
         }
     }
 
