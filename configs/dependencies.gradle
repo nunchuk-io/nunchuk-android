@@ -56,9 +56,9 @@ ext {
     pluginsDeps = [
             gradleAndroid       : "com.android.tools.build:gradle:${gradleVersion}",
             googleServices      : "com.google.gms:google-services:${googleServiceVersion}",
-            crashlytics         : "com.google.firebase:firebase-crashlytics-gradle:2.9.2",
+            crashlytics         : "com.google.firebase:firebase-crashlytics-gradle:3.0.1",
             kotlinAndroidRuntime: "org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinStdlibVersion}",
-            appdistribution     : "com.google.firebase:firebase-appdistribution-gradle:4.0.0",
+            appdistribution     : "com.google.firebase:firebase-appdistribution-gradle:5.0.0",
             hilt                : "com.google.dagger:hilt-android-gradle-plugin:${hiltVersion}",
             safeArgs            : "androidx.navigation:navigation-safe-args-gradle-plugin:${navVersion}",
     ]
@@ -90,7 +90,7 @@ ext {
     ]
 
     playServices = [
-            firebaseBom           : "com.google.firebase:firebase-bom:30.0.1",
+            firebaseBom           : "com.google.firebase:firebase-bom:33.0.0",
             firebaseCrashlytics   : "com.google.firebase:firebase-crashlytics-ktx",
             firebaseNdkCrashlytics: "com.google.firebase:firebase-crashlytics-ndk",
     ]
