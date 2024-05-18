@@ -73,6 +73,9 @@ class WalletConfigIntroFragment : MembershipFragment() {
                 activityViewModel.dismissCurrentAlert()
                 findNavController().popBackStack(R.id.groupDashboardFragment, false)
             },
+            onNoClick = {
+                findNavController().popBackStack(R.id.claimKeyFragment, false)
+            }
         )
     }
 }
