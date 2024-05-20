@@ -32,14 +32,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.nunchuk.android.compose.NunchukTheme
@@ -53,6 +51,7 @@ import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
@@ -161,21 +160,30 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             return@setOnMenuItemClickListener false
         }
         binding.introContainer.setOnDebounceClickListener {
-            val personalSteps = walletsViewModel.getPersonalSteps()
-            val plans = walletsViewModel.getPlans().orEmpty()
-            val walletType = when {
-                personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
-                personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
-                else -> null
+            val stage = walletsViewModel.getGroupStage()
+            if (stage == MembershipStage.SETUP_INHERITANCE) {
+                navigator.openInheritancePlanningScreen(
+                    walletId = walletsViewModel.getAssistedWalletId().orEmpty(),
+                    activityContext = requireContext(),
+                    flowInfo = InheritancePlanFlow.SETUP,
+                )
+            } else {
+                val personalSteps = walletsViewModel.getPersonalSteps()
+                val plans = walletsViewModel.getPlans().orEmpty()
+                val walletType = when {
+                    personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
+                    personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
+                    else -> null
+                }
+                val isPersonalWallet = walletType != null || plans.none { it.isByzantineOrFinney() }
+                navigator.openMembershipActivity(
+                    activityContext = requireActivity(),
+                    groupStep = stage,
+                    walletId = walletsViewModel.getAssistedWalletId(),
+                    isPersonalWallet = isPersonalWallet,
+                    walletType = walletType
+                )
             }
-            val isPersonalWallet = walletType != null || plans.none { it.isByzantineOrFinney() }
-            navigator.openMembershipActivity(
-                activityContext = requireActivity(),
-                groupStep = walletsViewModel.getGroupStage(),
-                walletId = walletsViewModel.getAssistedWalletId(),
-                isPersonalWallet = isPersonalWallet,
-                walletType = walletType
-            )
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {
             NonSubscriberActivity.start(requireActivity(), it.tag as String)
@@ -205,7 +213,7 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             binding.tvIntroTitle.text =
                 getString(R.string.nc_setup_inheritance_for, walletName.orEmpty())
             binding.tvIntroDesc.text =
-                getString(R.string.nc_estimate_remain_time, remainingTime)
+                getString(R.string.nc_estimate_remain_time, 21)
             binding.tvIntroAction.text = getString(R.string.nc_do_it_now)
         } else if (stage != MembershipStage.DONE) {
             binding.tvIntroTitle.text = getString(R.string.nc_you_almost_done)

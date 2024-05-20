@@ -609,7 +609,13 @@ internal class WalletsViewModel @Inject constructor(
     fun getGroupStage(): MembershipStage {
         val allGroups = getState().allGroups
         val assistedWallets = getState().assistedWallets
-        if (allGroups.isNotEmpty() || assistedWallets.isNotEmpty()) {
+        if (allGroups.isNotEmpty()) {
+            return MembershipStage.DONE
+        }
+        if (assistedWallets.isNotEmpty()) {
+            if (assistedWallets.size == 1 && !assistedWallets.first().isSetupInheritance) {
+                return MembershipStage.SETUP_INHERITANCE
+            }
             return MembershipStage.DONE
         }
         val plans = getState().plans
