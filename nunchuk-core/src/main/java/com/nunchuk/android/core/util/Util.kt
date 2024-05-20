@@ -144,7 +144,7 @@ fun Long.getBtcFormatDate(): String = if (this <= 0) "--/--/--" else (this).form
 
 fun String.fromMxcUriToMatrixDownloadUrl(): String {
     if (this.isEmpty()) return ""
-
+    if (this.startsWith("http")) return this
     // Sample: https://matrix.nunchuk.io/_matrix/media/r0/download/nunchuk.io/occyhYuhbbpkHNbJLZwwdtuf
     val contentUriInfo = this.removePrefix("mxc://").split("/")
 
