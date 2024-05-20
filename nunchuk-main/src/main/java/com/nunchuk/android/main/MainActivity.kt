@@ -251,7 +251,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
         const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
         const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
-        const val EXTRAS_IS_NEW_DEVICE = "EXTRAS_IS_NEW_DEVICE"
         const val EXTRAS_MESSAGE_LIST = "EXTRAS_MESSAGE_LIST"
 
         fun start(
