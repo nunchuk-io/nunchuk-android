@@ -77,7 +77,6 @@ class Mk4IntroViewModel @Inject constructor(
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
-    private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -214,21 +213,6 @@ class Mk4IntroViewModel @Inject constructor(
                     }
             } else {
                 _event.emit(Mk4IntroViewEvent.CheckExistingKey(ResultExistingKey.None, signer))
-            }
-        }
-    }
-
-    fun changeKeyType() {
-        val singleSigner = _state.value.signer ?: return
-        viewModelScope.launch {
-            changeKeyTypeUseCase(
-                ChangeKeyTypeUseCase.Params(
-                    singleSigner = singleSigner.copy(type = SignerType.COLDCARD_NFC, tags = emptyList())
-                )
-            ).onSuccess {
-                _event.emit(Mk4IntroViewEvent.AddMk4SuccessEvent(it))
-            }.onFailure {
-                _event.emit(Mk4IntroViewEvent.ShowError((it.message.orUnknownError())))
             }
         }
     }

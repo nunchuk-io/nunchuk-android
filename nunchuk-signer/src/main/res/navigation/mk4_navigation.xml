@@ -30,6 +30,12 @@
         <argument
             android:name="signer"
             app:argType="com.nunchuk.android.model.SingleSigner" />
+
+        <argument
+            android:name="is_replace_key"
+            app:argType="boolean"
+            android:defaultValue="false"/>
+
     </fragment>
     <fragment
         android:id="@+id/mk4IntroFragment"

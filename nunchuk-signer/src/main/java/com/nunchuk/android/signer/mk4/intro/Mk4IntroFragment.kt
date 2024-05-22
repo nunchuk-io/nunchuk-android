@@ -178,7 +178,12 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                 btnYes = getString(R.string.nc_text_yes),
                                 btnInfo = getString(R.string.nc_text_no),
                                 onYesClick = {
-                                    viewModel.changeKeyType()
+                                    findNavController().navigate(
+                                        Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
+                                            isReplaceKey = true,
+                                            signer = it.signer
+                                        )
+                                    )
                                 },
                                 onInfoClick = {}
                             )
@@ -189,7 +194,12 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                     btnYes = getString(R.string.nc_text_yes),
                                     btnInfo = getString(R.string.nc_text_no),
                                     onYesClick = {
-                                        viewModel.changeKeyType()
+                                        findNavController().navigate(
+                                            Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
+                                                isReplaceKey = true,
+                                                signer = it.signer
+                                            )
+                                        )
                                     },
                                     onInfoClick = {}
                                 )
@@ -200,19 +210,6 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                             )
                         )
                     }
-                }
-
-                is Mk4IntroViewEvent.AddMk4SuccessEvent ->  {
-                    navigator.openSignerInfoScreen(
-                        activityContext = requireActivity(),
-                        isMasterSigner = it.signer.hasMasterSigner,
-                        id = it.signer.masterSignerId,
-                        masterFingerprint = it.signer.masterFingerprint,
-                        name = it.signer.name,
-                        type = it.signer.type,
-                        derivationPath = it.signer.derivationPath,
-                        justAdded = true,
-                    )
                 }
             }
         }
