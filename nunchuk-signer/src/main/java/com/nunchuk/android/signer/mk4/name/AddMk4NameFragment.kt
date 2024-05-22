@@ -30,6 +30,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.add.MAX_LENGTH
 import com.nunchuk.android.signer.databinding.FragmentAddNameKeyBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setMaxLength
@@ -90,7 +91,11 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
             binding.nameCounter.text = "${it.length}/$MAX_LENGTH"
         }
         binding.btnContinue.setOnClickListener {
-            viewModel.createMk4Signer(args.signer.copy(name = binding.signerName.getEditText()))
+            if (args.isReplaceKey) {
+                viewModel.changeKeyType(args.signer.copy(name = binding.signerName.getEditText()))
+            } else {
+                viewModel.createMk4Signer(args.signer.copy(name = binding.signerName.getEditText()))
+            }
         }
     }
 

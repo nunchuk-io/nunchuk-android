@@ -24,6 +24,9 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.CreateMk4SignerUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.signer.mk4.intro.Mk4IntroViewEvent
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.ChangeKeyTypeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -32,7 +35,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddMk4NameViewModel @Inject constructor(
-    private val createMk4SignerUseCase: CreateMk4SignerUseCase
+    private val createMk4SignerUseCase: CreateMk4SignerUseCase,
+    private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddNameMk4ViewEvent>()
     val event = _event.asSharedFlow()
@@ -49,4 +53,19 @@ class AddMk4NameViewModel @Inject constructor(
             }
         }
     }
+
+    fun changeKeyType(signer: SingleSigner) {
+        viewModelScope.launch {
+            changeKeyTypeUseCase(
+                ChangeKeyTypeUseCase.Params(
+                    singleSigner = signer.copy(type = SignerType.COLDCARD_NFC, tags = emptyList())
+                )
+            ).onSuccess {
+                _event.emit(AddNameMk4ViewEvent.CreateMk4SignerSuccess(it))
+            }.onFailure {
+                _event.emit(AddNameMk4ViewEvent.ShowError((it.message.orUnknownError())))
+            }
+        }
+    }
+
 }
