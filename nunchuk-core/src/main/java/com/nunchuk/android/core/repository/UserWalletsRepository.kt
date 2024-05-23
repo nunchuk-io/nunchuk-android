@@ -2506,17 +2506,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun finalizeReplaceKey(groupId: String?, walletId: String): Wallet {
-        val response = if (!groupId.isNullOrEmpty()) {
-            userWalletApiManager.groupWalletApi.finalizeReplaceWallet(groupId, walletId)
-        } else {
-            userWalletApiManager.walletApi.finalizeReplaceWallet(walletId)
-        }
-        val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
-        saveWalletToLib(wallet, mutableSetOf())
-        return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
-    }
-
     override suspend fun replaceKeyStatus(
         groupId: String?,
         walletId: String
@@ -2534,6 +2523,31 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             pendingReplaceXfps = status.pendingReplaceXfps,
             signers = status.signers.associate { it.xfp to it.replaceBy.toModel() }
         )
+    }
+
+    override suspend fun finalizeReplaceWallet(groupId: String?, walletId: String): Wallet {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.finalizeReplaceWallet(
+                walletId,
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.finalizeReplaceWallet(
+                groupId,
+                walletId,
+            )
+        }
+
+        val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
+        saveWalletToLib(wallet, mutableSetOf())
+        assistedWalletDao.insert(
+            AssistedWalletEntity(
+                localId = wallet.localId.orEmpty(),
+                plan = wallet.slug.toMembershipPlan(),
+                id = wallet.id?.toLongOrNull() ?: 0L,
+                alias = wallet.alias.orEmpty()
+            )
+        )
+        return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 
     private fun getHeaders(

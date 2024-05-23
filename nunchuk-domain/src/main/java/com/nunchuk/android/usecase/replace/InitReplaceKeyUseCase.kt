@@ -17,25 +17,25 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model.signer
+package com.nunchuk.android.usecase.replace
 
-import android.os.Parcelable
-import com.nunchuk.android.model.TapSigner
-import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.type.SignerType
-import kotlinx.parcelize.Parcelize
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-@Parcelize
-data class SignerServer(
-    val name: String? = null,
-    val xfp: String? = null,
-    val derivationPath: String? = null,
-    val type: SignerType = SignerType.UNKNOWN,
-    val verifyType: VerifyType = VerifyType.NONE,
-    val index: Int = 0,
-    val isVisible: Boolean = true,
-    val tapsigner: TapSigner ?= null,
-    val xpub: String? = null,
-    val pubkey: String? = null,
-    val tags: List<String> = emptyList(),
-) : Parcelable
+class InitReplaceKeyUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: KeyRepository
+) : UseCase<InitReplaceKeyUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        repository.initReplaceKey(
+            groupId = parameters.groupId,
+            walletId = parameters.walletId,
+            xfp = parameters.xfp
+        )
+    }
+
+    data class Param(val groupId: String = "", val walletId: String, val xfp: String)
+}

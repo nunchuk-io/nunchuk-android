@@ -57,11 +57,6 @@ interface KeyRepository {
         xfp: String,
     )
 
-    suspend fun finalizeReplaceWallet(
-        groupId: String?,
-        walletId: String,
-    )
-
     suspend fun replaceKey(
         groupId: String?,
         walletId: String,

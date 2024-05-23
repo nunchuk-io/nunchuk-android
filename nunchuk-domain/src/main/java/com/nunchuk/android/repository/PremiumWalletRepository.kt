@@ -128,6 +128,7 @@ interface PremiumWalletRepository {
         walletId: String,
         transactionId: String
     ): ExtendedTransaction
+
     suspend fun deleteServerTransaction(groupId: String?, walletId: String, transactionId: String)
     suspend fun getInheritance(walletId: String, groupId: String?): Inheritance
     suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean)
@@ -302,7 +303,10 @@ interface PremiumWalletRepository {
         groupId: String
     ): String
 
-    suspend fun inheritanceClaimDownloadBackup(magic: String, hashedBps: List<String>): List<BackupKey>
+    suspend fun inheritanceClaimDownloadBackup(
+        magic: String,
+        hashedBps: List<String>
+    ): List<BackupKey>
 
     suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
 
@@ -386,7 +390,12 @@ interface PremiumWalletRepository {
         confirmCodeNonce: String
     ): ByzantineGroup
 
-    suspend fun createGroupWallet(groupId: String, name: String, primaryMembershipId: String?): Wallet
+    suspend fun createGroupWallet(
+        groupId: String,
+        name: String,
+        primaryMembershipId: String?
+    ): Wallet
+
     suspend fun groupMemberAcceptRequest(groupId: String)
     suspend fun groupMemberDenyRequest(groupId: String)
     suspend fun syncGroupWallet(
@@ -399,7 +408,12 @@ interface PremiumWalletRepository {
     suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String)
     suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String)
     suspend fun getAlertTotal(groupId: String? = null, walletId: String? = null): Int
-    suspend fun createOrUpdateGroupChat(roomId: String, groupId: String, historyPeriodId: String?): GroupChat
+    suspend fun createOrUpdateGroupChat(
+        roomId: String,
+        groupId: String,
+        historyPeriodId: String?
+    ): GroupChat
+
     suspend fun getGroupChatByGroupId(groupId: String): GroupChat
     suspend fun deleteGroupChat(groupId: String)
     suspend fun getHistoryPeriod(): List<HistoryPeriod>
@@ -439,8 +453,19 @@ interface PremiumWalletRepository {
 
     suspend fun markKeyAsRecovered(xfp: String, status: String)
     suspend fun denyInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
-    suspend fun approveInheritanceRequestPlanning(requestId: String, groupId: String, walletId: String)
-    suspend fun requestSignatureTransaction(groupId: String, walletId: String, transactionId: String, membershipId: String)
+    suspend fun approveInheritanceRequestPlanning(
+        requestId: String,
+        groupId: String,
+        walletId: String
+    )
+
+    suspend fun requestSignatureTransaction(
+        groupId: String,
+        walletId: String,
+        transactionId: String,
+        membershipId: String
+    )
+
     suspend fun updatePrimaryOwner(groupId: String, walletId: String, primaryMembershipId: String)
 
     suspend fun replaceTransaction(
@@ -449,6 +474,7 @@ interface PremiumWalletRepository {
         transactionId: String,
         newTxPsbt: String
     )
+
     suspend fun getUserWalletsServer(): List<WalletServer>
     suspend fun getGroupWalletsServer(): List<WalletServer>
     suspend fun updateKeyType(localSigner: SingleSigner, serverSigner: SignerServer)
@@ -459,12 +485,13 @@ interface PremiumWalletRepository {
     suspend fun addOrUpdateHealthReminder(groupId: String?, walletId: String, xfps: List<String>, frequency: String, startDateMillis: Long)
     suspend fun deleteHealthReminder(groupId: String?, walletId: String, xfps: List<String>)
     suspend fun skipHealthReminder(groupId: String?, walletId: String, xfp: String)
-    suspend fun finalizeReplaceKey(
-        groupId: String?,
-        walletId: String,
-    ) : Wallet
     suspend fun replaceKeyStatus(
         groupId: String?,
         walletId: String,
-    ) : ReplaceWalletStatus
+    ): ReplaceWalletStatus
+
+    suspend fun finalizeReplaceWallet(
+        groupId: String?,
+        walletId: String,
+    ): Wallet
 }

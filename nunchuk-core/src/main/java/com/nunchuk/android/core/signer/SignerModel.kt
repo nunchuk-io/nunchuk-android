@@ -22,6 +22,7 @@ package com.nunchuk.android.core.signer
 import android.os.Parcelable
 import com.nunchuk.android.model.JoinKey
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import kotlinx.parcelize.Parcelize
@@ -100,6 +101,19 @@ fun JoinKey.toSignerModel() = SignerModel(
     fingerPrint = masterFingerprint,
     type = SignerType.valueOf(signerType),
     isMasterSigner = false
+)
+
+fun SignerServer.toModel() = SignerModel(
+    id = xfp ?: "",
+    name = name ?: "",
+    derivationPath = derivationPath ?: "",
+    fingerPrint = xfp ?: "",
+    type = type,
+    tags = tags.map { SignerTag.valueOf(it) },
+    isVisible = isVisible,
+    isMasterSigner = false,
+    index = index,
+    cardId = tapsigner?.cardId.orEmpty(),
 )
 
 data class SignerInput(
