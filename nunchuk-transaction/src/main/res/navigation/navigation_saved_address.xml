@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_saved_address"
+    app:startDestination="@id/addOrEditAddressFragment">
+
+    <fragment
+        android:id="@+id/addOrEditAddressFragment"
+        android:name="com.nunchuk.android.transaction.components.address.addoredit.AddOrEditAddressFragment"
+        android:label="AddOrEditAddressFragment">
+
+        <argument
+            android:name="address"
+            app:argType="com.nunchuk.android.model.SavedAddress"
+            app:nullable="true"/>
+
+        <argument
+            android:name="flow"
+            app:argType="integer" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/savedAddressListFragment"
+        android:name="com.nunchuk.android.transaction.components.address.saved.SavedAddressListFragment"
+        android:label="SavedAddressListFragment">
+
+        <action
+            android:id="@+id/action_savedAddressListFragment_to_addOrEditAddressFragment"
+            app:destination="@id/addOrEditAddressFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+</navigation>

@@ -84,4 +84,11 @@
     <string name="nc_the_transaction_has_been_replaced">The transaction has been replaced</string>
     <string name="nc_export_via_bbqr">Export via BBQR</string>
     <string name="nc_ultra_high">Ultra-High</string>
+    <string name="nc_label">Label</string>
+    <string name="nc_save_an_address_subsequent_uses">Save an address for subsequent uses.</string>
+    <string name="nc_saved_address">Saved address</string>
+    <string name="nc_enter_a_label">Enter a label</string>
+    <string name="nc_add_a_new_address">Add a new address</string>
+    <string name="nc_remove_saved_addresses">Remove from saved addresses</string>
+    <string name="nc_saved_address_warning_desc">For privacy and security reasons, reusing addresses is generally not recommended in Bitcoin. Only save and reuse an address if you must.</string>
 </resources>

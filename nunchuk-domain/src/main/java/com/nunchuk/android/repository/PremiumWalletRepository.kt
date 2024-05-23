@@ -38,6 +38,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.QuestionsAndAnswer
+import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.model.SeverWallet
 import com.nunchuk.android.model.SingleSigner
@@ -449,4 +450,7 @@ interface PremiumWalletRepository {
     suspend fun getUserWalletsServer(): List<WalletServer>
     suspend fun getGroupWalletsServer(): List<WalletServer>
     suspend fun updateKeyType(localSigner: SingleSigner, serverSigner: SignerServer)
+    suspend fun getSavedAddresses(): List<SavedAddress>
+    suspend fun addOrUpdateSavedAddress(address: String, label: String)
+    suspend fun deleteSavedAddress(address: String)
 }

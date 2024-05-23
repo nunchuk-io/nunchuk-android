@@ -53,9 +53,11 @@ import com.nunchuk.android.core.data.model.byzantine.CreateDraftGroupWalletReque
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
+import com.nunchuk.android.core.data.model.byzantine.SavedAddressRequest
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
 import com.nunchuk.android.core.data.model.byzantine.toModel
+import com.nunchuk.android.core.data.model.byzantine.toSavedAddress
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeVerifyRequest
@@ -121,6 +123,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.QuestionsAndAnswer
+import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.model.ServerKeyExtra
 import com.nunchuk.android.model.SeverWallet
@@ -2407,6 +2410,40 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 tapSignerPayload = tapSigner
             )
         )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun getSavedAddresses(): List<SavedAddress> {
+        var index = 0
+        val remoteList = mutableListOf<SavedAddress>()
+        runCatching {
+            while (true) {
+                val response = userWalletApiManager.walletApi.getSavedAddressList(index)
+                if (response.isSuccess.not()) return emptyList()
+                val savedAddressList = response.data.addresses.orEmpty().map { it.toSavedAddress() }
+                remoteList.addAll(savedAddressList)
+                if (response.data.addresses.orEmpty().size < TRANSACTION_PAGE_COUNT) break
+                index += TRANSACTION_PAGE_COUNT
+            }
+        }.onFailure {
+            return emptyList()
+        }
+        return remoteList
+    }
+
+    override suspend fun addOrUpdateSavedAddress(address: String, label: String) {
+        val response = userWalletApiManager.walletApi.addOrUpdateSavedAddress(
+            SavedAddressRequest(address = address, label = label)
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun deleteSavedAddress(address: String) {
+        val response = userWalletApiManager.walletApi.deleteSavedAddress(address)
         if (response.isSuccess.not()) {
             throw response.error
         }

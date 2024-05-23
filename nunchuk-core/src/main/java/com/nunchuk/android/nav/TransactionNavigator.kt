@@ -27,7 +27,9 @@ import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.util.SavedAddressFlow
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 
@@ -152,5 +154,12 @@ interface TransactionNavigator {
         walletId: String,
         availableAmount: Double,
         inputs: List<UnspentOutput>
+    )
+
+    fun openSavedAddressScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activityContext: Activity,
+        @SavedAddressFlow.SavedAddressFlowInfo flow: Int = SavedAddressFlow.NONE,
+        address: SavedAddress? = null,
     )
 }

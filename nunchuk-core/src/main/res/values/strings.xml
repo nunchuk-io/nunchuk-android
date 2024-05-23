@@ -183,6 +183,7 @@
     <string name="nc_honey_add_key_list_desc_three">\n\nYou will have possession of three keys. The fourth key will be held by Nunchuk on our secure server.</string>
     <string name="nc_server_key">Platform key</string>
     <string name="nc_add">Add</string>
+    <string name="nc_save">Save</string>
     <string name="nc_configure">Configure</string>
     <string name="nc_add_a_tapsigner">Add TAPSIGNER</string>
     <string name="nc_add_tap_signer_intro_desc">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.\n\nOn the next screen, place and hold your card as close as possible to the NFC chip on your phone. Please make sure you hold it until there is a success notification.\n\nIf you are unsure where the chip is, please refer to your phone manual.</string>
@@ -255,6 +256,7 @@
     <string name="nc_request_cosigning_policies_change_by">%1$s is requesting to make the following changes to the platform key co-signing policies.</string>
     <string name="nc_co_signing_delay">Broadcast and delay</string>
     <string name="nc_edit">Edit</string>
+    <string name="nc_your_wallets">Your wallets</string>
     <string name="nc_automation_broadcast_transaction">Automatically broadcast transaction after co-signing</string>
     <string name="nc_on">On</string>
     <string name="nc_enable_co_signing_delay">Enable co-signing delay</string>
@@ -675,6 +677,7 @@
     <string name="nc_remove">Remove</string>
     <string name="nc_add_recipient">Add recipient</string>
     <string name="nc_address">Address</string>
+    <string name="nc_saved_addresses">Saved addresses</string>
     <string name="nc_use_desktop_app_to_sign">Please use the desktop app to sign with this key</string>
     <string name="nc_master">Master</string>
     <string name="nc_member">Member</string>
@@ -730,4 +733,5 @@
     <string name="nc_last_checked_less_than_6_months_ago">Last checked: Less than 6 months ago</string>
     <string name="nc_last_checked_more_than_6_months_ago">Last checked: More than 6 months ago</string>
     <string name="nc_not_checked_yet">Not checked yet</string>
+    <string name="nc_delete_saved_address_dialog_desc"><![CDATA[Are you sure you want to remove <b>%s</b> from saved addresses?]]></string>
 </resources>

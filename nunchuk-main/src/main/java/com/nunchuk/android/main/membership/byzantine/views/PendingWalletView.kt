@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nunchuk.android.compose.ActiveWallet
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
@@ -482,91 +483,6 @@ internal fun RowScope.AvatarView(group: ByzantineGroup) {
                 name = byzantineMember.user?.name.orEmpty(),
                 isContact = byzantineMember.isPendingRequest().not()
             )
-        }
-    }
-}
-
-@Composable
-internal fun ActiveWallet(
-    walletsExtended: WalletExtended,
-    hideWalletDetail: Boolean,
-    isAssistedWallet: Boolean,
-    role: String = AssistedWalletRole.NONE.name,
-    useLargeFont: Boolean = false,
-) {
-    val wallet = walletsExtended.wallet
-    val balance = "(${wallet.getCurrencyAmount()})"
-    Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = wallet.name, style = NunchukTheme.typography.title, color = Color.White
-            )
-            Text(
-                modifier = Modifier.padding(top = 2.dp),
-                text = Utils.maskValue(
-                    wallet.getBTCAmount(),
-                    role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ), style = if (useLargeFont) NunchukTheme.typography.title else NunchukTheme.typography.titleSmall, color = Color.White
-            )
-            Text(
-                modifier = Modifier.padding(top = 2.dp),
-                text = Utils.maskValue(
-                    balance, role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
-                ), style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall, color = Color.White
-            )
-        }
-
-        Column(
-            modifier = Modifier.fillMaxHeight(),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.End
-        ) {
-            if (walletsExtended.isShared || isAssistedWallet) {
-                Badge {
-                    Icon(
-                        modifier = Modifier.padding(start = 8.dp),
-                        painter = painterResource(id = R.drawable.ic_wallet_small),
-                        contentDescription = "Wallet"
-                    )
-                    val walletTypeName = if (isAssistedWallet) {
-                        Utils.maskValue(
-                            stringResource(R.string.nc_assisted), hideWalletDetail
-                        )
-                    } else {
-                        Utils.maskValue(
-                            stringResource(R.string.nc_text_shared), hideWalletDetail
-                        )
-                    }
-                    Text(
-                        modifier = Modifier.padding(
-                            start = 4.dp, end = 8.dp, top = 2.dp, bottom = 2.dp
-                        ),
-                        text = walletTypeName,
-                        style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
-                    )
-                }
-            }
-
-            Badge(modifier = Modifier.padding(top = 4.dp)) {
-                val requireSigns = wallet.totalRequireSigns
-                val totalSigns = wallet.signers.size
-                val text = if (hideWalletDetail) {
-                    '\u2022'.toString().repeat(6)
-                } else if (totalSigns == 0 || requireSigns == 0) {
-                    stringResource(R.string.nc_wallet_not_configured)
-                } else if (totalSigns == 1 && requireSigns == 1) {
-                    stringResource(R.string.nc_wallet_single_sig)
-                } else {
-                    "$requireSigns/$totalSigns ${stringResource(R.string.nc_wallet_multisig)}"
-                }
-                Text(
-                    modifier = Modifier.padding(
-                        horizontal = 8.dp, vertical = 2.dp
-                    ),
-                    text = text,
-                    style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
-                )
-            }
         }
     }
 }

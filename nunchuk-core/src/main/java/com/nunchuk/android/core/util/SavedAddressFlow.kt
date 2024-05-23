@@ -17,24 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.send.receipt
+package com.nunchuk.android.core.util
 
-import com.nunchuk.android.model.Amount
+import androidx.annotation.IntDef
 
-sealed class AddReceiptEvent {
-    data object InvalidAddressEvent : AddReceiptEvent()
-    data object AddressRequiredEvent : AddReceiptEvent()
-    data class ShowError(val message: String) : AddReceiptEvent()
-    data class AcceptedAddressEvent(
-        val address: String,
-        val privateNote: String,
-        val amount: Amount,
-        val isCreateTransaction: Boolean
-    ) : AddReceiptEvent()
+object SavedAddressFlow {
+
+    const val NONE = 0
+    const val LIST = 1
+    const val CREATE = 2
+    const val EDIT = 3
+
+    @IntDef(
+        NONE,
+        LIST,
+        CREATE,
+        EDIT,
+    )
+    @Retention(AnnotationRetention.SOURCE)
+    annotation class SavedAddressFlowInfo
+
 }
-
-data class AddReceiptState(
-    val address: String = "",
-    val privateNote: String = "",
-    val amount: Amount = Amount(),
-)
