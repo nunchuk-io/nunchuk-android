@@ -78,10 +78,12 @@ import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
+import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TransactionNoteResponse
 import com.nunchuk.android.core.data.model.membership.TransactionResponse
 import com.nunchuk.android.core.data.model.membership.TransactionsResponse
 import com.nunchuk.android.core.data.model.membership.VerifySecurityQuestionResponse
+import com.nunchuk.android.core.data.model.replacement.WalletReplacementStatusResponse
 import com.nunchuk.android.core.network.Data
 import com.nunchuk.android.model.DownloadBackupKeyResponseData
 import com.nunchuk.android.model.KeyResponse
@@ -582,4 +584,33 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
     ): Data<Unit>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}")
+    suspend fun initReplaceKey(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}")
+    suspend fun cancelReplaceKey(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+    ): Data<Unit>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}/replace")
+    suspend fun replaceKey(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+        @Body payload: SignerServerDto
+    ): Data<Unit>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/finalize")
+    suspend fun finalizeReplaceWallet(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<CreateOrUpdateWalletResponse>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/status")
+    suspend fun getReplaceWalletStatus(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<WalletReplacementStatusResponse>
 }

@@ -25,6 +25,7 @@ import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.manager.UserWalletApiManager
+import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.KeyVerifiedRequest
@@ -70,6 +71,7 @@ internal class KeyRepositoryImpl @Inject constructor(
     private val gson: Gson,
     private val ncDataStore: NcDataStore,
     private val nativeSdk: NunchukNativeSdk,
+    private val serverSignerMapper: ServerSignerMapper,
     applicationScope: CoroutineScope,
 ) : KeyRepository {
     private val chain =
@@ -250,6 +252,93 @@ internal class KeyRepositoryImpl @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    override suspend fun initReplaceKey(
+        groupId: String?,
+        walletId: String,
+        xfp: String,
+    ) {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.initReplaceKey(
+                xfp,
+                walletId,
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.initReplaceKey(
+                groupId,
+                xfp,
+                walletId,
+            )
+        }
+
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun cancelReplaceKey(groupId: String?, walletId: String, xfp: String) {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.cancelReplaceKey(
+                xfp,
+                walletId,
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.cancelReplaceKey(
+                groupId,
+                xfp,
+                walletId,
+            )
+        }
+
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun finalizeReplaceWallet(groupId: String?, walletId: String) {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.finalizeReplaceWallet(
+                walletId,
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.finalizeReplaceWallet(
+                groupId,
+                walletId,
+            )
+        }
+
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun replaceKey(
+        groupId: String?,
+        walletId: String,
+        signer: SingleSigner,
+        xfp: String
+    ) {
+        // TODO: Hai condition for isInheritanceKey
+        val serverSigner = serverSignerMapper(signer, false)
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.replaceKey(
+                walletId = walletId,
+                xfp = xfp,
+                payload = serverSigner
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.replaceKey(
+                groupId = groupId,
+                walletId = walletId,
+                xfp = xfp,
+                payload = serverSigner
+            )
+        }
+
+        if (response.isSuccess.not()) {
+            throw response.error
         }
     }
 

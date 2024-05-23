@@ -56,6 +56,7 @@ import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.model.wallet.ReplaceWalletStatus
 import com.nunchuk.android.type.SignerTag
 import kotlinx.coroutines.flow.Flow
 
@@ -458,4 +459,12 @@ interface PremiumWalletRepository {
     suspend fun addOrUpdateHealthReminder(groupId: String?, walletId: String, xfps: List<String>, frequency: String, startDateMillis: Long)
     suspend fun deleteHealthReminder(groupId: String?, walletId: String, xfps: List<String>)
     suspend fun skipHealthReminder(groupId: String?, walletId: String, xfp: String)
+    suspend fun finalizeReplaceKey(
+        groupId: String?,
+        walletId: String,
+    ) : Wallet
+    suspend fun replaceKeyStatus(
+        groupId: String?,
+        walletId: String,
+    ) : ReplaceWalletStatus
 }

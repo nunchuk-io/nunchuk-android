@@ -63,6 +63,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             membershipStepManager.initStep(groupId, walletType)
         }
         when {
+            stage == MembershipStage.REPLACE_KEY -> graph.setStartDestination(R.id.replaceKeyIntroFragment)
             stage == MembershipStage.ADD_KEY_ONLY -> graph.setStartDestination(R.id.groupPendingIntroFragment)
             stage == MembershipStage.REGISTER_WALLET -> graph.setStartDestination(R.id.registerWalletToAirgapFragment)
             walletType == null && isPersonalWallet -> graph.setStartDestination(R.id.selectGroupFragment)
@@ -95,7 +96,6 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     companion object {
         const val EXTRA_GROUP_STEP = "group_step"
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
-        private const val EXTRA_AIRGAP_INDEX = "airgap_index"
 
         fun buildIntent(
             activity: Activity,
@@ -116,12 +116,10 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             activity: Activity,
             walletId: String,
             groupId: String,
-            airgapIndex: Int,
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, MembershipStage.REGISTER_WALLET)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
             putExtra(EXTRA_GROUP_ID, groupId)
-            putExtra(EXTRA_AIRGAP_INDEX, airgapIndex)
         }
     }
 }

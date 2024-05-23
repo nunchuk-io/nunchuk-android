@@ -150,4 +150,6 @@ object SheetOptionType {
 
     const val TYPE_CREATE_NEW_WALLET = 85
     const val TYPE_CREATE_HOT_WALLET = 86
+
+    const val TYPE_REPLACE_KEY = 87
 }

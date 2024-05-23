@@ -158,9 +158,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
         }
     }
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
-        TODO("Not yet implemented")
-    }
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding = ViewBinding { View(context) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -366,7 +364,6 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                             activity = requireActivity(),
                             groupId = viewModel.getGroupId(),
                             walletId = viewModel.getWalletId(),
-                            airgapIndex = event.totalAirgap
                         )
                     )
                 }
@@ -592,6 +589,17 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                     }
                 )
             }
+
+            SheetOptionType.TYPE_REPLACE_KEY -> {
+                navigator.openMembershipActivity(
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.REPLACE_KEY,
+                    walletId = viewModel.getWalletId(),
+                    groupId = viewModel.getGroupId(),
+                    isPersonalWallet = args.groupId.isNullOrEmpty(),
+                    walletType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()
+                )
+            }
         }
     }
 
@@ -640,6 +648,14 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                     SheetOption(
                         type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
                         stringId = R.string.nc_emergency_lockdown
+                    )
+                )
+            }
+            if (uiState.myRole.isMasterOrAdmin) {
+                options.add(
+                    SheetOption(
+                        type = SheetOptionType.TYPE_REPLACE_KEY,
+                        stringId = R.string.nc_replace_keys
                     )
                 )
             }
@@ -705,6 +721,12 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                 SheetOption(
                     type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
                     stringId = R.string.nc_emergency_lockdown
+                )
+            )
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_REPLACE_KEY,
+                    stringId = R.string.nc_replace_keys
                 )
             )
         }
