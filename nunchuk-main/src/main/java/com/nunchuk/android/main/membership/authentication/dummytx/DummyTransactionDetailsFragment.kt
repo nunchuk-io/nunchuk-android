@@ -292,7 +292,6 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                                 activity = requireActivity(),
                                 walletId = activityArgs.walletId,
                                 groupId = activityArgs.groupId.orEmpty(),
-                                airgapIndex = if (singleSigner.type == SignerType.AIRGAP) 1 else 0,
                             )
                         )
                     },

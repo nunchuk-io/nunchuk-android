@@ -22,6 +22,7 @@ package com.nunchuk.android.repository
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SingleSigner
 import kotlinx.coroutines.flow.Flow
 
 interface KeyRepository {
@@ -42,5 +43,29 @@ interface KeyRepository {
         groupId: String,
         masterSignerId: String,
         isAppVerify: Boolean,
+    )
+
+    suspend fun initReplaceKey(
+        groupId: String?,
+        walletId: String,
+        xfp: String,
+    )
+
+    suspend fun cancelReplaceKey(
+        groupId: String?,
+        walletId: String,
+        xfp: String,
+    )
+
+    suspend fun finalizeReplaceWallet(
+        groupId: String?,
+        walletId: String,
+    )
+
+    suspend fun replaceKey(
+        groupId: String?,
+        walletId: String,
+        signer: SingleSigner,
+        xfp: String,
     )
 }

@@ -47,6 +47,7 @@ import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletAliasRequest
 import com.nunchuk.android.core.data.model.membership.WalletAliasResponse
 import com.nunchuk.android.core.data.model.payment.CreateRecurringPaymentRequest
+import com.nunchuk.android.core.data.model.replacement.WalletReplacementStatusResponse
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -520,4 +521,38 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
     ): Data<Unit>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}")
+    suspend fun initReplaceKey(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}")
+    suspend fun cancelReplaceKey(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+    ): Data<Unit>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}/replace")
+    suspend fun replaceKey(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+        @Body payload: SignerServerDto
+    ): Data<Unit>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/finalize")
+    suspend fun finalizeReplaceWallet(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<CreateOrUpdateWalletResponse>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/status")
+    suspend fun getReplaceWalletStatus(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<WalletReplacementStatusResponse>
 }
