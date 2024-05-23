@@ -11,11 +11,11 @@
         android:id="@+id/toolbar"
         style="@style/NCToolbar"
         android:layout_width="0dp"
-        app:menu="@menu/menu_scan_qr"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_scan_qr">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/toolbarTitle"
@@ -36,23 +36,75 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <com.nunchuk.android.widget.NCFontEditText
-        android:id="@+id/receiptInput"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/receiptInputContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:background="@drawable/nc_edit_text_bg"
-        android:inputType="textMultiLine"
-        android:maxLength="500"
-        android:padding="@dimen/nc_padding_12"
-        android:scrollHorizontally="false"
-        android:singleLine="false"
-        android:textColor="@color/nc_black_color"
-        android:textCursorDrawable="@null"
-        android:textSize="@dimen/nc_text_size_16"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/receiptLabel"
-        tools:text="tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellrygtb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg" />
+        android:minHeight="70dp"
+        app:layout_constraintTop_toBottomOf="@+id/receiptLabel">
+
+        <com.nunchuk.android.widget.NCFontEditText
+            android:id="@+id/receiptInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:inputType="textMultiLine"
+            android:maxLength="500"
+            android:padding="@dimen/nc_padding_12"
+            android:scrollHorizontally="false"
+            android:singleLine="false"
+            android:textColor="@color/nc_black_color"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/nc_text_size_16"
+            app:layout_constraintEnd_toStartOf="@+id/receiptInputDropdown"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellrygtb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/receiptInputDropdown"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="@dimen/nc_padding_12"
+            android:background="@drawable/ic_arrow_drop_down"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/receiptSelectLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/nc_padding_12"
+            android:paddingVertical="@dimen/nc_padding_24"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/receiptInputDropdown"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/receiptInputImage"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_bookmark" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/receiptSelectLabel"
+                style="@style/NCText.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_8"
+                android:singleLine="true"
+                android:textColor="@color/nc_primary_color"
+                tools:text="Address 1" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/errorText"
@@ -66,7 +118,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/receiptInput"
+        app:layout_constraintTop_toBottomOf="@+id/receiptInputContainer"
         tools:text="Required" />
 
     <androidx.appcompat.widget.AppCompatTextView
@@ -103,6 +155,7 @@
         android:inputType="textMultiLine|textCapSentences"
         android:maxLength="500"
         android:maxLines="7"
+        android:minHeight="70dp"
         android:padding="@dimen/nc_padding_12"
         android:scrollHorizontally="false"
         android:singleLine="false"

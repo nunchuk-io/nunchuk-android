@@ -28,6 +28,7 @@ import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.*
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
+import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,7 +36,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class AddReceiptViewModel @Inject constructor(
     private val checkAddressValidUseCase: CheckAddressValidUseCase,
-    private val parseBtcUriUseCase: ParseBtcUriUseCase
+    private val parseBtcUriUseCase: ParseBtcUriUseCase,
+    private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase
 ) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {
 
     override val initialState = AddReceiptState()
@@ -70,6 +72,20 @@ internal class AddReceiptViewModel @Inject constructor(
                         setEvent(InvalidAddressEvent)
                     }
                 }
+            }
+        }
+    }
+
+    fun updateAddress(address: String) {
+        updateState { copy(address = address) }
+    }
+
+    fun getFirstUnusedAddress(walletId: String) {
+        viewModelScope.launch {
+            getUnusedWalletAddressUseCase(walletId).onSuccess { addresses ->
+                updateState { copy(address = addresses.first()) }
+            }.onFailure {
+                setEvent(ShowError(it.message.orUnknownError()))
             }
         }
     }

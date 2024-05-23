@@ -51,6 +51,8 @@ import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.DummyTransactionResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
+import com.nunchuk.android.core.data.model.byzantine.SavedAddressListResponse
+import com.nunchuk.android.core.data.model.byzantine.SavedAddressRequest
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
@@ -539,4 +541,20 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("dummy_transaction_id") transactionId: String,
     ): Data<DummyTransactionResponse>
+
+    @GET("/v1.1/user-wallets/saved-address")
+    suspend fun getSavedAddressList(
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT,
+    ): Data<SavedAddressListResponse>
+
+    @PUT("/v1.1/user-wallets/saved-address")
+    suspend fun addOrUpdateSavedAddress(
+        @Body payload: SavedAddressRequest
+    ): Data<SavedAddressListResponse>
+
+    @DELETE("/v1.1/user-wallets/saved-address/{address}")
+    suspend fun deleteSavedAddress(
+        @Path("address") address: String
+    ): Data<Unit>
 }

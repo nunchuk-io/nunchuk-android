@@ -36,10 +36,14 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
+import com.nunchuk.android.core.wallet.WalletBottomSheetResult
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
@@ -56,6 +60,7 @@ import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceiptBinding
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -97,6 +102,17 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         setupViews()
         observeEvent()
         viewModel.init(args.address, args.privateNote)
+
+        supportFragmentManager.setFragmentResultListener(WalletComposeBottomSheet.TAG, this) { _, bundle ->
+            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT) ?: return@setFragmentResultListener
+            if (result.walletId != null) {
+                viewModel.getFirstUnusedAddress(walletId = result.walletId!!)
+            } else {
+                viewModel.updateAddress(result.savedAddress?.address.orEmpty())
+            }
+            updateSelectAddressView(walletName = result.walletName, savedAddressLabel = result.savedAddress?.label)
+            supportFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
+        }
     }
 
     private fun observeEvent() {
@@ -152,6 +168,23 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         }
         binding.btnCustomFee.setOnDebounceClickListener {
             viewModel.handleContinueEvent(false)
+        }
+        binding.receiptInputDropdown.setOnDebounceClickListener {
+            WalletComposeBottomSheet.show(
+                supportFragmentManager,
+                exclusiveAssistedWalletIds = arrayListOf(args.walletId),
+            )
+        }
+    }
+
+    private fun updateSelectAddressView(walletName: String? = null, savedAddressLabel: String? = null) {
+        binding.receiptSelectLayout.isVisible = walletName != null || savedAddressLabel != null
+        binding.receiptSelectLabel.text = walletName ?: savedAddressLabel
+        binding.receiptInput.isVisible = false
+        if (walletName != null) {
+            binding.receiptInputImage.setImageResource(R.drawable.ic_wallet_small)
+        } else {
+            binding.receiptInputImage.setImageResource(R.drawable.ic_saved_address)
         }
     }
 
