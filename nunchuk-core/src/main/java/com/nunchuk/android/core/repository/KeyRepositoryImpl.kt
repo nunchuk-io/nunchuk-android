@@ -297,23 +297,6 @@ internal class KeyRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun finalizeReplaceWallet(groupId: String?, walletId: String) {
-        val response = if (groupId.isNullOrEmpty()) {
-            userWalletApiManager.walletApi.finalizeReplaceWallet(
-                walletId,
-            )
-        } else {
-            userWalletApiManager.groupWalletApi.finalizeReplaceWallet(
-                groupId,
-                walletId,
-            )
-        }
-
-        if (response.isSuccess.not()) {
-            throw response.error
-        }
-    }
-
     override suspend fun replaceKey(
         groupId: String?,
         walletId: String,
