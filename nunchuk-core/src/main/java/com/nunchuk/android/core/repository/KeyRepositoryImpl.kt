@@ -196,6 +196,106 @@ internal class KeyRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun uploadReplaceBackupKey(
+        replacedXfp: String,
+        keyName: String,
+        keyType: String,
+        xfp: String,
+        cardId: String,
+        filePath: String,
+        isAddNewKey: Boolean,
+        walletId: String,
+        groupId: String
+    ): Flow<KeyUpload> {
+        return callbackFlow {
+            val file = File(filePath)
+            val requestFile: RequestBody =
+                asRequestBody(file, "multipart/form-data".toMediaTypeOrNull()) {
+                    trySend(KeyUpload.Progress(it.coerceAtMost(99)))
+                }
+
+            val body: MultipartBody.Part =
+                MultipartBody.Part.createFormData("file", file.name, requestFile)
+
+            val keyNameBody: RequestBody =
+                keyName.toRequestBody("multipart/form-data".toMediaTypeOrNull())
+            val keyTypeBody: RequestBody =
+                keyType.toRequestBody("multipart/form-data".toMediaTypeOrNull())
+            val keyXfp: RequestBody = xfp.toRequestBody("multipart/form-data".toMediaTypeOrNull())
+            val keyCardId: RequestBody =
+                cardId.toRequestBody("multipart/form-data".toMediaTypeOrNull())
+            val result = userWalletApiManager.walletApi.uploadBackupKey(
+                keyName = keyNameBody,
+                keyType = keyTypeBody,
+                keyXfp = keyXfp,
+                cardId = keyCardId,
+                image = body
+            )
+            if (result.isSuccess.not()) {
+                throw result.error
+            }
+            val signer = nativeSdk.getSignerByIndex(
+                xfp,
+                WalletType.MULTI_SIG.ordinal,
+                AddressType.NATIVE_SEGWIT.ordinal,
+                0
+            ) ?: throw NullPointerException("Can not get signer by index 0")
+            val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
+            val isInheritance = nativeSdk.getWallet(walletId).signers.find { it.masterFingerprint == replacedXfp }?.tags?.contains(SignerTag.INHERITANCE) ?: false
+            val payload = SignerServerDto(
+                name = signer.name,
+                xfp = signer.masterFingerprint,
+                derivationPath = signer.derivationPath,
+                xpub = signer.xpub,
+                pubkey = signer.publicKey,
+                type = SignerType.NFC.name,
+                tapsigner = TapSignerDto(
+                    cardId = status.ident.toString(),
+                    version = status.version.orEmpty(),
+                    birthHeight = status.birthHeight,
+                    isTestnet = status.isTestNet,
+                    isInheritance = isInheritance
+                ),
+                tags = if (isInheritance) listOf(
+                    SignerTag.INHERITANCE.name
+                ) else null,
+            )
+            val replaceResponse = if (groupId.isNotEmpty()) {
+                userWalletApiManager.groupWalletApi.replaceKey(
+                    groupId = groupId,
+                    walletId = walletId,
+                    xfp = replacedXfp,
+                    payload = payload
+                )
+            } else {
+                userWalletApiManager.walletApi.replaceKey(
+                    walletId = walletId,
+                    xfp = replacedXfp,
+                    payload = payload
+                )
+            }
+            send(KeyUpload.Progress(100))
+
+            if (replaceResponse.isSuccess.not()) {
+                throw replaceResponse.error
+            }
+
+            if (result.isSuccess) {
+                val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(
+                    result.data.keyId,
+                    result.data.keyBackUpBase64
+                )
+                send(KeyUpload.Data(serverKeyFilePath))
+
+            } else {
+                send(KeyUpload.KeyVerified(result.error.message))
+            }
+            file.delete()
+
+            awaitClose { }
+        }
+    }
+
     override suspend fun setKeyVerified(
         groupId: String,
         masterSignerId: String,

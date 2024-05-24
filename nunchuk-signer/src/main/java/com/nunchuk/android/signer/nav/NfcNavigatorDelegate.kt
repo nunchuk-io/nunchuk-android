@@ -73,6 +73,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         activity: Activity,
         fromMembershipFlow: Boolean,
         groupId: String,
+        replacedXfp: String,
+        walletId: String
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -80,6 +82,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
                 fromMembershipFlow = fromMembershipFlow,
                 groupId = groupId,
+                replacedXfp = replacedXfp,
+                walletId = walletId,
             )
         )
     }

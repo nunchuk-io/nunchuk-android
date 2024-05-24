@@ -31,6 +31,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.UploadBackupFileKeyUseCase
+import com.nunchuk.android.usecase.replace.UploadReplaceBackupFileKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +46,7 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     private val uploadBackupFileKeyUseCase: UploadBackupFileKeyUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
+    private val uploadReplaceBackupFileKeyUseCase: UploadReplaceBackupFileKeyUseCase,
     private val cardIdManager: CardIdManager,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -58,30 +60,57 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     private var isAddNewKey = true
     private var groupId = ""
     private var signerIndex = 0
+    private var replacedXfp = ""
+    private var walletId = ""
 
-    fun init(isAddNewKey: Boolean, groupId: String, signerIndex: Int) {
+    fun init(
+        isAddNewKey: Boolean,
+        groupId: String,
+        signerIndex: Int,
+        replacedXfp: String,
+        walletId: String
+    ) {
         this.isAddNewKey = isAddNewKey
         this.groupId = groupId
         this.signerIndex = signerIndex
+        this.replacedXfp = replacedXfp
+        this.walletId = walletId
     }
 
     fun upload() {
         viewModelScope.launch {
             val result = getMasterSignerUseCase(args.masterSignerId)
-            uploadBackupFileKeyUseCase(
-                UploadBackupFileKeyUseCase.Param(
-                    step = membershipStepManager.currentStep ?: MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-                    keyName = result.getOrNull()?.name.orEmpty(),
-                    keyType = SignerType.NFC.name,
-                    xfp = args.masterSignerId,
-                    cardId = cardIdManager.getCardId(args.masterSignerId),
-                    filePath = args.filePath,
-                    isAddNewKey = isAddNewKey,
-                    plan = membershipStepManager.localMembershipPlan.takeIf { groupId.isEmpty() } ?: MembershipPlan.BYZANTINE,
-                    groupId = groupId,
-                    signerIndex = signerIndex,
+            if (replacedXfp.isNotEmpty() && walletId.isNotEmpty()) {
+                uploadReplaceBackupFileKeyUseCase(
+                    UploadReplaceBackupFileKeyUseCase.Param(
+                        keyName = result.getOrNull()?.name.orEmpty(),
+                        keyType = SignerType.NFC.name,
+                        xfp = args.masterSignerId,
+                        cardId = cardIdManager.getCardId(args.masterSignerId),
+                        filePath = args.filePath,
+                        isAddNewKey = isAddNewKey,
+                        plan = membershipStepManager.localMembershipPlan.takeIf { groupId.isEmpty() } ?: MembershipPlan.BYZANTINE,
+                        groupId = groupId,
+                        replacedXfp = replacedXfp,
+                        walletId = walletId
+                    )
                 )
-            ).collect {
+            } else {
+                uploadBackupFileKeyUseCase(
+                    UploadBackupFileKeyUseCase.Param(
+                        step = membershipStepManager.currentStep ?: MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                        keyName = result.getOrNull()?.name.orEmpty(),
+                        keyType = SignerType.NFC.name,
+                        xfp = args.masterSignerId,
+                        cardId = cardIdManager.getCardId(args.masterSignerId),
+                        filePath = args.filePath,
+                        isAddNewKey = isAddNewKey,
+                        plan = membershipStepManager.localMembershipPlan.takeIf { groupId.isEmpty() } ?: MembershipPlan.BYZANTINE,
+                        groupId = groupId,
+                        signerIndex = signerIndex,
+                    )
+                )
+            }.collect {
                 if (it.isSuccess) {
                     when (val content = it.getOrThrow()) {
                         is KeyUpload.Progress -> {

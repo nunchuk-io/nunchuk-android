@@ -78,10 +78,14 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
         nfcViewModel.updateMasterSigner(args.masterSignerId)
         val isAddNewKey =
             if (args.isOldKey) false else (requireActivity() as NfcSetupActivity).isAddNewSigner
+        val replacedXfp = (requireActivity() as NfcSetupActivity).replacedXfp
+        val walletId = (requireActivity() as NfcSetupActivity).walletId
         viewModel.init(
             isAddNewKey = isAddNewKey,
             groupId = (requireActivity() as NfcSetupActivity).groupId,
             signerIndex = (requireActivity() as NfcSetupActivity).signerIndex,
+            replacedXfp = replacedXfp,
+            walletId = walletId
         )
     }
 

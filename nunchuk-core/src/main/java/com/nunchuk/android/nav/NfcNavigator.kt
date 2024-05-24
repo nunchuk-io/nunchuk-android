@@ -49,6 +49,8 @@ interface NfcNavigator {
         activity: Activity,
         fromMembershipFlow: Boolean,
         groupId: String = "",
+        replacedXfp: String = "",
+        walletId: String = "",
     )
 
     fun openVerifyBackupTapSigner(

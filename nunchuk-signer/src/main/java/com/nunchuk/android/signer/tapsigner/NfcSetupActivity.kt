@@ -119,6 +119,12 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     val signerIndex: Int
             by lazy(LazyThreadSafetyMode.NONE) {  intent.getIntExtra(EXTRA_SIGNER_INDEX, 0) }
 
+    val replacedXfp: String
+            by lazy(LazyThreadSafetyMode.NONE) {  intent.getStringExtra(EXTRA_REPLACED_XFP).orEmpty() }
+
+    val walletId: String
+            by lazy(LazyThreadSafetyMode.NONE) {  intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+
     companion object {
         private const val EXTRA_ACTION = "EXTRA_ACTION"
         private const val EXTRA_HAS_WALLET = "EXTRA_HAS_WALLET"
@@ -127,6 +133,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         const val EXTRA_SATSCARD_SLOT = "EXTRA_SATSCARD_SLOT"
         const val EXTRA_GROUP_ID = "group_id"
         const val EXTRA_SIGNER_INDEX = "signer_index"
+        const val EXTRA_REPLACED_XFP = "replaced_xfp"
+        const val EXTRA_WALLET_ID = "wallet_id"
 
         /**
          * Setup action
@@ -175,6 +183,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             slot: SatsCardSlot? = null,
             groupId: String = "",
             signerIndex: Int = 0,
+            replacedXfp: String = "",
+            walletId : String = ""
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
@@ -184,6 +194,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_SATSCARD_SLOT, slot)
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_SIGNER_INDEX, signerIndex)
+            putExtra(EXTRA_REPLACED_XFP, replacedXfp)
+            putExtra(EXTRA_WALLET_ID, walletId)
         }
     }
 }
