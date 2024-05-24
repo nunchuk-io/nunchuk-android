@@ -538,6 +538,8 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
             )
         } else if (alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST) {
             viewModel.syncTransaction(alert.payload.transactionId)
+        } else if (alert.type == AlertType.KEY_REPLACEMENT_COMPLETED) {
+
         }
     }
 

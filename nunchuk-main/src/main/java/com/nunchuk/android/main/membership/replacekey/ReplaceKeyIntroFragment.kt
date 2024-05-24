@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -49,6 +50,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ReplaceKeyIntroFragment : Fragment() {
+    private val args by navArgs<ReplaceKeyIntroFragmentArgs>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -60,7 +62,10 @@ class ReplaceKeyIntroFragment : Fragment() {
                 ReplaceKeyIntroScreen(
                     onContinueClicked = {
                         findNavController().navigate(
-                            ReplaceKeyIntroFragmentDirections.actionReplaceKeyIntroFragmentToReplaceKeysFragment()
+                            ReplaceKeyIntroFragmentDirections.actionReplaceKeyIntroFragmentToReplaceKeysFragment(
+                                walletId = args.walletId,
+                                groupId = args.groupId
+                            )
                         )
                     },
                 )

@@ -33,9 +33,10 @@ enum class AlertType {
     CHANGE_EMAIL_REQUEST,
     CHANGE_EMAIL_SUCCESS,
     HEALTH_CHECK_REMINDER,
+    KEY_REPLACEMENT_COMPLETED
 }
 
-fun String?.toAlertType() = AlertType.values().find { it.name == this } ?: AlertType.NONE
+fun String?.toAlertType() = AlertType.entries.find { it.name == this } ?: AlertType.NONE
 
 fun AlertType.isInheritanceType() = this == AlertType.CREATE_INHERITANCE_PLAN ||
         this == AlertType.UPDATE_INHERITANCE_PLAN ||

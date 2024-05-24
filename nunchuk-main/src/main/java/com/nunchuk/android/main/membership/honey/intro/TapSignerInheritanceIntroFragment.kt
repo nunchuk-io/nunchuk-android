@@ -147,7 +147,7 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
         navigator.openSetupTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
-            groupId = (activity as MembershipActivity).groupId
+            groupId = (activity as MembershipActivity).groupId,
         )
     }
 }

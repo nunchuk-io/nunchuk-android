@@ -17,62 +17,43 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase.replace
 
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.repository.KeyRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-interface KeyRepository {
-    fun uploadBackupKey(
-        step: MembershipStep,
-        keyName: String,
-        keyType: String,
-        xfp: String,
-        cardId: String,
-        filePath: String,
-        isAddNewKey: Boolean,
-        plan: MembershipPlan,
-        groupId: String,
-        newIndex: Int
-    ): Flow<KeyUpload>
-
-    fun uploadReplaceBackupKey(
-        replacedXfp: String,
-        keyName: String,
-        keyType: String,
-        xfp: String,
-        cardId: String,
-        filePath: String,
-        isAddNewKey: Boolean,
-        walletId: String,
-        groupId: String,
-    ): Flow<KeyUpload>
-
-    suspend fun setKeyVerified(
-        groupId: String,
-        masterSignerId: String,
-        isAppVerify: Boolean,
-    )
-
-    suspend fun initReplaceKey(
-        groupId: String?,
-        walletId: String,
-        xfp: String,
-    )
-
-    suspend fun cancelReplaceKey(
-        groupId: String?,
-        walletId: String,
-        xfp: String,
-    )
-
-    suspend fun replaceKey(
-        groupId: String?,
-        walletId: String,
-        signer: SingleSigner,
-        xfp: String,
+class UploadReplaceBackupFileKeyUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: KeyRepository,
+) : FlowUseCase<UploadReplaceBackupFileKeyUseCase.Param, KeyUpload>(dispatcher) {
+    override fun execute(parameters: Param): Flow<KeyUpload> =
+        repository.uploadReplaceBackupKey(
+            replacedXfp = parameters.replacedXfp,
+            keyName = parameters.keyName,
+            keyType = parameters.keyType,
+            xfp = parameters.xfp,
+            cardId = parameters.cardId,
+            filePath = parameters.filePath,
+            isAddNewKey = parameters.isAddNewKey,
+            walletId = parameters.walletId,
+            groupId = parameters.groupId,
+        )
+    data class Param(
+        val replacedXfp: String,
+        val keyName: String,
+        val keyType: String,
+        val xfp: String,
+        val cardId: String,
+        val filePath: String,
+        val isAddNewKey: Boolean,
+        val plan: MembershipPlan,
+        val walletId: String,
+        val groupId: String,
     )
 }

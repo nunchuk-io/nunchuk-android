@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -57,7 +56,6 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -98,7 +96,9 @@ class CreateWalletSuccessFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 is CreateWalletSuccessEvent.ContinueStepEvent -> {
-                    if (groupId.isEmpty() && it.is2Of4MultisigWallet) {
+                    if (args.isReplaceWallet) {
+
+                    } else if (groupId.isEmpty() && it.is2Of4MultisigWallet) {
                         findNavController().navigate(
                             CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyStepFragment(),
                             NavOptions.Builder()
@@ -149,23 +149,36 @@ fun CreateWalletSuccessScreenContent(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_create_wallet_success),
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_create_wallet_success_desc),
-                    style = NunchukTheme.typography.body
-                )
-
-                if (uiState.isSingleSetup && uiState.allowInheritance) {
-                    NcHighlightText(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        text = stringResource(R.string.nc_create_wallet_success_distribute_setup_desc),
+                if (uiState.isReplaceWallet) {
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(com.nunchuk.android.main.R.string.congratulations_a_new_wallet_has_been_created),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = stringResource(R.string.nc_replace_wallet_success_desc),
                         style = NunchukTheme.typography.body
                     )
+                } else {
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(R.string.nc_create_wallet_success),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = stringResource(R.string.nc_create_wallet_success_desc),
+                        style = NunchukTheme.typography.body
+                    )
+
+                    if (uiState.isSingleSetup && uiState.allowInheritance) {
+                        NcHighlightText(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = stringResource(R.string.nc_create_wallet_success_distribute_setup_desc),
+                            style = NunchukTheme.typography.body
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(
@@ -189,4 +202,12 @@ fun CreateWalletSuccessScreenContent(
 @Composable
 private fun CreateWalletSuccessScreenPreview() {
     CreateWalletSuccessScreenContent()
+}
+
+@Preview
+@Composable
+private fun ReplaceWalletSuccessScreenPreview() {
+    CreateWalletSuccessScreenContent(
+        uiState = CreateWalletSuccessUiState(isReplaceWallet = true)
+    )
 }

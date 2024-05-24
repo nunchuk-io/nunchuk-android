@@ -43,10 +43,10 @@ class CreateWalletSuccessViewModel @Inject constructor(
     private val _event = MutableSharedFlow<CreateWalletSuccessEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(CreateWalletSuccessUiState())
-    val state = _state.asStateFlow()
-
     private val args = CreateWalletSuccessFragmentArgs.fromSavedStateHandle(savedStateHandle)
+
+    private val _state = MutableStateFlow(CreateWalletSuccessUiState(isReplaceWallet = args.isReplaceWallet))
+    val state = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -85,6 +85,7 @@ data class CreateWalletSuccessUiState(
     val isSingleSetup: Boolean = false,
     val allowInheritance: Boolean = false,
     val is2Of4MultisigWallet: Boolean = false,
+    val isReplaceWallet: Boolean = false
 )
 
 sealed class CreateWalletSuccessEvent {
