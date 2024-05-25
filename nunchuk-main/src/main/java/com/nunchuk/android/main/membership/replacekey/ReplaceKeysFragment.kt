@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.membership.replacekey
 
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,8 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -30,11 +29,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.core.text.bold
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcOutlineButton
@@ -48,18 +49,25 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
+import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragmentFragment
+import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
+import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.toGroupWalletType
-import com.nunchuk.android.model.StateEvent
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -71,7 +79,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
     private val viewModel: ReplaceKeysViewModel by viewModels()
 
     private val args by navArgs<ReplaceKeysFragmentArgs>()
-
+    private var selectedSignerTag: SignerTag? = null
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -97,6 +105,78 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+            val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
+            if (data.signers.isNotEmpty()) {
+                val signer = data.signers.first()
+                when (signer.type) {
+                    SignerType.NFC, SignerType.SOFTWARE, SignerType.FOREIGN_SOFTWARE -> {
+                        findNavController().navigate(
+                            ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
+                                signer
+                            )
+                        )
+                    }
+
+                    SignerType.AIRGAP -> {
+                        val hasTag = signer.tags.any { it.isAirgapTag || it == SignerTag.COLDCARD }
+                        val selectedSignerTag = selectedSignerTag
+                        if (hasTag || selectedSignerTag == null) {
+                            findNavController().navigate(
+                                ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
+                                    signer
+                                )
+                            )
+                        } else {
+                            viewModel.onUpdateSignerTag(signer, selectedSignerTag)
+                        }
+                    }
+
+                    SignerType.COLDCARD_NFC -> {
+                        findNavController().navigate(
+                            ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
+                                signer
+                            )
+                        )
+                    }
+
+                    SignerType.HARDWARE -> {
+                        findNavController().navigate(
+                            ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
+                                signer
+                            )
+                        )
+                    }
+
+                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
+                }
+            } else {
+                when (data.type) {
+                    SignerType.NFC -> openSetupTapSigner()
+                    SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
+                    SignerType.COLDCARD_NFC -> showAddColdcardOptions()
+
+                    SignerType.SOFTWARE -> openAddSoftwareKey()
+                    SignerType.HARDWARE -> {
+                        // TODO Hai
+                    }
+
+                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
+                }
+            }
+            clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+        }
+        setFragmentResultListener(CustomKeyAccountFragmentFragment.REQUEST_KEY) { _, bundle ->
+            val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
+            if (signer != null) {
+                viewModel.onReplaceKey(signer)
+            }
+            clearFragmentResult(CustomKeyAccountFragmentFragment.REQUEST_KEY)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         viewModel.getReplaceWalletStatus()
@@ -107,9 +187,20 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             viewModel.initReplaceKey()
         }
         when (option.type) {
-            SignerType.NFC.ordinal -> openSetupTapSigner()
+            SignerType.NFC.ordinal -> handleShowKeysOrCreate(
+                viewModel.getTapSigners(),
+                SignerType.NFC,
+                ::openSetupTapSigner
+            )
 
-            SignerType.COLDCARD_NFC.ordinal -> showAddColdcardOptions()
+            SignerType.COLDCARD_NFC.ordinal -> {
+                selectedSignerTag = SignerTag.COLDCARD
+                handleShowKeysOrCreate(
+                    viewModel.getColdcard() + viewModel.getHardwareSigners(SignerTag.COLDCARD),
+                    SignerType.COLDCARD_NFC,
+                    ::showAddColdcardOptions
+                )
+            }
 
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
                 activity = requireActivity(),
@@ -127,22 +218,61 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR
             )
 
-            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> handleSelectAddAirgapType(SignerTag.JADE)
-            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
-            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> handleSelectAddAirgapType(SignerTag.PASSPORT)
-            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
-            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(null)
+            SheetOptionType.TYPE_ADD_AIRGAP_JADE,
+            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
+            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> {
+                selectedSignerTag = getSignerTag(option.type)
+                handleShowKeysOrCreate(
+                    viewModel.getAirgap(getSignerTag(option.type)),
+                    SignerType.AIRGAP
+                ) { handleSelectAddAirgapType(selectedSignerTag) }
+            }
 
-            SheetOptionType.TYPE_ADD_LEDGER -> TODO()
+            SheetOptionType.TYPE_ADD_LEDGER,
+            SheetOptionType.TYPE_ADD_TREZOR,
+            SheetOptionType.TYPE_ADD_COLDCARD_USB,
+            SheetOptionType.TYPE_ADD_BITBOX -> NCInfoDialog(requireActivity())
+                .showDialog(
+                    message = getString(R.string.nc_info_hardware_key_not_supported),
+                )
 
-            SheetOptionType.TYPE_ADD_TREZOR -> TODO()
-
-            SheetOptionType.TYPE_ADD_COLDCARD_USB -> TODO()
-            SheetOptionType.TYPE_ADD_BITBOX -> TODO()
-
-            SheetOptionType.TYPE_ADD_SOFTWARE_KEY -> openAddSoftwareKey()
+            SheetOptionType.TYPE_ADD_SOFTWARE_KEY -> checkTwoSoftwareKeySameDevice {
+                handleShowKeysOrCreate(
+                    viewModel.getSoftwareSigners(),
+                    SignerType.SOFTWARE
+                ) { openAddSoftwareKey() }
+            }
 
             else -> Unit
+        }
+    }
+
+    private fun getSignerTag(type: Int): SignerTag? {
+        return when (type) {
+            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
+            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
+            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
+            else -> null
+        }
+    }
+
+    private fun handleShowKeysOrCreate(
+        signer: List<SignerModel>,
+        type: SignerType,
+        onEmptySigner: () -> Unit,
+    ) {
+        if (signer.isNotEmpty()) {
+            findNavController().navigate(
+                ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToTapSignerListBottomSheetFragment(
+                    signer.toTypedArray(),
+                    type,
+                )
+            )
+        } else {
+            onEmptySigner()
         }
     }
 
@@ -199,6 +329,27 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
         )
     }
 
+    private fun checkTwoSoftwareKeySameDevice(onSuccess: () -> Unit) {
+        val total = viewModel.getCountWalletSoftwareSignersInDevice()
+        if (total >= 1) {
+            NCInfoDialog(requireActivity())
+                .showDialog(
+                    title = getString(R.string.nc_text_warning),
+                    btnYes = getString(R.string.nc_text_continue),
+                    message = SpannableStringBuilder()
+                        .bold {
+                            append(getString(R.string.nc_info_software_key_same_device_part_1))
+                        }
+                        .append(" ")
+                        .append(getString(R.string.nc_info_software_key_same_device_part_2)),
+                    onYesClick = { onSuccess() },
+                    btnInfo = getString(R.string.nc_i_ll_choose_another_type_of_key),
+                )
+        } else {
+            onSuccess()
+        }
+    }
+
     private fun openSelectHardwareOption() {
         val isKeyHolderLimited =
             viewModel.uiState.value.myRole == AssistedWalletRole.KEYHOLDER_LIMITED
@@ -216,167 +367,4 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),
         ).show(childFragmentManager, "BottomSheetOption")
     }
-}
-
-@Composable
-private fun ReplaceKeysScreen(
-    viewModel: ReplaceKeysViewModel = hiltViewModel(),
-    onReplaceKeyClicked: (SignerModel) -> Unit = {},
-    onCreateNewWalletSuccess: (String) -> Unit = {},
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(uiState.createWalletSuccess) {
-        if (uiState.createWalletSuccess is StateEvent.String) {
-            onCreateNewWalletSuccess((uiState.createWalletSuccess as StateEvent.String).data)
-            viewModel.markOnCreateWalletSuccess()
-        }
-    }
-
-    ReplaceKeysContent(
-        uiState = uiState,
-        onReplaceKeyClicked = onReplaceKeyClicked,
-        onCreateWalletClicked = viewModel::onCreateWallet,
-    )
-}
-
-@Composable
-private fun ReplaceKeysContent(
-    uiState: ReplaceKeysUiState = ReplaceKeysUiState(),
-    onReplaceKeyClicked: (SignerModel) -> Unit = {},
-    onCreateWalletClicked: () -> Unit = {},
-) {
-    NunchukTheme {
-        Scaffold(
-            topBar = {
-                NcTopAppBar(title = "")
-            },
-            bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onCreateWalletClicked,
-                    enabled = uiState.replaceSigners.isNotEmpty()
-                ) {
-                    Text(text = stringResource(R.string.nc_continue_to_create_a_new_wallet))
-                }
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .fillMaxSize()
-            ) {
-                Text(
-                    text = stringResource(R.string.nc_which_key_would_you_like_to_replace),
-                    style = NunchukTheme.typography.heading
-                )
-
-                Text(
-                    modifier = Modifier.padding(top = 16.dp),
-                    text = stringResource(R.string.nc_replace_one_or_multiple_keys),
-                    style = NunchukTheme.typography.body
-                )
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(uiState.signers) { item ->
-                        ReplaceKeyCard(
-                            modifier = Modifier.padding(top = 16.dp),
-                            item = uiState.replaceSigners[item.fingerPrint] ?: item,
-                            onReplaceClicked = { onReplaceKeyClicked(it) },
-                            isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ReplaceKeyCard(
-    item: SignerModel,
-    modifier: Modifier = Modifier,
-    isReplaced: Boolean = false,
-    onReplaceClicked: (data: SignerModel) -> Unit = {},
-    onVerifyClicked: (data: SignerModel) -> Unit = {},
-) {
-    Box(
-        modifier = modifier.background(
-            color = colorResource(id = R.color.nc_beeswax_tint),
-            shape = RoundedCornerShape(8.dp)
-        ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
-        ) {
-            NcCircleImage(
-                resId = item.toReadableDrawableResId(),
-                color = colorResource(id = R.color.nc_white_color)
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1.0f)
-                    .padding(start = 8.dp)
-            ) {
-                Text(
-                    text = item.name,
-                    style = NunchukTheme.typography.body
-                )
-                Row(modifier = Modifier.padding(top = 4.dp)) {
-                    NcTag(
-                        label = item.toReadableSignerType(context = LocalContext.current),
-                        backgroundColor = colorResource(
-                            id = R.color.nc_whisper_color
-                        ),
-                    )
-                    if (item.isShowAcctX()) {
-                        NcTag(
-                            modifier = Modifier.padding(start = 4.dp),
-                            label = stringResource(R.string.nc_acct_x, item.index),
-                            backgroundColor = colorResource(
-                                id = R.color.nc_whisper_color
-                            ),
-                        )
-                    }
-                }
-                Text(
-                    modifier = Modifier.padding(top = 4.dp),
-                    text = item.getXfpOrCardIdLabel(),
-                    style = NunchukTheme.typography.bodySmall
-                )
-            }
-            if (isReplaced) {
-                if (item.type == SignerType.NFC)
-                    NcOutlineButton(
-                        modifier = Modifier.height(36.dp),
-                        onClick = { onVerifyClicked(item) },
-                    ) {
-                        Text(text = stringResource(R.string.nc_verify_backup))
-                    }
-            } else {
-                NcOutlineButton(
-                    modifier = Modifier.height(36.dp),
-                    onClick = { onReplaceClicked(item) },
-                ) {
-                    Text(text = stringResource(R.string.nc_replace))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun ReplaceKeysContentPreview(
-    @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
-) {
-    ReplaceKeysContent(
-        uiState = ReplaceKeysUiState(signers = signers)
-    )
 }

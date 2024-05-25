@@ -28,6 +28,24 @@ fun NcSnackBarHost(state: SnackbarHostState) {
     }
 }
 
+suspend fun SnackbarHostState.showNunchukSnackbar(
+    message: String,
+    actionLabel: String? = null,
+    withDismissAction: Boolean = false,
+    duration: SnackbarDuration = if (actionLabel == null) SnackbarDuration.Short else SnackbarDuration.Indefinite,
+    type: NcToastType = NcToastType.SUCCESS,
+) {
+    showSnackbar(
+        NcSnackbarVisuals(
+            message = message,
+            actionLabel = actionLabel,
+            withDismissAction = withDismissAction,
+            duration = duration,
+            type = type,
+        )
+    )
+}
+
 data class NcSnackbarVisuals(
     override val message: String,
     override val actionLabel: String? = null,
