@@ -388,7 +388,13 @@ internal class WalletsViewModel @Inject constructor(
 
     fun updateExistingKey(key: WalletsExistingKey) {
         viewModelScope.launch {
-            updateExistingKeyUseCase(UpdateExistingKeyUseCase.Params(key.signerServer, key.localSigner, false))
+            updateExistingKeyUseCase(
+                UpdateExistingKeyUseCase.Params(
+                    key.signerServer,
+                    key.localSigner,
+                    false
+                )
+            )
                 .onFailure {
                     setEvent(ShowErrorEvent(it))
                 }
@@ -613,7 +619,9 @@ internal class WalletsViewModel @Inject constructor(
             return MembershipStage.DONE
         }
         if (assistedWallets.isNotEmpty()) {
-            if (assistedWallets.size == 1 && !assistedWallets.first().isSetupInheritance) {
+            if (assistedWallets.size == 1
+                && !assistedWallets.first().isSetupInheritance
+                && assistedWallets.first().plan == MembershipPlan.HONEY_BADGER) {
                 return MembershipStage.SETUP_INHERITANCE
             }
             return MembershipStage.DONE
