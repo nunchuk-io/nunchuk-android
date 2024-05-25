@@ -152,8 +152,7 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim">
-        </action>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"></action>
     </fragment>
     <fragment
         android:id="@+id/createWalletSuccessFragment"
@@ -166,8 +165,8 @@
 
         <argument
             android:name="is_replace_wallet"
-            app:argType="boolean"
-            android:defaultValue="false" />
+            android:defaultValue="false"
+            app:argType="boolean" />
 
         <action
             android:id="@+id/action_createWalletSuccessFragment_to_addKeyStepFragment"
@@ -591,7 +590,7 @@
     <fragment
         android:id="@+id/replaceKeysFragment"
         android:name="com.nunchuk.android.main.membership.replacekey.ReplaceKeysFragment"
-        android:label="ReplaceKeysFragment" >
+        android:label="ReplaceKeysFragment">
         <argument
             android:name="wallet_id"
             app:argType="string" />
@@ -605,7 +604,23 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_replaceKeysFragment_to_customKeyAccountFragmentFragment"
+            app:destination="@id/customKeyAccountFragmentFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_replaceKeysFragment_to_tapSignerListBottomSheetFragment"
+            app:destination="@id/tapSignerListBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
 </navigation>

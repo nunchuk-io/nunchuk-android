@@ -345,4 +345,5 @@
     <string name="nc_which_key_would_you_like_to_replace">Which key would you like to replace?</string>
     <string name="nc_replace_one_or_multiple_keys">Replace one or multiple keys.</string>
     <string name="nc_replace">Replace</string>
+    <string name="nc_info_hardware_key_not_supported">Please use the desktop app to add this key.</string>
 </resources>
