@@ -59,6 +59,9 @@ internal class SettingRepositoryImpl @Inject constructor(
     override val useLargeFontHomeBalances: Flow<Boolean>
         get() = ncDataStore.useLargeFontHomeBalancesFlow
 
+    override val isShowHealthCheckReminderIntro: Flow<Boolean>
+        get() = ncDataStore.isShowHealthCheckReminderIntro
+
     override suspend fun markSyncRoomSuccess() {
         ncDataStore.markSyncRoomSuccess()
     }
@@ -93,5 +96,9 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setLocalMembershipPlan(plan: MembershipPlan) {
         ncDataStore.setLocalMembershipPlan(plan)
+    }
+
+    override suspend fun setHealthCheckReminderIntro(isShow: Boolean) {
+        ncDataStore.setHealthCheckReminderIntro(isShow)
     }
 }

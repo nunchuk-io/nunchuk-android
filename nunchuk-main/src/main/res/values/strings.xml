@@ -150,6 +150,7 @@
     <string name="nc_health_check_request_sent">Health check request sent</string>
     <string name="nc_health_check_request_sent_description">The keyholders have been notified of the health check request. Once the request is completed, the health status will be updated in the group dashboard.</string>
     <string name="nc_cancel_request">Cancel request</string>
+    <string name="nc_skip_health_check">Skip health check</string>
     <string name="nc_inheritance_has_been_created">The inheritance plan has been created</string>
     <string name="nc_inheritance_has_been_updated">The inheritance plan has been updated</string>
     <string name="nc_inheritance_plan_updated">Inheritance plan updated</string>
@@ -311,6 +312,14 @@
     <string name="nc_the_end_date_should_be_after_the_start_date">The end date should be after the start date.</string>
     <string name="nc_change_email_request_has_been_canceled">Email address change has been canceled.</string>
     <string name="nc_approve">Approve</string>
+    <string name="nc_setup_reminders_health_check_your_keys">Set up reminders to health check your keys.</string>
+    <string name="nc_repeat_every_data">Repeat every %1$s</string>
+    <string name="nc_no_reminder">No reminder</string>
+    <string name="nc_add_reminder">Add reminder</string>
+    <string name="nc_how_often_would_you_like_heath_check_these_keys">How often would you like to health check these keys?</string>
+    <string name="nc_select_which_keys_setup_reminders">Select which keys you want to set up reminders for.</string>
+    <string name="nc_reminders_updated">Reminders updated</string>
+    <string name="nc_keys_have_set_periodic_reminders">The keys have set periodic reminders</string>
     <string name="nc_coldcard_index_not_match">The account imported does not match the account that you entered (%1$d). Please try again.</string>
     <string name="nc_new_account_needed_airgap">New account data needed. Please import your key again using the given account.</string>
     <string name="nc_3_of_5_multisig_with_inheritance_planning">3-of-5 multisig with inheritance planning</string>
@@ -320,6 +329,7 @@
     <string name="nc_primary_owner_update_success">Primary owner updated</string>
     <string name="nc_security_questions_answer_will_be_updated">The security questions and answers will be updated.</string>
     <string name="nc_change_email_request_desc">Changing email from [A]%1$s[/A] to [B]%2$s[/B].</string>
+    <string name="nc_it_time_check_the_heath_of">It’s time to check the health of [A]%1$s[/A].</string>
     <string name="nc_finney_cap">FINNEY</string>
     <string name="nc_finney_pro_cap">FINNEY PRO</string>
     <string name="nc_info_software_key_same_device_part_1">Having two or more software keys on the same device significantly reduces the security of your wallet.</string>

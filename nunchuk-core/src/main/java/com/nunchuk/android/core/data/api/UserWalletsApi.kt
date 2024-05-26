@@ -69,6 +69,8 @@ import com.nunchuk.android.core.data.model.membership.GetNonceResponse
 import com.nunchuk.android.core.data.model.membership.GetWalletResponse
 import com.nunchuk.android.core.data.model.membership.GroupAssistedWalletConfigResponse
 import com.nunchuk.android.core.data.model.membership.HealthCheckHistoryResponseData
+import com.nunchuk.android.core.data.model.membership.HealthReminderRequest
+import com.nunchuk.android.core.data.model.membership.HealthReminderResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimStatusResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceResponse
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
@@ -556,5 +558,28 @@ internal interface UserWalletsApi {
     @DELETE("/v1.1/user-wallets/saved-address/{address}")
     suspend fun deleteSavedAddress(
         @Path("address") address: String
+    ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/health/reminder")
+    suspend fun getHealthReminders(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<HealthReminderResponse>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/health/reminder")
+    suspend fun addOrUpdateHealthReminder(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: HealthReminderRequest,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/health/reminder")
+    suspend fun deleteHealthReminder(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("xfps") xfps: List<String>,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/health/reminder/{xfp}")
+    suspend fun skipHealthReminder(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
     ): Data<Unit>
 }

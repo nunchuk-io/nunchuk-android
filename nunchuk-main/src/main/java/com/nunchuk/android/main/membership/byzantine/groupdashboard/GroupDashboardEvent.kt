@@ -50,4 +50,5 @@ data class GroupDashboardState(
     val inheritanceOwnerId: String? = null,
     val isHasPendingRequestInheritance: Boolean = false,
     val isRefreshing: Boolean = false,
+    val isShowHealthCheckReminderIntro: Boolean = false,
 )

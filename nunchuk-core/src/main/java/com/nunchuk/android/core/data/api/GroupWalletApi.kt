@@ -30,6 +30,8 @@ import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransa
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
 import com.nunchuk.android.core.data.model.membership.GetWalletsResponse
+import com.nunchuk.android.core.data.model.membership.HealthReminderRequest
+import com.nunchuk.android.core.data.model.membership.HealthReminderResponse
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.data.model.membership.PermissionResponse
@@ -490,5 +492,32 @@ internal interface GroupWalletApi {
     suspend fun deleteWalletAlias(
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<Unit>
+
+    @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/health/reminder")
+    suspend fun getHealthReminders(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<HealthReminderResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/health/reminder")
+    suspend fun updateHealthReminder(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: HealthReminderRequest,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/health/reminder")
+    suspend fun deleteHealthReminder(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("xfps") xfps: List<String>,
+    ): Data<Unit>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/health/reminder/{xfp}")
+    suspend fun skipHealthReminder(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
     ): Data<Unit>
 }

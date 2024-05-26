@@ -67,6 +67,7 @@ class NcDataStore @Inject constructor(
     private val groupIdKey = stringPreferencesKey("group_id")
     private val currentStepKey = intPreferencesKey("current_step")
     private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
+    private val showHealthCheckReminderIntro = booleanPreferencesKey("show_health_check_reminder_intro")
 
     /**
      * Current membership plan key
@@ -87,6 +88,11 @@ class NcDataStore @Inject constructor(
     private fun getShowOnBoardKey(): Preferences.Key<Boolean> {
         val userId = accountManager.getAccount().chatId
         return booleanPreferencesKey("show-onboard-${userId}")
+    }
+
+    private fun getShowHealthCheckReminderIntroKey(): Preferences.Key<Boolean> {
+        val userId = accountManager.getAccount().chatId
+        return booleanPreferencesKey("show_health_check_reminder_intro-${userId}")
     }
 
     val syncRoomSuccess: Flow<Boolean>
@@ -116,6 +122,11 @@ class NcDataStore @Inject constructor(
     val isShowNfcUniversal: Flow<Boolean>
         get() = context.dataStore.data.map {
             it[isShowNfcUniversalKey] ?: true
+        }
+
+    val isShowHealthCheckReminderIntro: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[getShowHealthCheckReminderIntroKey()] ?: true
         }
 
     val turnOnNotificationFlow: Flow<Boolean>
@@ -312,6 +323,12 @@ class NcDataStore @Inject constructor(
             if (settings.asMap().size <= 1) {
                 settings[getShowOnBoardKey()] = true
             }
+        }
+    }
+
+    suspend fun setHealthCheckReminderIntro(isShow: Boolean) {
+        context.dataStore.edit {
+            it[getShowHealthCheckReminderIntroKey()] = isShow
         }
     }
 

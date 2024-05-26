@@ -17,32 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.core.domain
 
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.setting.WalletSecuritySetting
-import com.nunchuk.android.type.Chain
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-interface SettingRepository {
-    val syncEnable: Flow<Boolean>
-    val isShowNfcUniversal: Flow<Boolean>
-    val chain: Flow<Chain>
-    val syncRoomSuccess: Flow<Boolean>
-    val qrDensity: Flow<Int>
-    val walletSecuritySetting: Flow<WalletSecuritySetting>
-    val walletPin: Flow<String>
-    val localCurrency: Flow<String>
-    val useLargeFontHomeBalances: Flow<Boolean>
-    val isShowHealthCheckReminderIntro: Flow<Boolean>
-    suspend fun setSyncEnable(isEnable: Boolean)
-    suspend fun setQrDensity(density: Int)
-    suspend fun markSyncRoomSuccess()
-    suspend fun markIsShowNfcUniversal()
-    suspend fun setWalletSecuritySetting(config: String)
-    suspend fun setWalletPin(pin: String)
-    suspend fun setLocalCurrency(currency: String)
-    suspend fun setUseLargeFontHomeBalances(useLargeFontHomeBalances: Boolean)
-    suspend fun setLocalMembershipPlan(plan: MembershipPlan)
-    suspend fun setHealthCheckReminderIntro(isShow: Boolean)
+class IsShowHealthCheckReminderIntroUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: SettingRepository
+) : FlowUseCase<Unit, Boolean>(dispatcher) {
+
+    override fun execute(parameters: Unit): Flow<Boolean> {
+        return repository.isShowHealthCheckReminderIntro
+    }
 }

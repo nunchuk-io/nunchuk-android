@@ -215,18 +215,22 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                         }
                     },
                     onOpenHealthCheckScreen = {
-                        val walletId = viewModel.getWalletId()
-                        if (walletId.isNotEmpty()) {
-                            findNavController().navigate(
-                                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToHealthCheckFragment(
-                                    groupId = viewModel.getGroupId(),
-                                    walletId = viewModel.getWalletId()
-                                )
-                            )
-                        }
+                        openHealthCheckScreen()
                     },
                 )
             }
+        }
+    }
+
+    private fun openHealthCheckScreen() {
+        val walletId = viewModel.getWalletId()
+        if (walletId.isNotEmpty()) {
+            findNavController().navigate(
+                GroupDashboardFragmentDirections.actionGroupDashboardFragmentToHealthCheckFragment(
+                    groupId = viewModel.getGroupId(),
+                    walletId = viewModel.getWalletId()
+                )
+            )
         }
     }
 
@@ -515,6 +519,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
             || alert.type == AlertType.HEALTH_CHECK_REQUEST
             || alert.type == AlertType.HEALTH_CHECK_PENDING
             || alert.type == AlertType.CHANGE_EMAIL_REQUEST
+            || alert.type == AlertType.HEALTH_CHECK_REMINDER
         ) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(

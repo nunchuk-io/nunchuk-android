@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.core.domain.IsShowHealthCheckReminderIntroUseCase
+import com.nunchuk.android.core.domain.MarkShowHealthCheckReminderIntroUseCase
 import com.nunchuk.android.core.domain.byzantine.SetRoomRetentionUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
@@ -113,6 +115,8 @@ class GroupDashboardViewModel @Inject constructor(
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val setRoomRetentionUseCase: SetRoomRetentionUseCase,
     private val appScope: CoroutineScope,
+    private val isShowHealthCheckReminderIntroUseCase: IsShowHealthCheckReminderIntroUseCase,
+    private val markShowHealthCheckReminderIntroUseCase: MarkShowHealthCheckReminderIntroUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -243,6 +247,13 @@ class GroupDashboardViewModel @Inject constructor(
             getGroupUseCase()
         }
         getAlerts()
+        viewModelScope.launch {
+            isShowHealthCheckReminderIntroUseCase(Unit)
+                .map { it.getOrElse { false } }
+                .collect { isShow ->
+                    _state.update { state -> state.copy(isShowHealthCheckReminderIntro = isShow) }
+                }
+        }
     }
 
     fun getKeysStatus() {
@@ -709,7 +720,15 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
+    fun markShowHealthCheckReminderIntro() {
+        viewModelScope.launch {
+            markShowHealthCheckReminderIntroUseCase(Unit)
+        }
+    }
+
     fun membershipPlan(): MembershipPlan = assistedWalletManager.getWalletPlan(getWalletId())
+
+    fun isShowRequestHealthCheckIntro(): Boolean = state.value.isShowHealthCheckReminderIntro
 
     private val currentSelectedAlert: Alert?
         get() = savedStateHandle.get<Alert>(EXTRA_SELECTED_ALERT)
