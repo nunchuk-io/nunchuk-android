@@ -45,13 +45,12 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.ChangeKeyTypeUseCase
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,6 +76,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
+    private val replaceKeyUseCase: ReplaceKeyUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -107,6 +107,8 @@ class Mk4IntroViewModel @Inject constructor(
         groupId: String,
         newIndex: Int,
         xfp: String?,
+        replacedXfp: String?,
+        walletId: String?,
     ) {
         viewModelScope.launch {
             _event.emit(Mk4IntroViewEvent.Loading(true))
@@ -149,34 +151,49 @@ class Mk4IntroViewModel @Inject constructor(
                     )
                     if (createSignerResult.isSuccess) {
                         // force type coldcard nfc in case we import hardware key first
-                        val coldcardSigner =
-                            createSignerResult.getOrThrow().copy(type = SignerType.COLDCARD_NFC)
-                        saveMembershipStepUseCase(
-                            MembershipStepInfo(
-                                step = membershipStepManager.currentStep
-                                    ?: throw IllegalArgumentException("Current step empty"),
-                                masterSignerId = coldcardSigner.masterFingerprint,
-                                plan = membershipStepManager.localMembershipPlan,
-                                verifyType = VerifyType.APP_VERIFIED,
-                                extraData = gson.toJson(
-                                    SignerExtra(
-                                        derivationPath = coldcardSigner.derivationPath,
-                                        isAddNew = true,
-                                        signerType = coldcardSigner.type
-                                    )
-                                ),
-                                groupId = groupId
-                            )
-                        )
-                        if (groupId.isNotEmpty()) {
-                            syncKeyToGroupUseCase(
-                                SyncKeyToGroupUseCase.Param(
+                        if (replacedXfp.isNullOrEmpty()) {
+                            val coldcardSigner =
+                                createSignerResult.getOrThrow().copy(type = SignerType.COLDCARD_NFC)
+                            saveMembershipStepUseCase(
+                                MembershipStepInfo(
                                     step = membershipStepManager.currentStep
                                         ?: throw IllegalArgumentException("Current step empty"),
-                                    groupId = groupId,
-                                    signer = coldcardSigner
+                                    masterSignerId = coldcardSigner.masterFingerprint,
+                                    plan = membershipStepManager.localMembershipPlan,
+                                    verifyType = VerifyType.APP_VERIFIED,
+                                    extraData = gson.toJson(
+                                        SignerExtra(
+                                            derivationPath = coldcardSigner.derivationPath,
+                                            isAddNew = true,
+                                            signerType = coldcardSigner.type
+                                        )
+                                    ),
+                                    groupId = groupId
                                 )
                             )
+                            if (groupId.isNotEmpty()) {
+                                syncKeyToGroupUseCase(
+                                    SyncKeyToGroupUseCase.Param(
+                                        step = membershipStepManager.currentStep
+                                            ?: throw IllegalArgumentException("Current step empty"),
+                                        groupId = groupId,
+                                        signer = coldcardSigner
+                                    )
+                                ).onFailure {
+                                    _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
+                                }
+                            }
+                        } else {
+                            replaceKeyUseCase(
+                                ReplaceKeyUseCase.Param(
+                                    groupId = groupId,
+                                    walletId = walletId.orEmpty(),
+                                    xfp = replacedXfp,
+                                    signer = createSignerResult.getOrThrow()
+                                )
+                            ).onFailure {
+                                _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
+                            }
                         }
                         _event.emit(Mk4IntroViewEvent.OnCreateSignerSuccess)
                     } else {

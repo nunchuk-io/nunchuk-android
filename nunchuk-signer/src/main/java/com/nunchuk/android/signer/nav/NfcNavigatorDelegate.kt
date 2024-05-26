@@ -36,6 +36,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         newIndex: Int,
         xfp: String?,
         isScanQRCode: Boolean,
+        replacedXfp: String?,
+        walletId: String?,
     ) {
         Mk4Activity.navigate(
             activity = activity,
@@ -45,6 +47,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
             newIndex = newIndex,
             xfp = xfp,
             isScanQRCode = isScanQRCode,
+            replacedXfp = replacedXfp,
+            walletId = walletId,
         )
     }
 

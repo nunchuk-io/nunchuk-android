@@ -89,7 +89,7 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                         cardId = cardIdManager.getCardId(args.masterSignerId),
                         filePath = args.filePath,
                         isAddNewKey = isAddNewKey,
-                        plan = membershipStepManager.localMembershipPlan.takeIf { groupId.isEmpty() } ?: MembershipPlan.BYZANTINE,
+                        signerIndex = signerIndex,
                         groupId = groupId,
                         replacedXfp = replacedXfp,
                         walletId = walletId

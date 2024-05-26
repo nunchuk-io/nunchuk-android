@@ -33,6 +33,8 @@ interface NfcNavigator {
         newIndex: Int = -1,
         xfp: String? = null,
         isScanQRCode: Boolean = false,
+        replacedXfp: String? = null,
+        walletId: String? = null,
     )
 
     fun startSetupMk4ForResult(

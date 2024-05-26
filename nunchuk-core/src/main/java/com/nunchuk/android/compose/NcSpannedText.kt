@@ -6,7 +6,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withAnnotation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 
 data class SpanIndicator(val openTag: String, val closeTag: String) {
@@ -18,12 +24,14 @@ fun NcSpannedText(
     modifier: Modifier = Modifier,
     text: String,
     baseStyle: TextStyle,
+    textAlign: TextAlign? = null,
     styles: Map<SpanIndicator, SpanStyle> = emptyMap(),
 ) {
     Text(
         modifier = modifier,
         text = spannedText(text, styles),
-        style = baseStyle
+        style = baseStyle,
+        textAlign = textAlign
     )
 }
 
@@ -33,7 +41,7 @@ fun NcSpannedClickableText(
     text: String,
     baseStyle: TextStyle,
     styles: Map<SpanIndicator, SpanStyle> = emptyMap(),
-    onClick : (tag: String) -> Unit
+    onClick: (tag: String) -> Unit
 ) {
     val annotatedString = spannedText(text, styles)
     ClickableText(

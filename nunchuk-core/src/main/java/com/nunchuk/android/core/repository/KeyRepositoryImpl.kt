@@ -204,6 +204,7 @@ internal class KeyRepositoryImpl @Inject constructor(
         cardId: String,
         filePath: String,
         isAddNewKey: Boolean,
+        signerIndex: Int,
         walletId: String,
         groupId: String
     ): Flow<KeyUpload> {
@@ -362,14 +363,14 @@ internal class KeyRepositoryImpl @Inject constructor(
     ) {
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.initReplaceKey(
-                xfp,
-                walletId,
+                xfp = xfp,
+                walletId = walletId,
             )
         } else {
             userWalletApiManager.groupWalletApi.initReplaceKey(
-                groupId,
-                xfp,
-                walletId,
+                groupId = groupId,
+                xfp = xfp,
+                walletId = walletId,
             )
         }
 
@@ -403,8 +404,9 @@ internal class KeyRepositoryImpl @Inject constructor(
         signer: SingleSigner,
         xfp: String
     ) {
-        // TODO: Hai condition for isInheritanceKey
-        val serverSigner = serverSignerMapper(signer, false)
+        val wallet = nativeSdk.getWallet(walletId)
+        val isInheritance = wallet.signers.find { it.masterFingerprint == xfp }?.tags.orEmpty().contains(SignerTag.INHERITANCE)
+        val serverSigner = serverSignerMapper(signer, isInheritance)
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.replaceKey(
                 walletId = walletId,
@@ -417,6 +419,23 @@ internal class KeyRepositoryImpl @Inject constructor(
                 walletId = walletId,
                 xfp = xfp,
                 payload = serverSigner
+            )
+        }
+
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun resetReplaceKey(groupId: String?, walletId: String) {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.resetReplaceWallet(
+                walletId = walletId,
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.resetReplaceWallet(
+                groupId = groupId,
+                walletId = walletId,
             )
         }
 

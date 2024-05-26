@@ -346,4 +346,6 @@
     <string name="nc_replace_one_or_multiple_keys">Replace one or multiple keys.</string>
     <string name="nc_replace">Replace</string>
     <string name="nc_info_hardware_key_not_supported">Please use the desktop app to add this key.</string>
+    <string name="nc_cancel_key_replacement">Cancel key replacement</string>
+    <string name="nc_inheritance_key_warning">[B]Replacing the inheritance key means that you will have to set up the inheritance plan again[/B]. Are you sure you want to do this?</string>
 </resources>

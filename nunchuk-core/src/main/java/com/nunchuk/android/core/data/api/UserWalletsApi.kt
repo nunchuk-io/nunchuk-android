@@ -613,4 +613,9 @@ internal interface UserWalletsApi {
     suspend fun getReplaceWalletStatus(
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<WalletReplacementStatusResponse>
+
+    @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/reset")
+    suspend fun resetReplaceWallet(
+        @Path("wallet_id_or_local_id") walletId: String,
+    ): Data<Unit>
 }

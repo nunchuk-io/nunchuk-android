@@ -10,7 +10,6 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedPath
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.main.membership.byzantine.addKey.AddKeyListEvent
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.Result
@@ -27,6 +26,7 @@ import com.nunchuk.android.usecase.replace.FinalizeReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
 import com.nunchuk.android.usecase.replace.InitReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
+import com.nunchuk.android.usecase.replace.ResetReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,6 +51,7 @@ class ReplaceKeysViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
+    private val resetReplaceKeyUseCase: ResetReplaceKeyUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -244,6 +245,19 @@ class ReplaceKeysViewModel @Inject constructor(
 
     fun onHandledMessage() {
         _uiState.update { it.copy(message = "") }
+    }
+
+    fun onCancelReplaceWallet() {
+        viewModelScope.launch {
+            resetReplaceKeyUseCase(
+                ResetReplaceKeyUseCase.Param(
+                    groupId = args.groupId,
+                    walletId = args.walletId
+                )
+            ).onFailure {
+                _uiState.update { it.copy(message = it.message) }
+            }
+        }
     }
 
     val replacedXfp: String
