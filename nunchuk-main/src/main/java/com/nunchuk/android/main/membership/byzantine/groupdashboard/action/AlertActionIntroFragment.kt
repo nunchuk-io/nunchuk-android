@@ -30,6 +30,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
@@ -43,6 +45,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardFragmentDirections
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
@@ -67,6 +70,8 @@ class AlertActionIntroFragment : Fragment() {
                     onContinue = {
                         if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
                            viewModel.approveInheritanceRequestPlanning()
+                        } else if (args.alert.type == AlertType.HEALTH_CHECK_REMINDER) {
+                            openHealthCheckScreen()
                         } else if (it != null) {
                             setFragmentResult(
                                 REQUEST_KEY, bundleOf(
@@ -78,6 +83,10 @@ class AlertActionIntroFragment : Fragment() {
                         }
                     },
                     onCancel = {
+                        if (args.alert.type == AlertType.HEALTH_CHECK_REMINDER) {
+                            viewModel.skipHealthReminder()
+                            return@AlertActionIntroScreen
+                        }
                         val message = when (args.alert.type) {
                             AlertType.REQUEST_INHERITANCE_PLANNING -> {
                                 getString(R.string.nc_cancel_inheritance_planning_request)
@@ -156,8 +165,24 @@ class AlertActionIntroFragment : Fragment() {
                         }
 
                         is AlertActionIntroEvent.Error -> showError(message = event.message)
+                        AlertActionIntroEvent.SkipHealthReminderSuccess -> {
+                            goBack()
+                        }
                     }
                 }
+        }
+    }
+
+    private fun openHealthCheckScreen() {
+        val walletId = args.walletId
+        if (walletId.isNotEmpty()) {
+            findNavController().navigate(
+                AlertActionIntroFragmentDirections.actionAlertActionIntroFragmentToHealthCheckFragment(
+                    groupId = args.groupId,
+                    walletId = args.walletId
+                ),
+                NavOptions.Builder().setPopUpTo(R.id.groupDashboardFragment, false).build()
+            )
         }
     }
 
@@ -198,6 +223,7 @@ private fun AlertActionIntroContent(
 ) {
     val cancelButton = when (alert.type) {
         AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
+        AlertType.HEALTH_CHECK_REMINDER -> stringResource(R.string.nc_skip_health_check)
         AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_deny)
         AlertType.CHANGE_EMAIL_REQUEST -> stringResource(R.string.nc_cancel_change)
         AlertType.KEY_RECOVERY_REQUEST, AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> stringResource(R.string.nc_cancel)
@@ -219,6 +245,9 @@ private fun AlertActionIntroContent(
         )
         AlertType.CHANGE_EMAIL_REQUEST -> stringResource(
             id = R.string.nc_change_email_request_desc, state.changeEmail?.oldEmail.orEmpty(), state.changeEmail?.newEmail.orEmpty()
+        )
+        AlertType.HEALTH_CHECK_REMINDER -> stringResource(
+            id = R.string.nc_it_time_check_the_heath_of, state.signer?.name.orEmpty()
         )
         else -> alert.body
     }
@@ -243,7 +272,7 @@ private fun AlertActionIntroContent(
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth(),
                             onClick = { onContinue(state.dummyTransaction) },
-                            enabled = state.dummyTransaction != null || alert.type == AlertType.REQUEST_INHERITANCE_PLANNING
+                            enabled = state.dummyTransaction != null || alert.type == AlertType.REQUEST_INHERITANCE_PLANNING || alert.type == AlertType.HEALTH_CHECK_REMINDER
                         ) {
                             Text(text = continueButtonText)
                         }
@@ -296,6 +325,7 @@ private fun AlertActionIntroScreenPreview() {
                 requestId = "123",
                 membershipId = "123",
                 transactionId = "123",
+                xfp = "xfp"
             ),
             body = "There is a health check request for [key name].",
             createdTimeMillis = 0,

@@ -43,7 +43,20 @@ class HealthCheckFragment : MembershipFragment() {
                 HealthCheckContent(
                     state = state,
                     onRequestHealthCheck = viewModel::onRequestHealthCheck,
-                    onHealthCheck = viewModel::onHealthCheck
+                    onHealthCheck = viewModel::onHealthCheck,
+                    onNavigateToHealthCheckReminder = {
+                        if (viewModel.isShowRequestHealthCheckIntro()) {
+                            viewModel.markShowHealthCheckReminderIntro()
+                            findNavController().navigate(
+                                HealthCheckFragmentDirections.actionHealthCheckFragmentToHealthCheckReminderIntroFragment()
+                            )
+                        } else {
+                            findNavController().navigate(
+                                HealthCheckFragmentDirections.actionHealthCheckFragmentToHealthCheckReminderFragment(0)
+                            )
+                        }
+
+                    }
                 )
             }
         }

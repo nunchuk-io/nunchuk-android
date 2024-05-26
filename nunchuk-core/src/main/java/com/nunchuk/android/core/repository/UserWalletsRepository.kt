@@ -64,6 +64,7 @@ import com.nunchuk.android.core.data.model.membership.ConfirmationCodeVerifyRequ
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
+import com.nunchuk.android.core.data.model.membership.HealthReminderRequest
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.RequestSignatureTransactionRequest
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
@@ -75,6 +76,7 @@ import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
 import com.nunchuk.android.core.data.model.membership.toGroupKeyPolicy
+import com.nunchuk.android.core.data.model.membership.toHealthReminder
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
@@ -112,6 +114,7 @@ import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.GroupStatus
 import com.nunchuk.android.model.HealthCheckHistory
+import com.nunchuk.android.model.HealthReminder
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceAdditional
@@ -2444,6 +2447,90 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun deleteSavedAddress(address: String) {
         val response = userWalletApiManager.walletApi.deleteSavedAddress(address)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun getHealthReminders(
+        groupId: String?,
+        walletId: String
+    ): List<HealthReminder> {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.getHealthReminders(walletId)
+        } else {
+            userWalletApiManager.groupWalletApi.getHealthReminders(groupId, walletId)
+        }
+        return response.data.reminders.orEmpty().map { it.toHealthReminder() }
+    }
+
+    override suspend fun addOrUpdateHealthReminder(
+        groupId: String?,
+        walletId: String,
+        xfps: List<String>,
+        frequency: String,
+        startDateMillis: Long
+    ) {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.addOrUpdateHealthReminder(
+                walletId,
+                HealthReminderRequest(
+                    xfps = xfps,
+                    frequency = frequency,
+                    startDateMillis = startDateMillis
+                )
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.updateHealthReminder(
+                groupId,
+                walletId,
+                HealthReminderRequest(
+                    xfps = xfps,
+                    frequency = frequency,
+                    startDateMillis = startDateMillis
+                )
+            )
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun deleteHealthReminder(
+        groupId: String?,
+        walletId: String,
+        xfps: List<String>
+    ) {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.deleteHealthReminder(
+                walletId,
+                xfps = xfps
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.deleteHealthReminder(
+                groupId,
+                walletId,
+                xfps = xfps
+            )
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun skipHealthReminder(groupId: String?, walletId: String, xfp: String) {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.skipHealthReminder(
+                walletId,
+                xfp
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.skipHealthReminder(
+                groupId,
+                walletId,
+                xfp
+            )
+        }
         if (response.isSuccess.not()) {
             throw response.error
         }

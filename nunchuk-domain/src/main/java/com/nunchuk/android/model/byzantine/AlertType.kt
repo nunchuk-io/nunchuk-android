@@ -32,6 +32,7 @@ enum class AlertType {
     UPDATE_SECURITY_QUESTIONS,
     CHANGE_EMAIL_REQUEST,
     CHANGE_EMAIL_SUCCESS,
+    HEALTH_CHECK_REMINDER,
 }
 
 fun String?.toAlertType() = AlertType.values().find { it.name == this } ?: AlertType.NONE

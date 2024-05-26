@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard.action
 
-import androidx.core.app.NotificationCompat.getGroup
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,11 +9,13 @@ import com.nunchuk.android.core.domain.membership.ApproveInheritanceRequestPlann
 import com.nunchuk.android.core.domain.membership.DenyInheritanceRequestPlanningUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.ByzantineMember
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.membership.SkipHealthReminderUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,6 +37,7 @@ class AlertActionIntroViewModel @Inject constructor(
     private val denyInheritanceRequestPlanningUseCase: DenyInheritanceRequestPlanningUseCase,
     private val approveInheritanceRequestPlanningUseCase: ApproveInheritanceRequestPlanningUseCase,
     private val parseChangeEmailPayloadUseCase: ParseChangeEmailPayloadUseCase,
+    private val skipHealthReminderUseCase: SkipHealthReminderUseCase,
     saveStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = AlertActionIntroFragmentArgs.fromSavedStateHandle(saveStateHandle)
@@ -46,25 +48,31 @@ class AlertActionIntroViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-            getWallet()
-            getGroup(args.alert.payload.membershipId)
-        } else {
-            viewModelScope.launch {
-                val result = getDummyTransactionPayloadUseCase(
-                    GetDummyTransactionPayloadUseCase.Param(
-                        groupId = args.groupId,
-                        walletId = args.walletId,
-                        transactionId = args.alert.payload.dummyTransactionId
+        when (args.alert.type) {
+            AlertType.REQUEST_INHERITANCE_PLANNING -> {
+                getWallet()
+                getGroup(args.alert.payload.membershipId)
+            }
+            AlertType.HEALTH_CHECK_REMINDER -> {
+                getWallet()
+            }
+            else -> {
+                viewModelScope.launch {
+                    val result = getDummyTransactionPayloadUseCase(
+                        GetDummyTransactionPayloadUseCase.Param(
+                            groupId = args.groupId,
+                            walletId = args.walletId,
+                            transactionId = args.alert.payload.dummyTransactionId
+                        )
                     )
-                )
-                if (result.isSuccess) {
-                    _state.update { state ->
-                        state.copy(dummyTransaction = result.getOrNull())
-                    }
-                    if (args.alert.type == AlertType.CHANGE_EMAIL_REQUEST) {
-                        parseChangeEmailPayloadUseCase(result.getOrNull()!!).onSuccess { changeEmail ->
-                            _state.update { state -> state.copy(changeEmail = changeEmail) }
+                    if (result.isSuccess) {
+                        _state.update { state ->
+                            state.copy(dummyTransaction = result.getOrNull())
+                        }
+                        if (args.alert.type == AlertType.CHANGE_EMAIL_REQUEST) {
+                            parseChangeEmailPayloadUseCase(result.getOrNull()!!).onSuccess { changeEmail ->
+                                _state.update { state -> state.copy(changeEmail = changeEmail) }
+                            }
                         }
                     }
                 }
@@ -75,7 +83,7 @@ class AlertActionIntroViewModel @Inject constructor(
     private fun getWallet() {
         viewModelScope.launch {
             getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
-                _state.update { state -> state.copy(walletName = wallet.name) }
+                _state.update { state -> state.copy(walletName = wallet.name, signer = wallet.signers.firstOrNull { it.masterFingerprint == args.alert.payload.xfp }) }
             }
         }
     }
@@ -147,12 +155,32 @@ class AlertActionIntroViewModel @Inject constructor(
             }
         }
     }
+
+    fun skipHealthReminder() {
+        viewModelScope.launch {
+            _event.emit(AlertActionIntroEvent.Loading(true))
+            skipHealthReminderUseCase(
+                SkipHealthReminderUseCase.Params(
+                    groupId = args.groupId,
+                    walletId = args.walletId,
+                    xfp = args.alert.payload.xfp
+                )
+            ).onSuccess {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.SkipHealthReminderSuccess)
+            }.onFailure {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.Error(it.message.orUnknownError()))
+            }
+        }
+    }
 }
 
 sealed class AlertActionIntroEvent {
     data object DenyInheritanceRequestPlanningSuccess : AlertActionIntroEvent()
     data object ApproveInheritanceRequestPlanningSuccess : AlertActionIntroEvent()
     data object DeleteDummyTransactionSuccess : AlertActionIntroEvent()
+    data object SkipHealthReminderSuccess : AlertActionIntroEvent()
     data class Loading(val isLoading: Boolean) : AlertActionIntroEvent()
     data class Error(val message: String) : AlertActionIntroEvent()
 }
@@ -162,4 +190,5 @@ data class AlertActionIntroUiState(
     val walletName: String = "",
     val requester: ByzantineMember? = null,
     val changeEmail: ChangeEmail? = null,
+    val signer: SingleSigner? = null
 )

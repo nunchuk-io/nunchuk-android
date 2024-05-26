@@ -29,6 +29,7 @@ import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.HealthCheckHistory
+import com.nunchuk.android.model.HealthReminder
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceAdditional
@@ -453,4 +454,8 @@ interface PremiumWalletRepository {
     suspend fun getSavedAddresses(): List<SavedAddress>
     suspend fun addOrUpdateSavedAddress(address: String, label: String)
     suspend fun deleteSavedAddress(address: String)
+    suspend fun getHealthReminders(groupId: String?, walletId: String): List<HealthReminder>
+    suspend fun addOrUpdateHealthReminder(groupId: String?, walletId: String, xfps: List<String>, frequency: String, startDateMillis: Long)
+    suspend fun deleteHealthReminder(groupId: String?, walletId: String, xfps: List<String>)
+    suspend fun skipHealthReminder(groupId: String?, walletId: String, xfp: String)
 }

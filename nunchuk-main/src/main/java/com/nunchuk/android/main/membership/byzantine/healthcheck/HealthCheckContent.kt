@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.byzantine.healthcheck
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +56,7 @@ fun HealthCheckContent(
     state: GroupDashboardState = GroupDashboardState(),
     onRequestHealthCheck: (SignerModel) -> Unit = {},
     onHealthCheck: (SignerModel) -> Unit = {},
+    onNavigateToHealthCheckReminder: () -> Unit = {},
 ) {
     val signers by remember(state.myRole, state.signers) {
         derivedStateOf {
@@ -74,6 +77,18 @@ fun HealthCheckContent(
                 NcTopAppBar(
                     title = stringResource(R.string.nc_key_health_status),
                     textStyle = NunchukTheme.typography.titleLarge,
+                    actions = {
+                        Text(
+                            text = "Reminders",
+                            style = NunchukTheme.typography.title,
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .clickable {
+                                    onNavigateToHealthCheckReminder()
+                                }
+                        )
+                    }
                 )
             }) { innerPadding ->
             Column(
