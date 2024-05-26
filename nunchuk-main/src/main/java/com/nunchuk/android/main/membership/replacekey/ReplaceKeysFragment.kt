@@ -5,30 +5,8 @@ import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.unit.dp
 import androidx.core.text.bold
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.clearFragmentResult
@@ -37,21 +15,12 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcCircleImage
-import com.nunchuk.android.compose.NcOutlineButton
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTag
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isAirgapTag
-import com.nunchuk.android.core.util.toReadableDrawableResId
-import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
@@ -112,7 +81,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             if (data.signers.isNotEmpty()) {
                 val signer = data.signers.first()
                 when (signer.type) {
-                    SignerType.NFC, SignerType.SOFTWARE, SignerType.FOREIGN_SOFTWARE -> {
+                    SignerType.NFC, SignerType.SOFTWARE, SignerType.FOREIGN_SOFTWARE, SignerType.COLDCARD_NFC, SignerType.HARDWARE -> {
                         findNavController().navigate(
                             ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
                                 signer
@@ -132,22 +101,6 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                         } else {
                             viewModel.onUpdateSignerTag(signer, selectedSignerTag)
                         }
-                    }
-
-                    SignerType.COLDCARD_NFC -> {
-                        findNavController().navigate(
-                            ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
-                                signer
-                            )
-                        )
-                    }
-
-                    SignerType.HARDWARE -> {
-                        findNavController().navigate(
-                            ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
-                                signer
-                            )
-                        )
                     }
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
@@ -215,7 +168,9 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 fromMembershipFlow = true,
                 action = ColdcardAction.RECOVER_KEY,
                 groupId = args.groupId,
-                isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR
+                isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR,
+                replacedXfp = viewModel.replacedXfp,
+                walletId = args.walletId
             )
 
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,

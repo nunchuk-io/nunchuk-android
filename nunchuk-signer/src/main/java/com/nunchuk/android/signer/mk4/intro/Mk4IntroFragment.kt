@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
@@ -61,7 +60,6 @@ import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -131,7 +129,9 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 records = it.records,
                 groupId = (activity as Mk4Activity).groupId,
                 newIndex = (activity as Mk4Activity).newIndex,
-                xfp = (activity as Mk4Activity).xfp
+                xfp = (activity as Mk4Activity).xfp,
+                replacedXfp = (activity as Mk4Activity).replacedXfp,
+                walletId = (activity as Mk4Activity).walletId
             )
             nfcViewModel.clearScanInfo()
         }

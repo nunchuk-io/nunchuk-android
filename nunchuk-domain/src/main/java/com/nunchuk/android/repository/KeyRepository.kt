@@ -47,6 +47,7 @@ interface KeyRepository {
         cardId: String,
         filePath: String,
         isAddNewKey: Boolean,
+        signerIndex: Int,
         walletId: String,
         groupId: String,
     ): Flow<KeyUpload>
@@ -74,5 +75,10 @@ interface KeyRepository {
         walletId: String,
         signer: SingleSigner,
         xfp: String,
+    )
+
+    suspend fun resetReplaceKey(
+        groupId: String?,
+        walletId: String,
     )
 }

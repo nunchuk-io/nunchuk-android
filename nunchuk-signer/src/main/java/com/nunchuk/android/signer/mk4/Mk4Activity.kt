@@ -72,6 +72,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     val groupId: String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
     val newIndex by lazy { intent.getIntExtra(EXTRA_INDEX, -1) }
     val xfp by lazy { intent.getStringExtra(EXTRA_XFP) }
+    val replacedXfp by lazy { intent.getStringExtra(EXTRA_REPLACE_XFP) }
+    val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID) }
 
 
     companion object {
@@ -81,6 +83,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
         private const val EXTRA_INDEX = "index"
         private const val EXTRA_XFP = "xfp"
         private const val EXTRA_SCAN_QR_CODE = "scan_qr_code"
+        private const val EXTRA_REPLACE_XFP = "replace_xfp"
+        private const val EXTRA_WALLET_ID = "wallet_id"
 
         fun navigate(
             activity: Activity,
@@ -89,7 +93,9 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             groupId: String,
             newIndex: Int = -1,
             xfp: String? = null,
-            isScanQRCode : Boolean = false
+            isScanQRCode : Boolean = false,
+            replacedXfp: String? = null,
+            walletId: String? = null
         ) {
             activity.startActivity(
                 buildIntent(
@@ -99,7 +105,9 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                     groupId = groupId,
                     newIndex = newIndex,
                     xfp = xfp,
-                    isScanQRCode = isScanQRCode
+                    isScanQRCode = isScanQRCode,
+                    replacedXfp = replacedXfp,
+                    walletId = walletId
                 )
             )
         }
@@ -111,7 +119,9 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             groupId: String,
             newIndex: Int = -1,
             xfp: String? = null,
-            isScanQRCode : Boolean = false
+            isScanQRCode : Boolean = false,
+            replacedXfp: String? = null,
+            walletId: String? = null
         ): Intent {
             return Intent(activity, Mk4Activity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
@@ -120,6 +130,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                 putExtra(EXTRA_INDEX, newIndex)
                 putExtra(EXTRA_XFP, xfp)
                 putExtra(EXTRA_SCAN_QR_CODE, isScanQRCode)
+                putExtra(EXTRA_REPLACE_XFP, replacedXfp)
+                putExtra(EXTRA_WALLET_ID, walletId)
             }
         }
     }

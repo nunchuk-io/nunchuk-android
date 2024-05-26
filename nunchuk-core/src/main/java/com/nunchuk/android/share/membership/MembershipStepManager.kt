@@ -302,6 +302,7 @@ class MembershipStepManager @Inject constructor(
     fun getRemainTimeByOtherSteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.toMap().filter { it.key !in querySteps }.values)
 
+    // TODO Hai
     fun getTapSignerName() = when (currentStep) {
         MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.HONEY_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
         MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> "$TAPSIGNER_INHERITANCE_NAME #2"

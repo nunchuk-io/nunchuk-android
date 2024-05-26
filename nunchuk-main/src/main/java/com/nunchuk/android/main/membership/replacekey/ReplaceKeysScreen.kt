@@ -11,16 +11,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -31,10 +38,12 @@ import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.signer.SignerModel
@@ -42,6 +51,7 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.StateEvent
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 @Composable
@@ -72,22 +82,36 @@ fun ReplaceKeysScreen(
         snackState = snackState,
         onReplaceKeyClicked = onReplaceKeyClicked,
         onCreateWalletClicked = viewModel::onCreateWallet,
+        onCancelReplaceWallet = viewModel::onCancelReplaceWallet,
     )
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReplaceKeysContent(
     uiState: ReplaceKeysUiState = ReplaceKeysUiState(),
     onReplaceKeyClicked: (SignerModel) -> Unit = {},
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onCreateWalletClicked: () -> Unit = {},
+    onCancelReplaceWallet: () -> Unit = {},
 ) {
+    var showSheetOptions by rememberSaveable { mutableStateOf(false) }
+    var selectedInheritanceSigner by remember { mutableStateOf<SignerModel?>(null) }
     NunchukTheme {
         NcScaffold(
             snackState = snackState,
             topBar = {
-                NcTopAppBar(title = "")
+                NcTopAppBar(title = "", actions = {
+                    if (uiState.replaceSigners.isNotEmpty()) {
+                        IconButton(onClick = { showSheetOptions = true }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    }
+                })
             },
             bottomBar = {
                 NcPrimaryDarkButton(
@@ -99,7 +123,7 @@ private fun ReplaceKeysContent(
                 ) {
                     Text(text = stringResource(R.string.nc_continue_to_create_a_new_wallet))
                 }
-            }
+            },
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -125,12 +149,46 @@ private fun ReplaceKeysContent(
                         ReplaceKeyCard(
                             modifier = Modifier.padding(top = 16.dp),
                             item = uiState.replaceSigners[item.fingerPrint] ?: item,
-                            onReplaceClicked = { onReplaceKeyClicked(it) },
+                            onReplaceClicked = {
+                                if (it.tags.contains(SignerTag.INHERITANCE)) {
+                                    selectedInheritanceSigner = it
+                                } else {
+                                    onReplaceKeyClicked(it)
+                                }
+                            },
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
                         )
                     }
                 }
             }
+        }
+
+        if (showSheetOptions) {
+            NcSelectableBottomSheet(
+                options = listOf(
+                    stringResource(R.string.nc_cancel_key_replacement),
+                ),
+                showSelectIndicator = false,
+                onSelected = {
+                    onCancelReplaceWallet()
+                    showSheetOptions = false
+                },
+                onDismiss = {
+                    showSheetOptions = false
+                }
+            )
+        } else if (selectedInheritanceSigner != null) {
+            NcConfirmationDialog(
+                title = stringResource(R.string.nc_text_warning),
+                message = stringResource(R.string.nc_inheritance_key_warning),
+                onPositiveClick = {
+                    onReplaceKeyClicked(selectedInheritanceSigner!!)
+                    selectedInheritanceSigner = null
+                },
+                onDismiss = {
+                    selectedInheritanceSigner = null
+                }
+            )
         }
     }
 }
