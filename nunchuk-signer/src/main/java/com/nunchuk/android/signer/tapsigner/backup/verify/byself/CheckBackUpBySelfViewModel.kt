@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,6 +39,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CheckBackUpBySelfViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val nfcFileManager: NfcFileManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -53,7 +55,7 @@ class CheckBackUpBySelfViewModel @Inject constructor(
             handleDownloadBackupKey()
         } else {
             viewModelScope.launch {
-                    _event.emit(event)
+                _event.emit(event)
             }
         }
     }
@@ -62,7 +64,10 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         viewModelScope.launch {
             getTapSignerStatusByIdUseCase(args.masterSignerId).onSuccess { status ->
                 val newFile = withContext(ioDispatcher) {
-                    File(args.filePath).copyTo(nfcFileManager.getBackUpKeyFile(status.ident.orEmpty()), true)
+                    File(args.filePath).copyTo(
+                        nfcFileManager.getBackUpKeyFile(status.ident.orEmpty()),
+                        true
+                    )
                 }
                 _event.emit(GetBackUpKeySuccess(newFile.absolutePath))
             }
@@ -72,11 +77,33 @@ class CheckBackUpBySelfViewModel @Inject constructor(
     fun setKeyVerified(groupId: String) {
         viewModelScope.launch {
             val result =
-                setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(groupId, args.masterSignerId, false))
+                setKeyVerifiedUseCase(
+                    SetKeyVerifiedUseCase.Param(
+                        groupId,
+                        args.masterSignerId,
+                        false
+                    )
+                )
             if (result.isSuccess) {
                 _event.emit(OnExitSelfCheck)
             } else {
                 _event.emit(ShowError(result.exceptionOrNull()))
+            }
+        }
+    }
+
+    fun setReplaceKeyVerified(keyId: String, checksum: String) {
+        viewModelScope.launch {
+            setReplaceKeyVerifiedUseCase(
+                SetReplaceKeyVerifiedUseCase.Param(
+                    keyId = keyId,
+                    checkSum = checksum,
+                    isAppVerified = false
+                )
+            ).onSuccess {
+                _event.emit(OnExitSelfCheck)
+            }.onFailure {
+                _event.emit(ShowError(it))
             }
         }
     }

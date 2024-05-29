@@ -27,7 +27,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -85,10 +90,12 @@ class CheckBackUpByAppFragment : MembershipFragment() {
 
             setContent {
                 CheckBackUpByAppScreen(
-                    viewModel,
-                    membershipStepManager,
-                    nfcViewModel.masterSignerId,
-                    (activity as NfcSetupActivity).groupId
+                    viewModel = viewModel,
+                    membershipStepManager = membershipStepManager,
+                    masterSignerId = nfcViewModel.masterSignerId,
+                    groupId = (activity as NfcSetupActivity).groupId,
+                    keyId = (activity as NfcSetupActivity).keyId,
+                    checkSum = (activity as NfcSetupActivity).checksum,
                 )
             }
         }
@@ -107,6 +114,7 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                         ) {
                             showError(event.e?.message?.orUnknownError())
                         }
+
                         is CheckBackUpByAppEvent.GetTapSignerBackupKeyEvent -> {
                             nfcViewModel.masterSigner?.let { masterSigner ->
                                 findNavController().navigate(
@@ -117,6 +125,7 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                                 )
                             }
                         }
+
                         is CheckBackUpByAppEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
                     }
                 }
@@ -155,29 +164,34 @@ private fun CheckBackUpByAppScreen(
     membershipStepManager: MembershipStepManager,
     masterSignerId: String,
     groupId: String,
+    keyId: String,
+    checkSum: String
 ) {
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
 
     CheckBackUpByAppContent(
-        onContinueClicked = viewModel::onContinueClicked,
+        onContinueClicked = {
+            if (keyId.isNotEmpty()) {
+                viewModel.onReplaceKeyVerified(masterSignerId, keyId, checkSum)
+            } else {
+                viewModel.onContinueClicked(groupId, masterSignerId)
+            }
+        },
         decryptionKey = viewModel.decryptionKey,
         errorMessage = viewModel.errorMessage,
         onValueChange = viewModel::onDecryptionKeyChange,
         remainingTime = remainingTime,
-        masterSignerId = masterSignerId,
-        groupId = groupId,
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CheckBackUpByAppContent(
-    onContinueClicked: (groupId: String, masterSignerId: String) -> Unit = {_, _ ->},
+    onContinueClicked: () -> Unit = {},
     decryptionKey: String = "",
     errorMessage: String = "",
     onValueChange: (value: String) -> Unit = {},
     remainingTime: Int = 0,
-    masterSignerId: String = "",
-    groupId: String = "",
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -228,7 +242,7 @@ private fun CheckBackUpByAppContent(
                         .padding(16.dp)
                         .bringIntoViewRequester(bringIntoViewRequester)
                         .fillMaxWidth(),
-                    onClick = { onContinueClicked(groupId, masterSignerId) }
+                    onClick = onContinueClicked
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }

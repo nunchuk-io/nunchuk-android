@@ -22,7 +22,6 @@ package com.nunchuk.android.core.data.model.membership
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.KeyResponse
-import com.nunchuk.android.model.TapSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.toVerifyType
@@ -50,6 +49,7 @@ internal fun SignerServerDto.toModel(): SignerServer {
         derivationPath = derivationPath,
         type = signerType,
         index = index,
+        tapsignerKeyId = tapsignerKey?.keyId,
         verifyType = if (signerType == SignerType.NFC) tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED,
         isVisible = isVisible,
         tapsigner = tapsigner?.toModel(),

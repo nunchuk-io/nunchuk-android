@@ -98,6 +98,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         backUpFilePath: String,
         masterSignerId: String,
         groupId: String,
+        keyId: String,
+        checksum: String,
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -107,6 +109,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 backUpFilePath = backUpFilePath,
                 masterSignerId = masterSignerId,
                 groupId = groupId,
+                keyId = keyId,
+                checksum = checksum,
             )
         )
     }

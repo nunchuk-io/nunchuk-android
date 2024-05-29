@@ -59,6 +59,7 @@ fun ReplaceKeysScreen(
     viewModel: ReplaceKeysViewModel = hiltViewModel(),
     onReplaceKeyClicked: (SignerModel) -> Unit = {},
     onCreateNewWalletSuccess: (String) -> Unit = {},
+    onVerifyClicked: (SignerModel) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackState = remember { SnackbarHostState() }
@@ -83,6 +84,7 @@ fun ReplaceKeysScreen(
         onReplaceKeyClicked = onReplaceKeyClicked,
         onCreateWalletClicked = viewModel::onCreateWallet,
         onCancelReplaceWallet = viewModel::onCancelReplaceWallet,
+        onVerifyClicked = onVerifyClicked
     )
 }
 
@@ -95,6 +97,7 @@ private fun ReplaceKeysContent(
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onCreateWalletClicked: () -> Unit = {},
     onCancelReplaceWallet: () -> Unit = {},
+    onVerifyClicked: (SignerModel) -> Unit = {},
 ) {
     var showSheetOptions by rememberSaveable { mutableStateOf(false) }
     var selectedInheritanceSigner by remember { mutableStateOf<SignerModel?>(null) }
@@ -156,6 +159,8 @@ private fun ReplaceKeysContent(
                                     onReplaceKeyClicked(it)
                                 }
                             },
+                            isNeedVerify = uiState.verifiedSigners.contains(item.fingerPrint) && item.type == SignerType.NFC,
+                            onVerifyClicked = onVerifyClicked,
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
                         )
                     }
@@ -198,12 +203,16 @@ fun ReplaceKeyCard(
     item: SignerModel,
     modifier: Modifier = Modifier,
     isReplaced: Boolean = false,
+    isNeedVerify: Boolean = false,
     onReplaceClicked: (data: SignerModel) -> Unit = {},
     onVerifyClicked: (data: SignerModel) -> Unit = {},
 ) {
     Box(
         modifier = modifier.background(
-            color = colorResource(id = R.color.nc_beeswax_tint),
+            color = if (isReplaced && !isNeedVerify)
+                colorResource(id = R.color.nc_green_color)
+            else
+                colorResource(id = R.color.nc_beeswax_tint),
             shape = RoundedCornerShape(8.dp)
         ),
         contentAlignment = Alignment.Center,
@@ -248,13 +257,14 @@ fun ReplaceKeyCard(
                 )
             }
             if (isReplaced) {
-                if (item.type == SignerType.NFC)
+                if (isNeedVerify) {
                     NcOutlineButton(
                         modifier = Modifier.height(36.dp),
                         onClick = { onVerifyClicked(item) },
                     ) {
                         Text(text = stringResource(R.string.nc_verify_backup))
                     }
+                }
             } else {
                 NcOutlineButton(
                     modifier = Modifier.height(36.dp),

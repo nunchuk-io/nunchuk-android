@@ -68,6 +68,17 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                                 isReplaceWallet = true
                             )
                         )
+                    },
+                    onVerifyClicked = { signer ->
+                        navigator.openVerifyBackupTapSigner(
+                            activity = requireActivity(),
+                            fromMembershipFlow = true,
+                            backUpFilePath = viewModel.getFilePath(signer.id),
+                            masterSignerId = signer.id,
+                            groupId = (activity as MembershipActivity).groupId,
+                            keyId = viewModel.getKeyId(signer.id),
+                            checksum = viewModel.getKeyChecksum(signer.id).orEmpty(),
+                        )
                     }
                 )
             }
@@ -112,9 +123,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
 
                     SignerType.SOFTWARE -> openAddSoftwareKey()
-                    SignerType.HARDWARE -> {
-                        // TODO Hai
-                    }
+                    SignerType.HARDWARE -> showAddKeyByDesktopApp()
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -128,6 +137,13 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             }
             clearFragmentResult(CustomKeyAccountFragmentFragment.REQUEST_KEY)
         }
+    }
+
+    private fun showAddKeyByDesktopApp() {
+        NCInfoDialog(requireActivity())
+            .showDialog(
+                message = getString(R.string.nc_info_hardware_key_not_supported),
+            )
     }
 
     override fun onResume() {
@@ -185,13 +201,27 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 ) { handleSelectAddAirgapType(selectedSignerTag) }
             }
 
-            SheetOptionType.TYPE_ADD_LEDGER,
-            SheetOptionType.TYPE_ADD_TREZOR,
-            SheetOptionType.TYPE_ADD_COLDCARD_USB,
-            SheetOptionType.TYPE_ADD_BITBOX -> NCInfoDialog(requireActivity())
-                .showDialog(
-                    message = getString(R.string.nc_info_hardware_key_not_supported),
-                )
+            SheetOptionType.TYPE_ADD_LEDGER -> {
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.LEDGER),
+                    SignerType.HARDWARE
+                ) { showAddKeyByDesktopApp() }
+            }
+
+            SheetOptionType.TYPE_ADD_TREZOR -> {
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.TREZOR),
+                    SignerType.HARDWARE
+                ) { showAddKeyByDesktopApp() }
+            }
+
+            SheetOptionType.TYPE_ADD_COLDCARD_USB -> showAddKeyByDesktopApp()
+            SheetOptionType.TYPE_ADD_BITBOX -> {
+                handleShowKeysOrCreate(
+                    viewModel.getHardwareSigners(SignerTag.BITBOX),
+                    SignerType.HARDWARE
+                ) { showAddKeyByDesktopApp() }
+            }
 
             SheetOptionType.TYPE_ADD_SOFTWARE_KEY -> checkTwoSoftwareKeySameDevice {
                 handleShowKeysOrCreate(

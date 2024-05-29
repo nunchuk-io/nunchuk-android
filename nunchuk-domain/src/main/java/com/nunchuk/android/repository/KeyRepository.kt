@@ -58,6 +58,12 @@ interface KeyRepository {
         isAppVerify: Boolean,
     )
 
+    suspend fun setReplaceKeyVerified(
+        checkSum: String,
+        keyId: String,
+        isAppVerify: Boolean,
+    )
+
     suspend fun initReplaceKey(
         groupId: String?,
         walletId: String,

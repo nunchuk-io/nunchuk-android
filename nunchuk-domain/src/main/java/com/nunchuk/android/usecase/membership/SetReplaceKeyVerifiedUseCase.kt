@@ -17,26 +17,25 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model.signer
+package com.nunchuk.android.usecase.membership
 
-import android.os.Parcelable
-import com.nunchuk.android.model.TapSigner
-import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.type.SignerType
-import kotlinx.parcelize.Parcelize
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-@Parcelize
-data class SignerServer(
-    val name: String? = null,
-    val xfp: String? = null,
-    val derivationPath: String? = null,
-    val type: SignerType = SignerType.UNKNOWN,
-    val verifyType: VerifyType = VerifyType.NONE,
-    val tapsignerKeyId: String? = null,
-    val index: Int = 0,
-    val isVisible: Boolean = true,
-    val tapsigner: TapSigner? = null,
-    val xpub: String? = null,
-    val pubkey: String? = null,
-    val tags: List<String> = emptyList(),
-) : Parcelable
+class SetReplaceKeyVerifiedUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: KeyRepository
+) : UseCase<SetReplaceKeyVerifiedUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        repository.setReplaceKeyVerified(
+            keyId = parameters.keyId,
+            checkSum = parameters.checkSum,
+            isAppVerify = parameters.isAppVerified
+        )
+    }
+
+    data class Param(val keyId: String, val checkSum: String, val isAppVerified: Boolean)
+}
