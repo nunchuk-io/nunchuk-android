@@ -6,6 +6,7 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
+// TODO Hai Remove
 class SetReplacingKeyXfpUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val ncDataStore: NcDataStore

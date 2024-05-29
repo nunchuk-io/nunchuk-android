@@ -82,7 +82,9 @@ class ColdcardRecoverFragment : MembershipFragment() {
             viewModel.parseColdcardSigner(
                 uri = uri,
                 groupId = (activity as Mk4Activity).groupId,
-                newIndex = (activity as Mk4Activity).newIndex
+                newIndex = (activity as Mk4Activity).newIndex,
+                replacedXfp = (activity as Mk4Activity).replacedXfp,
+                walletId = (activity as Mk4Activity).walletId
             )
         }
     }
@@ -94,7 +96,9 @@ class ColdcardRecoverFragment : MembershipFragment() {
                 viewModel.handleSigner(
                     singleSigners = keys,
                     groupId = (activity as Mk4Activity).groupId,
-                    newIndex = (activity as Mk4Activity).newIndex
+                    newIndex = (activity as Mk4Activity).newIndex,
+                    replacedXfp = (activity as Mk4Activity).replacedXfp,
+                    walletId = (activity as Mk4Activity).walletId
                 )
             }
         }

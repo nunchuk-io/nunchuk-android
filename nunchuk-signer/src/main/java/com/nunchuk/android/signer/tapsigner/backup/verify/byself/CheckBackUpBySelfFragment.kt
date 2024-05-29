@@ -45,7 +45,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcHintMessage
@@ -70,7 +69,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class CheckBackUpBySelfFragment : MembershipFragment() {
-    private val args: CheckBackUpBySelfFragmentArgs by navArgs()
     private val viewModel: CheckBackUpBySelfViewModel by viewModels()
 
     @Inject
@@ -103,7 +101,15 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                 title = getString(R.string.nc_confirmation),
                                 message = getString(R.string.nc_confirm_verify_backup_by_self_desc),
                                 onYesClick = {
-                                    viewModel.setKeyVerified((requireActivity() as NfcSetupActivity).groupId)
+                                    val keyId = (activity as NfcSetupActivity).keyId
+                                    val checksum = (activity as NfcSetupActivity).checksum
+                                    if (keyId.isNotEmpty()) {
+                                        viewModel.setReplaceKeyVerified(keyId, checksum)
+                                    } else {
+                                        viewModel.setKeyVerified(
+                                            (requireActivity() as NfcSetupActivity).groupId,
+                                        )
+                                    }
                                 },
                             )
 

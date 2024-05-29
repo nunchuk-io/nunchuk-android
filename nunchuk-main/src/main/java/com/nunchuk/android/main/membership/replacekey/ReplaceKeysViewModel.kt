@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.key.SetReplacingKeyXfpUseCase
+import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -18,6 +18,7 @@ import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
@@ -43,7 +44,6 @@ class ReplaceKeysViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getGroupUseCase: GetGroupUseCase,
     private val accountManager: AccountManager,
-    private val setReplacingKeyXfpUseCase: SetReplacingKeyXfpUseCase,
     private val getReplaceWalletStatusUseCase: GetReplaceWalletStatusUseCase,
     private val finalizeReplaceKeyUseCase: FinalizeReplaceKeyUseCase,
     private val initReplaceKeyUseCase: InitReplaceKeyUseCase,
@@ -52,12 +52,14 @@ class ReplaceKeysViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val resetReplaceKeyUseCase: ResetReplaceKeyUseCase,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val nfcFileManager: NfcFileManager
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _uiState = MutableStateFlow(ReplaceKeysUiState())
     val uiState = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
+    private val replacedSigners = mutableListOf<SignerServer>()
 
     init {
         viewModelScope.launch {
@@ -111,6 +113,10 @@ class ReplaceKeysViewModel @Inject constructor(
                         .filter { signer -> signer.verifyType != VerifyType.NONE }
                         .mapNotNull { signer -> signer.xfp }
                         .toSet()
+                    replacedSigners.apply {
+                        clear()
+                        addAll(status.signers.values)
+                    }
                     it.copy(
                         replaceSigners = status.signers.mapValues { entry ->
                             entry.value.toModel()
@@ -259,6 +265,12 @@ class ReplaceKeysViewModel @Inject constructor(
             }
         }
     }
+
+    fun getKeyId(xfp: String): String {
+        return replacedSigners.find { it.xfp == xfp }?.tapsignerKeyId.orEmpty()
+    }
+    fun getKeyChecksum(xfp: String): String? = null
+    fun getFilePath(xfp: String) = nfcFileManager.buildFilePath(getKeyId(xfp))
 
     val replacedXfp: String
         get() = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()

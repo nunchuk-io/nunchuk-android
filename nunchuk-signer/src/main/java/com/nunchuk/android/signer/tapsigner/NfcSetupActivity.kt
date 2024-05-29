@@ -68,9 +68,11 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                 masterSignerId = intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty(),
                 filePath = intent.getStringExtra(EXTRA_BACKUP_FILE_PATH).orEmpty()
             ).toBundle()
+
             CREATE_BACK_UP_KEY -> TapSignerIdFragmentArgs(
                 intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty()
             ).toBundle()
+
             else -> intent.extras
         }
         navHostFragment.navController.setGraph(graph, extras)
@@ -82,6 +84,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                 R.id.addNfcNameFragment,
                 R.id.setupChainCodeFragment,
                 R.id.changeNfcCvcFragment -> WindowCompat.setDecorFitsSystemWindows(window, true)
+
                 else -> WindowCompat.setDecorFitsSystemWindows(window, false)
             }
         }
@@ -114,22 +117,33 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             }
 
     val groupId: String
-            by lazy(LazyThreadSafetyMode.NONE) {  intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
+            by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
     val signerIndex: Int
-            by lazy(LazyThreadSafetyMode.NONE) {  intent.getIntExtra(EXTRA_SIGNER_INDEX, 0) }
+            by lazy(LazyThreadSafetyMode.NONE) { intent.getIntExtra(EXTRA_SIGNER_INDEX, 0) }
 
     val replacedXfp: String
-            by lazy(LazyThreadSafetyMode.NONE) {  intent.getStringExtra(EXTRA_REPLACED_XFP).orEmpty() }
+            by lazy(LazyThreadSafetyMode.NONE) {
+                intent.getStringExtra(EXTRA_REPLACED_XFP).orEmpty()
+            }
 
     val walletId: String
-            by lazy(LazyThreadSafetyMode.NONE) {  intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+            by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+
+    val keyId: String
+            by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_KEY_ID).orEmpty() }
+
+    // TODO Hai remove if need
+    val checksum: String
+            by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_CHECKSUM).orEmpty() }
 
     companion object {
         private const val EXTRA_ACTION = "EXTRA_ACTION"
         private const val EXTRA_HAS_WALLET = "EXTRA_HAS_WALLET"
         private const val EXTRA_FROM_MEMBERSHIP_FLOW = "isMembershipFlow"
         private const val EXTRA_BACKUP_FILE_PATH = "EXTRA_BACKUP_FILE_PATH"
+        private const val EXTRA_KEY_ID = "key_id"
+        private const val EXTRA_CHECKSUM = "checksum"
         const val EXTRA_SATSCARD_SLOT = "EXTRA_SATSCARD_SLOT"
         const val EXTRA_GROUP_ID = "group_id"
         const val EXTRA_SIGNER_INDEX = "signer_index"
@@ -184,7 +198,9 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             groupId: String = "",
             signerIndex: Int = 0,
             replacedXfp: String = "",
-            walletId : String = ""
+            walletId: String = "",
+            keyId: String = "",
+            checksum: String = "",
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
@@ -196,6 +212,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_SIGNER_INDEX, signerIndex)
             putExtra(EXTRA_REPLACED_XFP, replacedXfp)
             putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_KEY_ID, keyId)
+            putExtra(EXTRA_CHECKSUM, checksum)
         }
     }
 }

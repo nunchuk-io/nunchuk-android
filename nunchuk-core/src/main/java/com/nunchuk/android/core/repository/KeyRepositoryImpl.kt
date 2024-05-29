@@ -325,6 +325,24 @@ internal class KeyRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setReplaceKeyVerified(
+        checkSum: String,
+        keyId: String,
+        isAppVerify: Boolean
+    ) {
+        val response =
+            userWalletApiManager.walletApi.setKeyVerified(
+                keyId,
+                KeyVerifiedRequest(
+                    checkSum,
+                    if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
+                )
+            )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
     private fun asRequestBody(
         file: File,
         contentType: MediaType? = null,

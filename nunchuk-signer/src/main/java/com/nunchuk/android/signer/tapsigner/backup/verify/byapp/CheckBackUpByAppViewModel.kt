@@ -31,6 +31,7 @@ import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.VerifyTapSignerBackupUseCase
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -42,6 +43,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
     private val verifyTapSignerBackupUseCase: VerifyTapSignerBackupUseCase,
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     savedStateHandle: SavedStateHandle,
     private val application: Application
 ) : ViewModel() {
@@ -70,6 +72,34 @@ class CheckBackUpByAppViewModel @Inject constructor(
             if (result.isSuccess && result.getOrThrow()) {
                 val apiResult =
                     setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(groupId, masterSignerId, true))
+                if (apiResult.isSuccess) {
+                    _event.emit(CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess)
+                } else {
+                    _event.emit(CheckBackUpByAppEvent.ShowError(apiResult.exceptionOrNull()))
+                }
+            } else {
+                tryCount++
+                errorMessage = application.getString(R.string.nc_decryption_failed_try_again)
+                if (tryCount.mod(MAX_TRY) == 0) {
+                    _event.emit(CheckBackUpByAppEvent.OnVerifyFailedTooMuch)
+                }
+            }
+        }
+    }
+
+    fun onReplaceKeyVerified(masterSignerId: String, keyId: String, checkSum: String) {
+        viewModelScope.launch {
+            val result =
+                verifyTapSignerBackupUseCase(
+                    VerifyTapSignerBackupUseCase.Data(
+                        masterSignerId = masterSignerId,
+                        backUpKey = args.filePath,
+                        decryptionKey = decryptionKey
+                    )
+                )
+            if (result.isSuccess && result.getOrThrow()) {
+                val apiResult =
+                    setReplaceKeyVerifiedUseCase(SetReplaceKeyVerifiedUseCase.Param(keyId, checkSum, true))
                 if (apiResult.isSuccess) {
                     _event.emit(CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess)
                 } else {
