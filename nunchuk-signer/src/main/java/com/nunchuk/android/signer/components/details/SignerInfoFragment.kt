@@ -103,6 +103,8 @@ import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
+import com.nunchuk.android.core.wallet.WalletBottomSheetResult
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.KeyHealthType
 import com.nunchuk.android.model.VerificationType
@@ -114,6 +116,7 @@ import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.healthCheckLabel
 import com.nunchuk.android.utils.healthCheckTimeColor
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -193,10 +196,11 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
         observeEvent()
 
         childFragmentManager.setFragmentResultListener(
-            AssistedWalletBottomSheet.TAG,
+            WalletComposeBottomSheet.TAG,
             viewLifecycleOwner
         ) { _, bundle ->
-            val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
+            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT) ?: return@setFragmentResultListener
+            val walletId = result.walletId ?: return@setFragmentResultListener
             if (walletId.isNotEmpty()) {
                 viewModel.onHealthCheck(walletId)
             }
@@ -446,7 +450,7 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
             if (viewModel.getAssistedWalletIds().size == 1) {
                 viewModel.onHealthCheck(viewModel.getAssistedWalletIds().first())
             } else {
-                AssistedWalletBottomSheet.show(
+                WalletComposeBottomSheet.show(
                     childFragmentManager,
                     assistedWalletIds = viewModel.getAssistedWalletIds()
                 )

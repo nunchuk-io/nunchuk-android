@@ -53,7 +53,12 @@ class WalletsBottomSheetViewModel @Inject constructor(
     private val _state = MutableStateFlow(WalletsBottomSheetState())
     val state = _state.asStateFlow()
 
-    init {
+    fun init(
+        isShowAddress: Boolean,
+        assistedWalletIds: List<String>,
+        exclusiveWalletIds: List<String>
+    ) {
+        _state.update { it.copy(isShowAddress = isShowAddress) }
         viewModelScope.launch {
             getGroupsUseCase(Unit)
                 .collect { result ->
@@ -66,15 +71,17 @@ class WalletsBottomSheetViewModel @Inject constructor(
                     updateLockdownWalletsIds()
                 }
         }
-        getSavedAddresses()
+        if (isShowAddress) getSavedAddresses()
+        getWallets(exclusiveWalletIds, assistedWalletIds)
     }
 
-    fun getWallets(exclusiveWalletIds: List<String>) {
+    private fun getWallets(exclusiveWalletIds: List<String>, assistedWalletIds: List<String>) {
         viewModelScope.launch {
             getWalletsUseCase.execute()
                 .catch { Timber.e(it) }
                 .collect { wallets ->
                     val filterWallets = wallets.filter { it.wallet.id !in exclusiveWalletIds }
+                        .filter { if (assistedWalletIds.isEmpty()) true else it.wallet.id in assistedWalletIds }
                     _state.update { it.copy(wallets = filterWallets) }
                 }
         }
@@ -84,6 +91,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect { wallets ->
                     val assistedWallets = wallets.filter { it.localId !in exclusiveWalletIds }
+                        .filter { if (assistedWalletIds.isEmpty()) true else it.localId in assistedWalletIds }
                     _state.update {
                         it.copy(
                             assistedWalletIds = assistedWallets.map { it.localId },
@@ -118,5 +126,6 @@ data class WalletsBottomSheetState(
     val assistedWalletIds: List<String> = emptyList(),
     val lockdownWalletIds: Set<String> = emptySet(),
     val joinedGroups: Map<String, ByzantineGroup> = HashMap(),
-    val savedAddresses: List<SavedAddress> = emptyList()
+    val savedAddresses: List<SavedAddress> = emptyList(),
+    val isShowAddress: Boolean = false
 )

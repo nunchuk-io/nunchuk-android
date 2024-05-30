@@ -13,6 +13,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
+import com.nunchuk.android.core.wallet.WalletBottomSheetResult
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.addPaymentWalletAddress
 import com.nunchuk.android.main.membership.byzantine.payment.address.wallet.navigateToPaymentWalletAddress
@@ -81,9 +83,10 @@ class RecurringPaymentActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportFragmentManager.setFragmentResultListener(
-            AssistedWalletBottomSheet.TAG, this
+            WalletComposeBottomSheet.TAG, this
         ) { _, bundle ->
-            val selectedWalletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
+            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT) ?: return@setFragmentResultListener
+            val selectedWalletId = result.walletId ?: return@setFragmentResultListener
             viewModel.getWalletDetail(selectedWalletId)
         }
         setContentView(
@@ -149,7 +152,7 @@ class RecurringPaymentActivity : BaseComposeActivity() {
                                 )
                             },
                             openSellectWallet = {
-                                AssistedWalletBottomSheet.show(
+                                WalletComposeBottomSheet.show(
                                     supportFragmentManager,
                                     assistedWalletIds = state.otherwallets.map { wallet -> wallet.id },
                                     title = context.getString(R.string.nc_select_a_wallet),
