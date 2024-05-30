@@ -88,9 +88,10 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 
     private val viewModel by viewModels<WalletsBottomSheetViewModel>()
 
-    private val exclusiveWalletIds by lazy {
-        requireArguments().getStringArrayList(EXTRA_EXCLUSIVE_WALLET_IDS).orEmpty()
-    }
+    private val exclusiveWalletIds by lazy { requireArguments().getStringArrayList(EXTRA_EXCLUSIVE_WALLET_IDS).orEmpty() }
+    private val isShowAddress by lazy { requireArguments().getBoolean(EXTRA_SHOW_ADDRESS) }
+    private val title by lazy { requireArguments().getString(EXTRA_TITLE) }
+    private val assistedWalletIds by lazy { requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty() }
 
     private val addressLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -108,6 +109,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
             setContent {
                 NunchukTheme {
                     AssistedWalletScreen(viewModel = viewModel,
+                        title = title,
                         onWalletClick = { wallet ->
                             if (viewModel.state.value.lockdownWalletIds.isEmpty() ||
                                 viewModel.state.value.lockdownWalletIds.contains(wallet.wallet.id)
@@ -152,26 +154,32 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getWallets(exclusiveWalletIds)
+        viewModel.init(isShowAddress, assistedWalletIds, exclusiveWalletIds)
     }
 
     companion object {
         const val TAG = "WalletComposeBottomSheet"
         private const val EXTRA_EXCLUSIVE_WALLET_IDS = "extra_exclusive_wallet_ids"
+        private const val EXTRA_WALLET_IDS = "wallet_ids"
         private const val EXTRA_TITLE = "title"
+        private const val EXTRA_SHOW_ADDRESS = "show_address"
         const val RESULT = "WALLET_BOTTOM_SHEET_RESULT"
 
         fun show(
             fragmentManager: FragmentManager,
-            exclusiveAssistedWalletIds: List<String>,
-            title: String? = null
+            exclusiveAssistedWalletIds: List<String> = emptyList(),
+            assistedWalletIds: List<String> = emptyList(),
+            title: String? = null,
+            isShowAddress: Boolean = false,
         ) = WalletComposeBottomSheet().apply {
             arguments = Bundle().apply {
                 putStringArrayList(
                     EXTRA_EXCLUSIVE_WALLET_IDS,
                     ArrayList(exclusiveAssistedWalletIds)
                 )
+                putStringArrayList(EXTRA_WALLET_IDS, ArrayList(assistedWalletIds))
                 putString(EXTRA_TITLE, title)
+                putBoolean(EXTRA_SHOW_ADDRESS, isShowAddress)
             }
             show(fragmentManager, TAG)
         }
@@ -181,6 +189,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 @Composable
 private fun AssistedWalletScreen(
     viewModel: WalletsBottomSheetViewModel,
+    title: String?,
     onWalletClick: (WalletExtended) -> Unit = {},
     onAddAddressClick: (Boolean) -> Unit = {},
     onSelectAddressClick: (SavedAddress) -> Unit = {},
@@ -188,10 +197,8 @@ private fun AssistedWalletScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     AssistedWalletContent(
-        savedAddresses = uiState.savedAddresses,
-        wallets = uiState.wallets,
-        assistedWalletIds = uiState.assistedWalletIds,
-        lockdownWalletIds = uiState.lockdownWalletIds,
+        uiState = uiState,
+        title = title,
         onWalletClick = onWalletClick,
         onSelectAddressClick = onSelectAddressClick,
         onAddAddressClick = {
@@ -202,10 +209,8 @@ private fun AssistedWalletScreen(
 
 @Composable
 private fun AssistedWalletContent(
-    savedAddresses: List<SavedAddress> = emptyList(),
-    assistedWalletIds: List<String> = emptyList(),
-    wallets: List<WalletExtended> = emptyList(),
-    lockdownWalletIds: Set<String> = HashSet(),
+    uiState: WalletsBottomSheetState,
+    title: String? = null,
     onWalletClick: (WalletExtended) -> Unit = {},
     onAddAddressClick: () -> Unit = {},
     onSelectAddressClick: (SavedAddress) -> Unit = {},
@@ -226,45 +231,57 @@ private fun AssistedWalletContent(
             contentPadding = PaddingValues(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f, fill = true),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            painter = painterResource(id = R.drawable.ic_saved_address),
-                            contentDescription = ""
-                        )
-                        Text(
-                            text = stringResource(id = R.string.nc_saved_addresses),
-                            modifier = Modifier.padding(start = 8.dp),
-                            style = NunchukTheme.typography.title
-                        )
-                    }
+
+            if (uiState.isShowAddress.not()) {
+                item {
                     Text(
-                        modifier = Modifier.clickable { onAddAddressClick() },
-                        text = if (savedAddresses.isEmpty()) stringResource(id = R.string.nc_add) else stringResource(
-                            id = R.string.nc_edit
-                        ),
+                        text = if (title.isNullOrEmpty()) stringResource(R.string.nc_select_an_assisted_wallet) else title,
                         style = NunchukTheme.typography.title,
-                        textDecoration = TextDecoration.Underline,
                     )
                 }
             }
 
-            items(savedAddresses) { address ->
-                AddressItem(
-                    address = address.label,
-                    onClick = { onSelectAddressClick(address) }
-                )
+            if (uiState.isShowAddress) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f, fill = true),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(24.dp),
+                                painter = painterResource(id = R.drawable.ic_saved_address),
+                                contentDescription = ""
+                            )
+                            Text(
+                                text = stringResource(id = R.string.nc_saved_addresses),
+                                modifier = Modifier.padding(start = 8.dp),
+                                style = NunchukTheme.typography.title
+                            )
+                        }
+                        Text(
+                            modifier = Modifier.clickable { onAddAddressClick() },
+                            text = if (uiState.savedAddresses.isEmpty()) stringResource(id = R.string.nc_add) else stringResource(
+                                id = R.string.nc_edit
+                            ),
+                            style = NunchukTheme.typography.title,
+                            textDecoration = TextDecoration.Underline,
+                        )
+                    }
+                }
+
+                items(uiState.savedAddresses) { address ->
+                    AddressItem(
+                        address = address.label,
+                        onClick = { onSelectAddressClick(address) }
+                    )
+                }
             }
 
-            if (wallets.isNotEmpty()) {
+            if (uiState.wallets.isNotEmpty() && uiState.isShowAddress) {
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -289,11 +306,11 @@ private fun AssistedWalletContent(
                 }
             }
 
-            items(wallets) { wallet ->
+            items(uiState.wallets) { wallet ->
                 AssistedWallet(
                     walletsExtended = wallet,
-                    isAssistedWallet = assistedWalletIds.contains(wallet.wallet.id),
-                    isLocked = lockdownWalletIds.contains(wallet.wallet.id),
+                    isAssistedWallet = uiState.assistedWalletIds.contains(wallet.wallet.id),
+                    isLocked = uiState.lockdownWalletIds.contains(wallet.wallet.id),
                     onWalletClick = {
                         onWalletClick(wallet)
                     }
@@ -384,6 +401,6 @@ fun AssistedWalletContentPreview(
     @PreviewParameter(WalletProvider::class) wallets: List<WalletExtended>,
 ) {
     NunchukTheme {
-        AssistedWalletContent(wallets = wallets)
+        AssistedWalletContent(uiState = WalletsBottomSheetState(wallets = wallets, isShowAddress = true))
     }
 }
