@@ -348,4 +348,12 @@
     <string name="nc_info_hardware_key_not_supported">Please use the desktop app to add this key.</string>
     <string name="nc_cancel_key_replacement">Cancel key replacement</string>
     <string name="nc_inheritance_key_warning">[B]Replacing the inheritance key means that you will have to set up the inheritance plan again[/B]. Are you sure you want to do this?</string>
+    <string name="nc_confirm_cancel_replacement_desc">Are you sure you want to cancel the key replacement?</string>
+    <string name="nc_transfer_fund_desc">Would you like to transfer all funds from the old wallet to the new wallet?</string>
+    <string name="nc_continue_to_transfer_funds">Continue to transfer funds</string>
+    <string name="nc_transfer_funds">Transfer funds</string>
+    <string name="nc_transfer_funds_desc">We will now transfer all funds from the old wallet to %1$s.</string>
+    <string name="nc_existing_balance">Existing balance</string>
+    <string name="nc_remove_unused_keys">Remove unused keys</string>
+    <string name="nc_remove_unused_key_desc">Upon completion of the roll-over process, keys that are associated with your old assisted wallet and are no longer used will automatically be removed.</string>
 </resources>

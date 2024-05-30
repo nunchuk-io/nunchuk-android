@@ -80,7 +80,8 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-        isConsolidateFlow: Boolean = false
+        isConsolidateFlow: Boolean = false,
+        title: String = ""
     )
 
     fun openTransactionConfirmScreen(

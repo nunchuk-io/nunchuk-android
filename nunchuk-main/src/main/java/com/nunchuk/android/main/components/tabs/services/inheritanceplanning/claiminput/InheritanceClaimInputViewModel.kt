@@ -27,11 +27,10 @@ import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCas
 import com.nunchuk.android.core.domain.membership.InheritanceClaimDownloadBackupUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.network.NunchukApiException
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.replaceLastWord
-import com.nunchuk.android.main.util.ChecksumUtil
+import com.nunchuk.android.utils.ChecksumUtil
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result

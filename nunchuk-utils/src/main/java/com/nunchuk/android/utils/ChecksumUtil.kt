@@ -17,17 +17,16 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.util
+package com.nunchuk.android.utils
 
 import org.apache.commons.codec.DecoderException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
-
 object ChecksumUtil {
     const val ALGORITHM = "SHA-256"
     @Throws(NoSuchAlgorithmException::class)
-    fun getChecksum(bytes: ByteArray?): String {
+    fun getChecksum(bytes: ByteArray): String {
         val digest = MessageDigest.getInstance(ALGORITHM)
         val encodedhash = digest.digest(bytes)
         return bytesToHex(encodedhash)
@@ -56,7 +55,7 @@ object ChecksumUtil {
     }
 
     @Throws(DecoderException::class)
-    fun decodeHex(data: CharArray): ByteArray {
+    private fun decodeHex(data: CharArray): ByteArray {
         val out = ByteArray(data.size shr 1)
         val outOffset = 0
         val len = data.size
@@ -83,7 +82,7 @@ object ChecksumUtil {
     }
 
     @Throws(DecoderException::class)
-    internal fun toDigit(ch: Char, index: Int): Int {
+    private fun toDigit(ch: Char, index: Int): Int {
         val digit = ch.digitToIntOrNull(16) ?: -1
         if (digit == -1) {
             throw DecoderException("Illegal hexadecimal character $ch at index $index")

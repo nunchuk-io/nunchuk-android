@@ -110,7 +110,6 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 masterSignerId = masterSignerId,
                 groupId = groupId,
                 keyId = keyId,
-                checksum = checksum,
             )
         )
     }
