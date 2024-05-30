@@ -23,6 +23,7 @@ import android.content.Context
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
@@ -110,7 +111,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             } else {
                 viewModel.updateAddress(result.savedAddress?.address.orEmpty())
             }
-            updateSelectAddressView(walletName = result.walletName, savedAddressLabel = result.savedAddress?.label)
+            updateSelectAddressView(isSelectMode = false, walletName = result.walletName, savedAddressLabel = result.savedAddress?.label)
             supportFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
         }
     }
@@ -170,21 +171,37 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             viewModel.handleContinueEvent(false)
         }
         binding.receiptInputDropdown.setOnDebounceClickListener {
-            WalletComposeBottomSheet.show(
-                supportFragmentManager,
-                exclusiveAssistedWalletIds = arrayListOf(args.walletId),
-            )
+            if (binding.receiptSelectLayout.isVisible) {
+                updateSelectAddressView(true)
+            } else {
+                WalletComposeBottomSheet.show(
+                    supportFragmentManager,
+                    exclusiveAssistedWalletIds = arrayListOf(args.walletId),
+                )
+            }
         }
     }
 
-    private fun updateSelectAddressView(walletName: String? = null, savedAddressLabel: String? = null) {
-        binding.receiptSelectLayout.isVisible = walletName != null || savedAddressLabel != null
-        binding.receiptSelectLabel.text = walletName ?: savedAddressLabel
-        binding.receiptInput.isVisible = false
-        if (walletName != null) {
-            binding.receiptInputImage.setImageResource(R.drawable.ic_wallet_small)
+    private fun updateSelectAddressView(isSelectMode: Boolean, walletName: String? = null, savedAddressLabel: String? = null) {
+        binding.receiptSelectLayout.isVisible = isSelectMode.not()
+        binding.receiptSelectLabel.isVisible = isSelectMode.not()
+        binding.receiptInput.isVisible = isSelectMode
+        if (isSelectMode) {
+            viewModel.updateAddress("")
+            binding.receiptInputDropdown.setBackgroundDrawable(ContextCompat.getDrawable(this, R.drawable.ic_arrow_drop_down))
         } else {
-            binding.receiptInputImage.setImageResource(R.drawable.ic_saved_address)
+            binding.receiptSelectLabel.text = walletName ?: savedAddressLabel
+            if (walletName != null) {
+                binding.receiptInputImage.setImageResource(R.drawable.ic_wallet_small)
+            } else {
+                binding.receiptInputImage.setImageResource(R.drawable.ic_saved_address)
+            }
+            binding.receiptInputDropdown.setBackgroundDrawable(
+                ContextCompat.getDrawable(
+                    this,
+                    R.drawable.ic_close_circle
+                )
+            )
         }
     }
 
