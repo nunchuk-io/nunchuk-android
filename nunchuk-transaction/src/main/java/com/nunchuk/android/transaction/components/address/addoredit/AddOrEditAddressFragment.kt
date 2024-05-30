@@ -54,6 +54,7 @@ import com.nunchuk.android.core.util.SavedAddressFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.widget.NCWarningDialog
@@ -131,8 +132,7 @@ fun AddOrEditAddressScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     AddOrEditAddressScreenContent(
-        address = state.address,
-        label = state.label,
+        uiState = state,
         flow = flow,
         onScanClick = onScanClick,
         onInputLabelChange = { viewModel.updateLabel(it) },
@@ -144,8 +144,7 @@ fun AddOrEditAddressScreen(
 
 @Composable
 fun AddOrEditAddressScreenContent(
-    address: String = "",
-    label: String = "",
+    uiState: AddOrEditAddressState,
     flow: Int = SavedAddressFlow.NONE,
     onInputLabelChange: (String) -> Unit = {},
     onInputAddressChange: (String) -> Unit = {},
@@ -181,9 +180,11 @@ fun AddOrEditAddressScreenContent(
                     }
 
                     val isButtonEnabled = if (flow == SavedAddressFlow.CREATE) {
-                        address.isNotEmpty() && label.isNotEmpty()
+                        uiState.address.isNotEmpty() && uiState.label.isNotEmpty()
                     } else {
-                        label.isNotEmpty()
+                        uiState.label.isNotEmpty() && uiState.originSavedAddress != null
+                                && (uiState.address != uiState.originSavedAddress.address
+                                || uiState.label != uiState.originSavedAddress.label)
                     }
                     NcPrimaryDarkButton(
                         modifier = Modifier
@@ -240,7 +241,7 @@ fun AddOrEditAddressScreenContent(
                 NcTextField(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
                     title = stringResource(id = R.string.nc_label),
-                    value = label,
+                    value = uiState.label,
                     placeholder = {
                         Text(
                             text = stringResource(id = R.string.nc_enter_a_label),
@@ -254,14 +255,15 @@ fun AddOrEditAddressScreenContent(
                     onValueChange = {
                         if (it.length <= 40) onInputLabelChange(it)
                     },
-                    hint = "$MAX_INPUT_LENGTH/$MAX_INPUT_LENGTH".takeIf { label.length == MAX_INPUT_LENGTH }
+                    hint = "$MAX_INPUT_LENGTH/$MAX_INPUT_LENGTH".takeIf { uiState.label.length == MAX_INPUT_LENGTH }
                 )
 
                 if (flow == SavedAddressFlow.CREATE) {
                     NcTextField(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         title = stringResource(id = R.string.nc_address),
-                        value = address,
+                        value = uiState.address,
+                        error = if (uiState.invalidAddress) stringResource(id = R.string.nc_transaction_invalid_address) else null,
                         placeholder = {
                             Text(
                                 text = "Enter an address",
@@ -305,7 +307,7 @@ fun AddOrEditAddressScreenContent(
                     ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
-                            text = address, style = NunchukTheme.typography.body.copy(
+                            text = uiState.address, style = NunchukTheme.typography.body.copy(
                                 color = colorResource(
                                     id = R.color.nc_grey_dark_color
                                 )
@@ -323,5 +325,8 @@ private const val MAX_INPUT_LENGTH = 40
 @Preview
 @Composable
 private fun AddOrEditAddressScreenContentPreview() {
-    AddOrEditAddressScreenContent(address = "nugenthomas@gmail.com")
+    AddOrEditAddressScreenContent(uiState = AddOrEditAddressState(
+        label = "Label",
+        address = "Address",
+    ))
 }

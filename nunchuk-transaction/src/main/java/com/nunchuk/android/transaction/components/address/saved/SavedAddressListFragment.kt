@@ -191,7 +191,9 @@ fun AddressItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            modifier = Modifier.weight(1f, fill = true),
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .weight(1f, fill = true),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
