@@ -19,21 +19,18 @@
 
 package com.nunchuk.android.main.components.tabs.services.keyrecovery.backupdownload
 
-import android.content.Context
 import android.util.Base64
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ImportTapsignerMasterSignerContentUseCase
-import com.nunchuk.android.core.domain.VerifyTapSignerBackupContentUseCase
 import com.nunchuk.android.core.domain.membership.MarkRecoverStatusUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.main.util.ChecksumUtil
+import com.nunchuk.android.utils.ChecksumUtil
 import com.nunchuk.android.model.MasterSigner
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

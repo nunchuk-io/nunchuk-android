@@ -128,6 +128,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         inputs: List<UnspentOutput>,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
         isConsolidateFlow: Boolean,
+        title: String,
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -140,7 +141,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             slots = slots,
             claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs,
-            isConsolidateFlow = isConsolidateFlow
+            isConsolidateFlow = isConsolidateFlow,
+            title = title
         )
     }
 

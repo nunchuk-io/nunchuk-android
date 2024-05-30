@@ -2515,7 +2515,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } else {
             userWalletApiManager.walletApi.getReplaceWalletStatus(walletId)
         }
-        val status = response.data.status ?: throw NullPointerException("Wallet Status empty")
+        val status = response.data.status ?: return ReplaceWalletStatus()
         status.signers.map {
             saveServerSignerIfNeed(it.replaceBy)
         }
@@ -2547,6 +2547,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 alias = wallet.alias.orEmpty()
             )
         )
+        getWallet(walletId)
+        pushEventManager.push(PushEvent.WalletChanged(walletId))
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 

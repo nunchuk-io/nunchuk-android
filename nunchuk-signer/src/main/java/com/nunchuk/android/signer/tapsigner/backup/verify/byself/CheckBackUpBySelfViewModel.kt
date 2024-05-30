@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
+import com.nunchuk.android.utils.ChecksumUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -92,12 +93,12 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String, checksum: String) {
+    fun setReplaceKeyVerified(keyId: String) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
-                    checkSum = checksum,
+                    checkSum = getChecksum(),
                     isAppVerified = false
                 )
             ).onSuccess {
@@ -106,6 +107,10 @@ class CheckBackUpBySelfViewModel @Inject constructor(
                 _event.emit(ShowError(it))
             }
         }
+    }
+
+    private suspend fun getChecksum(): String = withContext(ioDispatcher) {
+        ChecksumUtil.getChecksum(File(args.filePath).readBytes())
     }
 }
 

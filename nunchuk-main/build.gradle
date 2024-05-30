@@ -45,7 +45,6 @@ dependencies {
     implementation lifecycleDeps.values()
     implementation networkDeps.values()
 
-    implementation 'commons-codec:commons-codec:1.15'
     implementation project(path: ':nunchuk-transaction')
 
     implementation "com.github.skydoves:landscapist-glide:2.2.2"

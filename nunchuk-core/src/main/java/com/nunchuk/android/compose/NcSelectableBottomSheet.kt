@@ -44,6 +44,7 @@ fun NcSelectableBottomSheet(
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
         onDismissRequest = onDismiss,
+        tonalElevation = 0.dp,
         content = {
             title?.let {
                 Text(
@@ -71,7 +72,7 @@ fun NcSelectableBottomSheet(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         },
         dragHandle = { }
     )

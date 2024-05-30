@@ -29,13 +29,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.VerifyTapSignerBackupUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
+import com.nunchuk.android.utils.ChecksumUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,7 +50,8 @@ class CheckBackUpByAppViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     savedStateHandle: SavedStateHandle,
-    private val application: Application
+    private val application: Application,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val args: CheckBackUpByAppFragmentArgs =
         CheckBackUpByAppFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -71,7 +77,13 @@ class CheckBackUpByAppViewModel @Inject constructor(
                 )
             if (result.isSuccess && result.getOrThrow()) {
                 val apiResult =
-                    setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(groupId, masterSignerId, true))
+                    setKeyVerifiedUseCase(
+                        SetKeyVerifiedUseCase.Param(
+                            groupId,
+                            masterSignerId,
+                            true
+                        )
+                    )
                 if (apiResult.isSuccess) {
                     _event.emit(CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess)
                 } else {
@@ -87,7 +99,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
         }
     }
 
-    fun onReplaceKeyVerified(masterSignerId: String, keyId: String, checkSum: String) {
+    fun onReplaceKeyVerified(masterSignerId: String, keyId: String) {
         viewModelScope.launch {
             val result =
                 verifyTapSignerBackupUseCase(
@@ -99,7 +111,13 @@ class CheckBackUpByAppViewModel @Inject constructor(
                 )
             if (result.isSuccess && result.getOrThrow()) {
                 val apiResult =
-                    setReplaceKeyVerifiedUseCase(SetReplaceKeyVerifiedUseCase.Param(keyId, checkSum, true))
+                    setReplaceKeyVerifiedUseCase(
+                        SetReplaceKeyVerifiedUseCase.Param(
+                            keyId,
+                            getChecksum(),
+                            true
+                        )
+                    )
                 if (apiResult.isSuccess) {
                     _event.emit(CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess)
                 } else {
@@ -132,6 +150,10 @@ class CheckBackUpByAppViewModel @Inject constructor(
                 _event.emit(CheckBackUpByAppEvent.ShowError(result.exceptionOrNull()))
             }
         }
+    }
+
+    private suspend fun getChecksum(): String = withContext(ioDispatcher) {
+        ChecksumUtil.getChecksum(File(args.filePath).readBytes())
     }
 
     fun onDecryptionKeyChange(value: String) {

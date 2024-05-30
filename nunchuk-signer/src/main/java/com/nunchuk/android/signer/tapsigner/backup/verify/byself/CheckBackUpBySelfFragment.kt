@@ -102,9 +102,8 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                 message = getString(R.string.nc_confirm_verify_backup_by_self_desc),
                                 onYesClick = {
                                     val keyId = (activity as NfcSetupActivity).keyId
-                                    val checksum = (activity as NfcSetupActivity).checksum
                                     if (keyId.isNotEmpty()) {
-                                        viewModel.setReplaceKeyVerified(keyId, checksum)
+                                        viewModel.setReplaceKeyVerified(keyId)
                                     } else {
                                         viewModel.setKeyVerified(
                                             (requireActivity() as NfcSetupActivity).groupId,

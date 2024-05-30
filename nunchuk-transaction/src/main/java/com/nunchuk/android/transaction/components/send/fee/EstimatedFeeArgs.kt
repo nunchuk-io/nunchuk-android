@@ -35,6 +35,7 @@ import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
 
 data class EstimatedFeeArgs(
+    val title: String,
     val walletId: String,
     val availableAmount: Double,
     val txReceipts: List<TxReceipt>,
@@ -58,6 +59,7 @@ data class EstimatedFeeArgs(
         putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
         putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
         putExtra(EXTRA_IS_CONSOLIDATE_FLOW, isConsolidateFlow)
+        putExtra(EXTRA_TITLE, title)
     }
 
     companion object {
@@ -71,6 +73,7 @@ data class EstimatedFeeArgs(
         private const val EXTRA_TX_RECEIPTS = "EXTRA_TX_RECEIPTS"
         private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
         private const val EXTRA_IS_CONSOLIDATE_FLOW = "EXTRA_IS_CONSOLIDATE_FLOW"
+        private const val EXTRA_TITLE = "EXTRA_TITLE"
 
         fun deserializeFrom(intent: Intent) = EstimatedFeeArgs(
             walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
@@ -82,7 +85,8 @@ data class EstimatedFeeArgs(
             claimInheritanceTxParam = intent.extras?.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
             inputs = intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
             txReceipts = intent.extras?.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
-            isConsolidateFlow = intent.extras.getBooleanValue(EXTRA_IS_CONSOLIDATE_FLOW)
+            isConsolidateFlow = intent.extras.getBooleanValue(EXTRA_IS_CONSOLIDATE_FLOW),
+            title = intent.extras.getStringValue(EXTRA_TITLE)
         )
     }
 }

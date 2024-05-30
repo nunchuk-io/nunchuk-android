@@ -45,7 +45,7 @@ class CreateWalletSuccessViewModel @Inject constructor(
 
     private val args = CreateWalletSuccessFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private val _state = MutableStateFlow(CreateWalletSuccessUiState(isReplaceWallet = args.isReplaceWallet))
+    private val _state = MutableStateFlow(CreateWalletSuccessUiState(isReplaceWallet = args.replacedWalletId.isNotEmpty()))
     val state = _state.asStateFlow()
 
     init {
@@ -55,7 +55,7 @@ class CreateWalletSuccessViewModel @Inject constructor(
                     val is2Of4MultisigWallet = it.signers.size == GroupWalletType.TWO_OF_FOUR_MULTISIG.m
                             && it.totalRequireSigns == GroupWalletType.TWO_OF_FOUR_MULTISIG.n
                     _state.update { state ->
-                        state.copy(is2Of4MultisigWallet = is2Of4MultisigWallet)
+                        state.copy(is2Of4MultisigWallet = is2Of4MultisigWallet, walletName = it.name)
                     }
                 }
         }
@@ -85,6 +85,7 @@ data class CreateWalletSuccessUiState(
     val isSingleSetup: Boolean = false,
     val allowInheritance: Boolean = false,
     val is2Of4MultisigWallet: Boolean = false,
+    val walletName: String = "",
     val isReplaceWallet: Boolean = false
 )
 

@@ -31,6 +31,7 @@ import com.nunchuk.android.usecase.replace.ResetReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -60,6 +61,8 @@ class ReplaceKeysViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
     private val replacedSigners = mutableListOf<SignerServer>()
+
+    private var loadWalletStatusJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -104,7 +107,8 @@ class ReplaceKeysViewModel @Inject constructor(
     }
 
     fun getReplaceWalletStatus() {
-        viewModelScope.launch {
+        if (loadWalletStatusJob?.isActive == true) return
+        loadWalletStatusJob = viewModelScope.launch {
             getReplaceWalletStatusUseCase(
                 GetReplaceWalletStatusUseCase.Param(args.groupId, args.walletId)
             ).onSuccess { status ->
@@ -125,7 +129,7 @@ class ReplaceKeysViewModel @Inject constructor(
                     )
                 }
             }.onFailure {
-                _uiState.update { it.copy(message = it.message) }
+                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
         }
     }
@@ -136,6 +140,8 @@ class ReplaceKeysViewModel @Inject constructor(
                 FinalizeReplaceKeyUseCase.Param(groupId = args.groupId, walletId = args.walletId)
             ).onSuccess { wallet ->
                 _uiState.update { it.copy(createWalletSuccess = StateEvent.String(wallet.id)) }
+            }.onFailure {
+                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
         }
     }
@@ -244,7 +250,7 @@ class ReplaceKeysViewModel @Inject constructor(
             ).onSuccess {
                 getReplaceWalletStatus()
             }.onFailure {
-                _uiState.update { it.copy(message = it.message) }
+                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
         }
     }
@@ -260,8 +266,10 @@ class ReplaceKeysViewModel @Inject constructor(
                     groupId = args.groupId,
                     walletId = args.walletId
                 )
-            ).onFailure {
-                _uiState.update { it.copy(message = it.message) }
+            ).onSuccess {
+                getReplaceWalletStatus()
+            }.onFailure {
+                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
         }
     }

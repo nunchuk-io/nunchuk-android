@@ -65,7 +65,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                         findNavController().navigate(
                             ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCreateWalletSuccessFragment(
                                 walletId = walletId,
-                                isReplaceWallet = true
+                                replacedWalletId = args.walletId
                             )
                         )
                     },

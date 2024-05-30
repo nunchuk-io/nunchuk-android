@@ -98,7 +98,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     private fun setupViews() {
         binding.tvCustomize.isVisible = !args.isConsolidateFlow
         binding.tvCustomize.setUnderline()
-        binding.toolbarTitle.text = args.sweepType.toTitle(this, getString(R.string.nc_customize_transaction))
+        binding.toolbarTitle.text = args.sweepType.toTitle(this, args.title.ifEmpty { getString(R.string.nc_customize_transaction) })
         val subtractFeeFromAmount = args.subtractFeeFromAmount
         viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount, !subtractFeeFromAmount)
 
@@ -179,12 +179,17 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         binding.manualFeeDetails.isVisible = state.manualFeeDetails
         bindEstimateFeeRates(state.estimateFeeRates)
-        val inputs = state.allCoins.filter { coin -> state.inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
-        binding.coinSelectionTitle.isVisible = inputs.isNotEmpty()
-        binding.composeCoinSelection.isVisible = inputs.isNotEmpty()
-        if (inputs.isNotEmpty()) {
-            binding.composeCoinSelection.setContent {
-                TransactionCoinSelection(inputs = inputs, allTags = state.allTags)
+        if (args.inputs.isEmpty() && args.subtractFeeFromAmount) {
+            binding.composeCoinSelection.isVisible = false
+            binding.coinSelectionTitle.isVisible = false
+        } else {
+            val inputs = state.allCoins.filter { coin -> state.inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
+            binding.coinSelectionTitle.isVisible = inputs.isNotEmpty()
+            binding.composeCoinSelection.isVisible = inputs.isNotEmpty()
+            if (inputs.isNotEmpty()) {
+                binding.composeCoinSelection.setContent {
+                    TransactionCoinSelection(inputs = inputs, allTags = state.allTags)
+                }
             }
         }
     }
@@ -257,7 +262,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             slots: List<SatsCardSlot>,
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             inputs: List<UnspentOutput> = emptyList(),
-            isConsolidateFlow: Boolean = false
+            isConsolidateFlow: Boolean = false,
+            title : String = ""
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -270,7 +276,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     slots = slots,
                     claimInheritanceTxParam = claimInheritanceTxParam,
                     inputs = inputs,
-                    isConsolidateFlow = isConsolidateFlow
+                    isConsolidateFlow = isConsolidateFlow,
+                    title = title
                 ).buildIntent(activityContext)
             )
         }

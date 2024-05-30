@@ -100,6 +100,7 @@ private fun ReplaceKeysContent(
     onVerifyClicked: (SignerModel) -> Unit = {},
 ) {
     var showSheetOptions by rememberSaveable { mutableStateOf(false) }
+    var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
     var selectedInheritanceSigner by remember { mutableStateOf<SignerModel?>(null) }
     NunchukTheme {
         NcScaffold(
@@ -168,6 +169,20 @@ private fun ReplaceKeysContent(
             }
         }
 
+        if (showConfirmationDialog) {
+            NcConfirmationDialog(
+                title = stringResource(R.string.nc_confirmation),
+                message = stringResource(R.string.nc_confirm_cancel_replacement_desc),
+                onPositiveClick = {
+                    onCancelReplaceWallet()
+                    showConfirmationDialog = false
+                },
+                onDismiss = {
+                    showConfirmationDialog = false
+                }
+            )
+        }
+
         if (showSheetOptions) {
             NcSelectableBottomSheet(
                 options = listOf(
@@ -175,7 +190,7 @@ private fun ReplaceKeysContent(
                 ),
                 showSelectIndicator = false,
                 onSelected = {
-                    onCancelReplaceWallet()
+                    showConfirmationDialog = true
                     showSheetOptions = false
                 },
                 onDismiss = {

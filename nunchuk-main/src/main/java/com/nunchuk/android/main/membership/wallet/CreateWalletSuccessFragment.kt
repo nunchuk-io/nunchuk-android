@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,10 +56,11 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.signer.R
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -82,7 +84,9 @@ class CreateWalletSuccessFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                CreateWalletSuccessScreen(viewModel)
+                CreateWalletSuccessScreen(viewModel) {
+                    requireActivity().finish()
+                }
             }
         }
     }
@@ -96,8 +100,17 @@ class CreateWalletSuccessFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 is CreateWalletSuccessEvent.ContinueStepEvent -> {
-                    if (args.isReplaceWallet) {
+                    if (args.replacedWalletId.isNotEmpty()) {
+                        NCInfoDialog(requireActivity())
+                            .showDialog(
+                                title = getString(R.string.nc_confirmation),
+                                message = getString(R.string.nc_transfer_fund_desc),
+                                btnYes = getString(R.string.nc_yes_do_it_now),
+                                btnInfo = getString(R.string.nc_i_ll_do_it_later),
+                                onYesClick = {
 
+                                }
+                            )
                     } else if (groupId.isEmpty() && it.is2Of4MultisigWallet) {
                         findNavController().navigate(
                             CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyStepFragment(),
@@ -124,8 +137,10 @@ class CreateWalletSuccessFragment : MembershipFragment() {
 @Composable
 private fun CreateWalletSuccessScreen(
     viewModel: CreateWalletSuccessViewModel = viewModel(),
+    onBackPress: () -> Unit = {}
 ) {
-    val uiState : CreateWalletSuccessUiState by viewModel.state.collectAsStateWithLifecycle()
+    val uiState: CreateWalletSuccessUiState by viewModel.state.collectAsStateWithLifecycle()
+    BackHandler(onBack = onBackPress)
     CreateWalletSuccessScreenContent(
         uiState = uiState,
         onContinueClicked = viewModel::onContinueClicked,
@@ -134,7 +149,7 @@ private fun CreateWalletSuccessScreen(
 
 @Composable
 fun CreateWalletSuccessScreenContent(
-    uiState : CreateWalletSuccessUiState = CreateWalletSuccessUiState(),
+    uiState: CreateWalletSuccessUiState = CreateWalletSuccessUiState(),
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
@@ -157,7 +172,10 @@ fun CreateWalletSuccessScreenContent(
                     )
                     Text(
                         modifier = Modifier.padding(16.dp),
-                        text = stringResource(R.string.nc_replace_wallet_success_desc),
+                        text = stringResource(
+                            R.string.nc_replace_wallet_success_desc,
+                            uiState.walletName,
+                        ),
                         style = NunchukTheme.typography.body
                     )
                 } else {
