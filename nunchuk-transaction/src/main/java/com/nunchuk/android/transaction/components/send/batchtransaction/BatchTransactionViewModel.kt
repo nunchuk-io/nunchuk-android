@@ -31,9 +31,9 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
-import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.utils.toSafeDoubleAmount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -49,7 +49,8 @@ class BatchTransactionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
-    private val checkAddressValidUseCase: CheckAddressValidUseCase
+    private val checkAddressValidUseCase: CheckAddressValidUseCase,
+    private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase
 ) : ViewModel() {
 
     private val args = BatchTransactionFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -117,20 +118,44 @@ class BatchTransactionViewModel @Inject constructor(
         } else if (amount > availableAmountWithoutUnlocked && !isFromSelectedCoin) {
             _event.emit(BatchTransactionEvent.InsufficientFundsLockedCoinEvent)
         } else {
-            val addressList = _state.value.recipients.map { it.address }
-            val resultCheckAddress =
-                checkAddressValidUseCase(CheckAddressValidUseCase.Params(addressList))
-            if (resultCheckAddress.isSuccess && resultCheckAddress.getOrThrow().isEmpty()) {
+            var isAllValidAddress = true
+            _state.value.recipients.forEach { recipient ->
+                checkAddressValidUseCase(CheckAddressValidUseCase.Params(arrayListOf(recipient.address)))
+                    .onSuccess {
+                        if (it.isNotEmpty()) {
+                            isAllValidAddress = false
+                            updateRecipient(
+                                index = state.value.recipients.indexOf(recipient),
+                                invalidAddress = true
+                            )
+                        }
+                    }
+            }
+            if (isAllValidAddress) {
                 _event.emit(BatchTransactionEvent.CheckAddressSuccess(isCustomTx))
-            } else {
-                _event.emit(BatchTransactionEvent.Error(resultCheckAddress.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun getFirstUnusedAddress(walletId: String, walletName: String) {
+        viewModelScope.launch {
+            getUnusedWalletAddressUseCase(walletId).onSuccess { addresses ->
+                updateRecipient(
+                    index = state.value.interactingIndex,
+                    address = addresses.first(),
+                    selectAddressType = 1,
+                    selectAddressName = walletName
+                )
+            }.onFailure {
+                _event.emit(BatchTransactionEvent.Error(it.message.orUnknownError()))
             }
         }
     }
 
     private fun getTotalAmount() = _state.value.recipients.sumOf {
         if (it.isBtc) {
-            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toSafeDoubleAmount().fromSATtoBTC() else it.amount.toSafeDoubleAmount()
+            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toSafeDoubleAmount()
+                .fromSATtoBTC() else it.amount.toSafeDoubleAmount()
         } else {
             it.amount.toSafeDoubleAmount().fromCurrencyToBTC()
         }
@@ -140,7 +165,10 @@ class BatchTransactionViewModel @Inject constructor(
         index: Int,
         amount: String? = null,
         isBtc: Boolean? = null,
-        address: String? = null
+        address: String? = null,
+        selectAddressType: Int? = null,
+        selectAddressName: String? = null,
+        invalidAddress: Boolean? = null
     ) {
         var recipient = _state.value.recipients[index]
         amount?.let {
@@ -152,6 +180,15 @@ class BatchTransactionViewModel @Inject constructor(
         address?.let {
             recipient = recipient.copy(address = it)
         }
+        selectAddressType?.let {
+            recipient = recipient.copy(selectAddressType = it)
+        }
+        selectAddressName?.let {
+            recipient = recipient.copy(selectAddressName = it)
+        }
+        invalidAddress?.let {
+            recipient = recipient.copy(invalidAddress = it)
+        }
         val newRecipients = _state.value.recipients.toMutableList()
         newRecipients[index] = recipient
         _state.update { it.copy(recipients = newRecipients) }
@@ -160,7 +197,8 @@ class BatchTransactionViewModel @Inject constructor(
     fun getTxReceiptList() = _state.value.recipients.map {
         TxReceipt(
             address = it.address, amount = if (it.isBtc) {
-                if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toSafeDoubleAmount().fromSATtoBTC() else it.amount.toSafeDoubleAmount()
+                if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toSafeDoubleAmount()
+                    .fromSATtoBTC() else it.amount.toSafeDoubleAmount()
             } else {
                 it.amount.toSafeDoubleAmount().fromCurrencyToBTC()
             }
@@ -191,4 +229,6 @@ class BatchTransactionViewModel @Inject constructor(
     fun setInteractingIndex(index: Int) {
         _state.update { it.copy(interactingIndex = index) }
     }
+
+    fun getInteractingIndex() = _state.value.interactingIndex
 }
