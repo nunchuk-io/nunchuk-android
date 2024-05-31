@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,12 +43,14 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
@@ -81,12 +84,15 @@ import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.wallet.WalletBottomSheetResult
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeArgs
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.utils.MaxLengthTransformation
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -122,6 +128,24 @@ class BatchTransactionFragment : Fragment() {
             setContent {
                 BatchTransactionScreen(viewModel, onScanClick = {
                     startQRCodeScan(launcher)
+                }, onDropdownClick = { index, selectAddressType ->
+                    if (selectAddressType == -1) {
+                        viewModel.setInteractingIndex(index)
+                        WalletComposeBottomSheet.show(
+                            childFragmentManager,
+                            exclusiveAssistedWalletIds = arrayListOf(args.walletId),
+                            isShowAddress = true
+                        )
+                    } else {
+                        viewModel.updateRecipient(
+                            index = index,
+                            selectAddressType = -1,
+                            selectAddressName = "",
+                            address = "",
+                            invalidAddress = false
+                        )
+                        viewModel.setInteractingIndex(-1)
+                    }
                 })
             }
         }
@@ -179,7 +203,29 @@ class BatchTransactionFragment : Fragment() {
                 else -> {}
             }
         }
-
+        childFragmentManager.setFragmentResultListener(
+            WalletComposeBottomSheet.TAG,
+            this
+        ) { _, bundle ->
+            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT)
+                ?: return@setFragmentResultListener
+            if (result.walletId != null) {
+                viewModel.getFirstUnusedAddress(
+                    walletId = result.walletId!!,
+                    result.walletName.orEmpty()
+                )
+            } else {
+                if (viewModel.getInteractingIndex() != -1) {
+                    viewModel.updateRecipient(
+                        index = viewModel.getInteractingIndex(),
+                        address = result.savedAddress?.address.orEmpty(),
+                        selectAddressType = 0,
+                        selectAddressName = result.savedAddress?.label.orEmpty()
+                    )
+                }
+            }
+            childFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
+        }
     }
 
     private fun showUnlockCoinBeforeSend() {
@@ -222,6 +268,7 @@ class BatchTransactionFragment : Fragment() {
 private fun BatchTransactionScreen(
     viewModel: BatchTransactionViewModel = viewModel(),
     onScanClick: () -> Unit = {},
+    onDropdownClick: (Int, Int) -> Unit = { _, _ -> },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     BatchTransactionContent(
@@ -250,6 +297,7 @@ private fun BatchTransactionScreen(
         onCreateTransactionClick = {
             viewModel.createTransaction(false)
         },
+        onDropdownClick = onDropdownClick,
         onCustomizeTransactionClick = {
             viewModel.createTransaction(true)
         }
@@ -271,7 +319,8 @@ private fun BatchTransactionContent(
     onInputAmountChange: (Int, String) -> Unit = { _, _ -> },
     onScanClick: (Int) -> Unit = {},
     onSwitchBtcAndCurrency: (Int, Boolean) -> Unit = { _, _ -> },
-    onInputAddressChange: (Int, String) -> Unit = { _, _ -> }
+    onInputAddressChange: (Int, String) -> Unit = { _, _ -> },
+    onDropdownClick: (Int, Int) -> Unit = { _, _ -> },
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -296,7 +345,9 @@ private fun BatchTransactionContent(
                             address = recipient.address,
                             amount = recipient.amount,
                             isBtc = recipient.isBtc,
-                            error = recipient.error,
+                            invalidAddress = recipient.invalidAddress,
+                            selectAddressType = recipient.selectAddressType,
+                            selectAddressName = recipient.selectAddressName,
                             enableRemove = isEnableRemoveRecipient,
                             onRemoveClick = {
                                 onRemoveRecipient(index)
@@ -311,6 +362,9 @@ private fun BatchTransactionContent(
                             },
                             onSwitchBtcAndCurrency = {
                                 onSwitchBtcAndCurrency(index, it)
+                            },
+                            onDropdownClick = {
+                                onDropdownClick(index, recipient.selectAddressType)
                             },
                             onInputAddressChange = {
                                 onInputAddressChange(index, it)
@@ -395,10 +449,13 @@ private fun RecipientView(
     address: String = "",
     amount: String = "",
     isBtc: Boolean = true,
-    error: String = "",
+    invalidAddress: Boolean = false,
+    selectAddressType: Int = -1,
+    selectAddressName: String = "",
     enableRemove: Boolean = false,
     onRemoveClick: () -> Unit = {},
     onScanClick: () -> Unit = {},
+    onDropdownClick: () -> Unit = {},
     onInputAmountChange: (String) -> Unit = {},
     onInputAddressChange: (String) -> Unit = {},
     onSwitchBtcAndCurrency: (Boolean) -> Unit = {}
@@ -441,23 +498,94 @@ private fun RecipientView(
                 .padding(16.dp)
         ) {
             Column {
-                NcTextField(
-                    title = stringResource(id = R.string.nc_address),
-                    value = address,
-                    rightContent = {
-                        Image(
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .weight(1f),
+                        text = stringResource(id = R.string.nc_address),
+                        style = NunchukTheme.typography.titleSmall
+                    )
+
+                    Image(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clickable {
+                                onScanClick()
+                            },
+                        painter = painterResource(id = R.drawable.ic_qrcode_dark),
+                        contentDescription = ""
+                    )
+                }
+                if (selectAddressType == -1) {
+                    NcTextField(
+                        title = "",
+                        value = address,
+                        inputBoxHeight = 70.dp,
+                        rightContent = {
+                            Image(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                        onDropdownClick()
+                                    },
+                                painter = painterResource(id = R.drawable.ic_arrow_drop_down),
+                                contentDescription = ""
+                            )
+                        },
+                        error = if (invalidAddress) stringResource(id = R.string.nc_transaction_invalid_address) else null,
+                        onValueChange = onInputAddressChange
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .height(70.dp)
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = NcColor.border,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .background(color = MaterialTheme.colorScheme.background)
+                    ) {
+                        Row(
                             modifier = Modifier
-                                .padding(end = 12.dp)
-                                .clickable {
-                                    onScanClick()
-                                },
-                            painter = painterResource(id = R.drawable.ic_qrcode_dark),
-                            contentDescription = ""
-                        )
-                    },
-                    error = error,
-                    onValueChange = onInputAddressChange
-                )
+                                .fillMaxSize()
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                        onDropdownClick()
+                                    },
+                                painter = if (selectAddressType == 0) painterResource(id = R.drawable.ic_saved_address)
+                                else painterResource(id = R.drawable.ic_wallet_small),
+                                contentDescription = ""
+                            )
+
+                            Text(
+                                modifier = Modifier
+                                    .padding(start = 8.dp)
+                                    .weight(1f),
+                                text = selectAddressName,
+                                style = NunchukTheme.typography.body
+                            )
+
+                            Image(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                        onDropdownClick()
+                                    },
+                                painter = painterResource(id = R.drawable.ic_close_circle),
+                                contentDescription = ""
+                            )
+                        }
+                    }
+
+                }
                 InputSwitchCurrencyView(
                     title = stringResource(id = R.string.nc_amount),
                     isBtc = isBtc,

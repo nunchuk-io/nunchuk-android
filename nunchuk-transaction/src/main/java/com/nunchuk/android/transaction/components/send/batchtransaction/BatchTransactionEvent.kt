@@ -23,20 +23,29 @@ sealed class BatchTransactionEvent {
     data class Loading(val loading: Boolean) : BatchTransactionEvent()
     data class Error(val message: String) : BatchTransactionEvent()
     data class CheckAddressSuccess(val isCustomTx: Boolean) : BatchTransactionEvent()
-    object InsufficientFundsEvent : BatchTransactionEvent()
-    object InsufficientFundsLockedCoinEvent : BatchTransactionEvent()
+    data object InsufficientFundsEvent : BatchTransactionEvent()
+    data object InsufficientFundsLockedCoinEvent : BatchTransactionEvent()
 }
 
 data class BatchTransactionState(
     val note: String = "",
     val recipients: List<Recipient> = initRecipientList(),
-    val interactingIndex: Int = -1
+    val interactingIndex: Int = -1,
 ) {
     data class Recipient(
-        val amount: String, val address: String, val isBtc: Boolean, val error: String
+        val amount: String, val address: String, val isBtc: Boolean,
+        val selectAddressType: Int, val selectAddressName: String,
+        val invalidAddress: Boolean,
     ) {
         companion object {
-            val DEFAULT = Recipient(amount = "", address = "", isBtc = true, error = "")
+            val DEFAULT = Recipient(
+                amount = "",
+                address = "",
+                isBtc = true,
+                selectAddressType = -1, // 0: address, 1: wallet,
+                selectAddressName = "",
+                invalidAddress = false
+            )
         }
     }
 }
