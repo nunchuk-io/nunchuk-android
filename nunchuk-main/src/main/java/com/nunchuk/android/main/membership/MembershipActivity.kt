@@ -89,6 +89,9 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     val groupId: String
             by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
+    val walletId: String
+            by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_KEY_WALLET_ID).orEmpty() }
+
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }

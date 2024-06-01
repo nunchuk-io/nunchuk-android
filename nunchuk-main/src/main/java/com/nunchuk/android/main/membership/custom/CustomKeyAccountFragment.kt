@@ -72,9 +72,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class CustomKeyAccountFragmentFragment : MembershipFragment(), BottomSheetOptionListener {
+class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: CustomKeyAccountFragmentViewModel by viewModels()
-    private val args: CustomKeyAccountFragmentFragmentArgs by navArgs()
+    private val args: CustomKeyAccountFragmentArgs by navArgs()
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -131,6 +131,8 @@ class CustomKeyAccountFragmentFragment : MembershipFragment(), BottomSheetOption
                     groupId = (activity as MembershipActivity).groupId,
                     newIndex = viewModel.getNewIndex(),
                     xfp = args.signer.fingerPrint,
+                    replacedXfp = args.replacedXfp,
+                    walletId = (activity as MembershipActivity).walletId,
                 )
             }
 
@@ -143,6 +145,8 @@ class CustomKeyAccountFragmentFragment : MembershipFragment(), BottomSheetOption
                     groupId = (activity as MembershipActivity).groupId,
                     newIndex = viewModel.getNewIndex(),
                     xfp = args.signer.fingerPrint,
+                    replacedXfp = args.replacedXfp,
+                    walletId = (activity as MembershipActivity).walletId,
                 )
             }
         }
@@ -156,6 +160,8 @@ class CustomKeyAccountFragmentFragment : MembershipFragment(), BottomSheetOption
             masterSignerId = args.signer.fingerPrint,
             groupId = (activity as MembershipActivity).groupId,
             signerIndex = index,
+            replacedXfp = args.replacedXfp,
+            walletId = (activity as MembershipActivity).walletId,
         )
     }
 
@@ -181,6 +187,8 @@ class CustomKeyAccountFragmentFragment : MembershipFragment(), BottomSheetOption
                                     groupId = (activity as MembershipActivity).groupId,
                                     xfp = args.signer.fingerPrint,
                                     newIndex = viewModel.getNewIndex(),
+                                    replacedXfp = args.replacedXfp,
+                                    walletId = (activity as MembershipActivity).walletId,
                                 )
                             }
                         }

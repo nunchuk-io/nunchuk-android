@@ -50,6 +50,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -232,7 +233,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 cardId = keyCardId,
                 image = body
             )
-            if (result.isSuccess.not()) {
+            if (result.isSuccess.not() && result.error.code != ALREADY_VERIFIED_CODE) {
                 throw result.error
             }
             val signer = nativeSdk.getSignerByIndex(
@@ -261,8 +262,10 @@ internal class KeyRepositoryImpl @Inject constructor(
                     SignerTag.INHERITANCE.name
                 ) else null,
             )
+            val verifyToken = ncDataStore.passwordToken.first()
             val replaceResponse = if (groupId.isNotEmpty()) {
                 userWalletApiManager.groupWalletApi.replaceKey(
+                    verifyToken = verifyToken,
                     groupId = groupId,
                     walletId = walletId,
                     xfp = replacedXfp,
@@ -270,6 +273,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 )
             } else {
                 userWalletApiManager.walletApi.replaceKey(
+                    verifyToken = verifyToken,
                     walletId = walletId,
                     xfp = replacedXfp,
                     payload = payload
@@ -379,13 +383,16 @@ internal class KeyRepositoryImpl @Inject constructor(
         walletId: String,
         xfp: String,
     ) {
+        val verifyToken = ncDataStore.passwordToken.first()
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.initReplaceKey(
+                verifyToken = verifyToken,
                 xfp = xfp,
                 walletId = walletId,
             )
         } else {
             userWalletApiManager.groupWalletApi.initReplaceKey(
+                verifyToken = verifyToken,
                 groupId = groupId,
                 xfp = xfp,
                 walletId = walletId,
@@ -422,17 +429,20 @@ internal class KeyRepositoryImpl @Inject constructor(
         signer: SingleSigner,
         xfp: String
     ) {
+        val verifyToken = ncDataStore.passwordToken.first()
         val wallet = nativeSdk.getWallet(walletId)
         val isInheritance = wallet.signers.find { it.masterFingerprint == xfp }?.tags.orEmpty().contains(SignerTag.INHERITANCE)
         val serverSigner = serverSignerMapper(signer, isInheritance)
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.replaceKey(
+                verifyToken = verifyToken,
                 walletId = walletId,
                 xfp = xfp,
-                payload = serverSigner
+                payload = serverSigner,
             )
         } else {
             userWalletApiManager.groupWalletApi.replaceKey(
+                verifyToken = verifyToken,
                 groupId = groupId,
                 walletId = walletId,
                 xfp = xfp,
@@ -446,12 +456,15 @@ internal class KeyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun resetReplaceKey(groupId: String?, walletId: String) {
+        val verifyToken = ncDataStore.passwordToken.first()
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.resetReplaceWallet(
+                verifyToken = verifyToken,
                 walletId = walletId,
             )
         } else {
             userWalletApiManager.groupWalletApi.resetReplaceWallet(
+                verifyToken = verifyToken,
                 groupId = groupId,
                 walletId = walletId,
             )

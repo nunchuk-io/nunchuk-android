@@ -20,7 +20,6 @@
 package com.nunchuk.android.signer.components.add
 
 import android.app.Activity
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -48,7 +47,6 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -69,7 +67,6 @@ import com.nunchuk.android.core.util.isRecommendedPath
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.signer.R
@@ -159,8 +156,10 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         super.onViewCreated(view, savedInstanceState)
         observeEvent()
         viewModel.init(
-            (activity as AddAirgapSignerActivity).groupId,
-            (activity as AddAirgapSignerActivity).isMembershipFlow
+            groupId = (activity as AddAirgapSignerActivity).groupId,
+            isMembershipFlow = (activity as AddAirgapSignerActivity).isMembershipFlow,
+            replacedXfp = (activity as AddAirgapSignerActivity).replacedXfp,
+            walletId = (activity as AddAirgapSignerActivity).walletId,
         )
     }
 

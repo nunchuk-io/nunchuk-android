@@ -4,8 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedPath
@@ -54,7 +56,9 @@ class ReplaceKeysViewModel @Inject constructor(
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val resetReplaceKeyUseCase: ResetReplaceKeyUseCase,
     private val savedStateHandle: SavedStateHandle,
-    private val nfcFileManager: NfcFileManager
+    private val nfcFileManager: NfcFileManager,
+    private val singleSignerMapper: SingleSignerMapper,
+    private val getServerWalletsUseCase: GetServerWalletsUseCase
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _uiState = MutableStateFlow(ReplaceKeysUiState())
@@ -69,7 +73,10 @@ class ReplaceKeysViewModel @Inject constructor(
             getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
                 _uiState.update {
                     it.copy(walletSigners = wallet.signers.filter { signer -> signer.type != SignerType.SERVER }
-                        .map { signer -> signer.toModel() })
+                        .map { signer ->
+                            singleSignerMapper(signer)
+                        }
+                    )
                 }
             }
         }
@@ -109,40 +116,46 @@ class ReplaceKeysViewModel @Inject constructor(
     fun getReplaceWalletStatus() {
         if (loadWalletStatusJob?.isActive == true) return
         loadWalletStatusJob = viewModelScope.launch {
+            _uiState.update { state -> state.copy(isLoading = true) }
             getReplaceWalletStatusUseCase(
                 GetReplaceWalletStatusUseCase.Param(args.groupId, args.walletId)
             ).onSuccess { status ->
-                _uiState.update {
-                    val verifiedSigners = status.signers.values
-                        .filter { signer -> signer.verifyType != VerifyType.NONE }
-                        .mapNotNull { signer -> signer.xfp }
-                        .toSet()
-                    replacedSigners.apply {
-                        clear()
-                        addAll(status.signers.values)
-                    }
-                    it.copy(
+                val verifiedSigners = status.signers.values
+                    .filter { signer -> signer.verifyType != VerifyType.NONE }
+                    .mapNotNull { signer -> signer.xfp }
+                    .toSet()
+                replacedSigners.apply {
+                    clear()
+                    addAll(status.signers.values)
+                }
+                _uiState.update { state ->
+                    state.copy(
                         replaceSigners = status.signers.mapValues { entry ->
                             entry.value.toModel()
                         },
-                        verifiedSigners = verifiedSigners
+                        verifiedSigners = verifiedSigners,
+                        pendingReplaceXfps = status.pendingReplaceXfps,
                     )
                 }
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
+            _uiState.update { state -> state.copy(isLoading = false, isDataLoaded = true) }
         }
     }
 
     fun onCreateWallet() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             finalizeReplaceKeyUseCase(
                 FinalizeReplaceKeyUseCase.Param(groupId = args.groupId, walletId = args.walletId)
             ).onSuccess { wallet ->
                 _uiState.update { it.copy(createWalletSuccess = StateEvent.String(wallet.id)) }
+                getServerWalletsUseCase(Unit)
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -240,6 +253,7 @@ class ReplaceKeysViewModel @Inject constructor(
 
     fun onReplaceKey(signer: SingleSigner) {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             replaceKeyUseCase(
                 ReplaceKeyUseCase.Param(
                     groupId = args.groupId,
@@ -248,10 +262,12 @@ class ReplaceKeysViewModel @Inject constructor(
                     signer = signer
                 )
             ).onSuccess {
+                loadWalletStatusJob?.cancel()
                 getReplaceWalletStatus()
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -277,7 +293,6 @@ class ReplaceKeysViewModel @Inject constructor(
     fun getKeyId(xfp: String): String {
         return replacedSigners.find { it.xfp == xfp }?.tapsignerKeyId.orEmpty()
     }
-    fun getKeyChecksum(xfp: String): String? = null
     fun getFilePath(xfp: String) = nfcFileManager.buildFilePath(getKeyId(xfp))
 
     val replacedXfp: String
@@ -289,6 +304,9 @@ class ReplaceKeysViewModel @Inject constructor(
 }
 
 data class ReplaceKeysUiState(
+    val isDataLoaded: Boolean = false,
+    val pendingReplaceXfps: List<String> = emptyList(),
+    val isLoading: Boolean = false,
     val walletSigners: List<SignerModel> = emptyList(),
     val replaceSigners: Map<String, SignerModel> = emptyMap(),
     val verifiedSigners: Set<String> = emptySet(),
@@ -296,5 +314,5 @@ data class ReplaceKeysUiState(
     val myRole: AssistedWalletRole = AssistedWalletRole.NONE,
     val createWalletSuccess: StateEvent = StateEvent.None,
     val signers: List<SignerModel> = emptyList(),
-    val message: String = ""
+    val message: String = "",
 )

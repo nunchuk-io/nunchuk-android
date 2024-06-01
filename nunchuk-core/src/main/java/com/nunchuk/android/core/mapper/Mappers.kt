@@ -171,7 +171,9 @@ internal fun AlertResponse.toAlert(): Alert {
             requestId = payload?.requestId.orEmpty(),
             membershipId = payload?.membershipId.orEmpty(),
             transactionId = payload?.transactionId.orEmpty(),
-            xfp = payload?.xfp.orEmpty()
+            xfp = payload?.xfp.orEmpty(),
+            canCancel = payload?.canCancel.orFalse(),
+            canReplace = payload?.canReplace.orFalse(),
         )
     )
 }

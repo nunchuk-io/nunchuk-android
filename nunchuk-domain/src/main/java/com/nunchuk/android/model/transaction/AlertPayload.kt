@@ -11,21 +11,25 @@ data class AlertPayload(
     @SerializedName("pending_keys_count")
     val pendingKeysCount: Int,
     @SerializedName("dummy_transaction_id")
-    val dummyTransactionId: String,
+    val dummyTransactionId: String = "",
     @SerializedName("xfps")
-    val xfps: List<String>,
+    val xfps: List<String> = emptyList(),
     @SerializedName("claim_key")
-    val claimKey: Boolean,
+    val claimKey: Boolean = false,
     @SerializedName("key_xfp")
-    val keyXfp: String,
+    val keyXfp: String = "",
     @SerializedName("payment_name")
     val paymentName: String? = null,
     @SerializedName("request_id")
-    val requestId: String,
+    val requestId: String = "",
     @SerializedName("membership_id")
-    val membershipId: String,
+    val membershipId: String = "",
     @SerializedName("transaction_id")
-    val transactionId: String,
+    val transactionId: String = "",
+    @SerializedName("can_cancel")
+    val canCancel: Boolean = false,
+    @SerializedName("can_replace")
+    val canReplace: Boolean = false,
     @SerializedName("xfp")
-    val xfp: String,
+    val xfp: String = "",
 ): Parcelable

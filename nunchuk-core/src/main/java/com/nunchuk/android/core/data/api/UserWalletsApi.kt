@@ -145,7 +145,7 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletLocalId: String, @Body payload: UpdateWalletPayload
     ): Data<CreateOrUpdateWalletResponse>
 
-    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}")
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}")
     suspend fun getWallet(
         @Path("wallet_id_or_local_id") walletLocalId: String
     ): Data<CreateOrUpdateWalletResponse>
@@ -587,6 +587,7 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}")
     suspend fun initReplaceKey(
+        @Header("Verify-token") verifyToken: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
     ): Data<Unit>
@@ -599,6 +600,7 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}/replace")
     suspend fun replaceKey(
+        @Header("Verify-token") verifyToken: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
         @Body payload: SignerServerDto
@@ -606,6 +608,7 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/finalize")
     suspend fun finalizeReplaceWallet(
+        @Header("Verify-token") verifyToken: String,
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<CreateOrUpdateWalletResponse>
 
@@ -616,6 +619,7 @@ internal interface UserWalletsApi {
 
     @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/reset")
     suspend fun resetReplaceWallet(
+        @Header("Verify-token") verifyToken: String,
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<Unit>
 }

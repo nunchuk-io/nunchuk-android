@@ -356,4 +356,7 @@
     <string name="nc_existing_balance">Existing balance</string>
     <string name="nc_remove_unused_keys">Remove unused keys</string>
     <string name="nc_remove_unused_key_desc">Upon completion of the roll-over process, keys that are associated with your old assisted wallet and are no longer used will automatically be removed.</string>
+    <string name="nc_key_replacement_pending_desc">%1$s is currently being replaced.</string>
+    <string name="nc_cancel_key_replacement_desc">Are you sure you want to cancel the key repalcement?</string>
+    <string name="nc_key_replacement_has_been_canceled">Key replacement has been canceled</string>
 </resources>

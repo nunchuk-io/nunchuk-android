@@ -53,6 +53,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.HTTP
+import retrofit2.http.Header
 import retrofit2.http.HeaderMap
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -524,6 +525,7 @@ internal interface GroupWalletApi {
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}")
     suspend fun initReplaceKey(
+        @Header("Verify-token") verifyToken: String,
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
@@ -538,6 +540,7 @@ internal interface GroupWalletApi {
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}/replace")
     suspend fun replaceKey(
+        @Header("Verify-token") verifyToken: String,
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
@@ -546,6 +549,7 @@ internal interface GroupWalletApi {
 
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/finalize")
     suspend fun finalizeReplaceWallet(
+        @Header("Verify-token") verifyToken: String,
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<CreateOrUpdateWalletResponse>
@@ -558,6 +562,7 @@ internal interface GroupWalletApi {
 
     @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/reset")
     suspend fun resetReplaceWallet(
+        @Header("Verify-token") verifyToken: String,
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<Unit>

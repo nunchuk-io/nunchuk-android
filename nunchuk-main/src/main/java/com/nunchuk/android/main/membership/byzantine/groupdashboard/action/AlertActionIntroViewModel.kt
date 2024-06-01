@@ -7,15 +7,19 @@ import com.nunchuk.android.core.data.model.byzantine.ChangeEmail
 import com.nunchuk.android.core.domain.byzantine.ParseChangeEmailPayloadUseCase
 import com.nunchuk.android.core.domain.membership.ApproveInheritanceRequestPlanningUseCase
 import com.nunchuk.android.core.domain.membership.DenyInheritanceRequestPlanningUseCase
+import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.SkipHealthReminderUseCase
+import com.nunchuk.android.usecase.replace.CancelReplaceKeyUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,6 +42,8 @@ class AlertActionIntroViewModel @Inject constructor(
     private val approveInheritanceRequestPlanningUseCase: ApproveInheritanceRequestPlanningUseCase,
     private val parseChangeEmailPayloadUseCase: ParseChangeEmailPayloadUseCase,
     private val skipHealthReminderUseCase: SkipHealthReminderUseCase,
+    private val cancelReplaceKeyUseCase: CancelReplaceKeyUseCase,
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     saveStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = AlertActionIntroFragmentArgs.fromSavedStateHandle(saveStateHandle)
@@ -53,7 +59,7 @@ class AlertActionIntroViewModel @Inject constructor(
                 getWallet()
                 getGroup(args.alert.payload.membershipId)
             }
-            AlertType.HEALTH_CHECK_REMINDER -> {
+            AlertType.HEALTH_CHECK_REMINDER, AlertType.KEY_REPLACEMENT_PENDING -> {
                 getWallet()
             }
             else -> {
@@ -83,7 +89,7 @@ class AlertActionIntroViewModel @Inject constructor(
     private fun getWallet() {
         viewModelScope.launch {
             getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
-                _state.update { state -> state.copy(walletName = wallet.name, signer = wallet.signers.firstOrNull { it.masterFingerprint == args.alert.payload.xfp }) }
+                _state.update { state -> state.copy(wallet = wallet) }
             }
         }
     }
@@ -112,9 +118,11 @@ class AlertActionIntroViewModel @Inject constructor(
                     transactionId = args.alert.payload.dummyTransactionId
                 )
             ).onSuccess {
+                _event.emit(AlertActionIntroEvent.Loading(false))
                 _event.emit(AlertActionIntroEvent.DeleteDummyTransactionSuccess)
+            }.onFailure {
+                _event.emit(AlertActionIntroEvent.Loading(false))
             }
-            _event.emit(AlertActionIntroEvent.Loading(false))
         }
     }
 
@@ -130,6 +138,25 @@ class AlertActionIntroViewModel @Inject constructor(
             ).onSuccess {
                 _event.emit(AlertActionIntroEvent.Loading(false))
                 _event.emit(AlertActionIntroEvent.DenyInheritanceRequestPlanningSuccess)
+            }.onFailure {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.Error(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun cancelReplaceKey() {
+        viewModelScope.launch {
+            _event.emit(AlertActionIntroEvent.Loading(true))
+            cancelReplaceKeyUseCase(
+                CancelReplaceKeyUseCase.Param(
+                    groupId = args.groupId,
+                    walletId = args.walletId,
+                    xfp = args.alert.payload.xfp
+                )
+            ).onSuccess {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.DeleteDummyTransactionSuccess)
             }.onFailure {
                 _event.emit(AlertActionIntroEvent.Loading(false))
                 _event.emit(AlertActionIntroEvent.Error(it.message.orUnknownError()))
@@ -174,6 +201,24 @@ class AlertActionIntroViewModel @Inject constructor(
             }
         }
     }
+
+    fun confirmPassword(pass: String, targetAction: TargetAction) {
+        viewModelScope.launch {
+            _event.emit(AlertActionIntroEvent.Loading(true))
+            verifiedPasswordTokenUseCase(
+                VerifiedPasswordTokenUseCase.Param(
+                    targetAction = targetAction.name,
+                    password = pass
+                )
+            ).onSuccess {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.VerifiedPasswordTokenSuccess(it.orEmpty(), targetAction))
+            }.onFailure {
+                _event.emit(AlertActionIntroEvent.Loading(false))
+                _event.emit(AlertActionIntroEvent.Error(it.message.orUnknownError()))
+            }
+        }
+    }
 }
 
 sealed class AlertActionIntroEvent {
@@ -181,13 +226,14 @@ sealed class AlertActionIntroEvent {
     data object ApproveInheritanceRequestPlanningSuccess : AlertActionIntroEvent()
     data object DeleteDummyTransactionSuccess : AlertActionIntroEvent()
     data object SkipHealthReminderSuccess : AlertActionIntroEvent()
+    data class VerifiedPasswordTokenSuccess(val token: String, val action: TargetAction) : AlertActionIntroEvent()
     data class Loading(val isLoading: Boolean) : AlertActionIntroEvent()
     data class Error(val message: String) : AlertActionIntroEvent()
 }
 
 data class AlertActionIntroUiState(
     val dummyTransaction: DummyTransactionPayload? = null,
-    val walletName: String = "",
+    val wallet: Wallet = Wallet(),
     val requester: ByzantineMember? = null,
     val changeEmail: ChangeEmail? = null,
     val signer: SingleSigner? = null

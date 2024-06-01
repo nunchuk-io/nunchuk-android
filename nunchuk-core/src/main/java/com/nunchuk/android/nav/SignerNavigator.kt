@@ -56,6 +56,8 @@ interface SignerNavigator {
         groupId: String = "",
         xfp: String? = null,
         newIndex : Int = -1,
+        replacedXfp: String? = null,
+        walletId: String = "",
     )
 
     fun openAddAirSignerScreenForResult(
@@ -66,6 +68,8 @@ interface SignerNavigator {
         groupId: String = "",
         xfp: String? = null,
         newIndex : Int = -1,
+        replacedXfp: String? = null,
+        walletId: String = "",
     )
 
     /**

@@ -94,6 +94,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String,
         xfp: String?,
         newIndex: Int,
+        replacedXfp: String?,
+        walletId: String,
     ) {
         activityContext.startActivity(
             AddAirgapSignerActivity.buildIntent(
@@ -102,7 +104,9 @@ interface SignerNavigatorDelegate : SignerNavigator {
                 tag = tag,
                 groupId = groupId,
                 xfp = xfp,
-                newIndex = newIndex
+                newIndex = newIndex,
+                replacedXfp = replacedXfp,
+                walletId = walletId
             )
         )
     }
@@ -115,6 +119,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String,
         xfp: String?,
         newIndex: Int,
+        replacedXfp: String?,
+        walletId: String,
     ) {
         launcher.launch(
             AddAirgapSignerActivity.buildIntent(
@@ -123,7 +129,9 @@ interface SignerNavigatorDelegate : SignerNavigator {
                 tag = tag,
                 groupId = groupId,
                 xfp = xfp,
-                newIndex = newIndex
+                newIndex = newIndex,
+                replacedXfp = replacedXfp,
+                walletId = walletId
             )
         )
     }

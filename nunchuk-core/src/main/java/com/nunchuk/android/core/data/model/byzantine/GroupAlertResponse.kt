@@ -56,6 +56,10 @@ data class PayloadResponse(
     val oldEmail: String? = null,
     @SerializedName("new_email")
     val newEmail: String? = null,
+    @SerializedName("can_cancel")
+    val canCancel: Boolean = false,
+    @SerializedName("can_replace")
+    val canReplace: Boolean = false,
     @SerializedName("xfp")
     val xfp: String? = null,
 )
