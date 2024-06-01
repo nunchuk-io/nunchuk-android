@@ -68,7 +68,7 @@ class NcDataStore @Inject constructor(
     private val currentStepKey = intPreferencesKey("current_step")
     private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
     private val showHealthCheckReminderIntro = booleanPreferencesKey("show_health_check_reminder_intro")
-    private val replacingXfpKey = stringPreferencesKey("replacing_xfp")
+    private val passwordTokenKey = stringPreferencesKey("password_token")
 
     /**
      * Current membership plan key
@@ -333,15 +333,15 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun setReplacingXfp(xfp: String) {
+    suspend fun setPasswordToken(token: String) {
         context.dataStore.edit {
-            it[replacingXfpKey] = xfp
+            it[passwordTokenKey] = token
         }
     }
 
-    val replacingXfp: Flow<String>
+    val passwordToken: Flow<String>
         get() = context.dataStore.data.map {
-            it[replacingXfpKey].orEmpty()
+            it[passwordTokenKey].orEmpty()
         }
 
     suspend fun clear() {

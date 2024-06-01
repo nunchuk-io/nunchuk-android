@@ -60,6 +60,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         groupId: String,
         newIndex: Int,
         xfp: String?,
+        replacedXfp: String?,
+        walletId: String?,
     ) {
         launcher.launch(
             Mk4Activity.buildIntent(
@@ -69,6 +71,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 groupId = groupId,
                 newIndex = newIndex,
                 xfp = xfp,
+                replacedXfp = replacedXfp,
+                walletId = walletId,
             )
         )
     }
@@ -99,7 +103,6 @@ interface NfcNavigatorDelegate : NfcNavigator {
         masterSignerId: String,
         groupId: String,
         keyId: String,
-        checksum: String,
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -119,7 +122,9 @@ interface NfcNavigatorDelegate : NfcNavigator {
         fromMembershipFlow: Boolean,
         masterSignerId: String,
         groupId: String,
-        signerIndex: Int
+        signerIndex: Int,
+        replacedXfp: String,
+        walletId: String
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -129,6 +134,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 masterSignerId = masterSignerId,
                 groupId = groupId,
                 signerIndex = signerIndex,
+                replacedXfp = replacedXfp,
+                walletId = walletId,
             )
         )
     }

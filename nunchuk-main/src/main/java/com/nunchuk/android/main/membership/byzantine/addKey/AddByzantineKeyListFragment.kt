@@ -46,7 +46,7 @@ import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragmentFragment
+import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
@@ -158,12 +158,12 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
-        setFragmentResultListener(CustomKeyAccountFragmentFragment.REQUEST_KEY) { _, bundle ->
+        setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
             val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
             if (signer != null) {
                 viewModel.handleSignerNewIndex(signer)
             }
-            clearFragmentResult(CustomKeyAccountFragmentFragment.REQUEST_KEY)
+            clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
         }
     }
 

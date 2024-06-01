@@ -28,8 +28,8 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val args: CustomKeyAccountFragmentFragmentArgs =
-        CustomKeyAccountFragmentFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: CustomKeyAccountFragmentArgs =
+        CustomKeyAccountFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<CustomKeyAccountFragmentEvent>()
     val event = _event.asSharedFlow()
 

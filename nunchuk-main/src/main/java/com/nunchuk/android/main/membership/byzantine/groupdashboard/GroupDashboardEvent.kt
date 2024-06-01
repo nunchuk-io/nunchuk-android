@@ -11,7 +11,6 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
-import com.nunchuk.android.settings.changeemail.ChangeEmailEvent
 
 sealed class GroupDashboardEvent {
     data class Loading(val loading: Boolean) : GroupDashboardEvent()
@@ -35,6 +34,7 @@ sealed class GroupDashboardEvent {
     data class SyncTransactionSuccess(val txId: String): GroupDashboardEvent()
     data class DownloadBackupKeySuccess(val backupKey: BackupKey) : GroupDashboardEvent()
     data object SignOutEvent : GroupDashboardEvent()
+    data object OpenReplaceKey : GroupDashboardEvent()
 }
 
 data class GroupDashboardState(

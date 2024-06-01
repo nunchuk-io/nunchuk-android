@@ -24,7 +24,6 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
@@ -34,7 +33,6 @@ import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isValidPathForAssistedWallet
-import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
@@ -48,7 +46,6 @@ import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
-import com.nunchuk.android.signer.tapsigner.AddNfcNameEvent
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
@@ -62,6 +59,7 @@ import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
+import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -96,7 +94,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
-    private val changeKeyTypeUseCase: ChangeKeyTypeUseCase
+    private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
+    private val replaceKeyUseCase: ReplaceKeyUseCase
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -104,6 +103,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private var chain: Chain = Chain.MAIN
     private var groupId: String = ""
     private var isMembershipFlow = false
+    private var replacedXfp: String? = null
+    private var walletId: String = ""
 
     private val _state = MutableStateFlow(AddAirgapSignerState())
     val uiState = _state.asStateFlow()
@@ -117,9 +118,11 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun init(groupId: String, isMembershipFlow: Boolean) {
+    fun init(groupId: String, isMembershipFlow: Boolean, replacedXfp: String?, walletId: String) {
         this.groupId = groupId
         this.isMembershipFlow = isMembershipFlow
+        this.replacedXfp = replacedXfp
+        this.walletId = walletId
     }
 
     private val _signers = mutableListOf<SingleSigner>()
@@ -160,7 +163,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         newIndex: Int,
     ) {
         viewModelScope.launch {
-            if (membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
+            if (replacedXfp.isNullOrEmpty() && membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
                 setEvent(AddSameKey)
                 return@launch
             }
@@ -174,7 +177,10 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
             setEvent(LoadingEventAirgap(true))
             val signer = signerInput.toSingleSigner(signerName, signerTag)
-            if (isMembershipFlow.not() && checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
+            if (isMembershipFlow.not() && checkAssistedSignerExistenceHelper.isInAssistedWallet(
+                    signer.toModel()
+                )
+            ) {
                 _state.update { it.copy(airgap = signer.copy(derivationPath = signerInput.derivationPath)) }
                 val resultKey = checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
                 setEvent(LoadingEventAirgap(false))
@@ -200,32 +206,43 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             if (result.isSuccess) {
                 val airgap = result.getOrThrow()
                 if (isMembershipFlow) {
-                    saveMembershipStepUseCase(
-                        MembershipStepInfo(
-                            step = membershipStepManager.currentStep
-                                ?: throw IllegalArgumentException("Current step empty"),
-                            masterSignerId = airgap.masterFingerprint,
-                            plan = membershipStepManager.localMembershipPlan,
-                            verifyType = VerifyType.APP_VERIFIED,
-                            extraData = gson.toJson(
-                                SignerExtra(
-                                    derivationPath = airgap.derivationPath,
-                                    isAddNew = true,
-                                    signerType = airgap.type
-                                )
-                            ),
-                            groupId = groupId
-                        )
-                    )
-                    if (groupId.isNotEmpty()) {
-                        syncKeyToGroupUseCase(
-                            SyncKeyToGroupUseCase.Param(
-                                step = membershipStepManager.currentStep
-                                    ?: throw IllegalArgumentException("Current step empty"),
+                    if (walletId.isNotEmpty() && !replacedXfp.isNullOrEmpty()) {
+                        replaceKeyUseCase(
+                            ReplaceKeyUseCase.Param(
                                 groupId = groupId,
+                                walletId = walletId,
+                                xfp = replacedXfp.orEmpty(),
                                 signer = airgap
                             )
                         )
+                    } else {
+                        saveMembershipStepUseCase(
+                            MembershipStepInfo(
+                                step = membershipStepManager.currentStep
+                                    ?: throw IllegalArgumentException("Current step empty"),
+                                masterSignerId = airgap.masterFingerprint,
+                                plan = membershipStepManager.localMembershipPlan,
+                                verifyType = VerifyType.APP_VERIFIED,
+                                extraData = gson.toJson(
+                                    SignerExtra(
+                                        derivationPath = airgap.derivationPath,
+                                        isAddNew = true,
+                                        signerType = airgap.type
+                                    )
+                                ),
+                                groupId = groupId
+                            )
+                        )
+                        if (groupId.isNotEmpty()) {
+                            syncKeyToGroupUseCase(
+                                SyncKeyToGroupUseCase.Param(
+                                    step = membershipStepManager.currentStep
+                                        ?: throw IllegalArgumentException("Current step empty"),
+                                    groupId = groupId,
+                                    signer = airgap
+                                )
+                            )
+                        }
                     }
                     setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
                 } else {
@@ -337,7 +354,10 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         viewModelScope.launch {
             changeKeyTypeUseCase(
                 ChangeKeyTypeUseCase.Params(
-                    singleSigner = singleSigner.copy(type = SignerType.AIRGAP, tags = listOfNotNull(signerTag))
+                    singleSigner = singleSigner.copy(
+                        type = SignerType.AIRGAP,
+                        tags = listOfNotNull(signerTag)
+                    )
                 )
             ).onSuccess {
                 setEvent(AddAirgapSignerSuccessEvent(it))

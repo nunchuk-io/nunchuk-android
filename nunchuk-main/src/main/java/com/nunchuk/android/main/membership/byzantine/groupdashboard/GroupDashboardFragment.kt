@@ -423,6 +423,15 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                     )
                     navigator.restartApp(requireActivity())
                 }
+
+                GroupDashboardEvent.OpenReplaceKey -> {
+                    navigator.openMembershipActivity(
+                        activityContext = requireActivity(),
+                        groupStep = MembershipStage.REPLACE_KEY,
+                        walletId = viewModel.getWalletId(),
+                        groupId = viewModel.getGroupId(),
+                    )
+                }
             }
         }
     }
@@ -518,6 +527,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
             || alert.type == AlertType.HEALTH_CHECK_PENDING
             || alert.type == AlertType.CHANGE_EMAIL_REQUEST
             || alert.type == AlertType.HEALTH_CHECK_REMINDER
+            || alert.type == AlertType.KEY_REPLACEMENT_PENDING
         ) {
             findNavController().navigate(
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
@@ -539,7 +549,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
         } else if (alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST) {
             viewModel.syncTransaction(alert.payload.transactionId)
         } else if (alert.type == AlertType.KEY_REPLACEMENT_COMPLETED) {
-
+            enterPasswordDialog(TargetAction.REPLACE_KEYS)
         }
     }
 
@@ -593,14 +603,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
             }
 
             SheetOptionType.TYPE_REPLACE_KEY -> {
-                navigator.openMembershipActivity(
-                    activityContext = requireActivity(),
-                    groupStep = MembershipStage.REPLACE_KEY,
-                    walletId = viewModel.getWalletId(),
-                    groupId = viewModel.getGroupId(),
-                    isPersonalWallet = args.groupId.isNullOrEmpty(),
-                    walletType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()
-                )
+                enterPasswordDialog(TargetAction.REPLACE_KEYS)
             }
         }
     }

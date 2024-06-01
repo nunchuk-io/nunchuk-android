@@ -523,12 +523,17 @@
         android:label="KeyAddedToGroupWalletFragment" />
     <fragment
         android:id="@+id/customKeyAccountFragmentFragment"
-        android:name="com.nunchuk.android.main.membership.custom.CustomKeyAccountFragmentFragment"
+        android:name="com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment"
         android:label="CustomKeyAccountFragmentFragment">
 
         <argument
             android:name="signer"
             app:argType="com.nunchuk.android.core.signer.SignerModel" />
+
+        <argument
+            android:name="replaced_xfp"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -577,7 +582,9 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/replaceKeyIntroFragment"
+            app:popUpToInclusive="true" />
 
         <argument
             android:name="wallet_id"

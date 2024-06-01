@@ -177,6 +177,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -632,7 +633,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = membershipApi.verifiedPasswordToken(
             targetAction, VerifiedPasswordTokenRequest(password)
         )
-        return response.data.token.token
+        val token = response.data.token.token
+        ncDataStore.setPasswordToken(token.orEmpty())
+        return token
     }
 
     override suspend fun verifiedPKeyToken(
@@ -1869,8 +1872,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override fun getGroups(): Flow<List<ByzantineGroup>> =
         groupDao.getGroupsFlow(chatId = accountManager.getAccount().chatId, chain = chain.value)
             .map { group ->
-                val groups = group.map { group ->
-                    group.toByzantineGroup()
+                val groups = group.map { serverGroup ->
+                    serverGroup.toByzantineGroup()
                 }
                 groups
             }
@@ -2526,14 +2529,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun finalizeReplaceWallet(groupId: String?, walletId: String): Wallet {
+        val verifyToken = ncDataStore.passwordToken.first()
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.finalizeReplaceWallet(
-                walletId,
+                verifyToken = verifyToken,
+                walletId = walletId,
             )
         } else {
             userWalletApiManager.groupWalletApi.finalizeReplaceWallet(
-                groupId,
-                walletId,
+                verifyToken = verifyToken,
+                groupId = groupId,
+                walletId = walletId,
             )
         }
 
@@ -2547,8 +2553,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 alias = wallet.alias.orEmpty()
             )
         )
-        getWallet(walletId)
-        pushEventManager.push(PushEvent.WalletChanged(walletId))
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 

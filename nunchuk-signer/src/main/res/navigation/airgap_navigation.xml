@@ -20,7 +20,6 @@
 
     <fragment
         android:id="@+id/addAirgapSignerFragment"
-        tools:layout="@layout/fragment_add_signer"
         android:name="com.nunchuk.android.signer.components.add.AddAirgapSignerFragment"
         android:label="AddAirgapSignerFragment" />
 

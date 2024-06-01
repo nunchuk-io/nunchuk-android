@@ -9,9 +9,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.text.bold
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
-import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -24,7 +24,7 @@ import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
-import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragmentFragment
+import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.toGroupWalletType
@@ -45,7 +45,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    private val viewModel: ReplaceKeysViewModel by viewModels()
+    private val viewModel: ReplaceKeysViewModel by activityViewModels()
 
     private val args by navArgs<ReplaceKeysFragmentArgs>()
     private var selectedSignerTag: SignerTag? = null
@@ -57,6 +57,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
 
             setContent {
                 ReplaceKeysScreen(
+                    viewModel = viewModel,
                     onReplaceKeyClicked = { signer ->
                         viewModel.setReplacingXfp(signer.fingerPrint)
                         openSelectHardwareOption()
@@ -77,7 +78,6 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                             masterSignerId = signer.id,
                             groupId = (activity as MembershipActivity).groupId,
                             keyId = viewModel.getKeyId(signer.id),
-                            checksum = viewModel.getKeyChecksum(signer.id).orEmpty(),
                         )
                     }
                 )
@@ -95,7 +95,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                     SignerType.NFC, SignerType.SOFTWARE, SignerType.FOREIGN_SOFTWARE, SignerType.COLDCARD_NFC, SignerType.HARDWARE -> {
                         findNavController().navigate(
                             ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
-                                signer
+                                signer = signer,
+                                replacedXfp = viewModel.replacedXfp
                             )
                         )
                     }
@@ -106,7 +107,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                         if (hasTag || selectedSignerTag == null) {
                             findNavController().navigate(
                                 ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
-                                    signer
+                                    signer = signer,
+                                    replacedXfp = viewModel.replacedXfp
                                 )
                             )
                         } else {
@@ -130,12 +132,12 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
-        setFragmentResultListener(CustomKeyAccountFragmentFragment.REQUEST_KEY) { _, bundle ->
+        setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
             val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
             if (signer != null) {
                 viewModel.onReplaceKey(signer)
             }
-            clearFragmentResult(CustomKeyAccountFragmentFragment.REQUEST_KEY)
+            clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
         }
     }
 
@@ -266,7 +268,9 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             activityContext = requireActivity(),
             isMembershipFlow = true,
             tag = tag,
-            groupId = args.groupId
+            groupId = args.groupId,
+            walletId = args.walletId,
+            replacedXfp = viewModel.replacedXfp
         )
     }
 

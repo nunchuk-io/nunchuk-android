@@ -33,6 +33,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -40,17 +45,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.navigation.findNavController
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.main.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class ReplaceKeyIntroFragment : Fragment() {
     private val args by navArgs<ReplaceKeyIntroFragmentArgs>()
+
+    private val viewModel: ReplaceKeysViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -59,65 +70,83 @@ class ReplaceKeyIntroFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                ReplaceKeyIntroScreen(
-                    onContinueClicked = {
-                        findNavController().navigate(
-                            ReplaceKeyIntroFragmentDirections.actionReplaceKeyIntroFragmentToReplaceKeysFragment(
-                                walletId = args.walletId,
-                                groupId = args.groupId
-                            )
-                        )
-                    },
-                )
-            }
-        }
-    }
-}
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                var isDataLoaded by remember { mutableStateOf(false) }
 
-@Composable
-fun ReplaceKeyIntroScreen(
-    onContinueClicked: () -> Unit = {}
-) = NunchukTheme {
-        NunchukTheme {
-            Scaffold(
-                modifier = Modifier.navigationBarsPadding(),
-                topBar = {
-                    NcImageAppBar(
-                        backgroundRes = R.drawable.nc_bg_roll_over_illustrations,
-                        backIconRes = R.drawable.ic_close
-                    )
-                },
-                bottomBar = {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        onClick = onContinueClicked
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
+                LaunchedEffect(uiState.isDataLoaded) {
+                    if (uiState.replaceSigners.isNotEmpty() || uiState.pendingReplaceXfps.isNotEmpty()) {
+                        openKeyReplaceScreen()
                     }
-                },
-            ) { innerPadding ->
-                Column(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Text(
-                        modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                        text = stringResource(id = R.string.nc_replace_keys),
-                        style = NunchukTheme.typography.heading
-                    )
-                    Text(
-                        modifier = Modifier.padding(16.dp),
-                        text = stringResource(R.string.nc_replace_key_desc),
-                        style = NunchukTheme.typography.body
+
+                    delay(300L)
+                    isDataLoaded = true
+                }
+
+                if (isDataLoaded) {
+                    ReplaceKeyIntroScreen(
+                        onContinueClicked = ::openKeyReplaceScreen,
                     )
                 }
             }
         }
     }
+
+    private fun openKeyReplaceScreen() {
+        findNavController().navigate(
+            ReplaceKeyIntroFragmentDirections.actionReplaceKeyIntroFragmentToReplaceKeysFragment(
+                walletId = args.walletId,
+                groupId = args.groupId
+            )
+        )
+    }
+}
+
+@Composable
+fun ReplaceKeyIntroScreen(
+    isLoading: Boolean = false,
+    onContinueClicked: () -> Unit = {}
+) = NunchukTheme {
+    if (isLoading) {
+        NcLoadingDialog()
+    }
+    Scaffold(
+        modifier = Modifier.navigationBarsPadding(),
+        topBar = {
+            NcImageAppBar(
+                backgroundRes = R.drawable.nc_bg_roll_over_illustrations,
+                backIconRes = R.drawable.ic_close
+            )
+        },
+        bottomBar = {
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                onClick = onContinueClicked
+            ) {
+                Text(text = stringResource(id = R.string.nc_text_continue))
+            }
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                text = stringResource(id = R.string.nc_replace_keys),
+                style = NunchukTheme.typography.heading
+            )
+            Text(
+                modifier = Modifier.padding(16.dp),
+                text = stringResource(R.string.nc_replace_key_desc),
+                style = NunchukTheme.typography.body
+            )
+        }
+    }
+}
 
 @Preview
 @Composable

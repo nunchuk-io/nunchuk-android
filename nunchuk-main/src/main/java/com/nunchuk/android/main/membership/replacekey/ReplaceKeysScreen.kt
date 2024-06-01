@@ -44,6 +44,7 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.signer.SignerModel
@@ -103,6 +104,9 @@ private fun ReplaceKeysContent(
     var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
     var selectedInheritanceSigner by remember { mutableStateOf<SignerModel?>(null) }
     NunchukTheme {
+        if (uiState.isLoading) {
+            NcLoadingDialog()
+        }
         NcScaffold(
             snackState = snackState,
             topBar = {

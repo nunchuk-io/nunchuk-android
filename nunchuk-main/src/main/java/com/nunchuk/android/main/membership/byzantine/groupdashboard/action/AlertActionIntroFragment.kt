@@ -38,26 +38,33 @@ import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardFragmentDirections
 import com.nunchuk.android.model.Alert
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.transaction.AlertPayload
+import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AlertActionIntroFragment : Fragment() {
     private val viewModel: AlertActionIntroViewModel by viewModels()
     private val args: AlertActionIntroFragmentArgs by navArgs()
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -72,6 +79,9 @@ class AlertActionIntroFragment : Fragment() {
                            viewModel.approveInheritanceRequestPlanning()
                         } else if (args.alert.type == AlertType.HEALTH_CHECK_REMINDER) {
                             openHealthCheckScreen()
+                            viewModel.approveInheritanceRequestPlanning()
+                        } else if (args.alert.type == AlertType.KEY_REPLACEMENT_PENDING) {
+                            enterPasswordDialog(TargetAction.REPLACE_KEYS)
                         } else if (it != null) {
                             setFragmentResult(
                                 REQUEST_KEY, bundleOf(
@@ -91,12 +101,19 @@ class AlertActionIntroFragment : Fragment() {
                             AlertType.REQUEST_INHERITANCE_PLANNING -> {
                                 getString(R.string.nc_cancel_inheritance_planning_request)
                             }
+
                             AlertType.KEY_RECOVERY_REQUEST, AlertType.CHANGE_EMAIL_REQUEST -> {
                                 getString(R.string.nc_cancel_this_change)
                             }
+
                             AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> {
-                               getString(R.string.nc_cancel_recurring_payment_desc)
+                                getString(R.string.nc_cancel_recurring_payment_desc)
                             }
+
+                            AlertType.KEY_REPLACEMENT_PENDING -> {
+                                getString(R.string.nc_cancel_key_replacement_desc)
+                            }
+
                             else -> {
                                 getString(R.string.nc_cancel_health_check_request)
                             }
@@ -106,7 +123,9 @@ class AlertActionIntroFragment : Fragment() {
                                 title = getString(R.string.nc_confirmation),
                                 message = message,
                                 onYesClick = {
-                                    if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
+                                    if (args.alert.type == AlertType.KEY_REPLACEMENT_PENDING) {
+                                        viewModel.cancelReplaceKey()
+                                    } else if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
                                         viewModel.denyInheritanceRequestPlanning()
                                     } else {
                                         viewModel.deleteDummyTransaction()
@@ -117,6 +136,16 @@ class AlertActionIntroFragment : Fragment() {
                 )
             }
         }
+    }
+
+    private fun enterPasswordDialog(targetAction: TargetAction) {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(R.string.nc_re_enter_your_password),
+            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
+            onConfirmed = {
+                viewModel.confirmPassword(it, targetAction)
+            }
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -132,16 +161,25 @@ class AlertActionIntroFragment : Fragment() {
                                         message = getString(R.string.nc_health_check_has_been_canceled),
                                     )
                                 }
+
                                 AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> {
                                     showSuccess(
                                         message = getString(R.string.nc_pending_cancellation_has_been_canceled),
                                     )
                                 }
+
                                 AlertType.CHANGE_EMAIL_REQUEST -> {
                                     NcToastManager.scheduleShowMessage(
                                         message = getString(R.string.nc_change_email_request_has_been_canceled),
                                     )
                                 }
+
+                                AlertType.KEY_REPLACEMENT_PENDING -> {
+                                    showSuccess(
+                                        message = getString(R.string.nc_key_replacement_has_been_canceled),
+                                    )
+                                }
+
                                 else -> Unit
                             }
                             hideLoading()
@@ -156,6 +194,7 @@ class AlertActionIntroFragment : Fragment() {
                             )
                             goBack()
                         }
+
                         AlertActionIntroEvent.DenyInheritanceRequestPlanningSuccess -> {
                             setFragmentResult(
                                 REQUEST_KEY,
@@ -166,6 +205,15 @@ class AlertActionIntroFragment : Fragment() {
 
                         is AlertActionIntroEvent.Error -> showError(message = event.message)
                         AlertActionIntroEvent.SkipHealthReminderSuccess -> {
+                            goBack()
+                        }
+                        is AlertActionIntroEvent.VerifiedPasswordTokenSuccess -> {
+                            navigator.openMembershipActivity(
+                                activityContext = requireActivity(),
+                                groupStep = MembershipStage.REPLACE_KEY,
+                                walletId = args.walletId,
+                                groupId = args.groupId,
+                            )
                             goBack()
                         }
                     }
@@ -221,12 +269,22 @@ private fun AlertActionIntroContent(
     onCancelRequest: () -> Unit = {},
     onContinue: (DummyTransactionPayload?) -> Unit = {},
 ) {
+    val showContinueButton =
+        (alert.type != AlertType.HEALTH_CHECK_REQUEST && alert.type != AlertType.KEY_REPLACEMENT_PENDING)
+                || (alert.type == AlertType.KEY_REPLACEMENT_PENDING && alert.payload.canReplace)
+    val showCancelButton =
+        alert.type != AlertType.KEY_REPLACEMENT_PENDING || alert.payload.canCancel
     val cancelButton = when (alert.type) {
         AlertType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_cancel_health_check)
         AlertType.HEALTH_CHECK_REMINDER -> stringResource(R.string.nc_skip_health_check)
         AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_deny)
         AlertType.CHANGE_EMAIL_REQUEST -> stringResource(R.string.nc_cancel_change)
-        AlertType.KEY_RECOVERY_REQUEST, AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> stringResource(R.string.nc_cancel)
+        AlertType.KEY_RECOVERY_REQUEST, AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> stringResource(
+            R.string.nc_cancel
+        )
+
+        AlertType.KEY_REPLACEMENT_PENDING -> stringResource(R.string.nc_cancel_key_replacement)
+
         else -> stringResource(id = R.string.nc_cancel_request)
     }
 
@@ -234,21 +292,32 @@ private fun AlertActionIntroContent(
         AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(
             id = R.string.nc_inheritance_planning_request_desc,
             state.requester?.user?.name ?: "Someone",
-            state.walletName
+            state.wallet.name
         )
+
         AlertType.RECURRING_PAYMENT_CANCELATION_PENDING -> stringResource(
             id = R.string.nc_recurring_payment_cancelation_pending_desc,
             alert.payload.paymentName.orEmpty()
         )
+
         AlertType.UPDATE_SECURITY_QUESTIONS -> stringResource(
             id = R.string.nc_security_questions_answer_will_be_updated
         )
+
         AlertType.CHANGE_EMAIL_REQUEST -> stringResource(
-            id = R.string.nc_change_email_request_desc, state.changeEmail?.oldEmail.orEmpty(), state.changeEmail?.newEmail.orEmpty()
+            id = R.string.nc_change_email_request_desc,
+            state.changeEmail?.oldEmail.orEmpty(),
+            state.changeEmail?.newEmail.orEmpty()
         )
         AlertType.HEALTH_CHECK_REMINDER -> stringResource(
             id = R.string.nc_it_time_check_the_heath_of, state.signer?.name.orEmpty()
         )
+
+        AlertType.KEY_REPLACEMENT_PENDING -> stringResource(
+            id = R.string.nc_key_replacement_pending_desc,
+            state.wallet.signers.find { it.masterFingerprint == alert.payload.xfp }?.name.orEmpty()
+        )
+
         else -> alert.body
     }
 
@@ -266,25 +335,27 @@ private fun AlertActionIntroContent(
             },
             bottomBar = {
                 Column {
-                    if (alert.type != AlertType.HEALTH_CHECK_REQUEST) {
+                    if (showContinueButton) {
                         NcPrimaryDarkButton(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth(),
                             onClick = { onContinue(state.dummyTransaction) },
-                            enabled = state.dummyTransaction != null || alert.type == AlertType.REQUEST_INHERITANCE_PLANNING || alert.type == AlertType.HEALTH_CHECK_REMINDER
+                            enabled = state.dummyTransaction != null || alert.type == AlertType.REQUEST_INHERITANCE_PLANNING || alert.type == AlertType.HEALTH_CHECK_REMINDER || alert.type == AlertType.KEY_REPLACEMENT_PENDING
                         ) {
                             Text(text = continueButtonText)
                         }
                     }
 
-                    TextButton(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        onClick = onCancelRequest
-                    ) {
-                        Text(text = cancelButton, style = NunchukTheme.typography.title)
+                    if (showCancelButton) {
+                        TextButton(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            onClick = onCancelRequest
+                        ) {
+                            Text(text = cancelButton, style = NunchukTheme.typography.title)
+                        }
                     }
                 }
             }
@@ -302,7 +373,11 @@ private fun AlertActionIntroContent(
                     modifier = Modifier.padding(top = 16.dp),
                     text = body,
                     baseStyle = NunchukTheme.typography.body,
-                    styles = mapOf(SpanIndicator('A') to SpanStyle(fontWeight = FontWeight.Bold), SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold), SpanIndicator('C') to SpanStyle(fontWeight = FontWeight.Bold))
+                    styles = mapOf(
+                        SpanIndicator('A') to SpanStyle(fontWeight = FontWeight.Bold),
+                        SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold),
+                        SpanIndicator('C') to SpanStyle(fontWeight = FontWeight.Bold)
+                    )
                 )
             }
         }

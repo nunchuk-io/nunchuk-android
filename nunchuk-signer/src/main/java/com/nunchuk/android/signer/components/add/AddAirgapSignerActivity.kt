@@ -58,6 +58,8 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
     val groupId: String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
     val xfp: String? by lazy { intent.getStringExtra(EXTRA_XFP) }
     val newIndex: Int by lazy { intent.getIntExtra(EXTRA_NEW_INDEX, 0) }
+    val replacedXfp: String? by lazy { intent.getStringExtra(EXTRA_REPLACED_XFP) }
+    val walletId: String by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
 
     companion object {
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
@@ -65,6 +67,8 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_GROUP_ID = "group_id"
         private const val EXTRA_XFP = "xfp"
         private const val EXTRA_NEW_INDEX = "new_index"
+        private const val EXTRA_REPLACED_XFP = "replaced_xfp"
+        private const val EXTRA_WALLET_ID = "wallet_id"
 
         fun buildIntent(
             activityContext: Context,
@@ -73,6 +77,8 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
             groupId: String,
             xfp: String?,
             newIndex: Int,
+            replacedXfp: String? = null,
+            walletId : String = ""
         ) = Intent(
             activityContext,
             AddAirgapSignerActivity::class.java
@@ -82,6 +88,8 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_XFP, xfp)
             putExtra(EXTRA_NEW_INDEX, newIndex)
+            putExtra(EXTRA_REPLACED_XFP, replacedXfp)
+            putExtra(EXTRA_WALLET_ID, walletId)
         }
     }
 

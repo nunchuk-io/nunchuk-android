@@ -503,6 +503,8 @@ class GroupDashboardViewModel @Inject constructor(
                     )
                 )
 
+                TargetAction.REPLACE_KEYS -> _event.emit(GroupDashboardEvent.OpenReplaceKey)
+
                 else -> {}
             }
         } else {

@@ -45,6 +45,8 @@ interface NfcNavigator {
         groupId: String = "",
         newIndex: Int = -1,
         xfp: String? = null,
+        replacedXfp: String? = null,
+        walletId: String? = null,
     )
 
     fun openSetupTapSigner(
@@ -62,7 +64,6 @@ interface NfcNavigator {
         masterSignerId: String,
         groupId: String = "",
         keyId: String = "",
-        checksum: String = "",
     )
 
     fun openCreateBackUpTapSigner(
@@ -71,5 +72,7 @@ interface NfcNavigator {
         masterSignerId: String,
         groupId: String = "",
         signerIndex: Int = 0,
+        replacedXfp: String = "",
+        walletId: String = "",
     )
 }

@@ -35,7 +35,6 @@ import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
 
 data class EstimatedFeeArgs(
-    val title: String,
     val walletId: String,
     val availableAmount: Double,
     val txReceipts: List<TxReceipt>,
@@ -45,7 +44,8 @@ data class EstimatedFeeArgs(
     val slots: List<SatsCardSlot> = emptyList(),
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     val inputs: List<UnspentOutput> = emptyList(),
-    val isConsolidateFlow: Boolean = false
+    val isConsolidateFlow: Boolean = false,
+    val title: String = ""
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, EstimatedFeeActivity::class.java).apply {
