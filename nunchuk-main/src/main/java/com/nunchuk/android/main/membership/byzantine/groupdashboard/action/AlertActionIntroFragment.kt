@@ -45,7 +45,6 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardFragmentDirections
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AlertType
@@ -76,7 +75,7 @@ class AlertActionIntroFragment : Fragment() {
                     alert = args.alert, viewModel = viewModel,
                     onContinue = {
                         if (args.alert.type == AlertType.REQUEST_INHERITANCE_PLANNING) {
-                           viewModel.approveInheritanceRequestPlanning()
+                            viewModel.approveInheritanceRequestPlanning()
                         } else if (args.alert.type == AlertType.HEALTH_CHECK_REMINDER) {
                             openHealthCheckScreen()
                             viewModel.approveInheritanceRequestPlanning()
@@ -207,6 +206,7 @@ class AlertActionIntroFragment : Fragment() {
                         AlertActionIntroEvent.SkipHealthReminderSuccess -> {
                             goBack()
                         }
+
                         is AlertActionIntroEvent.VerifiedPasswordTokenSuccess -> {
                             navigator.openMembershipActivity(
                                 activityContext = requireActivity(),
@@ -309,8 +309,10 @@ private fun AlertActionIntroContent(
             state.changeEmail?.oldEmail.orEmpty(),
             state.changeEmail?.newEmail.orEmpty()
         )
+
         AlertType.HEALTH_CHECK_REMINDER -> stringResource(
-            id = R.string.nc_it_time_check_the_heath_of, state.signer?.name.orEmpty()
+            id = R.string.nc_it_time_check_the_heath_of,
+            state.wallet.signers.find { it.masterFingerprint == alert.payload.xfp }?.name.orEmpty()
         )
 
         AlertType.KEY_REPLACEMENT_PENDING -> stringResource(
