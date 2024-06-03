@@ -11,7 +11,6 @@ import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
@@ -236,5 +235,4 @@ data class AlertActionIntroUiState(
     val wallet: Wallet = Wallet(),
     val requester: ByzantineMember? = null,
     val changeEmail: ChangeEmail? = null,
-    val signer: SingleSigner? = null
 )
