@@ -31,6 +31,7 @@ sealed class AddReceiptEvent {
         val amount: Amount,
         val isCreateTransaction: Boolean
     ) : AddReceiptEvent()
+    data object ParseBtcUriEvent : AddReceiptEvent()
 }
 
 data class AddReceiptState(

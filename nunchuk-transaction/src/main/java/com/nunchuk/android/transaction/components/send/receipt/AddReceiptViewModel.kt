@@ -52,6 +52,7 @@ internal class AddReceiptViewModel @Inject constructor(
             if (result.isSuccess) {
                 val btcUri = result.getOrThrow()
                 updateState { copy(address = btcUri.address, privateNote = btcUri.privateNote, amount = btcUri.amount) }
+                setEvent(ParseBtcUriEvent)
             } else {
                 setEvent(ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
