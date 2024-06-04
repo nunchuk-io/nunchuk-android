@@ -25,12 +25,14 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.replace.FinalizeReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
 import com.nunchuk.android.usecase.replace.InitReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.ResetReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
+import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -58,7 +60,9 @@ class ReplaceKeysViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val nfcFileManager: NfcFileManager,
     private val singleSignerMapper: SingleSignerMapper,
-    private val getServerWalletsUseCase: GetServerWalletsUseCase
+    private val getServerWalletsUseCase: GetServerWalletsUseCase,
+    private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
+    private val getServerWalletUseCase: GetServerWalletUseCase
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _uiState = MutableStateFlow(ReplaceKeysUiState())
@@ -91,6 +95,29 @@ class ReplaceKeysViewModel @Inject constructor(
                             it.copy(group = group, myRole = currentUserRole(group.members))
                         }
                     }
+            }
+            viewModelScope.launch {
+                syncGroupWalletUseCase(args.groupId).onSuccess { wallet ->
+                    _uiState.update {
+                        it.copy(inheritanceXfp = wallet.signers.find { signer ->
+                            signer.tags.contains(
+                                SignerTag.INHERITANCE.name
+                            )
+                        }?.xfp)
+                    }
+                }
+            }
+        } else {
+            viewModelScope.launch {
+                getServerWalletUseCase(args.walletId).onSuccess { wallet ->
+                    _uiState.update {
+                        it.copy(inheritanceXfp = wallet.signers.find { signer ->
+                            signer.tags.contains(
+                                SignerTag.INHERITANCE.name
+                            )
+                        }?.xfp)
+                    }
+                }
             }
         }
         getReplaceWalletStatus()
@@ -189,9 +216,9 @@ class ReplaceKeysViewModel @Inject constructor(
         _uiState.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
 
     fun getColdcard() = _uiState.value.signers.filter {
-        (it.type == SignerType.COLDCARD_NFC
-                && it.derivationPath.isRecommendedPath
-                && isSignerExist(it.fingerPrint).not()) || (it.type == SignerType.AIRGAP && it.tags.isEmpty())
+        isSignerExist(it.fingerPrint).not()
+                && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedPath)
+                || (it.type == SignerType.AIRGAP && it.tags.isEmpty()))
     }
 
     fun getAirgap(tag: SignerTag?): List<SignerModel> {
@@ -202,15 +229,19 @@ class ReplaceKeysViewModel @Inject constructor(
             }
         } else {
             _uiState.value.signers.filter {
-                it.type == SignerType.AIRGAP
-                        && isSignerExist(it.fingerPrint).not()
-                        && (it.tags.contains(tag) || it.tags.isEmpty())
+                isSignerExist(it.fingerPrint).not()
+                        && (it.type == SignerType.AIRGAP
+                        && (it.tags.contains(tag) || it.tags.isEmpty()))
             }
         }
     }
 
     fun getHardwareSigners(tag: SignerTag) =
-        _uiState.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
+        _uiState.value.signers.filter {
+            it.type == SignerType.HARDWARE && it.tags.contains(tag) && isSignerExist(
+                it.fingerPrint
+            ).not()
+        }
 
     fun getSoftwareSigners() =
         _uiState.value.signers.filter {
@@ -293,6 +324,7 @@ class ReplaceKeysViewModel @Inject constructor(
     fun getKeyId(xfp: String): String {
         return replacedSigners.find { it.xfp == xfp }?.tapsignerKeyId.orEmpty()
     }
+
     fun getFilePath(xfp: String) = nfcFileManager.buildFilePath(getKeyId(xfp))
 
     val replacedXfp: String
@@ -315,4 +347,5 @@ data class ReplaceKeysUiState(
     val createWalletSuccess: StateEvent = StateEvent.None,
     val signers: List<SignerModel> = emptyList(),
     val message: String = "",
+    val inheritanceXfp: String? = null
 )

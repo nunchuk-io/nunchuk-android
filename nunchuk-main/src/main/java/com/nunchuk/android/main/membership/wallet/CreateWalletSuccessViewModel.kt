@@ -22,6 +22,7 @@ package com.nunchuk.android.main.membership.wallet
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -50,12 +51,12 @@ class CreateWalletSuccessViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getWalletDetail2UseCase(args.walletId)
+            getWalletDetail2UseCase(args.replacedWalletId)
                 .onSuccess {
                     val is2Of4MultisigWallet = it.signers.size == GroupWalletType.TWO_OF_FOUR_MULTISIG.m
                             && it.totalRequireSigns == GroupWalletType.TWO_OF_FOUR_MULTISIG.n
                     _state.update { state ->
-                        state.copy(is2Of4MultisigWallet = is2Of4MultisigWallet, walletName = it.name)
+                        state.copy(is2Of4MultisigWallet = is2Of4MultisigWallet, replacedWallet = it)
                     }
                 }
         }
@@ -85,8 +86,8 @@ data class CreateWalletSuccessUiState(
     val isSingleSetup: Boolean = false,
     val allowInheritance: Boolean = false,
     val is2Of4MultisigWallet: Boolean = false,
-    val walletName: String = "",
-    val isReplaceWallet: Boolean = false
+    val replacedWallet: Wallet = Wallet(),
+    val isReplaceWallet: Boolean = false,
 )
 
 sealed class CreateWalletSuccessEvent {

@@ -80,6 +80,8 @@ interface SignerNavigator {
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         groupId: String? = null,
+        replacedXfp: String? = null,
+        walletId: String = "",
     )
 
     /**
@@ -91,6 +93,7 @@ interface SignerNavigator {
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         walletId: String = "",
         groupId: String? = null,
+        replacedXfp: String? = null,
     )
 
     fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
@@ -105,6 +108,7 @@ interface SignerNavigator {
         isRecoverHotWallet: Boolean = false,
         walletId: String = "",
         groupId: String? = null,
+        replacedXfp: String? = null,
     )
 
     /**
@@ -118,6 +122,7 @@ interface SignerNavigator {
         masterSignerId: String = "",
         walletId: String = "",
         groupId: String? = null,
+        replacedXfp: String? = null,
     )
 
     /**

@@ -70,7 +70,7 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(), SetUpNfc
 
     private fun openAddSoftwareSignerScreen() {
         finish()
-        navigator.openAddSoftwareSignerScreen(this)
+        navigator.openAddSoftwareSignerScreen(this,)
     }
 
     private fun navigateToSetupTapSigner() {

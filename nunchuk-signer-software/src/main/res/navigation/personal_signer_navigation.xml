@@ -31,6 +31,10 @@
             android:defaultValue="@null"
             app:nullable="true"
             app:argType="string" />
+        <argument
+            android:name="replaced_xfp"
+            app:argType="string"
+            android:defaultValue=""/>
         <action
             android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
             app:destination="@id/confirmSeedFragment"
@@ -72,6 +76,10 @@
             android:defaultValue="@null"
             app:nullable="true"
             app:argType="string" />
+        <argument
+            android:name="replaced_xfp"
+            app:argType="string"
+            android:defaultValue=""/>
         <action
             android:id="@+id/action_confirmSeedFragment_to_setPassphraseFragment"
             app:destination="@id/setPassphraseFragment"

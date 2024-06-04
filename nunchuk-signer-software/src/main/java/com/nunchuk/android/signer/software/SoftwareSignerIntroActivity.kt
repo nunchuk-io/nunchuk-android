@@ -90,7 +90,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             this,
             passphrase = passphrase,
             primaryKeyFlow = primaryKeyFlow,
-            groupId = groupId
+            groupId = groupId,
+            replacedXfp = replacedXfp
         )
     }
 
@@ -99,19 +100,29 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             this,
             passphrase = passphrase,
             primaryKeyFlow = primaryKeyFlow,
-            groupId = groupId
+            groupId = groupId,
+            replacedXfp = replacedXfp
         )
+    }
+
+    val replacedXfp: String? by lazy {
+        intent.getStringExtra(EXTRA_REPLACED_XFP)
     }
 
     companion object {
         private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
+        private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
+        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+
         fun start(
             activityContext: Context,
             passphrase: String,
             primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
             groupId: String? = null,
+            replacedXfp: String? = null,
+            walletId: String = "",
         ) {
             activityContext.startActivity(
                 Intent(
@@ -121,8 +132,10 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     putExtra(EXTRA_PRIMARY_KEY_FLOW, primaryKeyFlow)
                     putExtra(EXTRA_PASSPHRASE, passphrase)
                     groupId?.let { putExtra(EXTRA_GROUP_ID, it) }
-                })
-
+                    replacedXfp?.let { putExtra(EXTRA_REPLACED_XFP, it) }
+                    putExtra(EXTRA_WALLET_ID, walletId)
+                },
+            )
         }
     }
 }
@@ -153,13 +166,15 @@ fun SoftwareSignerIntroScreen(
 
                 NcPrimaryDarkButton(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onCreateNewSeedClicked) {
+                    onClick = onCreateNewSeedClicked
+                ) {
                     Text(text = stringResource(id = R.string.nc_ssigner_new_seed))
                 }
 
                 NcOutlineButton(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onRecoverSeedClicked) {
+                    onClick = onRecoverSeedClicked
+                ) {
                     Text(text = stringResource(id = R.string.nc_ssigner_recover_seed))
                 }
             }

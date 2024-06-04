@@ -56,6 +56,7 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.nav.NunchukNavigator
@@ -85,7 +86,18 @@ class CreateWalletSuccessFragment : MembershipFragment() {
 
             setContent {
                 CreateWalletSuccessScreen(viewModel) {
-                    requireActivity().finish()
+                    val groupId = (activity as MembershipActivity).groupId
+                    val is2Of4MultisigWallet = viewModel.state.value.is2Of4MultisigWallet
+                    if (groupId.isEmpty() && is2Of4MultisigWallet) {
+                        findNavController().navigate(
+                            CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyStepFragment(),
+                            NavOptions.Builder()
+                                .setPopUpTo(findNavController().graph.startDestinationId, true)
+                                .build()
+                        )
+                    } else {
+                        ActivityManager.popUntilRoot()
+                    }
                 }
             }
         }
@@ -101,16 +113,30 @@ class CreateWalletSuccessFragment : MembershipFragment() {
             when (it) {
                 is CreateWalletSuccessEvent.ContinueStepEvent -> {
                     if (args.replacedWalletId.isNotEmpty()) {
-                        NCInfoDialog(requireActivity())
-                            .showDialog(
-                                title = getString(R.string.nc_confirmation),
-                                message = getString(R.string.nc_transfer_fund_desc),
-                                btnYes = getString(R.string.nc_yes_do_it_now),
-                                btnInfo = getString(R.string.nc_i_ll_do_it_later),
-                                onYesClick = {
-
-                                }
+                        val wallet = viewModel.state.value.replacedWallet
+                        if (wallet.balance.pureBTC() == 0.0) {
+                            navigator.openWalletDetailsScreen(
+                                requireActivity(),
+                                args.walletId
                             )
+                            ActivityManager.popUntilRoot()
+                        } else {
+                            NCInfoDialog(requireActivity())
+                                .showDialog(
+                                    title = getString(R.string.nc_confirmation),
+                                    message = getString(R.string.nc_transfer_fund_desc),
+                                    btnYes = getString(R.string.nc_yes_do_it_now),
+                                    btnInfo = getString(R.string.nc_i_ll_do_it_later),
+                                    onYesClick = {
+                                        findNavController().navigate(
+                                            CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToTransferFundFragment(
+                                                args.walletId,
+                                                args.replacedWalletId
+                                            )
+                                        )
+                                    }
+                                )
+                        }
                     } else if (groupId.isEmpty() && it.is2Of4MultisigWallet) {
                         findNavController().navigate(
                             CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyStepFragment(),
@@ -174,7 +200,7 @@ fun CreateWalletSuccessScreenContent(
                         modifier = Modifier.padding(16.dp),
                         text = stringResource(
                             R.string.nc_replace_wallet_success_desc,
-                            uiState.walletName,
+                            uiState.replacedWallet.name,
                         ),
                         style = NunchukTheme.typography.body
                     )

@@ -23,6 +23,8 @@ import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.flow.Flow
 
 interface KeyRepository {
@@ -87,4 +89,6 @@ interface KeyRepository {
         groupId: String?,
         walletId: String,
     )
+
+    suspend fun getReplaceSignerName(walletId: String, type: SignerType, tag: SignerTag?) : String
 }

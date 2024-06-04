@@ -76,7 +76,7 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
                             mnemonic = event.mnemonic,
                             isQuickWallet = args.isQuickWallet,
                             primaryKeyFlow = args.primaryKeyFlow,
-                            passphrase = ""
+                            passphrase = "",
                         )
                     )
                 } else {
@@ -87,7 +87,8 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
                         primaryKeyFlow = args.primaryKeyFlow,
                         masterSignerId = viewModel.state.value.masterSignerId,
                         walletId = args.walletId,
-                        groupId = args.groupId
+                        groupId = args.groupId,
+                        replacedXfp = args.replacedXfp
                     )
                 }
             }

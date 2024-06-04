@@ -57,7 +57,8 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
             primaryKeyFlow: Int,
             masterSignerId: String,
             walletId: String,
-            groupId: String? = null
+            groupId: String? = null,
+            replacedXfp: String? = null
         ) {
             activityContext.startActivity(
                 Intent(
@@ -70,7 +71,8 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
                         passphrase = passphrase,
                         masterSignerId = masterSignerId,
                         walletId = walletId,
-                        groupId = groupId
+                        groupId = groupId,
+                        replacedXfp = replacedXfp.orEmpty()
                     ).toBundle()
                 )
             )

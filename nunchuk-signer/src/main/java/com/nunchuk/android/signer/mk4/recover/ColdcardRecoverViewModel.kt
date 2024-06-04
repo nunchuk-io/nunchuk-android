@@ -41,6 +41,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
+import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -64,7 +65,8 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
-    private val replaceKeyUseCase: ReplaceKeyUseCase
+    private val replaceKeyUseCase: ReplaceKeyUseCase,
+    private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ColdcardRecoverEvent>()
     val event = _event.asSharedFlow()
@@ -153,11 +155,19 @@ class ColdcardRecoverViewModel @Inject constructor(
                 _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                 return@launch
             }
+            val signerName = if (replacedXfp.isNullOrEmpty()) {
+                COLDCARD_DEFAULT_KEY_NAME + membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
+            } else {
+                getReplaceSignerNameUseCase(
+                    GetReplaceSignerNameUseCase.Params(
+                        walletId = walletId.orEmpty(),
+                        signerType = SignerType.COLDCARD_NFC,
+                    )
+                ).getOrThrow()
+            }
             val createSignerResult = createSignerUseCase(
                 CreateSignerUseCase.Params(
-                    name = "$COLDCARD_DEFAULT_KEY_NAME${
-                        membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
-                    }",
+                    name = signerName,
                     xpub = signer.xpub,
                     derivationPath = signer.derivationPath,
                     masterFingerprint = signer.masterFingerprint,

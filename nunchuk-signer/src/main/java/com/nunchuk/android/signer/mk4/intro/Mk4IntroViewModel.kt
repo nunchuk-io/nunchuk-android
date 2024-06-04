@@ -48,6 +48,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
+import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -77,6 +78,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
+    private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -142,11 +144,21 @@ class Mk4IntroViewModel @Inject constructor(
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
+                    val signerName = if (replacedXfp.isNullOrEmpty()) {
+                        getReplaceSignerNameUseCase(
+                            GetReplaceSignerNameUseCase.Params(
+                                walletId = walletId.orEmpty(),
+                                signerType = SignerType.COLDCARD_NFC
+                            )
+                        ).getOrThrow()
+                    } else {
+                        "$COLDCARD_DEFAULT_KEY_NAME${
+                            membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
+                        }"
+                    }
                     val createSignerResult = createMk4SignerUseCase(
                         signer.copy(
-                            name = "$COLDCARD_DEFAULT_KEY_NAME${
-                                membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
-                            }"
+                            name = signerName
                         )
                     )
                     if (createSignerResult.isSuccess) {

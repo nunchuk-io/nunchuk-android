@@ -44,6 +44,7 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
         val passphrase = intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
         val walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
         val groupId = intent.getStringExtra(EXTRA_GROUP_ID)
+        val replacedXfp = intent.getStringExtra(EXTRA_REPLACED_XFP).orEmpty()
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 replace(R.id.fragment_container, CreateNewSeedFragment().apply {
@@ -52,7 +53,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                         primaryKeyFlow = primaryKeyFlow,
                         passphrase = passphrase,
                         walletId = walletId,
-                        groupId = groupId
+                        groupId = groupId,
+                        replacedXfp = replacedXfp
                     ).toBundle()
                 })
             }
@@ -64,6 +66,7 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
+        private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
 
         fun start(
             activityContext: Context,
@@ -71,6 +74,7 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
             passphrase: String,
             walletId: String,
             groupId: String?,
+            replacedXfp: String? = null
         ) {
             activityContext.startActivity(
                 Intent(
@@ -90,6 +94,7 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                         walletId
                     )
                     putExtra(EXTRA_GROUP_ID, groupId)
+                    putExtra(EXTRA_REPLACED_XFP, replacedXfp)
                 })
         }
     }
