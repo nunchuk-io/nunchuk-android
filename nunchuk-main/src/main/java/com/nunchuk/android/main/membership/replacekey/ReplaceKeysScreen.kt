@@ -52,7 +52,6 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.StateEvent
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 @Composable
@@ -158,7 +157,7 @@ private fun ReplaceKeysContent(
                             modifier = Modifier.padding(top = 16.dp),
                             item = uiState.replaceSigners[item.fingerPrint] ?: item,
                             onReplaceClicked = {
-                                if (it.tags.contains(SignerTag.INHERITANCE)) {
+                                if (it.fingerPrint == uiState.inheritanceXfp) {
                                     selectedInheritanceSigner = it
                                 } else {
                                     onReplaceKeyClicked(it)

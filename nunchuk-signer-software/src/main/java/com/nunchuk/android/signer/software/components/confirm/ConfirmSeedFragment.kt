@@ -124,11 +124,16 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                     primaryKeyFlow = args.primaryKeyFlow
                 )
             )
-        } else if (!args.groupId.isNullOrEmpty()) {
+        } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty()) {
+            val signerName = if (args.replacedXfp.isNotEmpty()) {
+                viewModel.state.value.replaceSignerName
+            } else {
+                "Key${membershipStepManager.getNextKeySuffixByType(SignerType.SOFTWARE)}"
+            }
             navigator.openSetPassphraseScreen(
                 activityContext = requireActivity(),
                 mnemonic = args.mnemonic,
-                signerName = "Key${membershipStepManager.getNextKeySuffixByType(SignerType.SOFTWARE)}",
+                signerName = signerName,
                 primaryKeyFlow = args.primaryKeyFlow,
                 groupId = args.groupId
             )

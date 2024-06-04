@@ -28,9 +28,12 @@ import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
+import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -41,13 +44,29 @@ class AddTapSignerIntroViewModel @Inject constructor(
     private val getTapSignerStatusUseCase: GetTapSignerStatusUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper
+    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
+    private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddTapSignerIntroEvent>()
     val event = _event.asSharedFlow()
 
+    private val _replaceSignerName = MutableStateFlow("")
+
     init {
         checkAssistedSignerExistenceHelper.init(viewModelScope)
+    }
+
+    fun getReplaceSignerName(walletId: String) {
+        viewModelScope.launch {
+            getReplaceSignerNameUseCase(
+                GetReplaceSignerNameUseCase.Params(
+                    walletId = walletId,
+                    signerType = SignerType.NFC
+                )
+            ).onSuccess {
+                _replaceSignerName.value = it
+            }
+        }
     }
 
     fun onContinueClicked() {
@@ -73,18 +92,22 @@ class AddTapSignerIntroViewModel @Inject constructor(
 
     fun getMasterSigner(masterSignerId: String) = viewModelScope.launch {
         if (masterSignerId.isEmpty()) return@launch
-       getMasterSignerUseCase(masterSignerId).onSuccess {
+        getMasterSignerUseCase(masterSignerId).onSuccess {
             _event.emit(AddTapSignerIntroEvent.GetMasterSignerSuccess(it))
         }.onFailure {
             _event.emit(AddTapSignerIntroEvent.GetTapSignerStatusError(it))
         }
     }
 
-    fun isKeyAddedToAssistedWallet(masterSignerId: String) = membershipStepManager.isKeyExisted(masterSignerId)
+    fun isKeyAddedToAssistedWallet(masterSignerId: String) =
+        membershipStepManager.isKeyExisted(masterSignerId)
 
-    fun getSignerName() = membershipStepManager.getTapSignerName()
+    fun getSignerName() = _replaceSignerName.value.ifEmpty {
+        membershipStepManager.getTapSignerName()
+    }
 
-    fun isInAssistedWallet(masterSignerId: String) = checkAssistedSignerExistenceHelper.isInAssistedWallet(masterSignerId)
+    fun isInAssistedWallet(masterSignerId: String) =
+        checkAssistedSignerExistenceHelper.isInAssistedWallet(masterSignerId)
 }
 
 sealed class AddTapSignerIntroEvent {

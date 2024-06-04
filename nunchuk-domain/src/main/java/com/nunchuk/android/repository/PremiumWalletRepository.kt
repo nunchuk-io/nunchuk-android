@@ -401,7 +401,7 @@ interface PremiumWalletRepository {
     suspend fun syncGroupWallet(
         groupId: String,
         groupAssistedKeys: MutableSet<String> = mutableSetOf()
-    ): Boolean
+    ): WalletServer
 
     fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>>
     suspend fun getAlertsRemote(groupId: String?, walletId: String?): List<Alert>
@@ -425,7 +425,7 @@ interface PremiumWalletRepository {
         groupId: String?
     ): SeverWallet
 
-    suspend fun getWallet(walletId: String): SeverWallet
+    suspend fun getWallet(walletId: String): WalletServer
 
     suspend fun syncDeletedWallet(): Boolean
 

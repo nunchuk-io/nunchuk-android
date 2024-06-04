@@ -32,9 +32,11 @@ import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.I
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.MnemonicRequiredEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.UpdateMnemonicEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
+import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.wallet.RecoverHotWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,6 +53,7 @@ internal class RecoverSeedViewModel @Inject constructor(
     private val checkMnemonicUseCase: CheckMnemonicUseCase,
     private val recoverHotWalletUseCase: RecoverHotWalletUseCase,
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
+    private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
 ) : NunchukViewModel<RecoverSeedState, RecoverSeedEvent>() {
 
     private var bip39Words = ArrayList<String>()
@@ -62,6 +65,19 @@ internal class RecoverSeedViewModel @Inject constructor(
             if (result is Success) {
                 bip39Words = ArrayList(result.data)
                 updateState { copy(suggestions = bip39Words) }
+            }
+        }
+    }
+
+    fun getReplaceSignerName(walletId: String) {
+        viewModelScope.launch {
+            getReplaceSignerNameUseCase(
+                GetReplaceSignerNameUseCase.Params(
+                    walletId = walletId,
+                    signerType = SignerType.SOFTWARE
+                )
+            ).onSuccess { name ->
+                updateState { copy(replaceSignerName = name) }
             }
         }
     }

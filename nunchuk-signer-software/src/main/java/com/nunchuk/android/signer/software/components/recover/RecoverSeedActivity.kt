@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.compose.ui.text.toUpperCase
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
@@ -65,12 +64,19 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         intent.getStringExtra(EXTRA_GROUP_ID)
     }
 
+    private val replacedXfp: String by lazy {
+        intent.getStringExtra(EXTRA_REPLACED_XFP).orEmpty()
+    }
+
     override fun initializeBinding() = ActivityRecoverSeedBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
+        if (replacedXfp.isNotEmpty()) {
+            viewModel.getReplaceSignerName(replacedXfp)
+        }
         setupViews()
         observeEvent()
     }
@@ -91,7 +97,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             InvalidMnemonicEvent -> binding.mnemonic.setError(getString(R.string.nc_invalid_seed_phrase))
             is ValidMnemonicEvent -> {
                 val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
-                when  {
+                when {
                     primaryKeyFlow == PrimaryKeyFlow.SIGN_IN -> {
                         navigator.openPrimaryKeyEnterPassphraseScreen(
                             this,
@@ -100,12 +106,16 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         )
                     }
 
-                    !groupId.isNullOrEmpty() -> {
+                    !groupId.isNullOrEmpty() || replacedXfp.isNotEmpty() -> {
+                        val signerName = if (replacedXfp.isNotEmpty()) {
+                            viewModel.state.value?.replaceSignerName.orEmpty()
+                        } else {
+                            "Key${membershipStepManager.getNextKeySuffixByType(SignerType.SOFTWARE)}"
+                        }
                         navigator.openSetPassphraseScreen(
                             activityContext = this,
                             mnemonic = event.mnemonic,
-                            signerName = "Key${membershipStepManager.getNextKeySuffixByType(
-                                SignerType.SOFTWARE)}",
+                            signerName = signerName,
                             groupId = groupId
                         )
                     }
@@ -177,6 +187,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
         private const val EXTRA_RECOVER_HOT_WALLET = "EXTRA_RECOVER_HOT_WALLET"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
+        private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
 
         fun start(
             activityContext: Context,
@@ -184,6 +195,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             primaryKeyFlow: Int,
             isRecoverHotWallet: Boolean = false,
             groupId: String? = null,
+            replacedXfp: String? = null
         ) {
             activityContext.startActivity(
                 Intent(
@@ -203,6 +215,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         isRecoverHotWallet
                     )
                     putExtra(EXTRA_GROUP_ID, groupId)
+                    putExtra(EXTRA_REPLACED_XFP, replacedXfp)
                 },
             )
         }

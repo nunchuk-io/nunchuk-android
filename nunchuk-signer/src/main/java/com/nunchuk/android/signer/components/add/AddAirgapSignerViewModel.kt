@@ -56,6 +56,7 @@ import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
+import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
@@ -95,7 +96,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
-    private val replaceKeyUseCase: ReplaceKeyUseCase
+    private val replaceKeyUseCase: ReplaceKeyUseCase,
+    private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -137,14 +139,9 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         xfp: String?,
         newIndex: Int,
     ) {
-        val newSignerName = if (isMembershipFlow) "${signerTag.formattedName}${
-            membershipStepManager.getNextKeySuffixByType(
-                SignerType.AIRGAP
-            )
-        }" else signerName
-        validateInput(newSignerName, signerSpec) {
+        validateInput(signerSpec) {
             doAfterValidate(
-                signerName = newSignerName,
+                signerName = signerName,
                 signerInput = it,
                 isMembershipFlow = isMembershipFlow,
                 signerTag = signerTag,
@@ -163,6 +160,26 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         newIndex: Int,
     ) {
         viewModelScope.launch {
+            val newSignerName = if (!replacedXfp.isNullOrEmpty() && walletId.isNotEmpty()) {
+                getReplaceSignerNameUseCase(
+                    GetReplaceSignerNameUseCase.Params(
+                        walletId = walletId,
+                        signerType = SignerType.AIRGAP
+                    )
+                ).getOrThrow()
+            } else if (isMembershipFlow) {
+                "${signerTag.formattedName}${
+                    membershipStepManager.getNextKeySuffixByType(
+                        SignerType.AIRGAP
+                    )
+                }"
+            } else {
+                signerName
+            }
+            if (newSignerName.isEmpty()) {
+                _state.update { it.copy(showKeyNameError = true) }
+                return@launch
+            }
             if (replacedXfp.isNullOrEmpty() && membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
                 setEvent(AddSameKey)
                 return@launch
@@ -176,7 +193,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 return@launch
             }
             setEvent(LoadingEventAirgap(true))
-            val signer = signerInput.toSingleSigner(signerName, signerTag)
+            val signer = signerInput.toSingleSigner(newSignerName, signerTag)
             if (isMembershipFlow.not() && checkAssistedSignerExistenceHelper.isInAssistedWallet(
                     signer.toModel()
                 )
@@ -195,7 +212,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
             val result = createSignerUseCase(
                 CreateSignerUseCase.Params(
-                    name = signerName,
+                    name = newSignerName,
                     xpub = signerInput.xpub,
                     derivationPath = signerInput.derivationPath,
                     masterFingerprint = signerInput.fingerPrint.lowercase(),
@@ -256,19 +273,14 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     }
 
     private fun validateInput(
-        signerName: String,
         signerSpec: String,
         doAfterValidate: (SignerInput) -> Unit = {},
     ) {
-        if (signerName.isEmpty()) {
-            _state.update { it.copy(showKeyNameError = true) }
-        } else {
-            try {
-                doAfterValidate(signerSpec.toSigner())
-            } catch (e: InvalidSignerFormatException) {
-                CrashlyticsReporter.recordException(e)
-                _state.update { it.copy(showKeySpecError = true) }
-            }
+        try {
+            doAfterValidate(signerSpec.toSigner())
+        } catch (e: InvalidSignerFormatException) {
+            CrashlyticsReporter.recordException(e)
+            _state.update { it.copy(showKeySpecError = true) }
         }
     }
 

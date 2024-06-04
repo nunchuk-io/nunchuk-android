@@ -53,7 +53,7 @@ class PKeyAddSignerActivity : BaseActivity<ActivityPkeyAddSignerBinding>() {
         navigator.openAddSoftwareSignerScreen(
             this,
             passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow
+            primaryKeyFlow = primaryKeyFlow,
         )
     }
 

@@ -24,4 +24,7 @@ sealed class ConfirmSeedEvent {
     object SelectedIncorrectWordEvent : ConfirmSeedEvent()
 }
 
-data class ConfirmSeedState(val groups: List<PhraseWordGroup> = ArrayList())
+data class ConfirmSeedState(
+    val groups: List<PhraseWordGroup> = ArrayList(),
+    val replaceSignerName: String = "",
+)

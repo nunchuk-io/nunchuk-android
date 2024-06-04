@@ -25,6 +25,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.components.create.PHRASE_SEPARATOR
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.wallet.MarkHotWalletBackedUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,6 +42,7 @@ import javax.inject.Inject
 internal class ConfirmSeedViewModel @Inject constructor(
     private val markHotWalletBackedUpUseCase: MarkHotWalletBackedUpUseCase,
     private val coroutineScope: CoroutineScope,
+    private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ConfirmSeedEvent>()
@@ -53,6 +57,18 @@ internal class ConfirmSeedViewModel @Inject constructor(
 
     init {
         _state.value = _state.value.copy(groups = phrases.random3LastPhraseWords())
+        if (args.replacedXfp.isNotEmpty()) {
+            viewModelScope.launch {
+                getReplaceSignerNameUseCase(
+                    GetReplaceSignerNameUseCase.Params(
+                        walletId = args.walletId,
+                        signerType = SignerType.SOFTWARE
+                    )
+                ).onSuccess { name ->
+                    _state.update { it.copy(replaceSignerName = name) }
+                }
+            }
+        }
     }
 
     fun handleContinueEvent() {

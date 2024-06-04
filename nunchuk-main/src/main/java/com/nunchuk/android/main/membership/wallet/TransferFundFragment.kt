@@ -82,6 +82,7 @@ class TransferFundFragment : Fragment() {
                                 )
                             ),
                             privateNote = "",
+                            subtractFeeFromAmount = true,
                             title = getString(R.string.nc_transaction_new)
                         )
                     },

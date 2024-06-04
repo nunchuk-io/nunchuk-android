@@ -24,6 +24,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.persistence.TABLE_ASSISTED_WALLET
+import com.nunchuk.android.type.SignerType
 
 @Entity(tableName = TABLE_ASSISTED_WALLET)
 data class AssistedWalletEntity(
@@ -48,4 +49,6 @@ data class AssistedWalletEntity(
     val primaryMembershipId: String? = null,
     @ColumnInfo(name = "alias", defaultValue = "")
     val alias: String = "",
+    @ColumnInfo(name = "replace_signer_types", defaultValue = "")
+    val replaceSignerTypes: List<SignerType> = emptyList()
 )

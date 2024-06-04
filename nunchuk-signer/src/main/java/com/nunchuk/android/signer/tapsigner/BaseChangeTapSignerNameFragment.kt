@@ -38,6 +38,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.widget.NCInfoDialog
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 
 abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
@@ -50,7 +51,7 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
     }
 
     private fun observer() {
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_ADD_KEY }
                     .collect {
@@ -65,7 +66,7 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
             }
         }
 
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 nameNfcViewModel.event.collect { event ->
                     when (event) {

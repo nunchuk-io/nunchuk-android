@@ -277,7 +277,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
     private fun openAddSoftwareKey() {
         navigator.openAddSoftwareSignerScreen(
             activityContext = requireActivity(),
-            groupId = args.groupId
+            groupId = args.groupId,
         )
     }
 

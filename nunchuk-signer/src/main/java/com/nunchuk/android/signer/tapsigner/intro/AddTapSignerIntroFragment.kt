@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -66,12 +65,13 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.BaseChangeTapSignerNameFragment
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.signer.util.showNfcAlreadyAdded
-import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -82,6 +82,15 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
 
     private val args by navArgs<AddTapSignerIntroFragmentArgs>()
     private val viewModel: AddTapSignerIntroViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val walletId = (activity as NfcSetupActivity).walletId
+        val replacedXfp = (activity as NfcSetupActivity).replacedXfp
+        if (walletId.isNotEmpty() && replacedXfp.isNotEmpty()) {
+            viewModel.getReplaceSignerName(walletId)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -178,7 +187,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
             }
         }
 
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_STATUS }
                     .collect {

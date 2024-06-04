@@ -141,6 +141,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         passphrase: String,
         primaryKeyFlow: Int,
         groupId: String?,
+        replacedXfp: String?,
+        walletId: String,
     ) {
         SoftwareSignerIntroActivity.start(
             activityContext = activityContext,
@@ -156,13 +158,15 @@ interface SignerNavigatorDelegate : SignerNavigator {
         primaryKeyFlow: Int,
         walletId: String,
         groupId: String?,
+        replacedXfp: String?,
     ) {
         CreateNewSeedActivity.start(
             activityContext = activityContext,
             primaryKeyFlow = primaryKeyFlow,
             passphrase = passphrase,
             walletId = walletId,
-            groupId = groupId
+            groupId = groupId,
+            replacedXfp = replacedXfp
         )
     }
 
@@ -173,6 +177,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         isRecoverHotWallet: Boolean,
         walletId: String,
         groupId: String?,
+        replacedXfp: String?,
     ) {
         RecoverSeedActivity.start(
             activityContext = activityContext,
@@ -180,6 +185,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             primaryKeyFlow = primaryKeyFlow,
             isRecoverHotWallet = isRecoverHotWallet,
             groupId = groupId,
+            replacedXfp = replacedXfp,
         )
     }
 
@@ -191,6 +197,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         masterSignerId: String,
         walletId: String,
         groupId: String?,
+        replacedXfp: String?,
     ) {
         ConfirmSeedActivity.start(
             activityContext = activityContext,
@@ -199,7 +206,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             primaryKeyFlow = primaryKeyFlow,
             masterSignerId = masterSignerId,
             walletId = walletId,
-            groupId = groupId
+            groupId = groupId,
+            replacedXfp = replacedXfp
         )
     }
 

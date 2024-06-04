@@ -273,7 +273,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun openAddSoftwareKey() {
         navigator.openAddSoftwareSignerScreen(
             activityContext = requireActivity(),
-            groupId = args.groupId
+            groupId = args.groupId,
         )
     }
 

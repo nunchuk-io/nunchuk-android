@@ -102,6 +102,7 @@ import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.BufferPeriodCountdown
@@ -426,7 +427,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     localId = wallet.localId.orEmpty(),
                     plan = wallet.slug.toMembershipPlan(),
                     id = wallet.id?.toLongOrNull() ?: 0L,
-                    alias = wallet.alias.orEmpty()
+                    alias = wallet.alias.orEmpty(),
                 )
             })
         }
@@ -582,11 +583,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return SeverWallet(wallet.id.orEmpty())
     }
 
-    override suspend fun getWallet(walletId: String): SeverWallet {
+    override suspend fun getWallet(walletId: String): WalletServer {
         val response = userWalletApiManager.walletApi.getWallet(walletId)
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
-        return SeverWallet(wallet.id.orEmpty())
+        return wallet.toModel()
     }
 
     override suspend fun updateServerKey(xfp: String, name: String): Boolean {
@@ -2037,10 +2038,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun syncGroupWallet(
         groupId: String,
         groupAssistedKeys: MutableSet<String>,
-    ): Boolean {
+    ): WalletServer {
         val response = userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
-        val result = saveWalletToLib(wallet, groupAssistedKeys)
+        saveWalletToLib(wallet, groupAssistedKeys)
         membershipStepDao.deleteStepByGroupId(groupId)
         requestAddKeyDao.deleteRequests(groupId)
         assistedWalletDao.updateOrInsert(
@@ -2053,7 +2054,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 alias = wallet.alias.orEmpty()
             )
         )
-        return result
+        return wallet.toModel()
     }
 
     override fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>> {
@@ -2519,9 +2520,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             userWalletApiManager.walletApi.getReplaceWalletStatus(walletId)
         }
         val status = response.data.status ?: return ReplaceWalletStatus()
+        val replaceSignerTypes = status.signers.map { it.replaceBy.type.toSignerType() }
+        assistedWalletDao.getById(walletId)?.let {
+            assistedWalletDao.updateOrInsert(it.copy(replaceSignerTypes = replaceSignerTypes))
+        }
         status.signers.map {
             saveServerSignerIfNeed(it.replaceBy)
         }
+
         return ReplaceWalletStatus(
             pendingReplaceXfps = status.pendingReplaceXfps,
             signers = status.signers.associate { it.xfp to it.replaceBy.toModel() }
@@ -2553,6 +2559,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 alias = wallet.alias.orEmpty()
             )
         )
+        getWallet(walletId)
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 

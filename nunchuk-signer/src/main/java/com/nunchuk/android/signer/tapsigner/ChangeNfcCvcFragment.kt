@@ -62,6 +62,15 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<ChangeNfcCvcViewModel>()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val replacedXfp = (activity as NfcSetupActivity).replacedXfp
+        val walletId = (activity as NfcSetupActivity).walletId
+        if (replacedXfp.isNotEmpty() && walletId.isNotEmpty()) {
+            viewModel.getReplaceSignerName(walletId)
+        }
+    }
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -96,7 +105,9 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                                 binding.editExistCvc.getEditText(),
                                 binding.editNewCvc.getEditText(),
                                 chainCode,
-                                if (isMembershipFlow) membershipStepManager.getTapSignerName() else NFC_DEFAULT_NAME
+                                if (isMembershipFlow) viewModel.replaceSignerName.value.ifEmpty {
+                                    membershipStepManager.getTapSignerName()
+                                } else NFC_DEFAULT_NAME
                             )
                         } else if (setUpAction == NfcSetupActivity.CHANGE_CVC) {
                             viewModel.changeCvc(
@@ -135,6 +146,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                             NCToastMessage(requireActivity()).show(getString(R.string.nc_cvc_has_been_changed))
                             requireActivity().finish()
                         }
+
                         is ChangeNfcCvcEvent.SetupCvcSuccess -> {
                             if ((requireActivity() as NfcSetupActivity).fromMembershipFlow) {
                                 handleSetupTapSignerSuccessMembershipFlow(state)
@@ -142,6 +154,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                                 handleSetupTapSignerSuccessNormalFlow(state)
                             }
                         }
+
                         is ChangeNfcCvcEvent.Error -> {
                             if (nfcViewModel.handleNfcError(state.e).not()) {
                                 val message =
@@ -149,6 +162,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                                 NCToastMessage(requireActivity()).showError(message)
                             }
                         }
+
                         else -> {}
                     }
                     viewModel.clearEvent()

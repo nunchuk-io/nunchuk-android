@@ -25,8 +25,11 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ChangeCvcTapSignerUseCase
 import com.nunchuk.android.core.domain.SetupTapSignerUseCase
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,24 +38,44 @@ import javax.inject.Inject
 class ChangeNfcCvcViewModel @Inject constructor(
     private val setupTapSignerUseCase: SetupTapSignerUseCase,
     private val changeCvcTapSignerUseCase: ChangeCvcTapSignerUseCase,
+    private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
 ) : ViewModel() {
     private val _event = MutableStateFlow<ChangeNfcCvcEvent?>(null)
     val event = _event.filterIsInstance<ChangeNfcCvcEvent>()
+
+    private val _replaceSignerName = MutableStateFlow<String>("")
+    val replaceSignerName = _replaceSignerName.asStateFlow()
+
+    fun getReplaceSignerName(walletId: String) {
+        viewModelScope.launch {
+            getReplaceSignerNameUseCase(
+                GetReplaceSignerNameUseCase.Params(
+                    walletId = walletId,
+                    signerType = SignerType.NFC
+                )
+            ).onSuccess {
+                _replaceSignerName.value = it
+            }
+        }
+    }
 
     fun setUpCvc(isoDep: IsoDep?, oldCvc: String, newCvc: String, chainCode: String, name: String) {
         isoDep ?: return
         _event.value = ChangeNfcCvcEvent.Loading
         viewModelScope.launch {
-            val result = setupTapSignerUseCase(SetupTapSignerUseCase.Data(
-                isoDep = isoDep,
-                oldCvc = oldCvc,
-                newCvc = newCvc,
-                chainCode = chainCode,
-                name = name
-            ))
+            val result = setupTapSignerUseCase(
+                SetupTapSignerUseCase.Data(
+                    isoDep = isoDep,
+                    oldCvc = oldCvc,
+                    newCvc = newCvc,
+                    chainCode = chainCode,
+                    name = name
+                )
+            )
             if (result.isSuccess) {
                 val data = result.getOrThrow()
-                _event.value = ChangeNfcCvcEvent.SetupCvcSuccess(data.backUpKeyPath, data.masterSigner)
+                _event.value =
+                    ChangeNfcCvcEvent.SetupCvcSuccess(data.backUpKeyPath, data.masterSigner)
             } else {
                 _event.value = ChangeNfcCvcEvent.Error(result.exceptionOrNull())
             }
@@ -63,7 +86,14 @@ class ChangeNfcCvcViewModel @Inject constructor(
         isoDep ?: return
         _event.value = ChangeNfcCvcEvent.Loading
         viewModelScope.launch {
-            val result = changeCvcTapSignerUseCase(ChangeCvcTapSignerUseCase.Data(isoDep, oldCvc, newCvc, masterSignerId))
+            val result = changeCvcTapSignerUseCase(
+                ChangeCvcTapSignerUseCase.Data(
+                    isoDep,
+                    oldCvc,
+                    newCvc,
+                    masterSignerId
+                )
+            )
             if (result.isSuccess && result.getOrThrow()) {
                 _event.value = ChangeNfcCvcEvent.ChangeCvcSuccess
             } else {
@@ -80,6 +110,8 @@ class ChangeNfcCvcViewModel @Inject constructor(
 sealed class ChangeNfcCvcEvent {
     object Loading : ChangeNfcCvcEvent()
     object ChangeCvcSuccess : ChangeNfcCvcEvent()
-    class SetupCvcSuccess(val backupKeyPath: String, val masterSigner: MasterSigner) : ChangeNfcCvcEvent()
+    class SetupCvcSuccess(val backupKeyPath: String, val masterSigner: MasterSigner) :
+        ChangeNfcCvcEvent()
+
     class Error(val e: Throwable?) : ChangeNfcCvcEvent()
 }

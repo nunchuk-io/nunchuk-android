@@ -27,6 +27,8 @@ import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
+import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.KeyVerifiedRequest
 import com.nunchuk.android.model.MembershipPlan
@@ -37,6 +39,7 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.repository.KeyRepository
@@ -73,6 +76,7 @@ internal class KeyRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val nativeSdk: NunchukNativeSdk,
     private val serverSignerMapper: ServerSignerMapper,
+    private val assistedWalletDao: AssistedWalletDao,
     applicationScope: CoroutineScope,
 ) : KeyRepository {
     private val chain =
@@ -243,7 +247,10 @@ internal class KeyRepositoryImpl @Inject constructor(
                 0
             ) ?: throw NullPointerException("Can not get signer by index 0")
             val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
-            val isInheritance = nativeSdk.getWallet(walletId).signers.find { it.masterFingerprint == replacedXfp }?.tags?.contains(SignerTag.INHERITANCE) ?: false
+            val isInheritance =
+                nativeSdk.getWallet(walletId).signers.find { it.masterFingerprint == replacedXfp }?.tags?.contains(
+                    SignerTag.INHERITANCE
+                ) ?: false
             val payload = SignerServerDto(
                 name = signer.name,
                 xfp = signer.masterFingerprint,
@@ -431,7 +438,8 @@ internal class KeyRepositoryImpl @Inject constructor(
     ) {
         val verifyToken = ncDataStore.passwordToken.first()
         val wallet = nativeSdk.getWallet(walletId)
-        val isInheritance = wallet.signers.find { it.masterFingerprint == xfp }?.tags.orEmpty().contains(SignerTag.INHERITANCE)
+        val isInheritance = wallet.signers.find { it.masterFingerprint == xfp }?.tags.orEmpty()
+            .contains(SignerTag.INHERITANCE)
         val serverSigner = serverSignerMapper(signer, isInheritance)
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.replaceKey(
@@ -473,6 +481,33 @@ internal class KeyRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+
+    override suspend fun getReplaceSignerName(
+        walletId: String,
+        type: SignerType,
+        tag: SignerTag?
+    ): String {
+        val wallet = nativeSdk.getWallet(walletId)
+        val replaceSignerTypes = assistedWalletDao.getById(walletId)?.replaceSignerTypes.orEmpty()
+        val numberOfSigners =
+            wallet.signers.count { it.type == type } + replaceSignerTypes.count { it == type } + 1
+        val prefix = when (type) {
+            SignerType.SOFTWARE -> "Key"
+            SignerType.HARDWARE -> "Hardware Key"
+            SignerType.AIRGAP -> tag.formattedName
+            SignerType.NFC -> "TAPSIGNER"
+            SignerType.COLDCARD_NFC -> COLDCARD_DEFAULT_KEY_NAME
+            else -> "Key"
+        }
+
+        val suffix = if (numberOfSigners > 1) {
+            " #${numberOfSigners}"
+        } else {
+            ""
+        }
+        return "$prefix$suffix"
     }
 
     companion object {

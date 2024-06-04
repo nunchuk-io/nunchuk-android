@@ -23,11 +23,12 @@ import androidx.room.TypeConverter
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.type.SignerType
 
 class Converters {
     @TypeConverter
     fun fromMembershipStepInt(value: Int): MembershipStep {
-        return MembershipStep.values()[value]
+        return MembershipStep.entries[value]
     }
 
     @TypeConverter
@@ -37,7 +38,7 @@ class Converters {
 
     @TypeConverter
     fun fromMembershipPlanInt(value: Int): MembershipPlan {
-        return MembershipPlan.values()[value]
+        return MembershipPlan.entries[value]
     }
 
     @TypeConverter
@@ -47,11 +48,22 @@ class Converters {
 
     @TypeConverter
     fun fromVerifyTypeInt(value: Int): VerifyType {
-        return VerifyType.values()[value]
+        return VerifyType.entries[value]
     }
 
     @TypeConverter
     fun verifyTypeToInt(value: VerifyType): Int {
         return value.ordinal
+    }
+
+    @TypeConverter
+    fun fromSignerTypesString(value: String): List<SignerType> {
+        if (value.isEmpty()) return emptyList()
+        return value.split(",").map { SignerType.valueOf(it) }
+    }
+
+    @TypeConverter
+    fun signerTypesToString(value: List<SignerType>): String {
+        return value.joinToString(",")
     }
 }
