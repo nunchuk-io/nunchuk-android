@@ -317,6 +317,7 @@
     <string name="nc_no_reminder">No reminder</string>
     <string name="nc_add_reminder">Add reminder</string>
     <string name="nc_how_often_would_you_like_heath_check_these_keys">How often would you like to health check these keys?</string>
+    <string name="nc_how_often_would_you_like_heath_check_this_key">How often would you like to health check this key?</string>
     <string name="nc_select_which_keys_setup_reminders">Select which keys you want to set up reminders for.</string>
     <string name="nc_reminders_updated">Reminders updated</string>
     <string name="nc_keys_have_set_periodic_reminders">The keys have set periodic reminders</string>

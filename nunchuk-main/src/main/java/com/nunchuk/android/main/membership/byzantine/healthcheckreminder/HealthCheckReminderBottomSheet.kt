@@ -66,7 +66,7 @@ class HealthCheckReminderBottomSheet : BaseComposeBottomSheet() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 NunchukTheme {
-                    HealthCheckReminderScreen(viewModel, onDoneClick = {
+                    HealthCheckReminderScreen(isSelectMultiple = args.selectMultipleKeys, viewModel = viewModel, onDoneClick = {
                         val startDate =
                             if (viewModel.getStartDate() == 0L) Calendar.getInstance().timeInMillis else viewModel.getStartDate()
                         setFragmentResult(
@@ -94,11 +94,13 @@ class HealthCheckReminderBottomSheet : BaseComposeBottomSheet() {
 
 @Composable
 fun HealthCheckReminderScreen(
+    isSelectMultiple: Boolean = false,
     viewModel: HealthCheckReminderBottomSheetViewModel = viewModel(),
     onDoneClick: (HealthReminderFrequency) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     HealthCheckReminderScreenContent(
+        isSelectMultiple = isSelectMultiple,
         selectReminderFrequency = state.selectedReminder,
         startDate = state.startDate,
         onDoneClick = {
@@ -112,6 +114,7 @@ fun HealthCheckReminderScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HealthCheckReminderScreenContent(
+    isSelectMultiple: Boolean = false,
     selectReminderFrequency: HealthReminderFrequency = HealthReminderFrequency.NONE,
     startDate: Long = 0,
     onCheckedChange: (HealthReminderFrequency) -> Unit = {},
@@ -132,7 +135,9 @@ fun HealthCheckReminderScreenContent(
             .padding(horizontal = 12.dp, vertical = 24.dp)
     ) {
         Text(
-            text = stringResource(id = R.string.nc_how_often_would_you_like_heath_check_these_keys),
+            text = if (isSelectMultiple) stringResource(id = R.string.nc_how_often_would_you_like_heath_check_these_keys) else stringResource(
+                id = R.string.nc_how_often_would_you_like_heath_check_this_key
+            ),
             style = NunchukTheme.typography.title
         )
         LazyColumn(
@@ -146,7 +151,10 @@ fun HealthCheckReminderScreenContent(
                     val title = if (reminder.isNone()) {
                         stringResource(id = R.string.nc_no_reminder)
                     } else {
-                        stringResource(id = R.string.nc_repeat_every_data, reminder.toReadableString())
+                        stringResource(
+                            id = R.string.nc_repeat_every_data,
+                            reminder.toReadableString()
+                        )
                     }
                     Text(
                         text = title,

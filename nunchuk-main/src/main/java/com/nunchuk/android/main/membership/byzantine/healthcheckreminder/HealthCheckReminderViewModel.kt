@@ -25,8 +25,6 @@ class HealthCheckReminderViewModel @Inject constructor(
     private val deleteHealthReminderUseCase: DeleteHealthReminderUseCase,
 ) : ViewModel() {
 
-    private val args = HealthCheckReminderFragmentArgs.fromSavedStateHandle(savedStateHandle)
-
     private var groupId: String? = null
     private lateinit var walletId: String
 
@@ -35,12 +33,6 @@ class HealthCheckReminderViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<HealthCheckReminderEvent>()
     val event = _event.asSharedFlow()
-
-    init {
-        _state.update {
-            it.copy(isEditMode = args.mode == 0, defaultMode = args.mode)
-        }
-    }
 
     fun init(groupId: String?, walletId: String) {
         this.groupId = groupId
@@ -54,6 +46,7 @@ class HealthCheckReminderViewModel @Inject constructor(
             if (silentLoading.not()) _event.emit(HealthCheckReminderEvent.Loading(true))
             getHealthReminderListUseCase(GetHealthReminderListUseCase.Params(groupId, walletId))
                 .onSuccess { reminders ->
+                    _state.update { it.copy(selectedXfps = emptyList()) }
                     _event.emit(HealthCheckReminderEvent.Loading(false))
                     _state.update {
                         it.copy(healthReminders = reminders.associateBy { it.xfp })
@@ -62,17 +55,16 @@ class HealthCheckReminderViewModel @Inject constructor(
         }
     }
 
-    fun switchEditMode(isAdd: Boolean): Boolean {
+    fun switchEditMode(isCurrentEditMode: Boolean): Boolean {
+        if (state.value.isForceInAddMode) {
+            _state.update { it.copy(isForceInAddMode = false) }
+            return true
+        }
         _state.update { it.copy(selectedXfps = emptyList()) }
-        if (isAdd.not()) {
-            val currentMode = if (_state.value.isEditMode) 0 else 1
-            if (currentMode == _state.value.defaultMode) {
-                return false
-            }
+        if (isCurrentEditMode.not() && state.value.isForceInAddMode.not()) {
+            return false
         }
-        _state.update {
-            it.copy(isEditMode = !it.isEditMode)
-        }
+        if (isCurrentEditMode) return false
         return true
     }
 
@@ -101,6 +93,7 @@ class HealthCheckReminderViewModel @Inject constructor(
                 )
             ).onSuccess {
                 getHealthReminderList(true)
+                forceInAddMode(false)
                 _event.emit(HealthCheckReminderEvent.Success)
             }
                 .onFailure {
@@ -117,6 +110,7 @@ class HealthCheckReminderViewModel @Inject constructor(
                 DeleteHealthReminderUseCase.Params(groupId, walletId, if (xfp == null) state.value.selectedXfps else listOf(xfp),)
             ).onSuccess {
                 getHealthReminderList(true)
+                forceInAddMode(false)
                 _event.emit(HealthCheckReminderEvent.Success)
             }
                 .onFailure {
@@ -125,12 +119,16 @@ class HealthCheckReminderViewModel @Inject constructor(
                 }
         }
     }
+
+    fun forceInAddMode(force: Boolean) {
+        _state.update { it.copy(isForceInAddMode = force, switchModeCount = it.switchModeCount + 1) }
+    }
 }
 
 data class HealthCheckReminderState(
     val healthReminders: Map<String, HealthReminder>? = null,
-    val isEditMode: Boolean = false, // 0: edit, 1: add,
-    val defaultMode: Int = 0,
+    val isForceInAddMode: Boolean = false,
+    val switchModeCount: Int = 0,
     val selectedXfps: List<String> = emptyList(),
 )
 

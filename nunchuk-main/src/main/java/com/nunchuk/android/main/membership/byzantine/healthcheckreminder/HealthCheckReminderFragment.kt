@@ -101,8 +101,8 @@ class HealthCheckReminderFragment : MembershipFragment() {
                 HealthCheckReminderContent(
                     groupDashboardState = groupDashboardState,
                     state = state,
-                    onBackPress = {
-                        if (viewModel.switchEditMode(false).not()) {
+                    onBackPress = { isInEditMode ->
+                        if (viewModel.switchEditMode(isInEditMode).not()) {
                             findNavController().popBackStack()
                         }
                     },
@@ -112,17 +112,19 @@ class HealthCheckReminderFragment : MembershipFragment() {
                     onContinueClick = {
                         findNavController().navigate(
                             HealthCheckReminderFragmentDirections.actionHealthCheckReminderReminderFragmentToHealthCheckReminderBottomSheet(
-                                null
+                                selectHealthReminder = null,
+                                selectMultipleKeys = state.selectedXfps.size > 1
                             )
                         )
                     },
                     onAddClick = {
-                        viewModel.switchEditMode(true)
+                        viewModel.forceInAddMode(true)
                     },
                     onEditHealthCheckReminder = {
                         findNavController().navigate(
                             HealthCheckReminderFragmentDirections.actionHealthCheckReminderReminderFragmentToHealthCheckReminderBottomSheet(
-                                it
+                                selectHealthReminder = it,
+                                selectMultipleKeys = false
                             )
                         )
                     }
@@ -152,7 +154,6 @@ class HealthCheckReminderFragment : MembershipFragment() {
             when (it) {
                 is HealthCheckReminderEvent.Error -> showError(message = it.message)
                 HealthCheckReminderEvent.Success -> {
-                    viewModel.switchEditMode(false)
                     showSuccess(message = getString(R.string.nc_reminders_updated))
                 }
 
@@ -167,9 +168,9 @@ fun HealthCheckReminderContent(
     groupDashboardState: GroupDashboardState = GroupDashboardState(),
     state: HealthCheckReminderState = HealthCheckReminderState(),
     onHealthCheckChanged: (SignerModel, Boolean) -> Unit = { _, _ -> },
-    onBackPress: () -> Unit = {},
+    onBackPress: (Boolean) -> Unit = {},
     onContinueClick: () -> Unit = {},
-    onAddClick: () -> Unit = {},
+    onAddClick: (Boolean) -> Unit = {},
     onEditHealthCheckReminder: (HealthReminder) -> Unit = {},
 ) {
     val signers by remember(groupDashboardState.myRole, groupDashboardState.signers) {
@@ -185,6 +186,8 @@ fun HealthCheckReminderContent(
         }
     }
 
+    val isEditMode = state.isForceInAddMode.not() && signers.any { it.fingerPrint in state.healthReminders.orEmpty() }
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -194,9 +197,11 @@ fun HealthCheckReminderContent(
                 NcTopAppBar(
                     title = "Add reminder",
                     textStyle = NunchukTheme.typography.titleLarge,
-                    onBackPress = onBackPress,
+                    onBackPress = {
+                        onBackPress(isEditMode)
+                    },
                     actions = {
-                        if (state.isEditMode) {
+                        if (isEditMode) {
                             val isEnable =
                                 state.healthReminders != null && signers.all { it.fingerPrint in state.healthReminders }
                                     .not()
@@ -204,7 +209,7 @@ fun HealthCheckReminderContent(
                                 Icon(
                                     modifier = Modifier
                                         .size(24.dp)
-                                        .clickable { if (isEnable) onAddClick() },
+                                        .clickable { if (isEnable) onAddClick(true) },
                                     painter = painterResource(id = R.drawable.ic_add_dark),
                                     contentDescription = "Info",
                                     tint = if (isEnable) Color.Black else colorResource(
@@ -219,7 +224,7 @@ fun HealthCheckReminderContent(
                 )
             },
             bottomBar = {
-                if (state.isEditMode.not()) {
+                if (isEditMode.not()) {
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -238,10 +243,10 @@ fun HealthCheckReminderContent(
                     .padding(horizontal = 16.dp)
                     .fillMaxHeight(),
             ) {
-                if (state.isEditMode) {
+                if (isEditMode) {
                     Text(
                         text = stringResource(id = R.string.nc_keys_have_set_periodic_reminders),
-                        style = NunchukTheme.typography.title
+                        style = NunchukTheme.typography.body
                     )
                 } else {
                     Text(
@@ -255,10 +260,10 @@ fun HealthCheckReminderContent(
                             .padding(top = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
                     ) {
-                        items(signers.filter { if (state.isEditMode) it.fingerPrint in state.healthReminders else it.fingerPrint !in state.healthReminders }) {
+                        items(signers.filter { if (isEditMode) it.fingerPrint in state.healthReminders else it.fingerPrint !in state.healthReminders }) {
                             HealthCheckReminderItem(
                                 signer = it,
-                                isEditMode = state.isEditMode,
+                                isEditMode = isEditMode,
                                 isSelect = state.selectedXfps.contains(it.fingerPrint),
                                 status = groupDashboardState.keyStatus[it.fingerPrint],
                                 onHealthCheckChanged = onHealthCheckChanged,
