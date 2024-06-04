@@ -231,6 +231,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             AddressRequiredEvent -> showAddressRequiredError()
             InvalidAddressEvent -> showInvalidAddressError()
             is ShowError -> NCToastMessage(this).showError(event.message)
+            AddReceiptEvent.ParseBtcUriEvent -> updateSelectAddressView(isSelectMode = true)
         }
     }
 

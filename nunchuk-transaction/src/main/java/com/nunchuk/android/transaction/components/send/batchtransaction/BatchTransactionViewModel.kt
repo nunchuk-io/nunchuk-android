@@ -96,13 +96,19 @@ class BatchTransactionViewModel @Inject constructor(
                         index = state.value.interactingIndex,
                         amount = btcUri.amount.pureBTC().toString(),
                         address = btcUri.address,
-                        isBtc = true
+                        isBtc = true,
+                        selectAddressType = -1,
+                        selectAddressName = "",
+                        invalidAddress = false
                     )
                     updateNoteChange(btcUri.privateNote)
                 } else {
                     updateRecipient(
                         index = state.value.interactingIndex,
                         address = btcUri.address,
+                        selectAddressType = -1,
+                        selectAddressName = "",
+                        invalidAddress = false
                     )
                 }
             } else {
