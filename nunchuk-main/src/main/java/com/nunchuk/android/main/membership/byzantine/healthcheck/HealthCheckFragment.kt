@@ -52,7 +52,7 @@ class HealthCheckFragment : MembershipFragment() {
                             )
                         } else {
                             findNavController().navigate(
-                                HealthCheckFragmentDirections.actionHealthCheckFragmentToHealthCheckReminderFragment(0)
+                                HealthCheckFragmentDirections.actionHealthCheckFragmentToHealthCheckReminderFragment()
                             )
                         }
 

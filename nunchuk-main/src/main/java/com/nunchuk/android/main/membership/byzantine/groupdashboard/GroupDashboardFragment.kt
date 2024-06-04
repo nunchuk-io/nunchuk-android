@@ -41,6 +41,7 @@ import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
+import com.nunchuk.android.main.membership.byzantine.healthcheckreminder.HealthCheckReminderIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
