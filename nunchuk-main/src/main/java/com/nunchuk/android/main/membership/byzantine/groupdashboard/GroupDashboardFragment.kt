@@ -550,6 +550,8 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
             viewModel.syncTransaction(alert.payload.transactionId)
         } else if (alert.type == AlertType.KEY_REPLACEMENT_COMPLETED) {
             enterPasswordDialog(TargetAction.REPLACE_KEYS)
+        } else if (alert.type == AlertType.SETUP_INHERITANCE_PLAN) {
+            viewModel.getInheritance()
         }
     }
 
