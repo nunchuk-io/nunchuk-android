@@ -34,7 +34,8 @@ enum class AlertType {
     CHANGE_EMAIL_SUCCESS,
     HEALTH_CHECK_REMINDER,
     KEY_REPLACEMENT_COMPLETED,
-    KEY_REPLACEMENT_PENDING
+    KEY_REPLACEMENT_PENDING,
+    SETUP_INHERITANCE_PLAN
 }
 
 fun String?.toAlertType() = AlertType.entries.find { it.name == this } ?: AlertType.NONE
