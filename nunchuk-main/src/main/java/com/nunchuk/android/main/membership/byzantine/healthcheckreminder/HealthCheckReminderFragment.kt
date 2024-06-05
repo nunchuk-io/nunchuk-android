@@ -158,6 +158,9 @@ class HealthCheckReminderFragment : MembershipFragment() {
                 }
 
                 is HealthCheckReminderEvent.Loading -> showOrHideLoading(it.loading)
+                HealthCheckReminderEvent.DeleteSuccess -> {
+                    findNavController().popBackStack()
+                }
             }
         }
     }
@@ -186,7 +189,8 @@ fun HealthCheckReminderContent(
         }
     }
 
-    val isEditMode = state.isForceInAddMode.not() && signers.any { it.fingerPrint in state.healthReminders.orEmpty() }
+    val isEditMode =
+        state.isForceInAddMode.not() && signers.any { it.fingerPrint in state.healthReminders.orEmpty() }
 
     NunchukTheme {
         Scaffold(
@@ -260,7 +264,7 @@ fun HealthCheckReminderContent(
                             .padding(top = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
                     ) {
-                        items(signers.filter { if (isEditMode) it.fingerPrint in state.healthReminders else it.fingerPrint !in state.healthReminders }) {
+                        items(signers.filter { if (isEditMode) true else it.fingerPrint !in state.healthReminders }) {
                             HealthCheckReminderItem(
                                 signer = it,
                                 isEditMode = isEditMode,
