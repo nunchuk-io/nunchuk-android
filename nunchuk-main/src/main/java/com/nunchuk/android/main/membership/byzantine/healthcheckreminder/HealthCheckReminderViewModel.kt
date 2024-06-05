@@ -41,13 +41,16 @@ class HealthCheckReminderViewModel @Inject constructor(
         getHealthReminderList()
     }
 
-    private fun getHealthReminderList(silentLoading: Boolean = false) {
+    private fun getHealthReminderList(silentLoading: Boolean = false, isAfterDelete: Boolean = false) {
         viewModelScope.launch {
             if (silentLoading.not()) _event.emit(HealthCheckReminderEvent.Loading(true))
             getHealthReminderListUseCase(GetHealthReminderListUseCase.Params(groupId, walletId))
                 .onSuccess { reminders ->
                     _state.update { it.copy(selectedXfps = emptyList()) }
                     _event.emit(HealthCheckReminderEvent.Loading(false))
+                    if (isAfterDelete && reminders.isEmpty()) {
+                        _event.emit(HealthCheckReminderEvent.DeleteSuccess)
+                    }
                     _state.update {
                         it.copy(healthReminders = reminders.associateBy { it.xfp })
                     }
@@ -109,7 +112,7 @@ class HealthCheckReminderViewModel @Inject constructor(
             deleteHealthReminderUseCase(
                 DeleteHealthReminderUseCase.Params(groupId, walletId, if (xfp == null) state.value.selectedXfps else listOf(xfp),)
             ).onSuccess {
-                getHealthReminderList(true)
+                getHealthReminderList(true, true)
                 forceInAddMode(false)
                 _event.emit(HealthCheckReminderEvent.Success)
             }
@@ -136,4 +139,5 @@ sealed class HealthCheckReminderEvent {
     data class Loading(val loading: Boolean) : HealthCheckReminderEvent()
     data object Success : HealthCheckReminderEvent()
     data class Error(val message: String) : HealthCheckReminderEvent()
+    data object DeleteSuccess : HealthCheckReminderEvent()
 }
