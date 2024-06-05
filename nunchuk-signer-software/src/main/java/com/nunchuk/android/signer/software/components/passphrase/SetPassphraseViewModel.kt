@@ -51,10 +51,10 @@ import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
-import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -78,7 +78,8 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
-    private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase
+    private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
+    private val replaceKeyUseCase: ReplaceKeyUseCase,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
 
     private lateinit var mnemonic: String
@@ -169,7 +170,9 @@ internal class SetPassphraseViewModel @Inject constructor(
                     replace = isReplaceKey
                 )
             ).onSuccess {
-                if (!args.groupId.isNullOrEmpty()) {
+                if (args.replacedXfp.isNotEmpty() && args.walletId.isNotEmpty()) {
+                    replacedKey(it, args.groupId.orEmpty(), args.replacedXfp, args.walletId)
+                } else if (!args.groupId.isNullOrEmpty()) {
                     syncKeyToGroup(it, args.groupId.orEmpty())
                 } else if (args.isQuickWallet) {
                     createQuickWallet(it)
@@ -200,47 +203,89 @@ internal class SetPassphraseViewModel @Inject constructor(
         }
     }
 
-    private fun syncKeyToGroup(masterSigner: MasterSigner, groupId: String) {
+    private fun replacedKey(
+        masterSigner: MasterSigner,
+        groupId: String,
+        replacedXfp: String,
+        walletId: String
+    ) {
         viewModelScope.launch {
-           getDefaultSignerFromMasterSignerUseCase(
+            getDefaultSignerFromMasterSignerUseCase(
                 GetDefaultSignerFromMasterSignerUseCase.Params(
                     masterSignerId = masterSigner.id,
                     walletType = WalletType.MULTI_SIG,
                     addressType = AddressType.NATIVE_SEGWIT
                 )
             ).onSuccess { signer ->
-               syncKeyToGroupUseCase(
-                   SyncKeyToGroupUseCase.Param(
-                       step = membershipStepManager.currentStep
-                           ?: throw IllegalArgumentException("Current step empty"),
-                       groupId = groupId,
-                       signer = signer
-                   )
-               ).onSuccess {
-                   saveMembershipStepUseCase(
-                       MembershipStepInfo(
-                           step = membershipStepManager.currentStep
-                               ?: throw IllegalArgumentException("Current step empty"),
-                           masterSignerId = signer.masterFingerprint,
-                           plan = membershipStepManager.localMembershipPlan,
-                           verifyType = VerifyType.APP_VERIFIED,
-                           extraData = gson.toJson(
-                               SignerExtra(
-                                   derivationPath = signer.derivationPath,
-                                   isAddNew = true,
-                                   signerType = signer.type
-                               )
-                           ),
-                           groupId = groupId
-                       )
-                   )
-                   setEvent(CreateSoftwareSignerCompletedEvent(masterSigner, masterSigner.device.needPassPhraseSent))
-               }.onFailure {
-                   setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
-               }
+                replaceKeyUseCase(
+                    ReplaceKeyUseCase.Param(
+                        groupId = groupId,
+                        xfp = replacedXfp,
+                        signer = signer,
+                        walletId = walletId,
+                    )
+                ).onSuccess {
+                    setEvent(
+                        CreateSoftwareSignerCompletedEvent(
+                            masterSigner,
+                            masterSigner.device.needPassPhraseSent
+                        )
+                    )
+                }.onFailure {
+                    setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+                }
             }.onFailure {
-               setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
-           }
+                setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    private fun syncKeyToGroup(masterSigner: MasterSigner, groupId: String) {
+        viewModelScope.launch {
+            getDefaultSignerFromMasterSignerUseCase(
+                GetDefaultSignerFromMasterSignerUseCase.Params(
+                    masterSignerId = masterSigner.id,
+                    walletType = WalletType.MULTI_SIG,
+                    addressType = AddressType.NATIVE_SEGWIT
+                )
+            ).onSuccess { signer ->
+                syncKeyToGroupUseCase(
+                    SyncKeyToGroupUseCase.Param(
+                        step = membershipStepManager.currentStep
+                            ?: throw IllegalArgumentException("Current step empty"),
+                        groupId = groupId,
+                        signer = signer
+                    )
+                ).onSuccess {
+                    saveMembershipStepUseCase(
+                        MembershipStepInfo(
+                            step = membershipStepManager.currentStep
+                                ?: throw IllegalArgumentException("Current step empty"),
+                            masterSignerId = signer.masterFingerprint,
+                            plan = membershipStepManager.localMembershipPlan,
+                            verifyType = VerifyType.APP_VERIFIED,
+                            extraData = gson.toJson(
+                                SignerExtra(
+                                    derivationPath = signer.derivationPath,
+                                    isAddNew = true,
+                                    signerType = signer.type
+                                )
+                            ),
+                            groupId = groupId
+                        )
+                    )
+                    setEvent(
+                        CreateSoftwareSignerCompletedEvent(
+                            masterSigner,
+                            masterSigner.device.needPassPhraseSent
+                        )
+                    )
+                }.onFailure {
+                    setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+                }
+            }.onFailure {
+                setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+            }
         }
     }
 

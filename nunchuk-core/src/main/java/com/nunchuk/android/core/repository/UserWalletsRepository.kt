@@ -393,7 +393,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 AssistedWalletEntity(
                     localId = serverWallet.localId.orEmpty(),
                     plan = serverWallet.slug.toMembershipPlan(),
-                    id = serverWallet.id?.toLongOrNull() ?: 0L
+                    id = serverWallet.id?.toLongOrNull() ?: 0L,
+                    status = serverWallet.status.orEmpty(),
                 )
             )
             membershipStepDao.deleteStepByChatId(chain.value, chatId)
@@ -419,15 +420,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             if (saveWalletToLib(walletServer, assistedKeys)) isNeedReload = true
         }
         val planWalletCreated = hashMapOf<String, String>()
-        val activeWallets = result.data.wallets.filter { it.status == WALLET_ACTIVE_STATUS }
-        val deleteCount = assistedWalletDao.deleteAllPersonalWalletsExcept(activeWallets.map { it.localId.orEmpty() })
-        if (activeWallets.isNotEmpty()) {
-            assistedWalletDao.insert(activeWallets.map { wallet ->
+        val wallets = result.data.wallets.filter { it.status != WALLET_DELETED_STATUS }
+        val deleteCount = assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() })
+        if (wallets.isNotEmpty()) {
+            assistedWalletDao.insert(wallets.map { wallet ->
                 AssistedWalletEntity(
                     localId = wallet.localId.orEmpty(),
                     plan = wallet.slug.toMembershipPlan(),
                     id = wallet.id?.toLongOrNull() ?: 0L,
                     alias = wallet.alias.orEmpty(),
+                    status = wallet.status.orEmpty(),
+                    replaceByWalletId = wallet.replaceBy?.walletId.orEmpty()
                 )
             })
         }
@@ -1558,6 +1561,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         gson.fromJson(this, AssistedWalletBriefExt::class.java)
                     } ?: AssistedWalletBriefExt(),
                     alias = wallet.alias,
+                    status = wallet.status,
                 )
             }
         }
@@ -2028,7 +2032,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 plan = wallet.slug.toMembershipPlan(),
                 id = wallet.id?.toLongOrNull() ?: 0L,
                 groupId = groupId,
-                primaryMembershipId = primaryMembershipId.orEmpty()
+                primaryMembershipId = primaryMembershipId.orEmpty(),
+                status = wallet.status.orEmpty(),
             )
         )
         membershipStepDao.deleteStepByGroupId(groupId)
@@ -2051,7 +2056,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 id = wallet.id?.toLongOrNull() ?: 0L,
                 groupId = groupId,
                 primaryMembershipId = wallet.primaryMembershipId.orEmpty(),
-                alias = wallet.alias.orEmpty()
+                alias = wallet.alias.orEmpty(),
+                status = wallet.status.orEmpty(),
+                replaceByWalletId = wallet.replaceBy?.walletId.orEmpty()
             )
         )
         return wallet.toModel()
@@ -2556,10 +2563,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 localId = wallet.localId.orEmpty(),
                 plan = wallet.slug.toMembershipPlan(),
                 id = wallet.id?.toLongOrNull() ?: 0L,
-                alias = wallet.alias.orEmpty()
+                alias = wallet.alias.orEmpty(),
+                status = wallet.status.orEmpty(),
             )
         )
-        getWallet(walletId)
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 
@@ -2580,7 +2587,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     companion object {
-        private const val WALLET_ACTIVE_STATUS = "ACTIVE"
         private const val WALLET_DELETED_STATUS = "DELETED"
         private const val VERIFY_TOKEN = "Verify-token"
         private const val SECURITY_QUESTION_TOKEN = "Security-Question-token"

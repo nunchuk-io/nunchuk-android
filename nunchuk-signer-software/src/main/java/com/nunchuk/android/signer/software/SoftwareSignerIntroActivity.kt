@@ -91,7 +91,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             passphrase = passphrase,
             primaryKeyFlow = primaryKeyFlow,
             groupId = groupId,
-            replacedXfp = replacedXfp
+            replacedXfp = replacedXfp,
+            walletId = walletId
         )
     }
 
@@ -101,12 +102,17 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             passphrase = passphrase,
             primaryKeyFlow = primaryKeyFlow,
             groupId = groupId,
-            replacedXfp = replacedXfp
+            replacedXfp = replacedXfp,
+            walletId = walletId
         )
     }
 
     val replacedXfp: String? by lazy {
         intent.getStringExtra(EXTRA_REPLACED_XFP)
+    }
+
+    val walletId by lazy {
+        intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
     }
 
     companion object {

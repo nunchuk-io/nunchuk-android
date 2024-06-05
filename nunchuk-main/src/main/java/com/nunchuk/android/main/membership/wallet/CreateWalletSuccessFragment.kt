@@ -134,6 +134,9 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                                 args.replacedWalletId
                                             )
                                         )
+                                    },
+                                    onInfoClick = {
+                                        ActivityManager.popUntilRoot()
                                     }
                                 )
                         }

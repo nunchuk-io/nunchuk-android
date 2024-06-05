@@ -28,5 +28,5 @@ data class TransactionExtended(
 data class WalletExtended(
     val wallet: Wallet = Wallet(),
     val isShared: Boolean = true,
-    val roomWallet: RoomWallet? = null
+    val roomWallet: RoomWallet? = null,
 )

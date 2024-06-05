@@ -63,11 +63,17 @@ internal class GetWalletUseCaseImpl @Inject constructor(
 
     override fun execute(walletId: String) = flow {
         val wallet = nativeSdk.getWallet(walletId)
-        val name = assistedWalletManager.getWalletAlias(walletId).ifEmpty { wallet.name }
+        val brief = assistedWalletManager.getBriefWallet(walletId)
         val rWallets = nativeSdk.getAllRoomWallet()
         val rWalletIds = rWallets.map(RoomWallet::walletId)
         val roomWallet = rWallets.firstOrNull { wallet.id == it.walletId }
-        emit(WalletExtended(wallet.copy(name = name), wallet.isShared(rWalletIds), roomWallet))
+        emit(
+            WalletExtended(
+                wallet = wallet.copy(name = brief?.alias.orEmpty().ifEmpty { wallet.name }),
+                isShared = wallet.isShared(rWalletIds),
+                roomWallet = roomWallet,
+            )
+        )
     }.flowOn(Dispatchers.IO)
 
 }

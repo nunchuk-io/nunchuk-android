@@ -451,7 +451,6 @@ internal class WalletsViewModel @Inject constructor(
             val groups = getState().allGroups
             val assistedWallets = getState().assistedWallets
             val alerts = getState().alerts
-            val assistedWalletIds = assistedWallets.map { it.localId }.toHashSet()
             val pendingGroup = groups.filter { it.isPendingWallet() }
             wallets.forEach { wallet ->
                 val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
@@ -468,7 +467,6 @@ internal class WalletsViewModel @Inject constructor(
                     }.toList()
                 var groupWalletUi = GroupWalletUi(
                     wallet = wallet,
-                    isAssistedWallet = wallet.wallet.id in assistedWalletIds,
                     badgeCount = if (alerts[groupId] == null) alerts[wallet.wallet.id].orDefault(0) else alerts[groupId].orDefault(
                         0
                     ),

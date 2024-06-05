@@ -49,6 +49,10 @@ data class AssistedWalletEntity(
     val primaryMembershipId: String? = null,
     @ColumnInfo(name = "alias", defaultValue = "")
     val alias: String = "",
+    @ColumnInfo(name = "status", defaultValue = "")
+    val status: String = "",
+    @ColumnInfo(name = "replace_by_wallet_id", defaultValue = "")
+    val replaceByWalletId: String = "",
     @ColumnInfo(name = "replace_signer_types", defaultValue = "")
     val replaceSignerTypes: List<SignerType> = emptyList()
 )

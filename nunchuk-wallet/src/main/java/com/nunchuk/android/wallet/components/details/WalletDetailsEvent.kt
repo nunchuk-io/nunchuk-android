@@ -36,6 +36,7 @@ data class WalletDetailsState(
     val transactions: List<Transaction> = emptyList(),
     val isLeaveRoom: Boolean = false,
     val isAssistedWallet: Boolean = false,
+    val walletStatus : String? = null,
     val isForceRefreshProcessing: Boolean = false,
     val hideWalletDetailLocal: Boolean = false,
     val isHasCoin: Boolean = true,

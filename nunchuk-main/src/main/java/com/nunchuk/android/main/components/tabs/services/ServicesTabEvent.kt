@@ -64,11 +64,13 @@ sealed class ServicesTabEvent {
 
     data class OpenSetupInheritancePlan(val walletId: String, val groupId: String?) :
         ServicesTabEvent()
+
     data class CalculateRequiredSignaturesSuccess(
         val type: String,
         val walletId: String,
         val groupId: String
     ) : ServicesTabEvent()
+
     data class RowItems(val items: List<Any>) : ServicesTabEvent()
 }
 
@@ -78,7 +80,7 @@ data class ServicesTabState(
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null,
-    val allGroups : Map<ByzantineGroup, AssistedWalletRole> = mutableMapOf(),
+    val allGroups: Map<ByzantineGroup, AssistedWalletRole> = mutableMapOf(),
     val joinedGroups: Map<String, ByzantineGroup> = mutableMapOf(),
     val allowInheritanceGroups: List<ByzantineGroup> = emptyList(),
     val userRole: String = AssistedWalletRole.NONE.name,
@@ -102,7 +104,7 @@ data class ServicesTabState(
                 }
             }
             return items
-        } else if (plans.contains(MembershipPlan.HONEY_BADGER)){
+        } else if (plans.contains(MembershipPlan.HONEY_BADGER)) {
             items.apply {
                 add(ServiceTabRowCategory.Emergency)
                 add(ServiceTabRowItem.EmergencyLockdown)
@@ -120,6 +122,7 @@ data class ServicesTabState(
                 }
                 add(ServiceTabRowItem.OrderNewHardware)
                 add(ServiceTabRowItem.RollOverAssistedWallet)
+                add(ServiceTabRowItem.ReplaceKey)
                 add(ServiceTabRowItem.ManageSubscription)
             }
             return items
@@ -136,6 +139,7 @@ data class ServicesTabState(
                 }
                 add(ServiceTabRowItem.OrderNewHardware)
                 add(ServiceTabRowItem.RollOverAssistedWallet)
+                add(ServiceTabRowItem.ReplaceKey)
                 add(ServiceTabRowItem.ManageSubscription)
             }
             if (banner != null) {
@@ -203,6 +207,7 @@ data class ServicesTabState(
                         }
                         add(ServiceTabRowItem.GetAdditionalWallets)
                         add(ServiceTabRowItem.RollOverAssistedWallet)
+                        add(ServiceTabRowItem.ReplaceKey)
                         add(ServiceTabRowItem.ManageSubscription)
                     } else {
                         showCoSigningPolicies {
@@ -225,6 +230,7 @@ data class ServicesTabState(
                         add(ServiceTabRowCategory.Subscription)
                         add(ServiceTabRowItem.CoSigningPolicies)
                     }
+                    add(ServiceTabRowItem.ReplaceKey)
                 }
                 return items
             } else if (userRole == AssistedWalletRole.MASTER.name) {
@@ -240,6 +246,7 @@ data class ServicesTabState(
                     }
                     add(ServiceTabRowItem.GetAdditionalWallets)
                     add(ServiceTabRowItem.RollOverAssistedWallet)
+                    add(ServiceTabRowItem.ReplaceKey)
                     add(ServiceTabRowItem.ManageSubscription)
                 }
                 return items
@@ -305,7 +312,7 @@ data class ServicesTabState(
     }
 
     private fun isShowEmptyState(): Boolean {
-       if (plans.isNonePlan() && allGroups.isNotEmpty() && joinedGroups.isEmpty()) return true
+        if (plans.isNonePlan() && allGroups.isNotEmpty() && joinedGroups.isEmpty()) return true
         if (allGroups.isEmpty()) return true
         return isMasterHasNotCreatedWallet
     }
@@ -331,7 +338,8 @@ data class ServicesTabState(
     }
 
     fun getUnSetupInheritanceWallets(): List<AssistedWalletBrief> {
-        val wallets = assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId) && it.ext.isPlanningRequest.not() }
+        val wallets =
+            assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId) && it.ext.isPlanningRequest.not() }
         return wallets.filter {
             it.groupId.isEmpty() || isAllowSetupInheritance(it)
         }
@@ -397,4 +405,6 @@ sealed class ServiceTabRowItem(val title: Int) : Parcelable {
 
     @Parcelize
     data object GetAdditionalWallets : ServiceTabRowItem(R.string.nc_get_additional_wallet)
+    @Parcelize
+    data object ReplaceKey : ServiceTabRowItem(R.string.nc_replace_keys_in_an_assisted_wallet)
 }

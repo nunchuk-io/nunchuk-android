@@ -68,6 +68,10 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         intent.getStringExtra(EXTRA_REPLACED_XFP).orEmpty()
     }
 
+    private val walletId: String by lazy {
+        intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
+    }
+
     override fun initializeBinding() = ActivityRecoverSeedBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -116,7 +120,9 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                             activityContext = this,
                             mnemonic = event.mnemonic,
                             signerName = signerName,
-                            groupId = groupId
+                            groupId = groupId,
+                            replacedXfp = replacedXfp,
+                            walletId = walletId
                         )
                     }
 
@@ -188,6 +194,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         private const val EXTRA_RECOVER_HOT_WALLET = "EXTRA_RECOVER_HOT_WALLET"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
+        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
 
         fun start(
             activityContext: Context,
@@ -195,7 +202,8 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             primaryKeyFlow: Int,
             isRecoverHotWallet: Boolean = false,
             groupId: String? = null,
-            replacedXfp: String? = null
+            replacedXfp: String? = null,
+            walletId: String = ""
         ) {
             activityContext.startActivity(
                 Intent(
@@ -216,6 +224,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                     )
                     putExtra(EXTRA_GROUP_ID, groupId)
                     putExtra(EXTRA_REPLACED_XFP, replacedXfp)
+                    putExtra(EXTRA_WALLET_ID, walletId)
                 },
             )
         }

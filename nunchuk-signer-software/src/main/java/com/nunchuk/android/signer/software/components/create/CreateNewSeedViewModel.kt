@@ -51,7 +51,7 @@ internal class CreateNewSeedViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun init() {
-        if (args.walletId.isNotEmpty()) {
+        if (args.walletId.isNotEmpty() && args.replacedXfp.isEmpty()) {
             viewModelScope.launch {
                 getHotWalletMnemonicUseCase(args.walletId)
                     .onSuccess { mnemonic ->
@@ -75,7 +75,7 @@ internal class CreateNewSeedViewModel @Inject constructor(
             }
         } else {
             viewModelScope.launch {
-                val count = if (args.groupId.isNullOrEmpty()) 24 else 12
+                val count = if (args.groupId.isNullOrEmpty() && args.replacedXfp.isEmpty()) 24 else 12
                 generateMnemonicUseCase(count).onSuccess {
                     _state.update { state ->
                         state.copy(

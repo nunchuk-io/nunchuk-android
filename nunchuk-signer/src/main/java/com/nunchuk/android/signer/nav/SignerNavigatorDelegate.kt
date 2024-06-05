@@ -148,7 +148,9 @@ interface SignerNavigatorDelegate : SignerNavigator {
             activityContext = activityContext,
             passphrase = passphrase,
             primaryKeyFlow = primaryKeyFlow,
-            groupId = groupId
+            groupId = groupId,
+            replacedXfp = replacedXfp,
+            walletId = walletId
         )
     }
 
@@ -186,6 +188,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             isRecoverHotWallet = isRecoverHotWallet,
             groupId = groupId,
             replacedXfp = replacedXfp,
+            walletId = walletId
         )
     }
 
@@ -236,6 +239,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         passphrase: String,
         primaryKeyFlow: Int,
         groupId: String?,
+        replacedXfp: String?,
+        walletId: String,
     ) {
         SetPassphraseActivity.start(
             activityContext = activityContext,
@@ -243,7 +248,9 @@ interface SignerNavigatorDelegate : SignerNavigator {
             signerName = signerName,
             primaryKeyFlow = primaryKeyFlow,
             passphrase = passphrase,
-            groupId = groupId
+            groupId = groupId,
+            replacedXfp = replacedXfp,
+            walletId = walletId
         )
     }
 

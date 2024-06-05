@@ -278,6 +278,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
         navigator.openAddSoftwareSignerScreen(
             activityContext = requireActivity(),
             groupId = args.groupId,
+            replacedXfp = viewModel.replacedXfp,
+            walletId = args.walletId
         )
     }
 

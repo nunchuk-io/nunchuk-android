@@ -90,6 +90,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.isByzantineOrFinney
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
@@ -375,7 +376,7 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
-        showPendingWallet(state.groupWalletUis, state.walletSecuritySetting.hideWalletDetail, state.useLargeFont)
+        showPendingWallet(state)
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
@@ -476,18 +477,23 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         }
     }
 
-    private fun showPendingWallet(groupWalletUis: List<GroupWalletUi>, hideWalletDetail: Boolean, useLargeFont: Boolean) {
+    private fun showPendingWallet(state: WalletsState) {
+        val groupWalletUis = state.groupWalletUis
+        val useLargeFont = state.useLargeFont
+        val hideWalletDetail = state.walletSecuritySetting.hideWalletDetail
+        val assistedWallets = state.assistedWallets.associateBy { it.localId }
         binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
         binding.walletList.isVisible = groupWalletUis.isNotEmpty()
         binding.pendingWallet.setContent {
             NunchukTheme(false) {
                 Column {
                     groupWalletUis.forEach {
+                        val briefWallet = assistedWallets[it.wallet?.wallet?.id.orEmpty()]
                         PendingWalletView(
                             group = it.group,
                             walletsExtended = it.wallet,
                             inviterName = it.inviterName,
-                            isAssistedWallet = it.isAssistedWallet,
+                            isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name,
                             hideWalletDetail = hideWalletDetail,
                             badgeCount = it.badgeCount,
                             isLocked = it.group?.isLocked.orFalse(),
@@ -496,6 +502,7 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
                             status = it.keyStatus,
                             signers = it.signers,
                             useLargeFont = useLargeFont,
+                            walletStatus = briefWallet?.status,
                             onAccept = {
                                 it.group?.id?.let { groupId ->
                                     walletsViewModel.acceptInviteMember(groupId)
