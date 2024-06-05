@@ -73,6 +73,9 @@ const val COIN_UPDATE = "io.nunchuk.custom.coin_control_updated"
 const val WALLET_INHERITANCE_UPDATED = "io.nunchuk.custom.wallet_inheritance_updated"
 const val WALLET_INHERITANCE_CHANGE = "io.nunchuk.custom.wallet_inheritance_change"
 const val WALLET_INHERITANCE_CANCELED = "io.nunchuk.custom.wallet_inheritance_canceled"
+const val HEALTH_CHECK_REMINDER_UPDATED = "io.nunchuk.custom.health_check_reminder_updated"
+const val HEALTH_CHECK_REMINDER = "io.nunchuk.custom.health_check_reminder"
+const val HEALTH_CHECK_SKIPPED = "io.nunchuk.custom.health_check_skipped"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean, maxLifetime: Long?): Boolean {
     if (maxLifetime != null && (System.currentTimeMillis() - time()) > maxLifetime) return false
@@ -211,3 +214,6 @@ fun TimelineEvent.isCoinControlUpdated() =
 
 fun TimelineEvent.isInheritanceEvent() =
     getMsgType() == WALLET_INHERITANCE_UPDATED || getMsgType() == WALLET_INHERITANCE_CHANGE || getMsgType() == WALLET_INHERITANCE_CANCELED
+
+fun TimelineEvent.isHealthCheckReminderEvent() =
+    getMsgType() == HEALTH_CHECK_REMINDER || getMsgType() == HEALTH_CHECK_REMINDER_UPDATED || getMsgType() == HEALTH_CHECK_SKIPPED

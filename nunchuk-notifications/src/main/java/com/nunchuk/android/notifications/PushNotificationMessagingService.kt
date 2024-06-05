@@ -38,6 +38,7 @@ import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.isContactUpdateEvent
 import com.nunchuk.android.messages.util.isCosignedAndBroadcastEvent
 import com.nunchuk.android.messages.util.isCosignedEvent
+import com.nunchuk.android.messages.util.isHealthCheckReminderEvent
 import com.nunchuk.android.messages.util.isKeyRecoveryApproved
 import com.nunchuk.android.messages.util.isKeyRecoveryRequest
 import com.nunchuk.android.messages.util.isMessageEvent
@@ -325,6 +326,15 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = getTitle().orEmpty(),
                 message = getContent().orEmpty(),
                 intent = intentProvider.getAliasIntent(getWalletId().orEmpty())
+            )
+        }
+
+        isHealthCheckReminderEvent() -> {
+            PushNotificationData(
+                id = localId,
+                title = getTitle().orEmpty(),
+                message = getContent().orEmpty(),
+                intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
             )
         }
 
