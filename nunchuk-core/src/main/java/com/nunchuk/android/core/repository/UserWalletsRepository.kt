@@ -1562,6 +1562,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     } ?: AssistedWalletBriefExt(),
                     alias = wallet.alias,
                     status = wallet.status,
+                    replaceByWalletId = wallet.replaceByWalletId
                 )
             }
         }

@@ -174,6 +174,7 @@ internal fun AlertResponse.toAlert(): Alert {
             xfp = payload?.xfp.orEmpty(),
             canCancel = payload?.canCancel.orFalse(),
             canReplace = payload?.canReplace.orFalse(),
+            newWalletId = payload?.newWalletId.orEmpty()
         )
     )
 }
