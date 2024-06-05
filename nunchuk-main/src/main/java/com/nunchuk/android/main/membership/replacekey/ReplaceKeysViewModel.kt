@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class ReplaceKeysViewModel @Inject constructor(
@@ -167,7 +168,9 @@ class ReplaceKeysViewModel @Inject constructor(
                     )
                 }
             }.onFailure {
-                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+                if (it !is CancellationException) {
+                    _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+                }
             }
             _uiState.update { state -> state.copy(isLoading = false, isDataLoaded = true) }
         }

@@ -31,5 +31,6 @@ enum class MembershipStage {
     SETUP_INHERITANCE,
     DONE,
     ADD_KEY_ONLY,
-    REGISTER_WALLET
+    REGISTER_WALLET,
+    TRANSFER_FUNDS,
 }

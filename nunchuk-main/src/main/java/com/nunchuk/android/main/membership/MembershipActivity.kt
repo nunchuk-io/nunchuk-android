@@ -63,6 +63,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             membershipStepManager.initStep(groupId, walletType)
         }
         when {
+            stage == MembershipStage.TRANSFER_FUNDS -> graph.setStartDestination(R.id.transferFundFragment)
             stage == MembershipStage.REPLACE_KEY -> graph.setStartDestination(R.id.replaceKeyIntroFragment)
             stage == MembershipStage.ADD_KEY_ONLY -> graph.setStartDestination(R.id.groupPendingIntroFragment)
             stage == MembershipStage.REGISTER_WALLET -> graph.setStartDestination(R.id.registerWalletToAirgapFragment)
@@ -99,6 +100,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     companion object {
         const val EXTRA_GROUP_STEP = "group_step"
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
+        const val EXTRA_REPLACED_WALLET_ID = "replaced_wallet_id"
 
         fun buildIntent(
             activity: Activity,
@@ -123,6 +125,20 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             putExtra(EXTRA_GROUP_STEP, MembershipStage.REGISTER_WALLET)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
             putExtra(EXTRA_GROUP_ID, groupId)
+        }
+
+        fun openTransferFund(
+            activity: Activity,
+            walletId: String,
+            replacedWalletId: String,
+        ) {
+            activity.startActivity(
+                Intent(activity, MembershipActivity::class.java).apply {
+                    putExtra(EXTRA_GROUP_STEP, MembershipStage.TRANSFER_FUNDS)
+                    putExtra(EXTRA_KEY_WALLET_ID, walletId)
+                    putExtra(EXTRA_REPLACED_WALLET_ID, replacedWalletId)
+                }
+            )
         }
     }
 }

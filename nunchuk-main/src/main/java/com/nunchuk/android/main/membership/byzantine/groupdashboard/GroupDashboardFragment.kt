@@ -41,7 +41,6 @@ import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
-import com.nunchuk.android.main.membership.byzantine.healthcheckreminder.HealthCheckReminderIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Alert
@@ -552,6 +551,12 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
             enterPasswordDialog(TargetAction.REPLACE_KEYS)
         } else if (alert.type == AlertType.SETUP_INHERITANCE_PLAN) {
             viewModel.getInheritance()
+        } else if (alert.type == AlertType.TRANSFER_FUNDS) {
+            MembershipActivity.openTransferFund(
+                activity = requireActivity(),
+                replacedWalletId = viewModel.getWalletId(),
+                walletId = alert.payload.newWalletId
+            )
         }
     }
 

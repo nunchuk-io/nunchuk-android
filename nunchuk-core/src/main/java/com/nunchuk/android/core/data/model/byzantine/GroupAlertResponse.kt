@@ -28,7 +28,7 @@ data class AlertResponse(
     @SerializedName("title")
     val title: String? = null,
     @SerializedName("type")
-    val type: String? = null
+    val type: String? = null,
 )
 
 data class PayloadResponse(
@@ -62,4 +62,6 @@ data class PayloadResponse(
     val canReplace: Boolean = false,
     @SerializedName("xfp")
     val xfp: String? = null,
+    @SerializedName("new_wallet_local_id")
+    val newWalletId: String? = null,
 )
