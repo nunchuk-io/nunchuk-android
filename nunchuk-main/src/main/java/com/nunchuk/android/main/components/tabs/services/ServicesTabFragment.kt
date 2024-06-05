@@ -72,11 +72,15 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         super.onCreate(savedInstanceState)
         savedInstanceState?.let { currentSelectedItem = it.parcelable(EXTRA_SELECTED_ITEM) }
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
 
-        childFragmentManager.setFragmentResultListener(AssistedWalletBottomSheet.TAG, viewLifecycleOwner) { _, bundle ->
+        childFragmentManager.setFragmentResultListener(
+            AssistedWalletBottomSheet.TAG,
+            viewLifecycleOwner
+        ) { _, bundle ->
             val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
             val item = currentSelectedItem
             if (item == ServiceTabRowItem.SetUpInheritancePlan) {
@@ -98,6 +102,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     requireContext(),
                     event.roomId
                 )
+
                 is ServicesTabEvent.CheckInheritance -> {
                     if (event.inheritanceCheck.isPaid) {
                         navigator.openInheritancePlanningScreen(
@@ -108,6 +113,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                         showUnPaid()
                     }
                 }
+
                 is ServicesTabEvent.EmailInvalid -> showError(getString(R.string.nc_text_email_invalid))
                 is ServicesTabEvent.OnSubmitEmailSuccess -> showSuccess(
                     message = getString(
@@ -115,6 +121,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                         event.email
                     )
                 )
+
                 is ServicesTabEvent.GetInheritanceSuccess -> navigator.openInheritancePlanningScreen(
                     walletId = event.walletId,
                     activityContext = requireContext(),
@@ -149,8 +156,10 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     adapter.submitList(event.items)
                     viewModel.isPremiumUser()?.let { it ->
                         binding.supportFab.isVisible = it || viewModel.isByzantine()
-                        binding.actionGroup.isVisible = it.not() && event.items.any { it is NonSubHeader }
-                        binding.claimLayout.isVisible = viewModel.isShowClaimInheritanceLayout() && event.items.none { it is ServiceTabRowItem.ClaimInheritance }
+                        binding.actionGroup.isVisible =
+                            it.not() && event.items.any { it is NonSubHeader }
+                        binding.claimLayout.isVisible =
+                            viewModel.isShowClaimInheritanceLayout() && event.items.none { it is ServiceTabRowItem.ClaimInheritance }
                     }
                 }
             }
@@ -190,14 +199,29 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.CoSigningPolicies -> {
                 viewModel.getServiceKey(event.token, event.walletId)
             }
+
             ServiceTabRowItem.EmergencyLockdown -> {
-                navigator.openEmergencyLockdownScreen(requireContext(), event.token, event.groupId, event.walletId)
+                navigator.openEmergencyLockdownScreen(
+                    requireContext(),
+                    event.token,
+                    event.groupId,
+                    event.walletId
+                )
             }
+
             ServiceTabRowItem.ViewInheritancePlan -> viewModel.getInheritance(
                 event.walletId,
                 event.token,
                 event.groupId
             )
+
+            ServiceTabRowItem.ReplaceKey -> navigator.openMembershipActivity(
+                activityContext = requireActivity(),
+                groupStep = MembershipStage.REPLACE_KEY,
+                walletId = event.walletId,
+                groupId = event.groupId,
+            )
+
             else -> Unit
         }
     }
@@ -257,7 +281,12 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 }
                 showWalletsSheetOrEnterPassword(item, wallets)
             }
-            ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext(), viewModel.state.value.userRole)
+
+            ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(
+                requireContext(),
+                viewModel.state.value.userRole
+            )
+
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
             ServiceTabRowItem.RollOverAssistedWallet -> {}
@@ -267,23 +296,46 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 if (wallets.size == 1) {
                     viewModel.openSetupInheritancePlan(wallets.first().localId)
                 } else {
-                    AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
+                    AssistedWalletBottomSheet.show(
+                        childFragmentManager,
+                        assistedWalletIds = wallets.map { it.localId },
+                        lockdownWalletIds = viewModel.getLockdownWalletsIds()
+                    )
                 }
             }
-            ServiceTabRowItem.CoSigningPolicies -> showWalletsSheetOrEnterPassword(item, viewModel.getConfigServerKeyWallets())
 
-            ServiceTabRowItem.ViewInheritancePlan -> showWalletsSheetOrEnterPassword(item, viewModel.getViewClaimInheritanceWallets())
+            ServiceTabRowItem.CoSigningPolicies -> showWalletsSheetOrEnterPassword(
+                item,
+                viewModel.getConfigServerKeyWallets()
+            )
+
+            ServiceTabRowItem.ViewInheritancePlan -> showWalletsSheetOrEnterPassword(
+                item,
+                viewModel.getViewClaimInheritanceWallets()
+            )
 
             ServiceTabRowItem.GetAdditionalWallets -> {}
+
+            ServiceTabRowItem.ReplaceKey -> showWalletsSheetOrEnterPassword(
+                item,
+                viewModel.getActiveWalletsAndNoReplaced()
+            )
         }
     }
 
-    private fun showWalletsSheetOrEnterPassword(item: ServiceTabRowItem, wallets: List<AssistedWalletBrief>) {
+    private fun showWalletsSheetOrEnterPassword(
+        item: ServiceTabRowItem,
+        wallets: List<AssistedWalletBrief>
+    ) {
         if (wallets.isEmpty()) return
         if (wallets.size == 1) {
             enterPasswordDialog(item = item, walletId = wallets.first().localId)
         } else {
-            AssistedWalletBottomSheet.show(childFragmentManager, assistedWalletIds = wallets.map { it.localId }, lockdownWalletIds = viewModel.getLockdownWalletsIds())
+            AssistedWalletBottomSheet.show(
+                childFragmentManager,
+                assistedWalletIds = wallets.map { it.localId },
+                lockdownWalletIds = viewModel.getLockdownWalletsIds()
+            )
         }
     }
 
@@ -301,7 +353,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnYes = getString(R.string.nc_take_me_there),
             btnInfo = getString(R.string.nc_text_got_it),
             onYesClick = {
-                val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/claim" else "https://www.nunchuk.io/claim"
+                val link =
+                    if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/claim" else "https://www.nunchuk.io/claim"
                 requireActivity().openExternalLink(link)
             }
         )
@@ -368,7 +421,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnInfo = getString(R.string.nc_take_me_to_the_website),
             message = getString(R.string.nc_manage_subscription_desc),
             onInfoClick = {
-                val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/my-plan" else "https://www.nunchuk.io/my-plan"
+                val link =
+                    if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/my-plan" else "https://www.nunchuk.io/my-plan"
                 requireActivity().openExternalLink(link)
             })
     }
@@ -378,7 +432,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnInfo = getString(R.string.nc_take_me_to_the_website),
             message = getString(R.string.nc_order_new_hardware_desc),
             onInfoClick = {
-                val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/hardware-replacement" else "https://www.nunchuk.io/hardware-replacement"
+                val link =
+                    if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/hardware-replacement" else "https://www.nunchuk.io/hardware-replacement"
                 requireActivity().openExternalLink(link)
             })
     }

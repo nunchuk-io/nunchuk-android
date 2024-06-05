@@ -54,6 +54,8 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
             primaryKeyFlow: Int,
             passphrase: String,
             groupId: String? = null,
+            replacedXfp: String? = null,
+            walletId: String = "",
         ) {
             activityContext.startActivity(
                 Intent(activityContext, SetPassphraseActivity::class.java).putExtras(
@@ -63,6 +65,8 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
                         primaryKeyFlow = primaryKeyFlow,
                         passphrase = passphrase,
                         groupId = groupId,
+                        replacedXfp = replacedXfp.orEmpty(),
+                        walletId = walletId
                     ).toBundle()
                 )
             )

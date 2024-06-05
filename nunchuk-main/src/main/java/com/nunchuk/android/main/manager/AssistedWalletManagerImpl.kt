@@ -22,6 +22,8 @@ package com.nunchuk.android.main.manager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.wallet.WalletStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -39,7 +41,7 @@ internal class AssistedWalletManagerImpl @Inject constructor(
         }.stateIn(applicationScope, SharingStarted.Eagerly, emptyMap())
 
     override fun isActiveAssistedWallet(walletId: String): Boolean {
-        return _assistedWalletBrief.value[walletId] != null
+        return _assistedWalletBrief.value[walletId]?.status == WalletStatus.ACTIVE.name
     }
 
     override fun getGroupId(walletId: String): String? {
@@ -47,7 +49,7 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     }
 
     override fun isInactiveAssistedWallet(walletId: String): Boolean {
-        return _assistedWalletBrief.value[walletId] == null
+        return _assistedWalletBrief.value[walletId]?.status != WalletStatus.ACTIVE.name
     }
 
     override fun getWalletAlias(walletId: String): String {
@@ -56,5 +58,9 @@ internal class AssistedWalletManagerImpl @Inject constructor(
 
     override fun getWalletPlan(walletId: String): MembershipPlan {
         return _assistedWalletBrief.value[walletId]?.plan ?: MembershipPlan.NONE
+    }
+
+    override fun getBriefWallet(walletId: String): AssistedWalletBrief? {
+        return _assistedWalletBrief.value[walletId]
     }
 }

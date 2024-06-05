@@ -149,6 +149,8 @@ interface SignerNavigator {
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         groupId: String? = null,
+        replacedXfp: String? = null,
+        walletId: String = "",
     )
 
     fun openPrimaryKeyIntroScreen(activityContext: Context)

@@ -135,7 +135,9 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                 mnemonic = args.mnemonic,
                 signerName = signerName,
                 primaryKeyFlow = args.primaryKeyFlow,
-                groupId = args.groupId
+                groupId = args.groupId,
+                walletId = args.walletId,
+                replacedXfp = args.replacedXfp
             )
         } else {
             openSetNameScreen()

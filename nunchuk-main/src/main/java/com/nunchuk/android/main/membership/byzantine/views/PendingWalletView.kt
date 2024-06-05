@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -37,21 +35,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.ActiveWallet
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.denimTint
 import com.nunchuk.android.compose.everglade
 import com.nunchuk.android.compose.ming
 import com.nunchuk.android.compose.yellowishOrange
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
@@ -68,9 +62,9 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.healthCheckTimeColor
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -89,6 +83,7 @@ fun PendingWalletView(
     signers: List<SignerModel> = emptyList(),
     status: Map<String, KeyHealthStatus> = emptyMap(),
     useLargeFont: Boolean = false,
+    walletStatus: String? = null,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
     onGroupClick: () -> Unit = {},
@@ -96,7 +91,9 @@ fun PendingWalletView(
 ) {
     val colors = if (inviterName.isNotEmpty() || walletsExtended == null) {
         listOf(MaterialTheme.colorScheme.yellowishOrange, MaterialTheme.colorScheme.yellowishOrange)
-    } else if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name || isLocked) {
+    } else if ((group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) || isLocked
+        || walletStatus == WalletStatus.LOCKED.name
+        || walletStatus == WalletStatus.REPLACED.name) {
         listOf(NcColor.greyDark, NcColor.greyDark)
     } else if (group != null || isAssistedWallet) {
         listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
@@ -161,7 +158,7 @@ fun PendingWalletView(
             ) {
                 ByzantineBottomContent(
                     group = group,
-                    badgeCount = badgeCount,
+                    badgeCount = 3,
                     isLocked = isLocked,
                     role = role,
                     primaryOwnerMember = primaryOwnerMember,
@@ -367,84 +364,6 @@ fun RowScope.ByzantineBottomContent(
                     .weight(1f, fill = true)
             )
 
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (badgeCount != 0) {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp, 24.dp)
-                            .clip(CircleShape)
-                            .background(color = colorResource(id = R.color.nc_orange_color)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = badgeCount.toString(),
-                            style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
-                        )
-                    }
-                }
-
-                Icon(
-                    modifier = Modifier.padding(start = 12.dp),
-                    painter = painterResource(id = R.drawable.ic_arrow_expand),
-                    contentDescription = "Arrow"
-                )
-            }
-        }
-    } else if (role.toRole.isMasterOrAdmin && primaryOwnerMember != null) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AvatarView(
-                avatarUrl = primaryOwnerMember.user?.avatar.orEmpty(),
-                name = primaryOwnerMember.user?.name.orEmpty(),
-                isContact = primaryOwnerMember.isPendingRequest().not()
-            )
-
-            Text(
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .weight(1f),
-                text = primaryOwnerMember.user?.name ?: primaryOwnerMember.emailOrUsername,
-                style = NunchukTheme.typography.titleSmall
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (badgeCount != 0) {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp, 24.dp)
-                            .clip(CircleShape)
-                            .background(color = colorResource(id = R.color.nc_orange_color)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = badgeCount.toString(),
-                            style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
-                        )
-                    }
-                }
-
-                Icon(
-                    modifier = Modifier.padding(start = 12.dp),
-                    painter = painterResource(id = R.drawable.ic_arrow_expand),
-                    contentDescription = "Arrow"
-                )
-            }
-        }
-    } else {
-        AvatarView(group = group)
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
             if (badgeCount != 0) {
                 Box(
                     modifier = Modifier
@@ -466,6 +385,69 @@ fun RowScope.ByzantineBottomContent(
                 contentDescription = "Arrow"
             )
         }
+    } else if (role.toRole.isMasterOrAdmin && primaryOwnerMember != null) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AvatarView(
+                avatarUrl = primaryOwnerMember.user?.avatar.orEmpty(),
+                name = primaryOwnerMember.user?.name.orEmpty(),
+                isContact = primaryOwnerMember.isPendingRequest().not()
+            )
+
+            Text(
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .weight(1f),
+                text = primaryOwnerMember.user?.name ?: primaryOwnerMember.emailOrUsername,
+                style = NunchukTheme.typography.titleSmall
+            )
+
+            if (badgeCount != 0) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp, 24.dp)
+                        .clip(CircleShape)
+                        .background(color = colorResource(id = R.color.nc_orange_color)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = badgeCount.toString(),
+                        style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
+                    )
+                }
+            }
+
+            Icon(
+                modifier = Modifier.padding(start = 12.dp),
+                painter = painterResource(id = R.drawable.ic_arrow_expand),
+                contentDescription = "Arrow"
+            )
+        }
+    } else {
+        AvatarView(group = group)
+        if (badgeCount != 0) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp, 24.dp)
+                    .clip(CircleShape)
+                    .background(color = colorResource(id = R.color.nc_orange_color)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = badgeCount.toString(),
+                    style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
+                )
+            }
+        }
+
+        Icon(
+            modifier = Modifier.padding(start = 12.dp),
+            painter = painterResource(id = R.drawable.ic_arrow_expand),
+            contentDescription = "Arrow"
+        )
     }
 }
 
@@ -484,21 +466,6 @@ internal fun RowScope.AvatarView(group: ByzantineGroup) {
                 isContact = byzantineMember.isPendingRequest().not()
             )
         }
-    }
-}
-
-@Composable
-internal fun Badge(
-    modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.background,
-    content: @Composable RowScope.() -> Unit,
-) {
-    Row(
-        modifier = modifier.background(
-            color = backgroundColor, shape = RoundedCornerShape(20.dp)
-        ), verticalAlignment = Alignment.CenterVertically
-    ) {
-        content()
     }
 }
 
@@ -682,6 +649,7 @@ fun PendingWalletViewPreview() {
                     isLocked = false,
                     slug = MembershipPlan.BYZANTINE_PREMIER.name
                 ),
+                walletStatus = WalletStatus.ACTIVE.name,
             )
         }
     }

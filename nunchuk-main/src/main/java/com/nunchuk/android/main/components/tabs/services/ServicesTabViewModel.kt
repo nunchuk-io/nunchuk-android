@@ -43,9 +43,9 @@ import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.containsByzantineOrFinney
 import com.nunchuk.android.model.containsPersonalPlan
-import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetGroupsUseCase
@@ -240,6 +240,7 @@ class ServicesTabViewModel @Inject constructor(
             is ServiceTabRowItem.EmergencyLockdown -> TargetAction.EMERGENCY_LOCKDOWN.name
             is ServiceTabRowItem.CoSigningPolicies -> TargetAction.UPDATE_SERVER_KEY.name
             is ServiceTabRowItem.ViewInheritancePlan -> TargetAction.UPDATE_INHERITANCE_PLAN.name
+            is ServiceTabRowItem.ReplaceKey -> TargetAction.REPLACE_KEYS.name
             else -> throw IllegalArgumentException()
         }
         val result = verifiedPasswordTokenUseCase(
@@ -402,6 +403,10 @@ class ServicesTabViewModel @Inject constructor(
                     group.id == it.groupId
                 } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited)
             }
+    }
+
+    fun getActiveWalletsAndNoReplaced(): List<AssistedWalletBrief> {
+        return state.value.assistedWallets.filter { wallet -> wallet.status == WalletStatus.ACTIVE.name && wallet.replaceByWalletId.isEmpty() }
     }
 
     /**

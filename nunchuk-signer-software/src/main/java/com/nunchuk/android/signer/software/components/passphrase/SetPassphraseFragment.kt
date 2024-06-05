@@ -24,7 +24,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.ui.text.toUpperCase
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -155,7 +154,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
                 setPassphrase = !skipPassphrase,
                 isReplacePrimaryKey = true
             )
-        } else if (!args.groupId.isNullOrEmpty()) {
+        } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty()) {
             ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
         } else {
             navigator.returnToMainScreen()

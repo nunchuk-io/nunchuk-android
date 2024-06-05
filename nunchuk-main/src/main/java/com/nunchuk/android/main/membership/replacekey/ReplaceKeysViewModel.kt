@@ -26,6 +26,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.replace.FinalizeReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
 import com.nunchuk.android.usecase.replace.InitReplaceKeyUseCase
@@ -61,6 +62,7 @@ class ReplaceKeysViewModel @Inject constructor(
     private val nfcFileManager: NfcFileManager,
     private val singleSignerMapper: SingleSignerMapper,
     private val getServerWalletsUseCase: GetServerWalletsUseCase,
+    private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase
 ) : ViewModel() {
@@ -178,7 +180,11 @@ class ReplaceKeysViewModel @Inject constructor(
                 FinalizeReplaceKeyUseCase.Param(groupId = args.groupId, walletId = args.walletId)
             ).onSuccess { wallet ->
                 _uiState.update { it.copy(createWalletSuccess = StateEvent.String(wallet.id)) }
-                getServerWalletsUseCase(Unit)
+                if (args.groupId.isNotEmpty()) {
+                    getServerWalletsUseCase(Unit)
+                } else {
+                    syncGroupWalletsUseCase(Unit)
+                }
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }

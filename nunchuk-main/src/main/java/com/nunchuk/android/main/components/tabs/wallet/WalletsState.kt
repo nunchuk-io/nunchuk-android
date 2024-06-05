@@ -78,7 +78,6 @@ internal data class GroupWalletUi(
     val group: ByzantineGroup? = null,
     val role: String = AssistedWalletRole.NONE.name,
     val inviterName: String = "",
-    val isAssistedWallet: Boolean = false,
     val badgeCount: Int = 0,
     val primaryOwnerMember: ByzantineMember?= null,
     val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),

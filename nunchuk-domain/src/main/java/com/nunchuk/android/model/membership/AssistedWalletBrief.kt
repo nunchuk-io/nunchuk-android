@@ -30,6 +30,8 @@ data class AssistedWalletBrief(
     val primaryMembershipId: String? = null,
     val ext: AssistedWalletBriefExt,
     val alias: String = "",
+    val status: String = "",
+    val replaceByWalletId: String = "",
 )
 
 data class AssistedWalletBriefExt(

@@ -173,6 +173,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                         copy(
                             walletExtended = it,
                             isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
+                            walletStatus = assistedWalletManager.getBriefWallet(args.walletId)?.status,
                             groupId = assistedWalletManager.getGroupId(args.walletId)
                         )
                     }

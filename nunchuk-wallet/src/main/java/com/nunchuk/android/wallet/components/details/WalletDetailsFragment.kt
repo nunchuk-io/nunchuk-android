@@ -62,6 +62,7 @@ import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
@@ -164,9 +165,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         if (state.groupId.isNullOrEmpty().not()) {
             searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_groups_menu)
         } else if (state.isAssistedWallet) {
-            searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_health_check_menu)
+            searchMenu.icon =
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_health_check_menu)
         } else {
-            searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_search_white)
+            searchMenu.icon =
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_search_white)
         }
     }
 
@@ -340,6 +343,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                     R.color.nc_beeswax_tint
                 )
             )
+        } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name) {
+            val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
+            binding.container.setBackgroundColor(color)
+            requireActivity().window.statusBarColor = color
         } else if (state.isAssistedWallet) {
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =

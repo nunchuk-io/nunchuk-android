@@ -116,6 +116,14 @@
             android:defaultValue="@null"
             app:nullable="true"
             app:argType="string" />
+        <argument
+            android:name="replaced_xfp"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
+            android:name="wallet_id"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
 
 
