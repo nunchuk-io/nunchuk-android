@@ -95,11 +95,18 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
+        val replacedXfp = (activity as NfcSetupActivity).replacedXfp
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                AddTapSignerIntroScreen(viewModel, membershipStepManager, args.isMembershipFlow, ::handleShowMore)
+                AddTapSignerIntroScreen(
+                    viewModel = viewModel,
+                    membershipStepManager = membershipStepManager,
+                    isMembershipFlow = args.isMembershipFlow,
+                    isReplaceKey = replacedXfp.isNotEmpty(),
+                    onMoreClicked = ::handleShowMore
+                )
             }
         }
     }
@@ -135,6 +142,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                         BaseNfcActivity.REQUEST_NFC_STATUS
                     )
                 }
+
                 is AddTapSignerIntroEvent.GetTapSignerStatusError -> showError(it.e?.message.orUnknownError())
                 is AddTapSignerIntroEvent.GetTapSignerStatusSuccess -> requireActivity().handleTapSignerStatus(
                     it.status,
@@ -168,6 +176,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                         }
                     }
                 )
+
                 is AddTapSignerIntroEvent.Loading -> showOrHideLoading(
                     it.isLoading, message = getString(R.string.nc_keep_holding_nfc)
                 )
@@ -202,7 +211,11 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
         if (isMembershipFlow) {
             (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_ADD_KEY)
         } else {
-            findNavController().navigate(AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToAddNfcNameFragment(cardIdent))
+            findNavController().navigate(
+                AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToAddNfcNameFragment(
+                    cardIdent
+                )
+            )
         }
     }
 
@@ -216,10 +229,17 @@ private fun AddTapSignerIntroScreen(
     viewModel: AddTapSignerIntroViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
     isMembershipFlow: Boolean,
+    isReplaceKey: Boolean = false,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-    AddTapSignerIntroScreenContent(viewModel::onContinueClicked, onMoreClicked, remainTime, isMembershipFlow)
+    AddTapSignerIntroScreenContent(
+        onContinueClicked = viewModel::onContinueClicked,
+        onMoreClicked = onMoreClicked,
+        remainTime = remainTime,
+        isReplaceKey = isReplaceKey,
+        isMembershipFlow = isMembershipFlow
+    )
 }
 
 @Composable
@@ -227,18 +247,19 @@ fun AddTapSignerIntroScreenContent(
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     remainTime: Int = 0,
+    isReplaceKey: Boolean = false,
     isMembershipFlow: Boolean = true,
 ) {
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.nc_bg_tap_signer_chip,
-                title = if (isMembershipFlow) stringResource(
+                title = if (isMembershipFlow && !isReplaceKey) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else "",
                 actions = {
-                    if (isMembershipFlow) {
+                    if (isMembershipFlow && !isReplaceKey) {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),

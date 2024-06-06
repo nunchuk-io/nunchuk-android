@@ -49,21 +49,22 @@ import com.nunchuk.android.signer.R
 @Composable
 internal fun Mk4InfoContent(
     remainTime: Int = 0,
+    isMembershipFlow: Boolean = true,
+    isReplaceKey: Boolean = false,
     onContinueClicked: () -> Unit = {},
     onOpenGuideClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
-    isMembershipFlow: Boolean = true,
 ) {
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
-                title = if (isMembershipFlow) stringResource(
+                title = if (isMembershipFlow && !isReplaceKey) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else "",
                 actions = {
-                    if (isMembershipFlow) {
+                    if (isMembershipFlow && !isReplaceKey) {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),

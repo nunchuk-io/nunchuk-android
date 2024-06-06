@@ -203,7 +203,7 @@ fun CreateWalletSuccessScreenContent(
                         modifier = Modifier.padding(16.dp),
                         text = stringResource(
                             R.string.nc_replace_wallet_success_desc,
-                            uiState.replacedWallet.name,
+                            uiState.newWallet.name,
                         ),
                         style = NunchukTheme.typography.body
                     )

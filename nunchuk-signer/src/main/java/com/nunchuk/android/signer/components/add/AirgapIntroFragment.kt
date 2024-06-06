@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -65,12 +64,19 @@ class AirgapIntroFragment : MembershipFragment() {
     ): View {
         val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
         val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
+        val replacedXfp = (requireActivity() as AddAirgapSignerActivity).replacedXfp.orEmpty()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-                AirgapIntroContent(remainTime, isMembershipFlow, signerTag, ::handleShowMore) {
+                AirgapIntroContent(
+                    remainTime = remainTime,
+                    isMembershipFlow = isMembershipFlow,
+                    isReplaceKey = replacedXfp.isNotEmpty(),
+                    signerTag = signerTag,
+                    onMoreClicked = ::handleShowMore,
+                ) {
                     findNavController().navigate(AirgapIntroFragmentDirections.actionAirgapIntroFragmentToAddAirgapSignerFragment())
                 }
             }
@@ -82,11 +88,12 @@ class AirgapIntroFragment : MembershipFragment() {
 private fun AirgapIntroContent(
     remainTime: Int = 0,
     isMembershipFlow: Boolean = true,
+    isReplaceKey: Boolean = false,
     signerTag: SignerTag? = null,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
-    val bgResId = when(signerTag) {
+    val bgResId = when (signerTag) {
         SignerTag.SEEDSIGNER -> R.drawable.bg_airgap_seedsigner_intro
         SignerTag.JADE -> R.drawable.bg_airgap_jade_intro
         SignerTag.PASSPORT -> R.drawable.bg_airgap_passport_intro
@@ -97,12 +104,12 @@ private fun AirgapIntroContent(
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = bgResId,
-                title = if (isMembershipFlow) stringResource(
+                title = if (isMembershipFlow && !isReplaceKey) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else "",
                 actions = {
-                    if (isMembershipFlow) {
+                    if (isMembershipFlow && !isReplaceKey) {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),

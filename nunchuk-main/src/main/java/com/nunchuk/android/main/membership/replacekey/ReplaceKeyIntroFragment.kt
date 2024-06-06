@@ -55,7 +55,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.main.R
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class ReplaceKeyIntroFragment : Fragment() {
@@ -71,18 +70,19 @@ class ReplaceKeyIntroFragment : Fragment() {
 
             setContent {
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                var isDataLoaded by remember { mutableStateOf(false) }
+                var isShowIntro by remember { mutableStateOf(false) }
 
                 LaunchedEffect(uiState.isDataLoaded) {
-                    if (uiState.replaceSigners.isNotEmpty() || uiState.pendingReplaceXfps.isNotEmpty()) {
-                        openKeyReplaceScreen()
+                    if (uiState.isDataLoaded) {
+                        if (uiState.replaceSigners.isNotEmpty() || uiState.pendingReplaceXfps.isNotEmpty()) {
+                            openKeyReplaceScreen()
+                        } else {
+                            isShowIntro = true
+                        }
                     }
-
-                    delay(300L)
-                    isDataLoaded = true
                 }
 
-                if (isDataLoaded) {
+                if (isShowIntro) {
                     ReplaceKeyIntroScreen(
                         onContinueClicked = ::openKeyReplaceScreen,
                     )
