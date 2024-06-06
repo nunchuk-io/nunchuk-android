@@ -414,14 +414,14 @@ internal class KeyRepositoryImpl @Inject constructor(
     override suspend fun cancelReplaceKey(groupId: String?, walletId: String, xfp: String) {
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.cancelReplaceKey(
-                xfp,
-                walletId,
+                walletId = walletId,
+                xfp = xfp,
             )
         } else {
             userWalletApiManager.groupWalletApi.cancelReplaceKey(
-                groupId,
-                xfp,
-                walletId,
+                groupId = groupId,
+                walletId = walletId,
+                xfp = xfp,
             )
         }
 

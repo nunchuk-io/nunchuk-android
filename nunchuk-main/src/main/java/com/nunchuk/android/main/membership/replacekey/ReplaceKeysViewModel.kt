@@ -263,9 +263,10 @@ class ReplaceKeysViewModel @Inject constructor(
         _uiState.update { it.copy(createWalletSuccess = StateEvent.None) }
     }
 
-    private fun isSignerExist(masterSignerId: String) =
-        _uiState.value.replaceSigners.containsKey(masterSignerId)
-                && _uiState.value.walletSigners.any { it.fingerPrint == masterSignerId }
+    private fun isSignerExist(masterSignerId: String): Boolean {
+        return _uiState.value.replaceSigners.containsKey(masterSignerId)
+                || _uiState.value.walletSigners.any { it.fingerPrint == masterSignerId }
+    }
 
     fun getCountWalletSoftwareSignersInDevice(): Int {
         val replaceSigners = _uiState.value.replaceSigners
@@ -343,6 +344,7 @@ class ReplaceKeysViewModel @Inject constructor(
         const val REPLACE_XFP = "REPLACE_XFP"
     }
 }
+
 
 data class ReplaceKeysUiState(
     val isDataLoaded: Boolean = false,

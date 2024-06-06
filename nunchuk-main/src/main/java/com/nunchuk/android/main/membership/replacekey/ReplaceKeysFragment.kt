@@ -176,7 +176,9 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
                 activity = requireActivity(),
                 fromMembershipFlow = true,
-                groupId = args.groupId
+                groupId = args.groupId,
+                replacedXfp = viewModel.replacedXfp,
+                walletId = args.walletId
             )
 
             SheetOptionType.TYPE_ADD_COLDCARD_QR,

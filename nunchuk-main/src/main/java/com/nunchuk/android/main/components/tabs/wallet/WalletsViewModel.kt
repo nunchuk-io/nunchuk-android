@@ -677,4 +677,6 @@ internal class WalletsViewModel @Inject constructor(
     fun isInAssistedWallet(signer: SignerModel): Boolean {
         return checkAssistedSignerExistenceHelper.isInAssistedWallet(signer)
     }
+
+    fun getWallet(walletId: String) = getState().wallets.find { it.wallet.id == walletId }
 }

@@ -32,6 +32,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.info.component.Mk4InfoContent
 import com.nunchuk.android.signer.mk4.intro.Mk4IntroFragmentArgs
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,6 +47,7 @@ class Mk4InfoFragment : MembershipFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        val replacedXfp = (activity as Mk4Activity).replacedXfp.orEmpty()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
@@ -64,6 +66,7 @@ class Mk4InfoFragment : MembershipFragment() {
                         requireActivity().openExternalLink(COLDCARD_GUIDE_URL)
                     },
                     isMembershipFlow = args.isMembershipFlow,
+                    isReplaceKey = replacedXfp.isNotEmpty(),
                     onMoreClicked = ::handleShowMore
                 )
             }

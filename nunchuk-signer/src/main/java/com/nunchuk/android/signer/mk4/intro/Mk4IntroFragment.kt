@@ -95,11 +95,17 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
+        val replacedXfp = (activity as Mk4Activity).replacedXfp.orEmpty()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                Mk4IntroScreen(viewModel, args.isMembershipFlow, ::handleShowMore)
+                Mk4IntroScreen(
+                    viewModel = viewModel,
+                    isMembershipFlow = args.isMembershipFlow,
+                    isReplaceKey = replacedXfp.isNotEmpty(),
+                    onMoreClicked = ::handleShowMore
+                )
             }
         }
     }
@@ -295,6 +301,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 private fun Mk4IntroScreen(
     viewModel: Mk4IntroViewModel = viewModel(),
     isMembershipFlow: Boolean,
+    isReplaceKey: Boolean,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -302,6 +309,7 @@ private fun Mk4IntroScreen(
         remainTime = remainTime,
         isMembershipFlow = isMembershipFlow,
         onMoreClicked = onMoreClicked,
+        isReplaceKey = isReplaceKey,
         onContinueClicked = viewModel::onContinueClicked
     )
 }
@@ -310,6 +318,7 @@ private fun Mk4IntroScreen(
 private fun Mk4IntroContent(
     remainTime: Int = 0,
     isMembershipFlow: Boolean = true,
+    isReplaceKey: Boolean = false,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) =
@@ -318,12 +327,12 @@ private fun Mk4IntroContent(
             Scaffold(topBar = {
                 NcImageAppBar(
                     backgroundRes = R.drawable.nc_bg_coldcard_intro,
-                    title = if (isMembershipFlow) stringResource(
+                    title = if (isMembershipFlow && !isReplaceKey) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ) else "",
                     actions = {
-                        if (isMembershipFlow) {
+                        if (isMembershipFlow && !isReplaceKey) {
                             IconButton(onClick = onMoreClicked) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_more),

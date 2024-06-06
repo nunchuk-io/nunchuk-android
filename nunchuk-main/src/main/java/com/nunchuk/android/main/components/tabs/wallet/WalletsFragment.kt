@@ -526,7 +526,14 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
                             onWalletClick = {
                                 if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name || it.group?.isLocked == true) return@PendingWalletView
                                 val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
-                                checkWalletSecurity(walletId)
+                                if (briefWallet?.status == WalletStatus.REPLACED.name && briefWallet.replaceByWalletId.isNotEmpty()) {
+                                    showWalletReplacedDialog(
+                                        oldWalletId = walletId,
+                                        replaceByWalletId = briefWallet.replaceByWalletId
+                                    )
+                                } else {
+                                    checkWalletSecurity(walletId)
+                                }
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -534,6 +541,20 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
                 }
             }
         }
+    }
+
+    private fun showWalletReplacedDialog(oldWalletId: String, replaceByWalletId: String) {
+        val wallet = walletsViewModel.getWallet(replaceByWalletId)
+        NCInfoDialog(requireActivity()).showDialog(
+            message = getString(R.string.nc_wallet_replaced_desc, wallet?.wallet?.name.orEmpty()),
+            btnInfo = getString(R.string.nc_go_to_the_new_wallet),
+            onInfoClick = {
+                checkWalletSecurity(replaceByWalletId)
+            },
+            onYesClick = {
+                checkWalletSecurity(oldWalletId)
+            }
+        )
     }
 
     private fun showDenyWalletDialog(action: () -> Unit) {

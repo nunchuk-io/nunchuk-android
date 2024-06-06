@@ -106,11 +106,18 @@ class ColdcardRecoverFragment : MembershipFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
+        val replacedXfp = (activity as Mk4Activity).replacedXfp.orEmpty()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                ColdcardRecoverScreen(viewModel, ::handleShowMore, args.isMembershipFlow, args.scanQrCode)
+                ColdcardRecoverScreen(
+                    viewModel = viewModel,
+                    onMoreClicked = ::handleShowMore,
+                    isMembershipFlow = args.isMembershipFlow,
+                    isScanQRCode = args.scanQrCode,
+                    isReplaceKey = replacedXfp.isNotEmpty()
+                )
             }
         }
     }
@@ -158,9 +165,10 @@ class ColdcardRecoverFragment : MembershipFragment() {
 @Composable
 private fun ColdcardRecoverScreen(
     viewModel: ColdcardRecoverViewModel = viewModel(),
-    onMoreClicked: () -> Unit = {},
     isMembershipFlow: Boolean,
-    isScanQRCode: Boolean
+    isScanQRCode: Boolean,
+    isReplaceKey: Boolean,
+    onMoreClicked: () -> Unit = {}
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     ColdcardRecoverContent(
@@ -168,6 +176,7 @@ private fun ColdcardRecoverScreen(
         onContinueClicked = viewModel::onContinueClicked,
         onOpenGuideClicked = viewModel::onOpenGuideClicked,
         isMembershipFlow = isMembershipFlow,
+        isReplaceKey = isReplaceKey,
         isScanQRCode = isScanQRCode,
         onMoreClicked = onMoreClicked,
     )
@@ -176,22 +185,23 @@ private fun ColdcardRecoverScreen(
 @Composable
 private fun ColdcardRecoverContent(
     remainTime: Int = 0,
-    onContinueClicked: () -> Unit = {},
+    isMembershipFlow: Boolean = false,
+    isScanQRCode: Boolean = false,
+    isReplaceKey: Boolean,
     onOpenGuideClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
-    isMembershipFlow: Boolean = false,
-    isScanQRCode: Boolean = false
+    onContinueClicked: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
-                title = if (isMembershipFlow) stringResource(
+                title = if (isMembershipFlow && !isReplaceKey) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else "",
                 actions = {
-                    if (isMembershipFlow) {
+                    if (isMembershipFlow && !isReplaceKey) {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
@@ -291,6 +301,7 @@ private fun ColdcardRecoverContent(
 @Composable
 private fun ColdcardRecoverScreenPreview() {
     ColdcardRecoverContent(
-        isMembershipFlow = true
+        isMembershipFlow = true,
+        isReplaceKey = false,
     )
 }

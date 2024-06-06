@@ -50,14 +50,22 @@ class CreateWalletSuccessViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        if (args.replacedWalletId.isNotEmpty()) {
+            viewModelScope.launch {
+                getWalletDetail2UseCase(args.replacedWalletId)
+                    .onSuccess {
+                        _state.update { state ->
+                            state.copy(replacedWallet = it)
+                        }
+                    }
+            }
+        }
         viewModelScope.launch {
-            getWalletDetail2UseCase(args.replacedWalletId)
+            getWalletDetail2UseCase(args.walletId)
                 .onSuccess {
                     val is2Of4MultisigWallet = it.signers.size == GroupWalletType.TWO_OF_FOUR_MULTISIG.m
                             && it.totalRequireSigns == GroupWalletType.TWO_OF_FOUR_MULTISIG.n
-                    _state.update { state ->
-                        state.copy(is2Of4MultisigWallet = is2Of4MultisigWallet, replacedWallet = it)
-                    }
+                    _state.update { state -> state.copy(newWallet = it, is2Of4MultisigWallet = is2Of4MultisigWallet) }
                 }
         }
     }
@@ -87,6 +95,7 @@ data class CreateWalletSuccessUiState(
     val allowInheritance: Boolean = false,
     val is2Of4MultisigWallet: Boolean = false,
     val replacedWallet: Wallet = Wallet(),
+    val newWallet: Wallet = Wallet(),
     val isReplaceWallet: Boolean = false,
 )
 

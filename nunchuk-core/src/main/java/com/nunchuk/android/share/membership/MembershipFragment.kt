@@ -101,6 +101,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
                 SheetOption(
                     type = SheetOptionType.TYPE_RESTART_WIZARD,
                     label = getString(R.string.nc_restart_wizard)
+
                 )
             )
         }
