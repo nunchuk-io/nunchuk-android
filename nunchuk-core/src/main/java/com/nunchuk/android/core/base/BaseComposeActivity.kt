@@ -20,15 +20,21 @@
 package com.nunchuk.android.core.base
 
 import android.content.Context
+import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.core.network.UnauthorizedException
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCLoadingDialogCreator
+import com.nunchuk.android.widget.NCToastMessage
+import kotlinx.coroutines.flow.filterIsInstance
 import java.util.Locale
 import javax.inject.Inject
 
@@ -40,12 +46,19 @@ abstract class BaseComposeActivity : AppCompatActivity() {
     @Inject
     lateinit var accountManager: AccountManager
 
+    @Inject
+    lateinit var pushEventManager: PushEventManager
+
     private val creator: NCLoadingDialogCreator by lazy(LazyThreadSafetyMode.NONE) {
         NCLoadingDialogCreator(this)
     }
 
 
-    fun showLoading(cancelable: Boolean = true, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+    fun showLoading(
+        cancelable: Boolean = true,
+        title: String = getString(R.string.nc_please_wait),
+        message: String? = null
+    ) {
         creator.cancel()
         creator.showDialog(cancelable, title = title, message = message)
     }
@@ -54,7 +67,11 @@ abstract class BaseComposeActivity : AppCompatActivity() {
         creator.cancel()
     }
 
-    fun showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+    fun showOrHideLoading(
+        loading: Boolean,
+        title: String = getString(R.string.nc_please_wait),
+        message: String? = null
+    ) {
         if (loading) showLoading(title = title, message = message) else hideLoading()
     }
 
@@ -64,6 +81,21 @@ abstract class BaseComposeActivity : AppCompatActivity() {
         }
         Locale.setDefault(Locale.US)
         super.attachBaseContext(newBase)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        flowObserver(pushEventManager.event.filterIsInstance<PushEvent.MessageEvent>()) {
+            if (it.message.isNotEmpty()) NCToastMessage(this).showError(message = it.message)
+        }
+        flowObserver(pushEventManager.event.filterIsInstance<PushEvent.WalletReplaced>()) {
+            showTransferFundDialog(
+                navigator = navigator,
+                newWalletId = it.newWalletId,
+                newWalletName = it.newWalletName
+            )
+        }
     }
 
     override fun onResume() {

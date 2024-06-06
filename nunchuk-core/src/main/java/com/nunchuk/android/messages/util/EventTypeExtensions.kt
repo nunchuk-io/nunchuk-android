@@ -76,6 +76,10 @@ const val WALLET_INHERITANCE_CANCELED = "io.nunchuk.custom.wallet_inheritance_ca
 const val HEALTH_CHECK_REMINDER_UPDATED = "io.nunchuk.custom.health_check_reminder_updated"
 const val HEALTH_CHECK_REMINDER = "io.nunchuk.custom.health_check_reminder"
 const val HEALTH_CHECK_SKIPPED = "io.nunchuk.custom.health_check_skipped"
+const val KEY_REPLACED = "io.nunchuk.custom.wallet_key_replacement_completed"
+const val KEY_RESET = "io.nunchuk.custom.wallet_key_replacement_reset"
+const val WALLET_REPLACED = "io.nunchuk.custom.wallet_replaced"
+
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean, maxLifetime: Long?): Boolean {
     if (maxLifetime != null && (System.currentTimeMillis() - time()) > maxLifetime) return false
@@ -163,6 +167,7 @@ fun TimelineEvent.getGroupId() = root.getClearContent()?.get("group_id")?.toStri
 fun TimelineEvent.getTitle() = root.getClearContent()?.get("title")?.toString()
 fun TimelineEvent.getContent() = root.getClearContent()?.get("content")?.toString()
 fun TimelineEvent.getXfp() = root.getClearContent()?.get("xfp")?.toString()
+fun TimelineEvent.getNewWalletId() = root.getClearContent()?.get("new_wallet_local_id")?.toString()
 
 fun TimelineEvent.isGroupMembershipRequestEvent() =
     getMsgType() == GROUP_MEMBERSHIP_REQUEST_ACCEPTED || getMsgType() == GROUP_MEMBERSHIP_REQUEST_DENIED
@@ -217,3 +222,9 @@ fun TimelineEvent.isInheritanceEvent() =
 
 fun TimelineEvent.isHealthCheckReminderEvent() =
     getMsgType() == HEALTH_CHECK_REMINDER || getMsgType() == HEALTH_CHECK_REMINDER_UPDATED || getMsgType() == HEALTH_CHECK_SKIPPED
+
+fun TimelineEvent.isReplaceKeyChangeEvent() =
+    getMsgType() == KEY_REPLACED || getMsgType() == KEY_RESET
+
+fun TimelineEvent.isWalletReplacedEvent() =
+    getMsgType() == WALLET_REPLACED

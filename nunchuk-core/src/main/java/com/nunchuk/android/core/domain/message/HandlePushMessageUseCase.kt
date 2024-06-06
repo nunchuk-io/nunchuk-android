@@ -6,6 +6,7 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.messages.util.getGroupId
 import com.nunchuk.android.messages.util.getLastMessageContentSafe
+import com.nunchuk.android.messages.util.getNewWalletId
 import com.nunchuk.android.messages.util.getTransactionId
 import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.getXfp
@@ -20,12 +21,14 @@ import com.nunchuk.android.messages.util.isGroupWalletPrimaryOwnerUpdated
 import com.nunchuk.android.messages.util.isInheritanceEvent
 import com.nunchuk.android.messages.util.isKeyNameChanged
 import com.nunchuk.android.messages.util.isRemoveAlias
+import com.nunchuk.android.messages.util.isReplaceKeyChangeEvent
 import com.nunchuk.android.messages.util.isServerTransactionEvent
 import com.nunchuk.android.messages.util.isSetAlias
 import com.nunchuk.android.messages.util.isTransactionCancelled
 import com.nunchuk.android.messages.util.isTransactionHandleErrorMessageEvent
 import com.nunchuk.android.messages.util.isTransactionReplaced
 import com.nunchuk.android.messages.util.isWalletCreated
+import com.nunchuk.android.messages.util.isWalletReplacedEvent
 import com.nunchuk.android.usecase.IsHandledEventUseCase
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import com.nunchuk.android.usecase.UseCase
@@ -33,6 +36,7 @@ import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.coin.SyncCoinControlData
 import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
@@ -46,7 +50,8 @@ class HandlePushMessageUseCase @Inject constructor(
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
     private val getServerWalletsUseCase: GetServerWalletsUseCase,
-    private val syncCoinControlData: SyncCoinControlData
+    private val syncCoinControlData: SyncCoinControlData,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : UseCase<TimelineEvent, Unit>(dispatcher) {
     override suspend fun execute(parameters: TimelineEvent) {
         when {
@@ -238,6 +243,36 @@ class HandlePushMessageUseCase @Inject constructor(
                                 walletId
                             )
                         )
+                    }
+                }
+            }
+
+            parameters.isReplaceKeyChangeEvent() -> {
+                val result = isHandledEventUseCase.invoke(parameters.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(parameters.eventId)
+                    pushEventManager.push(
+                        PushEvent.ReplaceKeyChange(
+                            parameters.getWalletId().orEmpty()
+                        )
+                    )
+                }
+            }
+
+            parameters.isWalletReplacedEvent() -> {
+                val result = isHandledEventUseCase.invoke(parameters.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(parameters.eventId)
+                    val newWalletId = parameters.getNewWalletId().orEmpty()
+                    if (newWalletId.isNotEmpty()) {
+                        getWalletDetail2UseCase(newWalletId).onSuccess {
+                            pushEventManager.push(
+                                PushEvent.WalletReplaced(
+                                    newWalletId = newWalletId,
+                                    newWalletName = it.name
+                                )
+                            )
+                        }
                     }
                 }
             }

@@ -113,6 +113,13 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
         flowObserver(pushEventManager.event.filterIsInstance<PushEvent.MessageEvent>()) {
             if (it.message.isNotEmpty()) NCToastMessage(this@BaseActivity).showError(message = it.message)
         }
+        flowObserver(pushEventManager.event.filterIsInstance<PushEvent.WalletReplaced>()) {
+            showTransferFundDialog(
+                navigator = navigator,
+                newWalletId = it.newWalletId,
+                newWalletName = it.newWalletName
+            )
+        }
     }
 
     override fun onDestroy() {

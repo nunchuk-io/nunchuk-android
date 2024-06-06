@@ -8,6 +8,7 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedPath
@@ -65,7 +66,8 @@ class ReplaceKeysViewModel @Inject constructor(
     private val getServerWalletsUseCase: GetServerWalletsUseCase,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
-    private val getServerWalletUseCase: GetServerWalletUseCase
+    private val getServerWalletUseCase: GetServerWalletUseCase,
+    private val pushEventManager: PushEventManager
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _uiState = MutableStateFlow(ReplaceKeysUiState())
@@ -76,6 +78,11 @@ class ReplaceKeysViewModel @Inject constructor(
     private var loadWalletStatusJob: Job? = null
 
     init {
+        viewModelScope.launch {
+            pushEventManager.event.collect {
+                getReplaceWalletStatus()
+            }
+        }
         viewModelScope.launch {
             getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
                 _uiState.update {
