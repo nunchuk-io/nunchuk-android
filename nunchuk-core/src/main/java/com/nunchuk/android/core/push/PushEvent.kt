@@ -38,4 +38,6 @@ sealed class PushEvent {
     data class SignedChanged(val xfp: String) : PushEvent()
     data class CoinUpdated(val walletId: String) : PushEvent()
     data class InheritanceEvent(val walletId: String) : PushEvent()
+    data class ReplaceKeyChange(val walletId: String) : PushEvent()
+    data class WalletReplaced(val newWalletId: String, val newWalletName: String) : PushEvent()
 }
