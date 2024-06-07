@@ -333,7 +333,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             PushNotificationData(
                 id = localId,
                 title = getTitle().orEmpty(),
-                message = getContent().orEmpty(),
+                message = getMsgBody(),
                 intent = intentProvider.getGeneralIntent(getWalletId(), getGroupId(), null)
             )
         }
