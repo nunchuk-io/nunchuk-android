@@ -28,6 +28,7 @@ dependencies {
 
     implementation zxingDeps.values()
     implementation "com.github.skydoves:landscapist-glide:2.2.2"
+    implementation "dev.shreyaspatil:capturable:2.1.0"
 
     testImplementation otherTestDeps.junit
 }

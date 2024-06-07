@@ -77,6 +77,7 @@ import com.nunchuk.android.share.model.TransactionOption.IMPORT_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
+import com.nunchuk.android.share.model.TransactionOption.SHOW_INVOICE
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.RequestSignatureMemberFragment.Companion.EXTRA_MEMBER_ID
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
@@ -99,6 +100,8 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ViewBlockchainExplorer
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
+import com.nunchuk.android.transaction.components.invoice.InvoiceActivity
+import com.nunchuk.android.transaction.components.invoice.InvoiceInfo
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
@@ -422,8 +425,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
     }
 
-    private fun handleManageCoin(status: TransactionStatus, coins: List<UnspentOutput>, role: AssistedWalletRole) {
-        binding.tvManageCoin.isVisible = coins.isNotEmpty() && status.hadBroadcast() && role.isKeyHolderLimited.not()
+    private fun handleManageCoin(
+        status: TransactionStatus,
+        coins: List<UnspentOutput>,
+        role: AssistedWalletRole
+    ) {
+        binding.tvManageCoin.isVisible =
+            coins.isNotEmpty() && status.hadBroadcast() && role.isKeyHolderLimited.not()
     }
 
     private fun handleServerTransaction(
@@ -618,6 +626,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
                 handleSignRequestSignature()
             }
+
             NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
             is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
             TransactionDetailsEvent.RequestSignatureTransactionSuccess -> {
@@ -704,6 +713,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 IMPORT_TRANSACTION -> showImportTransactionOptions()
                 REPLACE_BY_FEE -> handleOpenEditFee()
                 COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
+                SHOW_INVOICE -> InvoiceActivity.navigate(this, getInvoiceInfo())
                 COPY_RAW_TRANSACTION_HEX -> viewModel.getRawTransaction()
                 REMOVE_TRANSACTION -> viewModel.handleDeleteTransactionEvent(false)
                 SCHEDULE_BROADCAST -> if (viewModel.isScheduleBroadcast()) {
@@ -903,6 +913,24 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    private fun getInvoiceInfo(): InvoiceInfo {
+        val transaction = viewModel.getTransaction()
+        val coins = if (transaction.isReceive)
+            transaction.receiveOutputs else
+            transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+        val txOutput = transaction.outputs[transaction.changeIndex]
+        return InvoiceInfo(
+            amountSent = transaction.totalAmount.getBTCAmount(),
+            confirmTime = if (args.isInheritanceClaimingFlow.not()) transaction.getFormatDate() else "",
+            transactionId = args.txId,
+            txOutputs = coins,
+            estimatedFee = if (!transaction.isReceive) transaction.fee.getBTCAmount() else "",
+            changeAddress = if (transaction.hasChangeIndex()) txOutput.first else "",
+            changeAddressAmount = if (transaction.hasChangeIndex()) txOutput.second.getBTCAmount() else "",
+            note = transaction.memo.ifEmpty { getString(R.string.nc_none) }
+        )
     }
 
     companion object {

@@ -27,15 +27,22 @@ import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.HIGH_DENSITY
+import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.toBBQRDensity
+import com.nunchuk.android.model.Result
+import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportBCR2020010WalletUseCase
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
 import com.nunchuk.android.usecase.qr.ExportBBQRWalletUseCase
+import com.nunchuk.android.utils.BitmapUtil
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
@@ -53,13 +60,18 @@ class DynamicQRCodeViewModel @Inject constructor(
     private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
     private val exportBBQRWalletUseCase: ExportBBQRWalletUseCase,
     private val savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+    private val createShareFileUseCase: CreateShareFileUseCase,
+    private val saveBitmapToPDFUseCase: SaveBitmapToPDFUseCase,
+    ) : ViewModel() {
     val walletId = savedStateHandle.get<String>(DynamicQRCodeArgs.EXTRA_WALLET_ID).orEmpty()
     val type = savedStateHandle.get<Int>(DynamicQRCodeArgs.EXTRA_QR_CODE_TYPE)
         ?: ExportWalletQRCodeType.BC_UR2_LEGACY
 
     private val _state = MutableStateFlow(DynamicQRCodeState())
     val state = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<DynamicQRCodeEvent>()
+    val event = _event.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -84,38 +96,62 @@ class DynamicQRCodeViewModel @Inject constructor(
     }
 
     private fun handleExportWalletQR(density: Int) {
-        if (type == ExportWalletQRCodeType.BC_UR2_LEGACY) {
-            viewModelScope.launch {
-                exportKeystoneWalletUseCase.execute(walletId, density)
-                    .map { list -> list.mapNotNull { it.convertToQRCode() } }
-                    .flowOn(Dispatchers.IO)
-                    .onException { }
-                    .flowOn(Dispatchers.Main)
-                    .collect { bitmaps ->
-                        _state.update { it.copy(bitmaps = bitmaps) }
-                    }
+        when (type) {
+            ExportWalletQRCodeType.BC_UR2_LEGACY -> {
+                viewModelScope.launch {
+                    exportKeystoneWalletUseCase.execute(walletId, density)
+                        .map { list -> list.mapNotNull { it.convertToQRCode() } }
+                        .flowOn(Dispatchers.IO)
+                        .onException { }
+                        .flowOn(Dispatchers.Main)
+                        .collect { bitmaps ->
+                            _state.update { it.copy(bitmaps = bitmaps) }
+                        }
+                }
             }
-        } else if (type == ExportWalletQRCodeType.BC_UR2) {
-            viewModelScope.launch {
-                exportBCR2020010WalletUseCase(
-                    ExportBCR2020010WalletUseCase.Params(
-                        walletId,
-                        density
+            ExportWalletQRCodeType.BC_UR2 -> {
+                viewModelScope.launch {
+                    exportBCR2020010WalletUseCase(
+                        ExportBCR2020010WalletUseCase.Params(
+                            walletId,
+                            density
+                        )
+                    )
+                        .map { list -> list.mapNotNull { it.convertToQRCode() } }
+                        .onSuccess { bitmaps ->
+                            _state.update { it.copy(bitmaps = bitmaps) }
+                        }
+                }
+            }
+            ExportWalletQRCodeType.BBQR -> {
+                viewModelScope.launch {
+                    val convertDensity = density.toBBQRDensity()
+                    exportBBQRWalletUseCase(ExportBBQRWalletUseCase.Params(walletId, convertDensity))
+                        .map { list -> list.mapNotNull { it.convertToQRCode() } }
+                        .onSuccess { bitmaps ->
+                            _state.update { it.copy(bitmaps = bitmaps) }
+                        }
+                }
+            }
+        }
+    }
+
+    fun saveBitmapToPDF(bitmaps: List<Bitmap>) = viewModelScope.launch(Dispatchers.IO) {
+        when (val event = createShareFileUseCase.execute("qrcode_$walletId.pdf")) {
+            is Result.Success -> {
+                saveBitmapToPDFUseCase(
+                    SaveBitmapToPDFUseCase.Param(
+                        bitmaps,
+                        event.data
                     )
                 )
-                    .map { list -> list.mapNotNull { it.convertToQRCode() } }
-                    .onSuccess { bitmaps ->
-                        _state.update { it.copy(bitmaps = bitmaps) }
+                    .onSuccess {
+                        _event.emit(DynamicQRCodeEvent.SavePDFSuccess(event.data))
                     }
             }
-        } else if (type == ExportWalletQRCodeType.BBQR) {
-            viewModelScope.launch {
-                val convertDensity = density.toBBQRDensity()
-                exportBBQRWalletUseCase(ExportBBQRWalletUseCase.Params(walletId, convertDensity))
-                    .map { list -> list.mapNotNull { it.convertToQRCode() } }
-                    .onSuccess { bitmaps ->
-                        _state.update { it.copy(bitmaps = bitmaps) }
-                    }
+
+            is Result.Error -> {
+                _event.emit(DynamicQRCodeEvent.Error(event.exception.messageOrUnknownError()))
             }
         }
     }
@@ -126,3 +162,8 @@ data class DynamicQRCodeState(
     val density: Int = HIGH_DENSITY,
     val name: String = "",
 )
+
+sealed class DynamicQRCodeEvent {
+    data class SavePDFSuccess(val path: String) : DynamicQRCodeEvent()
+    data class Error(val message: String) : DynamicQRCodeEvent()
+}

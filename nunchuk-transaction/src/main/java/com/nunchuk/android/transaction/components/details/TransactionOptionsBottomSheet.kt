@@ -42,6 +42,7 @@ import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.REQUEST_SIGNATURE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
+import com.nunchuk.android.share.model.TransactionOption.SHOW_INVOICE
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
 import com.nunchuk.android.utils.serializable
@@ -129,6 +130,10 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
         }
         binding.btnScheduleBroadcast.setOnDebounceClickListener {
             listener(SCHEDULE_BROADCAST)
+            dismiss()
+        }
+        binding.btnShowAsAnInvoice.setOnDebounceClickListener {
+            listener(SHOW_INVOICE)
             dismiss()
         }
 

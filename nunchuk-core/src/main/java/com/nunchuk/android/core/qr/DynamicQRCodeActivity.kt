@@ -27,6 +27,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.databinding.ActivityDynamicQrBinding
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.DELAY_DYNAMIC_QR
 import com.nunchuk.android.core.util.HIGH_DENSITY
 import com.nunchuk.android.core.util.LOW_DENSITY
@@ -34,6 +35,8 @@ import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.core.util.ULTRA_DENSITY
 import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
@@ -53,6 +56,12 @@ class DynamicQRCodeActivity : AppCompatActivity() {
 
     private var showQrJob: Job? = null
 
+    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) {
+        IntentSharingController.from(
+            this
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -67,6 +76,17 @@ class DynamicQRCodeActivity : AppCompatActivity() {
             binding.slider.value = it.density.densityToLevel()
             bitmaps = it.bitmaps
             showQr()
+        }
+        flowObserver(viewModel.event) {
+            when (it) {
+                is DynamicQRCodeEvent.Error -> {
+                    NCToastMessage(this).showError(it.message)
+                }
+
+                is DynamicQRCodeEvent.SavePDFSuccess -> {
+                    controller.shareFile(it.path)
+                }
+            }
         }
     }
 
@@ -83,6 +103,10 @@ class DynamicQRCodeActivity : AppCompatActivity() {
                 showQrJob?.cancel()
                 viewModel.setQrDensity(densities[value.toInt()])
             }
+        }
+
+        binding.btnSavePdf.setOnClickListener {
+            viewModel.saveBitmapToPDF(bitmaps)
         }
     }
 
