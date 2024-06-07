@@ -289,7 +289,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
-            ServiceTabRowItem.RollOverAssistedWallet -> {}
             ServiceTabRowItem.SetUpInheritancePlan -> {
                 val wallets = viewModel.getUnSetupInheritanceWallets()
                 if (wallets.isEmpty()) return
@@ -342,7 +341,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     private fun isCheckWalletCreationState(item: ServiceTabRowItem): Boolean {
         return item is ServiceTabRowItem.CoSigningPolicies ||
                 item is ServiceTabRowItem.EmergencyLockdown ||
-                item is ServiceTabRowItem.RollOverAssistedWallet ||
+                item is ServiceTabRowItem.ReplaceKey ||
                 item is ServiceTabRowItem.KeyRecovery ||
                 item is ServiceTabRowItem.SetUpInheritancePlan
     }

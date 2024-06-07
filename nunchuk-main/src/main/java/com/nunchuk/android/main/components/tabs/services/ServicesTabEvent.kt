@@ -121,7 +121,6 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
                 add(ServiceTabRowItem.OrderNewHardware)
-                add(ServiceTabRowItem.RollOverAssistedWallet)
                 add(ServiceTabRowItem.ReplaceKey)
                 add(ServiceTabRowItem.ManageSubscription)
             }
@@ -138,7 +137,6 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
                 add(ServiceTabRowItem.OrderNewHardware)
-                add(ServiceTabRowItem.RollOverAssistedWallet)
                 add(ServiceTabRowItem.ReplaceKey)
                 add(ServiceTabRowItem.ManageSubscription)
             }
@@ -206,7 +204,6 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.CoSigningPolicies)
                         }
                         add(ServiceTabRowItem.GetAdditionalWallets)
-                        add(ServiceTabRowItem.RollOverAssistedWallet)
                         add(ServiceTabRowItem.ReplaceKey)
                         add(ServiceTabRowItem.ManageSubscription)
                     } else {
@@ -215,6 +212,7 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.CoSigningPolicies)
                         }
                     }
+                    add(ServiceTabRowItem.ReplaceKey)
                 }
                 return items
             }
@@ -245,7 +243,6 @@ data class ServicesTabState(
                         add(ServiceTabRowItem.CoSigningPolicies)
                     }
                     add(ServiceTabRowItem.GetAdditionalWallets)
-                    add(ServiceTabRowItem.RollOverAssistedWallet)
                     add(ServiceTabRowItem.ReplaceKey)
                     add(ServiceTabRowItem.ManageSubscription)
                 }
@@ -288,7 +285,7 @@ data class ServicesTabState(
                 showCoSigningPolicies {
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
-                add(ServiceTabRowItem.RollOverAssistedWallet)
+                add(ServiceTabRowItem.ReplaceKey)
                 add(ServiceTabRowItem.ManageSubscription)
             }
             return items
@@ -301,6 +298,7 @@ data class ServicesTabState(
                     add(ServiceTabRowCategory.Subscription)
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
+                add(ServiceTabRowItem.ReplaceKey)
             }
             return items
         }
@@ -399,9 +397,6 @@ sealed class ServiceTabRowItem(val title: Int) : Parcelable {
 
     @Parcelize
     data object ManageSubscription : ServiceTabRowItem(R.string.nc_manage_subscription)
-
-    @Parcelize
-    data object RollOverAssistedWallet : ServiceTabRowItem(R.string.nc_roll_over_assisted_wallet)
 
     @Parcelize
     data object GetAdditionalWallets : ServiceTabRowItem(R.string.nc_get_additional_wallet)
