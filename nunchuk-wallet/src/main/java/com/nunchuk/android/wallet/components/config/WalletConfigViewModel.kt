@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.config
 
+import android.graphics.Bitmap
 import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -34,6 +35,7 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -60,6 +62,8 @@ import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
 import com.nunchuk.android.usecase.membership.ImportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ImportTxCoinControlUseCase
+import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
+import com.nunchuk.android.utils.BitmapUtil
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
@@ -474,7 +478,6 @@ internal class WalletConfigViewModel @Inject constructor(
             is Result.Error -> showError(event.exception)
         }
     }
-
 
     private fun isPrimaryKey(id: String) =
         accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id

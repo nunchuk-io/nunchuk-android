@@ -108,7 +108,17 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_done_scanning"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btn_save_pdf"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btn_save_pdf"
+        style="@style/NCPrimaryButton.Light"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:text="Save PDF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

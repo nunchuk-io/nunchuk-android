@@ -29,4 +29,5 @@ enum class TransactionOption {
     COPY_RAW_TRANSACTION_HEX,
     REMOVE_TRANSACTION,
     SCHEDULE_BROADCAST,
+    SHOW_INVOICE,
 }
