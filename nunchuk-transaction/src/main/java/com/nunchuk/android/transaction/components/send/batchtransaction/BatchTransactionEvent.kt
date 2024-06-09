@@ -35,19 +35,24 @@ data class BatchTransactionState(
     data class Recipient(
         val amount: String, val address: String, val isBtc: Boolean,
         val selectAddressType: Int, val selectAddressName: String,
-        val invalidAddress: Boolean,
+        val invalidAddress: Boolean, val walletId: String
     ) {
         companion object {
             val DEFAULT = Recipient(
                 amount = "",
                 address = "",
                 isBtc = true,
-                selectAddressType = -1, // 0: address, 1: wallet,
+                selectAddressType = SelectAddressType.NONE.ordinal,
                 selectAddressName = "",
-                invalidAddress = false
+                invalidAddress = false,
+                walletId = ""
             )
         }
     }
+}
+
+enum class SelectAddressType {
+    NONE, ADDRESS, WALLET
 }
 
 private fun initRecipientList(): List<BatchTransactionState.Recipient> {

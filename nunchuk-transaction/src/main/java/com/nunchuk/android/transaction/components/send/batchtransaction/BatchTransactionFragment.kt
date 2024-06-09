@@ -129,20 +129,20 @@ class BatchTransactionFragment : Fragment() {
                 BatchTransactionScreen(viewModel, onScanClick = {
                     startQRCodeScan(launcher)
                 }, onDropdownClick = { index, selectAddressType ->
-                    if (selectAddressType == -1) {
+                    if (selectAddressType == SelectAddressType.NONE.ordinal) {
                         viewModel.setInteractingIndex(index)
                         WalletComposeBottomSheet.show(
                             childFragmentManager,
-                            exclusiveAssistedWalletIds = arrayListOf(args.walletId),
-                            isShowAddress = true
+                            exclusiveAssistedWalletIds = arrayListOf(args.walletId) + viewModel.getRecipients().map { it.walletId },
+                            isShowAddress = true,
+                            exclusiveAddresses = viewModel.getRecipients().map { it.address }
                         )
                     } else {
                         viewModel.updateRecipient(
                             index = index,
-                            selectAddressType = -1,
-                            selectAddressName = "",
+                            selectAddressType = SelectAddressType.NONE.ordinal,
                             address = "",
-                            invalidAddress = false
+                            invalidAddress = false,
                         )
                         viewModel.setInteractingIndex(-1)
                     }
@@ -219,7 +219,7 @@ class BatchTransactionFragment : Fragment() {
                     viewModel.updateRecipient(
                         index = viewModel.getInteractingIndex(),
                         address = result.savedAddress?.address.orEmpty(),
-                        selectAddressType = 0,
+                        selectAddressType = SelectAddressType.ADDRESS.ordinal,
                         selectAddressName = result.savedAddress?.label.orEmpty()
                     )
                 }
@@ -517,7 +517,7 @@ private fun RecipientView(
                         contentDescription = ""
                     )
                 }
-                if (selectAddressType == -1) {
+                if (selectAddressType == SelectAddressType.NONE.ordinal) {
                     NcTextField(
                         title = "",
                         value = address,
@@ -560,7 +560,7 @@ private fun RecipientView(
                                     .clickable {
                                         onDropdownClick()
                                     },
-                                painter = if (selectAddressType == 0) painterResource(id = R.drawable.ic_saved_address)
+                                painter = if (selectAddressType == SelectAddressType.ADDRESS.ordinal) painterResource(id = R.drawable.ic_saved_address)
                                 else painterResource(id = R.drawable.ic_wallet_small),
                                 contentDescription = ""
                             )
