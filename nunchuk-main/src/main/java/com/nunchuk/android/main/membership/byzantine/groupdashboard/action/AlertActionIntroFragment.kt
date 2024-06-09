@@ -78,7 +78,6 @@ class AlertActionIntroFragment : Fragment() {
                             viewModel.approveInheritanceRequestPlanning()
                         } else if (args.alert.type == AlertType.HEALTH_CHECK_REMINDER) {
                             openHealthCheckScreen()
-                            viewModel.approveInheritanceRequestPlanning()
                         } else if (args.alert.type == AlertType.KEY_REPLACEMENT_PENDING) {
                             enterPasswordDialog(TargetAction.REPLACE_KEYS)
                         } else if (it != null) {
