@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,7 +24,7 @@ class HealthCheckReminderBottomSheetViewModel @Inject constructor(
     private val _event = MutableSharedFlow<GroupChatHistoryEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(HealthCheckReminderBottomSheetState())
+    private val _state = MutableStateFlow(HealthCheckReminderBottomSheetState(startDate = Calendar.getInstance().timeInMillis))
     val state = _state.asStateFlow()
 
     init {
