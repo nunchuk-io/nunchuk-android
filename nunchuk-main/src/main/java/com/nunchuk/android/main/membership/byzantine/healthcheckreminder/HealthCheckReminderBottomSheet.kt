@@ -66,19 +66,22 @@ class HealthCheckReminderBottomSheet : BaseComposeBottomSheet() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 NunchukTheme {
-                    HealthCheckReminderScreen(isSelectMultiple = args.selectMultipleKeys, viewModel = viewModel, onDoneClick = {
-                        val startDate =
-                            if (viewModel.getStartDate() == 0L) Calendar.getInstance().timeInMillis else viewModel.getStartDate()
-                        setFragmentResult(
-                            REQUEST_KEY,
-                            bundleOf(
-                                EXTRA_HEALTH_REMINDER_FREQUENCY to it.name,
-                                EXTRA_START_DAY to startDate,
-                                EXTRA_XFP to args.selectHealthReminder?.xfp
+                    HealthCheckReminderScreen(
+                        isSelectMultiple = args.selectMultipleKeys,
+                        viewModel = viewModel,
+                        onDoneClick = {
+                            val startDate =
+                                if (viewModel.getStartDate() == 0L) Calendar.getInstance().timeInMillis else viewModel.getStartDate()
+                            setFragmentResult(
+                                REQUEST_KEY,
+                                bundleOf(
+                                    EXTRA_HEALTH_REMINDER_FREQUENCY to it.name,
+                                    EXTRA_START_DAY to startDate,
+                                    EXTRA_XFP to args.selectHealthReminder?.xfp
+                                )
                             )
-                        )
-                        dismissAllowingStateLoss()
-                    })
+                            dismissAllowingStateLoss()
+                        })
                 }
             }
         }
@@ -183,7 +186,9 @@ fun HealthCheckReminderScreenContent(
                 .padding(top = 16.dp)
                 .fillMaxWidth(),
             title = stringResource(R.string.nc_start_date),
-            value = if (startDate > 0) Date(startDate).simpleGlobalDateFormat() else stringResource(
+            value = if (startDate > 0 && selectReminderFrequency != HealthReminderFrequency.NONE) Date(
+                startDate
+            ).simpleGlobalDateFormat() else stringResource(
                 id = R.string.nc_activation_date_holder
             ),
             textStyle = NunchukTheme.typography.body.copy(
