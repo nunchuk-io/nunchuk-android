@@ -53,11 +53,15 @@ class WalletsBottomSheetViewModel @Inject constructor(
     private val _state = MutableStateFlow(WalletsBottomSheetState())
     val state = _state.asStateFlow()
 
+    private var exclusiveAddresses: List<String> = emptyList()
+
     fun init(
         isShowAddress: Boolean,
         assistedWalletIds: List<String>,
-        exclusiveWalletIds: List<String>
+        exclusiveWalletIds: List<String>,
+        exclusiveAddresses: List<String>
     ) {
+        this.exclusiveAddresses = exclusiveAddresses
         _state.update { it.copy(isShowAddress = isShowAddress) }
         viewModelScope.launch {
             getGroupsUseCase(Unit)
@@ -114,7 +118,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
         viewModelScope.launch {
             getSavedAddressListUseCase(Unit)
                 .onSuccess { addresses ->
-                    _state.update { it.copy(savedAddresses = addresses) }
+                    _state.update { it.copy(savedAddresses = addresses.filter { it.address !in exclusiveAddresses } ) }
                 }
         }
     }

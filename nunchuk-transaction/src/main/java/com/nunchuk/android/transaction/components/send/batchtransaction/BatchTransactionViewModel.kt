@@ -97,8 +97,7 @@ class BatchTransactionViewModel @Inject constructor(
                         amount = btcUri.amount.pureBTC().toString(),
                         address = btcUri.address,
                         isBtc = true,
-                        selectAddressType = -1,
-                        selectAddressName = "",
+                        selectAddressType = SelectAddressType.NONE.ordinal,
                         invalidAddress = false
                     )
                     updateNoteChange(btcUri.privateNote)
@@ -106,8 +105,7 @@ class BatchTransactionViewModel @Inject constructor(
                     updateRecipient(
                         index = state.value.interactingIndex,
                         address = btcUri.address,
-                        selectAddressType = -1,
-                        selectAddressName = "",
+                        selectAddressType = SelectAddressType.NONE.ordinal,
                         invalidAddress = false
                     )
                 }
@@ -149,8 +147,9 @@ class BatchTransactionViewModel @Inject constructor(
                 updateRecipient(
                     index = state.value.interactingIndex,
                     address = addresses.first(),
-                    selectAddressType = 1,
-                    selectAddressName = walletName
+                    selectAddressType = SelectAddressType.WALLET.ordinal,
+                    selectAddressName = walletName,
+                    walletId = walletId
                 )
             }.onFailure {
                 _event.emit(BatchTransactionEvent.Error(it.message.orUnknownError()))
@@ -174,7 +173,8 @@ class BatchTransactionViewModel @Inject constructor(
         address: String? = null,
         selectAddressType: Int? = null,
         selectAddressName: String? = null,
-        invalidAddress: Boolean? = null
+        invalidAddress: Boolean? = null,
+        walletId: String? = null
     ) {
         var recipient = _state.value.recipients[index]
         amount?.let {
@@ -188,12 +188,21 @@ class BatchTransactionViewModel @Inject constructor(
         }
         selectAddressType?.let {
             recipient = recipient.copy(selectAddressType = it)
+            if (it == SelectAddressType.ADDRESS.ordinal ||  it == SelectAddressType.NONE.ordinal) {
+                recipient = recipient.copy(walletId = "")
+            }
+            if (it == SelectAddressType.NONE.ordinal) {
+                recipient = recipient.copy(selectAddressName = "")
+            }
         }
         selectAddressName?.let {
             recipient = recipient.copy(selectAddressName = it)
         }
         invalidAddress?.let {
             recipient = recipient.copy(invalidAddress = it)
+        }
+        walletId?.let {
+            recipient = recipient.copy(walletId = it)
         }
         val newRecipients = _state.value.recipients.toMutableList()
         newRecipients[index] = recipient
@@ -237,4 +246,6 @@ class BatchTransactionViewModel @Inject constructor(
     }
 
     fun getInteractingIndex() = _state.value.interactingIndex
+
+    fun getRecipients() = _state.value.recipients
 }

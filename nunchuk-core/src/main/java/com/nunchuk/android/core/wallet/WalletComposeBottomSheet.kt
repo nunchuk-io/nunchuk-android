@@ -92,6 +92,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
     private val isShowAddress by lazy { requireArguments().getBoolean(EXTRA_SHOW_ADDRESS) }
     private val title by lazy { requireArguments().getString(EXTRA_TITLE) }
     private val assistedWalletIds by lazy { requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty() }
+    private val exclusiveAddresses by lazy { requireArguments().getStringArrayList(EXTRA_EXCLUSIVE_ADDRESSES).orEmpty() }
 
     private val addressLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -154,12 +155,13 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(isShowAddress, assistedWalletIds, exclusiveWalletIds)
+        viewModel.init(isShowAddress, assistedWalletIds, exclusiveWalletIds, exclusiveAddresses)
     }
 
     companion object {
         const val TAG = "WalletComposeBottomSheet"
         private const val EXTRA_EXCLUSIVE_WALLET_IDS = "extra_exclusive_wallet_ids"
+        private const val EXTRA_EXCLUSIVE_ADDRESSES = "extra_exclusive_addresses"
         private const val EXTRA_WALLET_IDS = "wallet_ids"
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_SHOW_ADDRESS = "show_address"
@@ -168,6 +170,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
         fun show(
             fragmentManager: FragmentManager,
             exclusiveAssistedWalletIds: List<String> = emptyList(),
+            exclusiveAddresses: List<String> = emptyList(),
             assistedWalletIds: List<String> = emptyList(),
             title: String? = null,
             isShowAddress: Boolean = false,
@@ -176,6 +179,10 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
                 putStringArrayList(
                     EXTRA_EXCLUSIVE_WALLET_IDS,
                     ArrayList(exclusiveAssistedWalletIds)
+                )
+                putStringArrayList(
+                    EXTRA_EXCLUSIVE_ADDRESSES,
+                    ArrayList(exclusiveAddresses)
                 )
                 putStringArrayList(EXTRA_WALLET_IDS, ArrayList(assistedWalletIds))
                 putString(EXTRA_TITLE, title)
