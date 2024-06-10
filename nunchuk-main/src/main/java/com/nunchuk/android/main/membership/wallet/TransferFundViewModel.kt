@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.usecase.replace.UpdateReplaceKeyConfigUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,7 @@ import javax.inject.Inject
 class TransferFundViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
+    private val updateReplaceKeyConfigUseCase: UpdateReplaceKeyConfigUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val args = TransferFundFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -41,6 +43,18 @@ class TransferFundViewModel @Inject constructor(
             getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
                 _uiState.update { it.copy(newWallet = wallet) }
             }
+        }
+    }
+
+    fun updateReplaceKeyConfig(groupId: String, walletId: String, isRemoveKey: Boolean) {
+        viewModelScope.launch {
+            updateReplaceKeyConfigUseCase(
+                UpdateReplaceKeyConfigUseCase.Param(
+                    groupId = groupId,
+                    walletId = walletId,
+                    isRemoveKey = isRemoveKey
+                )
+            )
         }
     }
 }

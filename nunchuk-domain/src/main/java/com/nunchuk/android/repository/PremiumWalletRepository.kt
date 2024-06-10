@@ -428,7 +428,7 @@ interface PremiumWalletRepository {
     suspend fun getWallet(walletId: String): WalletServer
 
     suspend fun syncDeletedWallet(): Boolean
-
+    suspend fun deleteKeyForReplacedWallet(groupId: String, walletId: String)
     suspend fun deleteKey(xfp: String)
     suspend fun healthCheckHistory(xfp: String): List<HealthCheckHistory>
 

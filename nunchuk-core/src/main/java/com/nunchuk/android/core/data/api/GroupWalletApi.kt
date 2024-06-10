@@ -566,4 +566,11 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<Unit>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/configs")
+    suspend fun updateReplaceWalletConfigs(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: Map<String, Boolean>,
+    ): Data<Unit>
 }

@@ -510,6 +510,33 @@ internal class KeyRepositoryImpl @Inject constructor(
         return "$prefix$suffix"
     }
 
+    override suspend fun updateWalletReplaceConfig(
+        walletId: String,
+        groupId: String,
+        isRemoveKey: Boolean
+    ) {
+        val response = if (groupId.isNotEmpty()) {
+            userWalletApiManager.groupWalletApi.updateReplaceWalletConfigs(
+                groupId = groupId,
+                walletId = walletId,
+                payload = mapOf(
+                    "remove_unused_keys" to isRemoveKey
+                )
+            )
+        } else {
+            userWalletApiManager.walletApi.updateReplaceWalletConfigs(
+                walletId = walletId,
+                payload = mapOf(
+                    "remove_unused_keys" to isRemoveKey
+                )
+            )
+        }
+
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
     companion object {
         private const val ALREADY_VERIFIED_CODE = 409
     }

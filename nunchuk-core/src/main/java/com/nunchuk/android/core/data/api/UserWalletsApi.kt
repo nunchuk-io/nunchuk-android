@@ -622,4 +622,10 @@ internal interface UserWalletsApi {
         @Header("Verify-token") verifyToken: String,
         @Path("wallet_id_or_local_id") walletId: String,
     ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/configs")
+    suspend fun updateReplaceWalletConfigs(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: Map<String, Boolean>,
+    ): Data<Unit>
 }
