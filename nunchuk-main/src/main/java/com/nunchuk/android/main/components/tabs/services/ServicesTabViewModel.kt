@@ -113,7 +113,7 @@ class ServicesTabViewModel @Inject constructor(
                     plans to wallets
                 }
                 .collect { (plans, wallets) ->
-                    _state.update { it.copy(assistedWallets = wallets) }
+                    _state.update { it.copy(assistedWallets = wallets.filter { wallet -> wallet.status != WalletStatus.REPLACED.name }) }
                     handleAssistedWallet(wallets, plans)
                 }
         }
@@ -130,7 +130,7 @@ class ServicesTabViewModel @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { assistedWallets ->
-                    _state.update { it.copy(assistedWallets = assistedWallets) }
+                    _state.update { it.copy(assistedWallets = assistedWallets.filter { wallet -> wallet.status != WalletStatus.REPLACED.name }) }
                     getRowItems()
                 }
         }

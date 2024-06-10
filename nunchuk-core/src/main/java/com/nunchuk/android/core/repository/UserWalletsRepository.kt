@@ -158,6 +158,7 @@ import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.model.wallet.ReplaceWalletStatus
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AlertDao
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
@@ -421,7 +422,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         val planWalletCreated = hashMapOf<String, String>()
         val wallets = result.data.wallets.filter { it.status != WALLET_DELETED_STATUS }
-        val deleteCount = assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() })
+        val deleteCount =
+            assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() })
         if (wallets.isNotEmpty()) {
             assistedWalletDao.insert(wallets.map { wallet ->
                 AssistedWalletEntity(
@@ -446,11 +448,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): Boolean {
         var isNeedReload = false
         val newSignerMap = hashMapOf<String, Boolean>()
+        val isRemoveKey =
+            walletServer.removeUnusedKeys && walletServer.status == WalletStatus.REPLACED.name
         if (nunchukNativeSdk.hasWallet(walletServer.localId.orEmpty()).not()) {
             isNeedReload = true
-
-            walletServer.signerServerDtos.forEach { signer ->
-                newSignerMap[signer.xfp.orEmpty()] = !saveServerSignerIfNeed(signer)
+            if (!isRemoveKey) {
+                walletServer.signerServerDtos.forEach { signer ->
+                    newSignerMap[signer.xfp.orEmpty()] = !saveServerSignerIfNeed(signer)
+                }
             }
 
             val wallet = nunchukNativeSdk.parseWalletDescriptor(walletServer.bsms.orEmpty()).apply {
@@ -458,12 +463,22 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 description = walletServer.description.orEmpty()
             }
             nunchukNativeSdk.createWallet2(wallet)
-        } else {
+        } else if (!isRemoveKey) {
             walletServer.signerServerDtos.forEach { signer ->
                 saveServerSignerIfNeed(signer)
             }
         }
         val wallet = nunchukNativeSdk.getWallet(walletServer.localId.orEmpty())
+        if (wallet.name != walletServer.name || wallet.description != walletServer.description) {
+            nunchukNativeSdk.updateWallet(
+                wallet.copy(
+                    name = walletServer.name.orEmpty(),
+                    description = walletServer.description.orEmpty()
+                )
+            )
+        }
+
+        if (isRemoveKey) return isNeedReload
         walletServer.signerServerDtos.forEach { signer ->
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
             val tags = signer.tags.orEmpty().mapNotNull { it.toSignerTag() }
@@ -515,15 +530,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
-
-        if (wallet.name != walletServer.name || wallet.description != walletServer.description) {
-            nunchukNativeSdk.updateWallet(
-                wallet.copy(
-                    name = walletServer.name.orEmpty(),
-                    description = walletServer.description.orEmpty()
-                )
-            )
-        }
         return isNeedReload
     }
 
@@ -554,14 +560,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         } else {
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
-            nunchukNativeSdk.createSigner(name = signer.name.orEmpty(),
+            nunchukNativeSdk.createSigner(
+                name = signer.name.orEmpty(),
                 xpub = signer.xpub.orEmpty(),
                 publicKey = signer.pubkey.orEmpty(),
                 derivationPath = signer.derivationPath.orEmpty(),
                 masterFingerprint = signer.xfp.orEmpty(),
                 type = type,
                 tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
-                replace = false)
+                replace = false
+            )
         }
         return false
     }
@@ -741,7 +749,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             confirmCodeToken = confirmCodeToken
         )
         val response = userWalletApiManager.walletApi.changeEmail(
-            payload = ChangeEmailRequest(nonce = confirmCodeNonce, body = ChangeEmailRequest.Body(newEmail)),
+            payload = ChangeEmailRequest(
+                nonce = confirmCodeNonce,
+                body = ChangeEmailRequest.Body(newEmail)
+            ),
             headers = headers,
             draft = draft
         )
@@ -814,7 +825,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): InheritanceAdditional {
         val headers = mutableMapOf<String, String>()
         masterFingerprints.forEachIndexed { index, masterFingerprint ->
-            val signerToken = nunchukNativeSdk.createRequestToken(signatures[index], masterFingerprint)
+            val signerToken =
+                nunchukNativeSdk.createRequestToken(signatures[index], masterFingerprint)
             headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
         }
         val request = gson.fromJson(userData, InheritanceClaimStatusRequest::class.java)
@@ -845,7 +857,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): TransactionAdditional {
         val headers = mutableMapOf<String, String>()
         masterFingerprints.forEachIndexed { index, masterFingerprint ->
-            val signerToken = nunchukNativeSdk.createRequestToken(signatures[index], masterFingerprint)
+            val signerToken =
+                nunchukNativeSdk.createRequestToken(signatures[index], masterFingerprint)
             headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
         }
         val request = gson.fromJson(userData, InheritanceClaimCreateTransactionRequest::class.java)
@@ -993,7 +1006,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.dummyTransaction?.id.orEmpty()
     }
 
-    override suspend fun inheritanceClaimDownloadBackup(magic: String, hashedBps: List<String>): List<BackupKey> {
+    override suspend fun inheritanceClaimDownloadBackup(
+        magic: String,
+        hashedBps: List<String>
+    ): List<BackupKey> {
         val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackups(
             InheritanceClaimDownloadBackupRequest(magic = magic, hashedBps = hashedBps)
         )
@@ -1043,7 +1059,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             securityQuestionToken = securityQuestionToken,
             confirmCodeToken = confirmCodeToken
         )
-        val response = userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request, draft)
+        val response =
+            userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request, draft)
         if (response.isSuccess.not()) throw response.error
         return response.data.dummyTransaction?.id.orEmpty()
     }
@@ -1096,7 +1113,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 questionId = it.questionId, answer = it.answer, change = it.change
             )
         }
-        val body = SecurityQuestionsUpdateRequest.Body(questionsAndAnswerRequests, walletId = walletId)
+        val body =
+            SecurityQuestionsUpdateRequest.Body(questionsAndAnswerRequests, walletId = walletId)
         val nonce = getNonce()
         val request = SecurityQuestionsUpdateRequest(
             nonce = nonce, body = body
@@ -1110,7 +1128,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String?,
     ): String {
         val body =
-            LockdownUpdateRequest.Body(periodId = periodId, walletId = walletId, groupId = if (groupId.isNullOrEmpty().not()) groupId else null)
+            LockdownUpdateRequest.Body(
+                periodId = periodId,
+                walletId = walletId,
+                groupId = if (groupId.isNullOrEmpty().not()) groupId else null
+            )
         val nonce = getNonce()
         val request = LockdownUpdateRequest(
             nonce = nonce, body = body
@@ -1234,8 +1256,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val ext = entity.ext?.run {
             gson.fromJson(this, AssistedWalletBriefExt::class.java)
         } ?: AssistedWalletBriefExt()
-        assistedWalletDao.updateOrInsert(entity.copy(ext = gson.toJson(ext.copy(inheritanceOwnerId = inheritance?.ownerId.orEmpty(),
-            isPlanningRequest = inheritance?.pendingRequests?.isNotEmpty() == true))))
+        assistedWalletDao.updateOrInsert(
+            entity.copy(
+                ext = gson.toJson(
+                    ext.copy(
+                        inheritanceOwnerId = inheritance?.ownerId.orEmpty(),
+                        isPlanningRequest = inheritance?.pendingRequests?.isNotEmpty() == true
+                    )
+                )
+            )
+        )
     }
 
     private suspend fun handleServerTransaction(
@@ -1779,14 +1809,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     )
                 )
                 if (!hasSigner) {
-                    nunchukNativeSdk.createSigner(name = key.name.orEmpty(),
+                    nunchukNativeSdk.createSigner(
+                        name = key.name.orEmpty(),
                         xpub = key.xpub.orEmpty(),
                         publicKey = key.pubkey.orEmpty(),
                         derivationPath = key.derivationPath.orEmpty(),
                         masterFingerprint = key.xfp.orEmpty(),
                         type = type,
                         tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
-                        replace = false)
+                        replace = false
+                    )
                 }
                 membershipRepository.saveStepInfo(
                     MembershipStepInfo(
@@ -2021,10 +2053,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createGroupWallet(groupId: String, name: String, primaryMembershipId: String?): Wallet {
+    override suspend fun createGroupWallet(
+        groupId: String,
+        name: String,
+        primaryMembershipId: String?
+    ): Wallet {
         val response =
-            userWalletApiManager.groupWalletApi.createGroupWallet(groupId,
-                CreateDraftGroupWalletRequest(name = name, primaryMembershipId = primaryMembershipId))
+            userWalletApiManager.groupWalletApi.createGroupWallet(
+                groupId,
+                CreateDraftGroupWalletRequest(
+                    name = name,
+                    primaryMembershipId = primaryMembershipId
+                )
+            )
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
         assistedWalletDao.insert(
@@ -2071,10 +2112,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             walletId = walletId.orEmpty(),
             chain.value
         ).map { alerts ->
-                alerts.map { alert ->
-                    alert.toAlert()
-                }
+            alerts.map { alert ->
+                alert.toAlert()
             }
+        }
     }
 
     override suspend fun getAlertsRemote(groupId: String?, walletId: String?): List<Alert> {
@@ -2181,6 +2222,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 TargetAction.DOWNLOAD_KEY_BACKUP.name -> {
                     EmptyRequest()
                 }
+
                 TargetAction.CHANGE_EMAIL.name -> {
                     gson.fromJson(
                         userData,
@@ -2221,6 +2263,46 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
         }
         return results.any { it.isSuccess }
+    }
+
+    override suspend fun deleteKeyForReplacedWallet(groupId: String, walletId: String) {
+        val localWallets = nunchukNativeSdk.getWallets()
+        val response = if (groupId.isNotEmpty()) {
+            userWalletApiManager.groupWalletApi.getGroupWallet(groupId = groupId)
+        } else {
+            userWalletApiManager.walletApi.getWallet(walletId)
+        }
+        val walletServer = response.data.wallet ?: throw NullPointerException("Can not get wallet")
+        val isRemoveKey = walletServer.removeUnusedKeys
+        if (isRemoveKey) {
+            val localWallet = localWallets.find { it.id == walletServer.localId }
+            localWallet?.signers?.forEach { signer ->
+                if (!signerExistence(signer, localWallets)) {
+                    if (signer.hasMasterSigner) {
+                        nunchukNativeSdk.deleteMasterSigner(signer.masterFingerprint)
+                    } else {
+                        nunchukNativeSdk.deleteRemoteSigner(
+                            signer.masterFingerprint,
+                            signer.derivationPath
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun signerExistence(
+        signer: SingleSigner,
+        wallets: List<Wallet>
+    ): Boolean {
+        return wallets.any {
+            it.signers.any anyLast@{ singleSigner ->
+                if (singleSigner.hasMasterSigner) {
+                    return@anyLast singleSigner.masterFingerprint == signer.masterFingerprint
+                }
+                return@anyLast singleSigner.masterFingerprint == signer.masterFingerprint && singleSigner.derivationPath == signer.derivationPath
+            }
+        }
     }
 
     override suspend fun deleteKey(xfp: String) {

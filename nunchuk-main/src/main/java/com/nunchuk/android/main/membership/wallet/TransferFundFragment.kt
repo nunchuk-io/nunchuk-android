@@ -47,6 +47,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,8 +70,14 @@ class TransferFundFragment : Fragment() {
             setContent {
                 TransferFundView(
                     viewModel = viewModel,
-                    onContinueClicked = { fromWallet, _, _ ->
+                    onContinueClicked = { fromWallet, _, removeKey ->
                         val address = viewModel.uiState.value.address
+                        val groupId = (activity as MembershipActivity).groupId
+                        viewModel.updateReplaceKeyConfig(
+                            groupId = groupId,
+                            walletId = fromWallet.id,
+                            isRemoveKey = removeKey
+                        )
                         navigator.openEstimatedFeeScreen(
                             activityContext = requireActivity(),
                             walletId = fromWallet.id,
@@ -111,7 +118,7 @@ private fun TransferFundContent(
     uiState: TransferFundUiState = TransferFundUiState(),
     onContinueClicked: (fromWallet: Wallet, toWallet: Wallet, removeKey: Boolean) -> Unit = { _, _, _ -> },
 ) {
-    var isRemoveUnusedKeys by rememberSaveable { mutableStateOf(true) }
+    var isRemoveUnusedKeys by rememberSaveable { mutableStateOf(false) }
     NunchukTheme {
         NcScaffold(
             topBar = {

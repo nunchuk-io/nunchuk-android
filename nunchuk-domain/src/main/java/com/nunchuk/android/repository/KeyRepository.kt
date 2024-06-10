@@ -91,4 +91,10 @@ interface KeyRepository {
     )
 
     suspend fun getReplaceSignerName(walletId: String, type: SignerType, tag: SignerTag?) : String
+
+    suspend fun updateWalletReplaceConfig(
+        walletId: String,
+        groupId: String,
+        isRemoveKey: Boolean,
+    )
 }

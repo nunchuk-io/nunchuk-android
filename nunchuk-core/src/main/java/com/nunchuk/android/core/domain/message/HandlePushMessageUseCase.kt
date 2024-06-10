@@ -32,6 +32,7 @@ import com.nunchuk.android.messages.util.isWalletReplacedEvent
 import com.nunchuk.android.usecase.IsHandledEventUseCase
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import com.nunchuk.android.usecase.UseCase
+import com.nunchuk.android.usecase.byzantine.DeleteKeyInWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.coin.SyncCoinControlData
@@ -52,6 +53,7 @@ class HandlePushMessageUseCase @Inject constructor(
     private val getServerWalletsUseCase: GetServerWalletsUseCase,
     private val syncCoinControlData: SyncCoinControlData,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val deleteKeyInWalletUseCase: DeleteKeyInWalletUseCase,
 ) : UseCase<TimelineEvent, Unit>(dispatcher) {
     override suspend fun execute(parameters: TimelineEvent) {
         when {
@@ -263,6 +265,8 @@ class HandlePushMessageUseCase @Inject constructor(
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
                     saveHandledEventUseCase.invoke(parameters.eventId)
+                    val oldWalletId = parameters.getWalletId().orEmpty()
+                    val oldGroupId = parameters.getGroupId().orEmpty()
                     val newWalletId = parameters.getNewWalletId().orEmpty()
                     if (newWalletId.isNotEmpty()) {
                         getWalletDetail2UseCase(newWalletId).onSuccess {
@@ -274,6 +278,12 @@ class HandlePushMessageUseCase @Inject constructor(
                             )
                         }
                     }
+                    deleteKeyInWalletUseCase(
+                        DeleteKeyInWalletUseCase.Params(
+                            walletId = oldWalletId,
+                            groupId = oldGroupId
+                        )
+                    )
                 }
             }
         }

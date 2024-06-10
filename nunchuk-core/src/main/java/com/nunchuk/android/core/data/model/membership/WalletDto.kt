@@ -36,6 +36,7 @@ internal data class WalletDto(
     @SerializedName("primary_membership_id") val primaryMembershipId: String? = null,
     @SerializedName("alias") val alias: String? = null,
     @SerializedName("replaced_by") val replaceBy: ReplaceByDto? = null,
+    @SerializedName("remove_unused_keys") val removeUnusedKeys: Boolean = false,
 )
 
 internal data class ReplaceByDto(

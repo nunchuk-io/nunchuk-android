@@ -31,6 +31,7 @@ import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.databinding.BottomSheetAssistedWalletBinding
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -64,7 +65,8 @@ class AssistedWalletBottomSheet : BaseBottomSheet<BottomSheetAssistedWalletBindi
             WalletsViewBinder(
                 container = binding.walletList,
                 wallets = wallets,
-                assistedWalletIds = assistedWalletManager::isActiveAssistedWallet,
+                isAssistedWallet = assistedWalletManager::isActiveAssistedWallet,
+                isLockedWallet = { assistedWalletManager.getBriefWallet(it)?.status == WalletStatus.LOCKED.name },
                 lockdownWalletIds = lockdownWalletIds.toSet(),
                 callback = {
                     if (lockdownWalletIds.isEmpty() || lockdownWalletIds.contains(it).not()) {

@@ -82,5 +82,4 @@ class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             })
         }
     }
-
 }

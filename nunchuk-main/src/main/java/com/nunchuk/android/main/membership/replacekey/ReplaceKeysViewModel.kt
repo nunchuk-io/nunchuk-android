@@ -8,6 +8,7 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -80,7 +81,9 @@ class ReplaceKeysViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             pushEventManager.event.collect {
-                getReplaceWalletStatus()
+                if (it is PushEvent.ReplaceKeyChange) {
+                    getReplaceWalletStatus()
+                }
             }
         }
         viewModelScope.launch {
