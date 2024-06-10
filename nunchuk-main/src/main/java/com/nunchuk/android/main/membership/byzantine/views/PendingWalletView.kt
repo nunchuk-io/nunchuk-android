@@ -158,7 +158,7 @@ fun PendingWalletView(
             ) {
                 ByzantineBottomContent(
                     group = group,
-                    badgeCount = 3,
+                    badgeCount = badgeCount,
                     isLocked = isLocked,
                     role = role,
                     primaryOwnerMember = primaryOwnerMember,
