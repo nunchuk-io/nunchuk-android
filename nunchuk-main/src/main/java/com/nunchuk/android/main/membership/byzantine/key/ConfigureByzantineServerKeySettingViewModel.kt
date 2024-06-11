@@ -102,12 +102,14 @@ class ConfigureByzantineServerKeySettingViewModel @Inject constructor(
                     _event.emit(ConfigureByzantineServerKeySettingEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             } else {
+                val previousSigningDelayInSeconds = args.originKeyPolicy?.signingDelayInSeconds ?: 0
                 _event.emit(
                     ConfigureByzantineServerKeySettingEvent.EditGroupServerKey(
-                        args.keyPolicy.copy(
+                        keyPolicy = args.keyPolicy.copy(
                             autoBroadcastTransaction = state.autoBroadcastSwitched,
                             signingDelayInSeconds = signingDelayInSeconds,
-                        )
+                        ),
+                        isDecrease = previousSigningDelayInSeconds > signingDelayInSeconds
                     )
                 )
             }

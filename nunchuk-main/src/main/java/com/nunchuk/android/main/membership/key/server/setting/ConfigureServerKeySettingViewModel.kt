@@ -28,7 +28,11 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -49,6 +53,7 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
     init {
         _state.update {
             it.copy(
+                isUpdate = args.keyPolicy != null,
                 autoBroadcastSwitched = args.keyPolicy?.autoBroadcastTransaction ?: false,
                 cosigningTextHours = args.keyPolicy?.getSigningDelayInHours()?.toString().orEmpty(),
                 cosigningTextMinutes = args.keyPolicy?.getSigningDelayInMinutes()?.toString()
@@ -96,12 +101,14 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
                 _event.emit(ConfigureServerKeySettingEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
         } else if (args.keyPolicy != null) {
+            val previousDelayInSeconds = args.originKeyPolicy?.signingDelayInSeconds ?: 0
             _event.emit(
                 ConfigureServerKeySettingEvent.ConfigServerSuccess(
-                    args.keyPolicy!!.copy(
+                    keyPolicy = args.keyPolicy!!.copy(
                         autoBroadcastTransaction = state.autoBroadcastSwitched,
                         signingDelayInSeconds = signingDelayInSeconds,
-                    )
+                    ),
+                    isDecrease = previousDelayInSeconds > signingDelayInSeconds
                 )
             )
         }
@@ -142,8 +149,6 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
         const val MAX_INPUT_HOUR_LENGTH = 3
         const val MAX_DELAY_IN_HOUR = 168
         const val MAX_DELAY_IN_MINUTE = 59
-        const val ONE_HOUR = 60 * 60
-        const val ONE_MINUTE = 60
     }
 }
 

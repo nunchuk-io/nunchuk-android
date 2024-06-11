@@ -106,6 +106,7 @@ class CosigningPolicyViewModel @Inject constructor(
                     )
                 )
                 if (result.isSuccess) {
+                    _state.update { it.copy(originalKeyPolicy = result.getOrThrow()) }
                     updateState(keyPolicy = result.getOrThrow())
                 }
             }
@@ -261,6 +262,7 @@ class CosigningPolicyViewModel @Inject constructor(
 
 data class CosigningPolicyState(
     val walletName: String = "",
+    val originalKeyPolicy: KeyPolicy = KeyPolicy(),
     val keyPolicy: KeyPolicy = KeyPolicy(),
     val isUpdateFlow: Boolean = false,
     val userData: String = "",

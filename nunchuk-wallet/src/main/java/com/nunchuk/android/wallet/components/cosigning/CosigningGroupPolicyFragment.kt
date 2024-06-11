@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -128,6 +126,7 @@ class CosigningGroupPolicyFragment : Fragment() {
                             keyPolicy = viewModel.state.value.keyPolicy,
                             groupId = args.groupId,
                             xfp = args.signer?.fingerPrint.orEmpty(),
+                            originalKeyPolicy = viewModel.state.value.originKeyPolicy
                         )
 
                         CosigningGroupPolicyEvent.OnEditSpendingLimitClicked -> navigator.openConfigGroupServerKeyActivity(

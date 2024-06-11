@@ -213,20 +213,24 @@ interface AppNavigatorDelegate : AppNavigator {
         groupStep: MembershipStage,
         keyPolicy: KeyPolicy?,
         xfp: String?,
+        originalKeyPolicy: KeyPolicy?,
     ) {
         launcher?.launch(
             ConfigServerKeyActivity.buildIntent(
                 activity = activityContext,
                 keyPolicy = keyPolicy,
                 xfp = xfp,
-                groupStep = groupStep
+                groupStep = groupStep,
+                originKeyPolicy = originalKeyPolicy
+
             )
         ) ?: activityContext.startActivity(
             ConfigServerKeyActivity.buildIntent(
                 activity = activityContext,
                 keyPolicy = keyPolicy,
                 xfp = xfp,
-                groupStep = groupStep
+                groupStep = groupStep,
+                originKeyPolicy = originalKeyPolicy
             )
         )
     }
@@ -238,6 +242,7 @@ interface AppNavigatorDelegate : AppNavigator {
         keyPolicy: GroupKeyPolicy?,
         xfp: String?,
         groupId: String?,
+        originalKeyPolicy: GroupKeyPolicy?
     ) {
         launcher?.launch(
             ConfigServerKeyActivity.buildGroupIntent(
@@ -245,7 +250,8 @@ interface AppNavigatorDelegate : AppNavigator {
                 keyPolicy = keyPolicy,
                 groupId = groupId,
                 xfp = xfp,
-                groupStep = groupStep
+                groupStep = groupStep,
+                originKeyPolicy = originalKeyPolicy
             )
         ) ?: activityContext.startActivity(
             ConfigServerKeyActivity.buildGroupIntent(
@@ -253,7 +259,8 @@ interface AppNavigatorDelegate : AppNavigator {
                 keyPolicy = keyPolicy,
                 groupId = groupId,
                 xfp = xfp,
-                groupStep = groupStep
+                groupStep = groupStep,
+                originKeyPolicy = originalKeyPolicy
             )
         )
     }

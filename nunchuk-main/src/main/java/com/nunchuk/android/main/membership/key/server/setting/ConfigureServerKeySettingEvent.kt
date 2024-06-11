@@ -26,10 +26,11 @@ sealed class ConfigureServerKeySettingEvent {
     object DelaySigningInHourInvalid : ConfigureServerKeySettingEvent()
     data class ShowError(val message: String) : ConfigureServerKeySettingEvent()
     data class Loading(val isLoading: Boolean) : ConfigureServerKeySettingEvent()
-    data class ConfigServerSuccess(val keyPolicy: KeyPolicy) : ConfigureServerKeySettingEvent()
+    data class ConfigServerSuccess(val keyPolicy: KeyPolicy, val isDecrease: Boolean = false) : ConfigureServerKeySettingEvent()
 }
 
 data class ConfigureServerKeySettingState(
+    val isUpdate: Boolean = false,
     val cosigningTextHours: String = "",
     val cosigningTextMinutes: String = "",
     val autoBroadcastSwitched: Boolean = true,

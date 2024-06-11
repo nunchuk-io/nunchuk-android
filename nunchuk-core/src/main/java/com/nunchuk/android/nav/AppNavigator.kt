@@ -59,7 +59,8 @@ interface AppNavigator {
         activityContext: Activity,
         groupStep: MembershipStage,
         keyPolicy: KeyPolicy? = null,
-        xfp: String? = null
+        xfp: String? = null,
+        originalKeyPolicy: KeyPolicy? = null,
     )
 
     fun openConfigGroupServerKeyActivity(
@@ -68,7 +69,8 @@ interface AppNavigator {
         groupStep: MembershipStage,
         keyPolicy: GroupKeyPolicy? = null,
         xfp: String? = null,
-        groupId: String? = null
+        groupId: String? = null,
+        originalKeyPolicy: GroupKeyPolicy? = null,
     )
 
     /**

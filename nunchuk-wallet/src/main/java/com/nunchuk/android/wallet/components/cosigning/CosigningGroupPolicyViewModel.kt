@@ -115,7 +115,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                         signer.derivationPath
                     )
                 ).onSuccess {
-                    _state.update { state -> state.copy(keyPolicy = it) }
+                    _state.update { state -> state.copy(keyPolicy = it, originKeyPolicy = it) }
                 }
             }
             _event.emit(CosigningGroupPolicyEvent.Loading(false))
@@ -300,6 +300,7 @@ class CosigningGroupPolicyViewModel @Inject constructor(
 
 data class CosigningGroupPolicyState(
     val keyPolicy: GroupKeyPolicy = GroupKeyPolicy(),
+    val originKeyPolicy: GroupKeyPolicy = GroupKeyPolicy(),
     val members: List<AssistedMember> = emptyList(),
     val isUpdateFlow: Boolean = false,
     val userData: String = "",
