@@ -38,7 +38,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,6 +69,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -82,7 +82,6 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.latoBold
-import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_GENERATE_HEAL_CHECK_MSG
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_IMPORT_SIGNATURE
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_HEALTH_CHECK
@@ -102,16 +101,14 @@ import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableString
-import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.KeyHealthType
 import com.nunchuk.android.model.VerificationType
-import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
-import com.nunchuk.android.signer.databinding.FragmentSignerInfoBinding
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.healthCheckLabel
@@ -123,22 +120,18 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
-    SingerInfoOptionBottomSheet.OptionClickListener {
+class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickListener {
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     private val viewModel: SignerInfoViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
     private val args: SignerInfoFragmentArgs by navArgs()
-
-    override fun initializeBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?
-    ): FragmentSignerInfoBinding {
-        TODO("Not yet implemented")
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -165,7 +158,15 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
                     },
                     onDoneClicked = ::openMainScreen,
                     onEditClicked = { onEditClicked(uiState.signerName) },
-                    onHealthCheckClicked = ::handleRunHealthCheck
+                    onHealthCheckClicked = ::handleRunHealthCheck,
+                    onHistoryItemClick = {
+                        navigator.openTransactionDetailsScreen(
+                            activityContext = requireActivity(),
+                            walletId = it.walletLocalId,
+                            txId = it.transactionId,
+                            roomId = ""
+                        )
+                    }
                 )
             }
 
@@ -199,7 +200,8 @@ class SignerInfoFragment : BaseFragment<FragmentSignerInfoBinding>(),
             WalletComposeBottomSheet.TAG,
             viewLifecycleOwner
         ) { _, bundle ->
-            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT) ?: return@setFragmentResultListener
+            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT)
+                ?: return@setFragmentResultListener
             val walletId = result.walletId ?: return@setFragmentResultListener
             if (walletId.isNotEmpty()) {
                 viewModel.onHealthCheck(walletId)
@@ -512,7 +514,8 @@ private fun SignerInfoContent(
     onMoreClicked: () -> Unit = {},
     onDoneClicked: () -> Unit = {},
     onEditClicked: () -> Unit = {},
-    onHealthCheckClicked: () -> Unit = {}
+    onHealthCheckClicked: () -> Unit = {},
+    onHistoryItemClick: (HealthCheckHistory) -> Unit = {}
 ) {
     val context = LocalContext.current
     val label by remember(uiState.lastHealthCheckTimeMillis) {
@@ -754,7 +757,7 @@ private fun SignerInfoContent(
                     }
 
                     items(uiState.healthCheckHistories.orEmpty()) {
-                        HealthCheckHistoryItem(it)
+                        HealthCheckHistoryItem(it, onHistoryItemClick = { onHistoryItemClick(it) })
                     }
                 }
             }
@@ -763,12 +766,13 @@ private fun SignerInfoContent(
 }
 
 @Composable
-fun HealthCheckHistoryItem(history: HealthCheckHistory) {
+fun HealthCheckHistoryItem(history: HealthCheckHistory, onHistoryItemClick: () -> Unit = {}) {
     Column {
         Row(
             modifier = Modifier
                 .padding(top = 16.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .clickable { onHistoryItemClick() },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
