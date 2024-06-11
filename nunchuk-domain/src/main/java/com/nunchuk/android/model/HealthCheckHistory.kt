@@ -8,7 +8,8 @@ data class HealthCheckHistory(
     val createdTimeMillis: Long,
     val walletLocalId: String,
     val walletId: String,
-    val dummyTransactionId: String
+    val dummyTransactionId: String,
+    val transactionId: String
 )
 
 @Keep

@@ -25,4 +25,6 @@ class HealthCheckHistoryPayload(
     val walletLocalId: String? = null,
     @SerializedName("wallet_id")
     val walletId: String? = null,
+    @SerializedName("transaction_id")
+    val transactionId: String? = null,
 )

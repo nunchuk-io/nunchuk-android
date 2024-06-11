@@ -11,6 +11,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.core.domain.membership.WalletsExistingKey
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
@@ -44,6 +46,9 @@ class HealthCheckFragment : MembershipFragment() {
                     state = state,
                     onRequestHealthCheck = viewModel::onRequestHealthCheck,
                     onHealthCheck = viewModel::onHealthCheck,
+                    onNavigateToSignerInfo = {
+                        openSignerInfoScreen(it)
+                    },
                     onNavigateToHealthCheckReminder = {
                         if (viewModel.isShowRequestHealthCheckIntro()) {
                             viewModel.markShowHealthCheckReminderIntro()
@@ -55,11 +60,24 @@ class HealthCheckFragment : MembershipFragment() {
                                 HealthCheckFragmentDirections.actionHealthCheckFragmentToHealthCheckReminderFragment()
                             )
                         }
-
                     }
                 )
             }
         }
+    }
+
+    private fun openSignerInfoScreen(signer: SignerModel) {
+        navigator.openSignerInfoScreen(
+            activityContext = requireActivity(),
+            isMasterSigner = signer.isMasterSigner,
+            id = signer.id,
+            masterFingerprint = signer.fingerPrint,
+            name = signer.name,
+            type = signer.type,
+            derivationPath = signer.derivationPath,
+            isInWallet = true,
+            isInAssistedWallet = true,
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

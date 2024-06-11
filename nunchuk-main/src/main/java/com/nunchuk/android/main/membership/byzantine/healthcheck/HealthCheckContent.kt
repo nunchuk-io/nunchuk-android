@@ -57,6 +57,7 @@ fun HealthCheckContent(
     onRequestHealthCheck: (SignerModel) -> Unit = {},
     onHealthCheck: (SignerModel) -> Unit = {},
     onNavigateToHealthCheckReminder: () -> Unit = {},
+    onNavigateToSignerInfo: (SignerModel) -> Unit = {},
 ) {
     val signers by remember(state.myRole, state.signers) {
         derivedStateOf {
@@ -112,7 +113,10 @@ fun HealthCheckContent(
                             status = state.keyStatus[it.fingerPrint],
                             onHealthCheck = onHealthCheck,
                             onRequestHealthCheck = onRequestHealthCheck,
-                            isShowRequestHealthCheck = state.groupId.isNotEmpty()
+                            isShowRequestHealthCheck = state.groupId.isNotEmpty(),
+                            onNavigateToSignerInfo = {
+                                onNavigateToSignerInfo(it)
+                            }
                         )
                     }
                 }
@@ -128,6 +132,7 @@ private fun HealthCheckItem(
     isShowRequestHealthCheck: Boolean,
     onHealthCheck: (SignerModel) -> Unit = {},
     onRequestHealthCheck: (SignerModel) -> Unit = {},
+    onNavigateToSignerInfo: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val label by remember(status?.lastHealthCheckTimeMillis) {
@@ -169,7 +174,8 @@ private fun HealthCheckItem(
             Image(
                 modifier = Modifier
                     .width(16.dp)
-                    .height(16.dp),
+                    .height(16.dp)
+                    .clickable { onNavigateToSignerInfo() },
                 painter = painterResource(id = R.drawable.ic_history),
                 contentDescription = "image description",
                 contentScale = ContentScale.None

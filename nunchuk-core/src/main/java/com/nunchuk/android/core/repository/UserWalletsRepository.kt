@@ -2319,6 +2319,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 walletId = it.payload?.walletId.orEmpty(),
                 walletLocalId = it.payload?.walletLocalId.orEmpty(),
                 dummyTransactionId = it.payload?.dummyTransactionId.orEmpty(),
+                transactionId = it.payload?.transactionId.orEmpty(),
             )
         }.orEmpty()
     }
