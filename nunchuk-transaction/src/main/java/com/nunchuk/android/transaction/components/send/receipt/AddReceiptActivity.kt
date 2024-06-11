@@ -184,12 +184,12 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         }
     }
 
-    private fun updateSelectAddressView(isSelectMode: Boolean, walletName: String? = null, savedAddressLabel: String? = null) {
+    private fun updateSelectAddressView(isSelectMode: Boolean, walletName: String? = null, savedAddressLabel: String? = null, isFromParse: Boolean = false) {
         binding.receiptSelectLayout.isVisible = isSelectMode.not()
         binding.receiptSelectLabel.isVisible = isSelectMode.not()
         binding.receiptInput.isVisible = isSelectMode
         if (isSelectMode) {
-            viewModel.updateAddress("")
+            if (isFromParse.not()) viewModel.updateAddress("")
             binding.receiptInputDropdown.setBackgroundDrawable(ContextCompat.getDrawable(this, R.drawable.ic_arrow_drop_down))
         } else {
             binding.receiptSelectLabel.text = walletName ?: savedAddressLabel
@@ -232,7 +232,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             AddressRequiredEvent -> showAddressRequiredError()
             InvalidAddressEvent -> showInvalidAddressError()
             is ShowError -> NCToastMessage(this).showError(event.message)
-            AddReceiptEvent.ParseBtcUriEvent -> updateSelectAddressView(isSelectMode = true)
+            AddReceiptEvent.ParseBtcUriEvent -> updateSelectAddressView(isSelectMode = true, isFromParse = true)
         }
     }
 
