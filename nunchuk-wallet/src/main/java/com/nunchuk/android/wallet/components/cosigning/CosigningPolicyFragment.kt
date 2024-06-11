@@ -142,6 +142,7 @@ class CosigningPolicyFragment : Fragment() {
                             activityContext = requireActivity(),
                             groupStep = MembershipStage.CONFIG_SERVER_KEY,
                             keyPolicy = viewModel.state.value.keyPolicy,
+                            originalKeyPolicy = viewModel.state.value.originalKeyPolicy,
                             xfp = args.signer?.fingerPrint.orEmpty(),
                         )
 

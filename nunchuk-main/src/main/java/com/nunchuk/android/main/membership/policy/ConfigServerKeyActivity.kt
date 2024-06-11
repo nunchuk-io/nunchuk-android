@@ -53,6 +53,7 @@ class ConfigServerKeyActivity : BaseActivity<ActivityNavigationBinding>() {
 
     companion object {
         private const val EXTRA_KEY_POLICY = "key_policy"
+        private const val EXTRA_ORIGIN_KEY_POLICY = "origin_key_policy"
         private const val EXTRA_KEY_XFP = "xfp"
         private const val EXTRA_GROUP_STEP = "group_step"
         private const val EXTRA_GROUP_ID = "group_id"
@@ -61,11 +62,13 @@ class ConfigServerKeyActivity : BaseActivity<ActivityNavigationBinding>() {
             activity: Activity,
             groupStep: MembershipStage,
             keyPolicy: KeyPolicy? = null,
-            xfp: String? = null
+            xfp: String? = null,
+            originKeyPolicy: KeyPolicy? = null
         ) = Intent(activity, ConfigServerKeyActivity::class.java).apply {
             putExtra(EXTRA_KEY_POLICY, keyPolicy)
             putExtra(EXTRA_KEY_XFP, xfp)
             putExtra(EXTRA_GROUP_STEP, groupStep)
+            putExtra(EXTRA_ORIGIN_KEY_POLICY, originKeyPolicy)
         }
 
         fun buildGroupIntent(
@@ -73,12 +76,14 @@ class ConfigServerKeyActivity : BaseActivity<ActivityNavigationBinding>() {
             groupStep: MembershipStage,
             groupId: String?,
             keyPolicy: GroupKeyPolicy? = null,
-            xfp: String? = null
+            xfp: String? = null,
+            originKeyPolicy: GroupKeyPolicy? = null
         ) = Intent(activity, ConfigServerKeyActivity::class.java).apply {
             putExtra(EXTRA_KEY_POLICY, keyPolicy)
             putExtra(EXTRA_KEY_XFP, xfp)
             putExtra(EXTRA_GROUP_STEP, groupStep)
             putExtra(EXTRA_GROUP_ID, groupId)
+            putExtra(EXTRA_ORIGIN_KEY_POLICY, originKeyPolicy)
         }
     }
 }

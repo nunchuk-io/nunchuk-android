@@ -65,6 +65,12 @@
             app:nullable="true" />
 
         <argument
+            android:name="origin_key_policy"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.KeyPolicy"
+            app:nullable="true" />
+
+        <argument
             android:name="xfp"
             android:defaultValue="@null"
             app:argType="string"
@@ -113,6 +119,11 @@
 
         <argument
             android:name="key_policy"
+            app:argType="com.nunchuk.android.model.GroupKeyPolicy" />
+        <argument
+            android:name="origin_key_policy"
+            android:defaultValue="@null"
+            app:nullable="true"
             app:argType="com.nunchuk.android.model.GroupKeyPolicy" />
         <argument
             android:name="xfp"

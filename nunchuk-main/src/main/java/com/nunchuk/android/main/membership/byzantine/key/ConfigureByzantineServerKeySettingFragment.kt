@@ -74,6 +74,7 @@ import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.wallet.components.cosigning.CosigningGroupPolicyFragmentArgs
+import com.nunchuk.android.widget.NCInfoDialog
 
 class ConfigureByzantineServerKeySettingFragment : MembershipFragment() {
     private val viewModel: ConfigureByzantineServerKeySettingViewModel by viewModels()
@@ -107,9 +108,19 @@ class ConfigureByzantineServerKeySettingFragment : MembershipFragment() {
                 )
 
                 is ConfigureByzantineServerKeySettingEvent.Loading -> showOrHideLoading(it.isLoading)
-                is ConfigureByzantineServerKeySettingEvent.EditGroupServerKey -> handleEditConfigGroupServerKey(
-                    it.keyPolicy
-                )
+                is ConfigureByzantineServerKeySettingEvent.EditGroupServerKey -> {
+                    if (it.isDecrease) {
+                        NCInfoDialog(requireActivity())
+                            .showDialog(
+                                message = getString(R.string.nc_decrease_cosigning_desc),
+                                onYesClick = {
+                                    handleEditConfigGroupServerKey(it.keyPolicy)
+                                }
+                            )
+                    } else {
+                        handleEditConfigGroupServerKey(it.keyPolicy)
+                    }
+                }
             }
         }
     }

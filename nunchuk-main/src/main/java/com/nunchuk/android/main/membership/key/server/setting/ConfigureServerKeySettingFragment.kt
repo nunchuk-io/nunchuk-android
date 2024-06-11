@@ -72,6 +72,7 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyFragmentArgs
+import com.nunchuk.android.widget.NCInfoDialog
 
 class ConfigureServerKeySettingFragment : MembershipFragment() {
     private val viewModel: ConfigureServerKeySettingViewModel by viewModels()
@@ -98,9 +99,20 @@ class ConfigureServerKeySettingFragment : MembershipFragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
             when (it) {
-                is ConfigureServerKeySettingEvent.ConfigServerSuccess -> handleConfigServerKeySuccess(
-                    it.keyPolicy
-                )
+                is ConfigureServerKeySettingEvent.ConfigServerSuccess -> {
+                    if (it.isDecrease) {
+                        NCInfoDialog(requireActivity())
+                            .showDialog(
+                                message = getString(R.string.nc_decrease_cosigning_desc),
+                                onYesClick = {
+                                    handleConfigServerKeySuccess(it.keyPolicy)
+                                }
+                            )
+                    } else {
+                        handleConfigServerKeySuccess(it.keyPolicy)
+                    }
+                }
+
                 ConfigureServerKeySettingEvent.NoDelayInput -> showError(getString(R.string.nc_error_co_signing_delay_empty))
                 is ConfigureServerKeySettingEvent.ShowError -> showError(it.message)
                 ConfigureServerKeySettingEvent.DelaySigningInHourInvalid -> showError(getString(R.string.nc_delay_signing_invalid))
@@ -168,6 +180,7 @@ fun ConfigureServerKeySettingScreenContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
+                    .padding(innerPadding)
                     .statusBarsPadding()
                     .navigationBarsPadding()
                     .fillMaxSize()
@@ -242,7 +255,8 @@ fun ConfigureServerKeySettingScreenContent(
                 AnimatedVisibility(visible = state.enableCoSigningSwitched) {
                     Row(modifier = Modifier.padding(16.dp)) {
                         NcTextField(
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier
+                                .padding(end = 8.dp)
                                 .weight(1f),
                             title = stringResource(id = R.string.nc_hours),
                             value = state.cosigningTextHours,
@@ -250,7 +264,8 @@ fun ConfigureServerKeySettingScreenContent(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
                         NcTextField(
-                            modifier = Modifier.padding(start = 8.dp)
+                            modifier = Modifier
+                                .padding(start = 8.dp)
                                 .weight(1f),
                             title = stringResource(id = R.string.nc_minutes),
                             value = state.cosigningTextMinutes,

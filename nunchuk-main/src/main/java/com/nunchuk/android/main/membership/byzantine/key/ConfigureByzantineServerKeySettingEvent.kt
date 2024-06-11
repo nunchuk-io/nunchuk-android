@@ -27,7 +27,7 @@ sealed class ConfigureByzantineServerKeySettingEvent {
     data class ShowError(val message: String) : ConfigureByzantineServerKeySettingEvent()
     data class Loading(val isLoading: Boolean) : ConfigureByzantineServerKeySettingEvent()
     object ConfigServerSuccess : ConfigureByzantineServerKeySettingEvent()
-    data class EditGroupServerKey(val keyPolicy: GroupKeyPolicy) : ConfigureByzantineServerKeySettingEvent()
+    data class EditGroupServerKey(val keyPolicy: GroupKeyPolicy, val isDecrease: Boolean = false) : ConfigureByzantineServerKeySettingEvent()
 }
 
 data class ConfigureServerKeySettingState(
