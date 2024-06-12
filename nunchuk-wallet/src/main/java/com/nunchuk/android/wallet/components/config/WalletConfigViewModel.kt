@@ -62,8 +62,6 @@ import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
 import com.nunchuk.android.usecase.membership.ImportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ImportTxCoinControlUseCase
-import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
-import com.nunchuk.android.utils.BitmapUtil
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo

@@ -137,11 +137,12 @@ class DynamicQRCodeViewModel @Inject constructor(
     }
 
     fun saveBitmapToPDF(bitmaps: List<Bitmap>) = viewModelScope.launch(Dispatchers.IO) {
+        val combineBitmaps = BitmapUtil.combineBitmapsVertically(bitmaps)
         when (val event = createShareFileUseCase.execute("qrcode_$walletId.pdf")) {
             is Result.Success -> {
                 saveBitmapToPDFUseCase(
                     SaveBitmapToPDFUseCase.Param(
-                        bitmaps,
+                        listOf(combineBitmaps),
                         event.data
                     )
                 )
