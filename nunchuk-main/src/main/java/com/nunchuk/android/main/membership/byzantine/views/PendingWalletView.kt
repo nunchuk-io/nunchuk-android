@@ -143,7 +143,8 @@ fun PendingWalletView(
                     hideWalletDetail = hideWalletDetail,
                     isAssistedWallet = isAssistedWallet,
                     role = role,
-                    useLargeFont = useLargeFont
+                    useLargeFont = useLargeFont,
+                    walletStatus = walletStatus.orEmpty()
                 )
             }
         }
@@ -650,6 +651,7 @@ fun PendingWalletViewPreview() {
                     slug = MembershipPlan.BYZANTINE_PREMIER.name
                 ),
                 walletStatus = WalletStatus.ACTIVE.name,
+                isAssistedWallet = true
             )
         }
     }

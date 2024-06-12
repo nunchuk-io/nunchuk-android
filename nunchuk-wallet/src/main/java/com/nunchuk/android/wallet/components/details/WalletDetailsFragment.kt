@@ -316,7 +316,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             Utils.maskValue(wallet.getCurrencyAmount(), state.hideWalletDetailLocal)
         binding.ivSendBtc.isClickable = wallet.balance.value > 0
 
-        binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
+        binding.shareIcon.isVisible =
+            state.walletExtended.isShared || state.isAssistedWallet || state.walletStatus == WalletStatus.REPLACED.name
         handleWalletBackground(state)
         updateFabIcon(state.hideWalletDetailLocal)
         binding.ivViewCoin.isEnabled = state.isHasCoin
@@ -347,6 +348,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
             binding.container.setBackgroundColor(color)
             requireActivity().window.statusBarColor = color
+            binding.shareIcon.text = getString(R.string.nc_deactivated)
+            binding.shareIcon.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         } else if (state.isAssistedWallet) {
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =

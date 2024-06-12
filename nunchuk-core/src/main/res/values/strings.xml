@@ -742,4 +742,5 @@
     <string name="nc_congratulations">Congratulations!</string>
     <string name="nc_transfer_func_to_new_wallet_success">Your balance has been transferred over to [B]%1$s[/B].\n\nThe old wallet is now deactivated.</string>
     <string name="nc_take_me_to_my_new_wallet">Take me to my new wallet</string>
+    <string name="nc_deactivated">Deactivated</string>
 </resources>
