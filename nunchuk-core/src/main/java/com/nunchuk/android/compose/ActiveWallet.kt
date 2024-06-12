@@ -23,6 +23,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.utils.Utils
 
 @Composable
@@ -32,6 +33,7 @@ fun ActiveWallet(
     isAssistedWallet: Boolean,
     role: String = AssistedWalletRole.NONE.name,
     useLargeFont: Boolean = false,
+    walletStatus: String = ""
 ) {
     val wallet = walletsExtended.wallet
     val balance = "(${wallet.getCurrencyAmount()})"
@@ -64,14 +66,18 @@ fun ActiveWallet(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.End
         ) {
-            if (walletsExtended.isShared || isAssistedWallet) {
+            if (walletsExtended.isShared || isAssistedWallet || walletStatus == WalletStatus.REPLACED.name) {
                 Badge(containerColor = Color.White) {
-                    Icon(
-                        modifier = Modifier.padding(start = 8.dp),
-                        painter = painterResource(id = R.drawable.ic_wallet_small),
-                        contentDescription = "Wallet"
-                    )
-                    val walletTypeName = if (isAssistedWallet) {
+                    if (walletStatus != WalletStatus.REPLACED.name) {
+                        Icon(
+                            modifier = Modifier.padding(start = 8.dp),
+                            painter = painterResource(id = R.drawable.ic_wallet_small),
+                            contentDescription = "Wallet"
+                        )
+                    }
+                    val walletTypeName = if (walletStatus == WalletStatus.REPLACED.name) {
+                        stringResource(R.string.nc_deactivated)
+                    } else if (isAssistedWallet) {
                         Utils.maskValue(
                             stringResource(R.string.nc_assisted), hideWalletDetail
                         )
