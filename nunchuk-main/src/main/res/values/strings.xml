@@ -360,7 +360,7 @@
     <string name="nc_cancel_key_replacement_desc">Are you sure you want to cancel the key repalcement?</string>
     <string name="nc_key_replacement_has_been_canceled">Key replacement has been canceled</string>
     <string name="nc_replace_keys_in_an_assisted_wallet">Replace keys in an assisted wallet</string>
-    <string name="nc_wallet_replaced_desc">This wallet has been deactivated and replaced by %1$s. Please don’t use it. It’s only here for your records.</string>
+    <string name="nc_wallet_replaced_desc">This wallet has been deactivated and replaced by [B]%1$s[/B]. Please don’t use it. It’s only here for your records.</string>
     <string name="nc_go_to_the_new_wallet">Go to the new wallet</string>
     <string name="nc_decrease_cosigning_desc">For security, please note that a decrease in the co-signing delay will only become effective after an amount of time equal to the current delay has passed.</string>
 </resources>
