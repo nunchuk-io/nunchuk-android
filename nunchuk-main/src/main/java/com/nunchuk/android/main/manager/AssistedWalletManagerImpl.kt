@@ -49,7 +49,8 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     }
 
     override fun isInactiveAssistedWallet(walletId: String): Boolean {
-        return _assistedWalletBrief.value[walletId]?.status != WalletStatus.ACTIVE.name
+        return _assistedWalletBrief.value[walletId]?.status?.let { status -> status != WalletStatus.ACTIVE.name && status != WalletStatus.LOCKED.name }
+            ?: true
     }
 
     override fun getWalletAlias(walletId: String): String {

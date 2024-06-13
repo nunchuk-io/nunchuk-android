@@ -47,6 +47,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardState
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.healthCheckLabel
 import com.nunchuk.android.utils.healthCheckTimeColor
@@ -79,16 +80,18 @@ fun HealthCheckContent(
                     title = stringResource(R.string.nc_key_health_status),
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
-                        Text(
-                            text = "Reminders",
-                            style = NunchukTheme.typography.title,
-                            textDecoration = TextDecoration.Underline,
-                            modifier = Modifier
-                                .padding(end = 16.dp)
-                                .clickable {
-                                    onNavigateToHealthCheckReminder()
-                                }
-                        )
+                        if (state.walletStatus != WalletStatus.LOCKED.name) {
+                            Text(
+                                text = "Reminders",
+                                style = NunchukTheme.typography.title,
+                                textDecoration = TextDecoration.Underline,
+                                modifier = Modifier
+                                    .padding(end = 16.dp)
+                                    .clickable {
+                                        onNavigateToHealthCheckReminder()
+                                    }
+                            )
+                        }
                     }
                 )
             }) { innerPadding ->

@@ -40,5 +40,6 @@
     <color name="nc_wallet_premium_bg">#1C4A21</color>
     <color name="nc_slime_dark">#1C652D</color>
     <color name="nc_tealish_green">#A7F0BA</color>
+    <color name="nc_text_disable">#A6A6A6</color>
 
 </resources>

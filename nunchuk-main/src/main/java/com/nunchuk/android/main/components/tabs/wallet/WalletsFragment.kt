@@ -526,7 +526,9 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
                             onWalletClick = {
                                 if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name || it.group?.isLocked == true) return@PendingWalletView
                                 val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
-                                if (briefWallet?.status == WalletStatus.REPLACED.name && briefWallet.replaceByWalletId.isNotEmpty()) {
+                                if (briefWallet?.status == WalletStatus.REPLACED.name && briefWallet.replaceByWalletId.isNotEmpty()
+                                    && groupWalletUis.any { ui -> ui.wallet?.wallet?.id == briefWallet.replaceByWalletId }
+                                ) {
                                     showWalletReplacedDialog(
                                         oldWalletId = walletId,
                                         replaceByWalletId = briefWallet.replaceByWalletId
@@ -595,8 +597,9 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         signerAdapter.submitList(signers)
     }
 
-    private fun openSignerInfoScreen(signer: SignerModel,
-                                     existingKey: WalletsExistingKey? = null
+    private fun openSignerInfoScreen(
+        signer: SignerModel,
+        existingKey: WalletsExistingKey? = null
     ) {
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
