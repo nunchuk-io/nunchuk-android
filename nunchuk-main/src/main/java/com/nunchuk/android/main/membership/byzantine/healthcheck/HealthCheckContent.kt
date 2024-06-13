@@ -40,6 +40,7 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
+import com.nunchuk.android.compose.quickSilver
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
@@ -80,18 +81,18 @@ fun HealthCheckContent(
                     title = stringResource(R.string.nc_key_health_status),
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
-                        if (state.walletStatus != WalletStatus.LOCKED.name) {
-                            Text(
-                                text = "Reminders",
-                                style = NunchukTheme.typography.title,
-                                textDecoration = TextDecoration.Underline,
-                                modifier = Modifier
-                                    .padding(end = 16.dp)
-                                    .clickable {
-                                        onNavigateToHealthCheckReminder()
-                                    }
-                            )
-                        }
+                        val isEnable = state.walletStatus != WalletStatus.LOCKED.name
+                        Text(
+                            text = "Reminders",
+                            style = NunchukTheme.typography.title,
+                            color = if (isEnable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.quickSilver,
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .clickable(enabled = isEnable) {
+                                    onNavigateToHealthCheckReminder()
+                                }
+                        )
                     }
                 )
             }) { innerPadding ->

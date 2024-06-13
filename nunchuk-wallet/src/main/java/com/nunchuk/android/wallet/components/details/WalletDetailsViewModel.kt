@@ -38,6 +38,7 @@ import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
@@ -313,6 +314,9 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     val groupId: String?
         get() = getState().groupId
+
+    val isLockedAssistedWallet: Boolean
+        get() = getState().walletStatus == WalletStatus.LOCKED.name
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
 }

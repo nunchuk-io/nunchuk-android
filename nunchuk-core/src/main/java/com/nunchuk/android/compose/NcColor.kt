@@ -32,6 +32,7 @@ object NcColor {
     val denimDark = Color(0xFF2F466C)
     val white = Color(0xFFFFFFFF)
     val beeswaxLight = Color(0xFFFDD95C)
+    val quickSilver = Color(0xFFA6A6A6)
 }
 
 val ColorScheme.border: Color
@@ -63,3 +64,6 @@ val ColorScheme.textColorMid: Color
 
 val ColorScheme.tealishGreen: Color
     get() = Color(0xFFA7F0BA)
+
+val ColorScheme.quickSilver: Color
+    get() = Color(0xFFA6A6A6)
