@@ -363,4 +363,6 @@
     <string name="nc_wallet_replaced_desc">This wallet has been deactivated and replaced by [B]%1$s[/B]. Please don’t use it. It’s only here for your records.</string>
     <string name="nc_go_to_the_new_wallet">Go to the new wallet</string>
     <string name="nc_decrease_cosigning_desc">For security, please note that a decrease in the co-signing delay will only become effective after an amount of time equal to the current delay has passed.</string>
+    <string name="nc_select_personal_wallet_type">Select personal wallet type</string>
+    <string name="nc_main_what_type_of_personal_wallet">What type of personal wallet do you want to create?</string>
 </resources>
