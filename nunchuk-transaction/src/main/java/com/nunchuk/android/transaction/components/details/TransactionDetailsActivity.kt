@@ -920,15 +920,15 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         val coins = if (transaction.isReceive)
             transaction.receiveOutputs else
             transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
-        val txOutput = transaction.outputs[transaction.changeIndex]
+        val txOutput = if (transaction.hasChangeIndex()) transaction.outputs[transaction.changeIndex] else null
         return InvoiceInfo(
             amountSent = transaction.totalAmount.getBTCAmount(),
             confirmTime = if (args.isInheritanceClaimingFlow.not()) transaction.getFormatDate() else "",
             transactionId = args.txId,
             txOutputs = coins,
             estimatedFee = if (!transaction.isReceive) transaction.fee.getBTCAmount() else "",
-            changeAddress = if (transaction.hasChangeIndex()) txOutput.first else "",
-            changeAddressAmount = if (transaction.hasChangeIndex()) txOutput.second.getBTCAmount() else "",
+            changeAddress = if (transaction.hasChangeIndex()) txOutput?.first.orEmpty() else "",
+            changeAddressAmount = if (transaction.hasChangeIndex()) txOutput?.second?.getBTCAmount().orEmpty() else "",
             note = transaction.memo.ifEmpty { getString(R.string.nc_none) }
         )
     }
