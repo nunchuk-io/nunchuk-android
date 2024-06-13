@@ -32,7 +32,7 @@ class InvoiceViewModel @Inject constructor(
     fun saveBitmapToPDF(bitmaps: List<Bitmap>, fileName: String) =
         viewModelScope.launch(Dispatchers.IO) {
             val combineBitmap = BitmapUtil.combineBitmapsVertically(bitmaps)
-            when (val event = createShareFileUseCase.execute("$fileName.pdf")) {
+            when (val event = createShareFileUseCase.execute("Transaction_$fileName.pdf")) {
                 is Result.Success -> {
                     saveBitmapToPDFUseCase(
                         SaveBitmapToPDFUseCase.Param(
