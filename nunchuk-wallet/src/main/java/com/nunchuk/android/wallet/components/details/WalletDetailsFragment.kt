@@ -171,6 +171,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             searchMenu.icon =
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_search_white)
         }
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = state.walletStatus != WalletStatus.LOCKED.name
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -411,7 +412,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.toolbar.setOnMenuItemClickListener { menu ->
             when (menu.itemId) {
                 R.id.menu_search -> {
-                    if (viewModel.isAssistedWallet) {
+                    if (viewModel.isAssistedWallet || viewModel.isLockedAssistedWallet) {
                         navigator.openGroupDashboardScreen(
                             groupId = viewModel.groupId,
                             walletId = args.walletId,
