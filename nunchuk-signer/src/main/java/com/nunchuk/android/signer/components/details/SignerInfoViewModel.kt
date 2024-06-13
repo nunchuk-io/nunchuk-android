@@ -167,7 +167,7 @@ internal class SignerInfoViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            val xfp = args.id
+            val xfp = args.masterFingerprint
             val result = healthCheckHistoryUseCase(HealthCheckHistoryUseCase.Params(xfp))
             if (result.isSuccess) {
                 val histories = result.getOrThrow()
