@@ -167,7 +167,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
 
             setContent {
                 GroupDashboardScreen(
-                    viewModel,
+                    viewModel = viewModel,
                     onEditClick = {
                         networkCheck {
                             findNavController().navigate(

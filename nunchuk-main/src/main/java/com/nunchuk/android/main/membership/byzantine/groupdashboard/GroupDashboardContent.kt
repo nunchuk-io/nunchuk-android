@@ -76,6 +76,7 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toTitle
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.SignerType
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -116,7 +117,7 @@ fun GroupDashboardContent(
 
     val isShowMore = uiState.groupId.isEmpty() ||
             ((uiState.myRole != AssistedWalletRole.KEYHOLDER_LIMITED && uiState.myRole != AssistedWalletRole.OBSERVER)
-            && (uiState.groupChat != null || uiState.group?.isPendingWallet() == false || uiState.myRole == AssistedWalletRole.MASTER))
+                    && (uiState.groupChat != null || uiState.group?.isPendingWallet() == false || uiState.myRole == AssistedWalletRole.MASTER))
 
     NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
         Scaffold(
@@ -144,7 +145,7 @@ fun GroupDashboardContent(
                                     )
                                 )
                             }
-                            if (isShowMore) {
+                            if (isShowMore && uiState.walletStatus != WalletStatus.LOCKED.name) {
                                 IconButton(onClick = onMoreClick) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_more),
@@ -167,16 +168,21 @@ fun GroupDashboardContent(
                                     if (isEnableStartGroupChat) LocalRippleTheme.current else NoRippleTheme
                         ) {
                             if (uiState.groupChat != null) {
-                                FloatingActionButton(shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary, onClick = onGroupChatClick) {
+                                FloatingActionButton(
+                                    shape = CircleShape,
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    onClick = onGroupChatClick
+                                ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_messages),
                                         contentDescription = "Search"
                                     )
                                 }
                             } else {
-                                ExtendedFloatingActionButton(shape = RoundedCornerShape(50) ,onClick = {
-                                    if (isEnableStartGroupChat) onGroupChatClick()
-                                },
+                                ExtendedFloatingActionButton(shape = RoundedCornerShape(50),
+                                    onClick = {
+                                        if (isEnableStartGroupChat) onGroupChatClick()
+                                    },
                                     containerColor = if (isEnableStartGroupChat) MaterialTheme.colorScheme.secondary else colorResource(
                                         id = R.color.nc_whisper_color
                                     ),
@@ -234,6 +240,7 @@ fun GroupDashboardContent(
                                 currentUserRole = uiState.myRole,
                                 master = master,
                                 padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
+                                walletStatus = uiState.walletStatus,
                                 onEditClick = onEditClick
                             )
                         }
@@ -308,6 +315,7 @@ private fun LazyListScope.memberListView(
     master: ByzantineMember? = null,
     group: ByzantineGroup,
     padTop: Dp = 0.dp,
+    walletStatus: String = "",
     onEditClick: () -> Unit = {},
 ) {
     item {
@@ -336,14 +344,16 @@ private fun LazyListScope.memberListView(
             }
 
             if (currentUserRole == AssistedWalletRole.MASTER || currentUserRole == AssistedWalletRole.ADMIN) {
+                val isEnable = walletStatus != WalletStatus.LOCKED.name
                 Text(
-                    modifier = Modifier.clickable {
-                        onEditClick()
-                    },
+                    modifier = Modifier.clickable(
+                        onClick = onEditClick,
+                        enabled = isEnable
+                    ),
                     text = stringResource(id = R.string.nc_edit),
                     style = NunchukTheme.typography.title,
                     textDecoration = TextDecoration.Underline,
-                    color = colorResource(id = R.color.nc_primary_color)
+                    color = colorResource(id = if (isEnable) R.color.nc_primary_color else R.color.nc_text_disable),
                 )
             }
         }

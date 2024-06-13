@@ -338,6 +338,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         SignersViewBinder(
             container = binding.signersContainer,
             signers = state.signers,
+            isActiveAssistedWallet = viewModel.isAssistedWallet(),
             isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet()
         ) {
             showReEnterPassword(it)

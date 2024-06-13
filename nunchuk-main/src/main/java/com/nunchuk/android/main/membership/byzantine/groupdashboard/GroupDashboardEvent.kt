@@ -51,4 +51,5 @@ data class GroupDashboardState(
     val isHasPendingRequestInheritance: Boolean = false,
     val isRefreshing: Boolean = false,
     val isShowHealthCheckReminderIntro: Boolean = false,
+    val walletStatus: String = "",
 )

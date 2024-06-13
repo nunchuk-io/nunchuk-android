@@ -319,7 +319,13 @@ class GroupDashboardViewModel @Inject constructor(
                     }
                     .toList()
 
-                _state.update { state -> state.copy(wallet = wallet, signers = signers) }
+                _state.update { state ->
+                    state.copy(
+                        wallet = wallet,
+                        signers = signers,
+                        walletStatus = assistedWalletManager.getBriefWallet(walletId)?.status.orEmpty()
+                    )
+                }
             }
         }
     }

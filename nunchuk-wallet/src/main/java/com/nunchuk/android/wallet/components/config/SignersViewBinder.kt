@@ -35,6 +35,7 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 internal class SignersViewBinder(
     container: ViewGroup,
     signers: List<SignerModel>,
+    private val isActiveAssistedWallet: Boolean = false,
     private val isInactiveAssistedWallet: Boolean = false,
     private val onViewPolicy: (model: SignerModel) -> Unit = {},
 ) : AbsViewBinder<SignerModel, ItemWalletConfigSignerBinding>(container, signers) {
@@ -46,6 +47,7 @@ internal class SignersViewBinder(
 
         val isServerKey = model.type == SignerType.SERVER
         binding.btnViewKeyPolicy.isVisible = isServerKey && isInactiveAssistedWallet.not()
+        binding.btnViewKeyPolicy.isEnabled = isServerKey && isActiveAssistedWallet
         binding.signerType.isVisible = isServerKey.not()
         binding.xpf.isVisible = isServerKey.not() || isInactiveAssistedWallet
         binding.btnViewKeyPolicy.setOnDebounceClickListener { onViewPolicy(model) }
