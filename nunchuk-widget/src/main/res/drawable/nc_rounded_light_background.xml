@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/nc_padding_44" />
+            <solid android:color="@color/nc_white_color" />
+            <stroke android:width="@dimen/nc_padding_2" android:color="@color/nc_whisper_color" />
+        </shape>
+    </item>
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/nc_padding_44" />
@@ -13,4 +20,5 @@
             <stroke android:width="@dimen/nc_padding_2" android:color="@color/nc_primary_color" />
         </shape>
     </item>
+
 </selector>
