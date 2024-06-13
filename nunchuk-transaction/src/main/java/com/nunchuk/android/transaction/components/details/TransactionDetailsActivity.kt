@@ -706,6 +706,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             userRole = viewModel.getUserRole().name,
             isReceive = viewModel.getTransaction().isReceive,
             plan = viewModel.getWalletPlan(),
+            txStatus = event.txStatus
         ).setListener {
             when (it) {
                 CANCEL -> handleCancelTransaction()
