@@ -131,6 +131,7 @@ private fun SelectGroupScreen(
     onMoreClicked: () -> Unit = {},
 ) {
     SelectGroupContent(
+        isPersonal = isPersonal,
         options = if (isPersonal) uiState.personalOptions else uiState.groupOptions,
         onContinueClicked = onContinueClicked,
         onMoreClicked = onMoreClicked
@@ -139,6 +140,7 @@ private fun SelectGroupScreen(
 
 @Composable
 private fun SelectGroupContent(
+    isPersonal: Boolean = false,
     options: List<WalletOption> = emptyList(),
     onContinueClicked: (WalletOption) -> Unit = {},
     onMoreClicked: () -> Unit = {},
@@ -175,12 +177,12 @@ private fun SelectGroupContent(
             Column(modifier = Modifier.padding(innerPadding)) {
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.nc_main_select_group_wallet_type),
+                    text = if (isPersonal) stringResource(R.string.nc_select_personal_wallet_type) else stringResource(R.string.nc_main_select_group_wallet_type),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_main_what_type_of_group_wallet),
+                    text = if (isPersonal) stringResource(R.string.nc_main_what_type_of_personal_wallet) else stringResource(R.string.nc_main_what_type_of_group_wallet),
                     style = NunchukTheme.typography.body
                 )
                 LazyColumn(
