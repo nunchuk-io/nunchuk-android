@@ -93,7 +93,8 @@ fun PendingWalletView(
         listOf(MaterialTheme.colorScheme.yellowishOrange, MaterialTheme.colorScheme.yellowishOrange)
     } else if ((group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) || isLocked
         || walletStatus == WalletStatus.LOCKED.name
-        || walletStatus == WalletStatus.REPLACED.name) {
+        || walletStatus == WalletStatus.REPLACED.name
+    ) {
         listOf(NcColor.greyDark, NcColor.greyDark)
     } else if (group != null || isAssistedWallet) {
         listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
@@ -164,6 +165,7 @@ fun PendingWalletView(
                     role = role,
                     primaryOwnerMember = primaryOwnerMember,
                     inviterName = inviterName,
+                    walletStatus = walletStatus,
                     onAccept = onAccept,
                     onDeny = onDeny
                 )
@@ -304,6 +306,7 @@ fun RowScope.ByzantineBottomContent(
     role: String = AssistedWalletRole.NONE.name,
     inviterName: String = "",
     primaryOwnerMember: ByzantineMember? = null,
+    walletStatus: String? = null,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
 ) {
@@ -379,7 +382,9 @@ fun RowScope.ByzantineBottomContent(
                     )
                 }
             }
-
+            if (walletStatus == WalletStatus.LOCKED.name) {
+                LockedBadge()
+            }
             Icon(
                 modifier = Modifier.padding(start = 12.dp),
                 painter = painterResource(id = R.drawable.ic_arrow_expand),
@@ -405,7 +410,9 @@ fun RowScope.ByzantineBottomContent(
                 text = primaryOwnerMember.user?.name ?: primaryOwnerMember.emailOrUsername,
                 style = NunchukTheme.typography.titleSmall
             )
-
+            if (walletStatus == WalletStatus.LOCKED.name) {
+                LockedBadge()
+            }
             if (badgeCount != 0) {
                 Box(
                     modifier = Modifier
@@ -429,6 +436,9 @@ fun RowScope.ByzantineBottomContent(
         }
     } else {
         AvatarView(group = group)
+        if (walletStatus == WalletStatus.LOCKED.name) {
+            LockedBadge()
+        }
         if (badgeCount != 0) {
             Box(
                 modifier = Modifier
@@ -450,6 +460,20 @@ fun RowScope.ByzantineBottomContent(
             contentDescription = "Arrow"
         )
     }
+}
+
+@Composable
+fun LockedBadge() {
+    Text(
+        modifier = Modifier
+            .background(
+                color = colorResource(id = R.color.nc_red_tint_color),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        text = stringResource(id = R.string.nc_locked),
+        style = NunchukTheme.typography.caption
+    )
 }
 
 @Composable
