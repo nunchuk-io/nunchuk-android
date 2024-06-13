@@ -46,7 +46,8 @@ sealed class TransactionDetailsEvent {
         val isPendingConfirm: Boolean,
         val isRejected: Boolean,
         val canBroadcast: Boolean,
-        val masterFingerPrint: String = ""
+        val masterFingerPrint: String = "",
+        val txStatus: String = "",
     ) : TransactionDetailsEvent()
 
     data class ExportToFileSuccess(val filePath: String) : TransactionDetailsEvent()

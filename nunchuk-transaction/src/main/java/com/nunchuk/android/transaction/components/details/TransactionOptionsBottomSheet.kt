@@ -45,6 +45,7 @@ import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.share.model.TransactionOption.SHOW_INVOICE
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -132,6 +133,8 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             listener(SCHEDULE_BROADCAST)
             dismiss()
         }
+
+        binding.btnShowAsAnInvoice.isVisible = args.txStatus == TransactionStatus.CONFIRMED.name
         binding.btnShowAsAnInvoice.setOnDebounceClickListener {
             listener(SHOW_INVOICE)
             dismiss()
@@ -170,7 +173,8 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             isShowRequestSignature: Boolean,
             userRole: String,
             isReceive: Boolean,
-            plan: MembershipPlan
+            plan: MembershipPlan,
+            txStatus: String
         ): TransactionOptionsBottomSheet {
             return TransactionOptionsBottomSheet().apply {
                 arguments =
@@ -184,7 +188,8 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
                         isShowRequestSignature = isShowRequestSignature,
                         userRole = userRole,
                         isReceive = isReceive,
-                        plan = plan
+                        plan = plan,
+                        txStatus = txStatus
                     ).buildBundle()
                 show(fragmentManager, TAG)
             }
@@ -204,6 +209,7 @@ data class TransactionOptionsArgs(
     val userRole: String,
     val isReceive: Boolean,
     val plan: MembershipPlan,
+    val txStatus: String
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
@@ -217,6 +223,7 @@ data class TransactionOptionsArgs(
         putString(EXTRA_USER_ROLE, userRole)
         putBoolean(EXTRA_IS_RECEIVE, isReceive)
         putSerializable(EXTRA_PLAN, plan)
+        putString(EXTRA_TX_STATUS, txStatus)
     }
 
     companion object {
@@ -230,6 +237,7 @@ data class TransactionOptionsArgs(
         private const val EXTRA_USER_ROLE = "EXTRA_USER_ROLE"
         private const val EXTRA_IS_RECEIVE = "EXTRA_IS_RECEIVE"
         private const val EXTRA_PLAN = "EXTRA_PLAN"
+        private const val EXTRA_TX_STATUS = "EXTRA_TX_STATUS"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
@@ -241,7 +249,8 @@ data class TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_SHOW_REQUEST_SIGNATURE).orFalse(),
             data?.getString(EXTRA_USER_ROLE).orEmpty(),
             data?.getBooleanValue(EXTRA_IS_RECEIVE).orFalse(),
-            data?.serializable<MembershipPlan>(EXTRA_PLAN) ?: MembershipPlan.NONE
+            data?.serializable<MembershipPlan>(EXTRA_PLAN) ?: MembershipPlan.NONE,
+            data?.getString(EXTRA_TX_STATUS).orEmpty()
         )
     }
 }
