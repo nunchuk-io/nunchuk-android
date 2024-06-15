@@ -13,5 +13,6 @@ data class InvoiceInfo(
     val estimatedFee: String,
     val changeAddress: String,
     val changeAddressAmount: String,
-    val note: String
+    val note: String,
+    val isReceive: Boolean,
 ) : Parcelable
