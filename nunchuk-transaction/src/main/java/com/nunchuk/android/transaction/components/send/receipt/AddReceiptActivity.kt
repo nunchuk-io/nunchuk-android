@@ -178,7 +178,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     supportFragmentManager,
                     exclusiveAssistedWalletIds = arrayListOf(args.walletId),
                     exclusiveAddresses = arrayListOf(viewModel.getAddReceiptState().address),
-                    isShowAddress = true
+                    configArgs = WalletComposeBottomSheet.ConfigArgs(
+                        isShowAddress = true,
+                    )
                 )
             }
         }

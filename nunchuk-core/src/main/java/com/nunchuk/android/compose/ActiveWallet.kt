@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -21,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.wallet.WalletStatus
@@ -118,4 +121,37 @@ fun ActiveWallet(
             }
         }
     }
+}
+
+@Composable
+fun getWalletColors(
+    walletsExtended: WalletExtended?,
+    isAssistedWallet: Boolean,
+    group: ByzantineGroup?,
+    role: String,
+    isLocked: Boolean,
+    inviterName: String,
+    walletStatus: String
+): List<Color> {
+    val colors = if (inviterName.isNotEmpty() || walletsExtended == null) {
+        listOf(MaterialTheme.colorScheme.yellowishOrange, MaterialTheme.colorScheme.yellowishOrange)
+    } else if ((group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) || isLocked
+        || walletStatus == WalletStatus.LOCKED.name
+        || walletStatus == WalletStatus.REPLACED.name
+    ) {
+        listOf(NcColor.greyDark, NcColor.greyDark)
+    } else if (group != null || isAssistedWallet) {
+        listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
+    } else if (walletsExtended.wallet.needBackup) {
+        listOf(
+            colorResource(id = R.color.nc_beeswax_dark),
+            colorResource(id = R.color.nc_beeswax_dark)
+        )
+    } else {
+        listOf(
+            colorResource(id = R.color.nc_primary_light_color),
+            colorResource(id = R.color.nc_primary_color)
+        )
+    }
+    return colors
 }
