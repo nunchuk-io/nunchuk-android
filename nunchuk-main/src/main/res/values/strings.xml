@@ -339,7 +339,7 @@
     <string name="nc_foreign_key_index_not_available_msg">New account data needed. To add a new account, please use the original device that the software key was created on.</string>
     <string name="nc_2_of_3_multisig_without_inheritance_planning">2-of-3 multisig without inheritance planning</string>
     <string name="nc_software_key_upgrade_to_hardware_key">The software key (%1$s) was upgraded to a hardware key from another device. Do you want to remove the software key from this device?</string>
-    <string name="nc_replace_keys">Replace keys</string>
+    <string name="nc_replace_keys">Replace key(s)</string>
     <string name="nc_replace_key_desc">If a key in an assisted wallet is lost or has been compromised, you can replace it here.\n\nNote that replacing a key with a new one will create a brand new assisted wallet. You will need to transfer the existing balance over to the new wallet afterwards.</string>
     <string name="nc_continue_to_create_a_new_wallet">Continue to create a new wallet</string>
     <string name="nc_which_key_would_you_like_to_replace">Which key would you like to replace?</string>
@@ -359,7 +359,7 @@
     <string name="nc_key_replacement_pending_desc">%1$s is currently being replaced.</string>
     <string name="nc_cancel_key_replacement_desc">Are you sure you want to cancel the key repalcement?</string>
     <string name="nc_key_replacement_has_been_canceled">Key replacement has been canceled</string>
-    <string name="nc_replace_keys_in_an_assisted_wallet">Replace keys in an assisted wallet</string>
+    <string name="nc_replace_keys_in_an_assisted_wallet">Replace key(s) in an assisted wallet</string>
     <string name="nc_wallet_replaced_desc">This wallet has been deactivated and replaced by [B]%1$s[/B]. Please don’t use it. It’s only here for your records.</string>
     <string name="nc_go_to_the_new_wallet">Go to the new wallet</string>
     <string name="nc_decrease_cosigning_desc">For security, please note that a decrease in the co-signing delay will only become effective after an amount of time equal to the current delay has passed.</string>
