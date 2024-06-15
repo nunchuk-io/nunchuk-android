@@ -930,7 +930,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             estimatedFee = if (!transaction.isReceive) transaction.fee.getBTCAmount() else "",
             changeAddress = if (transaction.hasChangeIndex()) txOutput?.first.orEmpty() else "",
             changeAddressAmount = if (transaction.hasChangeIndex()) txOutput?.second?.getBTCAmount().orEmpty() else "",
-            note = transaction.memo.ifEmpty { getString(R.string.nc_none) }
+            note = transaction.memo.ifEmpty { getString(R.string.nc_none) },
+            isReceive = transaction.isReceive,
         )
     }
 
