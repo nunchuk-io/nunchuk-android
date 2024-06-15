@@ -454,7 +454,10 @@ class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickLi
             } else {
                 WalletComposeBottomSheet.show(
                     childFragmentManager,
-                    assistedWalletIds = viewModel.getAssistedWalletIds()
+                    assistedWalletIds = viewModel.getAssistedWalletIds(),
+                    configArgs = WalletComposeBottomSheet.ConfigArgs(
+                        isShowDeactivatedWallets = false
+                    )
                 )
             }
             return
@@ -657,18 +660,21 @@ private fun SignerInfoContent(
                         Text(text = stringResource(id = R.string.nc_text_done))
                     }
                 }
-                NcOutlineButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = if (justAdded) 0.dp else 16.dp,
-                            bottom = 16.dp
-                        ),
-                    onClick = onHealthCheckClicked
-                ) {
-                    Text(text = stringResource(id = R.string.nc_txt_run_health_check))
+                val isVisible = uiState.masterSigner?.isVisible ?: uiState.remoteSigner?.isVisible ?: false
+                if (isVisible) {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = if (justAdded) 0.dp else 16.dp,
+                                bottom = 16.dp
+                            ),
+                        onClick = onHealthCheckClicked
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_txt_run_health_check))
+                    }
                 }
             }
         }) { innerPadding ->

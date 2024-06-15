@@ -155,7 +155,9 @@ class RecurringPaymentActivity : BaseComposeActivity() {
                                 WalletComposeBottomSheet.show(
                                     supportFragmentManager,
                                     assistedWalletIds = state.otherwallets.map { wallet -> wallet.id },
-                                    title = context.getString(R.string.nc_select_a_wallet),
+                                    configArgs = WalletComposeBottomSheet.ConfigArgs(
+                                        title = context.getString(R.string.nc_select_a_wallet),
+                                    ),
                                 )
                             }
                         )

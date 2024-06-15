@@ -21,6 +21,7 @@ package com.nunchuk.android.core.wallet
 
 import android.app.Activity
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -64,22 +65,25 @@ import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.ActiveWallet
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.everglade
+import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.greyLight
-import com.nunchuk.android.compose.ming
 import com.nunchuk.android.compose.provider.WalletProvider
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.util.SavedAddressFlow
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.WalletExtended
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.parcelize.Parcelize
 import javax.inject.Inject
 
+/**
+ * Show wallets (assisted + free) and saved addresses in a bottom sheet.
+ */
 @AndroidEntryPoint
 class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 
@@ -88,11 +92,20 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 
     private val viewModel by viewModels<WalletsBottomSheetViewModel>()
 
-    private val exclusiveWalletIds by lazy { requireArguments().getStringArrayList(EXTRA_EXCLUSIVE_WALLET_IDS).orEmpty() }
-    private val isShowAddress by lazy { requireArguments().getBoolean(EXTRA_SHOW_ADDRESS) }
-    private val title by lazy { requireArguments().getString(EXTRA_TITLE) }
-    private val assistedWalletIds by lazy { requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty() }
-    private val exclusiveAddresses by lazy { requireArguments().getStringArrayList(EXTRA_EXCLUSIVE_ADDRESSES).orEmpty() }
+    private val exclusiveWalletIds by lazy {
+        requireArguments().getStringArrayList(
+            EXTRA_EXCLUSIVE_WALLET_IDS
+        ).orEmpty()
+    }
+    private val assistedWalletIds by lazy {
+        requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty()
+    }
+    private val exclusiveAddresses by lazy {
+        requireArguments().getStringArrayList(
+            EXTRA_EXCLUSIVE_ADDRESSES
+        ).orEmpty()
+    }
+    private val configArgs by lazy { requireArguments().parcelable<ConfigArgs>(EXTRA_CONFIG) }
 
     private val addressLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -110,24 +123,19 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
             setContent {
                 NunchukTheme {
                     AssistedWalletScreen(viewModel = viewModel,
-                        title = title,
+                        title = configArgs?.title,
                         onWalletClick = { wallet ->
-                            if (viewModel.state.value.lockdownWalletIds.isEmpty() ||
-                                viewModel.state.value.lockdownWalletIds.contains(wallet.wallet.id)
-                                    .not()
-                            ) {
-                                setFragmentResult(
-                                    TAG, Bundle().apply {
-                                        putParcelable(
-                                            RESULT,
-                                            WalletBottomSheetResult(
-                                                walletId = wallet.wallet.id,
-                                                walletName = wallet.wallet.name
-                                            )
+                            setFragmentResult(
+                                TAG, Bundle().apply {
+                                    putParcelable(
+                                        RESULT,
+                                        WalletBottomSheetResult(
+                                            walletId = wallet.wallet.id,
+                                            walletName = wallet.wallet.name
                                         )
-                                    }
-                                )
-                            }
+                                    )
+                                }
+                            )
                             dismissAllowingStateLoss()
                         },
                         onAddAddressClick = { isCreate ->
@@ -155,7 +163,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(isShowAddress, assistedWalletIds, exclusiveWalletIds, exclusiveAddresses)
+        viewModel.init(configArgs, assistedWalletIds, exclusiveWalletIds, exclusiveAddresses)
     }
 
     companion object {
@@ -163,8 +171,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
         private const val EXTRA_EXCLUSIVE_WALLET_IDS = "extra_exclusive_wallet_ids"
         private const val EXTRA_EXCLUSIVE_ADDRESSES = "extra_exclusive_addresses"
         private const val EXTRA_WALLET_IDS = "wallet_ids"
-        private const val EXTRA_TITLE = "title"
-        private const val EXTRA_SHOW_ADDRESS = "show_address"
+        private const val EXTRA_CONFIG = "extra_config"
         const val RESULT = "WALLET_BOTTOM_SHEET_RESULT"
 
         fun show(
@@ -172,8 +179,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
             exclusiveAssistedWalletIds: List<String> = emptyList(),
             exclusiveAddresses: List<String> = emptyList(),
             assistedWalletIds: List<String> = emptyList(),
-            title: String? = null,
-            isShowAddress: Boolean = false,
+            configArgs: ConfigArgs? = null,
         ) = WalletComposeBottomSheet().apply {
             arguments = Bundle().apply {
                 putStringArrayList(
@@ -185,12 +191,18 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
                     ArrayList(exclusiveAddresses)
                 )
                 putStringArrayList(EXTRA_WALLET_IDS, ArrayList(assistedWalletIds))
-                putString(EXTRA_TITLE, title)
-                putBoolean(EXTRA_SHOW_ADDRESS, isShowAddress)
+                putParcelable(EXTRA_CONFIG, configArgs)
             }
             show(fragmentManager, TAG)
         }
     }
+
+    @Parcelize
+    data class ConfigArgs(
+        val title: String? = null,
+        val isShowAddress: Boolean = false,
+        val isShowDeactivatedWallets: Boolean = true,
+    ) : Parcelable
 }
 
 @Composable
@@ -239,7 +251,7 @@ private fun AssistedWalletContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
 
-            if (uiState.isShowAddress.not()) {
+            if (uiState.config?.isShowAddress?.not() == true) {
                 item {
                     Text(
                         text = if (title.isNullOrEmpty()) stringResource(R.string.nc_select_an_assisted_wallet) else title,
@@ -248,7 +260,7 @@ private fun AssistedWalletContent(
                 }
             }
 
-            if (uiState.isShowAddress) {
+            if (uiState.config?.isShowAddress == true) {
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -288,7 +300,7 @@ private fun AssistedWalletContent(
                 }
             }
 
-            if (uiState.wallets.isNotEmpty() && uiState.isShowAddress) {
+            if (uiState.wallets.isNotEmpty() && uiState.config?.isShowAddress == true) {
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -313,13 +325,16 @@ private fun AssistedWalletContent(
                 }
             }
 
-            items(uiState.wallets) { wallet ->
+            items(uiState.walletUiModels) { ui ->
                 AssistedWallet(
-                    walletsExtended = wallet,
-                    isAssistedWallet = uiState.assistedWalletIds.contains(wallet.wallet.id),
-                    isLocked = uiState.lockdownWalletIds.contains(wallet.wallet.id),
+                    walletsExtended = ui.wallet,
+                    isAssistedWallet = ui.isAssistedWallet,
+                    isLocked = ui.isLocked,
+                    walletStatus = ui.walletStatus,
+                    role = ui.role.name,
+                    group = ui.group,
                     onWalletClick = {
-                        onWalletClick(wallet)
+                        onWalletClick(ui.wallet)
                     }
                 )
             }
@@ -351,29 +366,22 @@ fun AddressItem(
 @Composable
 fun AssistedWallet(
     walletsExtended: WalletExtended,
-    isAssistedWallet: Boolean = false,
-    role: String = "",
-    hideWalletDetail: Boolean = false,
-    isLocked: Boolean = false,
-    group: String? = null,
+    isAssistedWallet: Boolean,
+    role: String,
+    isLocked: Boolean,
+    group: ByzantineGroup?,
+    walletStatus: String,
     onWalletClick: () -> Unit = {}
 ) {
-    val colors =
-        if (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name || isLocked) {
-            listOf(NcColor.greyDark, NcColor.greyDark)
-        } else if (isAssistedWallet) {
-            listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
-        } else if (walletsExtended.wallet.needBackup) {
-            listOf(
-                colorResource(id = R.color.nc_beeswax_dark),
-                colorResource(id = R.color.nc_beeswax_dark)
-            )
-        } else {
-            listOf(
-                colorResource(id = R.color.nc_primary_light_color),
-                colorResource(id = R.color.nc_primary_color)
-            )
-        }
+    val colors = getWalletColors(
+        walletsExtended = walletsExtended,
+        isAssistedWallet = isAssistedWallet,
+        group = group,
+        role = role,
+        isLocked = isLocked,
+        inviterName = "",
+        walletStatus = walletStatus
+    )
     Column(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -393,10 +401,11 @@ fun AssistedWallet(
         ) {
             ActiveWallet(
                 walletsExtended = walletsExtended,
-                hideWalletDetail = hideWalletDetail,
+                hideWalletDetail = false,
                 isAssistedWallet = isAssistedWallet,
                 role = role,
-                useLargeFont = false
+                useLargeFont = false,
+                walletStatus = walletStatus
             )
         }
     }
@@ -408,6 +417,12 @@ fun AssistedWalletContentPreview(
     @PreviewParameter(WalletProvider::class) wallets: List<WalletExtended>,
 ) {
     NunchukTheme {
-        AssistedWalletContent(uiState = WalletsBottomSheetState(wallets = wallets, isShowAddress = true))
+        AssistedWalletContent(
+            uiState = WalletsBottomSheetState(
+                wallets = wallets, config = WalletComposeBottomSheet.ConfigArgs(
+                    isShowAddress = true
+                )
+            )
+        )
     }
 }

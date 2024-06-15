@@ -41,9 +41,7 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.everglade
-import com.nunchuk.android.compose.ming
-import com.nunchuk.android.compose.yellowishOrange
+import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
@@ -89,26 +87,7 @@ fun PendingWalletView(
     onGroupClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
 ) {
-    val colors = if (inviterName.isNotEmpty() || walletsExtended == null) {
-        listOf(MaterialTheme.colorScheme.yellowishOrange, MaterialTheme.colorScheme.yellowishOrange)
-    } else if ((group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) || isLocked
-        || walletStatus == WalletStatus.LOCKED.name
-        || walletStatus == WalletStatus.REPLACED.name
-    ) {
-        listOf(NcColor.greyDark, NcColor.greyDark)
-    } else if (group != null || isAssistedWallet) {
-        listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
-    } else if (walletsExtended.wallet.needBackup) {
-        listOf(
-            colorResource(id = R.color.nc_beeswax_dark),
-            colorResource(id = R.color.nc_beeswax_dark)
-        )
-    } else {
-        listOf(
-            colorResource(id = R.color.nc_primary_light_color),
-            colorResource(id = R.color.nc_primary_color)
-        )
-    }
+
     Column(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -120,7 +99,15 @@ fun PendingWalletView(
             modifier = Modifier
                 .background(
                     brush = Brush.linearGradient(
-                        colors = colors, start = Offset.Zero, end = Offset.Infinite
+                        colors = getWalletColors(
+                            walletsExtended = walletsExtended,
+                            isAssistedWallet = isAssistedWallet,
+                            role = role,
+                            walletStatus = walletStatus.orEmpty(),
+                            isLocked = isLocked,
+                            inviterName = inviterName,
+                            group = group
+                        ), start = Offset.Zero, end = Offset.Infinite
                     )
                 )
                 .padding(12.dp)
