@@ -527,6 +527,7 @@ private fun SignerInfoContent(
         }
     }
     val color = uiState.lastHealthCheckTimeMillis.healthCheckTimeColor()
+    val isMyKey = uiState.masterSigner?.isVisible ?: uiState.remoteSigner?.isVisible ?: false
 
     NunchukTheme {
         Scaffold(modifier = Modifier
@@ -660,8 +661,7 @@ private fun SignerInfoContent(
                         Text(text = stringResource(id = R.string.nc_text_done))
                     }
                 }
-                val isVisible = uiState.masterSigner?.isVisible ?: uiState.remoteSigner?.isVisible ?: false
-                if (isVisible) {
+                if (isMyKey) {
                     NcOutlineButton(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -684,43 +684,47 @@ private fun SignerInfoContent(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                uiState.nfcCardId?.let {
+                if (isMyKey) {
+                    uiState.nfcCardId?.let {
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.nc_card_id),
+                                style = NunchukTheme.typography.titleSmall
+                            )
+                            Text(
+                                modifier = Modifier.padding(top = 4.dp),
+                                text = uiState.nfcCardId,
+                                style = NunchukTheme.typography.body
+                            )
+                        }
+                    }
                     item {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = stringResource(R.string.nc_card_id),
+                            text = stringResource(R.string.nc_text_signer_spec),
                             style = NunchukTheme.typography.titleSmall
                         )
+                        val keySpec = if (uiState.masterSigner != null) {
+                            uiState.masterSigner.device.masterFingerprint
+                        } else if (uiState.remoteSigner != null) {
+                            uiState.remoteSigner.descriptor
+                        } else {
+                            ""
+                        }
                         Text(
                             modifier = Modifier.padding(top = 4.dp),
-                            text = uiState.nfcCardId,
+                            text = keySpec,
                             style = NunchukTheme.typography.body
                         )
                     }
                 }
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = stringResource(R.string.nc_text_signer_spec),
-                        style = NunchukTheme.typography.titleSmall
-                    )
-                    val keySpec = if (uiState.masterSigner != null) {
-                        uiState.masterSigner.device.masterFingerprint
-                    } else if (uiState.remoteSigner != null) {
-                        uiState.remoteSigner.descriptor
-                    } else {
-                        ""
-                    }
-                    Text(
-                        modifier = Modifier.padding(top = 4.dp),
-                        text = keySpec,
-                        style = NunchukTheme.typography.body
-                    )
-                }
                 if (uiState.assistedWalletIds.isNotEmpty()) {
-                    item {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        HorizontalDivider()
+                    if (isMyKey) {
+                        item {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            HorizontalDivider()
+                        }
                     }
 
                     item {
