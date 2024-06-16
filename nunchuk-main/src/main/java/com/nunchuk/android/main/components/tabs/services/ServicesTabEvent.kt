@@ -33,6 +33,7 @@ import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.containsByzantineOrFinney
 import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.wallet.WalletStatus
 import kotlinx.parcelize.Parcelize
 
 sealed class ServicesTabEvent {
@@ -340,6 +341,8 @@ data class ServicesTabState(
             assistedWallets.filter { it.isSetupInheritance.not() && isInheritanceOwner(it.ext.inheritanceOwnerId) && it.ext.isPlanningRequest.not() }
         return wallets.filter {
             it.groupId.isEmpty() || isAllowSetupInheritance(it)
+        }.filter {
+            it.status != WalletStatus.LOCKED.name
         }
     }
 
