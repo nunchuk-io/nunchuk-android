@@ -403,6 +403,7 @@ fun RowScope.ByzantineBottomContent(
             if (badgeCount != 0) {
                 Box(
                     modifier = Modifier
+                        .padding(start = 8.dp)
                         .size(24.dp, 24.dp)
                         .clip(CircleShape)
                         .background(color = colorResource(id = R.color.nc_orange_color)),
@@ -429,6 +430,7 @@ fun RowScope.ByzantineBottomContent(
         if (badgeCount != 0) {
             Box(
                 modifier = Modifier
+                    .padding(start = 8.dp)
                     .size(24.dp, 24.dp)
                     .clip(CircleShape)
                     .background(color = colorResource(id = R.color.nc_orange_color)),
