@@ -95,7 +95,6 @@ class ConfigureByzantineServerKeySettingViewModel @Inject constructor(
                         )
                     )
                 )
-                _event.emit(ConfigureByzantineServerKeySettingEvent.Loading(false))
                 if (result.isSuccess) {
                     _event.emit(ConfigureByzantineServerKeySettingEvent.ConfigServerSuccess)
                 } else {
@@ -113,6 +112,7 @@ class ConfigureByzantineServerKeySettingViewModel @Inject constructor(
                     )
                 )
             }
+            _event.emit(ConfigureByzantineServerKeySettingEvent.Loading(false))
         }
     }
 
