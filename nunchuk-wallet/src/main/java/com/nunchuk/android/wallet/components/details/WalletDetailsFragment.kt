@@ -162,7 +162,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun configureToolbar(state: WalletDetailsState) {
         val searchMenu = binding.toolbar.menu.findItem(R.id.menu_search)
         searchMenu.isVisible = state.walletExtended.wallet.name.isNotEmpty()
-        if (state.groupId.isNullOrEmpty().not()) {
+        if (state.groupId.isNullOrEmpty().not() && state.walletStatus != WalletStatus.REPLACED.name) {
             searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_groups_menu)
         } else if (state.isAssistedWallet) {
             searchMenu.icon =
