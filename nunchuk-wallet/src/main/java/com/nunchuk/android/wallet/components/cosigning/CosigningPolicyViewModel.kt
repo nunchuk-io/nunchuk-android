@@ -98,17 +98,22 @@ class CosigningPolicyViewModel @Inject constructor(
                     _state.update { it.copy(walletName = wallet.name) }
                 }
             } else {
-                val signer = args.signer ?: return@launch
-                val result = getServerKeysUseCase(
-                    GetServerKeysUseCase.Param(
-                        signer.fingerPrint,
-                        signer.derivationPath
-                    )
+                getKeyPolicy()
+            }
+        }
+    }
+
+    private suspend fun getKeyPolicy() {
+        args.signer?.let { signer ->
+            val result = getServerKeysUseCase(
+                GetServerKeysUseCase.Param(
+                    signer.fingerPrint,
+                    signer.derivationPath
                 )
-                if (result.isSuccess) {
-                    _state.update { it.copy(originalKeyPolicy = result.getOrThrow()) }
-                    updateState(keyPolicy = result.getOrThrow())
-                }
+            )
+            if (result.isSuccess) {
+                _state.update { it.copy(originalKeyPolicy = result.getOrThrow()) }
+                updateState(keyPolicy = result.getOrThrow())
             }
         }
     }
@@ -142,6 +147,7 @@ class CosigningPolicyViewModel @Inject constructor(
             )
             _event.emit(CosigningPolicyEvent.Loading(false))
             if (result.isSuccess) {
+                getKeyPolicy()
                 _event.emit(CosigningPolicyEvent.UpdateKeyPolicySuccess)
                 _state.update { it.copy(isUpdateFlow = false) }
             } else {
