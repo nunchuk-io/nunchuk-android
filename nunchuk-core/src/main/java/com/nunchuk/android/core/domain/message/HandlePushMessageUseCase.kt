@@ -27,6 +27,7 @@ import com.nunchuk.android.messages.util.isSetAlias
 import com.nunchuk.android.messages.util.isTransactionCancelled
 import com.nunchuk.android.messages.util.isTransactionHandleErrorMessageEvent
 import com.nunchuk.android.messages.util.isTransactionReplaced
+import com.nunchuk.android.messages.util.isTransferFundCompleted
 import com.nunchuk.android.messages.util.isWalletCreated
 import com.nunchuk.android.messages.util.isWalletReplacedEvent
 import com.nunchuk.android.usecase.IsHandledEventUseCase
@@ -265,10 +266,11 @@ class HandlePushMessageUseCase @Inject constructor(
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
                     saveHandledEventUseCase.invoke(parameters.eventId)
+                    val isTransferFundCompleted = parameters.isTransferFundCompleted()
                     val oldWalletId = parameters.getWalletId().orEmpty()
                     val oldGroupId = parameters.getGroupId().orEmpty()
                     val newWalletId = parameters.getNewWalletId().orEmpty()
-                    if (newWalletId.isNotEmpty()) {
+                    if (newWalletId.isNotEmpty() && isTransferFundCompleted) {
                         getWalletDetail2UseCase(newWalletId).onSuccess {
                             pushEventManager.push(
                                 PushEvent.WalletReplaced(

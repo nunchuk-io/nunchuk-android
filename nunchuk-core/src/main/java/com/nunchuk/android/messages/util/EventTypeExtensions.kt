@@ -168,6 +168,7 @@ fun TimelineEvent.getTitle() = root.getClearContent()?.get("title")?.toString()
 fun TimelineEvent.getContent() = root.getClearContent()?.get("content")?.toString()
 fun TimelineEvent.getXfp() = root.getClearContent()?.get("xfp")?.toString()
 fun TimelineEvent.getNewWalletId() = root.getClearContent()?.get("new_wallet_local_id")?.toString()
+fun TimelineEvent.isTransferFundCompleted() = root.getClearContent()?.get("transfer_funds_completed")?.toString()?.toBoolean() ?: false
 
 fun TimelineEvent.isGroupMembershipRequestEvent() =
     getMsgType() == GROUP_MEMBERSHIP_REQUEST_ACCEPTED || getMsgType() == GROUP_MEMBERSHIP_REQUEST_DENIED

@@ -136,7 +136,7 @@ fun PendingWalletView(
                 )
             }
         }
-        if (group != null) {
+        if (group != null && walletStatus != WalletStatus.REPLACED.name) {
             Row(
                 modifier = Modifier
                     .clickable(
