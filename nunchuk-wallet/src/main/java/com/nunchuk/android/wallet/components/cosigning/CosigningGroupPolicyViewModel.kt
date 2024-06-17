@@ -107,18 +107,23 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                     }
                 }
             } else {
-                val signer = args.signer ?: return@launch
-                getGroupServerKeysUseCase(
-                    GetGroupServerKeysUseCase.Param(
-                        args.groupId,
-                        signer.fingerPrint,
-                        signer.derivationPath
-                    )
-                ).onSuccess {
-                    _state.update { state -> state.copy(keyPolicy = it, originKeyPolicy = it) }
-                }
+                getKeyPolicy()
             }
             _event.emit(CosigningGroupPolicyEvent.Loading(false))
+        }
+    }
+
+    private suspend fun getKeyPolicy() {
+        args.signer?.let { signer ->
+            getGroupServerKeysUseCase(
+                GetGroupServerKeysUseCase.Param(
+                    args.groupId,
+                    signer.fingerPrint,
+                    signer.derivationPath
+                )
+            ).onSuccess {
+                _state.update { state -> state.copy(keyPolicy = it, originKeyPolicy = it) }
+            }
         }
     }
 
@@ -177,13 +182,14 @@ class CosigningGroupPolicyViewModel @Inject constructor(
                     groupId = args.groupId,
                 )
             )
-            _event.emit(CosigningGroupPolicyEvent.Loading(false))
             if (result.isSuccess) {
+                getKeyPolicy()
                 _event.emit(CosigningGroupPolicyEvent.UpdateKeyPolicySuccess)
                 _state.update { it.copy(isUpdateFlow = false) }
             } else {
                 _event.emit(CosigningGroupPolicyEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
+            _event.emit(CosigningGroupPolicyEvent.Loading(false))
         }
     }
 
