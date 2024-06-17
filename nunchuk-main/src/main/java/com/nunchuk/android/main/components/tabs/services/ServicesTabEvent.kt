@@ -212,8 +212,8 @@ data class ServicesTabState(
                             add(ServiceTabRowCategory.Subscription)
                             add(ServiceTabRowItem.CoSigningPolicies)
                         }
+                        add(ServiceTabRowItem.ReplaceKey)
                     }
-                    add(ServiceTabRowItem.ReplaceKey)
                 }
                 return items
             }
