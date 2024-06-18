@@ -66,6 +66,7 @@ import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
@@ -619,6 +620,7 @@ internal class WalletsViewModel @Inject constructor(
         if (assistedWallets.isNotEmpty()) {
             if (assistedWallets.size == 1
                 && !assistedWallets.first().isSetupInheritance
+                && assistedWallets.first().status == WalletStatus.ACTIVE.name
                 && assistedWallets.first().plan == MembershipPlan.HONEY_BADGER) {
                 return MembershipStage.SETUP_INHERITANCE
             }

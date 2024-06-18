@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.wallet.components.config
 
-import android.graphics.Bitmap
 import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -35,7 +34,6 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isPending
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -481,6 +479,8 @@ internal class WalletConfigViewModel @Inject constructor(
         accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
+
+    fun isServerWallet() = assistedWalletManager.getBriefWallet(walletId) != null
 
     fun isShowDeleteWallet() = getState().isShowDeleteAssistedWallet || isAssistedWallet().not()
 

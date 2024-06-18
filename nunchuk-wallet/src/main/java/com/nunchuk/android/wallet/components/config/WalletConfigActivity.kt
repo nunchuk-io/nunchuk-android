@@ -190,7 +190,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun handleDeleteWallet() {
-        if (viewModel.isAssistedWallet()) {
+        if (viewModel.isAssistedWallet() || viewModel.isServerWallet()) {
             showReEnterPassword(null)
         } else if (viewModel.isSharedWallet()) {
             NCWarningDialog(this).showDialog(

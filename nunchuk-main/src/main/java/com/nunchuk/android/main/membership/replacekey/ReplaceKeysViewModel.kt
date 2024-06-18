@@ -192,12 +192,12 @@ class ReplaceKeysViewModel @Inject constructor(
             finalizeReplaceKeyUseCase(
                 FinalizeReplaceKeyUseCase.Param(groupId = args.groupId, walletId = args.walletId)
             ).onSuccess { wallet ->
-                _uiState.update { it.copy(createWalletSuccess = StateEvent.String(wallet.id)) }
                 if (args.groupId.isNotEmpty()) {
                     getServerWalletsUseCase(Unit)
                 } else {
                     syncGroupWalletsUseCase(Unit)
                 }
+                _uiState.update { it.copy(createWalletSuccess = StateEvent.String(wallet.id)) }
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }

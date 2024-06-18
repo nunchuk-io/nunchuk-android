@@ -425,7 +425,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val deleteCount =
             assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() })
         if (wallets.isNotEmpty()) {
-            assistedWalletDao.insert(wallets.map { wallet ->
+            assistedWalletDao.updateOrInsert(wallets.map { wallet ->
                 AssistedWalletEntity(
                     localId = wallet.localId.orEmpty(),
                     plan = wallet.slug.toMembershipPlan(),
