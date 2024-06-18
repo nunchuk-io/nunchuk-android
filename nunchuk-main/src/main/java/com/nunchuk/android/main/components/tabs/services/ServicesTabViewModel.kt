@@ -393,8 +393,6 @@ class ServicesTabViewModel @Inject constructor(
             walletBrief.groupId.isEmpty() || (allowCoSigningPolicyGroups.find { group ->
                 group.id == walletBrief.groupId
             } != null && byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[walletBrief.groupId]).toRole.isKeyHolderWithoutKeyHolderLimited)
-        }.filter {
-            it.status != WalletStatus.LOCKED.name
         }
     }
 
@@ -421,8 +419,6 @@ class ServicesTabViewModel @Inject constructor(
                 numOfLockedWallet ++
             }
             byzantineGroupUtils.getCurrentUserRole(state.value.joinedGroups[it.groupId]).toRole.isMasterOrAdmin || it.groupId.isEmpty()
-        }.filter {
-            it.status != WalletStatus.LOCKED.name
         }
         return numOfLockedWallet to wallets
     }
