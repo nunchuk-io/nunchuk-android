@@ -54,21 +54,13 @@ internal class WalletsViewBinder(
         binding.btc.text = Utils.maskValue(wallet.getBTCAmount(), hideWalletDetail)
         binding.balance.text = Utils.maskValue(balance, hideWalletDetail)
         binding.shareIcon.isVisible = model.isShared || isAssistedWallet || isLockedWallet
-        if (isLockedWallet) {
-            binding.shareIcon.text = context.getString(R.string.nc_deactivated)
-        } else if (isAssistedWallet) {
+        if (isAssistedWallet || isLockedWallet) {
             binding.shareIcon.text =
                 Utils.maskValue(context.getString(R.string.nc_assisted), hideWalletDetail)
         } else {
             binding.shareIcon.text =
                 Utils.maskValue(context.getString(R.string.nc_text_shared), hideWalletDetail)
         }
-        binding.shareIcon.setCompoundDrawablesWithIntrinsicBounds(
-            if (isLockedWallet) 0 else R.drawable.ic_wallet_small,
-            0,
-            0,
-            0
-        )
         binding.config.bindWalletConfiguration(wallet, hideWalletDetail)
         binding.root.setOnClickListener {
             if (isLockedWallet) return@setOnClickListener
