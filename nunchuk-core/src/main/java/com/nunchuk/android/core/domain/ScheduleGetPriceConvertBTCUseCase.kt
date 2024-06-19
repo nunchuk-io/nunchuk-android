@@ -37,8 +37,8 @@ internal class ScheduleGetPriceConvertBTCUseCaseImpl @Inject constructor(
     ) = flow {
         delay(0)
         while (true) {
-            emit(Unit)
             delay(INTERVAL_TIME_GET_BTC_PRICE)
+            emit(Unit)
         }
     }.flowOn(Dispatchers.IO)
 

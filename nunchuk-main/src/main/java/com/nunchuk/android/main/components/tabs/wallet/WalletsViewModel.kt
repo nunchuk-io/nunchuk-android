@@ -189,7 +189,7 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getLocalCurrencyUseCase(Unit).collect {
+            getLocalCurrencyUseCase(Unit).distinctUntilChanged().collect {
                 LOCAL_CURRENCY = it.getOrDefault(USD_CURRENCY)
                 getRemotePriceConvertBTCUseCase(Unit)
             }
