@@ -231,7 +231,11 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                 xfp = replacedXfp.orEmpty(),
                                 signer = airgap
                             )
-                        )
+                        ).onFailure {
+                            setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
+                            setEvent(LoadingEventAirgap(false))
+                            return@launch
+                        }
                     } else {
                         saveMembershipStepUseCase(
                             MembershipStepInfo(

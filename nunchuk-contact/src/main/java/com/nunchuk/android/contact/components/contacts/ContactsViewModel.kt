@@ -21,12 +21,12 @@ package com.nunchuk.android.contact.components.contacts
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.contact.components.add.AddContactsEvent
 import com.nunchuk.android.contact.usecase.DeleteContactUseCase
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
 import com.nunchuk.android.contact.usecase.GetSentContactsUseCase
 import com.nunchuk.android.core.domain.message.HandlePushMessageUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.matrix.roomSummariesFlow
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orUnknownError
@@ -39,12 +39,13 @@ import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.share.GetContactsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.model.Membership
-import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
@@ -77,14 +78,14 @@ class ContactsViewModel @Inject constructor(
         loadActiveSession()
     }
 
+    private var loadRoomJob: Job? = null
     private fun loadActiveSession() {
-        sessionHolder.getSafeActiveSession()?.let { session ->
-            session.roomService().getRoomSummaries(roomSummaryQueryParams {
-                memberships = Membership.activeMemberships()
-            }).find { roomSummary ->
-                roomSummary.isServerNotices()
-            }?.let {
-                viewModelScope.launch(ioDispatcher) {
+        loadRoomJob?.cancel()
+        loadRoomJob = viewModelScope.launch {
+            sessionHolder.getSafeActiveSession()?.let { session ->
+                session.roomSummariesFlow().mapNotNull { rooms ->
+                    rooms.find { it.isServerNotices() }
+                }.distinctUntilChanged().collect {
                     runCatching {
                         session.roomService().joinRoom(it.roomId)
                         session.roomService().getRoom(it.roomId)
@@ -150,6 +151,7 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun retrieveTimelineEvents(room: Room) {
+        timeline?.dispose()
         timeline = room.timelineService()
             .createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
                 removeAllListeners()

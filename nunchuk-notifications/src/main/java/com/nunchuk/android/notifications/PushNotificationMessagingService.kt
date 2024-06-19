@@ -165,6 +165,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         val timelineService = room.timelineService()
         val event = timelineService.getTimelineEvent(eventId)
         if (event == null) {
+            // TODO create worker for retry
             mUIHandler.postDelayed({
                 timelineService.getTimelineEvent(eventId)?.toPushNotificationData(roomId)
                     ?.let(::showNotification)
