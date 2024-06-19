@@ -57,7 +57,6 @@ class SessionHolder @Inject constructor(
             cryptoService().setWarnOnUnknownDevices(false)
             try {
                 open()
-                clearCache()
                 if (!syncService().hasAlreadySynced()) {
                     syncService().startSync(true)
                 } else {
@@ -81,10 +80,11 @@ class SessionHolder @Inject constructor(
         this.isLeaveRoom = isLeaveRoom
     }
 
-    fun clearActiveSession() {
+    suspend fun clearActiveSession() {
         try {
             getSafeActiveSession()?.apply {
                 removeListener(sessionListener)
+                clearCache()
                 close()
             }
         } catch (e: Error) {

@@ -17,10 +17,18 @@ class GetPendingWalletNotifyCountUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): Map<String, Int> {
         return supervisorScope {
             val walletAlerts = parameters.walletIds.map { walletId ->
-                async { walletId to repository.getAlertTotal(walletId = walletId) }
+                async {
+                    walletId to runCatching { repository.getAlertTotal(walletId = walletId) }.getOrDefault(
+                        0
+                    )
+                }
             }.awaitAll().toMap()
             val groupAlerts = parameters.groupIds.map { groupId ->
-                async { groupId to repository.getAlertTotal(groupId = groupId) }
+                async {
+                    groupId to runCatching { repository.getAlertTotal(groupId = groupId) }.getOrDefault(
+                        0
+                    )
+                }
             }.awaitAll().toMap()
             walletAlerts + groupAlerts
         }
