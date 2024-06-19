@@ -267,13 +267,7 @@ internal class MainActivityViewModel @Inject constructor(
             scheduleGetPriceConvertBTCUseCase.execute()
                 .flowOn(IO)
                 .onException {}
-                .collect { getBTCConvertPrice() }
-        }
-    }
-
-    private fun getBTCConvertPrice() {
-        viewModelScope.launch {
-            getRemotePriceConvertBTCUseCase(Unit)
+                .collect { getRemotePriceConvertBTCUseCase(Unit) }
         }
     }
 
