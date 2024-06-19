@@ -69,7 +69,7 @@ fun ActiveWallet(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.End
         ) {
-            if (walletsExtended.isShared || isAssistedWallet || walletStatus == WalletStatus.REPLACED.name) {
+            if (walletsExtended.isShared || isAssistedWallet || walletStatus == WalletStatus.REPLACED.name || walletStatus == WalletStatus.LOCKED.name) {
                 Badge(containerColor = Color.White) {
                     if (walletStatus != WalletStatus.REPLACED.name) {
                         Icon(
@@ -80,7 +80,7 @@ fun ActiveWallet(
                     }
                     val walletTypeName = if (walletStatus == WalletStatus.REPLACED.name) {
                         stringResource(R.string.nc_deactivated)
-                    } else if (isAssistedWallet) {
+                    } else if (isAssistedWallet || walletStatus == WalletStatus.LOCKED.name) {
                         Utils.maskValue(
                             stringResource(R.string.nc_assisted), hideWalletDetail
                         )

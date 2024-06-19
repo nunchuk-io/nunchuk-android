@@ -157,7 +157,7 @@ fun PendingWalletView(
                     onDeny = onDeny
                 )
             }
-        } else if (isAssistedWallet) {
+        } else if (isAssistedWallet || walletStatus == WalletStatus.LOCKED.name) {
             Row(
                 modifier = Modifier
                     .clickable(
@@ -170,7 +170,8 @@ fun PendingWalletView(
                     badgeCount = badgeCount,
                     isLocked = isLocked,
                     signers = signers,
-                    status = status
+                    status = status,
+                    walletStatus = walletStatus
                 )
             }
         }
@@ -207,7 +208,9 @@ fun RowScope.PendingWalletInviteMember(
 fun AssistedWalletBottomContent(
     badgeCount: Int = 0,
     isLocked: Boolean = false,
-    signers: List<SignerModel>, status: Map<String, KeyHealthStatus>,
+    signers: List<SignerModel>,
+    status: Map<String, KeyHealthStatus>,
+    walletStatus: String? = null,
 ) {
     if (isLocked) {
         Box(
@@ -273,6 +276,10 @@ fun AssistedWalletBottomContent(
                             style = NunchukTheme.typography.titleSmall.copy(color = Color.White)
                         )
                     }
+                }
+
+                if (walletStatus == WalletStatus.LOCKED.name) {
+                    LockedBadge()
                 }
 
                 Icon(

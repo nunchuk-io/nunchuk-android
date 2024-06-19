@@ -270,6 +270,11 @@ class HandlePushMessageUseCase @Inject constructor(
                     val oldWalletId = parameters.getWalletId().orEmpty()
                     val oldGroupId = parameters.getGroupId().orEmpty()
                     val newWalletId = parameters.getNewWalletId().orEmpty()
+                    if (oldGroupId.isEmpty()) {
+                        getServerWalletsUseCase(Unit)
+                    } else {
+                        syncGroupWalletsUseCase(Unit)
+                    }
                     if (newWalletId.isNotEmpty() && isTransferFundCompleted) {
                         getWalletDetail2UseCase(newWalletId).onSuccess {
                             pushEventManager.push(

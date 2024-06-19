@@ -192,7 +192,7 @@ class ReplaceKeysViewModel @Inject constructor(
             finalizeReplaceKeyUseCase(
                 FinalizeReplaceKeyUseCase.Param(groupId = args.groupId, walletId = args.walletId)
             ).onSuccess { wallet ->
-                if (args.groupId.isNotEmpty()) {
+                if (args.groupId.isEmpty()) {
                     getServerWalletsUseCase(Unit)
                 } else {
                     syncGroupWalletsUseCase(Unit)
