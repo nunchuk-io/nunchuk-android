@@ -55,7 +55,7 @@ internal class PKeySignInViewModel @AssistedInject constructor(
             try {
                 val result = getAppSettingUseCase(Unit)
                 val appSettingsNew = result.getOrThrow().copy(chain = args.primaryKey.chain!!)
-                updateState { copy(appSettings = appSettingsNew) }
+                updateState { copy(appSettings = result.getOrThrow()) }
                 updateAppSettingUseCase(appSettingsNew).getOrThrow()
                 initNunchukUseCase(InitNunchukUseCase.Param(accountId = args.primaryKey.account)).getOrThrow()
             } catch (e: Exception) {
