@@ -75,6 +75,8 @@ class ContactsViewModel @Inject constructor(
     }
 
     fun handleMatrixSignedIn() {
+        timeline?.dispose()
+        timeline = null
         loadActiveSession()
     }
 
@@ -151,7 +153,7 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun retrieveTimelineEvents(room: Room) {
-        timeline?.dispose()
+        if (timeline != null) return
         timeline = room.timelineService()
             .createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
                 removeAllListeners()
