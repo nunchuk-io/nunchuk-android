@@ -45,7 +45,9 @@ val MembershipStep.isAddInheritanceKey: Boolean
     get() = this == MembershipStep.BYZANTINE_ADD_TAP_SIGNER || this == MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1
 
 fun MembershipStep.toIndex() = when (this) {
-    MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 0
+    MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
+    MembershipStep.HONEY_ADD_TAP_SIGNER,
+    MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 0
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> 1
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> 2
     MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> 3

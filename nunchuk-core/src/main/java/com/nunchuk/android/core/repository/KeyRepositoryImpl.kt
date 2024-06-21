@@ -247,9 +247,14 @@ internal class KeyRepositoryImpl @Inject constructor(
                 0
             ) ?: throw NullPointerException("Can not get signer by index 0")
             val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
+            val wallet = if (groupId.isNotEmpty()) {
+                userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
+            } else {
+                userWalletApiManager.walletApi.getWallet(walletId)
+            }.data.wallet ?: throw NullPointerException("Can not get wallet $walletId")
             val isInheritance =
-                nativeSdk.getWallet(walletId).signers.find { it.masterFingerprint == replacedXfp }?.tags?.contains(
-                    SignerTag.INHERITANCE
+                wallet.signerServerDtos.find { it.xfp == replacedXfp }?.tags?.contains(
+                    SignerTag.INHERITANCE.name
                 ) ?: false
             val payload = SignerServerDto(
                 name = signer.name,

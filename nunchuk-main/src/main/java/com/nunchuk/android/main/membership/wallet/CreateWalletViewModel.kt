@@ -30,6 +30,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.ServerKeyExtra
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
@@ -69,6 +70,7 @@ class CreateWalletViewModel @Inject constructor(
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
 ) : ViewModel() {
     private val signers = hashMapOf<String, SignerExtra>()
+    private val signerIndex = hashMapOf<String, Int>()
     private var serverKeyExtra: ServerKeyExtra? = null
     private var serverKeyId: String? = null
 
@@ -84,7 +86,12 @@ class CreateWalletViewModel @Inject constructor(
 
     fun loadSignerFromDatabase() {
         viewModelScope.launch {
-            getMembershipStepUseCase(GetMembershipStepUseCase.Param(membershipStepManager.localMembershipPlan, ""))
+            getMembershipStepUseCase(
+                GetMembershipStepUseCase.Param(
+                    membershipStepManager.localMembershipPlan,
+                    ""
+                )
+            )
                 .filter { it.isSuccess }
                 .map { it.getOrThrow() }
                 .collect { steps ->
@@ -102,6 +109,7 @@ class CreateWalletViewModel @Inject constructor(
                                     )
                                 }.getOrNull()?.let { signerExtra ->
                                     signers[stepInfo.masterSignerId] = signerExtra
+                                    signerIndex[stepInfo.masterSignerId] = stepInfo.step.toIndex()
                                 }
                             }
 
@@ -136,9 +144,11 @@ class CreateWalletViewModel @Inject constructor(
             val remoteSigners = getRemoteSignersUseCase.execute().first()
             val addressType = AddressType.NATIVE_SEGWIT
             _event.emit(CreateWalletEvent.Loading(true))
-            val walletRemoteSigners = signers.mapNotNull { entry -> remoteSigners.find { it.masterFingerprint == entry.key && it.derivationPath == entry.value.derivationPath } }
+            val walletRemoteSigners =
+                signers.mapNotNull { entry -> remoteSigners.find { it.masterFingerprint == entry.key && it.derivationPath == entry.value.derivationPath } }
             val masterSigners =
-                signers.filter { entry -> !walletRemoteSigners.any { it.masterFingerprint == entry.key } }.map { it.key }
+                signers.filter { entry -> !walletRemoteSigners.any { it.masterFingerprint == entry.key } }
+                    .map { it.key }
             val getSingleSingerResult = getDefaultSignersFromMasterSignersUseCase(
                 GetDefaultSignersFromMasterSignersUseCase.Params(
                     masterSigners,
@@ -173,10 +183,12 @@ class CreateWalletViewModel @Inject constructor(
                 _event.emit(CreateWalletEvent.Loading(false))
                 return@launch
             }
+            val signers = getSingleSingerResult.getOrThrow()
+                .sortedBy { signerIndex[it.masterFingerprint] } + walletRemoteSigners + createServerSignerResult.getOrThrow()
             val wallet = Wallet(
                 name = _state.value.walletName,
                 totalRequireSigns = 2,
-                signers = getSingleSingerResult.getOrThrow() + walletRemoteSigners + createServerSignerResult.getOrThrow(),
+                signers = signers,
                 addressType = addressType,
                 escrow = false,
             )
@@ -187,7 +199,7 @@ class CreateWalletViewModel @Inject constructor(
                 createWalletUseCase.execute(
                     name = _state.value.walletName,
                     totalRequireSigns = 2,
-                    signers = getSingleSingerResult.getOrThrow() + walletRemoteSigners + createServerSignerResult.getOrThrow(),
+                    signers = signers,
                     addressType = addressType,
                     isEscrow = false
                 ).flowOn(Dispatchers.IO)
@@ -197,9 +209,15 @@ class CreateWalletViewModel @Inject constructor(
                         _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
                     }
                     .collect {
-                        val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
+                        val totalAirgap =
+                            it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
                         if (totalAirgap > 0) {
-                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
+                            setRegisterAirgapUseCase(
+                                SetRegisterAirgapUseCase.Params(
+                                    it.id,
+                                    totalAirgap
+                                )
+                            )
                         }
                         _event.emit(
                             CreateWalletEvent.OnCreateWalletSuccess(

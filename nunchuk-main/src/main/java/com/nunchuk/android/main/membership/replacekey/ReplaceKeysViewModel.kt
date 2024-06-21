@@ -114,11 +114,11 @@ class ReplaceKeysViewModel @Inject constructor(
             viewModelScope.launch {
                 syncGroupWalletUseCase(args.groupId).onSuccess { wallet ->
                     _uiState.update {
-                        it.copy(inheritanceXfp = wallet.signers.find { signer ->
+                        it.copy(inheritanceXfps = wallet.signers.filter { signer ->
                             signer.tags.contains(
                                 SignerTag.INHERITANCE.name
                             )
-                        }?.xfp)
+                        }.mapNotNull { signer -> signer.xfp }.toSet())
                     }
                 }
             }
@@ -126,11 +126,11 @@ class ReplaceKeysViewModel @Inject constructor(
             viewModelScope.launch {
                 getServerWalletUseCase(args.walletId).onSuccess { wallet ->
                     _uiState.update {
-                        it.copy(inheritanceXfp = wallet.signers.find { signer ->
+                        it.copy(inheritanceXfps = wallet.signers.filter { signer ->
                             signer.tags.contains(
                                 SignerTag.INHERITANCE.name
                             )
-                        }?.xfp)
+                        }.mapNotNull { signer -> signer.xfp }.toSet())
                     }
                 }
             }
@@ -373,5 +373,5 @@ data class ReplaceKeysUiState(
     val createWalletSuccess: StateEvent = StateEvent.None,
     val signers: List<SignerModel> = emptyList(),
     val message: String = "",
-    val inheritanceXfp: String? = null
+    val inheritanceXfps: Set<String> = emptySet()
 )
