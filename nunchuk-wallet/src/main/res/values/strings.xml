@@ -100,4 +100,5 @@
     <string name="nc_consolidate_generate_address_error_msg">A consolidating address cannot be generated at this time. Please try again later.</string>
     <string name="nc_export_via_qr">Export via QR</string>
     <string name="nc_export_via_bbqr">Export via BBQR</string>
+    <string name="nc_replace_keys">Replace key(s)</string>
 </resources>

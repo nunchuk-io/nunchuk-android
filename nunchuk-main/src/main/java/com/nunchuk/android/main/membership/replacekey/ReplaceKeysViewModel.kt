@@ -14,6 +14,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedPath
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.Result
@@ -70,14 +71,18 @@ class ReplaceKeysViewModel @Inject constructor(
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val pushEventManager: PushEventManager,
+    assistedWalletManager: AssistedWalletManager,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
-    private val _uiState = MutableStateFlow(ReplaceKeysUiState())
+    val isActiveAssistedWallet: Boolean by lazy {
+        assistedWalletManager.isActiveAssistedWallet(args.walletId)
+    }
+    private val _uiState =
+        MutableStateFlow(ReplaceKeysUiState(isActiveAssistedWallet = isActiveAssistedWallet))
     val uiState = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
     private val replacedSigners = mutableListOf<SignerServer>()
-
     private var loadWalletStatusJob: Job? = null
 
     init {
@@ -99,44 +104,48 @@ class ReplaceKeysViewModel @Inject constructor(
                 }
             }
         }
-        if (args.groupId.isNotEmpty()) {
-            viewModelScope.launch {
-                getGroupUseCase(
-                    GetGroupUseCase.Params(args.groupId)
-                ).map { it.getOrThrow() }
-                    .distinctUntilChanged()
-                    .collect { group ->
+        if (isActiveAssistedWallet) {
+            if (args.groupId.isNotEmpty()) {
+                viewModelScope.launch {
+                    getGroupUseCase(
+                        GetGroupUseCase.Params(args.groupId)
+                    ).map { it.getOrThrow() }
+                        .distinctUntilChanged()
+                        .collect { group ->
+                            _uiState.update {
+                                it.copy(group = group, myRole = currentUserRole(group.members))
+                            }
+                        }
+                }
+                viewModelScope.launch {
+                    syncGroupWalletUseCase(args.groupId).onSuccess { wallet ->
                         _uiState.update {
-                            it.copy(group = group, myRole = currentUserRole(group.members))
+                            it.copy(inheritanceXfps = wallet.signers.filter { signer ->
+                                signer.tags.contains(
+                                    SignerTag.INHERITANCE.name
+                                )
+                            }.mapNotNull { signer -> signer.xfp }.toSet())
                         }
                     }
-            }
-            viewModelScope.launch {
-                syncGroupWalletUseCase(args.groupId).onSuccess { wallet ->
-                    _uiState.update {
-                        it.copy(inheritanceXfps = wallet.signers.filter { signer ->
-                            signer.tags.contains(
-                                SignerTag.INHERITANCE.name
-                            )
-                        }.mapNotNull { signer -> signer.xfp }.toSet())
+                }
+            } else {
+                viewModelScope.launch {
+                    getServerWalletUseCase(args.walletId).onSuccess { wallet ->
+                        _uiState.update {
+                            it.copy(inheritanceXfps = wallet.signers.filter { signer ->
+                                signer.tags.contains(
+                                    SignerTag.INHERITANCE.name
+                                )
+                            }.mapNotNull { signer -> signer.xfp }.toSet())
+                        }
                     }
                 }
             }
+            getReplaceWalletStatus()
         } else {
-            viewModelScope.launch {
-                getServerWalletUseCase(args.walletId).onSuccess { wallet ->
-                    _uiState.update {
-                        it.copy(inheritanceXfps = wallet.signers.filter { signer ->
-                            signer.tags.contains(
-                                SignerTag.INHERITANCE.name
-                            )
-                        }.mapNotNull { signer -> signer.xfp }.toSet())
-                    }
-                }
-            }
+            loadSigners()
+            _uiState.update { it.copy(isDataLoaded = true) }
         }
-        getReplaceWalletStatus()
-        loadSigners()
     }
 
     private fun loadSigners() {
@@ -156,7 +165,7 @@ class ReplaceKeysViewModel @Inject constructor(
     }
 
     fun getReplaceWalletStatus() {
-        if (loadWalletStatusJob?.isActive == true) return
+        if (loadWalletStatusJob?.isActive == true || isActiveAssistedWallet.not()) return
         loadWalletStatusJob = viewModelScope.launch {
             _uiState.update { state -> state.copy(isLoading = true) }
             getReplaceWalletStatusUseCase(
@@ -238,6 +247,13 @@ class ReplaceKeysViewModel @Inject constructor(
 
     fun getTapSigners() =
         _uiState.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
+
+    fun getAllSigners() = _uiState.value.signers.filter {
+        isSignerExist(it.fingerPrint).not()
+    }.filter {
+        (it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedPath)
+                || it.type != SignerType.SERVER
+    }
 
     fun getColdcard() = _uiState.value.signers.filter {
         isSignerExist(it.fingerPrint).not()
@@ -374,4 +390,5 @@ data class ReplaceKeysUiState(
     val signers: List<SignerModel> = emptyList(),
     val message: String = "",
     val inheritanceXfps: Set<String> = emptySet()
+    val isActiveAssistedWallet: Boolean = false
 )
