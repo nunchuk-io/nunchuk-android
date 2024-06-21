@@ -62,6 +62,14 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                         viewModel.setReplacingXfp(signer.fingerPrint)
                         openSelectHardwareOption()
                     },
+                    onReplaceInheritanceClicked = { signer ->
+                        viewModel.setReplacingXfp(signer.fingerPrint)
+                        handleShowKeysOrCreate(
+                            viewModel.getTapSigners(),
+                            SignerType.NFC,
+                            ::openSetupTapSigner
+                        )
+                    },
                     onCreateNewWalletSuccess = { walletId ->
                         findNavController().navigate(
                             ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCreateWalletSuccessFragment(

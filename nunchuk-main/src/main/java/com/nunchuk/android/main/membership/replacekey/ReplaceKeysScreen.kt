@@ -59,6 +59,7 @@ import com.nunchuk.android.type.SignerType
 fun ReplaceKeysScreen(
     viewModel: ReplaceKeysViewModel = hiltViewModel(),
     onReplaceKeyClicked: (SignerModel) -> Unit = {},
+    onReplaceInheritanceClicked: (SignerModel) -> Unit = {},
     onCreateNewWalletSuccess: (String) -> Unit = {},
     onVerifyClicked: (SignerModel) -> Unit = {},
 ) {
@@ -83,6 +84,7 @@ fun ReplaceKeysScreen(
         uiState = uiState,
         snackState = snackState,
         onReplaceKeyClicked = onReplaceKeyClicked,
+        onReplaceInheritanceClicked = onReplaceInheritanceClicked,
         onCreateWalletClicked = viewModel::onCreateWallet,
         onCancelReplaceWallet = viewModel::onCancelReplaceWallet,
         onVerifyClicked = onVerifyClicked
@@ -95,6 +97,7 @@ fun ReplaceKeysScreen(
 private fun ReplaceKeysContent(
     uiState: ReplaceKeysUiState = ReplaceKeysUiState(),
     onReplaceKeyClicked: (SignerModel) -> Unit = {},
+    onReplaceInheritanceClicked: (SignerModel) -> Unit = {},
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onCreateWalletClicked: () -> Unit = {},
     onCancelReplaceWallet: () -> Unit = {},
@@ -108,7 +111,9 @@ private fun ReplaceKeysContent(
             NcLoadingDialog()
         }
         NcScaffold(
-            modifier = Modifier.systemBarsPadding().fillMaxSize(),
+            modifier = Modifier
+                .systemBarsPadding()
+                .fillMaxSize(),
             snackState = snackState,
             topBar = {
                 NcTopAppBar(title = "", actions = {
@@ -159,7 +164,7 @@ private fun ReplaceKeysContent(
                             modifier = Modifier.padding(top = 16.dp),
                             item = uiState.replaceSigners[item.fingerPrint] ?: item,
                             onReplaceClicked = {
-                                if (it.fingerPrint == uiState.inheritanceXfp) {
+                                if (uiState.inheritanceXfps.contains(it.fingerPrint)) {
                                     selectedInheritanceSigner = it
                                 } else {
                                     onReplaceKeyClicked(it)
@@ -207,7 +212,7 @@ private fun ReplaceKeysContent(
                 title = stringResource(R.string.nc_text_warning),
                 message = stringResource(R.string.nc_inheritance_key_warning),
                 onPositiveClick = {
-                    onReplaceKeyClicked(selectedInheritanceSigner!!)
+                    onReplaceInheritanceClicked(selectedInheritanceSigner!!)
                     selectedInheritanceSigner = null
                 },
                 onDismiss = {
