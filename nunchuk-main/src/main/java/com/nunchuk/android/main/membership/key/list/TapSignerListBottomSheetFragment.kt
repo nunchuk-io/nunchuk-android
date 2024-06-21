@@ -180,11 +180,13 @@ private fun TapSignerListContent(
             ),
             style = NunchukTheme.typography.title,
         )
-        Text(
-            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
-            text = stringResource(R.string.nc_notice_you_have_exist_key, signerLabel),
-            style = NunchukTheme.typography.body,
-        )
+        if (signerLabel.isNotEmpty()) {
+            Text(
+                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                text = stringResource(R.string.nc_notice_you_have_exist_key, signerLabel),
+                style = NunchukTheme.typography.body,
+            )
+        }
         LazyColumn(
             modifier = Modifier.padding(horizontal = 16.dp).heightIn(max = screenHeightDp.div(2).dp),
             contentPadding = PaddingValues(vertical = 24.dp),

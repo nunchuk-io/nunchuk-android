@@ -134,6 +134,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
 
                     SignerType.SOFTWARE -> openAddSoftwareKey()
                     SignerType.HARDWARE -> showAddKeyByDesktopApp()
+                    SignerType.UNKNOWN -> navigator.openSignerIntroScreen(requireActivity())
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -357,15 +358,24 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
         val isStandard =
             viewModel.uiState.value.group?.walletConfig?.toGroupWalletType()?.isStandard == true
 
-        val options = getKeyOptions(
-            context = requireContext(),
-            isKeyHolderLimited = isKeyHolderLimited,
-            isStandard = isStandard
-        )
-        BottomSheetOption.newInstance(
-            options = options,
-            desc = getString(R.string.nc_key_limit_desc).takeIf { isKeyHolderLimited },
-            title = getString(R.string.nc_what_type_of_hardware_want_to_add),
-        ).show(childFragmentManager, "BottomSheetOption")
+        if (!viewModel.isActiveAssistedWallet) {
+            handleShowKeysOrCreate(
+                signer = viewModel.getAllSigners(),
+                type = SignerType.UNKNOWN,
+            ) {
+                navigator.openSignerIntroScreen(requireActivity())
+            }
+        } else {
+            val options = getKeyOptions(
+                context = requireContext(),
+                isKeyHolderLimited = isKeyHolderLimited,
+                isStandard = isStandard
+            )
+            BottomSheetOption.newInstance(
+                options = options,
+                desc = getString(R.string.nc_key_limit_desc).takeIf { isKeyHolderLimited },
+                title = getString(R.string.nc_what_type_of_hardware_want_to_add),
+            ).show(childFragmentManager, "BottomSheetOption")
+        }
     }
 }

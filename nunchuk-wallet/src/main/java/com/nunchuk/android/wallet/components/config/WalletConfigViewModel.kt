@@ -45,6 +45,7 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.joinKeys
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
@@ -481,6 +482,10 @@ internal class WalletConfigViewModel @Inject constructor(
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
 
     fun isServerWallet() = assistedWalletManager.getBriefWallet(walletId) != null
+
+    fun isReplacedOrLocked() = assistedWalletManager.getBriefWallet(walletId)
+        ?.let { it.status == WalletStatus.LOCKED.name || it.status == WalletStatus.REPLACED.name }
+        ?: false
 
     fun isShowDeleteWallet() = getState().isShowDeleteAssistedWallet || isAssistedWallet().not()
 

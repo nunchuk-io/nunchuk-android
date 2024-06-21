@@ -38,6 +38,7 @@ import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
@@ -158,7 +159,18 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     flowInfo = PrimaryOwnerFlow.EDIT
                 )
             }
-            SheetOptionType.TYPE_EXPORT_BBQR -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BBQR)
+
+            SheetOptionType.TYPE_EXPORT_BBQR -> openDynamicQRScreen(
+                sharedViewModel.walletId,
+                ExportWalletQRCodeType.BBQR
+            )
+
+            SheetOptionType.TYPE_REPLACE_KEY -> navigator.openMembershipActivity(
+                activityContext = this,
+                groupStep = MembershipStage.REPLACE_KEY,
+                walletId = args.walletId,
+                groupId = viewModel.getGroupId().orEmpty(),
+            )
         }
     }
 
@@ -410,6 +422,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     R.drawable.ic_account_member,
                     R.string.nc_edit_primary_owner,
                 ),
+            )
+        }
+
+        if (!viewModel.isReplacedOrLocked()) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_REPLACE_KEY,
+                    R.drawable.ic_hardware_key,
+                    R.string.nc_replace_keys
+                )
             )
         }
 

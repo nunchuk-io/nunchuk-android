@@ -1,6 +1,8 @@
 package com.nunchuk.android.main.membership.replacekey
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -162,9 +164,10 @@ private fun ReplaceKeysContent(
                     items(uiState.walletSigners) { item ->
                         ReplaceKeyCard(
                             modifier = Modifier.padding(top = 16.dp),
-                            item = uiState.replaceSigners[item.fingerPrint] ?: item,
+                            replacedSigner = uiState.replaceSigners[item.fingerPrint],
+                            originalSigner = item,
                             onReplaceClicked = {
-                                if (uiState.inheritanceXfps.contains(it.fingerPrint)) {
+                                if (uiState.inheritanceXfps.contains(it.fingerPrint) && uiState.isActiveAssistedWallet) {
                                     selectedInheritanceSigner = it
                                 } else {
                                     onReplaceKeyClicked(it)
@@ -225,78 +228,99 @@ private fun ReplaceKeysContent(
 
 @Composable
 fun ReplaceKeyCard(
-    item: SignerModel,
+    replacedSigner: SignerModel?,
+    originalSigner: SignerModel,
     modifier: Modifier = Modifier,
     isReplaced: Boolean = false,
     isNeedVerify: Boolean = false,
     onReplaceClicked: (data: SignerModel) -> Unit = {},
     onVerifyClicked: (data: SignerModel) -> Unit = {},
 ) {
-    Box(
-        modifier = modifier.background(
-            color = if (isReplaced && !isNeedVerify)
-                colorResource(id = R.color.nc_green_color)
-            else
-                colorResource(id = R.color.nc_beeswax_tint),
-            shape = RoundedCornerShape(8.dp)
-        ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
+    val item = replacedSigner ?: originalSigner
+    Column {
+        Box(
+            modifier = modifier.background(
+                color = if (isReplaced && !isNeedVerify)
+                    colorResource(id = R.color.nc_green_color)
+                else
+                    colorResource(id = R.color.nc_beeswax_tint),
+                shape = RoundedCornerShape(8.dp)
+            ),
+            contentAlignment = Alignment.Center,
         ) {
-            NcCircleImage(
-                resId = item.toReadableDrawableResId(),
-                color = colorResource(id = R.color.nc_white_color)
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1.0f)
-                    .padding(start = 8.dp)
+            Row(
+                modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = item.name,
-                    style = NunchukTheme.typography.body
+                NcCircleImage(
+                    resId = item.toReadableDrawableResId(),
+                    color = colorResource(id = R.color.nc_white_color)
                 )
-                Row(modifier = Modifier.padding(top = 4.dp)) {
-                    NcTag(
-                        label = item.toReadableSignerType(context = LocalContext.current),
-                        backgroundColor = colorResource(
-                            id = R.color.nc_whisper_color
-                        ),
+                Column(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = item.name,
+                        style = NunchukTheme.typography.body
                     )
-                    if (item.isShowAcctX()) {
+                    Row(modifier = Modifier.padding(top = 4.dp)) {
                         NcTag(
-                            modifier = Modifier.padding(start = 4.dp),
-                            label = stringResource(R.string.nc_acct_x, item.index),
+                            label = item.toReadableSignerType(context = LocalContext.current),
                             backgroundColor = colorResource(
                                 id = R.color.nc_whisper_color
                             ),
                         )
+                        if (item.isShowAcctX()) {
+                            NcTag(
+                                modifier = Modifier.padding(start = 4.dp),
+                                label = stringResource(R.string.nc_acct_x, item.index),
+                                backgroundColor = colorResource(
+                                    id = R.color.nc_whisper_color
+                                ),
+                            )
+                        }
                     }
+                    Text(
+                        modifier = Modifier.padding(top = 4.dp),
+                        text = item.getXfpOrCardIdLabel(),
+                        style = NunchukTheme.typography.bodySmall
+                    )
                 }
-                Text(
-                    modifier = Modifier.padding(top = 4.dp),
-                    text = item.getXfpOrCardIdLabel(),
-                    style = NunchukTheme.typography.bodySmall
-                )
-            }
-            if (isReplaced) {
-                if (isNeedVerify) {
+                if (isReplaced) {
+                    if (isNeedVerify) {
+                        NcOutlineButton(
+                            modifier = Modifier.height(36.dp),
+                            onClick = { onVerifyClicked(item) },
+                        ) {
+                            Text(text = stringResource(R.string.nc_verify_backup))
+                        }
+                    }
+                } else {
                     NcOutlineButton(
                         modifier = Modifier.height(36.dp),
-                        onClick = { onVerifyClicked(item) },
+                        onClick = { onReplaceClicked(item) },
                     ) {
-                        Text(text = stringResource(R.string.nc_verify_backup))
+                        Text(text = stringResource(R.string.nc_replace))
                     }
                 }
-            } else {
-                NcOutlineButton(
-                    modifier = Modifier.height(36.dp),
-                    onClick = { onReplaceClicked(item) },
-                ) {
-                    Text(text = stringResource(R.string.nc_replace))
-                }
+            }
+        }
+
+        if (replacedSigner != null) {
+            Row(
+                modifier = Modifier.padding(top = 8.dp, start = 12.dp, end = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_replace),
+                    contentDescription = "Replace icon"
+                )
+
+                Text(
+                    text = "Replacing ${originalSigner.name} (${originalSigner.getXfpOrCardIdLabel()})",
+                    style = NunchukTheme.typography.bodySmall,
+                )
             }
         }
     }
