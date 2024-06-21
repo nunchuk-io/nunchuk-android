@@ -103,7 +103,7 @@ fun JoinKey.toSignerModel() = SignerModel(
     isMasterSigner = false
 )
 
-fun SignerServer.toModel() = SignerModel(
+fun SignerServer.toModel(index: Int) = SignerModel(
     id = xfp ?: "",
     name = name ?: "",
     derivationPath = derivationPath ?: "",

@@ -25,6 +25,7 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
@@ -68,7 +69,8 @@ class ReplaceKeysViewModel @Inject constructor(
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
-    private val pushEventManager: PushEventManager
+    private val pushEventManager: PushEventManager,
+    private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _uiState = MutableStateFlow(ReplaceKeysUiState())
@@ -171,7 +173,10 @@ class ReplaceKeysViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         replaceSigners = status.signers.mapValues { entry ->
-                            entry.value.toModel()
+                            entry.value.toModel(
+                                getIndexFromPathUseCase(entry.value.derivationPath.orEmpty())
+                                    .getOrDefault(0)
+                            )
                         },
                         verifiedSigners = verifiedSigners,
                         pendingReplaceXfps = status.pendingReplaceXfps,
