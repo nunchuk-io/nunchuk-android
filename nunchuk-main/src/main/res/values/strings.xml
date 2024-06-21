@@ -312,7 +312,7 @@
     <string name="nc_the_end_date_should_be_after_the_start_date">The end date should be after the start date.</string>
     <string name="nc_change_email_request_has_been_canceled">Email address change has been canceled.</string>
     <string name="nc_approve">Approve</string>
-    <string name="nc_setup_reminders_health_check_your_keys">Set up reminders to health check your keys.</string>
+    <string name="nc_setup_reminders_health_check_your_keys">Set up periodic health check reminders for your keys.</string>
     <string name="nc_repeat_every_data">Repeat every %1$s</string>
     <string name="nc_no_reminder">No reminder</string>
     <string name="nc_add_reminder">Add reminder</string>
@@ -320,7 +320,7 @@
     <string name="nc_how_often_would_you_like_heath_check_this_key">How often would you like to health check this key?</string>
     <string name="nc_select_which_keys_setup_reminders">Select which keys you want to set up reminders for.</string>
     <string name="nc_reminders_updated">Reminders updated</string>
-    <string name="nc_keys_have_set_periodic_reminders">The keys have set periodic reminders</string>
+    <string name="nc_keys_have_set_periodic_reminders">Set up periodic health check reminders for your keys.</string>
     <string name="nc_coldcard_index_not_match">The account imported does not match the account that you entered (%1$d). Please try again.</string>
     <string name="nc_new_account_needed_airgap">New account data needed. Please import your key again using the given account.</string>
     <string name="nc_3_of_5_multisig_with_inheritance_planning">3-of-5 multisig with inheritance planning</string>
