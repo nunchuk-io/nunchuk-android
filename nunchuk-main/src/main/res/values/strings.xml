@@ -352,7 +352,7 @@
     <string name="nc_transfer_fund_desc">Would you like to transfer all funds from the old wallet to the new wallet?</string>
     <string name="nc_continue_to_transfer_funds">Continue to transfer funds</string>
     <string name="nc_transfer_funds">Transfer funds</string>
-    <string name="nc_transfer_funds_desc">We will now transfer all funds from the old wallet to %1$s.</string>
+    <string name="nc_transfer_funds_desc">Transfer all funds from the old wallet to %1$s.</string>
     <string name="nc_existing_balance">Existing balance</string>
     <string name="nc_remove_unused_keys">Remove unused keys</string>
     <string name="nc_remove_unused_key_desc">Upon completion of the roll-over process, keys that are associated with your old assisted wallet and are no longer used will automatically be removed.</string>
