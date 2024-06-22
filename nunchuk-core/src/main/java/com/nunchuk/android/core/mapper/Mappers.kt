@@ -29,6 +29,7 @@ import com.nunchuk.android.model.InheritancePendingRequest
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.User
 import com.nunchuk.android.model.UserResponse
 import com.nunchuk.android.model.byzantine.AlertType
@@ -40,6 +41,7 @@ import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.entity.AlertEntity
 import com.nunchuk.android.persistence.entity.GroupEntity
 import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
+import com.nunchuk.android.persistence.entity.SavedAddressEntity
 import com.nunchuk.android.type.Chain
 
 internal fun KeyResponse.toBackupKey(): BackupKey {
@@ -213,6 +215,22 @@ internal fun AlertEntity.toAlert(): Alert {
         title = title,
         type = AlertType.valueOf(type),
         payload = gson.fromJson(payload, AlertPayload::class.java)
+    )
+}
+
+internal fun SavedAddressEntity.toSavedAddress(): SavedAddress {
+    return SavedAddress(
+        address = address,
+        label = label,
+    )
+}
+
+internal fun SavedAddress.toSavedAddressEntity(chain: Chain, chatId: String): SavedAddressEntity {
+    return SavedAddressEntity(
+        address = address,
+        label = label,
+        chain = chain,
+        chatId = chatId
     )
 }
 

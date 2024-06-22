@@ -12,8 +12,8 @@ class DeleteSavedAddressUseCase @Inject constructor(
 ) : UseCase<DeleteSavedAddressUseCase.Params, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Params) {
-        repository.deleteSavedAddress(address = parameters.address)
+        repository.deleteSavedAddress(address = parameters.address, isPremiumUser = parameters.isPremiumUser)
     }
 
-    class Params(val address: String)
+    class Params(val address: String, val isPremiumUser: Boolean)
 }

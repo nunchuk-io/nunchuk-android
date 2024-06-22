@@ -3,9 +3,11 @@ package com.nunchuk.android.transaction.components.address.addoredit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.util.SavedAddressFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SavedAddress
+import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.membership.AddOrUpdateSavedAddressUseCase
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,6 +28,7 @@ class AddOrEditAddressViewModel @Inject constructor(
     private val addOrUpdateSavedAddressUseCase: AddOrUpdateSavedAddressUseCase,
     private val deleteSavedAddressUseCase: DeleteSavedAddressUseCase,
     private val checkAddressValidUseCase: CheckAddressValidUseCase,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -46,6 +50,13 @@ class AddOrEditAddressViewModel @Inject constructor(
                 )
             }
         }
+        viewModelScope.launch {
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .collect { plans ->
+                    _state.update { it.copy(isPremiumUser = plans.isNonePlan().not()) }
+                }
+        }
     }
 
     fun parseBtcUri(content: String) {
@@ -62,7 +73,8 @@ class AddOrEditAddressViewModel @Inject constructor(
 
     fun addOrUpdateAddress() {
         viewModelScope.launch {
-            val resultCheckAddress = checkAddressValidUseCase(CheckAddressValidUseCase.Params(listOf(state.value.address)))
+            val resultCheckAddress =
+                checkAddressValidUseCase(CheckAddressValidUseCase.Params(listOf(state.value.address)))
             if (resultCheckAddress.isSuccess && resultCheckAddress.getOrThrow().isEmpty()) {
                 _state.update { it.copy(invalidAddress = false) }
             } else {
@@ -74,6 +86,7 @@ class AddOrEditAddressViewModel @Inject constructor(
                 AddOrUpdateSavedAddressUseCase.Params(
                     address = state.value.address,
                     label = state.value.label,
+                    isPremiumUser = state.value.isPremiumUser
                 )
             )
             if (result.isSuccess) {
@@ -90,7 +103,7 @@ class AddOrEditAddressViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(AddOrEditAddressEvent.Loading(true))
             val result =
-                deleteSavedAddressUseCase(DeleteSavedAddressUseCase.Params(args.address!!.address))
+                deleteSavedAddressUseCase(DeleteSavedAddressUseCase.Params(args.address!!.address, _state.value.isPremiumUser))
             if (result.isSuccess) {
                 _event.emit(AddOrEditAddressEvent.Success(state.value.address, state.value.label))
             } else {
@@ -113,7 +126,8 @@ data class AddOrEditAddressState(
     val address: String = "",
     val label: String = "",
     val originSavedAddress: SavedAddress? = null,
-    val invalidAddress: Boolean = false
+    val invalidAddress: Boolean = false,
+    val isPremiumUser: Boolean = false,
 )
 
 sealed class AddOrEditAddressEvent {

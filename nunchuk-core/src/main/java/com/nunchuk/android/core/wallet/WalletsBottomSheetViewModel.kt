@@ -22,16 +22,22 @@ package com.nunchuk.android.core.wallet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
+import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
-import com.nunchuk.android.usecase.membership.GetSavedAddressListUseCase
+import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
+import com.nunchuk.android.usecase.membership.GetSavedAddressListRemoteUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +56,9 @@ class WalletsBottomSheetViewModel @Inject constructor(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    private val getSavedAddressListUseCase: GetSavedAddressListUseCase
+    private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
+    private val getSavedAddressListRemoteUseCase: GetSavedAddressListRemoteUseCase,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WalletsBottomSheetState())
@@ -80,8 +88,24 @@ class WalletsBottomSheetViewModel @Inject constructor(
                     updateLockdownWalletsIds()
                 }
         }
+        viewModelScope.launch {
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .collect { plans ->
+                    if (plans.isNonePlan().not()) {
+                        syncSavedAddresses()
+                    }
+                    _state.update { it.copy(isPremiumUser = plans.isNonePlan().not()) }
+                }
+        }
         if (configArgs?.isShowAddress == true) getSavedAddresses()
         getWallets(exclusiveWalletIds, assistedWalletIds)
+    }
+
+    private fun syncSavedAddresses() {
+        viewModelScope.launch {
+            getSavedAddressListRemoteUseCase(Unit)
+        }
     }
 
     private fun getWallets(exclusiveWalletIds: List<String>, assistedWalletIds: List<String>) {
@@ -122,10 +146,11 @@ class WalletsBottomSheetViewModel @Inject constructor(
 
     fun getSavedAddresses() {
         viewModelScope.launch {
-            getSavedAddressListUseCase(Unit)
-                .onSuccess { addresses ->
-                    _state.update { it.copy(savedAddresses = addresses.filter { it.address !in exclusiveAddresses }) }
+            getSavedAddressListLocalUseCase(Unit)
+                .collect { result ->
+                    _state.update { it.copy(savedAddresses = result.getOrNull()?.filter { it.address !in exclusiveAddresses }.orEmpty()) }
                 }
+
         }
     }
 
@@ -175,5 +200,6 @@ data class WalletsBottomSheetState(
     val savedAddresses: List<SavedAddress> = emptyList(),
     val roles: Map<String, AssistedWalletRole> = emptyMap(),
     val config: WalletComposeBottomSheet.ConfigArgs? = null,
-    val walletUiModels: List<WalletUiModel> = emptyList()
+    val walletUiModels: List<WalletUiModel> = emptyList(),
+    val isPremiumUser: Boolean = false
 )

@@ -12,8 +12,8 @@ class AddOrUpdateSavedAddressUseCase @Inject constructor(
 ) : UseCase<AddOrUpdateSavedAddressUseCase.Params, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Params) {
-        repository.addOrUpdateSavedAddress(address = parameters.address, label = parameters.label)
+        repository.addOrUpdateSavedAddress(address = parameters.address, label = parameters.label, isPremiumUser = parameters.isPremiumUser)
     }
 
-    class Params(val address: String, val label: String)
+    class Params(val address: String, val label: String, val isPremiumUser: Boolean)
 }
