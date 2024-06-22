@@ -87,13 +87,13 @@
         app:layout_constraintTop_toBottomOf="@+id/staySignIn" />
 
     <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/signInPrimaryKey"
+        android:id="@+id/signInDigitalSignature"
         style="@style/NCPrimaryButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_signin_primary_key"
+        android:text="@string/nc_text_signin_via_digital_signature"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/signIn" />
 
@@ -106,7 +106,7 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_text_create_account"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signInPrimaryKey" />
+        app:layout_constraintTop_toBottomOf="@id/signInDigitalSignature" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/guestMode"

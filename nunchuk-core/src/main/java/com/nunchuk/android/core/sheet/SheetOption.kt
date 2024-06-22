@@ -152,4 +152,7 @@ object SheetOptionType {
     const val TYPE_CREATE_HOT_WALLET = 86
 
     const val TYPE_REPLACE_KEY = 87
+
+    const val TYPE_SIGN_IN_PAID_SUBSCRIPTION = 88
+    const val TYPE_SIGN_IN_PRIMARY_KEY = 89
 }

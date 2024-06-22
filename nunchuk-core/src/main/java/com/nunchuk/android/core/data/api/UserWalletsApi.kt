@@ -53,6 +53,7 @@ import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.SavedAddressListResponse
 import com.nunchuk.android.core.data.model.byzantine.SavedAddressRequest
+import com.nunchuk.android.core.data.model.byzantine.SignInDummyTransactionResponse
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
@@ -79,6 +80,7 @@ import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
+import com.nunchuk.android.core.data.model.membership.SigninDummyRequest
 import com.nunchuk.android.core.data.model.membership.TransactionNoteResponse
 import com.nunchuk.android.core.data.model.membership.TransactionResponse
 import com.nunchuk.android.core.data.model.membership.TransactionsResponse
@@ -534,6 +536,12 @@ internal interface UserWalletsApi {
         @Path("dummy_transaction_id") transactionId: String,
     ): Data<DummyTransactionResponse>
 
+    @PUT("/v1.1/user-wallets/signin-dummy/{dummy_transaction_id}")
+    suspend fun updateDummyTransactionSignIn(
+        @HeaderMap headers: Map<String, String>,
+        @Path("dummy_transaction_id") transactionId: String,
+    ): Data<SignInDummyTransactionResponse>
+
     @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/dummy-transactions/{dummy_transaction_id}")
     suspend fun deleteDummyTransaction(
         @Path("wallet_id_or_local_id") walletId: String,
@@ -628,4 +636,9 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Body payload: Map<String, Boolean>,
     ): Data<Unit>
+
+    @POST("/v1.1/user-wallets/signin-dummy")
+    suspend fun signinDummy(
+        @Body payload: SigninDummyRequest,
+    ): Data<SignInDummyTransactionResponse>
 }

@@ -17,37 +17,42 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.model.membership
+package com.nunchuk.android.auth.domain
 
-import com.google.gson.annotations.SerializedName
-import com.nunchuk.android.model.ServerKey
-import com.nunchuk.android.model.TapSigner
+import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class ServerKeyDto(
-    @SerializedName("name") val name: String? = null,
-    @SerializedName("xfp") val xfp: String? = null,
-    @SerializedName("derivation_path") val derivationPath: String? = null,
-    @SerializedName("xpub") val xpub: String? = null,
-    @SerializedName("pubkey") val pubkey: String? = null,
-    @SerializedName("id") val id: String? = null,
-    @SerializedName("type") val type: String? = null,
-    @SerializedName("tapsigner") val tapsigner: TapSignerDto? = null,
-    @SerializedName("policies") val policies: KeyPoliciesDto? = null,
-    @SerializedName("tags") val tags: List<String>? = emptyList(),
-    @SerializedName("key_index") val index: Int = 0,
-)
+class SignInViaDigitalSignatureUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val accountManager: AccountManager,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val checkShowOnboardUseCase: CheckShowOnboardUseCase,
+) : UseCase<SignInViaDigitalSignatureUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        val account = accountManager.getAccount()
+        accountManager.storeAccount(
+            account.copy(
+                token = parameters.tokenId,
+                activated = true,
+                staySignedIn = true,
+                deviceId = parameters.deviceId,
+                loginType = SignInMode.EMAIL.value,
+            )
+        )
+        runCatching {
+            getUserProfileUseCase(Unit)
+            checkShowOnboardUseCase(Unit)
+        }
+    }
 
-internal fun ServerKeyDto.toModel(): ServerKey {
-    return ServerKey(
-        name = name ?: "",
-        xfp = xfp ?: "",
-        derivationPath = derivationPath ?: "",
-        xpub = xpub ?: "",
-        pubkey = pubkey ?: "",
-        id = id ?: "",
-        type = type ?: "",
-        tapsigner = tapsigner?.toModel() ?: TapSigner(),
-        tags = tags.orEmpty(),
-        index = index,
+    data class Param(
+        val staySignedIn: Boolean,
+        val tokenId: String,
+        val deviceId: String
     )
 }

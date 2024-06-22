@@ -129,7 +129,8 @@ interface TransactionNavigator {
         masterFingerPrint: String = "",
         initEventId: String = "",
         isDummyTx: Boolean = false,
-        isFinishWhenError: Boolean = false
+        isFinishWhenError: Boolean = false,
+        isSignInFlow: Boolean = false
     )
 
     fun openExportTransactionScreen(
@@ -139,7 +140,8 @@ interface TransactionNavigator {
         txId: String = "",
         txToSign: String = "",
         isDummyTx: Boolean = false,
-        isBBQR: Boolean = false
+        isBBQR: Boolean = false,
+        isSignInFlow: Boolean = false
     )
 
     fun openReplaceTransactionFee(

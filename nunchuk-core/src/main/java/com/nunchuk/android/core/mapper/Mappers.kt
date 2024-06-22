@@ -6,6 +6,7 @@ import com.nunchuk.android.core.data.model.byzantine.GroupChatDto
 import com.nunchuk.android.core.data.model.byzantine.GroupResponse
 import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponseOrRequest
 import com.nunchuk.android.core.data.model.byzantine.MemberRequest
+import com.nunchuk.android.core.data.model.byzantine.SignatureDto
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
@@ -22,6 +23,7 @@ import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.CalculateRequiredSignatureStep
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
+import com.nunchuk.android.model.DummySignature
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Inheritance
@@ -316,3 +318,10 @@ internal fun GroupEntity.toByzantineGroup(): ByzantineGroup {
         slug = slug
     )
 }
+
+internal fun SignatureDto.toModel() = DummySignature(
+    xfp = xfp.orEmpty(),
+    signature = signature.orEmpty(),
+    signedByUserId = signedByUserId.orEmpty(),
+    createdTimeMillis = createdTimeMillis
+)

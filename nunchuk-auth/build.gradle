@@ -1,6 +1,7 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 android {
 
@@ -18,6 +19,9 @@ dependencies {
     implementation project(':nunchuk-network')
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
+
+    implementation navigationDeps.navigationUi
+    implementation navigationDeps.navigationFragment
 
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()

@@ -38,6 +38,7 @@ class GetUserProfileUseCase @Inject constructor(
                 .copy(
                     chatId = user.chatId.orEmpty(),
                     name = user.name.orEmpty(),
+                    email = user.email.orEmpty(),
                     avatarUrl = user.avatar.orEmpty(),
                     id = user.id.orEmpty()
                 )

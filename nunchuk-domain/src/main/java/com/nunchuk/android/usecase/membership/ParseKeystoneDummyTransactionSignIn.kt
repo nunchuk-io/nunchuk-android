@@ -17,37 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.model.membership
+package com.nunchuk.android.usecase.membership
 
-import com.google.gson.annotations.SerializedName
-import com.nunchuk.android.model.ServerKey
-import com.nunchuk.android.model.TapSigner
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class ServerKeyDto(
-    @SerializedName("name") val name: String? = null,
-    @SerializedName("xfp") val xfp: String? = null,
-    @SerializedName("derivation_path") val derivationPath: String? = null,
-    @SerializedName("xpub") val xpub: String? = null,
-    @SerializedName("pubkey") val pubkey: String? = null,
-    @SerializedName("id") val id: String? = null,
-    @SerializedName("type") val type: String? = null,
-    @SerializedName("tapsigner") val tapsigner: TapSignerDto? = null,
-    @SerializedName("policies") val policies: KeyPoliciesDto? = null,
-    @SerializedName("tags") val tags: List<String>? = emptyList(),
-    @SerializedName("key_index") val index: Int = 0,
-)
+class ParseKeystoneDummyTransactionSignIn @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+) : UseCase<ParseKeystoneDummyTransactionSignIn.Param, Transaction>(ioDispatcher) {
 
-internal fun ServerKeyDto.toModel(): ServerKey {
-    return ServerKey(
-        name = name ?: "",
-        xfp = xfp ?: "",
-        derivationPath = derivationPath ?: "",
-        xpub = xpub ?: "",
-        pubkey = pubkey ?: "",
-        id = id ?: "",
-        type = type ?: "",
-        tapsigner = tapsigner?.toModel() ?: TapSigner(),
-        tags = tags.orEmpty(),
-        index = index,
-    )
+    override suspend fun execute(parameters: Param): Transaction {
+        val psbt = nativeSdk.parseKeystoneDummyTransaction(parameters.qrs)
+        return nativeSdk.getSignInDummyTx(psbt)
+    }
+
+    data class Param(val qrs: List<String>)
 }

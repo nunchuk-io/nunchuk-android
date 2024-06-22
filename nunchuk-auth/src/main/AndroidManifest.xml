@@ -25,5 +25,13 @@
         <activity
             android:name=".components.verify.VerifyNewDeviceActivity"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".components.enterxpub.EnterXPUBActivity"
+            android:screenOrientation="portrait" />
+
+        <activity android:name=".components.authentication.SignInAuthenticationActivity"
+            android:screenOrientation="portrait" />
+
     </application>
 </manifest>
