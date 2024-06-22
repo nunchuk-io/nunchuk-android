@@ -19,5 +19,9 @@ class GetGroupDummyTransactionUseCase @Inject constructor(
             dummyTransactionId = parameters.transactionId
         )
 
-    data class Param(val groupId: String, val walletId: String, val transactionId: String)
+    data class Param(
+        val groupId: String,
+        val walletId: String,
+        val transactionId: String
+    )
 }

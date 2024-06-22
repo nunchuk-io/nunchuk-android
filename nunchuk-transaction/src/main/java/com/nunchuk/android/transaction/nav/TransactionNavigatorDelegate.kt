@@ -226,7 +226,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         masterFingerPrint: String,
         initEventId: String,
         isDummyTx: Boolean,
-        isFinishWhenError: Boolean
+        isFinishWhenError: Boolean,
+        isSignInFlow: Boolean
     ) {
         val intent = ImportTransactionActivity.buildIntent(
             activityContext = activityContext,
@@ -234,7 +235,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             masterFingerPrint = masterFingerPrint,
             initEventId = initEventId,
             isDummyTx = isDummyTx,
-            isFinishWhenError = isFinishWhenError
+            isFinishWhenError = isFinishWhenError,
+            isSignInFlow = isSignInFlow
         )
         if (launcher != null) {
             launcher.launch(intent)
@@ -250,7 +252,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         txId: String,
         txToSign: String,
         isDummyTx: Boolean,
-        isBBQR: Boolean
+        isBBQR: Boolean,
+        isSignInFlow: Boolean
     ) {
         val intent = ExportTransactionActivity.buildIntent(
             activityContext = activityContext,
@@ -258,7 +261,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             txId = txId,
             txToSign = txToSign,
             isDummyTx = isDummyTx,
-            isBBQR = isBBQR
+            isBBQR = isBBQR,
+            isSignInFlow = isSignInFlow
         )
         if (launcher != null) {
             launcher.launch(intent)

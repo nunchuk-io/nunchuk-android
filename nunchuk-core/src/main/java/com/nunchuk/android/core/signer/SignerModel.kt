@@ -116,6 +116,23 @@ fun SignerServer.toModel(index: Int) = SignerModel(
     cardId = tapsigner?.cardId.orEmpty(),
 )
 
+fun SignerModel.toSingleSigner() = SingleSigner(
+    name = name,
+    xpub = "",
+    publicKey = "",
+    derivationPath = derivationPath,
+    masterFingerprint = fingerPrint,
+    lastHealthCheck = 0L,
+    masterSignerId = id,
+    used = used,
+    type = type,
+    hasMasterSigner = isMasterSigner,
+    descriptor = "",
+    tags = tags,
+    isVisible = isVisible,
+    index = index
+)
+
 data class SignerInput(
     val fingerPrint: String,
     val derivationPath: String,

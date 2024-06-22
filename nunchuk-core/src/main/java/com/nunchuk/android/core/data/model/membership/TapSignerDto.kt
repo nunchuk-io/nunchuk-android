@@ -22,7 +22,7 @@ package com.nunchuk.android.core.data.model.membership
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.TapSigner
 
-internal data class TapSignerDto(
+data class TapSignerDto(
     @SerializedName("card_id")
     val cardId: String = "",
     @SerializedName("version")

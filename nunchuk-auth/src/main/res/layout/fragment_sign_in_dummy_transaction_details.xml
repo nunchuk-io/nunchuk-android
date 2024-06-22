@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/nc_white_color"
+    android:fitsSystemWindows="true">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NCToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:contentInsetStartWithNavigation="@dimen/nc_padding_16"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_more"
+        app:navigationIcon="@drawable/ic_close">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nc_transaction_details"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/transactionInfoContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/nc_grey_light"
+                android:paddingHorizontal="@dimen/nc_padding_16"
+                android:paddingTop="@dimen/nc_padding_24"
+                android:paddingBottom="@dimen/nc_padding_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/nc_rounded_tag_whisper_background"
+                    android:paddingHorizontal="@dimen/nc_padding_10"
+                    android:paddingVertical="@dimen/nc_padding_4"
+                    android:text="@string/nc_transaction_pending_confirmation"
+                    android:textColor="@color/nc_primary_dark_color"
+                    android:textSize="@dimen/nc_text_size_12"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/sendingToLabel"
+                    style="@style/NCText.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_12"
+                    android:text="@string/nc_transaction_sending_to"
+                    android:textColor="@color/nc_black_color"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/status" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/sendingTo"
+                    style="@style/NCText.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_4"
+                    android:layout_marginTop="@dimen/nc_padding_12"
+                    android:ellipsize="middle"
+                    android:singleLine="true"
+                    android:textColor="@color/nc_black_color"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/sendingToLabel"
+                    app:layout_constraintTop_toBottomOf="@+id/status"
+                    tools:text="FJDFSa...GKgo" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/sendingBTC"
+                    style="@style/NCText.Heading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/sendingTo"
+                    tools:text="1.00000001 BTC" />
+
+                <View
+                    android:id="@+id/topDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="@dimen/nc_padding_24"
+                    android:background="@color/nc_whisper_color"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/sendingBTC" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/viewMore"
+                    style="@style/NCText.Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:background="?attr/selectableItemBackground"
+                    android:drawableEnd="@drawable/ic_expand"
+                    android:paddingVertical="@dimen/nc_padding_8"
+                    android:text="@string/nc_transaction_more_details"
+                    android:textColor="@color/nc_black_color"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/topDivider" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/transactionDetailsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/nc_white_color"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/transactionInfoContainer"
+                tools:visibility="visible">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/sendToAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/nc_whisper_color"
+                    android:padding="@dimen/nc_padding_16"
+                    android:text="@string/nc_transaction_send_to_address"
+                    android:textColor="@color/nc_primary_dark_color"
+                    android:textSize="@dimen/nc_text_size_14"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/sendAddressBTC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/sendToAddress"
+                    tools:text="1.00000001 BTC" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/sendAddressUSD"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_14"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/sendAddressBTC"
+                    tools:text="$200,999,999.97" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/sendAddressLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_16"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:layout_marginEnd="@dimen/nc_padding_8"
+                    android:background="?attr/selectableItemBackground"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toStartOf="@+id/sendAddressBTC"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sendToAddress"
+                    tools:text="tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg" />
+
+                <androidx.constraintlayout.widget.Barrier
+                    android:id="@+id/sendAddressBarrier"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:barrierDirection="bottom"
+                    app:constraint_referenced_ids="sendAddressUSD,sendAddressLabel" />
+
+                <View
+                    android:id="@+id/divider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_margin="@dimen/nc_padding_16"
+                    android:background="@color/nc_whisper_color"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/sendAddressBarrier" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/estimatedFeeBTC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/divider"
+                    tools:text="0.001 BTC" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/estimatedFeeUSD"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_14"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/estimatedFeeBTC"
+                    tools:text="$5,400,504.52" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/estimatedFeeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_16"
+                    android:drawableEnd="@drawable/ic_help"
+                    android:drawablePadding="@dimen/nc_padding_4"
+                    android:text="@string/nc_transaction_estimate_fee"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/estimatedFeeUSD"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/estimatedFeeBTC" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/totalAmountBTC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/estimatedFeeUSD"
+                    tools:text="0.001 BTC" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/totalAmountUSD"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_14"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/totalAmountBTC"
+                    tools:text="$5,400,504.52" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/totalAmountLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_16"
+                    android:text="@string/nc_transaction_total_amount"
+                    android:textColor="@color/nc_black_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/totalAmountUSD"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/totalAmountBTC" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/signersContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/nc_padding_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/transactionDetailsContainer">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/memberSigners"
+                    style="@style/NCText.Title.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="@dimen/nc_padding_8"
+                    android:text="@string/nc_transaction_member_signers"
+                    android:textColor="@color/nc_black_color"
+                    app:fontTextStyle="semi_bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/signatureStatus"
+                    style="@style/NCText.Title.Small"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_4"
+                    android:drawableStart="@drawable/ic_check_circle"
+                    android:drawablePadding="@dimen/nc_padding_2"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:maxLines="2"
+                    android:paddingVertical="@dimen/nc_padding_8"
+                    android:text="@string/nc_transaction_enough_signers"
+                    android:textColor="@color/nc_grey_dark_color"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/memberSigners"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/signerListView"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/memberSigners" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

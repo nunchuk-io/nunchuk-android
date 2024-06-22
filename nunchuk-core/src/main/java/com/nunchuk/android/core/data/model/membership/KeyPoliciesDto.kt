@@ -25,7 +25,7 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 
-internal data class KeyPoliciesDto(
+data class KeyPoliciesDto(
     @SerializedName("auto_broadcast_transaction")
     val autoBroadcastTransaction: Boolean = false,
     @SerializedName("signing_delay_seconds")
@@ -38,14 +38,14 @@ internal data class KeyPoliciesDto(
     val membersSpendingLimit: List<MemberSpendingLimitDto>? = null,
 )
 
-internal data class MemberSpendingLimitDto(
+data class MemberSpendingLimitDto(
     @SerializedName("membership_id")
     val membershipId: String? = null,
     @SerializedName("spending_limit")
     val spendingLimit: SpendingPolicyDto? = null,
 )
 
-internal data class SpendingPolicyDto(
+data class SpendingPolicyDto(
     @SerializedName("interval")
     val interval: String,
     @SerializedName("limit")

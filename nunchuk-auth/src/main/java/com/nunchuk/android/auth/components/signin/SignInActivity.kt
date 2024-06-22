@@ -26,6 +26,7 @@ import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.nunchuk.android.auth.R
+import com.nunchuk.android.auth.components.enterxpub.EnterXPUBActivity
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySigninBinding
 import com.nunchuk.android.auth.util.getTextTrimmed
@@ -33,6 +34,10 @@ import com.nunchuk.android.auth.util.setUnderlineText
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
@@ -40,7 +45,7 @@ import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignInActivity : BaseActivity<ActivitySigninBinding>() {
+class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionListener {
 
     private val signInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -128,7 +133,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         }
         binding.signUp.setOnClickListener { onSignUpClick() }
         binding.signIn.setOnClickListener { onSignInClick() }
-        binding.signInPrimaryKey.setOnClickListener { viewModel.checkPrimaryKeyAccounts() }
+        binding.signInDigitalSignature.setOnClickListener { showSignInViaDigitalSignatureSheet() }
         binding.forgotPassword.setOnClickListener { onForgotPasswordClick() }
         binding.guestMode.setOnClickListener { onGuestModeClick() }
         binding.tvTermAndPolicy.linkify(
@@ -140,6 +145,22 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             PRIVACY_URL
         )
         clearInputFields()
+    }
+
+    private fun showSignInViaDigitalSignatureSheet() {
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_select_your_account_type),
+            options = listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_SIGN_IN_PAID_SUBSCRIPTION,
+                    label = getString(R.string.nc_have_a_paid_subscription),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_SIGN_IN_PRIMARY_KEY,
+                    label = getString(R.string.nc_have_a_primary_key_account),
+                ),
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
     }
 
     override fun onDestroy() {
@@ -189,6 +210,13 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 putExtra(EXTRA_IS_DELETED, isAccountDeleted)
             }
             activityContext.startActivity(intent)
+        }
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        when (option.type) {
+            SheetOptionType.TYPE_SIGN_IN_PAID_SUBSCRIPTION -> EnterXPUBActivity.start(this)
+            SheetOptionType.TYPE_SIGN_IN_PRIMARY_KEY -> navigator.openPrimaryKeySignInIntroScreen(this)
         }
     }
 

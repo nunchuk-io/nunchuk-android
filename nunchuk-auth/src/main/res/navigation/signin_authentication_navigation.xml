@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/check_sign_message_navigation"
+    app:startDestination="@id/signInDummyTransactionIntroFragment">
+
+    <fragment
+        android:id="@+id/signInDummyTransactionDetailsFragment"
+        android:name="com.nunchuk.android.auth.components.authentication.SignInDummyTransactionDetailsFragment"
+        android:label="SignInDummyTransactionDetailsFragment" />
+    <activity
+        android:id="@+id/signInAuthenticationActivity"
+        android:name="com.nunchuk.android.auth.components.authentication.SignInAuthenticationActivity"
+        android:label="SignInAuthenticationActivity">
+
+        <argument
+            android:name="dummy_transaction_id"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+
+        <argument
+            android:name="required_signatures"
+            app:argType="integer" />
+
+        <argument
+            android:name="sign_in_data"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </activity>
+
+    <fragment
+        android:id="@+id/signInDummyTransactionIntroFragment"
+        android:name="com.nunchuk.android.auth.components.authentication.SignInDummyTransactionIntroFragment"
+        android:label="SignInDummyTransactionIntroFragment">
+
+        <action
+            android:id="@+id/action_signInDummyTransactionIntroFragment_to_signInDummyTransactionDetailsFragment"
+            app:destination="@id/signInDummyTransactionDetailsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/signInDummyTransactionIntroFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+</navigation>

@@ -24,6 +24,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
+import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransactionSignIn
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,6 +44,7 @@ import javax.inject.Inject
 internal class ImportTransactionViewModel @Inject constructor(
     private val importKeystoneTransactionUseCase: ImportKeystoneTransactionUseCase,
     private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
+    private val parseKeystoneDummyTransactionSignIn: ParseKeystoneDummyTransactionSignIn,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
     private val _state = MutableStateFlow(ImportTransactionState())
@@ -83,13 +85,21 @@ internal class ImportTransactionViewModel @Inject constructor(
         if (isProcessing) return
         viewModelScope.launch {
             isProcessing = true
-            parseKeystoneDummyTransaction(
-                ParseKeystoneDummyTransaction.Param(
-                    args.walletId,
-                    qrDataList.toList()
+            val result = if (args.isSignInFlow) {
+                parseKeystoneDummyTransactionSignIn(
+                    ParseKeystoneDummyTransactionSignIn.Param(
+                        qrDataList.toList()
+                    )
                 )
-            )
-                .onSuccess {
+            } else {
+                parseKeystoneDummyTransaction(
+                    ParseKeystoneDummyTransaction.Param(
+                        args.walletId,
+                        qrDataList.toList()
+                    )
+                )
+            }
+            result.onSuccess {
                     setEvent(ImportTransactionSuccess(it))
                 }.onFailure {
                     Timber.e(it, "[ImportTransaction]")

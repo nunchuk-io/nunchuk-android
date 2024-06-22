@@ -133,14 +133,16 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
             masterFingerPrint: String = "",
             initEventId: String = "",
             isDummyTx: Boolean = false,
-            isFinishWhenError: Boolean = false
+            isFinishWhenError: Boolean = false,
+            isSignInFlow: Boolean = false
         ): Intent {
             return ImportTransactionArgs(
                 walletId = walletId,
                 masterFingerPrint = masterFingerPrint,
                 initEventId = initEventId,
                 isDummyTx = isDummyTx,
-                isFinishWhenError = isFinishWhenError
+                isFinishWhenError = isFinishWhenError,
+                isSignInFlow = isSignInFlow
             ).buildIntent(activityContext)
         }
     }

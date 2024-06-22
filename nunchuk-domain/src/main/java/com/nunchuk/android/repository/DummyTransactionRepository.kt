@@ -1,8 +1,10 @@
 package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.DummyTransaction
+import com.nunchuk.android.model.SignInDummyTransaction
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.DummyTransactionUpdate
+import com.nunchuk.android.model.byzantine.SignInDummyTransactionUpdate
 
 interface DummyTransactionRepository {
     suspend fun getDummyTransaction(
@@ -24,6 +26,11 @@ interface DummyTransactionRepository {
         dummyTransactionId: String
     ): DummyTransactionUpdate
 
+    suspend fun updateDummyTransactionSignIn(
+        signatures: Map<String, String>,
+        dummyTransactionId: String
+    ): SignInDummyTransactionUpdate
+
     suspend fun deleteDummyTransaction(
         groupId: String,
         walletId: String,
@@ -40,4 +47,8 @@ interface DummyTransactionRepository {
         walletId: String,
         dummyTransactionId: String,
     ): Map<String, Boolean>
+
+    suspend fun getSignInDummyTransaction(
+        data: String,
+    ): SignInDummyTransaction
 }

@@ -2,6 +2,7 @@ package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.toDummyTransactionType
 
@@ -23,6 +24,8 @@ data class DummyTransactionDto(
     @SerializedName("payload") val payload: JsonObject? = null,
     @SerializedName("created_time_millis") val createdTimeMillis: Long = 0L,
     @SerializedName("is_draft") val isDraft: Boolean = false,
+    @SerializedName("wallet") val walletDto: WalletDto? = null,
+    @SerializedName("psbt") val psbt: String? = null,
 )
 
 data class SignatureDto(

@@ -167,7 +167,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             masterFingerPrint = args.masterFingerPrint,
             initEventId = args.initEventId,
             isDummyTx = args.isDummyTx,
-            isFinishWhenError = true
+            isFinishWhenError = true,
+            isSignInFlow = args.isSignInFlow
         )
     }
 
@@ -189,6 +190,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             masterFingerPrint: String = "",
             isDummyTx: Boolean = false,
             isBBQR: Boolean = false,
+            isSignInFlow: Boolean = false
         ): Intent {
             return ExportTransactionArgs(
                 walletId = walletId,
@@ -197,7 +199,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 initEventId = initEventId,
                 masterFingerPrint = masterFingerPrint,
                 isDummyTx = isDummyTx,
-                isBBQR = isBBQR
+                isBBQR = isBBQR,
+                isSignInFlow = isSignInFlow
             ).buildIntent(activityContext)
         }
     }

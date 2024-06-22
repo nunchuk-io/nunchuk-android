@@ -38,8 +38,12 @@
     <string name="nc_text_signin_guest_mode">Continue as guest</string>
     <string name="nc_text_signup_primary_key">Create account using Primary Key</string>
     <string name="nc_text_signin_primary_key">Sign in with Primary Key</string>
+    <string name="nc_text_signin_via_digital_signature">Sign in via digital signature</string>
     <string name="nc_text_change_your_password_info">We’ve sent a temporary password to %1$s. Please change your password.</string>
     <string name="nc_error_unconfirmed_coin_can_not_locked">Unconfirmed coins cannot be locked</string>
     <string name="nc_text_resend_code">Resend code</string>
     <string name="nc_text_expired_time_instruction">Confirmation code expires in</string>
+    <string name="nc_select_your_account_type">Please select your account type</string>
+    <string name="nc_have_a_paid_subscription">I have a paid subscription</string>
+    <string name="nc_have_a_primary_key_account">I have a Primary Key account</string>
 </resources>

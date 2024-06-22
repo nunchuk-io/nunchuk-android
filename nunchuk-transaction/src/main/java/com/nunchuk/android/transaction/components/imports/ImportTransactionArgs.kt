@@ -30,6 +30,7 @@ data class ImportTransactionArgs(
     val initEventId: String,
     val isDummyTx: Boolean,
     val isFinishWhenError: Boolean,
+    val isSignInFlow: Boolean
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ImportTransactionActivity::class.java).apply {
@@ -38,6 +39,7 @@ data class ImportTransactionArgs(
         putExtra(EXTRA_INIT_EVENT_ID, initEventId)
         putExtra(EXTRA_IS_DUMMY_TX, isDummyTx)
         putExtra(EXTRA_IS_FINISH_WHEN_ERROR, isFinishWhenError)
+        putExtra(EXTRA_IS_SIGN_IN_FLOW, isSignInFlow)
     }
 
     companion object {
@@ -46,6 +48,7 @@ data class ImportTransactionArgs(
         private const val EXTRA_INIT_EVENT_ID = "d"
         private const val EXTRA_IS_DUMMY_TX = "e"
         private const val EXTRA_IS_FINISH_WHEN_ERROR = "f"
+        private const val EXTRA_IS_SIGN_IN_FLOW = "g"
 
         fun deserializeFrom(intent: Intent): ImportTransactionArgs {
             val extras = intent.extras
@@ -54,7 +57,8 @@ data class ImportTransactionArgs(
                 masterFingerPrint = extras.getStringValue(EXTRA_MASTER_FINGER_PRINT),
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
                 isDummyTx = extras?.getBoolean(EXTRA_IS_DUMMY_TX) ?: false,
-                isFinishWhenError = extras?.getBoolean(EXTRA_IS_FINISH_WHEN_ERROR) ?: false
+                isFinishWhenError = extras?.getBoolean(EXTRA_IS_FINISH_WHEN_ERROR) ?: false,
+                isSignInFlow = extras?.getBoolean(EXTRA_IS_SIGN_IN_FLOW) ?: false
             )
         }
     }

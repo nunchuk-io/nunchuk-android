@@ -27,7 +27,7 @@ import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.type.SignerType
 
-internal data class SignerServerDto(
+data class SignerServerDto(
     @SerializedName("name") val name: String? = null,
     @SerializedName("xfp") val xfp: String? = null,
     @SerializedName("derivation_path") val derivationPath: String? = null,
