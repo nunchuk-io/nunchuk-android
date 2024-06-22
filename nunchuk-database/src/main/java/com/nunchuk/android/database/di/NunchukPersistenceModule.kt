@@ -34,6 +34,7 @@ import com.nunchuk.android.persistence.dao.HandledEventDao
 import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
+import com.nunchuk.android.persistence.dao.SavedAddressDao
 import com.nunchuk.android.persistence.dao.SyncEventDao
 import com.nunchuk.android.persistence.dao.SyncFileDao
 import dagger.Module
@@ -112,4 +113,8 @@ internal object NunchukPersistenceModule {
     @Provides
     fun provideElectrumServerDao(database: NunchukDatabase): ElectrumServerDao =
         database.electrumServerDao()
+
+    @Singleton
+    @Provides
+    fun provideSavedAddressDao(database: NunchukDatabase): SavedAddressDao = database.savedAddressDao()
 }

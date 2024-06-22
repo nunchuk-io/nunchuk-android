@@ -7,11 +7,11 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetSavedAddressListUseCase @Inject constructor(
+class GetSavedAddressListRemoteUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UseCase<Unit, List<SavedAddress>>(ioDispatcher) {
 
     override suspend fun execute(parameters: Unit): List<SavedAddress> =
-        repository.getSavedAddresses()
+        repository.getSavedAddressesRemote()
 }

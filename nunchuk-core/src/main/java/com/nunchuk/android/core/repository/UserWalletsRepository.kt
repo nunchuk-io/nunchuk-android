@@ -82,6 +82,7 @@ import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.data.model.membership.toWalletOption
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.mapper.toAlert
@@ -95,6 +96,8 @@ import com.nunchuk.android.core.mapper.toHistoryPeriod
 import com.nunchuk.android.core.mapper.toInheritance
 import com.nunchuk.android.core.mapper.toMemberRequest
 import com.nunchuk.android.core.mapper.toPeriod
+import com.nunchuk.android.core.mapper.toSavedAddress
+import com.nunchuk.android.core.mapper.toSavedAddressEntity
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -165,8 +168,10 @@ import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
+import com.nunchuk.android.persistence.dao.SavedAddressDao
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
 import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
+import com.nunchuk.android.persistence.entity.SavedAddressEntity
 import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
@@ -182,6 +187,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import org.matrix.android.sdk.api.auth.LoginType
 import javax.inject.Inject
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
@@ -197,6 +203,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val requestAddKeyDao: RequestAddKeyDao,
     private val groupDao: GroupDao,
     private val alertDao: AlertDao,
+    private val savedAddressDao: SavedAddressDao,
     private val groupWalletRepository: GroupWalletRepository,
     private val pushEventManager: PushEventManager,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
@@ -2483,7 +2490,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSavedAddresses(): List<SavedAddress> {
+    override suspend fun getSavedAddressesRemote(): List<SavedAddress> {
+        val chatId = accountManager.getAccount().chatId
         var index = 0
         val remoteList = mutableListOf<SavedAddress>()
         runCatching {
@@ -2498,22 +2506,56 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }.onFailure {
             return emptyList()
         }
+        val localAddresses = savedAddressDao.getSavedAddressList(chatId = chatId, chain = chain.value)
+        val remoteAddresses = remoteList.map { it.address }
+        val deleteAddresses = localAddresses.filter {
+            it.address !in remoteAddresses
+        }
+        savedAddressDao.updateData(
+        updateOrInsertList = remoteList.map { it.toSavedAddressEntity(chain = chain.value, chatId = chatId)},
+        deleteList = deleteAddresses
+        )
         return remoteList
     }
 
-    override suspend fun addOrUpdateSavedAddress(address: String, label: String) {
-        val response = userWalletApiManager.walletApi.addOrUpdateSavedAddress(
-            SavedAddressRequest(address = address, label = label)
-        )
-        if (response.isSuccess.not()) {
-            throw response.error
-        }
+    override fun getSavedAddressesLocal(): Flow<List<SavedAddress>> {
+        return savedAddressDao.getSavedAddressFlow(chain = chain.value, chatId = accountManager.getAccount().chatId)
+            .map { savedAddresses ->
+                savedAddresses.map { it.toSavedAddress() }
+            }
     }
 
-    override suspend fun deleteSavedAddress(address: String) {
-        val response = userWalletApiManager.walletApi.deleteSavedAddress(address)
-        if (response.isSuccess.not()) {
-            throw response.error
+    override suspend fun addOrUpdateSavedAddress(address: String, label: String, isPremiumUser: Boolean) {
+        if (isPremiumUser) {
+            val response = userWalletApiManager.walletApi.addOrUpdateSavedAddress(
+                SavedAddressRequest(address = address, label = label)
+            )
+            if (response.isSuccess.not()) {
+                throw response.error
+            }
+        }
+
+        savedAddressDao.updateOrInsert(
+            SavedAddressEntity(
+                address = address,
+                label = label,
+                chain = chain.value,
+                chatId = accountManager.getAccount().chatId
+            )
+        )
+        return
+    }
+
+    override suspend fun deleteSavedAddress(address: String, isPremiumUser: Boolean) {
+        if (isPremiumUser) {
+            val response = userWalletApiManager.walletApi.deleteSavedAddress(address)
+            if (response.isSuccess.not()) {
+                throw response.error
+            }
+        }
+        val entity = savedAddressDao.getByAddress(address, chain = chain.value, chatId = accountManager.getAccount().chatId)
+        entity?.let {
+            savedAddressDao.delete(entity)
         }
     }
 

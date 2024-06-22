@@ -33,6 +33,7 @@ import com.nunchuk.android.persistence.dao.HandledEventDao
 import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
+import com.nunchuk.android.persistence.dao.SavedAddressDao
 import com.nunchuk.android.persistence.dao.SyncEventDao
 import com.nunchuk.android.persistence.dao.SyncFileDao
 import com.nunchuk.android.persistence.entity.AlertEntity
@@ -45,6 +46,7 @@ import com.nunchuk.android.persistence.entity.HandledEventEntity
 import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
+import com.nunchuk.android.persistence.entity.SavedAddressEntity
 import com.nunchuk.android.persistence.entity.SyncEventEntity
 import com.nunchuk.android.persistence.entity.SyncFileEntity
 import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
@@ -63,6 +65,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         KeyHealthStatusEntity::class,
         DummyTransactionEntity::class,
         ElectrumServerEntity::class,
+        SavedAddressEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
@@ -86,6 +89,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         AutoMigration(from = 22, to = 23),
         AutoMigration(from = 23, to = 24),
         AutoMigration(from = 24, to = 25),
+        AutoMigration(from = 25, to = 26),
     ]
 )
 @TypeConverters(Converters::class)
@@ -99,6 +103,7 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun requestAddKeyDao(): RequestAddKeyDao
     abstract fun groupDao(): GroupDao
     abstract fun alertDao(): AlertDao
+    abstract fun savedAddressDao(): SavedAddressDao
     abstract fun keyHealthStatusDao(): KeyHealthStatusDao
     abstract fun dummyTransactionDao(): DummyTransactionDao
     abstract fun electrumServerDao(): ElectrumServerDao

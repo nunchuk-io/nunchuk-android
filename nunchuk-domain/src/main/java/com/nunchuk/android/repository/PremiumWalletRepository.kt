@@ -478,9 +478,10 @@ interface PremiumWalletRepository {
     suspend fun getUserWalletsServer(): List<WalletServer>
     suspend fun getGroupWalletsServer(): List<WalletServer>
     suspend fun updateKeyType(localSigner: SingleSigner, serverSigner: SignerServer)
-    suspend fun getSavedAddresses(): List<SavedAddress>
-    suspend fun addOrUpdateSavedAddress(address: String, label: String)
-    suspend fun deleteSavedAddress(address: String)
+    suspend fun getSavedAddressesRemote(): List<SavedAddress>
+    fun getSavedAddressesLocal(): Flow<List<SavedAddress>>
+    suspend fun addOrUpdateSavedAddress(address: String, label: String, isPremiumUser: Boolean)
+    suspend fun deleteSavedAddress(address: String, isPremiumUser: Boolean)
     suspend fun getHealthReminders(groupId: String?, walletId: String): List<HealthReminder>
     suspend fun addOrUpdateHealthReminder(groupId: String?, walletId: String, xfps: List<String>, frequency: String, startDateMillis: Long)
     suspend fun deleteHealthReminder(groupId: String?, walletId: String, xfps: List<String>)
