@@ -31,6 +31,7 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.core.util.hideLoading
@@ -154,7 +155,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
                 setPassphrase = !skipPassphrase,
                 isReplacePrimaryKey = true
             )
-        } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty()) {
+        } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty() || args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
             ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
         } else {
             navigator.returnToMainScreen()

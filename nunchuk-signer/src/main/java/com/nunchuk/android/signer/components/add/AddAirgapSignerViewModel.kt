@@ -26,6 +26,8 @@ import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toModel
@@ -98,6 +100,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
+    private val pushEventManager: PushEventManager,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -222,6 +225,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             )
             if (result.isSuccess) {
                 val airgap = result.getOrThrow()
+                pushEventManager.push(PushEvent.LocalUserSignerAdded(airgap))
                 if (isMembershipFlow) {
                     if (walletId.isNotEmpty() && !replacedXfp.isNullOrEmpty()) {
                         replaceKeyUseCase(

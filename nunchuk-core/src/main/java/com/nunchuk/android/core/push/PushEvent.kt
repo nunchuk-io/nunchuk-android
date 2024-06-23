@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.core.push
 
+import com.nunchuk.android.model.SingleSigner
+
 sealed class PushEvent {
     data class ServerTransactionEvent(val walletId: String, val transactionId: String) : PushEvent()
     data class MessageEvent(val message: String) : PushEvent()
@@ -40,4 +42,9 @@ sealed class PushEvent {
     data class InheritanceEvent(val walletId: String) : PushEvent()
     data class ReplaceKeyChange(val walletId: String) : PushEvent()
     data class WalletReplaced(val newWalletId: String, val newWalletName: String) : PushEvent()
+
+    /**
+     * Event for when a new local user signer is added, don't use it for create signer from sync API    
+     */
+    data class LocalUserSignerAdded(val signer: SingleSigner) : PushEvent()
 }

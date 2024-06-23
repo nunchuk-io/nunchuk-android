@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.software.R
@@ -102,7 +103,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             is ValidMnemonicEvent -> {
                 val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
                 when {
-                    primaryKeyFlow == PrimaryKeyFlow.SIGN_IN -> {
+                    primaryKeyFlow.isSignInFlow() -> {
                         navigator.openPrimaryKeyEnterPassphraseScreen(
                             this,
                             event.mnemonic,

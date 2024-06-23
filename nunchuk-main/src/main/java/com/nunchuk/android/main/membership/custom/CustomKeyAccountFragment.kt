@@ -63,6 +63,8 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInfoDialog
@@ -123,46 +125,78 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
         super.onOptionClicked(option)
         when (option.type) {
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> {
-                navigator.startSetupMk4ForResult(
-                    launcher = coldcardOrAirgapLauncher,
-                    activity = requireActivity(),
-                    fromMembershipFlow = true,
-                    action = ColdcardAction.CREATE,
-                    groupId = (activity as MembershipActivity).groupId,
-                    newIndex = viewModel.getNewIndex(),
-                    xfp = args.signer.fingerPrint,
-                    replacedXfp = args.replacedXfp,
-                    walletId = (activity as MembershipActivity).walletId,
-                )
+                if (args.isFreeWallet) {
+                    coldcardOrAirgapLauncher.launch(
+                        Mk4Activity.buildIntent(
+                            activity = requireActivity(),
+                            action = ColdcardAction.CREATE,
+                            walletId = (activity as MembershipActivity).walletId,
+                            newIndex = viewModel.getNewIndex(),
+                        )
+                    )
+                } else {
+                    navigator.startSetupMk4ForResult(
+                        launcher = coldcardOrAirgapLauncher,
+                        activity = requireActivity(),
+                        fromMembershipFlow = true,
+                        action = ColdcardAction.CREATE,
+                        groupId = (activity as MembershipActivity).groupId,
+                        newIndex = viewModel.getNewIndex(),
+                        xfp = args.signer.fingerPrint,
+                        replacedXfp = args.replacedXfp,
+                        walletId = (activity as MembershipActivity).walletId,
+                    )
+                }
             }
 
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> {
-                navigator.startSetupMk4ForResult(
-                    launcher = coldcardOrAirgapLauncher,
-                    activity = requireActivity(),
-                    fromMembershipFlow = true,
-                    action = ColdcardAction.RECOVER_KEY,
-                    groupId = (activity as MembershipActivity).groupId,
-                    newIndex = viewModel.getNewIndex(),
-                    xfp = args.signer.fingerPrint,
-                    replacedXfp = args.replacedXfp,
-                    walletId = (activity as MembershipActivity).walletId,
-                )
+                if (args.isFreeWallet) {
+                    coldcardOrAirgapLauncher.launch(
+                        Mk4Activity.buildIntent(
+                            activity = requireActivity(),
+                            action = ColdcardAction.RECOVER_KEY,
+                            walletId = (activity as MembershipActivity).walletId,
+                            newIndex = viewModel.getNewIndex(),
+                        )
+                    )
+                } else {
+                    navigator.startSetupMk4ForResult(
+                        launcher = coldcardOrAirgapLauncher,
+                        activity = requireActivity(),
+                        fromMembershipFlow = true,
+                        action = ColdcardAction.RECOVER_KEY,
+                        groupId = (activity as MembershipActivity).groupId,
+                        newIndex = viewModel.getNewIndex(),
+                        xfp = args.signer.fingerPrint,
+                        replacedXfp = args.replacedXfp,
+                        walletId = (activity as MembershipActivity).walletId,
+                    )
+                }
             }
         }
     }
 
     private fun openCreateBackUpTapSigner(index: Int) {
         findNavController().popBackStack()
-        navigator.openCreateBackUpTapSigner(
-            activity = requireActivity(),
-            fromMembershipFlow = true,
-            masterSignerId = args.signer.fingerPrint,
-            groupId = (activity as MembershipActivity).groupId,
-            signerIndex = index,
-            replacedXfp = args.replacedXfp,
-            walletId = (activity as MembershipActivity).walletId,
-        )
+        if (args.isFreeWallet) {
+            startActivity(
+                NfcSetupActivity.buildIntent(
+                    activity = requireActivity(),
+                    setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                    walletId = (activity as MembershipActivity).walletId,
+                )
+            )
+        } else {
+            navigator.openCreateBackUpTapSigner(
+                activity = requireActivity(),
+                fromMembershipFlow = true,
+                masterSignerId = args.signer.fingerPrint,
+                groupId = (activity as MembershipActivity).groupId,
+                signerIndex = index,
+                replacedXfp = args.replacedXfp,
+                walletId = (activity as MembershipActivity).walletId,
+            )
+        }
     }
 
     private fun handleCheckSigner(signer: SingleSigner?) {
@@ -203,6 +237,8 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         }
                     )
                 }
+
+                args.signer.type == SignerType.NFC -> openCreateBackUpTapSigner(viewModel.getNewIndex())
 
                 else -> {
                     NCWarningDialog(requireActivity()).showDialog(

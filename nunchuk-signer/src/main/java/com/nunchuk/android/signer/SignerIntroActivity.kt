@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.tapsigner.SetUpNfcOptionSheet
@@ -30,7 +31,8 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(), SetUpNfcOptionSheet.OptionClickListener {
+class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(),
+    SetUpNfcOptionSheet.OptionClickListener {
 
     override fun initializeBinding() = ActivitySignerIntroBinding.inflate(layoutInflater)
 
@@ -44,9 +46,18 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(), SetUpNfc
     override fun onOptionClickListener(option: SetUpNfcOptionSheet.SetUpNfcOption) {
         when (option) {
             SetUpNfcOptionSheet.SetUpNfcOption.ADD_NEW -> navigateToSetupTapSigner()
-            SetUpNfcOptionSheet.SetUpNfcOption.RECOVER -> NfcSetupActivity.navigate(this, NfcSetupActivity.RECOVER_NFC)
+            SetUpNfcOptionSheet.SetUpNfcOption.RECOVER -> {
+                startActivity(
+                    NfcSetupActivity.buildIntent(
+                        activity = this,
+                        setUpAction = NfcSetupActivity.RECOVER_NFC,
+                        walletId = walletId
+                    )
+                )
+            }
+
             SetUpNfcOptionSheet.SetUpNfcOption.Mk4 -> {
-                navigator.openSetupMk4(this, false)
+                navigator.openSetupMk4(activity = this, fromMembershipFlow = false, walletId = walletId)
                 finish()
             }
         }
@@ -64,23 +75,45 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(), SetUpNfc
     }
 
     private fun openAddAirSignerIntroScreen() {
-        navigator.openAddAirSignerScreen(this, false)
+        navigator.openAddAirSignerScreen(
+            activityContext = this,
+            isMembershipFlow = false,
+            walletId = walletId
+        )
         finish()
     }
 
     private fun openAddSoftwareSignerScreen() {
-        navigator.openAddSoftwareSignerScreen(this,)
+        navigator.openAddSoftwareSignerScreen(
+            activityContext = this,
+            primaryKeyFlow = PrimaryKeyFlow.REPLACE_KEY_IN_FREE_WALLET
+        )
         finish()
     }
 
     private fun navigateToSetupTapSigner() {
-        NfcSetupActivity.navigate(this, NfcSetupActivity.SETUP_TAP_SIGNER)
+        startActivity(
+            NfcSetupActivity.buildIntent(
+                activity = this,
+                setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                walletId = walletId,
+            )
+        )
         finish()
     }
 
+    // replace key in free wallet
+    private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+
     companion object {
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, SignerIntroActivity::class.java))
+        private const val EXTRA_WALLET_ID = "wallet_id"
+
+        fun start(activityContext: Context, walletId: String? = null) {
+            activityContext.startActivity(
+                Intent(activityContext, SignerIntroActivity::class.java).apply {
+                    putExtra(EXTRA_WALLET_ID, walletId)
+                },
+            )
         }
     }
 }

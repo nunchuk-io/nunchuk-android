@@ -24,8 +24,13 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ImportTapSignerUseCase
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -40,6 +45,8 @@ import javax.inject.Inject
 class NfcDecryptionKeyViewModel @Inject constructor(
     private val importTapSignerUseCase: ImportTapSignerUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
+    private val pushEventManager: PushEventManager,
     private val application: Application
 ) : ViewModel() {
     private val _event = MutableSharedFlow<NfcDecryptionKeyEvent>()
@@ -59,7 +66,18 @@ class NfcDecryptionKeyViewModel @Inject constructor(
                 )
                 runCatching { file.delete() }
                 if (result.isSuccess) {
-                    _event.emit(NfcDecryptionKeyEvent.ImportTapSignerSuccess(result.getOrThrow()))
+                    // for replace key free wallet
+                    val signer = result.getOrThrow()
+                    getDefaultSignerFromMasterSignerUseCase(
+                        GetDefaultSignerFromMasterSignerUseCase.Params(
+                            masterSignerId = signer.id,
+                            walletType = WalletType.MULTI_SIG,
+                            addressType = AddressType.NATIVE_SEGWIT
+                        )
+                    ).onSuccess { singleSigner ->
+                        pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
+                    }
+                    _event.emit(NfcDecryptionKeyEvent.ImportTapSignerSuccess(signer))
                 } else {
                     _event.emit(NfcDecryptionKeyEvent.ImportTapSignerFailed(result.exceptionOrNull()))
                 }
