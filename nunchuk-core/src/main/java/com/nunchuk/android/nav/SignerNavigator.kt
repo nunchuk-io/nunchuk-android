@@ -30,7 +30,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
-    fun openSignerIntroScreen(activityContext: Context)
+    fun openSignerIntroScreen(activityContext: Context, walletId: String = "")
 
     fun openSignerInfoScreen(
         activityContext: Context,

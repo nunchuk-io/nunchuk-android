@@ -27,18 +27,21 @@ object PrimaryKeyFlow {
     const val SIGN_UP = 1
     const val SIGN_IN = 2
     const val REPLACE = 3
+    const val REPLACE_KEY_IN_FREE_WALLET = 4
 
     @IntDef(
         NONE,
         SIGN_UP,
         SIGN_IN,
-        REPLACE
+        REPLACE,
+        REPLACE_KEY_IN_FREE_WALLET,
     )
     @Retention(AnnotationRetention.SOURCE)
     annotation class PrimaryFlowInfo
 
-    fun Int.isPrimaryKeyFlow() = this != NONE
+    fun Int.isPrimaryKeyFlow() = this != NONE && this != REPLACE_KEY_IN_FREE_WALLET
     fun Int.isSignUpFlow() = this == SIGN_UP
     fun Int.isSignInFlow() = this == SIGN_IN
     fun Int.isReplaceFlow() = this == REPLACE
+    fun Int.isReplaceKeyInFreeWalletFlow() = this == REPLACE_KEY_IN_FREE_WALLET
 }

@@ -27,9 +27,14 @@ import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.CreateTapSignerUseCase
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
+import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +49,8 @@ class AddNfcNameViewModel @Inject constructor(
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
+    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
+    private val pushEventManager: PushEventManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -75,9 +82,20 @@ class AddNfcNameViewModel @Inject constructor(
             createTapSignerUseCase(CreateTapSignerUseCase.Data(isoDep, cvc, name, _state.value.replace))
                 .onSuccess { signer ->
                     _state.update { it.copy(signer = signer) }
+
                     if (shouldCreateBackUp) {
                         getBackUpTapSigner(isoDep, cvc, signer)
                     } else {
+                        // for replace key free wallet
+                        getDefaultSignerFromMasterSignerUseCase(
+                            GetDefaultSignerFromMasterSignerUseCase.Params(
+                                masterSignerId = signer.id,
+                                walletType = WalletType.MULTI_SIG,
+                                addressType = AddressType.NATIVE_SEGWIT
+                            )
+                        ).onSuccess { singleSigner ->
+                            pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
+                        }
                         _event.emit(AddNfcNameEvent.Success(signer))
                     }
                 }.onFailure {

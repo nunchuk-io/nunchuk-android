@@ -22,9 +22,10 @@ package com.nunchuk.android.signer.mk4.name
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.CreateMk4SignerUseCase
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.signer.mk4.intro.Mk4IntroViewEvent
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.ChangeKeyTypeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +38,7 @@ import javax.inject.Inject
 class AddMk4NameViewModel @Inject constructor(
     private val createMk4SignerUseCase: CreateMk4SignerUseCase,
     private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
+    private val pushEventManager: PushEventManager,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddNameMk4ViewEvent>()
     val event = _event.asSharedFlow()
@@ -47,6 +49,8 @@ class AddMk4NameViewModel @Inject constructor(
             val result = createMk4SignerUseCase(signer)
             _event.emit(AddNameMk4ViewEvent.Loading(false))
             if (result.isSuccess) {
+                // for replace key in free wallet
+                pushEventManager.push(PushEvent.LocalUserSignerAdded(signer))
                 _event.emit(AddNameMk4ViewEvent.CreateMk4SignerSuccess(result.getOrThrow()))
             } else {
                 _event.emit(AddNameMk4ViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))

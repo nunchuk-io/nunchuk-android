@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.CreateWallet2UseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
@@ -28,6 +29,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
+import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
@@ -43,7 +45,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -53,6 +58,7 @@ import kotlin.coroutines.cancellation.CancellationException
 @HiltViewModel
 class ReplaceKeysViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val createWallet2UseCase: CreateWallet2UseCase,
     private val getGroupUseCase: GetGroupUseCase,
     private val accountManager: AccountManager,
     private val getReplaceWalletStatusUseCase: GetReplaceWalletStatusUseCase,
@@ -73,6 +79,7 @@ class ReplaceKeysViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     assistedWalletManager: AssistedWalletManager,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
+    private val updateWalletUseCase: UpdateWalletUseCase,
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     val isActiveAssistedWallet: Boolean by lazy {
@@ -83,6 +90,7 @@ class ReplaceKeysViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
     private val replacedSigners = mutableListOf<SignerServer>()
+
     private var loadWalletStatusJob: Job? = null
 
     init {
@@ -91,6 +99,14 @@ class ReplaceKeysViewModel @Inject constructor(
                 if (it is PushEvent.ReplaceKeyChange) {
                     getReplaceWalletStatus()
                 }
+            }
+        }
+        if (!isActiveAssistedWallet) {
+            viewModelScope.launch {
+                pushEventManager.event.filterIsInstance<PushEvent.LocalUserSignerAdded>()
+                    .collect {
+                        replaceFreeWalletSigner(it.signer)
+                    }
             }
         }
         viewModelScope.launch {
@@ -203,19 +219,52 @@ class ReplaceKeysViewModel @Inject constructor(
     fun onCreateWallet() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            finalizeReplaceKeyUseCase(
-                FinalizeReplaceKeyUseCase.Param(groupId = args.groupId, walletId = args.walletId)
-            ).onSuccess { wallet ->
-                if (args.groupId.isEmpty()) {
-                    getServerWalletsUseCase(Unit)
-                } else {
-                    syncGroupWalletsUseCase(Unit)
-                }
-                _uiState.update { it.copy(createWalletSuccess = StateEvent.String(wallet.id)) }
+            if (isActiveAssistedWallet) {
+                finalizeReplaceAssistedWallet()
+            } else {
+                finalizeFreeWallet()
+            }
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private suspend fun finalizeFreeWallet() {
+        getWalletDetail2UseCase(args.walletId).onSuccess { oldWallet ->
+            val newSigners = oldWallet.signers.map {
+                savedStateHandle.get<SingleSigner>(it.masterFingerprint) ?: it
+            }
+            val newWallet = oldWallet.copy(signers = newSigners)
+            createWallet2UseCase(
+                newWallet
+            ).onSuccess {
+                updateWalletUseCase.execute(
+                    oldWallet.copy(name = "[DEPRECATED] ${oldWallet.name}"),
+                    false
+                ).catch {
+                    _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+                }.first()
+                _uiState.update { state -> state.copy(createWalletSuccess = StateEvent.String(it.id)) }
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
-            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private suspend fun finalizeReplaceAssistedWallet() {
+        finalizeReplaceKeyUseCase(
+            FinalizeReplaceKeyUseCase.Param(
+                groupId = args.groupId,
+                walletId = args.walletId
+            )
+        ).onSuccess { wallet ->
+            if (args.groupId.isEmpty()) {
+                getServerWalletsUseCase(Unit)
+            } else {
+                syncGroupWalletsUseCase(Unit)
+            }
+            _uiState.update { it.copy(createWalletSuccess = StateEvent.String(wallet.id)) }
+        }.onFailure {
+            _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
         }
     }
 
@@ -325,21 +374,39 @@ class ReplaceKeysViewModel @Inject constructor(
 
     fun onReplaceKey(signer: SingleSigner) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            replaceKeyUseCase(
-                ReplaceKeyUseCase.Param(
-                    groupId = args.groupId,
-                    walletId = args.walletId,
-                    xfp = savedStateHandle.get<String>(REPLACE_XFP).orEmpty(),
-                    signer = signer
-                )
-            ).onSuccess {
-                loadWalletStatusJob?.cancel()
-                getReplaceWalletStatus()
-            }.onFailure {
-                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+            if (isActiveAssistedWallet) {
+                _uiState.update { it.copy(isLoading = true) }
+                replaceKeyUseCase(
+                    ReplaceKeyUseCase.Param(
+                        groupId = args.groupId,
+                        walletId = args.walletId,
+                        xfp = savedStateHandle.get<String>(REPLACE_XFP).orEmpty(),
+                        signer = signer
+                    )
+                ).onSuccess {
+                    loadWalletStatusJob?.cancel()
+                    getReplaceWalletStatus()
+                }.onFailure {
+                    _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+                }
+                _uiState.update { it.copy(isLoading = false) }
+            } else {
+                replaceFreeWalletSigner(signer)
             }
-            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private suspend fun replaceFreeWalletSigner(
+        signer: SingleSigner
+    ) {
+        val xfp = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()
+        savedStateHandle[xfp] = signer
+        val signerModel = singleSignerMapper(signer)
+        val signerMap = uiState.value.replaceSigners.toMutableMap().apply {
+            this[xfp] = signerModel
+        }
+        _uiState.update { state ->
+            state.copy(replaceSigners = signerMap)
         }
     }
 
@@ -349,15 +416,23 @@ class ReplaceKeysViewModel @Inject constructor(
 
     fun onCancelReplaceWallet() {
         viewModelScope.launch {
-            resetReplaceKeyUseCase(
-                ResetReplaceKeyUseCase.Param(
-                    groupId = args.groupId,
-                    walletId = args.walletId
-                )
-            ).onSuccess {
-                getReplaceWalletStatus()
-            }.onFailure {
-                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+            if (isActiveAssistedWallet) {
+                resetReplaceKeyUseCase(
+                    ResetReplaceKeyUseCase.Param(
+                        groupId = args.groupId,
+                        walletId = args.walletId
+                    )
+                ).onSuccess {
+                    getReplaceWalletStatus()
+                }.onFailure {
+                    _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+                }
+            } else {
+                val replaceSigners = _uiState.value.replaceSigners.values
+                replaceSigners.forEach {
+                    savedStateHandle.remove<SingleSigner>(it.fingerPrint)
+                }
+                _uiState.update { state -> state.copy(replaceSigners = emptyMap()) }
             }
         }
     }
@@ -389,6 +464,6 @@ data class ReplaceKeysUiState(
     val createWalletSuccess: StateEvent = StateEvent.None,
     val signers: List<SignerModel> = emptyList(),
     val message: String = "",
-    val inheritanceXfps: Set<String> = emptySet()
+    val inheritanceXfps: Set<String> = emptySet(),
     val isActiveAssistedWallet: Boolean = false
 )

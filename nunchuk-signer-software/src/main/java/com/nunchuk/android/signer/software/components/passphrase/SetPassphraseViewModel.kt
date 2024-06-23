@@ -24,8 +24,11 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.ChangePrimaryKeyUseCase
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.nativeErrorCode
@@ -80,6 +83,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
+    private val pushEventManager: PushEventManager,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
 
     private lateinit var mnemonic: String
@@ -169,17 +173,29 @@ internal class SetPassphraseViewModel @Inject constructor(
                     isPrimaryKey = args.primaryKeyFlow.isPrimaryKeyFlow(),
                     replace = isReplaceKey
                 )
-            ).onSuccess {
+            ).onSuccess { signer ->
                 if (args.replacedXfp.isNotEmpty() && args.walletId.isNotEmpty()) {
-                    replacedKey(it, args.groupId.orEmpty(), args.replacedXfp, args.walletId)
+                    replacedKey(signer, args.groupId.orEmpty(), args.replacedXfp, args.walletId)
                 } else if (!args.groupId.isNullOrEmpty()) {
-                    syncKeyToGroup(it, args.groupId.orEmpty())
+                    syncKeyToGroup(signer, args.groupId.orEmpty())
                 } else if (args.isQuickWallet) {
-                    createQuickWallet(it)
+                    createQuickWallet(signer)
                 } else {
+                    // for replace key in free wallet flow
+                    if (args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
+                        getDefaultSignerFromMasterSignerUseCase(
+                            GetDefaultSignerFromMasterSignerUseCase.Params(
+                                masterSignerId = signer.id,
+                                walletType = WalletType.MULTI_SIG,
+                                addressType = AddressType.NATIVE_SEGWIT
+                            )
+                        ).onSuccess { singleSigner ->
+                            pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
+                        }
+                    }
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
-                            it,
+                            signer,
                             state.value?.skipPassphrase.orFalse()
                         )
                     )

@@ -114,9 +114,9 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
 
         fun buildIntent(
             activity: Activity,
-            isMembershipFlow: Boolean,
+            isMembershipFlow: Boolean = false,
             action: ColdcardAction,
-            groupId: String,
+            groupId: String = "",
             newIndex: Int = -1,
             xfp: String? = null,
             isScanQRCode : Boolean = false,

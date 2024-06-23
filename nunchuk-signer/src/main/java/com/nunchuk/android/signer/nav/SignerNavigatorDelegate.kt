@@ -49,8 +49,8 @@ import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
 
-    override fun openSignerIntroScreen(activityContext: Context) {
-        SignerIntroActivity.start(activityContext)
+    override fun openSignerIntroScreen(activityContext: Context, walletId: String) {
+        SignerIntroActivity.start(activityContext = activityContext, walletId = walletId)
     }
 
     override fun openSignerInfoScreen(

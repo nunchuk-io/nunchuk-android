@@ -151,6 +151,8 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                     },
                     onSetupNfc = ::handleSetupTapSigner,
                     onSignerExisted = {
+                        // replace key case
+                        val walletId = (activity as NfcSetupActivity).walletId
                         if (args.isMembershipFlow) {
                             if (viewModel.isKeyAddedToAssistedWallet(it.status.masterSignerId.orEmpty())) {
                                 showError(getString(R.string.nc_error_add_same_key))
@@ -162,7 +164,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                                     )
                                 )
                             }
-                        } else if (viewModel.isInAssistedWallet(it.status.masterSignerId.orEmpty())) {
+                        } else if (viewModel.isInAssistedWallet(it.status.masterSignerId.orEmpty()) && walletId.isEmpty()) {
                             NCInfoDialog(requireActivity()).showDialog(
                                 message = getString(R.string.nc_key_has_added_change_key),
                                 btnYes = getString(R.string.nc_text_yes),

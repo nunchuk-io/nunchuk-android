@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.name
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -30,8 +31,8 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.components.add.MAX_LENGTH
 import com.nunchuk.android.signer.databinding.FragmentAddNameKeyBinding
+import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,16 +60,21 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
         flowObserver(viewModel.event) {
             when (it) {
                 is AddNameMk4ViewEvent.CreateMk4SignerSuccess -> {
-                    navigator.openSignerInfoScreen(
-                        activityContext = requireActivity(),
-                        isMasterSigner = it.signer.hasMasterSigner,
-                        id = it.signer.masterSignerId,
-                        masterFingerprint = it.signer.masterFingerprint,
-                        name = it.signer.name,
-                        type = it.signer.type,
-                        derivationPath = it.signer.derivationPath,
-                        justAdded = true,
-                    )
+                    // for replace key in free wallet
+                    val walletId = (activity as Mk4Activity).walletId
+                    if (walletId.isNullOrEmpty()) {
+                        navigator.openSignerInfoScreen(
+                            activityContext = requireActivity(),
+                            isMasterSigner = it.signer.hasMasterSigner,
+                            id = it.signer.masterSignerId,
+                            masterFingerprint = it.signer.masterFingerprint,
+                            name = it.signer.name,
+                            type = it.signer.type,
+                            derivationPath = it.signer.derivationPath,
+                            justAdded = true,
+                        )
+                    }
+                    activity?.setResult(Activity.RESULT_OK)
                     activity?.finish()
                 }
                 is AddNameMk4ViewEvent.Loading -> showOrHideLoading(it.isLoading)

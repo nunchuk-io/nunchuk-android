@@ -104,7 +104,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                         findNavController().navigate(
                             ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
                                 signer = signer,
-                                replacedXfp = viewModel.replacedXfp
+                                replacedXfp = viewModel.replacedXfp,
+                                isFreeWallet = !viewModel.isActiveAssistedWallet
                             )
                         )
                     }
@@ -134,7 +135,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
 
                     SignerType.SOFTWARE -> openAddSoftwareKey()
                     SignerType.HARDWARE -> showAddKeyByDesktopApp()
-                    SignerType.UNKNOWN -> navigator.openSignerIntroScreen(requireActivity())
+                    SignerType.UNKNOWN -> openSignerIntro()
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -148,6 +149,13 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             }
             clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
         }
+    }
+
+    private fun openSignerIntro() {
+        navigator.openSignerIntroScreen(
+            activityContext = requireActivity(),
+            walletId = args.walletId
+        )
     }
 
     private fun showAddKeyByDesktopApp() {
@@ -363,7 +371,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 signer = viewModel.getAllSigners(),
                 type = SignerType.UNKNOWN,
             ) {
-                navigator.openSignerIntroScreen(requireActivity())
+                openSignerIntro()
             }
         } else {
             val options = getKeyOptions(

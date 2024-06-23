@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
@@ -59,7 +60,7 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
 
     fun checkSignerIndex(index: Int) {
         viewModelScope.launch {
-            if (args.signer.type == SignerType.NFC) {
+            if (args.signer.type == SignerType.NFC && !args.isFreeWallet) {
                 _event.emit(CustomKeyAccountFragmentEvent.OpenScanTapSigner(index))
                 return@launch
             }

@@ -289,6 +289,8 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         hideLoading()
         requireActivity().setResult(Activity.RESULT_OK)
         requireActivity().finish()
+        val replacingWalletId = (requireActivity() as AddAirgapSignerActivity).walletId
+        if (replacingWalletId.isNotEmpty()) return
         if ((requireActivity() as AddAirgapSignerActivity).isMembershipFlow.not()) {
             navigator.openSignerInfoScreen(
                 requireContext(),

@@ -542,6 +542,11 @@
             android:name="replaced_xfp"
             android:defaultValue=""
             app:argType="string" />
+
+        <argument
+            android:name="is_free_wallet"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
     <fragment
