@@ -20,7 +20,7 @@ ext {
 
     // Plugins versions
     gradleVersion = '8.4.0'
-    googleServiceVersion = '4.3.15'
+    googleServiceVersion = '4.4.2'
     kotlinGradlePluginVersion = '1.9.20'
     kotlinStdlibVersion = '1.9.20'
     pagingVersion = "3.1.1"
