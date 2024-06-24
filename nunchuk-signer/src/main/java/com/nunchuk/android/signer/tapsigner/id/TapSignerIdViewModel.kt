@@ -24,7 +24,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
+import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerUseCase
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.CardIdManager
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +42,9 @@ import javax.inject.Inject
 @HiltViewModel
 class TapSignerIdViewModel @Inject constructor(
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
+    private val getSignerFromTapsignerMasterSignerUseCase: GetSignerFromTapsignerMasterSignerUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val pushEventManager: PushEventManager,
     cardIdManager: CardIdManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -74,6 +82,28 @@ class TapSignerIdViewModel @Inject constructor(
         }
     }
 
+    fun getSignerFromTapsignerMasterSigner(isoDep: IsoDep, cvc: String, index: Int, walletId: String) {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(walletId).onSuccess {
+                val walletType = if (it.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+                getSignerFromTapsignerMasterSignerUseCase(
+                    GetSignerFromTapsignerMasterSignerUseCase.Data(
+                        isoDep = isoDep,
+                        cvc = cvc,
+                        masterSignerId = args.masterSignerId,
+                        index = index,
+                        walletType = walletType
+                    )
+                ).onSuccess { singleSigner ->
+                    singleSigner?.let {
+                        pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
+                    }
+                    _event.emit(TapSignerIdEvent.OnGetSingleWalletDone)
+                }
+            }
+        }
+    }
+
     fun onContinueClicked() {
         viewModelScope.launch {
             _event.emit(TapSignerIdEvent.OnContinueClicked)
@@ -90,8 +120,9 @@ class TapSignerIdViewModel @Inject constructor(
 data class TapSignerIdState(val cardId: String)
 
 sealed class TapSignerIdEvent {
-    object OnContinueClicked : TapSignerIdEvent()
-    object OnAddNewOne : TapSignerIdEvent()
+    data object OnContinueClicked : TapSignerIdEvent()
+    data object OnAddNewOne : TapSignerIdEvent()
+    data object OnGetSingleWalletDone: TapSignerIdEvent()
     data class NfcLoading(val isLoading: Boolean) : TapSignerIdEvent()
     data class GetTapSignerBackupKeyEvent(val filePath: String) : TapSignerIdEvent()
     data class GetTapSignerBackupKeyError(val e: Throwable?) : TapSignerIdEvent()

@@ -160,7 +160,8 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                                 findNavController().navigate(
                                     AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToTapSignerIdFragment(
                                         masterSignerId = it.status.masterSignerId.orEmpty(),
-                                        isExisted = true
+                                        isExisted = true,
+                                        isMembershipFlow = true
                                     )
                                 )
                             }
@@ -173,6 +174,15 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                                     viewModel.getMasterSigner(it.status.masterSignerId.orEmpty())
                                 }
                             ).show()
+                        } else if (walletId.isNotEmpty()) {
+                            // replace key in free wallet flow
+                            findNavController().navigate(
+                                AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToTapSignerIdFragment(
+                                    masterSignerId = it.status.masterSignerId.orEmpty(),
+                                    isExisted = true,
+                                    isMembershipFlow = false
+                                )
+                            )
                         } else {
                             requireActivity().showNfcAlreadyAdded()
                         }

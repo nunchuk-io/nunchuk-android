@@ -105,17 +105,29 @@ class TapSignerIdFragment : MembershipFragment() {
                     TapSignerIdEvent.OnContinueClicked -> (requireActivity() as NfcActionListener).startNfcFlow(
                         BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY
                     )
-                    TapSignerIdEvent.OnAddNewOne -> requireActivity().finish()
+                    TapSignerIdEvent.OnAddNewOne, TapSignerIdEvent.OnGetSingleWalletDone -> requireActivity().finish()
                 }
             }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY }) {
-            viewModel.getTapSignerBackup(
-                isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
-                cvc = nfcViewModel.inputCvc.orEmpty(),
-                index = (requireActivity() as NfcSetupActivity).signerIndex
-            )
+            if (args.isMembershipFlow) {
+                viewModel.getTapSignerBackup(
+                    isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
+                    cvc = nfcViewModel.inputCvc.orEmpty(),
+                    index = (requireActivity() as NfcSetupActivity).signerIndex
+                )
+            } else {
+                val walletId = (requireActivity() as NfcSetupActivity).walletId
+                if (walletId.isNotEmpty()) {
+                    viewModel.getSignerFromTapsignerMasterSigner(
+                        isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
+                        cvc = nfcViewModel.inputCvc.orEmpty(),
+                        index = (requireActivity() as NfcSetupActivity).signerIndex,
+                        walletId = walletId
+                    )
+                }
+            }
             nfcViewModel.clearScanInfo()
         }
     }
