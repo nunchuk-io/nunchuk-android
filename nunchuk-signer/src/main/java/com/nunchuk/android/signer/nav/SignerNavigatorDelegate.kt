@@ -221,14 +221,16 @@ interface SignerNavigatorDelegate : SignerNavigator {
         username: String?,
         passphrase: String,
         address: String?,
+        walletId: String?,
     ) {
         AddSoftwareSignerNameActivity.start(
-            activityContext,
-            mnemonic,
-            primaryKeyFlow,
-            username,
-            passphrase,
-            address
+            activityContext = activityContext,
+            mnemonic = mnemonic,
+            primaryKeyFlow = primaryKeyFlow,
+            username = username,
+            passphrase = passphrase,
+            address = address,
+            walletId = walletId
         )
     }
 

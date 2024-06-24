@@ -28,7 +28,6 @@ import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-@Suppress("BlockingMethodInNonBlockingContext")
 class GetTapSignerBackupUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk,

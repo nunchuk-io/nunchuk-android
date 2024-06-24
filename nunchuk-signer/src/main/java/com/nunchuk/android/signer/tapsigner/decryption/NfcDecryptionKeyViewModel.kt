@@ -30,7 +30,8 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
+import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -45,14 +46,15 @@ import javax.inject.Inject
 class NfcDecryptionKeyViewModel @Inject constructor(
     private val importTapSignerUseCase: ImportTapSignerUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
+    private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
     private val pushEventManager: PushEventManager,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val application: Application
 ) : ViewModel() {
     private val _event = MutableSharedFlow<NfcDecryptionKeyEvent>()
     val event = _event.asSharedFlow()
 
-    fun decryptBackUpKey(backUpFileUri: Uri, decryptionKey: String) {
+    fun decryptBackUpKey(backUpFileUri: Uri, decryptionKey: String, newIndex: Int, walletId: String) {
         viewModelScope.launch {
             _event.emit(NfcDecryptionKeyEvent.Loading)
             withContext(ioDispatcher) {
@@ -66,20 +68,34 @@ class NfcDecryptionKeyViewModel @Inject constructor(
                 )
                 runCatching { file.delete() }
                 if (result.isSuccess) {
-                    // for replace key free wallet
                     val signer = result.getOrThrow()
-                    getDefaultSignerFromMasterSignerUseCase(
-                        GetDefaultSignerFromMasterSignerUseCase.Params(
-                            masterSignerId = signer.id,
-                            walletType = WalletType.MULTI_SIG,
-                            addressType = AddressType.NATIVE_SEGWIT
-                        )
-                    ).onSuccess { singleSigner ->
-                        pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
-                    }
+                    getSingleSigner(signer, newIndex, walletId)
                     _event.emit(NfcDecryptionKeyEvent.ImportTapSignerSuccess(signer))
                 } else {
                     _event.emit(NfcDecryptionKeyEvent.ImportTapSignerFailed(result.exceptionOrNull()))
+                }
+            }
+        }
+    }
+
+    // for replace key free wallet
+    private suspend fun getSingleSigner(
+        signer: MasterSigner,
+        newIndex: Int,
+        walletId: String
+    ) {
+        getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+            val walletType = if (wallet.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+            getSignerFromMasterSignerUseCase(
+                GetSignerFromMasterSignerUseCase.Param(
+                    xfp = signer.id,
+                    walletType = walletType,
+                    addressType = AddressType.NATIVE_SEGWIT,
+                    index = newIndex
+                )
+            ).onSuccess { singleSigner ->
+                singleSigner?.let { signer ->
+                    pushEventManager.push(PushEvent.LocalUserSignerAdded(signer))
                 }
             }
         }

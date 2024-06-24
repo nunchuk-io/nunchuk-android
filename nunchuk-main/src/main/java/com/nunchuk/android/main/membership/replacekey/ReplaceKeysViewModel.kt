@@ -112,10 +112,12 @@ class ReplaceKeysViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
                 _uiState.update {
-                    it.copy(walletSigners = wallet.signers.filter { signer -> signer.type != SignerType.SERVER }
-                        .map { signer ->
-                            singleSignerMapper(signer)
-                        }
+                    it.copy(
+                        walletSigners = wallet.signers.filter { signer -> signer.type != SignerType.SERVER }
+                            .map { signer ->
+                                singleSignerMapper(signer)
+                            },
+                        isMultiSig = wallet.signers.size > 1
                     )
                 }
             }
@@ -446,6 +448,8 @@ class ReplaceKeysViewModel @Inject constructor(
     val replacedXfp: String
         get() = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()
 
+    fun isMultiSig() = _uiState.value.isMultiSig
+
     companion object {
         const val REPLACE_XFP = "REPLACE_XFP"
     }
@@ -465,5 +469,6 @@ data class ReplaceKeysUiState(
     val signers: List<SignerModel> = emptyList(),
     val message: String = "",
     val inheritanceXfps: Set<String> = emptySet(),
-    val isActiveAssistedWallet: Boolean = false
+    val isActiveAssistedWallet: Boolean = false,
+    val isMultiSig: Boolean = false,
 )

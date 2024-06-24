@@ -132,8 +132,9 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         navigator.openAddSoftwareSignerNameScreen(
                             this,
                             mnemonic = event.mnemonic,
+                            primaryKeyFlow = primaryKeyFlow,
                             passphrase = passphrase,
-                            primaryKeyFlow = primaryKeyFlow
+                            walletId = walletId
                         )
                     }
                 }

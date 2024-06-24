@@ -547,6 +547,11 @@
             android:name="is_free_wallet"
             app:argType="boolean"
             android:defaultValue="false" />
+
+        <argument
+            android:name="is_multisig_wallet"
+            app:argType="boolean"
+            android:defaultValue="true" />
     </fragment>
 
     <fragment

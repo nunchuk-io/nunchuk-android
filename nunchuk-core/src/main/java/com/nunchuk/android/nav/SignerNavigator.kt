@@ -137,6 +137,7 @@ interface SignerNavigator {
         username: String? = null,
         passphrase: String = "",
         address: String? = null,
+        walletId: String? = null,
     )
 
     /**

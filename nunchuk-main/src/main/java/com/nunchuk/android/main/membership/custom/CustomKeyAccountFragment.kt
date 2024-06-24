@@ -132,6 +132,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                             action = ColdcardAction.CREATE,
                             walletId = (activity as MembershipActivity).walletId,
                             newIndex = viewModel.getNewIndex(),
+                            xfp = args.signer.fingerPrint,
                         )
                     )
                 } else {
@@ -157,6 +158,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                             action = ColdcardAction.RECOVER_KEY,
                             walletId = (activity as MembershipActivity).walletId,
                             newIndex = viewModel.getNewIndex(),
+                            xfp = args.signer.fingerPrint,
                         )
                     )
                 } else {
@@ -184,6 +186,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     activity = requireActivity(),
                     setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
                     walletId = (activity as MembershipActivity).walletId,
+                    masterSignerId = args.signer.fingerPrint,
                 )
             )
         } else {

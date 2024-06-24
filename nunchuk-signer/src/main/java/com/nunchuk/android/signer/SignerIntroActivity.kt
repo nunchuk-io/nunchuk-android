@@ -86,7 +86,8 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(),
     private fun openAddSoftwareSignerScreen() {
         navigator.openAddSoftwareSignerScreen(
             activityContext = this,
-            primaryKeyFlow = PrimaryKeyFlow.REPLACE_KEY_IN_FREE_WALLET
+            primaryKeyFlow = PrimaryKeyFlow.REPLACE_KEY_IN_FREE_WALLET,
+            walletId = walletId
         )
         finish()
     }

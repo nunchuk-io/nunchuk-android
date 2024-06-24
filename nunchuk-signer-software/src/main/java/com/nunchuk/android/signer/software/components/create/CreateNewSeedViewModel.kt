@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.software.components.create
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
@@ -51,7 +52,7 @@ internal class CreateNewSeedViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun init() {
-        if (args.walletId.isNotEmpty() && args.replacedXfp.isEmpty()) {
+        if (args.walletId.isNotEmpty() && args.replacedXfp.isEmpty() && !args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
             viewModelScope.launch {
                 getHotWalletMnemonicUseCase(args.walletId)
                     .onSuccess { mnemonic ->

@@ -59,6 +59,7 @@ import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -84,6 +85,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val pushEventManager: PushEventManager,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
 
     private lateinit var mnemonic: String
@@ -180,19 +182,9 @@ internal class SetPassphraseViewModel @Inject constructor(
                     syncKeyToGroup(signer, args.groupId.orEmpty())
                 } else if (args.isQuickWallet) {
                     createQuickWallet(signer)
-                } else {
+                } else if (args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
                     // for replace key in free wallet flow
-                    if (args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
-                        getDefaultSignerFromMasterSignerUseCase(
-                            GetDefaultSignerFromMasterSignerUseCase.Params(
-                                masterSignerId = signer.id,
-                                walletType = WalletType.MULTI_SIG,
-                                addressType = AddressType.NATIVE_SEGWIT
-                            )
-                        ).onSuccess { singleSigner ->
-                            pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
-                        }
-                    }
+                    getSingleSignerForFreeWallet(signer)
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
                             signer,
@@ -216,6 +208,23 @@ internal class SetPassphraseViewModel @Inject constructor(
                 }
             }
             setEvent(LoadingEvent(false))
+        }
+    }
+
+    private suspend fun getSingleSignerForFreeWallet(signer: MasterSigner) {
+        if (args.walletId.isNotEmpty()) {
+            getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
+                val walletType = if (wallet.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+                getDefaultSignerFromMasterSignerUseCase(
+                    GetDefaultSignerFromMasterSignerUseCase.Params(
+                        masterSignerId = signer.id,
+                        walletType = walletType,
+                        addressType = AddressType.NATIVE_SEGWIT
+                    )
+                ).onSuccess { singleSigner ->
+                    pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
+                }
+            }
         }
     }
 
