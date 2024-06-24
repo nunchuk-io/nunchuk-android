@@ -70,7 +70,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             ).toBundle()
 
             CREATE_BACK_UP_KEY -> TapSignerIdFragmentArgs(
-                intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty()
+                masterSignerId = intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty(),
+                isMembershipFlow = fromMembershipFlow
             ).toBundle()
 
             else -> intent.extras

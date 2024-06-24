@@ -221,6 +221,10 @@
             android:name="is_existed"
             android:defaultValue="false"
             app:argType="boolean" />
+
+        <argument
+            android:name="isMembershipFlow"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_tapSignerIdFragment_to_uploadBackUpTapSignerFragment"
             app:destination="@id/uploadBackUpTapSignerFragment"

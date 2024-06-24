@@ -187,6 +187,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
                     walletId = (activity as MembershipActivity).walletId,
                     masterSignerId = args.signer.fingerPrint,
+                    signerIndex = index,
                 )
             )
         } else {
