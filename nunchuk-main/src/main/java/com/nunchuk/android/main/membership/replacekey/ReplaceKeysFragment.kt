@@ -105,7 +105,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                             ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
                                 signer = signer,
                                 replacedXfp = viewModel.replacedXfp,
-                                isFreeWallet = !viewModel.isActiveAssistedWallet
+                                isFreeWallet = !viewModel.isActiveAssistedWallet,
+                                isMultisigWallet = viewModel.isMultiSig(),
                             )
                         )
                     }
@@ -117,7 +118,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                             findNavController().navigate(
                                 ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
                                     signer = signer,
-                                    replacedXfp = viewModel.replacedXfp
+                                    replacedXfp = viewModel.replacedXfp,
+                                    isMultisigWallet = viewModel.isMultiSig(),
                                 )
                             )
                         } else {

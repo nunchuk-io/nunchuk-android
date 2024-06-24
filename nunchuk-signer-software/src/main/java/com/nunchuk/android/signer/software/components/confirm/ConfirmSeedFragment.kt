@@ -121,7 +121,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                     mnemonic = args.mnemonic,
                     signerName = DEFAULT_KEY_NAME,
                     isQuickWallet = true,
-                    primaryKeyFlow = args.primaryKeyFlow
+                    primaryKeyFlow = args.primaryKeyFlow,
                 )
             )
         } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty()) {
@@ -146,10 +146,11 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     private fun openSetNameScreen() {
         navigator.openAddSoftwareSignerNameScreen(
-            requireActivity(),
-            args.mnemonic,
-            args.primaryKeyFlow,
-            passphrase = args.passphrase
+            activityContext = requireActivity(),
+            mnemonic = args.mnemonic,
+            primaryKeyFlow = args.primaryKeyFlow,
+            passphrase = args.passphrase,
+            walletId = args.walletId
         )
     }
 

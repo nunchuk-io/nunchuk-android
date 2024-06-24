@@ -145,6 +145,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         flowObserver(viewModel.event) {
             when (it) {
                 is Mk4IntroViewEvent.LoadMk4SignersSuccess -> openSignerSheet(it.signers)
+
                 is Mk4IntroViewEvent.Loading -> showOrHideLoading(it.isLoading)
                 is Mk4IntroViewEvent.ShowError -> showError(it.message)
                 Mk4IntroViewEvent.OnContinueClicked -> onContinueClicked()
@@ -170,6 +171,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                         finish()
                     }
                 }
+
                 Mk4IntroViewEvent.XfpNotMatchException -> {
                     showError(getString(R.string.nc_coldcard_xfp_does_not_match))
                 }
@@ -178,7 +180,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                     when (it.type) {
                         ResultExistingKey.Software -> NCInfoDialog(requireActivity())
                             .showDialog(
-                                message = String.format(getString(R.string.nc_existing_key_is_software_key_delete_key),
+                                message = String.format(
+                                    getString(R.string.nc_existing_key_is_software_key_delete_key),
                                     it.signer.masterFingerprint.uppercase(Locale.getDefault())
                                 ),
                                 btnYes = getString(R.string.nc_text_yes),
@@ -193,10 +196,14 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                 },
                                 onInfoClick = {}
                             )
+
                         ResultExistingKey.Hardware -> {
                             NCInfoDialog(requireActivity())
                                 .showDialog(
-                                    message = String.format(getString(R.string.nc_existing_key_change_key_type), it.signer.masterFingerprint.uppercase(Locale.getDefault())),
+                                    message = String.format(
+                                        getString(R.string.nc_existing_key_change_key_type),
+                                        it.signer.masterFingerprint.uppercase(Locale.getDefault())
+                                    ),
                                     btnYes = getString(R.string.nc_text_yes),
                                     btnInfo = getString(R.string.nc_text_no),
                                     onYesClick = {
@@ -210,6 +217,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                     onInfoClick = {}
                                 )
                         }
+
                         ResultExistingKey.None -> findNavController().navigate(
                             Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
                                 it.signer

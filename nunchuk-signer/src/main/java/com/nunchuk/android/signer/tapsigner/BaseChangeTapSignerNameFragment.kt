@@ -55,11 +55,15 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_ADD_KEY }
                     .collect {
+                        val index = (activity as NfcSetupActivity).signerIndex
+                        val walletId = (activity as NfcSetupActivity).walletId
                         nameNfcViewModel.addNameForNfcKey(
                             isoDep = IsoDep.get(it.tag),
                             cvc = nfcViewModel.inputCvc.orEmpty(),
                             name = signerName,
                             shouldCreateBackUp = isMembershipFlow,
+                            index = index,
+                            walletId = walletId
                         )
                         nfcViewModel.clearScanInfo()
                     }

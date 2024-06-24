@@ -34,6 +34,7 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentDecryptionKeyBinding
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.heightExtended
 import dagger.hilt.android.AndroidEntryPoint
@@ -91,7 +92,12 @@ class NfcDecryptionKeyFragment : BaseFragment<FragmentDecryptionKeyBinding>() {
                 return@setOnClickListener
             }
             binding.inputDecryptionKey.hideError()
-            viewModel.decryptBackUpKey(uri, binding.inputDecryptionKey.getEditText())
+            viewModel.decryptBackUpKey(
+                backUpFileUri = uri,
+                decryptionKey = binding.inputDecryptionKey.getEditText(),
+                newIndex = (requireActivity() as NfcSetupActivity).signerIndex,
+                walletId = (requireActivity() as NfcSetupActivity).walletId
+            )
         }
     }
 

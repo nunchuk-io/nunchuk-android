@@ -127,7 +127,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
             mnemonic = args.mnemonic,
             signerName = signerName,
             passphrase = passphrase,
-            primaryKeyFlow = args.primaryKeyFlow
+            primaryKeyFlow = args.primaryKeyFlow,
+            walletId = args.walletId.orEmpty()
         )
     }
 
@@ -149,7 +150,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
             primaryKeyFlow: Int,
             username: String?,
             passphrase: String,
-            address: String?
+            address: String?,
+            walletId: String?
         ) {
             activityContext.startActivity(
                 AddSoftwareSignerNameArgs(
@@ -157,7 +159,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                     primaryKeyFlow = primaryKeyFlow,
                     username = username,
                     passphrase = passphrase,
-                    address = address
+                    address = address,
+                    walletId = walletId
                 ).buildIntent(
                     activityContext
                 )

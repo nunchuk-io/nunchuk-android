@@ -62,7 +62,8 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
                 is AddNameMk4ViewEvent.CreateMk4SignerSuccess -> {
                     // for replace key in free wallet
                     val walletId = (activity as Mk4Activity).walletId
-                    if (walletId.isNullOrEmpty()) {
+                    val isReplaceKeyInFreeWallet = walletId.isNullOrEmpty().not()
+                    if (!isReplaceKeyInFreeWallet) {
                         navigator.openSignerInfoScreen(
                             activityContext = requireActivity(),
                             isMasterSigner = it.signer.hasMasterSigner,

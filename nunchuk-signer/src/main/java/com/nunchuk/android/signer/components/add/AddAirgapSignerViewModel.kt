@@ -163,7 +163,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         newIndex: Int,
     ) {
         viewModelScope.launch {
-            val newSignerName = if (!replacedXfp.isNullOrEmpty() && walletId.isNotEmpty()) {
+            val newSignerName = if (isMembershipFlow && !replacedXfp.isNullOrEmpty() && walletId.isNotEmpty()) {
                 getReplaceSignerNameUseCase(
                     GetReplaceSignerNameUseCase.Params(
                         walletId = walletId,

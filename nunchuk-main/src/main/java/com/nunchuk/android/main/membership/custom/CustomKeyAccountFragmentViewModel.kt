@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
@@ -31,6 +30,7 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
 ) : ViewModel() {
     private val args: CustomKeyAccountFragmentArgs =
         CustomKeyAccountFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val walletType = if (args.isMultisigWallet) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
     private val _event = MutableSharedFlow<CustomKeyAccountFragmentEvent>()
     val event = _event.asSharedFlow()
 
@@ -42,7 +42,7 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
             getCurrentIndexFromMasterSignerUseCase(
                 GetCurrentIndexFromMasterSignerUseCase.Param(
                     xfp = args.signer.fingerPrint,
-                    walletType = WalletType.MULTI_SIG,
+                    walletType = walletType,
                     addressType = AddressType.NATIVE_SEGWIT
                 )
             ).onSuccess {
@@ -68,7 +68,7 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
             getSignerFromMasterSignerUseCase(
                 GetSignerFromMasterSignerUseCase.Param(
                     xfp = args.signer.fingerPrint,
-                    walletType = WalletType.MULTI_SIG,
+                    walletType = walletType,
                     addressType = AddressType.NATIVE_SEGWIT,
                     index = index
                 )
