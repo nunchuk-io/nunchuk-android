@@ -70,6 +70,12 @@
         <argument
             android:name="derivation_paths"
             app:argType="string[]" />
+
+        <argument
+            android:name="claim_param"
+            android:defaultValue="@null"
+            app:nullable="true"
+            app:argType="com.nunchuk.android.core.data.model.ClaimInheritanceTxParam" />
     </fragment>
     <fragment
         android:id="@+id/satsCardSlotQrFragment"
