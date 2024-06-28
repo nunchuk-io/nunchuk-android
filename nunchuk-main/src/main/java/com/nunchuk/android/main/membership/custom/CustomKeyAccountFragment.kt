@@ -436,7 +436,7 @@ private fun getPath(index: String, isTestNet: Boolean, isMultisig: Boolean): Str
     if (isMultisig) {
         return if (isTestNet) "BIP32 path: m/48h/1h/${index}h/2h" else "BIP32 path: m/48h/0h/${index}h/2h"
     }
-    return if (isTestNet) "BIP32 path: m/84h/1h/${index}" else "BIP32 path: m/84h/0h/${index}"
+    return if (isTestNet) "BIP32 path: m/84h/1h/${index}h" else "BIP32 path: m/84h/0h/${index}h"
 }
 
 @Preview
