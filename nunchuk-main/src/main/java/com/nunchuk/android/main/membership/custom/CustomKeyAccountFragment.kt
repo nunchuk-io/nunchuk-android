@@ -80,14 +80,15 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
 
     @Inject
     lateinit var navigator: NunchukNavigator
-    
-    private val coldcardOrAirgapLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            findNavController().popBackStack()
-        } else if (it.resultCode == GlobalResult.RESULT_INDEX_NOT_MATCH) {
-            showError(getString(R.string.nc_coldcard_index_not_match, viewModel.getNewIndex()))
+
+    private val coldcardOrAirgapLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                findNavController().popBackStack()
+            } else if (it.resultCode == GlobalResult.RESULT_INDEX_NOT_MATCH) {
+                showError(getString(R.string.nc_coldcard_index_not_match, viewModel.getNewIndex()))
+            }
         }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -101,6 +102,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     signer = args.signer,
                     onShowMoreOptions = ::handleShowMore,
                     remainingTime = remainingTime,
+                    isMultisig = args.isMultisigWallet
                 )
             }
         }
@@ -294,6 +296,7 @@ private fun CustomKeyAccountFragmentScreen(
     signer: SignerModel,
     onShowMoreOptions: () -> Unit = {},
     remainingTime: Int = 0,
+    isMultisig: Boolean = true,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     CustomKeyAccountFragmentContent(
@@ -301,6 +304,7 @@ private fun CustomKeyAccountFragmentScreen(
         oldIndex = uiState.currentIndex,
         remainingTime = remainingTime,
         isTestNet = uiState.isTestNet,
+        isMultisig = isMultisig,
         onShowMoreOptions = onShowMoreOptions,
         onContinueClicked = viewModel::checkSignerIndex
     )
@@ -311,6 +315,7 @@ private fun CustomKeyAccountFragmentContent(
     signer: SignerModel,
     oldIndex: Int = 0,
     isTestNet: Boolean = false,
+    isMultisig: Boolean = true,
     remainingTime: Int = 0,
     onShowMoreOptions: () -> Unit = {},
     onContinueClicked: (newIndex: Int) -> Unit = {},
@@ -391,7 +396,11 @@ private fun CustomKeyAccountFragmentContent(
 
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
-                    text = getPath(formatOldIndex, isTestNet),
+                    text = getPath(
+                        index = formatOldIndex,
+                        isTestNet = isTestNet,
+                        isMultisig = isMultisig
+                    ),
                     style = NunchukTheme.typography.bodySmall,
                 )
 
@@ -410,7 +419,11 @@ private fun CustomKeyAccountFragmentContent(
 
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
-                    text = getPath(newIndex, isTestNet),
+                    text = getPath(
+                        index = newIndex,
+                        isTestNet = isTestNet,
+                        isMultisig = isMultisig
+                    ),
                     style = NunchukTheme.typography.bodySmall,
                 )
             }
@@ -418,9 +431,12 @@ private fun CustomKeyAccountFragmentContent(
     }
 }
 
-private fun getPath(index: String, isTestNet: Boolean): String {
+private fun getPath(index: String, isTestNet: Boolean, isMultisig: Boolean): String {
     if (index.isEmpty()) return ""
-    return if (isTestNet) "BIP32 path: m/48h/1h/${index}h/2h" else "BIP32 path: m/48h/0h/${index}h/2h"
+    if (isMultisig) {
+        return if (isTestNet) "BIP32 path: m/48h/1h/${index}h/2h" else "BIP32 path: m/48h/0h/${index}h/2h"
+    }
+    return if (isTestNet) "BIP32 path: m/84h/1h/${index}" else "BIP32 path: m/84h/0h/${index}"
 }
 
 @Preview
