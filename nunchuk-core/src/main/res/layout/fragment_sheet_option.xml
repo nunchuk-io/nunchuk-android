@@ -10,18 +10,20 @@
         android:id="@+id/iv_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
-        android:src="@drawable/ic_close"/>
+        android:src="@drawable/ic_close"
+        android:visibility="gone" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/title"
-        style="@style/NCText.Title"
+        style="@style/NCText.Bold"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_12"
+        android:textSize="@dimen/nc_text_size_16"
+        android:textStyle="bold"
         tools:text="Title" />
 
     <com.nunchuk.android.widget.NCFontTextView

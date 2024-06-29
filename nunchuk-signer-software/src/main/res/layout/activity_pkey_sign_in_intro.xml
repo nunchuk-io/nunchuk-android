@@ -32,8 +32,8 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_8"
+        android:gravity="start"
+        android:paddingVertical="8dp"
         android:text="@string/nc_primary_key_signer_intro_title"
         android:textColor="@android:color/black"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:gravity="center"
+        android:gravity="start"
         android:text="@string/nc_primary_key_signin_intro_desc"
         android:textColor="@android:color/black"
         app:layout_constraintStart_toStartOf="parent"
@@ -64,11 +64,16 @@
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnImport"
-        style="@style/NCPrimaryButton.Light"
+        style="@style/NCPrimaryButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
+        android:background="@null"
+        android:fontFamily="@font/lato_semibold"
+        android:gravity="center"
         android:text="@string/nc_primary_key_signin_intro_import"
+        android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
