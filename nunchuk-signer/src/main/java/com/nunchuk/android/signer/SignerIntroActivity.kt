@@ -84,9 +84,10 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(),
     }
 
     private fun openAddSoftwareSignerScreen() {
+        val primaryKeyFlow = if(walletId.isNotEmpty()) PrimaryKeyFlow.REPLACE_KEY_IN_FREE_WALLET else PrimaryKeyFlow.NONE
         navigator.openAddSoftwareSignerScreen(
             activityContext = this,
-            primaryKeyFlow = PrimaryKeyFlow.REPLACE_KEY_IN_FREE_WALLET,
+            primaryKeyFlow = primaryKeyFlow,
             walletId = walletId
         )
         finish()
