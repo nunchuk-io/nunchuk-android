@@ -28,7 +28,11 @@ import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignInFlow
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameInputCompletedEvent
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameRequiredEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.LoadingEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import com.nunchuk.android.signer.software.databinding.ActivityAddNameBinding
+import com.nunchuk.android.signer.software.onCreateSignerCompleted
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.viewModelProviderFactoryOf
 import com.nunchuk.android.widget.NCToastMessage
@@ -43,6 +47,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
 
     @Inject
     internal lateinit var vmFactory: AddSoftwareSignerNameViewModel.Factory
+
+    private val setPassphraseViewModel by viewModels<SetPassphraseViewModel>()
 
     private val args: AddSoftwareSignerNameArgs by lazy {
         AddSoftwareSignerNameArgs.deserializeFrom(
@@ -68,6 +74,28 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
+        setPassphraseViewModel.event.observe(this, ::handleSetPassphraseEvent)
+    }
+
+    private fun handleSetPassphraseEvent(setPassphraseEvent: SetPassphraseEvent) {
+        when (setPassphraseEvent) {
+            is SetPassphraseEvent.CreateSoftwareSignerCompletedEvent -> onCreateSignerCompleted(
+                navigator = navigator,
+                passphrase = "",
+                mnemonic = args.mnemonic,
+                signerName = viewModel.getSignerName(),
+                masterSigner = setPassphraseEvent.masterSigner,
+                skipPassphrase = true,
+                primaryKeyFlow = args.primaryKeyFlow,
+                replacedXfp = "",
+                groupId = ""
+            )
+            is SetPassphraseEvent.CreateSoftwareSignerErrorEvent -> {
+                NCToastMessage(this).showError(message = setPassphraseEvent.message)
+            }
+            is LoadingEvent -> showOrHideLoading(loading = setPassphraseEvent.loading)
+            else -> Unit
+        }
     }
 
     private fun handleState(state: AddSoftwareSignerNameState) {
@@ -79,7 +107,21 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
     private fun handleEvent(event: AddSoftwareSignerNameEvent) {
         when (event) {
             is SignerNameInputCompletedEvent -> {
-                if (args.primaryKeyFlow.isSignInFlow()) {
+                if (!args.xprv.isNullOrEmpty()) {
+                    setPassphraseViewModel.createSoftwareSigner(
+                        isReplaceKey = false,
+                        signerName = event.signerName,
+                        mnemonic = args.mnemonic,
+                        passphrase = "",
+                        primaryKeyFlow = args.primaryKeyFlow,
+                        groupId = "",
+                        replacedXfp = "",
+                        walletId = args.walletId.orEmpty(),
+                        isQuickWallet = false,
+                        skipPassphrase = true,
+                        xprv = args.xprv.orEmpty()
+                    )
+                } else if (args.primaryKeyFlow.isSignInFlow()) {
                     viewModel.getTurnOnNotification()
                 } else if (args.primaryKeyFlow.isReplaceFlow()) {
                     openSetPassphraseScreen(event.signerName, args.passphrase)
@@ -151,7 +193,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
             username: String?,
             passphrase: String,
             address: String?,
-            walletId: String?
+            walletId: String?,
+            xprv: String?
         ) {
             activityContext.startActivity(
                 AddSoftwareSignerNameArgs(
@@ -160,7 +203,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                     username = username,
                     passphrase = passphrase,
                     address = address,
-                    walletId = walletId
+                    walletId = walletId,
+                    xprv = xprv
                 ).buildIntent(
                     activityContext
                 )

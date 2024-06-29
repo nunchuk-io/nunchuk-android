@@ -132,12 +132,13 @@ interface SignerNavigator {
      */
     fun openAddSoftwareSignerNameScreen(
         activityContext: Context,
-        mnemonic: String,
+        mnemonic: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
         username: String? = null,
         passphrase: String = "",
         address: String? = null,
         walletId: String? = null,
+        xprv: String? = null,
     )
 
     /**
@@ -145,7 +146,7 @@ interface SignerNavigator {
      */
     fun openSetPassphraseScreen(
         activityContext: Context,
-        mnemonic: String,
+        mnemonic: String = "",
         signerName: String,
         passphrase: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
@@ -179,8 +180,9 @@ interface SignerNavigator {
 
     fun openPrimaryKeyEnterPassphraseScreen(
         activityContext: Context,
-        mnemonic: String,
+        mnemonic: String = "",
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        xprv: String? = null,
     )
 
     fun openPrimaryKeyManuallyUsernameScreen(activityContext: Context)

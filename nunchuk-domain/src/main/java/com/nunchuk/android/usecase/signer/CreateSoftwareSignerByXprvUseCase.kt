@@ -17,33 +17,32 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.usecase.signer
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class CreateSoftwareSignerUseCase @Inject constructor(
+class CreateSoftwareSignerByXprvUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : UseCase<CreateSoftwareSignerUseCase.Param, MasterSigner>(ioDispatcher) {
+) : UseCase<CreateSoftwareSignerByXprvUseCase.Param, MasterSigner>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): MasterSigner {
-        return nativeSdk.createSoftwareSigner(
+        return nativeSdk.createSoftwareSignerFromMasterXprv(
             name = parameters.name,
-            mnemonic = parameters.mnemonic,
-            passphrase = parameters.passphrase,
+            xprv = parameters.xprv,
             isPrimary = parameters.isPrimaryKey,
             replace = parameters.replace
-        )
+        ) ?: throw NullPointerException("Master signer empty")
     }
 
     data class Param(
         val name: String,
-        val mnemonic: String,
-        val passphrase: String,
+        val xprv: String,
         val isPrimaryKey: Boolean,
         val replace: Boolean = false,
     )

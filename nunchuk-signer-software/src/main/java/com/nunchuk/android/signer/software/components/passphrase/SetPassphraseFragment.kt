@@ -28,18 +28,12 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.software.R
-import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseNotMatchedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseRequiredEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
@@ -50,6 +44,7 @@ import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEv
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.PassPhraseRequiredEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.PassPhraseValidEvent
 import com.nunchuk.android.signer.software.databinding.FragmentSetPassphraseBinding
+import com.nunchuk.android.signer.software.onCreateSignerCompleted
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -74,7 +69,6 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.init(args.mnemonic, args.signerName)
         setupViews()
         observeEvent()
     }
@@ -88,9 +82,16 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             PassPhraseRequiredEvent -> binding.passphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseRequiredEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseNotMatchedEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_confirm_passphrase_not_matched))
-            is CreateSoftwareSignerCompletedEvent -> onCreateSignerCompleted(
-                event.masterSigner,
-                event.skipPassphrase
+            is CreateSoftwareSignerCompletedEvent -> requireActivity().onCreateSignerCompleted(
+                navigator = navigator,
+                masterSigner = event.masterSigner,
+                skipPassphrase = event.skipPassphrase,
+                primaryKeyFlow = args.primaryKeyFlow,
+                replacedXfp = args.replacedXfp,
+                groupId = args.groupId.orEmpty(),
+                passphrase = binding.passphrase.getEditText(),
+                mnemonic = args.mnemonic,
+                signerName = args.signerName,
             )
 
             is CreateSoftwareSignerErrorEvent -> onCreateSignerError(event)
@@ -131,45 +132,6 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
     private fun removeValidationError() {
         binding.passphrase.hideError()
         binding.confirmPassphrase.hideError()
-    }
-
-    private fun onCreateSignerCompleted(masterSigner: MasterSigner?, skipPassphrase: Boolean) {
-        hideLoading()
-        if (args.primaryKeyFlow.isSignUpFlow()) {
-            navigator.openPrimaryKeyChooseUserNameScreen(
-                activityContext = requireActivity(),
-                mnemonic = args.mnemonic,
-                passphrase = binding.passphrase.getEditText(),
-                signerName = args.signerName
-            )
-        } else if (args.primaryKeyFlow.isReplaceFlow()) {
-            ActivityManager.popToLevel(2)
-            navigator.openSignerInfoScreen(
-                activityContext = requireActivity(),
-                isMasterSigner = true,
-                id = masterSigner!!.id,
-                masterFingerprint = masterSigner.device.masterFingerprint,
-                name = masterSigner.name,
-                type = masterSigner.type,
-                justAdded = true,
-                setPassphrase = !skipPassphrase,
-                isReplacePrimaryKey = true
-            )
-        } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty() || args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
-            ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
-        } else {
-            navigator.returnToMainScreen(requireActivity())
-            navigator.openSignerInfoScreen(
-                activityContext = requireActivity(),
-                isMasterSigner = true,
-                id = masterSigner!!.id,
-                masterFingerprint = masterSigner.device.masterFingerprint,
-                name = masterSigner.name,
-                type = masterSigner.type,
-                justAdded = true,
-                setPassphrase = !skipPassphrase
-            )
-        }
     }
 
     private fun showConfirmationDialog() {
