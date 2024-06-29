@@ -112,10 +112,9 @@ fun DummyTransactionIntroContent(
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
                     text = stringResource(
-                        R.string.nc_dummy_transaction_desc,
-                        stringResource(R.string.nc_authorize_these_change),
-                        Amount(value = 10000).getCurrencyAmount(),
-                        stringResource(id = R.string.nc_dummy_transaction_key_holder_desc)
+                        R.string.nc_dummy_transaction_sign_in_desc,
+                        stringResource(R.string.nc_sign_in_to_your_account),
+                        Amount(value = 10000).getCurrencyAmount()
                     )
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
