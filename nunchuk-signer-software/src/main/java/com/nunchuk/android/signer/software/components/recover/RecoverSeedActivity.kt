@@ -130,7 +130,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                     else -> {
                         val passphrase = intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
                         navigator.openAddSoftwareSignerNameScreen(
-                            this,
+                            activityContext = this,
                             mnemonic = event.mnemonic,
                             primaryKeyFlow = primaryKeyFlow,
                             passphrase = passphrase,

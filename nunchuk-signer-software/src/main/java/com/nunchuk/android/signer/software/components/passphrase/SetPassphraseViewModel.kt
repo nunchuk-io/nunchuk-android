@@ -32,7 +32,6 @@ import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFl
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.nativeErrorCode
-import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipStepInfo
@@ -58,6 +57,7 @@ import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
+import com.nunchuk.android.usecase.signer.CreateSoftwareSignerByXprvUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.onException
@@ -74,6 +74,7 @@ import javax.inject.Inject
 internal class SetPassphraseViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val createSoftwareSignerUseCase: CreateSoftwareSignerUseCase,
+    private val createSoftwareSignerByXprvUseCase: CreateSoftwareSignerByXprvUseCase,
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase,
@@ -87,19 +88,11 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
-
-    private lateinit var mnemonic: String
-    private lateinit var signerName: String
-
-    private val args: SetPassphraseFragmentArgs =
+    private val args: SetPassphraseFragmentArgs by lazy {
         SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    }
 
     override val initialState = SetPassphraseState()
-
-    fun init(mnemonic: String, signerName: String) {
-        this.mnemonic = mnemonic
-        this.signerName = signerName
-    }
 
     fun updatePassphrase(passphrase: String) {
         updateState { copy(passphrase = passphrase) }
@@ -165,30 +158,68 @@ internal class SetPassphraseViewModel @Inject constructor(
     }
 
     fun createSoftwareSigner(isReplaceKey: Boolean) {
+        createSoftwareSigner(
+            isReplaceKey = isReplaceKey,
+            signerName = args.signerName,
+            mnemonic = args.mnemonic,
+            passphrase = getState().passphrase,
+            primaryKeyFlow = args.primaryKeyFlow,
+            groupId = args.groupId.orEmpty(),
+            replacedXfp = args.replacedXfp,
+            walletId = args.walletId,
+            isQuickWallet = args.isQuickWallet,
+            skipPassphrase = getState().skipPassphrase
+        )
+    }
+
+    fun createSoftwareSigner(
+        isReplaceKey: Boolean,
+        signerName: String,
+        mnemonic: String,
+        passphrase: String,
+        primaryKeyFlow: Int,
+        groupId: String,
+        replacedXfp: String,
+        walletId: String,
+        isQuickWallet: Boolean,
+        skipPassphrase: Boolean,
+        xprv: String = ""
+    ) {
         viewModelScope.launch {
             setEvent(LoadingEvent(true))
-            createSoftwareSignerUseCase(
-                CreateSoftwareSignerUseCase.Param(
-                    name = signerName,
-                    mnemonic = mnemonic,
-                    passphrase = getState().passphrase,
-                    isPrimaryKey = args.primaryKeyFlow.isPrimaryKeyFlow(),
-                    replace = isReplaceKey
+            if (xprv.isNotEmpty()) {
+                createSoftwareSignerByXprvUseCase(
+                    CreateSoftwareSignerByXprvUseCase.Param(
+                        name = signerName,
+                        xprv = xprv,
+                        isPrimaryKey = primaryKeyFlow.isPrimaryKeyFlow(),
+                        replace = isReplaceKey
+                    )
                 )
-            ).onSuccess { signer ->
-                if (args.replacedXfp.isNotEmpty() && args.walletId.isNotEmpty()) {
-                    replacedKey(signer, args.groupId.orEmpty(), args.replacedXfp, args.walletId)
-                } else if (!args.groupId.isNullOrEmpty()) {
-                    syncKeyToGroup(signer, args.groupId.orEmpty())
-                } else if (args.isQuickWallet) {
+            } else {
+                createSoftwareSignerUseCase(
+                    CreateSoftwareSignerUseCase.Param(
+                        name = signerName,
+                        mnemonic = mnemonic,
+                        passphrase = passphrase,
+                        isPrimaryKey = primaryKeyFlow.isPrimaryKeyFlow(),
+                        replace = isReplaceKey
+                    )
+                )
+            }.onSuccess { signer ->
+                if (replacedXfp.isNotEmpty() && walletId.isNotEmpty()) {
+                    replacedKey(signer, groupId, replacedXfp, walletId)
+                } else if (groupId.isNotEmpty()) {
+                    syncKeyToGroup(signer, groupId.orEmpty())
+                } else if (isQuickWallet) {
                     createQuickWallet(signer)
-                } else if (args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
+                } else if (primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
                     // for replace key in free wallet flow
-                    getSingleSignerForFreeWallet(signer)
+                    getSingleSignerForFreeWallet(signer, walletId)
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
                             signer,
-                            state.value?.skipPassphrase.orFalse()
+                            skipPassphrase
                         )
                     )
                 } else {
@@ -205,10 +236,10 @@ internal class SetPassphraseViewModel @Inject constructor(
                     getMasterFingerprintUseCase(
                         GetMasterFingerprintUseCase.Param(
                             mnemonic = mnemonic,
-                            passphrase = getState().passphrase
+                            passphrase = passphrase
                         )
-                    ).onSuccess {
-                        setEvent(SetPassphraseEvent.ExistingSignerEvent(it.orEmpty()))
+                    ).onSuccess { signer ->
+                        setEvent(SetPassphraseEvent.ExistingSignerEvent(signer.orEmpty()))
                     }
                 } else {
                     setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
@@ -218,10 +249,11 @@ internal class SetPassphraseViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getSingleSignerForFreeWallet(signer: MasterSigner) {
-        if (args.walletId.isNotEmpty()) {
-            getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
-                val walletType = if (wallet.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+    private suspend fun getSingleSignerForFreeWallet(signer: MasterSigner, walletId: String) {
+        if (walletId.isNotEmpty()) {
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                val walletType =
+                    if (wallet.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
                 getDefaultSignerFromMasterSignerUseCase(
                     GetDefaultSignerFromMasterSignerUseCase.Params(
                         masterSignerId = signer.id,

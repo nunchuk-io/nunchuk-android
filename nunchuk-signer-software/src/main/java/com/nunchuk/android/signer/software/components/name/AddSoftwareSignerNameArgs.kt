@@ -30,7 +30,8 @@ data class AddSoftwareSignerNameArgs(
     val username: String?,
     val passphrase: String,
     val address: String?,
-    val walletId: String?
+    val walletId: String?,
+    val xprv: String?
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -41,6 +42,7 @@ data class AddSoftwareSignerNameArgs(
             putExtra(EXTRA_PRIMARY_KEY_PASSPHRASE, passphrase)
             putExtra(EXTRA_PRIMARY_KEY_ADDRESS, address)
             putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_XPRV, xprv)
         }
 
     companion object {
@@ -50,6 +52,7 @@ data class AddSoftwareSignerNameArgs(
         private const val EXTRA_PRIMARY_KEY_PASSPHRASE = "EXTRA_PRIMARY_KEY_PASSPHRASE"
         private const val EXTRA_PRIMARY_KEY_ADDRESS = "EXTRA_PRIMARY_KEY_ADDRESS"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_XPRV = "EXTRA_XPRV"
 
         fun deserializeFrom(intent: Intent) = AddSoftwareSignerNameArgs(
             mnemonic = intent.extras?.getString(EXTRA_MNEMONIC, "").orEmpty(),
@@ -58,7 +61,8 @@ data class AddSoftwareSignerNameArgs(
             username = intent.extras?.getString(EXTRA_PRIMARY_KEY_USERNAME, "").orEmpty(),
             passphrase = intent.extras?.getString(EXTRA_PRIMARY_KEY_PASSPHRASE, "").orEmpty(),
             address = intent.extras?.getString(EXTRA_PRIMARY_KEY_ADDRESS, "").orEmpty(),
-            walletId = intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty()
+            walletId = intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
+            xprv = intent.extras?.getString(EXTRA_XPRV, "").orEmpty()
         )
     }
 }

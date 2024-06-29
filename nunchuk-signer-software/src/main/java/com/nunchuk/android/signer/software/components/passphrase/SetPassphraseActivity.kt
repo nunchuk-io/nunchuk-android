@@ -66,7 +66,7 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
                         passphrase = passphrase,
                         groupId = groupId,
                         replacedXfp = replacedXfp.orEmpty(),
-                        walletId = walletId
+                        walletId = walletId,
                     ).toBundle()
                 )
             )

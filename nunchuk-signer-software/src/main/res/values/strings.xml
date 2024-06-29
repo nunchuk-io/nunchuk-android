@@ -64,4 +64,7 @@
     <string name="nc_review_seed_phrase">Review seed phrase</string>
     <string name="nc_before_you_start">Before you start</string>
     <string name="nc_set_a_passphrase_optional">Set a passphrase (optional)</string>
+    <string name="nc_recover_key_via_xprv">Recover key via XPRV</string>
+    <string name="nc_please_enter_the_master_private_key_xprv">Please enter the master private key (XPRV).</string>
+    <string name="nc_xprv">XPRV</string>
 </resources>

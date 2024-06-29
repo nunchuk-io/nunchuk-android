@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
+import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.SignerIntroActivity
@@ -222,6 +223,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         passphrase: String,
         address: String?,
         walletId: String?,
+        xprv: String?,
     ) {
         AddSoftwareSignerNameActivity.start(
             activityContext = activityContext,
@@ -230,7 +232,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             username = username,
             passphrase = passphrase,
             address = address,
-            walletId = walletId
+            walletId = walletId,
+            xprv = xprv
         )
     }
 
@@ -239,10 +242,10 @@ interface SignerNavigatorDelegate : SignerNavigator {
         mnemonic: String,
         signerName: String,
         passphrase: String,
-        primaryKeyFlow: Int,
+        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int,
         groupId: String?,
         replacedXfp: String?,
-        walletId: String,
+        walletId: String
     ) {
         SetPassphraseActivity.start(
             activityContext = activityContext,
@@ -252,7 +255,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             passphrase = passphrase,
             groupId = groupId,
             replacedXfp = replacedXfp,
-            walletId = walletId
+            walletId = walletId,
         )
     }
 
@@ -296,6 +299,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         activityContext: Context,
         mnemonic: String,
         primaryKeyFlow: Int,
+        xprv: String?,
     ) {
         PKeyEnterPassphraseActivity.start(activityContext, primaryKeyFlow, mnemonic)
     }
