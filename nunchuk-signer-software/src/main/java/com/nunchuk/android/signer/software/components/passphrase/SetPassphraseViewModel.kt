@@ -195,7 +195,7 @@ internal class SetPassphraseViewModel @Inject constructor(
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
                             signer,
-                            skipPassphrase
+                            state.value?.skipPassphrase.orFalse()
                         )
                     )
                 }
