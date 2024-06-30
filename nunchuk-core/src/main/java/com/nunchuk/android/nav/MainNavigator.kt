@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.nav
 
+import android.app.Activity
 import android.content.Context
 
 interface MainNavigator {
@@ -30,7 +31,7 @@ interface MainNavigator {
         messages: ArrayList<String>? = null,
         isClearTask: Boolean = false
     )
-    fun returnToMainScreen()
+    fun returnToMainScreen(activity: Activity)
     fun openGuestModeIntroScreen(activityContext: Context)
     fun openGuestModeMessageIntroScreen(activityContext: Context)
 }

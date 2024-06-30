@@ -104,7 +104,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
         if (args.masterSignerId.isNotEmpty()) {
             // hot wallet follow up
             viewModel.markHotWalletBackedUp(args.walletId)
-            navigator.returnToMainScreen()
+            navigator.returnToMainScreen(requireActivity())
             navigator.openSignerInfoScreen(
                 activityContext = requireActivity(),
                 id = args.masterSignerId,

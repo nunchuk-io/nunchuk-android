@@ -24,11 +24,13 @@ import android.app.Application
 import android.os.Bundle
 import java.util.Stack
 
+@Deprecated("This is workaround solution, it can't restore the stack after process recreate. Use official solution instead")
 object ActivityManager : Application.ActivityLifecycleCallbacks {
     private val activityStack = Stack<Activity>()
 
     fun peek(): Activity? = if (activityStack.isNotEmpty()) activityStack.peek() else null
 
+    @Deprecated("Use returnToMainScreen instead")
     fun popUntilRoot() {
         while (activityStack.size > 1) {
             activityStack.pop().let {

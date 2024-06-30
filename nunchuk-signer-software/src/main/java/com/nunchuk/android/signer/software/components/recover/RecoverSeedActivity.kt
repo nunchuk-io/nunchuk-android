@@ -143,7 +143,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             is UpdateMnemonicEvent -> updateMnemonic(event.mnemonic)
             is CanGoNextStepEvent -> binding.btnContinue.bindEnableState(event.canGoNext)
             is RecoverSeedEvent.RecoverHotWalletSuccess -> {
-                navigator.returnToMainScreen()
+                navigator.returnToMainScreen(this)
                 navigator.openWalletDetailsScreen(activityContext = this, walletId = event.walletId)
                 NcToastManager.scheduleShowMessage(getString(R.string.nc_my_hot_wallet_has_been_recovered))
             }
