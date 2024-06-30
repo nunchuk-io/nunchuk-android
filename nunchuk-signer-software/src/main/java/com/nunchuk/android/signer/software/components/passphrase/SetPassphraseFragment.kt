@@ -158,7 +158,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
         } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty() || args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
             ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
         } else {
-            navigator.returnToMainScreen()
+            navigator.returnToMainScreen(requireActivity())
             navigator.openSignerInfoScreen(
                 activityContext = requireActivity(),
                 isMasterSigner = true,
