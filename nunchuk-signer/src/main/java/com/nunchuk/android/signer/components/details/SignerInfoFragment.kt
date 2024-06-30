@@ -489,7 +489,7 @@ class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickLi
     }
 
     private fun openMainScreen() {
-        navigator.returnToMainScreen()
+        navigator.returnToMainScreen(requireActivity())
     }
 
     private fun onEditClicked(signerName: String) {

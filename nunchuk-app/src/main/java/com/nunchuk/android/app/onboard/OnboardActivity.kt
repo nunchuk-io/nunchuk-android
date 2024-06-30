@@ -66,10 +66,10 @@ class OnboardActivity : BaseComposeActivity() {
                             )
                             hotWalletIntro(
                                 returnToMainScreen = {
-                                    navigator.returnToMainScreen()
+                                    navigator.returnToMainScreen(this@OnboardActivity)
                                 },
                                 openServiceTab = {
-                                    navigator.returnToMainScreen()
+                                    navigator.returnToMainScreen(this@OnboardActivity)
                                     AppEvenBus.instance.publish(AppEvent.OpenServiceTabEvent)
                                 }
                             )

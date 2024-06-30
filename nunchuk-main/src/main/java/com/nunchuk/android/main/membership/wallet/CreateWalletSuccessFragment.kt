@@ -52,7 +52,6 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.flowObserver
@@ -96,7 +95,7 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                 .build()
                         )
                     } else {
-                        ActivityManager.popUntilRoot()
+                        navigator.returnToMainScreen(requireActivity())
                     }
                 }
             }
@@ -115,7 +114,7 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                     if (args.replacedWalletId.isNotEmpty()) {
                         val wallet = viewModel.state.value.replacedWallet
                         if (wallet.balance.pureBTC() == 0.0) {
-                            ActivityManager.popUntilRoot()
+                            navigator.returnToMainScreen(requireActivity())
                         } else {
                             NCInfoDialog(requireActivity())
                                 .showDialog(
@@ -132,7 +131,7 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                         )
                                     },
                                     onInfoClick = {
-                                        ActivityManager.popUntilRoot()
+                                        navigator.returnToMainScreen(requireActivity())
                                     }
                                 )
                         }
@@ -144,11 +143,11 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                 .build()
                         )
                     } else {
+                        navigator.returnToMainScreen(requireActivity())
                         navigator.openWalletDetailsScreen(
                             requireActivity(),
                             args.walletId
                         )
-                        ActivityManager.popUntilRoot()
                     }
                 }
             }

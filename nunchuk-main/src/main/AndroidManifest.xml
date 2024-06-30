@@ -6,6 +6,7 @@
             android:name=".MainActivity"
             android:label="@string/nc_title_message"
             android:screenOrientation="portrait"
+            android:launchMode="singleTask"
             android:theme="@style/NunchukNoActionBar.Dark" />
 
         <activity

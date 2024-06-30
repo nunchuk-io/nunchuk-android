@@ -22,6 +22,7 @@ package com.nunchuk.android.app.nav
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -33,7 +34,6 @@ import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -88,8 +88,17 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         )
     }
 
-    override fun returnToMainScreen() {
-        ActivityManager.popUntil(MainActivity::class.java)
+    override fun returnToMainScreen(activity: Activity) {
+        activity.startActivity(
+            Intent(activity, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            },
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0,0)
+        } else {
+            activity.overridePendingTransition(0, 0)
+        }
     }
 
     override fun openGuestModeIntroScreen(activityContext: Context) {

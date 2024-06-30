@@ -191,6 +191,13 @@ internal class SetPassphraseViewModel @Inject constructor(
                             state.value?.skipPassphrase.orFalse()
                         )
                     )
+                } else {
+                    setEvent(
+                        CreateSoftwareSignerCompletedEvent(
+                            signer,
+                            skipPassphrase
+                        )
+                    )
                 }
             }.onFailure {
                 val errorCode = it.nativeErrorCode()
