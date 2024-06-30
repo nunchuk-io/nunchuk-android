@@ -145,16 +145,16 @@ class Mk4IntroViewModel @Inject constructor(
                         return@launch
                     }
                     val signerName = if (replacedXfp.isNullOrEmpty()) {
+                        "$COLDCARD_DEFAULT_KEY_NAME${
+                            membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
+                        }"
+                    } else {
                         getReplaceSignerNameUseCase(
                             GetReplaceSignerNameUseCase.Params(
                                 walletId = walletId.orEmpty(),
                                 signerType = SignerType.COLDCARD_NFC
                             )
                         ).getOrThrow()
-                    } else {
-                        "$COLDCARD_DEFAULT_KEY_NAME${
-                            membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
-                        }"
                     }
                     val createSignerResult = createMk4SignerUseCase(
                         signer.copy(
