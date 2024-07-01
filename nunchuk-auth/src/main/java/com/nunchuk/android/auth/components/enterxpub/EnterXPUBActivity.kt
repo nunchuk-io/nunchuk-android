@@ -3,7 +3,6 @@ package com.nunchuk.android.auth.components.enterxpub
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,7 +34,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -121,22 +119,22 @@ class EnterXPUBActivity : BaseComposeActivity() {
                         .fillMaxHeight()
                 ) {
                     Text(
-                        text = "Enter XPUB",
+                        text = stringResource(id = R.string.nc_enter_xpub),
                         style = NunchukTheme.typography.heading
                     )
                     Text(
                         modifier = Modifier.padding(top = 16.dp),
-                        text = "To verify that you are the account owner, please enter the master public key (XPUB) of one of the keys in your assisted wallets. You can find the XPUBs in your wallet configuration (BSMS file). You can also paste in the entire BSMS file.",
+                        text = stringResource(id = R.string.nc_enter_xpub_desc),
                         style = NunchukTheme.typography.body
                     )
                     NcTextField(
                         modifier = Modifier.padding(top = 24.dp),
-                        title = "XPUB",
+                        title = stringResource(id = R.string.nc_xpub),
                         value = inputXPUB,
                         inputBoxHeight = 130.dp,
                         placeholder = {
                             Text(
-                                text = "Enter XPUB",
+                                text = stringResource(id = R.string.nc_enter_xpub),
                                 style = NunchukTheme.typography.body.copy(
                                     color = colorResource(
                                         id = R.color.nc_boulder_color
