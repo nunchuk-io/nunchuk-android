@@ -237,9 +237,6 @@ class SignInAuthenticationViewModel @Inject constructor(
             signatures[signerModel.id] = signature
             if (uploadSignature(signerModel.id, signature, signatures)) {
                 val status = _state.value.transactionStatus
-                if (status != TransactionStatus.CONFIRMED) {
-                    _event.emit(SignInAuthenticationEvent.UploadSignatureSuccess(status))
-                }
             }
         } else {
             _event.emit(SignInAuthenticationEvent.SignFailed(signerModel))
@@ -267,7 +264,7 @@ class SignInAuthenticationViewModel @Inject constructor(
                     transactionStatus = updateInfo.status
                 )
             }
-            if (updateInfo.status == TransactionStatus.CONFIRMED) {
+            if (signatures.size == args.requiredSignatures) {
                 signIn(updateInfo)
             }
         }.isSuccess

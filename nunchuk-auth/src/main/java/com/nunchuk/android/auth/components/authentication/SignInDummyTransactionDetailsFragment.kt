@@ -166,9 +166,6 @@ class SignInDummyTransactionDetailsFragment :
                         SignInAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         SignInAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         SignInAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
-                        is SignInAuthenticationEvent.UploadSignatureSuccess -> {
-
-                        }
 
                         is SignInAuthenticationEvent.SignFailed -> {}
                         is SignInAuthenticationEvent.Loading,

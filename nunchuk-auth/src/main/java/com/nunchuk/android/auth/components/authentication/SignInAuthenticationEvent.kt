@@ -29,7 +29,6 @@ sealed class SignInAuthenticationEvent {
     data class Loading(val isLoading: Boolean) : SignInAuthenticationEvent()
     data class ProcessFailure(val message: String) : SignInAuthenticationEvent()
     data class ShowError(val message: String) : SignInAuthenticationEvent()
-    data class UploadSignatureSuccess(val status: TransactionStatus) : SignInAuthenticationEvent()
     class NfcLoading(val isLoading: Boolean, val isColdCard: Boolean = false) : SignInAuthenticationEvent()
     data object ScanTapSigner : SignInAuthenticationEvent()
     data object ScanColdCard : SignInAuthenticationEvent()
