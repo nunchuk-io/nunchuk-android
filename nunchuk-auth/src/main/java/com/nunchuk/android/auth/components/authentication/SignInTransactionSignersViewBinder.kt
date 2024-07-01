@@ -76,7 +76,7 @@ internal class SignInTransactionSignersViewBinder(
             binding.signNotAvailable.isVisible = true
         } else {
             binding.btnSign.isVisible =
-                (enabledSigners.isEmpty() || enabledSigners.contains(model.fingerPrint)) && model.type != SignerType.FOREIGN_SOFTWARE
+                (enabledSigners.isEmpty() || enabledSigners.contains(model.fingerPrint)) && model.type != SignerType.FOREIGN_SOFTWARE && model.type != SignerType.SOFTWARE
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
         }
