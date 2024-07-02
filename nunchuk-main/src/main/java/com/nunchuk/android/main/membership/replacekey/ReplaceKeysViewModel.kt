@@ -161,9 +161,9 @@ class ReplaceKeysViewModel @Inject constructor(
             }
             getReplaceWalletStatus()
         } else {
-            loadSigners()
             _uiState.update { it.copy(isDataLoaded = true) }
         }
+        loadSigners()
     }
 
     private fun loadSigners() {
