@@ -179,7 +179,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             SignerType.COLDCARD_NFC.ordinal -> {
                 selectedSignerTag = SignerTag.COLDCARD
                 handleShowKeysOrCreate(
-                    viewModel.getColdcard() + viewModel.getHardwareSigners(SignerTag.COLDCARD),
+                    viewModel.getColdcard() + viewModel.getAirgap(SignerTag.COLDCARD),
                     SignerType.COLDCARD_NFC,
                     ::showAddColdcardOptions
                 )
