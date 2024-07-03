@@ -34,11 +34,13 @@ import com.nunchuk.android.signer.software.components.intro.recoverByXprv
 import com.nunchuk.android.signer.software.components.intro.recoverByXprvRoute
 import com.nunchuk.android.signer.software.components.intro.softwareSignerIntro
 import com.nunchuk.android.signer.software.components.intro.softwareSignerIntroRoute
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SoftwareSignerIntroActivity : BaseComposeActivity() {
     private val viewModel: SoftwareSignerIntroViewModel by viewModels()
+    private val setPassphraseViewModel: SetPassphraseViewModel by viewModels()
 
     private val primaryKeyFlow: Int by lazy {
         intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
@@ -55,6 +57,10 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
 
         if (!replacedXfp.isNullOrEmpty()) {
             viewModel.getReplaceSignerName(walletId)
+        }
+
+        setPassphraseViewModel.event.observe(this) { event ->
+            handleCreateSoftwareSignerEvent(event)
         }
 
         setContent {
@@ -82,6 +88,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
     private fun onRecoverFromXprv(xprv: String) {
         when {
             primaryKeyFlow.isSignInFlow() -> {
+                // TODO Thong
                 navigator.openPrimaryKeyEnterPassphraseScreen(
                     activityContext = this,
                     primaryKeyFlow = primaryKeyFlow,
@@ -95,7 +102,19 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                 } else {
                     "Key${viewModel.getSoftwareSignerName()}"
                 }
-                // TODO sync key or replace here
+                setPassphraseViewModel.createSoftwareSigner(
+                    isReplaceKey = true,
+                    signerName = signerName,
+                    mnemonic = "",
+                    passphrase = "",
+                    primaryKeyFlow = primaryKeyFlow,
+                    groupId = groupId.orEmpty(),
+                    replacedXfp = replacedXfp.orEmpty(),
+                    walletId = walletId,
+                    isQuickWallet = false,
+                    skipPassphrase = true,
+                    xprv = xprv
+                )
             }
 
             else -> {

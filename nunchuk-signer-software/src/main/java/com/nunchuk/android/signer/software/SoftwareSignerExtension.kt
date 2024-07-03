@@ -6,8 +6,12 @@ import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFlow
 import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.LoadingEvent
+import com.nunchuk.android.widget.NCToastMessage
 
 fun Activity.onCreateSignerCompleted(
     navigator: NunchukNavigator,
@@ -44,7 +48,7 @@ fun Activity.onCreateSignerCompleted(
     } else if (groupId.isNotEmpty() || replacedXfp.isNotEmpty() || primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
         ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
     } else {
-        navigator.returnToMainScreen()
+        navigator.returnToMainScreen(this)
         navigator.openSignerInfoScreen(
             activityContext = this,
             isMasterSigner = true,
@@ -56,4 +60,21 @@ fun Activity.onCreateSignerCompleted(
             setPassphrase = !skipPassphrase
         )
     }
+}
+
+fun Activity.handleCreateSoftwareSignerEvent(
+    event: SetPassphraseEvent,
+) : Boolean {
+    return when (event) {
+        is SetPassphraseEvent.CreateSoftwareSignerErrorEvent -> {
+            NCToastMessage(this).showError(message = event.message)
+            true
+        }
+        is LoadingEvent -> {
+            showOrHideLoading(loading = event.loading)
+            true
+        }
+        else -> false
+    }
+
 }

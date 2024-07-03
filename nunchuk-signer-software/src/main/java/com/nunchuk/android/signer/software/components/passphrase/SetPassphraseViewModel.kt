@@ -218,15 +218,15 @@ internal class SetPassphraseViewModel @Inject constructor(
                     getSingleSignerForFreeWallet(signer, walletId)
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
-                            signer,
-                            skipPassphrase
+                            masterSigner = signer,
+                            skipPassphrase = skipPassphrase
                         )
                     )
                 } else {
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
-                            signer,
-                            state.value?.skipPassphrase.orFalse()
+                            masterSigner = signer,
+                            skipPassphrase = skipPassphrase
                         )
                     )
                 }
