@@ -116,7 +116,12 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
         if (NotificationUtils.areNotificationsEnabled(this).not()) {
             navigator.openTurnNotificationScreen(this)
         } else {
-            navigator.openMainScreen(this, token, deviceId)
+            navigator.openMainScreen(
+                activityContext = this,
+                loginHalfToken = token,
+                deviceId = deviceId,
+                isClearTask = true,
+            )
         }
         finish()
     }
