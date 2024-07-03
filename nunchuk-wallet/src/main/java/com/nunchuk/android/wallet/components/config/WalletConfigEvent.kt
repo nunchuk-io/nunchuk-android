@@ -46,4 +46,5 @@ sealed class WalletConfigEvent {
     ) : WalletConfigEvent()
 
     data class UploadWalletConfigEvent(val filePath: String) : WalletConfigEvent()
+    data object OpenReplaceKey : WalletConfigEvent()
 }

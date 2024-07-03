@@ -213,6 +213,24 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
+    fun verifyPasswordToReplaceKey(password: String) {
+        viewModelScope.launch {
+            setEvent(WalletConfigEvent.Loading(true))
+            val result = verifiedPasswordTokenUseCase(
+                VerifiedPasswordTokenUseCase.Param(
+                    TargetAction.REPLACE_KEYS.name,
+                    password
+                )
+            )
+            setEvent(WalletConfigEvent.Loading(false))
+            if (result.isSuccess) {
+                setEvent(WalletConfigEvent.OpenReplaceKey)
+            } else {
+                setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
     fun verifyPasswordToDeleteAssistedWallet(password: String) = viewModelScope.launch {
         setEvent(WalletConfigEvent.Loading(true))
         val result = verifiedPasswordTokenUseCase(
