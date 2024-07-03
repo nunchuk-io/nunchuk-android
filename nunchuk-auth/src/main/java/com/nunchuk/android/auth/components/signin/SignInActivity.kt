@@ -221,7 +221,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_SIGN_IN_PAID_SUBSCRIPTION -> EnterXPUBActivity.start(this)
-            SheetOptionType.TYPE_SIGN_IN_PRIMARY_KEY -> navigator.openPrimaryKeySignInIntroScreen(this)
+            SheetOptionType.TYPE_SIGN_IN_PRIMARY_KEY -> viewModel.checkPrimaryKeyAccounts()
         }
     }
 
