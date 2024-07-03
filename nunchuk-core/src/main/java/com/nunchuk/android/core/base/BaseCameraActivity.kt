@@ -24,7 +24,6 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -40,7 +39,7 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
         ) { isGranted: Boolean ->
             if (isGranted) {
                 onCameraPermissionGranted(true)
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+            } else if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
                 showAlertPermissionNotGranted()
             } else {
                 showAlertPermissionDeniedPermanently()

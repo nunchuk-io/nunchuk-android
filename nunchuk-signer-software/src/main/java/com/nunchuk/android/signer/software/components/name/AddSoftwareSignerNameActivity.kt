@@ -28,9 +28,11 @@ import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignInFlow
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameInputCompletedEvent
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameRequiredEvent
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import com.nunchuk.android.signer.software.databinding.ActivityAddNameBinding
 import com.nunchuk.android.signer.software.handleCreateSoftwareSignerEvent
+import com.nunchuk.android.signer.software.onCreateSignerCompleted
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.viewModelProviderFactoryOf
 import com.nunchuk.android.widget.NCToastMessage
@@ -72,7 +74,22 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
-        setPassphraseViewModel.event.observe(this, ::handleCreateSoftwareSignerEvent)
+        setPassphraseViewModel.event.observe(this) { event ->
+            if (handleCreateSoftwareSignerEvent(event)) return@observe
+            if (event is CreateSoftwareSignerCompletedEvent) {
+                onCreateSignerCompleted(
+                    navigator = navigator,
+                    masterSigner = event.masterSigner,
+                    skipPassphrase = event.skipPassphrase,
+                    primaryKeyFlow = args.primaryKeyFlow,
+                    replacedXfp = "",
+                    groupId = "",
+                    passphrase = "",
+                    mnemonic = args.mnemonic,
+                    signerName = viewModel.getSignerName(),
+                )
+            }
+        }
     }
 
     private fun handleState(state: AddSoftwareSignerNameState) {
@@ -106,13 +123,18 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                     openSetPassphraseScreen(event.signerName, "")
                 }
             }
+
             is SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
-            is AddSoftwareSignerNameEvent.ImportPrimaryKeyErrorEvent -> NCToastMessage(this).showError(message = event.message)
+            is AddSoftwareSignerNameEvent.ImportPrimaryKeyErrorEvent -> NCToastMessage(this).showError(
+                message = event.message
+            )
+
             is AddSoftwareSignerNameEvent.LoadingEvent -> showOrHideLoading(event.loading)
             is AddSoftwareSignerNameEvent.InitFailure -> {
                 NCToastMessage(this).showError(message = event.message)
                 finish()
             }
+
             is AddSoftwareSignerNameEvent.GetTurnOnNotificationSuccess -> openNextScreen(event.isTurnOn)
         }
     }
@@ -121,7 +143,12 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
         val isEnabledNotification = NotificationUtils.areNotificationsEnabled(this)
         val messages = ArrayList<String>()
         messages.add(String.format(getString(R.string.nc_text_signed_in_with_data), args.username))
-        messages.add(String.format(getString(R.string.nc_text_key_has_been_added_data), viewModel.getSignerName()))
+        messages.add(
+            String.format(
+                getString(R.string.nc_text_key_has_been_added_data),
+                viewModel.getSignerName()
+            )
+        )
         if (turnOn && isEnabledNotification) {
             navigator.openTurnNotificationScreen(
                 this,

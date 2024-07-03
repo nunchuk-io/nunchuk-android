@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import java.util.Locale
 import javax.inject.Inject
 
-abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
+abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), LoadingDialog {
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -58,23 +58,23 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
 
     abstract fun initializeBinding(): Binding
 
-    fun showLoading(
-        cancelable: Boolean = true,
-        title: String = getString(R.string.nc_please_wait),
-        message: String? = null
+    override fun showLoading(
+        cancelable: Boolean,
+        title: String,
+        message: String?
     ) {
         creator.cancel()
         creator.showDialog(cancelable, title = title, message = message)
     }
 
-    fun hideLoading() {
+    override fun hideLoading() {
         creator.cancel()
     }
 
-    fun showOrHideLoading(
+    override fun showOrHideLoading(
         loading: Boolean,
-        title: String = getString(R.string.nc_please_wait),
-        message: String? = null
+        title: String,
+        message: String?
     ) {
         if (loading) showLoading(title = title, message = message) else hideLoading()
     }

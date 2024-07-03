@@ -27,7 +27,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.enterxpub.EnterXPUBActivity
-import com.nunchuk.android.auth.components.signin.SignInEvent.*
+import com.nunchuk.android.auth.components.signin.SignInEvent.CheckPrimaryKeyAccountEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.EmailRequiredEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.EmailValidEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.PasswordRequiredEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.PasswordValidEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.ProcessingEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.SignInErrorEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.SignInSuccessEvent
 import com.nunchuk.android.auth.databinding.ActivitySigninBinding
 import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.auth.util.setUnderlineText
