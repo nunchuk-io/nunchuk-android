@@ -35,7 +35,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.LoadingDialog
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.flow.Flow
@@ -46,17 +46,17 @@ import java.io.File
 fun Activity.showToast(message: String) = NCToastMessage(this).show(message)
 
 fun Activity.showLoading() {
-    (this as BaseActivity<*>).showLoading()
+    (this as LoadingDialog).showLoading()
 }
 
 fun Activity.hideLoading() {
-    (this as BaseActivity<*>).hideLoading()
+    (this as LoadingDialog).hideLoading()
 }
 
 fun Activity.showOrHideLoading(
     loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null
 ) {
-    (this as BaseActivity<*>).showOrHideLoading(loading, title, message)
+    (this as LoadingDialog).showOrHideLoading(loading, title, message)
 }
 
 fun Fragment.showLoading() {

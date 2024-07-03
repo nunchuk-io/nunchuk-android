@@ -34,6 +34,7 @@ import com.nunchuk.android.signer.software.components.intro.recoverByXprv
 import com.nunchuk.android.signer.software.components.intro.recoverByXprvRoute
 import com.nunchuk.android.signer.software.components.intro.softwareSignerIntro
 import com.nunchuk.android.signer.software.components.intro.softwareSignerIntroRoute
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -60,7 +61,20 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         }
 
         setPassphraseViewModel.event.observe(this) { event ->
-            handleCreateSoftwareSignerEvent(event)
+            if(handleCreateSoftwareSignerEvent(event)) return@observe
+            if(event is CreateSoftwareSignerCompletedEvent) {
+                onCreateSignerCompleted(
+                    navigator = navigator,
+                    masterSigner = event.masterSigner,
+                    skipPassphrase = event.skipPassphrase,
+                    primaryKeyFlow = primaryKeyFlow,
+                    replacedXfp = replacedXfp.orEmpty(),
+                    groupId = groupId.orEmpty(),
+                    passphrase = passphrase,
+                    mnemonic = "",
+                    signerName = event.masterSigner?.name.orEmpty(),
+                )
+            }
         }
 
         setContent {

@@ -22,7 +22,6 @@ package com.nunchuk.android.core.base
 import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.nunchuk.android.core.R
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.UnauthorizedEventBus
@@ -38,7 +37,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import java.util.Locale
 import javax.inject.Inject
 
-abstract class BaseComposeActivity : AppCompatActivity() {
+abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -53,24 +52,23 @@ abstract class BaseComposeActivity : AppCompatActivity() {
         NCLoadingDialogCreator(this)
     }
 
-
-    fun showLoading(
-        cancelable: Boolean = true,
-        title: String = getString(R.string.nc_please_wait),
-        message: String? = null
+    override fun showLoading(
+        cancelable: Boolean,
+        title: String ,
+        message: String?
     ) {
         creator.cancel()
         creator.showDialog(cancelable, title = title, message = message)
     }
 
-    fun hideLoading() {
+    override fun hideLoading() {
         creator.cancel()
     }
 
-    fun showOrHideLoading(
+    override fun showOrHideLoading(
         loading: Boolean,
-        title: String = getString(R.string.nc_please_wait),
-        message: String? = null
+        title: String,
+        message: String?
     ) {
         if (loading) showLoading(title = title, message = message) else hideLoading()
     }
