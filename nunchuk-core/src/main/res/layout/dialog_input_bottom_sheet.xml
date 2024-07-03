@@ -31,10 +31,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_16"
         android:backgroundTint="@color/nc_whisper_color"
-        android:paddingVertical="@dimen/nc_padding_8"
         android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_16"
         app:edit_gravity="top"
+        app:edit_show_border="false"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/desc" />
 
@@ -54,18 +54,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_8"
+        app:layout_goneMarginTop="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title"
         tools:text="For example: m/48h/0h/0h" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnSave"
+        style="@style/NCText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="@dimen/nc_padding_16"
+        android:paddingStart="@dimen/nc_padding_16"
+        android:paddingTop="@dimen/nc_padding_16"
+        android:paddingEnd="0dp"
+        android:paddingBottom="@dimen/nc_padding_16"
         android:text="@string/nc_text_save"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="@+id/iconClose"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/iconClose" />

@@ -37,6 +37,7 @@
             <enum name="center_vertical" value="10" />
             <enum name="top" value="11" />
         </attr>
+        <attr name="edit_show_border" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="SwitchButton">

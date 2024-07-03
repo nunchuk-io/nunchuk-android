@@ -24,14 +24,19 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.databinding.DialogInputBottomSheetBinding
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.widget.util.heightExtended
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class InputBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>() {
 
@@ -63,6 +68,12 @@ class InputBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>() {
         binding.title.text = args.title
         binding.edit.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_140))
         binding.edit.getEditTextView().setText(args.currentInput)
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(300L)
+            binding.edit.getEditTextView().requestFocus()
+            requireContext().getSystemService<InputMethodManager>()?.showSoftInput(binding.edit.getEditTextView(), InputMethodManager.SHOW_IMPLICIT)
+        }
+
         binding.btnSave.setUnderline()
 
         binding.desc.isVisible = args.desc.isNullOrEmpty().not()
