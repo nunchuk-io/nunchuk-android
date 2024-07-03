@@ -4,7 +4,7 @@ import com.nunchuk.android.core.profile.GetOnBoardUseCase
 import com.nunchuk.android.core.profile.SetOnBoardUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.UseCase
-import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
+import com.nunchuk.android.usecase.byzantine.HasGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
@@ -17,7 +17,7 @@ class CheckShowOnboardUseCase @Inject constructor(
     private val getOnBoardUseCase: GetOnBoardUseCase,
     private val setOnBoardUseCase: SetOnBoardUseCase,
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
-    private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
+    private val hasGroupWalletsUseCase: HasGroupWalletsUseCase,
 ) : UseCase<Unit, Unit>(dispatcher) {
     override suspend fun execute(parameters: Unit) {
         val shouldShowOnboard = getOnBoardUseCase(Unit).first().getOrElse { null }
@@ -29,7 +29,7 @@ class CheckShowOnboardUseCase @Inject constructor(
                 }
 
                 val groupWallets = async {
-                    syncGroupWalletsUseCase(Unit).getOrElse { false }
+                    hasGroupWalletsUseCase(Unit).getOrElse { false }
                 }
 
                 if (subscription.await().isEmpty() && !groupWallets.await()) {

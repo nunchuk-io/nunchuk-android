@@ -365,6 +365,7 @@ interface PremiumWalletRepository {
     fun getGroups(): Flow<List<ByzantineGroup>>
     suspend fun getGroupsRemote(): List<ByzantineGroup>
     suspend fun syncGroupWallets(): Boolean
+    suspend fun hasGroupWallets(): Boolean
     fun getGroup(groupId: String): Flow<ByzantineGroup>
     suspend fun getLocalGroup(groupId: String): ByzantineGroup?
     suspend fun getGroupRemote(groupId: String): ByzantineGroup
