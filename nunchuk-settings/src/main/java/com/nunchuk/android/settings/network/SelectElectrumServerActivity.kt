@@ -1,13 +1,11 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
-
 package com.nunchuk.android.settings.network
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -37,15 +34,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.nunchuk.android.compose.NcInputBottomSheet
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcSnackBarHost
 import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.sheet.input.InputBottomSheet
+import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.model.ElectrumServer
 import com.nunchuk.android.model.RemoteElectrumServer
 import com.nunchuk.android.model.StateEvent
@@ -55,12 +54,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class SelectElectrumServerActivity : ComponentActivity() {
+class SelectElectrumServerActivity : FragmentActivity(), InputBottomSheetListener {
+    private val viewModel: SelectElectrumServerViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             SelectElectrumServerScreen(
+                viewModel = viewModel,
                 onSelectServer = { url, name, showMessage ->
                     setResult(
                         Activity.RESULT_OK,
@@ -81,8 +82,19 @@ class SelectElectrumServerActivity : ComponentActivity() {
                         },
                     )
                 },
+                showAddSeverBottomSheet = {
+                    InputBottomSheet.show(
+                        fragmentManager = supportFragmentManager,
+                        title = "Enter the server’s address",
+                        currentInput = ""
+                    )
+                }
             )
         }
+    }
+
+    override fun onInputDone(newInput: String) {
+        viewModel.onAddNewServer(newInput)
     }
 
     companion object {
@@ -106,6 +118,7 @@ private fun SelectElectrumServerScreen(
     viewModel: SelectElectrumServerViewModel = hiltViewModel(),
     onSelectServer: (String, String, Boolean) -> Unit = { _, _, _ -> },
     onPreSelectServer: (String, String) -> Unit = { _, _ -> },
+    showAddSeverBottomSheet: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.addSuccessEvent) {
@@ -126,9 +139,9 @@ private fun SelectElectrumServerScreen(
     SelectElectrumServerContent(
         uiState = uiState,
         onSave = viewModel::onSave,
-        onAddNewSever = viewModel::onAddNewServer,
         onSelectServer = onSelectServer,
         onRemove = viewModel::onRemove,
+        showAddSeverBottomSheet = showAddSeverBottomSheet,
     )
 }
 
@@ -136,12 +149,11 @@ private fun SelectElectrumServerScreen(
 private fun SelectElectrumServerContent(
     uiState: SelectElectrumServerUiState = SelectElectrumServerUiState(),
     onSave: () -> Unit = {},
-    onAddNewSever: (String) -> Unit = {},
     onSelectServer: (String, String, Boolean) -> Unit = { _, _, _ -> },
     onRemove: (Long) -> Unit = {},
+    showAddSeverBottomSheet: () -> Unit = {},
 ) {
     var isEditing by rememberSaveable { mutableStateOf(false) }
-    var showAddSeverBottomSheet by rememberSaveable { mutableStateOf(false) }
     BackHandler(isEditing) {
         isEditing = false
     }
@@ -197,7 +209,7 @@ private fun SelectElectrumServerContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        onClick = { showAddSeverBottomSheet = true }
+                        onClick = { showAddSeverBottomSheet() }
                     ) {
                         Text(text = stringResource(id = R.string.nc_add_electrum_server))
                     }
@@ -237,17 +249,6 @@ private fun SelectElectrumServerContent(
                     )
                 }
             }
-        }
-
-        if (showAddSeverBottomSheet) {
-            NcInputBottomSheet(
-                title = "Enter the server’s address",
-                onDone = {
-                    showAddSeverBottomSheet = false
-                    onAddNewSever(it)
-                },
-                onDismiss = { showAddSeverBottomSheet = false },
-            )
         }
     }
 }

@@ -63,6 +63,7 @@ class NCEditTextView @JvmOverloads constructor(
     private var editHigh: Float = resources.getDimension(R.dimen.nc_height_44)
     private var editTheme: Int = NORMAL_THEME
     private var editGravity: Int = GRAVITY_CENTER_VERTICAL
+    private var editShowBorder: Boolean = true
     private val binding = NcEditTextViewBinding.inflate(LayoutInflater.from(context), this)
 
     init {
@@ -93,6 +94,7 @@ class NCEditTextView @JvmOverloads constructor(
         editHigh = attr.getDimension(R.styleable.NCEditTextView_edit_height, resources.getDimension(R.dimen.nc_height_44))
         editTheme = attr.getInteger(R.styleable.NCEditTextView_edit_theme, NORMAL_THEME)
         editGravity = attr.getInteger(R.styleable.NCEditTextView_edit_gravity, GRAVITY_CENTER_VERTICAL)
+        editShowBorder = attr.getBoolean(R.styleable.NCEditTextView_edit_show_border, true)
         attr.recycle()
     }
 
@@ -134,7 +136,12 @@ class NCEditTextView @JvmOverloads constructor(
             binding.editText.setPadding(padding12, 0, padding12, 0)
         }
 
-        binding.editText.setBackgroundResource(editTextBackground)
+        if (!editShowBorder) {
+            binding.editText.setBackgroundResource(0)
+            binding.editText.setPadding(0, 0, 0, 0)
+        } else {
+            binding.editText.setBackgroundResource(editTextBackground)
+        }
         binding.editText.layoutParams.height = editHigh.toInt()
     }
 
