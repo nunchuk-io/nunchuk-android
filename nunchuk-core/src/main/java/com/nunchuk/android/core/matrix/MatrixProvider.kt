@@ -23,7 +23,7 @@ import android.net.Uri
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import javax.inject.Inject
 
-internal class MatrixProvider @Inject constructor() {
+class MatrixProvider @Inject constructor() {
 
     fun getServerConfig() = HomeServerConnectionConfig
         .Builder()

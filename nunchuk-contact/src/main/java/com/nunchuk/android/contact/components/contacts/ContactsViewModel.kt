@@ -57,7 +57,6 @@ class ContactsViewModel @Inject constructor(
     private val getSentContactsUseCase: GetSentContactsUseCase,
     private val getReceivedContactsUseCase: GetReceivedContactsUseCase,
     private val sessionHolder: SessionHolder,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val handlePushMessageUseCase: HandlePushMessageUseCase,
     private val deleteContactUseCase: DeleteContactUseCase
 ) : NunchukViewModel<ContactsState, ContactsEvent>() {
