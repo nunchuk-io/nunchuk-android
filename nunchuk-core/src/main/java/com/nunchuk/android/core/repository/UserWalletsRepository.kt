@@ -1953,6 +1953,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return groups.isNotEmpty() || isDeletedWallet
     }
 
+    override suspend fun hasGroupWallets(): Boolean {
+        val response = userWalletApiManager.groupWalletApi.getGroups()
+        val groups = response.data.groups.orEmpty()
+        return groups.isNotEmpty()
+    }
+
     private suspend fun deleteAssistedWallets(groupIds: Set<String>): Boolean {
         val localGroupWallets =
             assistedWalletDao.getAssistedWallets().filter { it.groupId.isNotEmpty() }
