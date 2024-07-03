@@ -240,9 +240,9 @@ class AddKeyListViewModel @Inject constructor(
         _state.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
 
     fun getColdcard() = _state.value.signers.filter {
-        (it.type == SignerType.COLDCARD_NFC
-                && it.derivationPath.isRecommendedPath
-                && isSignerExist(it.fingerPrint).not()) || (it.type == SignerType.AIRGAP && it.tags.isEmpty())
+        isSignerExist(it.fingerPrint).not()
+                && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedPath)
+                || (it.type == SignerType.AIRGAP && (it.tags.isEmpty() || it.tags.contains(SignerTag.COLDCARD))))
     }
 
     fun getHardwareSigners(tag: SignerTag) =
