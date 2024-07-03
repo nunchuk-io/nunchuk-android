@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,19 +31,30 @@ class MatrixInitializerUseCase @Inject constructor(
     private val instance: Matrix,
     private val accountManager: AccountManager,
     private val sessionHolder: SessionHolder,
+    private val encryptedPreferences: NcEncryptedPreferences,
+    private val matrixProvider: MatrixProvider,
     @IoDispatcher dispatcher: CoroutineDispatcher
 ) : UseCase<Unit, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Unit) {
         if (!accountManager.getAccount().staySignedIn) return
+        val chatId = accountManager.getAccount().chatId
         if (sessionHolder.hasActiveSession()) return
         val authenticationService = instance.authenticationService()
-        if (authenticationService.hasAuthenticatedSessions()) {
+        val session = if (authenticationService.hasAuthenticatedSessions()) {
             authenticationService
                 .getLastAuthenticatedSession()
-                ?.let {
-                    sessionHolder.storeActiveSession(it)
-                }
+                ?.takeIf { it.myUserId == chatId }
+        } else {
+            encryptedPreferences.getMatrixCredential(chatId)?.let { credentials ->
+                runCatching {
+                    authenticationService.createSessionFromSso(
+                        homeServerConnectionConfig = matrixProvider.getServerConfig(),
+                        credentials = credentials,
+                    )
+                }.getOrNull()
+            }
         }
+        session?.let { sessionHolder.storeActiveSession(it) }
     }
 }

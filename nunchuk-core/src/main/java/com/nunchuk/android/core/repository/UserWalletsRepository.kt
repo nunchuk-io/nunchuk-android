@@ -82,7 +82,6 @@ import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.data.model.membership.toWalletOption
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.mapper.toAlert
@@ -181,14 +180,15 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.matrix.android.sdk.api.auth.LoginType
 import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val userWalletApiManager: UserWalletApiManager,
@@ -450,9 +450,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun saveWalletToLib(
+    private suspend fun saveWalletToLib(
         walletServer: WalletDto, assistedKeys: MutableSet<String>,
     ): Boolean {
+        coroutineContext.ensureActive()
         var isNeedReload = false
         val newSignerMap = hashMapOf<String, Boolean>()
         val isRemoveKey =
