@@ -26,6 +26,7 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.share.IntentSharingController
@@ -165,12 +166,18 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 ExportWalletQRCodeType.BBQR
             )
 
-            SheetOptionType.TYPE_REPLACE_KEY -> navigator.openMembershipActivity(
-                activityContext = this,
-                groupStep = MembershipStage.REPLACE_KEY,
-                walletId = args.walletId,
-                groupId = viewModel.getGroupId().orEmpty(),
-            )
+            SheetOptionType.TYPE_REPLACE_KEY -> {
+                if (viewModel.isAssistedWallet()) {
+                    showReEnterPassword(TargetAction.REPLACE_KEYS)
+                } else {
+                    navigator.openMembershipActivity(
+                        activityContext = this,
+                        groupStep = MembershipStage.REPLACE_KEY,
+                        walletId = args.walletId,
+                        groupId = viewModel.getGroupId().orEmpty(),
+                    )
+                }
+            }
         }
     }
 
@@ -203,7 +210,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private fun handleDeleteWallet() {
         if (viewModel.isAssistedWallet() || viewModel.isServerWallet()) {
-            showReEnterPassword(null)
+            showReEnterPassword(TargetAction.DELETE_WALLET)
         } else if (viewModel.isSharedWallet()) {
             NCWarningDialog(this).showDialog(
                 message = getString(R.string.nc_delete_collaborative_wallet),
@@ -279,6 +286,13 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     R.string.nc_gap_limit_updated
                 )
             )
+
+            WalletConfigEvent.OpenReplaceKey -> navigator.openMembershipActivity(
+                activityContext = this,
+                groupStep = MembershipStage.REPLACE_KEY,
+                walletId = args.walletId,
+                groupId = viewModel.getGroupId().orEmpty(),
+            )
         }
     }
 
@@ -353,7 +367,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             isActiveAssistedWallet = viewModel.isAssistedWallet(),
             isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet()
         ) {
-            showReEnterPassword(it)
+            showReEnterPassword(TargetAction.UPDATE_SERVER_KEY, it)
         }.bindItems()
         binding.tvSetAlias.text = if (state.alias.isNotEmpty()) {
             getString(R.string.nc_change_alias)
@@ -520,16 +534,20 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         }
     }
 
-    private fun showReEnterPassword(signer: SignerModel?) {
+    private fun showReEnterPassword(
+        targetAction: TargetAction,
+        signer: SignerModel? = null,
+    ) {
         NCDeleteConfirmationDialog(this).showDialog(
             title = getString(R.string.nc_re_enter_password),
             isMaskInput = true,
             message = getString(R.string.nc_enter_your_password_desc),
             onConfirmed = { password ->
-                if (signer == null) {
-                    viewModel.verifyPasswordToDeleteAssistedWallet(password)
-                } else {
-                    viewModel.verifyPassword(password, signer)
+                when (targetAction) {
+                    TargetAction.DELETE_WALLET -> viewModel.verifyPasswordToDeleteAssistedWallet(password)
+                    TargetAction.UPDATE_SERVER_KEY -> viewModel.verifyPassword(password, signer!!)
+                    TargetAction.REPLACE_KEYS -> viewModel.verifyPasswordToReplaceKey(password)
+                    else -> Unit
                 }
             }
         )
