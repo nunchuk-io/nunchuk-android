@@ -85,6 +85,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     startDestination = softwareSignerIntroRoute
                 ) {
                     softwareSignerIntro(
+                        isSupportXprv = !primaryKeyFlow.isSignInFlow(),
                         onCreateNewSeedClicked = ::openCreateNewSeedScreen,
                         onRecoverSeedClicked = ::openRecoverSeedScreen,
                         onRecoverXprvClicked = {
@@ -101,15 +102,6 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
 
     private fun onRecoverFromXprv(xprv: String) {
         when {
-            primaryKeyFlow.isSignInFlow() -> {
-                // TODO Thong
-                navigator.openPrimaryKeyEnterPassphraseScreen(
-                    activityContext = this,
-                    primaryKeyFlow = primaryKeyFlow,
-                    xprv = xprv,
-                )
-            }
-
             !groupId.isNullOrEmpty() || !replacedXfp.isNullOrEmpty() -> {
                 val signerName = if (replacedXfp.isNullOrEmpty()) {
                     viewModel.state.value.replaceSignerName
