@@ -45,12 +45,14 @@ import com.nunchuk.android.signer.software.R
 const val softwareSignerIntroRoute = "software_signer_intro"
 
 fun NavGraphBuilder.softwareSignerIntro(
+    isSupportXprv: Boolean,
     onCreateNewSeedClicked: () -> Unit = {},
     onRecoverSeedClicked: () -> Unit = {},
     onRecoverXprvClicked: () -> Unit = {},
 ) {
     composable(softwareSignerIntroRoute) {
         SoftwareSignerIntroScreen(
+            isSupportXprv = isSupportXprv,
             onCreateNewSeedClicked = onCreateNewSeedClicked,
             onRecoverSeedClicked = onRecoverSeedClicked,
             onRecoverXprvClicked = onRecoverXprvClicked,
@@ -61,6 +63,7 @@ fun NavGraphBuilder.softwareSignerIntro(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoftwareSignerIntroScreen(
+    isSupportXprv: Boolean = false,
     onCreateNewSeedClicked: () -> Unit = {},
     onRecoverSeedClicked: () -> Unit = {},
     onRecoverXprvClicked: () -> Unit = {},
@@ -94,7 +97,13 @@ fun SoftwareSignerIntroScreen(
 
                 NcOutlineButton(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = { showRecoverSheet = true }
+                    onClick = {
+                        if (isSupportXprv) {
+                            showRecoverSheet = true
+                        } else {
+                            onRecoverSeedClicked()
+                        }
+                    }
                 ) {
                     Text(text = stringResource(id = R.string.nc_ssigner_recover_seed))
                 }
