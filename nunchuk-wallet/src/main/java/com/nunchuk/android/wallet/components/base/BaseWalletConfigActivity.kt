@@ -57,6 +57,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
             SheetOptionType.EXPORT_COLDCARD_VIA_FILE -> handleColdcardExportToFile()
             SheetOptionType.TYPE_QR_BC_UR2_LEGACY -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2_LEGACY)
             SheetOptionType.TYPE_QR_BC_UR2 -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2)
+            SheetOptionType.TYPE_EXPORT_BBQR -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BBQR)
         }
     }
 
