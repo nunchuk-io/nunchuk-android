@@ -161,11 +161,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             }
 
-            SheetOptionType.TYPE_EXPORT_BBQR -> openDynamicQRScreen(
-                sharedViewModel.walletId,
-                ExportWalletQRCodeType.BBQR
-            )
-
             SheetOptionType.TYPE_REPLACE_KEY -> {
                 if (viewModel.isAssistedWallet()) {
                     showReEnterPassword(TargetAction.REPLACE_KEYS)
