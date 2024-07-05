@@ -67,4 +67,5 @@
     <string name="nc_recover_key_via_xprv">Recover key via XPRV</string>
     <string name="nc_please_enter_the_master_private_key_xprv">Please enter the master private key (XPRV).</string>
     <string name="nc_xprv">XPRV</string>
+    <string name="nc_recover_key_via_seed">Recover key via seed</string>
 </resources>

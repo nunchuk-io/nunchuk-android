@@ -152,8 +152,8 @@ fun SoftwareSignerIntroScreen(
     if (showRecoverSheet) {
         NcSelectableBottomSheet(
             options = listOf(
-                "Recover key via seed",
-                "Recover key via xprv",
+                stringResource(R.string.nc_recover_key_via_seed),
+                stringResource(R.string.nc_recover_key_via_xprv),
             ),
             onSelected = {
                 if (it == 0) {
