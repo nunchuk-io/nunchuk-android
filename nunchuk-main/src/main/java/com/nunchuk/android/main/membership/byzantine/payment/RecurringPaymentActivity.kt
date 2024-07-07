@@ -157,6 +157,7 @@ class RecurringPaymentActivity : BaseComposeActivity() {
                                     assistedWalletIds = state.otherwallets.map { wallet -> wallet.id },
                                     configArgs = WalletComposeBottomSheet.ConfigArgs(
                                         title = context.getString(R.string.nc_select_a_wallet),
+                                        isShowDeactivatedWallets = false
                                     ),
                                 )
                             }
