@@ -26,10 +26,10 @@ import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.ChangePrimaryKeyUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
+import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow.isReplaceFlow
+import com.nunchuk.android.core.signer.KeyFlow.isReplaceKeyInFreeWalletFlow
+import com.nunchuk.android.core.signer.KeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError

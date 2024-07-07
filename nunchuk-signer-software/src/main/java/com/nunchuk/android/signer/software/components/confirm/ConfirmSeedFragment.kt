@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.software.components.confirm
 
+import android.app.Activity
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
@@ -30,6 +31,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.signer.KeyFlow.isAddPortalFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.software.R
@@ -96,12 +98,19 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                     requireActivity().finish()
                 }
             },
-            onInfoClick = { openSetPassphrase() }
+            onInfoClick = {
+                openSetPassphrase()
+            }
         )
     }
 
     private fun openSetPassphrase() {
-        if (args.masterSignerId.isNotEmpty()) {
+        if (args.primaryKeyFlow.isAddPortalFlow()) {
+            requireActivity().apply {
+                setResult(Activity.RESULT_OK)
+                finish()
+            }
+        } else if (args.masterSignerId.isNotEmpty()) {
             // hot wallet follow up
             viewModel.markHotWalletBackedUp(args.walletId)
             navigator.returnToMainScreen(requireActivity())
@@ -134,7 +143,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                 activityContext = requireActivity(),
                 mnemonic = args.mnemonic,
                 signerName = signerName,
-                primaryKeyFlow = args.primaryKeyFlow,
+                keyFlow = args.primaryKeyFlow,
                 groupId = args.groupId,
                 replacedXfp = args.replacedXfp,
                 walletId = args.walletId
@@ -148,7 +157,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
         navigator.openAddSoftwareSignerNameScreen(
             activityContext = requireActivity(),
             mnemonic = args.mnemonic,
-            primaryKeyFlow = args.primaryKeyFlow,
+            keyFlow = args.primaryKeyFlow,
             passphrase = args.passphrase,
             walletId = args.walletId
         )

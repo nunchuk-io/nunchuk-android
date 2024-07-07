@@ -23,7 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.signer.software.databinding.ActivityPkeySignInIntroBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -46,7 +46,7 @@ class PKeySignInIntroActivity : BaseActivity<ActivityPkeySignInIntroBinding>() {
             navigator.openPrimaryKeyManuallyUsernameScreen(this)
         }
         binding.btnImport.setOnDebounceClickListener {
-            navigator.openRecoverSeedScreen(this, primaryKeyFlow = PrimaryKeyFlow.SIGN_IN)
+            navigator.openRecoverSeedScreen(this, keyFlow = KeyFlow.SIGN_IN)
         }
         binding.toolbar.setNavigationOnClickListener {
             finish()

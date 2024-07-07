@@ -23,7 +23,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.databinding.ActivityPkeyChooseUsernameBinding
 import com.nunchuk.android.utils.NotificationUtils

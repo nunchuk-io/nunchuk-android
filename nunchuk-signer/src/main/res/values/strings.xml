@@ -38,7 +38,7 @@
     <string name="nc_new_cvc">New PIN</string>
     <string name="nc_confirm_new_cvc">Confirm new PIN</string>
     <string name="nc_keep_your_cvc_hint">The PIN code is a security feature that prevents unauthorized access to your key. Please keep it safe. You\'ll need it for signing transactions.</string>
-    <string name="nc_cvc_not_match">New PIN do not match</string>
+    <string name="nc_cvc_not_match">New PIN does not match</string>
     <string name="nc_cvc_incorrect">PIN is inccorect</string>
     <string name="nc_setup_nfc_key_desc">This NFC key has not been initialized. Do you want to initialize it now?</string>
     <string name="nc_name_your_key">Name your key</string>
@@ -143,4 +143,17 @@
     <string name="nc_software_key_removed_from_device">The software key (%1$s) will be removed from this device. Please tap ‘Delete key’ to confirm.</string>
     <string name="nc_skip_verification">Skip verification</string>
     <string name="nc_skip_back_up_desc">Are you sure you want to skip the backup verification?</string>
+    <string name="nc_add_portal">Add Portal</string>
+    <string name="nc_select_a_seed_phrase">Select a seed phrase</string>
+    <string name="nc_select_a_seed_phrase_desc">It looks like the Portal device has not been activated yet. Continue to set it up with a seed phrase.</string>
+    <string name="nc_generate_seed_on_portal">Generate seed on Portal (recommended)</string>
+    <string name="nc_generate_seed_on_portal_desc">Let Portal generate the seed phrase</string>
+    <string name="nc_generate_seed_in_nunchuk">Generate seed in Nunchuk</string>
+    <string name="nc_generate_seed_in_nunchuk_desc">Let the app generate the seed phrase</string>
+    <string name="nc_import_existing_seed_phrase_to_portal">I want to import an existing seed phrase into Portal (advanced)</string>
+    <string name="nc_select_seed_phrase_type">Select seed phrase type</string>
+    <string name="nc_12_words">12 words</string>
+    <string name="nc_24_words">24 words</string>
+    <string name="nc_continue_without_a_pin">Continue without a PIN</string>
+    <string name="nc_confirm_setup_portal_without_pin">Enabling a device PIN will make the device more secure. Are you sure you want to continue without a PIN?</string>
 </resources>

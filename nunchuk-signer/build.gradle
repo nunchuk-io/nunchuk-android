@@ -2,6 +2,7 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
+apply plugin: 'kotlin-parcelize'
 
 android {
 
@@ -23,6 +24,8 @@ dependencies {
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-signer-software')
     implementation project(':nunchuk-signer-core')
+    implementation(files('../libs/libportal-android.aar'))
+    implementation("net.java.dev.jna:jna:5.14.0@aar")
     implementation nunchukDeps.nativeSdk
 
     implementation pluginsDeps.kotlinAndroidRuntime

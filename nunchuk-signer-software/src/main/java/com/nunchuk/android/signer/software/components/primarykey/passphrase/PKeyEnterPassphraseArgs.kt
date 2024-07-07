@@ -22,7 +22,7 @@ package com.nunchuk.android.signer.software.components.primarykey.passphrase
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow
 
 data class PKeyEnterPassphraseArgs(
     val mnemonic: String,
@@ -42,8 +42,8 @@ data class PKeyEnterPassphraseArgs(
 
         fun deserializeFrom(intent: Intent) = PKeyEnterPassphraseArgs(
             mnemonic = intent.extras?.getString(EXTRA_MNEMONIC, "").orEmpty(),
-            primaryKeyFlow = intent.extras?.getInt(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
-                ?: PrimaryKeyFlow.NONE,
+            primaryKeyFlow = intent.extras?.getInt(EXTRA_PRIMARY_KEY_FLOW, KeyFlow.NONE)
+                ?: KeyFlow.NONE,
         )
     }
 

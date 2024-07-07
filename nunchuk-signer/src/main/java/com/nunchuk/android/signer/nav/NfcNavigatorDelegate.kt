@@ -22,9 +22,11 @@ package com.nunchuk.android.signer.nav
 import android.app.Activity
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.nav.NfcNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.portal.PortalDeviceActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 
 interface NfcNavigatorDelegate : NfcNavigator {
@@ -136,6 +138,15 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 signerIndex = signerIndex,
                 replacedXfp = replacedXfp,
                 walletId = walletId,
+            )
+        )
+    }
+
+    override fun openPortalScreen(activity: Activity, args: PortalDeviceArgs) {
+        activity.startActivity(
+            PortalDeviceActivity.buildIntent(
+                activity = activity,
+                args = args
             )
         )
     }

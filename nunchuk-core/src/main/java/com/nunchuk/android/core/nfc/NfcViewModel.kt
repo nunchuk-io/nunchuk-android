@@ -24,6 +24,7 @@ import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
+import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,11 +32,12 @@ import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.TapProtocolException
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
+import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
-import com.nunchuk.android.utils.parcelable
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -84,7 +86,7 @@ class NfcViewModel @Inject constructor(
         val requestCode = intent.getIntExtra(BaseNfcActivity.EXTRA_REQUEST_NFC_CODE, 0)
         Timber.d("requestCode: $requestCode")
         if (requestCode == 0) return
-        val records = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+        val records = intent.parcelableArrayList<Parcelable>(NfcAdapter.EXTRA_NDEF_MESSAGES)
             .orEmpty()
             .filterIsInstance<NdefMessage>().map { rawMessage ->
                 rawMessage.records.toList()
@@ -114,8 +116,8 @@ class NfcViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         closeNfc()
+        super.onCleared()
     }
 
     private fun closeNfc() {

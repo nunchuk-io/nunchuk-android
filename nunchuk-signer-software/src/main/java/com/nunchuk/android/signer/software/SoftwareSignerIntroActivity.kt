@@ -28,8 +28,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignInFlow
+import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.signer.software.components.intro.recoverByXprv
 import com.nunchuk.android.signer.software.components.intro.recoverByXprvRoute
 import com.nunchuk.android.signer.software.components.intro.softwareSignerIntro
@@ -43,8 +43,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
     private val viewModel: SoftwareSignerIntroViewModel by viewModels()
     private val setPassphraseViewModel: SetPassphraseViewModel by viewModels()
 
-    private val primaryKeyFlow: Int by lazy {
-        intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
+    private val keyFlow: Int by lazy {
+        intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, KeyFlow.NONE)
     }
     private val passphrase: String by lazy {
         intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
@@ -67,7 +67,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     navigator = navigator,
                     masterSigner = event.masterSigner,
                     skipPassphrase = event.skipPassphrase,
-                    primaryKeyFlow = primaryKeyFlow,
+                    keyFlow = keyFlow,
                     replacedXfp = replacedXfp.orEmpty(),
                     groupId = groupId.orEmpty(),
                     passphrase = passphrase,
@@ -85,7 +85,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     startDestination = softwareSignerIntroRoute
                 ) {
                     softwareSignerIntro(
-                        isSupportXprv = !primaryKeyFlow.isSignInFlow(),
+                        isSupportXprv = !keyFlow.isSignInFlow(),
                         onCreateNewSeedClicked = ::openCreateNewSeedScreen,
                         onRecoverSeedClicked = ::openRecoverSeedScreen,
                         onRecoverXprvClicked = {
@@ -113,7 +113,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     signerName = signerName,
                     mnemonic = "",
                     passphrase = "",
-                    primaryKeyFlow = primaryKeyFlow,
+                    primaryKeyFlow = keyFlow,
                     groupId = groupId.orEmpty(),
                     replacedXfp = replacedXfp.orEmpty(),
                     walletId = walletId,
@@ -126,7 +126,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             else -> {
                 navigator.openAddSoftwareSignerNameScreen(
                     activityContext = this,
-                    primaryKeyFlow = primaryKeyFlow,
+                    keyFlow = keyFlow,
                     passphrase = passphrase,
                     walletId = walletId,
                     xprv = xprv
@@ -139,10 +139,10 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         navigator.openCreateNewSeedScreen(
             activityContext = this,
             passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow,
+            keyFlow = keyFlow,
+            walletId = walletId,
             groupId = groupId,
-            replacedXfp = replacedXfp,
-            walletId = walletId
+            replacedXfp = replacedXfp
         )
     }
 
@@ -150,7 +150,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         navigator.openRecoverSeedScreen(
             activityContext = this,
             passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow,
+            keyFlow = keyFlow,
             groupId = groupId,
             replacedXfp = replacedXfp,
             walletId = walletId
@@ -175,7 +175,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         fun start(
             activityContext: Context,
             passphrase: String,
-            primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+            primaryKeyFlow: Int = KeyFlow.NONE,
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",

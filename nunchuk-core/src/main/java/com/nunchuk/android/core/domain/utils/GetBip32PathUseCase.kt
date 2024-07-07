@@ -17,31 +17,28 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.signer
+package com.nunchuk.android.core.domain.utils
 
-import androidx.annotation.IntDef
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-object PrimaryKeyFlow {
+class GetBip32PathUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk
+) : UseCase<GetBip32PathUseCase.Param, String>(dispatcher) {
 
-    const val NONE = 0
-    const val SIGN_UP = 1
-    const val SIGN_IN = 2
-    const val REPLACE = 3
-    const val REPLACE_KEY_IN_FREE_WALLET = 4
+    override suspend fun execute(parameters: Param): String {
+        return nunchukNativeSdk.getBip32Path(
+            walletType = parameters.walletType,
+            addressType = parameters.addressType,
+            index = parameters.index
+        )
+    }
 
-    @IntDef(
-        NONE,
-        SIGN_UP,
-        SIGN_IN,
-        REPLACE,
-        REPLACE_KEY_IN_FREE_WALLET,
-    )
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class PrimaryFlowInfo
-
-    fun Int.isPrimaryKeyFlow() = this != NONE && this != REPLACE_KEY_IN_FREE_WALLET
-    fun Int.isSignUpFlow() = this == SIGN_UP
-    fun Int.isSignInFlow() = this == SIGN_IN
-    fun Int.isReplaceFlow() = this == REPLACE
-    fun Int.isReplaceKeyInFreeWalletFlow() = this == REPLACE_KEY_IN_FREE_WALLET
+    data class Param(val index: Int, val walletType: WalletType, val addressType: AddressType)
 }

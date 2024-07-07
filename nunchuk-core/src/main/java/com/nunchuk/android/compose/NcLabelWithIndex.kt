@@ -20,7 +20,9 @@
 package com.nunchuk.android.compose
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 fun NCLabelWithIndex(
     modifier: Modifier = Modifier,
     index: Int,
+    title: String? = null,
     label: String,
     style: TextStyle = NunchukTheme.typography.body,
 ) {
@@ -46,7 +49,11 @@ fun NCLabelWithIndex(
         Box(
             modifier = Modifier
                 .size(24.dp)
-                .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = CircleShape),
+                .border(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = CircleShape
+                ),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -54,20 +61,31 @@ fun NCLabelWithIndex(
                 style = NunchukTheme.typography.titleSmall.copy(fontWeight = FontWeight.W900)
             )
         }
-        Text(
+        Column(
             modifier = Modifier.padding(start = 12.dp),
-            text = label,
-            style = style
-        )
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            title?.let {
+                Text(
+                    text = title,
+                    style = NunchukTheme.typography.title
+                )
+            }
+            Text(
+                text = label,
+                style = style
+            )
+        }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun NcLabelWithIndexPreview() {
     NunchukTheme {
         NCLabelWithIndex(
             index = 1,
+            title = "Step 1",
             label = "Use any TAPSIGNER-compatible tool to ensure that you can decrypt the backup via the decryption key printed on the back of the TAPSIGNER."
         )
     }

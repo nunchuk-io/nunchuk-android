@@ -2,9 +2,9 @@ package com.nunchuk.android.signer.software
 
 import android.app.Activity
 import com.nunchuk.android.core.manager.ActivityManager
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
+import com.nunchuk.android.core.signer.KeyFlow.isReplaceFlow
+import com.nunchuk.android.core.signer.KeyFlow.isReplaceKeyInFreeWalletFlow
+import com.nunchuk.android.core.signer.KeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MasterSigner
@@ -20,19 +20,19 @@ fun Activity.onCreateSignerCompleted(
     signerName: String,
     masterSigner: MasterSigner?,
     skipPassphrase: Boolean,
-    primaryKeyFlow: Int,
+    keyFlow: Int,
     replacedXfp: String,
     groupId: String,
 ) {
     hideLoading()
-    if (primaryKeyFlow.isSignUpFlow()) {
+    if (keyFlow.isSignUpFlow()) {
         navigator.openPrimaryKeyChooseUserNameScreen(
             activityContext = this,
             mnemonic = mnemonic,
             passphrase = passphrase,
             signerName = signerName
         )
-    } else if (primaryKeyFlow.isReplaceFlow()) {
+    } else if (keyFlow.isReplaceFlow()) {
         ActivityManager.popToLevel(2)
         navigator.openSignerInfoScreen(
             activityContext = this,
@@ -45,7 +45,7 @@ fun Activity.onCreateSignerCompleted(
             setPassphrase = !skipPassphrase,
             isReplacePrimaryKey = true
         )
-    } else if (groupId.isNotEmpty() || replacedXfp.isNotEmpty() || primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
+    } else if (groupId.isNotEmpty() || replacedXfp.isNotEmpty() || keyFlow.isReplaceKeyInFreeWalletFlow()) {
         ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
     } else {
         navigator.returnToMainScreen(this)

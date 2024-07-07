@@ -23,7 +23,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.SignerIntroActivity
@@ -140,7 +140,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openAddSoftwareSignerScreen(
         activityContext: Context,
         passphrase: String,
-        primaryKeyFlow: Int,
+        keyFlow: Int,
         groupId: String?,
         replacedXfp: String?,
         walletId: String,
@@ -148,7 +148,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         SoftwareSignerIntroActivity.start(
             activityContext = activityContext,
             passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow,
+            primaryKeyFlow = keyFlow,
             groupId = groupId,
             replacedXfp = replacedXfp,
             walletId = walletId
@@ -158,25 +158,27 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openCreateNewSeedScreen(
         activityContext: Context,
         passphrase: String,
-        primaryKeyFlow: Int,
+        keyFlow: Int,
         walletId: String,
         groupId: String?,
         replacedXfp: String?,
+        numberOfWords: Int,
     ) {
         CreateNewSeedActivity.start(
             activityContext = activityContext,
-            primaryKeyFlow = primaryKeyFlow,
+            keyFlow = keyFlow,
             passphrase = passphrase,
             walletId = walletId,
             groupId = groupId,
-            replacedXfp = replacedXfp
+            replacedXfp = replacedXfp,
+            numberOfWords = numberOfWords
         )
     }
 
     override fun openRecoverSeedScreen(
         activityContext: Context,
         passphrase: String,
-        primaryKeyFlow: Int,
+        keyFlow: Int,
         isRecoverHotWallet: Boolean,
         walletId: String,
         groupId: String?,
@@ -185,7 +187,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         RecoverSeedActivity.start(
             activityContext = activityContext,
             passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow,
+            primaryKeyFlow = keyFlow,
             isRecoverHotWallet = isRecoverHotWallet,
             groupId = groupId,
             replacedXfp = replacedXfp,
@@ -194,31 +196,34 @@ interface SignerNavigatorDelegate : SignerNavigator {
     }
 
     override fun openSelectPhraseScreen(
+        launcher: ActivityResultLauncher<Intent>,
         activityContext: Context,
         mnemonic: String,
         passphrase: String,
-        primaryKeyFlow: Int,
+        keyFlow: Int,
         masterSignerId: String,
         walletId: String,
         groupId: String?,
         replacedXfp: String?,
     ) {
-        ConfirmSeedActivity.start(
-            activityContext = activityContext,
-            mnemonic = mnemonic,
-            passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow,
-            masterSignerId = masterSignerId,
-            walletId = walletId,
-            groupId = groupId,
-            replacedXfp = replacedXfp
+        launcher.launch(
+            ConfirmSeedActivity.buildIntent(
+                activityContext = activityContext,
+                mnemonic = mnemonic,
+                passphrase = passphrase,
+                primaryKeyFlow = keyFlow,
+                masterSignerId = masterSignerId,
+                walletId = walletId,
+                groupId = groupId,
+                replacedXfp = replacedXfp
+            )
         )
     }
 
     override fun openAddSoftwareSignerNameScreen(
         activityContext: Context,
         mnemonic: String,
-        primaryKeyFlow: Int,
+        keyFlow: Int,
         username: String?,
         passphrase: String,
         address: String?,
@@ -228,7 +233,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         AddSoftwareSignerNameActivity.start(
             activityContext = activityContext,
             mnemonic = mnemonic,
-            primaryKeyFlow = primaryKeyFlow,
+            primaryKeyFlow = keyFlow,
             username = username,
             passphrase = passphrase,
             address = address,
@@ -242,7 +247,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         mnemonic: String,
         signerName: String,
         passphrase: String,
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int,
         groupId: String?,
         replacedXfp: String?,
         walletId: String
@@ -251,7 +256,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             activityContext = activityContext,
             mnemonic = mnemonic,
             signerName = signerName,
-            primaryKeyFlow = primaryKeyFlow,
+            primaryKeyFlow = keyFlow,
             passphrase = passphrase,
             groupId = groupId,
             replacedXfp = replacedXfp,
@@ -266,9 +271,9 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openAddPrimaryKeyScreen(
         activityContext: Context,
         passphrase: String,
-        primaryKeyFlow: Int,
+        keyFlow: Int,
     ) {
-        PKeyAddSignerActivity.start(activityContext, primaryKeyFlow, passphrase)
+        PKeyAddSignerActivity.start(activityContext, keyFlow, passphrase)
     }
 
     override fun openPrimaryKeyChooseUserNameScreen(
@@ -298,10 +303,10 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openPrimaryKeyEnterPassphraseScreen(
         activityContext: Context,
         mnemonic: String,
-        primaryKeyFlow: Int,
+        keyFlow: Int,
         xprv: String?,
     ) {
-        PKeyEnterPassphraseActivity.start(activityContext, primaryKeyFlow, mnemonic)
+        PKeyEnterPassphraseActivity.start(activityContext, keyFlow, mnemonic)
     }
 
     override fun openPrimaryKeyManuallyUsernameScreen(activityContext: Context) {
@@ -312,7 +317,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         PKeyManuallySignatureActivity.start(activityContext, username)
     }
 
-    override fun openPrimaryKeyReplaceIntroScreen(activityContext: Context, primaryKeyFlow: Int) {
+    override fun openPrimaryKeyReplaceIntroScreen(activityContext: Context, keyFlow: Int) {
         PKeyReplaceKeyIntroActivity.start(activityContext)
     }
 }

@@ -24,7 +24,7 @@ import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.signer.software.databinding.ActivityPkeySignUpIntroBinding
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.widget.NCInfoDialog
@@ -53,7 +53,7 @@ class PKeySignUpIntroActivity : BaseActivity<ActivityPkeySignUpIntroBinding>() {
             if (isNetworkConnectedUseCase()) {
                 navigator.openAddPrimaryKeyScreen(
                     this,
-                    primaryKeyFlow = PrimaryKeyFlow.SIGN_UP
+                    keyFlow = KeyFlow.SIGN_UP
                 )
             } else {
                 NCInfoDialog(this).init(

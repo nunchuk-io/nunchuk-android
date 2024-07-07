@@ -28,7 +28,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
@@ -86,7 +86,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
                 navigator = navigator,
                 masterSigner = event.masterSigner,
                 skipPassphrase = event.skipPassphrase,
-                primaryKeyFlow = args.primaryKeyFlow,
+                keyFlow = args.primaryKeyFlow,
                 replacedXfp = args.replacedXfp,
                 groupId = args.groupId.orEmpty(),
                 passphrase = binding.passphrase.getEditText(),

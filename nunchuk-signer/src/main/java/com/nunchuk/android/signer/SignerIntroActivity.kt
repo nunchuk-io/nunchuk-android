@@ -23,7 +23,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.tapsigner.SetUpNfcOptionSheet
@@ -60,6 +62,16 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(),
                 navigator.openSetupMk4(activity = this, fromMembershipFlow = false, walletId = walletId)
                 finish()
             }
+
+            SetUpNfcOptionSheet.SetUpNfcOption.PORTAL -> {
+                navigator.openPortalScreen(
+                    activity = this,
+                    args = PortalDeviceArgs(
+                        type = PortalDeviceFlow.SETUP,
+                    )
+                )
+                finish()
+            }
         }
     }
 
@@ -84,10 +96,10 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(),
     }
 
     private fun openAddSoftwareSignerScreen() {
-        val primaryKeyFlow = if(walletId.isNotEmpty()) PrimaryKeyFlow.REPLACE_KEY_IN_FREE_WALLET else PrimaryKeyFlow.NONE
+        val primaryKeyFlow = if(walletId.isNotEmpty()) KeyFlow.REPLACE_KEY_IN_FREE_WALLET else KeyFlow.NONE
         navigator.openAddSoftwareSignerScreen(
             activityContext = this,
-            primaryKeyFlow = primaryKeyFlow,
+            keyFlow = primaryKeyFlow,
             walletId = walletId
         )
         finish()

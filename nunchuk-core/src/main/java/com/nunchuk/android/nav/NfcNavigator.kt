@@ -22,6 +22,7 @@ package com.nunchuk.android.nav
 import android.app.Activity
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.share.ColdcardAction
 
 interface NfcNavigator {
@@ -75,4 +76,6 @@ interface NfcNavigator {
         replacedXfp: String = "",
         walletId: String = "",
     )
+
+    fun openPortalScreen(activity: Activity, args: PortalDeviceArgs)
 }

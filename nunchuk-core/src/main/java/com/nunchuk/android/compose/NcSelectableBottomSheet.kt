@@ -79,7 +79,7 @@ fun NcSelectableBottomSheet(
 }
 
 @Composable
-fun NcSelectableBottomSheetItem(
+private fun NcSelectableBottomSheetItem(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,

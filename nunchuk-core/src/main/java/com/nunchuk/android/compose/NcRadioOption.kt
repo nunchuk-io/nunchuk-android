@@ -1,10 +1,21 @@
 package com.nunchuk.android.compose
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,9 +37,22 @@ fun NcRadioOption(
         ),
         shape = RoundedCornerShape(12.dp),
     ) {
-        Row(modifier = Modifier.padding(bottom = 16.dp, end = 16.dp), verticalAlignment = Alignment.Top) {
-            RadioButton(modifier = Modifier.padding(top = 6.dp), selected = isSelected, onClick = onClick)
-            Column(modifier = Modifier.padding(top = 16.dp)) {
+        Row(
+            modifier = Modifier
+                .clickable(onClick = onClick)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+                RadioButton(
+                    modifier = Modifier.padding(),
+                    selected = isSelected,
+                    onClick = onClick
+                )
+            }
+            Column(
+                modifier = Modifier.align(alignment = Alignment.CenterVertically),
+            ) {
                 content()
             }
         }

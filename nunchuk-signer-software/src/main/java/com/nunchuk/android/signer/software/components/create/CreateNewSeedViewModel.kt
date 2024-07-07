@@ -22,7 +22,7 @@ package com.nunchuk.android.signer.software.components.create
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceKeyInFreeWalletFlow
+import com.nunchuk.android.core.signer.KeyFlow.isReplaceKeyInFreeWalletFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
@@ -76,7 +76,8 @@ internal class CreateNewSeedViewModel @Inject constructor(
             }
         } else {
             viewModelScope.launch {
-                val count = if (args.groupId.isNullOrEmpty() && args.replacedXfp.isEmpty()) 24 else 12
+                val isKeyInAssistedWallet = !args.groupId.isNullOrEmpty() && args.replacedXfp.isNotEmpty()
+                val count = if (isKeyInAssistedWallet) 12 else args.numberOfWords
                 generateMnemonicUseCase(count).onSuccess {
                     _state.update { state ->
                         state.copy(

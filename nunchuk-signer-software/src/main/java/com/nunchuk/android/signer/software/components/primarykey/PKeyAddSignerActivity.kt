@@ -23,7 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.signer.software.databinding.ActivityPkeyAddSignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,12 +48,12 @@ class PKeyAddSignerActivity : BaseActivity<ActivityPkeyAddSignerBinding>() {
     }
 
     private fun openAddSoftwareSignerScreen() {
-        val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
+        val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, KeyFlow.NONE)
         val passphrase = intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
         navigator.openAddSoftwareSignerScreen(
             this,
             passphrase = passphrase,
-            primaryKeyFlow = primaryKeyFlow,
+            keyFlow = primaryKeyFlow,
         )
     }
 

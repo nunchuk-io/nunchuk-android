@@ -3,10 +3,12 @@ package com.nunchuk.android.compose.dialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -24,8 +26,10 @@ fun NcInfoDialog(
     message: String,
     title: String = stringResource(id = R.string.nc_text_info),
     positiveButtonText: String = stringResource(id = R.string.nc_text_got_it),
-    onPositiveClick: () -> Unit,
+    negativeButtonText: String? = null,
+    onNegativeClick: () -> Unit = {},
     onDismiss: () -> Unit,
+    onPositiveClick: () -> Unit = onDismiss,
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -50,14 +54,26 @@ fun NcInfoDialog(
                 style = NunchukTheme.typography.body,
                 textAlign = TextAlign.Center,
             )
-                NcPrimaryDarkButton(
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp),
+                onClick = onPositiveClick
+            ) {
+                Text(text = positiveButtonText)
+            }
+
+            negativeButtonText?.let {
+                TextButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp),
-                    onClick = onPositiveClick
+                        .height(48.dp)
+                        .padding(top = 16.dp),
+                    onClick = onNegativeClick
                 ) {
-                    Text(text = positiveButtonText)
+                    Text(text = it)
                 }
+            }
         }
     }
 }
@@ -68,6 +84,7 @@ fun NcInfoDialogPreview() {
     NunchukTheme {
         NcInfoDialog(
             message = "Are you sure you want to delete this recurring payment?",
+            negativeButtonText = "Cancel",
             onPositiveClick = {},
             onDismiss = {}
         )
