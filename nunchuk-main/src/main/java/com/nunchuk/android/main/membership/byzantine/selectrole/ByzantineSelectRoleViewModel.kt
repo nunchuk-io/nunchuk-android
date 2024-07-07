@@ -5,7 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.getOrdinalInOrder
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toGroupWalletType
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.usecase.membership.GetPermissionGroupWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,8 +21,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ByzantineSelectRoleViewModel @Inject constructor(
-    val getPermissionGroupWalletUseCase: GetPermissionGroupWalletUseCase
+    val getPermissionGroupWalletUseCase: GetPermissionGroupWalletUseCase,
 ) : ViewModel() {
+
     private val _state = MutableStateFlow(AdvisorPlanSelectRoleState())
     val state = _state.asStateFlow()
 
@@ -52,9 +56,17 @@ class ByzantineSelectRoleViewModel @Inject constructor(
         }
     }
 
-    fun onOptionClick(role: String) {
-        _state.update { it.copy(selectedRole = role) }
-    }
+    fun onOptionClick(selectRole: String, groupRole: String, defaultRole: String) =
+        viewModelScope.launch {
+            if (groupRole.toRole.isFacilitatorAdmin
+                && defaultRole.toRole.getOrdinalInOrder() > selectRole.toRole.getOrdinalInOrder()
+                && defaultRole.toRole != AssistedWalletRole.NONE
+            ) {
+                _event.emit(ByzantineSelectRoleEvent.DowngradeInfo)
+                return@launch
+            }
+            _state.update { it.copy(selectedRole = selectRole) }
+        }
 
     fun getSelectedRole(): String {
         return state.value.selectedRole

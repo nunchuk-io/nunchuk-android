@@ -56,6 +56,8 @@ class GroupPendingIntroViewModel @Inject constructor(
     }
 
     fun isKeyHolderLimit() = state.value.role == AssistedWalletRole.KEYHOLDER_LIMITED
+
+    fun getRole() = state.value.role
 }
 
 data class GroupPendingIntroUiState(

@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.util.Log
 import android.util.LruCache
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -36,6 +37,8 @@ import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
@@ -46,8 +49,10 @@ import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.usecase.SetSelectedWalletUseCase
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
@@ -85,7 +90,9 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val pushEventManager: PushEventManager,
-    private val serverTransactionCache: LruCache<String, ServerTransaction>
+    private val serverTransactionCache: LruCache<String, ServerTransaction>,
+    private val byzantineGroupUtils: ByzantineGroupUtils,
+    private val getGroupUseCase: GetGroupUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -112,8 +119,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .collect {
                     updateState {
                         copy(
-                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail
-                                ?: WalletSecuritySetting().hideWalletDetail
+                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail == true || getState().role == AssistedWalletRole.FACILITATOR_ADMIN
                         )
                     }
                 }
@@ -132,6 +138,18 @@ internal class WalletDetailsViewModel @Inject constructor(
                     syncData()
                 }
             }
+        }
+        viewModelScope.launch {
+            val groupId = assistedWalletManager.getGroupId(args.walletId) ?: return@launch
+            getGroupUseCase(GetGroupUseCase.Params(groupId))
+                .collect {
+                    updateState {
+                        val role = byzantineGroupUtils.getCurrentUserRole(it.getOrNull()).toRole
+                        copy(
+                            role = role, hideWalletDetailLocal = getState().hideWalletDetailLocal || role == AssistedWalletRole.FACILITATOR_ADMIN
+                        )
+                    }
+                }
         }
     }
 
@@ -308,7 +326,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         get() = getState().isForceRefreshProcessing
 
     val isHideWalletDetailLocal: Boolean
-        get() = getState().hideWalletDetailLocal
+        get() = getState().hideWalletDetailLocal || getState().role == AssistedWalletRole.FACILITATOR_ADMIN
 
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom

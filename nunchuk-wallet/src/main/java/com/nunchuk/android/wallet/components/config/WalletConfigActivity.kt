@@ -45,7 +45,10 @@ import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
@@ -402,7 +405,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             container = binding.signersContainer,
             signers = state.signers,
             isActiveAssistedWallet = viewModel.isAssistedWallet(),
-            isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet()
+            isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet(),
+            role = state.role.toRole,
         ) {
             showReEnterPassword(TargetAction.UPDATE_SERVER_KEY, it)
         }.bindItems()
@@ -439,42 +443,52 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun showMoreOptions() {
-        val options = mutableListOf(
-            SheetOption(
-                SheetOptionType.TYPE_SAVE_WALLET_CONFIG,
-                R.drawable.ic_backup,
-                R.string.nc_wallet_save_wallet_configuration
-            ),
-            SheetOption(
-                SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL,
-                R.drawable.ic_export,
-                R.string.nc_export_labels
-            ),
-            SheetOption(
-                SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL,
-                R.drawable.ic_import,
-                R.string.nc_import_labels
-            ),
-            SheetOption(
-                SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
-                R.drawable.ic_cached,
-                R.string.nc_force_refresh
-            ),
-            SheetOption(
-                SheetOptionType.TYPE_CONFIGURE_GAP_LIMIT,
-                R.drawable.ic_gap_limit,
-                R.string.nc_configure_gap_limit
-            )
-        )
-        if (viewModel.getRole().isMasterOrAdmin) {
+        var options = mutableListOf<SheetOption>()
+        if (viewModel.getRole().isFacilitatorAdmin) {
             options.add(
                 SheetOption(
-                    SheetOptionType.TYPE_EDIT_PRIMARY_OWNER,
-                    R.drawable.ic_account_member,
-                    R.string.nc_edit_primary_owner,
-                ),
+                    SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
+                    R.drawable.ic_cached,
+                    R.string.nc_force_refresh
+                )
             )
-        }
+        } else {
+            options = mutableListOf(
+                SheetOption(
+                    SheetOptionType.TYPE_SAVE_WALLET_CONFIG,
+                    R.drawable.ic_backup,
+                    R.string.nc_wallet_save_wallet_configuration
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL,
+                    R.drawable.ic_export,
+                    R.string.nc_export_labels
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL,
+                    R.drawable.ic_import,
+                    R.string.nc_import_labels
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
+                    R.drawable.ic_cached,
+                    R.string.nc_force_refresh
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_CONFIGURE_GAP_LIMIT,
+                    R.drawable.ic_gap_limit,
+                    R.string.nc_configure_gap_limit
+                )
+            )
+            if (viewModel.getRole().isMasterOrAdmin) {
+                options.add(
+                    SheetOption(
+                        SheetOptionType.TYPE_EDIT_PRIMARY_OWNER,
+                        R.drawable.ic_account_member,
+                        R.string.nc_edit_primary_owner,
+                    ),
+                )
+            }
 
         if (!viewModel.isReplacedOrLocked()) {
             options.add(
@@ -495,15 +509,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
         }
 
-        if (viewModel.isShowDeleteWallet()) {
-            options.add(
-                SheetOption(
-                    SheetOptionType.TYPE_DELETE_WALLET,
-                    R.drawable.ic_delete_red,
-                    R.string.nc_wallet_delete_wallet,
-                    isDeleted = true
-                ),
-            )
+            if (viewModel.isShowDeleteWallet()) {
+                options.add(
+                    SheetOption(
+                        SheetOptionType.TYPE_DELETE_WALLET,
+                        R.drawable.ic_delete_red,
+                        R.string.nc_wallet_delete_wallet,
+                        isDeleted = true
+                    ),
+                )
+            }
         }
 
         val bottomSheet = BottomSheetOption.newInstance(options)

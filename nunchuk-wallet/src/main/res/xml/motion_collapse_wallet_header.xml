@@ -15,6 +15,10 @@
 
     <ConstraintSet android:id="@+id/start">
 
+        <Constraint
+            android:id="@id/fab"
+            motion:visibilityMode="ignore"/>
+
         <Constraint android:id="@+id/tv_wallet_warning">
             <PropertySet
                 app:applyMotionScene="false"
@@ -162,6 +166,10 @@
             android:layout_marginEnd="@dimen/nc_padding_16"
             >
         </Constraint>
+
+        <Constraint
+            android:id="@id/fab"
+            motion:visibilityMode="ignore"/>
 
     </ConstraintSet>
 </MotionScene>

@@ -591,6 +591,8 @@ class GroupDashboardViewModel @Inject constructor(
 
     fun getGroupId() = groupId.value.orEmpty()
 
+    fun getMyRole(): AssistedWalletRole = state.value.myRole
+
     fun handleRegisterSigners(id: String, xfps: List<String>) {
         viewModelScope.launch {
             val signers = _state.value.wallet.signers.filter { it.masterFingerprint in xfps }

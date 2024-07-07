@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.membership.byzantine.selectrole
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,10 +43,13 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -60,7 +64,7 @@ class ByzantineSelectRoleFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                SelectRoleScreen(viewModel) {
+                SelectRoleScreen(args, viewModel) {
                     setFragmentResult(
                         REQUEST_KEY,
                         bundleOf(EXTRA_ROLE to viewModel.getSelectedRole())
@@ -74,7 +78,18 @@ class ByzantineSelectRoleFragment : MembershipFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.getPermissionGroupWallet(args.groupType)
-        viewModel.onOptionClick(args.role)
+        viewModel.onOptionClick(args.role, args.groupRole, args.role)
+
+        flowObserver(viewModel.event) {
+            when (it) {
+                is ByzantineSelectRoleEvent.DowngradeInfo -> showDowngradeInfoDialog()
+                else -> {}
+            }
+        }
+    }
+
+    private fun showDowngradeInfoDialog() {
+        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_only_admin_can_downgrade_member_role))
     }
 
     companion object {
@@ -85,6 +100,7 @@ class ByzantineSelectRoleFragment : MembershipFragment() {
 
 @Composable
 private fun SelectRoleScreen(
+    args: ByzantineSelectRoleFragmentArgs,
     viewModel: ByzantineSelectRoleViewModel = viewModel(),
     onContinueClicked: () -> Unit = {}
 ) {
@@ -92,7 +108,9 @@ private fun SelectRoleScreen(
     SelectRoleContent(
         selectedRole = state.selectedRole,
         options = state.roles,
-        onOptionClick = viewModel::onOptionClick,
+        onOptionClick = {
+            viewModel.onOptionClick(it, args.groupRole, args.role)
+        },
         onContinueClicked = onContinueClicked
     )
 }
@@ -104,7 +122,7 @@ private fun SelectRoleContent(
     onOptionClick: (String) -> Unit = {},
     onContinueClicked: () -> Unit = {}
 ) = NunchukTheme {
-    val roleOrder = AssistedWalletRole.values().map { it.name }
+    val roleOrder = AssistedWalletRole.entries.map { it.name }
     Scaffold(
         modifier = Modifier
             .navigationBarsPadding()

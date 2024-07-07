@@ -511,14 +511,18 @@ fun AddKeyCard(
     modifier: Modifier = Modifier,
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
+    isDisabled: Boolean = false
 ) {
     if (item.signer != null) {
         Box(
             modifier = modifier.background(
-                color = if (item.verifyType != VerifyType.NONE)
+                color = if (item.verifyType != VerifyType.NONE) {
                     colorResource(id = R.color.nc_green_color)
-                else
-                    colorResource(id = R.color.nc_beeswax_tint),
+                } else if (isDisabled) {
+                    colorResource(id = R.color.nc_grey_dark_color)
+                } else {
+                    colorResource(id = R.color.nc_beeswax_tint)
+                },
                 shape = RoundedCornerShape(8.dp)
             ),
             contentAlignment = Alignment.Center,
@@ -593,11 +597,11 @@ fun AddKeyCard(
                 ),
                 contentAlignment = Alignment.Center,
             ) {
-                ConfigItem(item)
+                ConfigItem(item, isDisabled = isDisabled)
             }
         } else {
             NcDashLineBox(modifier = modifier) {
-                ConfigItem(item, onAddClicked)
+                ConfigItem(item, onAddClicked, isDisabled = isDisabled)
             }
         }
     }
@@ -607,6 +611,7 @@ fun AddKeyCard(
 private fun ConfigItem(
     item: AddKeyData,
     onAddClicked: ((data: AddKeyData) -> Unit)? = null,
+    isDisabled: Boolean = false
 ) {
     Row(
         modifier = Modifier.padding(12.dp),
@@ -645,6 +650,7 @@ private fun ConfigItem(
         if (onAddClicked != null) {
             NcOutlineButton(
                 modifier = Modifier.height(36.dp),
+                enabled = isDisabled.not(),
                 onClick = { onAddClicked(item) },
             ) {
                 Text(

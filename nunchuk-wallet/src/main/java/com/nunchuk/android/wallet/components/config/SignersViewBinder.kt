@@ -26,6 +26,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemWalletConfigSignerBinding
@@ -37,6 +39,7 @@ internal class SignersViewBinder(
     signers: List<SignerModel>,
     private val isActiveAssistedWallet: Boolean = false,
     private val isInactiveAssistedWallet: Boolean = false,
+    private val role: AssistedWalletRole = AssistedWalletRole.NONE,
     private val onViewPolicy: (model: SignerModel) -> Unit = {},
 ) : AbsViewBinder<SignerModel, ItemWalletConfigSignerBinding>(container, signers) {
 
@@ -46,7 +49,7 @@ internal class SignersViewBinder(
         val binding = ItemWalletConfigSignerBinding.bind(container.getChildAt(position))
 
         val isServerKey = model.type == SignerType.SERVER
-        binding.btnViewKeyPolicy.isVisible = isServerKey && isInactiveAssistedWallet.not()
+        binding.btnViewKeyPolicy.isVisible = isServerKey && isInactiveAssistedWallet.not() && role.isFacilitatorAdmin.not()
         binding.btnViewKeyPolicy.isEnabled = isServerKey && isActiveAssistedWallet
         binding.signerType.isVisible = isServerKey.not()
         binding.xpf.isVisible = isServerKey.not() || isInactiveAssistedWallet

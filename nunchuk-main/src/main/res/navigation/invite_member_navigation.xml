@@ -34,6 +34,11 @@
             android:name="group_type"
             app:argType="string" />
 
+        <argument
+            android:name="group_role"
+            android:defaultValue=""
+            app:argType="string" />
+
         <action
             android:id="@+id/action_byzantineInviteMembersFragment_to_byzantineSelectRoleFragment"
             app:destination="@id/byzantineSelectRoleFragment"
@@ -61,8 +66,14 @@
             android:defaultValue=""/>
 
         <argument
+            android:name="group_role"
+            app:argType="string"
+            android:defaultValue=""/>
+
+        <argument
             android:name="group_type"
-            app:argType="string" />
+            app:argType="string"
+            android:defaultValue=""/>
 
     </fragment>
 </navigation>

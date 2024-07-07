@@ -38,6 +38,7 @@ import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.AssistedWalletRoleOrder
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
@@ -144,11 +145,11 @@ class ServicesTabViewModel @Inject constructor(
         if (allowInheritanceMultisigs.isEmpty()) {
             groupNotAllowInheritanceMultisigs = groups.filter { it.walletConfig.allowInheritance.not() }
             sortedGroups = groupNotAllowInheritanceMultisigs.sortedWith(compareBy { group ->
-                AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
+                AssistedWalletRoleOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
             })
         } else {
             sortedGroups = allowInheritanceMultisigs.sortedWith(compareBy { group ->
-                AssistedWalletRoleByOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
+                AssistedWalletRoleOrder.valueOf(byzantineGroupUtils.getCurrentUserRole(group))
             })
         }
         val isMasterHasNotCreatedWallet = groups.all { it.isPendingWallet() && byzantineGroupUtils.getCurrentUserRole(it) == AssistedWalletRole.MASTER.name }
@@ -162,11 +163,6 @@ class ServicesTabViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    @Keep
-    private enum class AssistedWalletRoleByOrder {
-        MASTER, ADMIN, KEYHOLDER, KEYHOLDER_LIMITED, OBSERVER
     }
 
     private fun handleAssistedWallet(

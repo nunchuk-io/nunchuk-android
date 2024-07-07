@@ -21,6 +21,7 @@ package com.nunchuk.android.wallet.components.details
 
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 
 sealed class WalletDetailsEvent {
     data class Loading(val loading: Boolean) : WalletDetailsEvent()
@@ -41,4 +42,5 @@ data class WalletDetailsState(
     val hideWalletDetailLocal: Boolean = false,
     val isHasCoin: Boolean = true,
     val groupId: String? = null,
+    val role: AssistedWalletRole = AssistedWalletRole.NONE,
 )

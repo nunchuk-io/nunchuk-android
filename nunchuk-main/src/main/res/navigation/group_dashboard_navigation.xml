@@ -72,6 +72,11 @@
                 android:defaultValue=""
                 app:argType="string" />
 
+            <argument
+                android:name="group_role"
+                android:defaultValue=""
+                app:argType="string" />
+
         </action>
         <action
             android:id="@+id/action_groupDashboardFragment_to_healthCheckFragment"

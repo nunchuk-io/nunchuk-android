@@ -55,7 +55,7 @@ class GroupPendingIntroFragment : Fragment() {
             GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
                 groupId = args.groupId,
                 isAddOnly = true,
-                isKeyHolderLimited = viewModel.isKeyHolderLimit(),
+                role = viewModel.getRole().toString(),
             )
         )
     }

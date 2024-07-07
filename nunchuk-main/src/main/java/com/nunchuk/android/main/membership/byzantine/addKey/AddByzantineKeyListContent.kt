@@ -41,7 +41,9 @@ import com.nunchuk.android.main.membership.key.AddKeyCard
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 
 @Composable
 fun AddByzantineKeyListContent(
@@ -55,7 +57,7 @@ fun AddByzantineKeyListContent(
     isRefreshing: Boolean = false,
     isAddOnly: Boolean = false,
     groupWalletType: GroupWalletType? = null,
-    isKeyHolderLimited: Boolean = false,
+    role: AssistedWalletRole = AssistedWalletRole.NONE,
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
     NunchukTheme {
@@ -123,13 +125,14 @@ fun AddByzantineKeyListContent(
 
                     items(keys) { key ->
                         BlurView(
-                            isBlur = (key.signer?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && isKeyHolderLimited,
+                            isBlur = (key.signer?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && role == AssistedWalletRole.KEYHOLDER_LIMITED,
                         ) { modifier ->
                             AddKeyCard(
                                 modifier = modifier,
                                 item = key,
                                 onAddClicked = onAddClicked,
                                 onVerifyClicked = onVerifyClicked,
+                                isDisabled = role.isFacilitatorAdmin
                             )
                         }
                     }
@@ -180,7 +183,7 @@ fun AddKeyListScreenHoneyBadgerPreview(
             AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
         ),
         remainingTime = 0,
-        isKeyHolderLimited = true,
+        role = AssistedWalletRole.KEYHOLDER_LIMITED,
         groupWalletType = GroupWalletType.TWO_OF_FOUR_MULTISIG,
     )
 }

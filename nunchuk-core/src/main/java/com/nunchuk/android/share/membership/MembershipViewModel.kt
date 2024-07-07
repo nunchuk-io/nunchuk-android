@@ -24,10 +24,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
+import com.nunchuk.android.utils.ByzantineGroupUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,12 +42,27 @@ import javax.inject.Inject
 class MembershipViewModel @Inject constructor(
     private val restartWizardUseCase: RestartWizardUseCase,
     private val membershipStepManager: MembershipStepManager,
+    private val byzantineGroupUtils: ByzantineGroupUtils,
+    private val getGroupUseCase: GetGroupUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     // don't change the value group_id
     val groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
     private val _event = MutableSharedFlow<MembershipEvent>()
     val event = _event.asSharedFlow()
+
+    private var userRole = AssistedWalletRole.NONE
+
+    init {
+        viewModelScope.launch {
+            getGroupUseCase(GetGroupUseCase.Params(groupId))
+                .map { it.getOrElse { null } }
+                .distinctUntilChanged()
+                .collect { group ->
+                    userRole = byzantineGroupUtils.getCurrentUserRole(group).toRole
+                }
+        }
+    }
 
     fun resetWizard(plan: MembershipPlan) {
         viewModelScope.launch {
@@ -52,6 +74,10 @@ class MembershipViewModel @Inject constructor(
                     _event.emit(MembershipEvent.Error(it.message.orUnknownError()))
                 }
         }
+    }
+
+    fun getRole(): AssistedWalletRole {
+        return userRole
     }
 }
 

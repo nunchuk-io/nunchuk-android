@@ -53,6 +53,9 @@ import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -76,6 +79,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 
     private var selectedSignerTag: SignerTag? = null
 
+    private val isKeyHolderLimited: Boolean by lazy { args.role.toRole == AssistedWalletRole.KEYHOLDER_LIMITED }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -87,8 +92,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     viewModel = viewModel,
                     isAddOnly = args.isAddOnly,
                     membershipStepManager = membershipStepManager,
+                    role = args.role.toRole,
                     onMoreClicked = ::handleShowMore,
-                    isKeyHolderLimited = args.isKeyHolderLimited
                 )
             }
         }
@@ -164,6 +169,10 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 viewModel.handleSignerNewIndex(signer)
             }
             clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
+        }
+
+        if (args.role.toRole.isFacilitatorAdmin) {
+            showFacilitatorInfoDialog()
         }
     }
 
@@ -247,6 +256,11 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     ) { openAddSoftwareKey() }
                 }
         }
+    }
+
+    private fun showFacilitatorInfoDialog() {
+        NCInfoDialog(requireActivity())
+            .showDialog(message = getString(R.string.nc_info_facilitator),)
     }
 
     private fun checkTwoSoftwareKeySameDevice(onSuccess: () -> Unit) {
@@ -392,7 +406,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_SEVER_KEY -> {
-                if (!args.isKeyHolderLimited) {
+                if (!isKeyHolderLimited) {
                     navigator.openConfigGroupServerKeyActivity(
                         activityContext = requireActivity(),
                         groupStep = MembershipStage.NONE,
@@ -419,12 +433,12 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun openSelectHardwareOption() {
         val options = getKeyOptions(
             context = requireContext(),
-            isKeyHolderLimited = args.isKeyHolderLimited,
+            isKeyHolderLimited = isKeyHolderLimited,
             isStandard = viewModel.getGroupWalletType()?.isStandard == true
         )
         BottomSheetOption.newInstance(
             options = options,
-            desc = getString(R.string.nc_key_limit_desc).takeIf { args.isKeyHolderLimited },
+            desc = getString(R.string.nc_key_limit_desc).takeIf { isKeyHolderLimited },
             title = getString(R.string.nc_what_type_of_hardware_want_to_add),
         ).show(childFragmentManager, "BottomSheetOption")
     }
@@ -471,7 +485,7 @@ fun AddKeyListScreen(
     isAddOnly: Boolean = false,
     membershipStepManager: MembershipStepManager,
     onMoreClicked: () -> Unit = {},
-    isKeyHolderLimited: Boolean = false,
+    role: AssistedWalletRole = AssistedWalletRole.NONE,
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -487,6 +501,6 @@ fun AddKeyListScreen(
         isRefreshing = state.isRefreshing,
         isAddOnly = isAddOnly,
         groupWalletType = state.groupWalletType,
-        isKeyHolderLimited = isKeyHolderLimited
+        role = role
     )
 }

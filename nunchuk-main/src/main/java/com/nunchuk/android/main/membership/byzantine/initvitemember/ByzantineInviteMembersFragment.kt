@@ -2,6 +2,7 @@ package com.nunchuk.android.main.membership.byzantine.initvitemember
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -150,10 +151,12 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 InviteMembersScreen(
                     flow = args.flow, viewModel = viewModel,
                     onSelectRole = {
+                        Log.e("group-role", args.groupRole)
                         findNavController().navigate(
                             ByzantineInviteMembersFragmentDirections.actionByzantineInviteMembersFragmentToByzantineSelectRoleFragment(
                                 role = it,
-                                groupType = args.groupType
+                                groupType = args.groupType,
+                                groupRole = args.groupRole
                             )
                         )
                     },
@@ -446,7 +449,6 @@ private fun InviteMembersContent(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Preview
 @Composable
 private fun MemberView(

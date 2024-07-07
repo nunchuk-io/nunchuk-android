@@ -94,6 +94,7 @@
     <string name="nc_observer">Observer</string>
     <string name="nc_observer_desc">Can view wallet transactions, but no signing privileges.\nCan participate in group chat.</string>
     <string name="nc_select_a_role">Select a role</string>
+    <string name="nc_only_admin_can_downgrade_member_role">Only an admin can downgrade a member’s role.</string>
     <string name="nc_members">Members</string>
     <string name="nc_members_updated">Members updated</string>
     <string name="nc_three_keyholder_setup_message_dialog">If each keyholder holds their own key, all members will have equal rights in the wallet. At any point in time, two of the keyholders can withdraw all bitcoins without the remaining person’s permission.\nAre you sure you want this setup?</string>
@@ -327,6 +328,7 @@
     <string name="nc_it_time_check_the_heath_of">It’s time to check the health of [A]%1$s[/A].</string>
     <string name="nc_finney_cap">FINNEY</string>
     <string name="nc_finney_pro_cap">FINNEY PRO</string>
+    <string name="nc_info_facilitator">The wallet is now pending keys to be added. As a Facilitator Admin, you can return to this screen and continue creating the wallet after all keys have been added.</string>
     <string name="nc_info_software_key_same_device_part_1">Having two or more software keys on the same device significantly reduces the security of your wallet.</string>
     <string name="nc_info_software_key_same_device_part_2">Are you sure you want to do this?</string>
     <string name="nc_i_ll_choose_another_type_of_key">I’ll choose another type of key</string>

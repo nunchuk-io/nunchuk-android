@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
@@ -116,9 +117,11 @@ class AddGroupKeyStepViewModel @Inject constructor(
             getGroupUseCase(GetGroupUseCase.Params(groupId.value)).collect {
                 if (it.isSuccess) {
                     val email = accountManager.getAccount().email
+                    val role = it.getOrThrow().members
+                        .find { member -> member.emailOrUsername == email }?.role
+                        ?: AssistedWalletRole.NONE.name
                     _uiState.update { state ->
-                        state.copy(isMaster = it.getOrThrow().members
-                            .any { member -> member.emailOrUsername == email && member.role == AssistedWalletRole.MASTER.name })
+                        state.copy(isMaster = role == AssistedWalletRole.MASTER.name, role = role.toRole)
                     }
                 }
             }
@@ -172,12 +175,14 @@ class AddGroupKeyStepViewModel @Inject constructor(
 
     fun isMaster(): Boolean = _uiState.value.isMaster
 
+    fun getRole(): AssistedWalletRole = _uiState.value.role
+
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
     }
 }
 
-data class AddGroupUiState(val isMaster: Boolean = false)
+data class AddGroupUiState(val isMaster: Boolean = false, val role: AssistedWalletRole = AssistedWalletRole.NONE)
 
 sealed class AddKeyStepEvent {
     object OpenAddKeyList : AddKeyStepEvent()

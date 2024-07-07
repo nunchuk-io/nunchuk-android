@@ -6,7 +6,9 @@ import com.nunchuk.android.core.util.GROUP_CHAT_ROOM_TYPE
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupChatRoom
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
@@ -47,7 +49,7 @@ class GetGroupChatRoomsUseCase @Inject constructor(
         if (group == null) return false
         return group.members.firstOrNull {
             it.emailOrUsername == accountManager.getAccount().email || it.emailOrUsername == accountManager.getAccount().username
-        }?.role.toRole.isMasterOrAdmin
+        }?.role.toRole.isMasterOrAdminOrFacilitatorAdmin
     }
 
     class Params(val roomIds: List<String>)

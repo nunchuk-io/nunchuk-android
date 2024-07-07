@@ -74,7 +74,11 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
+import com.nunchuk.android.model.byzantine.isObserver
 import com.nunchuk.android.model.byzantine.toTitle
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.SignerType
@@ -116,7 +120,7 @@ fun GroupDashboardContent(
     }
 
     val isShowMore = uiState.groupId.isEmpty() ||
-            ((uiState.myRole != AssistedWalletRole.KEYHOLDER_LIMITED && uiState.myRole != AssistedWalletRole.OBSERVER)
+            ((uiState.myRole.isKeyHolderLimited.not() && uiState.myRole.isObserver.not() && uiState.myRole.isFacilitatorAdmin.not())
                     && (uiState.groupChat != null || uiState.group?.isPendingWallet() == false || uiState.myRole == AssistedWalletRole.MASTER))
 
     NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
@@ -343,7 +347,7 @@ private fun LazyListScope.memberListView(
                 )
             }
 
-            if (currentUserRole == AssistedWalletRole.MASTER || currentUserRole == AssistedWalletRole.ADMIN) {
+            if (currentUserRole.isMasterOrAdminOrFacilitatorAdmin) {
                 val isEnable = walletStatus != WalletStatus.LOCKED.name
                 Text(
                     modifier = Modifier.clickable(

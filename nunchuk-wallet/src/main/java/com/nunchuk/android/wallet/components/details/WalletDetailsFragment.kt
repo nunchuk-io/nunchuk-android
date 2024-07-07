@@ -27,6 +27,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -65,6 +66,7 @@ import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
@@ -333,6 +335,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun handleState(state: WalletDetailsState) {
+        binding.fab.isGone = state.role == AssistedWalletRole.FACILITATOR_ADMIN
         val wallet = state.walletExtended.wallet
         adapter.setHideWalletDetail(state.hideWalletDetailLocal)
         binding.toolbarTitle.text = wallet.name

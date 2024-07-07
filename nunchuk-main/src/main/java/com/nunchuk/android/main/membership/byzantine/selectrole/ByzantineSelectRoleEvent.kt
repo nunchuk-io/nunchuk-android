@@ -6,6 +6,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 sealed class ByzantineSelectRoleEvent {
     data class Loading(val isLoading: Boolean) : ByzantineSelectRoleEvent()
     data class Error(val message: String) : ByzantineSelectRoleEvent()
+    data object DowngradeInfo : ByzantineSelectRoleEvent()
 }
 
 data class AdvisorPlanSelectRoleState(

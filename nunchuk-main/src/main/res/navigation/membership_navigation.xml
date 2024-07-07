@@ -377,6 +377,13 @@
         <argument
             android:name="group_id"
             app:argType="string" />
+        <argument
+            android:name="is_add_only"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="role"
+            app:argType="string" />
 
         <action
             android:id="@+id/action_addByzantineKeyListFragment_to_tapSignerInheritanceIntroFragment"
@@ -399,14 +406,7 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <argument
-            android:name="is_add_only"
-            android:defaultValue="false"
-            app:argType="boolean" />
-        <argument
-            android:name="is_key_holder_limited"
-            android:defaultValue="false"
-            app:argType="boolean" />
+
         <action
             android:id="@+id/action_addByzantineKeyListFragment_to_keyAddedToGroupWalletFragment"
             app:destination="@id/keyAddedToGroupWalletFragment"

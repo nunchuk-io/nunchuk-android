@@ -55,6 +55,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.StepWithEstTime
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -110,7 +111,8 @@ class AddGroupKeyStepFragment : MembershipFragment() {
         val groupId = (activity as MembershipActivity).groupId
         findNavController().navigate(
             AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToAddByzantineKeyListFragment(
-                groupId
+                groupId = groupId,
+                role = viewModel.getRole().name
             )
         )
     }
@@ -219,7 +221,7 @@ fun AddKeyStepContent(
                     messages = listOf(ClickAbleText(stringResource(R.string.nc_this_step_require_hardware_key)))
                 )
             }
-            if (uiState.isMaster) {
+            if (uiState.isMaster || uiState.role == AssistedWalletRole.FACILITATOR_ADMIN) {
                 StepWithEstTime(
                     2,
                     stringResource(R.string.nc_setup_security_questions),
@@ -229,7 +231,7 @@ fun AddKeyStepContent(
                 )
             }
             StepWithEstTime(
-                if (uiState.isMaster) 3 else 2,
+                if (uiState.isMaster || uiState.role == AssistedWalletRole.FACILITATOR_ADMIN) 3 else 2,
                 stringResource(R.string.nc_create_your_wallet),
                 groupRemainTime[2],
                 isCreateWalletDone,

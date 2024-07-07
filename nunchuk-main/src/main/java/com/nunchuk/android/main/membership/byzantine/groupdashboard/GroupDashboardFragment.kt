@@ -53,9 +53,11 @@ import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.utils.parcelable
@@ -176,7 +178,8 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                                     groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
                                     flow = ByzantineMemberFlow.EDIT,
                                     groupType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()?.name.orEmpty(),
-                                    walletId = viewModel.getWalletId()
+                                    walletId = viewModel.getWalletId(),
+                                    groupRole = viewModel.getMyRole().name
                                 )
                             )
                         }
@@ -456,7 +459,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
         if (alert.type == AlertType.GROUP_WALLET_PENDING) {
             val isPersonalWallet = args.groupId.isNullOrEmpty()
             val walletType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()
-            if (role.isMasterOrAdmin) {
+            if (role.isMasterOrAdminOrFacilitatorAdmin) {
                 navigator.openMembershipActivity(
                     launcher = createWalletLauncher,
                     activityContext = requireActivity(),

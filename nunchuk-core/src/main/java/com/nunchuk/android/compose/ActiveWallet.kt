@@ -26,6 +26,9 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
+import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.utils.Utils
 
@@ -49,7 +52,7 @@ fun ActiveWallet(
                 modifier = Modifier.padding(top = 2.dp),
                 text = Utils.maskValue(
                     wallet.getBTCAmount(),
-                    role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
+                    role.toRole.isKeyHolderLimited || role.toRole.isFacilitatorAdmin || hideWalletDetail
                 ),
                 style = if (useLargeFont) NunchukTheme.typography.title else NunchukTheme.typography.titleSmall,
                 color = Color.White
@@ -57,7 +60,7 @@ fun ActiveWallet(
             Text(
                 modifier = Modifier.padding(top = 2.dp),
                 text = Utils.maskValue(
-                    balance, role == AssistedWalletRole.KEYHOLDER_LIMITED.name || hideWalletDetail
+                    balance, role.toRole.isKeyHolderLimited || role.toRole.isFacilitatorAdmin || hideWalletDetail
                 ),
                 style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall,
                 color = Color.White

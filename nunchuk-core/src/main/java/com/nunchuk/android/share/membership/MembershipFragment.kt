@@ -33,6 +33,9 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.isKeyHolder
+import com.nunchuk.android.model.byzantine.isMaster
+import com.nunchuk.android.model.byzantine.isNone
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
@@ -96,7 +99,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
 
     protected fun handleShowMore() {
         val options = mutableListOf<SheetOption>()
-        if (allowRestartWizard) {
+        if (allowRestartWizard && (viewModel.getRole().isMaster || viewModel.getRole().isNone)) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_RESTART_WIZARD,

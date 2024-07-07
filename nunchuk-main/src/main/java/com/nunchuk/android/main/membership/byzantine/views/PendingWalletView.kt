@@ -59,6 +59,7 @@ import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.AddressType
@@ -385,7 +386,7 @@ fun RowScope.ByzantineBottomContent(
                 contentDescription = "Arrow"
             )
         }
-    } else if (role.toRole.isMasterOrAdmin && primaryOwnerMember != null) {
+    } else if (role.toRole.isMasterOrAdminOrFacilitatorAdmin && primaryOwnerMember != null) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
