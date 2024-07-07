@@ -50,7 +50,7 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
     }
 
     companion object {
-        fun start(
+        fun buildIntent(
             activityContext: Context,
             mnemonic: String,
             passphrase: String,
@@ -59,9 +59,7 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
             walletId: String,
             groupId: String? = null,
             replacedXfp: String? = null
-        ) {
-            activityContext.startActivity(
-                Intent(
+        ) = Intent(
                     activityContext,
                     ConfirmSeedActivity::class.java
                 ).putExtras(
@@ -75,7 +73,5 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
                         replacedXfp = replacedXfp.orEmpty()
                     ).toBundle()
                 )
-            )
-        }
     }
 }

@@ -19,16 +19,20 @@
 
 package com.nunchuk.android.signer.software.components.create
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.signer.software.databinding.FragmentCreateSeedBinding
@@ -39,6 +43,16 @@ import dagger.hilt.android.AndroidEntryPoint
 class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
     private val args: CreateNewSeedFragmentArgs by navArgs()
     private val viewModel: CreateNewSeedViewModel by viewModels()
+
+    private val confirmSeedLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val mnemonic = viewModel.state.value.mnemonic
+            requireActivity().apply {
+                setResult(Activity.RESULT_OK, Intent().apply { putExtra(GlobalResultKey.MNEMONIC, mnemonic) })
+                finish()
+            }
+        }
+    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -81,10 +95,11 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
                     )
                 } else {
                     navigator.openSelectPhraseScreen(
+                        launcher = confirmSeedLauncher,
                         requireActivity(),
                         mnemonic = event.mnemonic,
                         passphrase = args.passphrase,
-                        primaryKeyFlow = args.primaryKeyFlow,
+                        keyFlow = args.primaryKeyFlow,
                         masterSignerId = viewModel.state.value.masterSignerId,
                         walletId = args.walletId,
                         groupId = args.groupId,

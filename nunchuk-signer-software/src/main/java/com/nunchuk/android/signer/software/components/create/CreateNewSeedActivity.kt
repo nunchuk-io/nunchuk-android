@@ -24,7 +24,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.commit
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.databinding.ActivityCreateSeedBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -40,62 +39,62 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-        val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
-        val passphrase = intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
-        val walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
-        val groupId = intent.getStringExtra(EXTRA_GROUP_ID)
-        val replacedXfp = intent.getStringExtra(EXTRA_REPLACED_XFP).orEmpty()
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 replace(R.id.fragment_container, CreateNewSeedFragment().apply {
-                    arguments = CreateNewSeedFragmentArgs(
-                        isQuickWallet = false,
-                        primaryKeyFlow = primaryKeyFlow,
-                        passphrase = passphrase,
-                        walletId = walletId,
-                        groupId = groupId,
-                        replacedXfp = replacedXfp
-                    ).toBundle()
+                    arguments = intent.extras
                 })
             }
         }
     }
 
     companion object {
-        private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
-        private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
-        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
-        private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
-        private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
 
         fun start(
             activityContext: Context,
-            primaryKeyFlow: Int,
+            keyFlow: Int,
             passphrase: String,
             walletId: String,
             groupId: String?,
-            replacedXfp: String? = null
+            replacedXfp: String? = null,
+            numberOfWords: Int
         ) {
             activityContext.startActivity(
-                Intent(
+                buildIntent(
                     activityContext,
-                    CreateNewSeedActivity::class.java
-                ).apply {
-                    putExtra(
-                        EXTRA_PRIMARY_KEY_FLOW,
-                        primaryKeyFlow
-                    )
-                    putExtra(
-                        EXTRA_PASSPHRASE,
-                        passphrase
-                    )
-                    putExtra(
-                        EXTRA_WALLET_ID,
-                        walletId
-                    )
-                    putExtra(EXTRA_GROUP_ID, groupId)
-                    putExtra(EXTRA_REPLACED_XFP, replacedXfp)
-                })
+                    keyFlow,
+                    passphrase,
+                    walletId,
+                    groupId,
+                    replacedXfp,
+                    numberOfWords
+                )
+            )
+        }
+
+        fun buildIntent(
+            activityContext: Context,
+            keyFlow: Int = 0,
+            passphrase: String = "",
+            walletId: String = "",
+            groupId: String? = null,
+            replacedXfp: String? = null,
+            numberOfWords: Int = 24
+        ): Intent = Intent(
+            activityContext,
+            CreateNewSeedActivity::class.java
+        ).apply {
+            putExtras(
+                CreateNewSeedFragmentArgs(
+                    isQuickWallet = false,
+                    primaryKeyFlow = keyFlow,
+                    passphrase = passphrase,
+                    walletId = walletId,
+                    groupId = groupId,
+                    replacedXfp = replacedXfp.orEmpty(),
+                    numberOfWords = numberOfWords
+                ).toBundle()
+            )
         }
     }
 }

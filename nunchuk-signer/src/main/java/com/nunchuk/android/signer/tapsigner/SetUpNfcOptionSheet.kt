@@ -58,6 +58,7 @@ class SetUpNfcOptionSheet : BaseBottomSheet<DialogSetUpOptionsSheetBinding>(), V
             binding.btnAddNewNfc.id -> listener.onOptionClickListener(SetUpNfcOption.ADD_NEW)
             binding.btnRecoverNfcKey.id -> listener.onOptionClickListener(SetUpNfcOption.RECOVER)
             binding.btnAddMk4.id -> listener.onOptionClickListener(SetUpNfcOption.Mk4)
+            binding.btnAddPortal.id -> listener.onOptionClickListener(SetUpNfcOption.PORTAL)
         }
         dismiss()
     }
@@ -66,9 +67,10 @@ class SetUpNfcOptionSheet : BaseBottomSheet<DialogSetUpOptionsSheetBinding>(), V
         binding.btnAddNewNfc.setOnClickListener(this)
         binding.btnRecoverNfcKey.setOnClickListener(this)
         binding.btnAddMk4.setOnClickListener(this)
+        binding.btnAddPortal.setOnClickListener(this)
     }
 
-    enum class SetUpNfcOption { ADD_NEW, RECOVER, Mk4 }
+    enum class SetUpNfcOption { ADD_NEW, RECOVER, Mk4, PORTAL }
 
     interface OptionClickListener {
         fun onOptionClickListener(option: SetUpNfcOption)

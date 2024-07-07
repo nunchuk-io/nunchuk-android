@@ -32,6 +32,7 @@ import com.nunchuk.android.type.SignerType.COLDCARD_NFC
 import com.nunchuk.android.type.SignerType.FOREIGN_SOFTWARE
 import com.nunchuk.android.type.SignerType.HARDWARE
 import com.nunchuk.android.type.SignerType.NFC
+import com.nunchuk.android.type.SignerType.PORTAL_NFC
 import com.nunchuk.android.type.SignerType.SERVER
 import com.nunchuk.android.type.SignerType.SOFTWARE
 import com.nunchuk.android.type.SignerType.UNKNOWN
@@ -49,6 +50,7 @@ fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String
         NFC, COLDCARD_NFC -> context.getString(R.string.nc_nfc)
         UNKNOWN -> context.getString(R.string.nc_unknown)
         SERVER -> context.getString(R.string.nc_server_key)
+        PORTAL_NFC -> context.getString(R.string.nc_portal_nfc)
     }
 }
 
@@ -79,6 +81,7 @@ private fun toReadableDrawableResId(
         type == FOREIGN_SOFTWARE -> R.drawable.ic_logo_dark_small
         type == NFC -> R.drawable.ic_nfc_card
         type == SERVER -> R.drawable.ic_server_key_dark
+        type == PORTAL_NFC -> R.drawable.ic_unknown_key // TODO Hai
         else -> R.drawable.ic_unknown_key
     }
 }

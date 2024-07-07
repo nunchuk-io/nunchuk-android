@@ -78,7 +78,6 @@
     <string name="nc_change_wallet_pin">Change wallet PIN</string>
     <string name="nc_create_pin">Create PIN</string>
     <string name="nc_confirm_pin_does_not_match">Confirm PIN does not match</string>
-    <string name="nc_enter_pin">Enter PIN</string>
     <string name="nc_confirm_pin">Confirm PIN</string>
     <string name="nc_pin_created">PIN created.</string>
     <string name="nc_pin_updated">PIN updated.</string>

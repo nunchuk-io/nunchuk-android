@@ -36,7 +36,7 @@ class CreateSignerUseCase @Inject constructor(
         return nativeSdk.createSigner(
             name = parameters.name,
             xpub = parameters.xpub,
-            publicKey = "",
+            publicKey = parameters.publicKey,
             derivationPath = parameters.derivationPath,
             masterFingerprint = parameters.masterFingerprint,
             type = parameters.type,
@@ -51,6 +51,7 @@ class CreateSignerUseCase @Inject constructor(
         val type: SignerType,
         val derivationPath: String,
         val masterFingerprint: String,
+        val publicKey: String = "",
         val tags : List<SignerTag> = emptyList(),
         val replace: Boolean = false
     )

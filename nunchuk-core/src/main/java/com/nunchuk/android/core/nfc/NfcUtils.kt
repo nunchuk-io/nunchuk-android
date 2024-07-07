@@ -31,6 +31,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_EXPORT
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_IMPORT_SIGNATURE
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_CHANGE_CVC
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_STATUS
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_PORTAL
 
 fun shouldShowInputCvcFirst(requestCode: Int) = requestCode != REQUEST_NFC_STATUS
         && requestCode != REQUEST_NFC_CHANGE_CVC
@@ -42,6 +43,7 @@ fun shouldShowInputCvcFirst(requestCode: Int) = requestCode != REQUEST_NFC_STATU
         && requestCode != REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
         && requestCode != REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
         && requestCode != REQUEST_GENERATE_HEAL_CHECK_MSG
+        && requestCode != REQUEST_PORTAL
 
 fun isMk4Request(requestCode: Int) = requestCode == REQUEST_MK4_ADD_KEY
         || requestCode == REQUEST_EXPORT_WALLET_TO_MK4

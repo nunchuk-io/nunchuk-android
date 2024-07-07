@@ -32,6 +32,19 @@
         android:textSize="@dimen/nc_text_size_16" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_add_portal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/ic_new"
+        android:drawablePadding="8dp"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:paddingVertical="@dimen/nc_padding_16"
+        android:text="@string/nc_add_portal"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btn_recover_nfc_key"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

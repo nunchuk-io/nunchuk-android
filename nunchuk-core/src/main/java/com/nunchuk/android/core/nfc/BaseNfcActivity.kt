@@ -240,5 +240,8 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
         const val REQUEST_IMPORT_MULTI_WALLET_FROM_MK4 = 15
         const val REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4 = 16
         const val REQUEST_GENERATE_HEAL_CHECK_MSG = 17
+
+        // PORTAL
+        const val REQUEST_PORTAL = 18
     }
 }

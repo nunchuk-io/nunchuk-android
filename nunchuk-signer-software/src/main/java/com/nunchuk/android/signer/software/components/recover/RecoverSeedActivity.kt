@@ -27,10 +27,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignInFlow
+import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.KeyFlow.isAddPortalFlow
+import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.CanGoNextStepEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.InvalidMnemonicEvent
@@ -101,7 +103,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             MnemonicRequiredEvent -> binding.mnemonic.setError(getString(R.string.nc_text_required))
             InvalidMnemonicEvent -> binding.mnemonic.setError(getString(R.string.nc_invalid_seed_phrase))
             is ValidMnemonicEvent -> {
-                val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)
+                val primaryKeyFlow = intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, KeyFlow.NONE)
                 when {
                     primaryKeyFlow.isSignInFlow() -> {
                         navigator.openPrimaryKeyEnterPassphraseScreen(
@@ -109,6 +111,16 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                             event.mnemonic,
                             primaryKeyFlow
                         )
+                    }
+
+                    primaryKeyFlow.isAddPortalFlow() -> {
+                        setResult(
+                            RESULT_OK,
+                            Intent().apply {
+                                putExtra(GlobalResultKey.MNEMONIC, event.mnemonic)
+                            },
+                        )
+                        finish()
                     }
 
                     !groupId.isNullOrEmpty() || replacedXfp.isNotEmpty() -> {
@@ -132,7 +144,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         navigator.openAddSoftwareSignerNameScreen(
                             activityContext = this,
                             mnemonic = event.mnemonic,
-                            primaryKeyFlow = primaryKeyFlow,
+                            keyFlow = primaryKeyFlow,
                             passphrase = passphrase,
                             walletId = walletId
                         )
@@ -191,8 +203,8 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
     }
 
     companion object {
-        private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
+        private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_RECOVER_HOT_WALLET = "EXTRA_RECOVER_HOT_WALLET"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
@@ -208,28 +220,45 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             walletId: String = ""
         ) {
             activityContext.startActivity(
-                Intent(
+                buildIntent(
                     activityContext,
-                    RecoverSeedActivity::class.java
-                ).apply {
-                    putExtra(
-                        EXTRA_PRIMARY_KEY_FLOW,
-                        primaryKeyFlow
-                    )
-                    putExtra(
-                        EXTRA_PASSPHRASE,
-                        passphrase
-                    )
-                    putExtra(
-                        EXTRA_RECOVER_HOT_WALLET,
-                        isRecoverHotWallet
-                    )
-                    putExtra(EXTRA_GROUP_ID, groupId)
-                    putExtra(EXTRA_REPLACED_XFP, replacedXfp)
-                    putExtra(EXTRA_WALLET_ID, walletId)
-                },
+                    primaryKeyFlow,
+                    passphrase,
+                    isRecoverHotWallet,
+                    groupId,
+                    replacedXfp,
+                    walletId
+                )
             )
         }
-    }
 
+        fun buildIntent(
+            activityContext: Context,
+            keyFlow: Int = 0,
+            passphrase: String = "",
+            isRecoverHotWallet: Boolean = false,
+            groupId: String? = null,
+            replacedXfp: String? = null,
+            walletId: String = ""
+        ) = Intent(
+            activityContext,
+            RecoverSeedActivity::class.java
+        ).apply {
+            putExtra(
+                EXTRA_PRIMARY_KEY_FLOW,
+                keyFlow
+            )
+            putExtra(
+                EXTRA_PASSPHRASE,
+                passphrase
+            )
+            putExtra(
+                EXTRA_RECOVER_HOT_WALLET,
+                isRecoverHotWallet
+            )
+            putExtra(EXTRA_GROUP_ID, groupId)
+            putExtra(EXTRA_REPLACED_XFP, replacedXfp)
+            putExtra(EXTRA_WALLET_ID, walletId)
+        }
+    }
 }

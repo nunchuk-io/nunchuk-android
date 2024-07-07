@@ -35,6 +35,10 @@
             android:name="replaced_xfp"
             app:argType="string"
             android:defaultValue=""/>
+        <argument
+            android:name="number_of_words"
+            app:argType="integer"
+            android:defaultValue="24"/>
         <action
             android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
             app:destination="@id/confirmSeedFragment"

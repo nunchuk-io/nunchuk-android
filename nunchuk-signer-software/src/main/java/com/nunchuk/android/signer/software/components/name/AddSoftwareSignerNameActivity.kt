@@ -23,8 +23,8 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
-import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignInFlow
+import com.nunchuk.android.core.signer.KeyFlow.isReplaceFlow
+import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameInputCompletedEvent
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameRequiredEvent
@@ -81,7 +81,7 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                     navigator = navigator,
                     masterSigner = event.masterSigner,
                     skipPassphrase = event.skipPassphrase,
-                    primaryKeyFlow = args.primaryKeyFlow,
+                    keyFlow = args.primaryKeyFlow,
                     replacedXfp = "",
                     groupId = "",
                     passphrase = "",
@@ -171,7 +171,7 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
             mnemonic = args.mnemonic,
             signerName = signerName,
             passphrase = passphrase,
-            primaryKeyFlow = args.primaryKeyFlow,
+            keyFlow = args.primaryKeyFlow,
             walletId = args.walletId.orEmpty()
         )
     }

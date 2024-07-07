@@ -37,6 +37,7 @@ object GlobalResultKey {
     const val DUMMY_TX_INTRO_DO_LATER = "_o"
     const val SECURITY_QUESTION_EXTRA_INFO = "_p"
     const val WALLET = "_q"
+    const val MNEMONIC = "_r"
 }
 
 object GlobalResult {

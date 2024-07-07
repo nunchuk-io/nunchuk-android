@@ -25,7 +25,6 @@ dependencies {
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-database')
-
     implementation nunchukDeps.nativeSdk
     implementation dataStoreDeps.dataStore
     implementation securityCryptoDeps.securityCrypto

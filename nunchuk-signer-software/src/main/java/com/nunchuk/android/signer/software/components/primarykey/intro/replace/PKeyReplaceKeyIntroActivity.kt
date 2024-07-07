@@ -25,7 +25,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.databinding.ActivityPkeyReplaceKeyIntroBinding
 import com.nunchuk.android.widget.NCInputDialog
@@ -89,7 +89,7 @@ class PKeyReplaceKeyIntroActivity : BaseActivity<ActivityPkeyReplaceKeyIntroBind
         navigator.openAddPrimaryKeyScreen(
             this,
             passphrase = passphrase,
-            primaryKeyFlow = PrimaryKeyFlow.REPLACE
+            keyFlow = KeyFlow.REPLACE
         )
     }
 

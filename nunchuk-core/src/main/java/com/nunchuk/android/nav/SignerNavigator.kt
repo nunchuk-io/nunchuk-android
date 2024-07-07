@@ -24,7 +24,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -78,7 +78,7 @@ interface SignerNavigator {
     fun openAddSoftwareSignerScreen(
         activityContext: Context,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         groupId: String? = null,
         replacedXfp: String? = null,
         walletId: String = "",
@@ -90,10 +90,11 @@ interface SignerNavigator {
     fun openCreateNewSeedScreen(
         activityContext: Context,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         walletId: String = "",
         groupId: String? = null,
         replacedXfp: String? = null,
+        numberOfWords: Int = 24,
     )
 
     fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
@@ -104,7 +105,7 @@ interface SignerNavigator {
     fun openRecoverSeedScreen(
         activityContext: Context,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         isRecoverHotWallet: Boolean = false,
         walletId: String = "",
         groupId: String? = null,
@@ -115,10 +116,11 @@ interface SignerNavigator {
      * @param passphrase only need for replacing primary key
      */
     fun openSelectPhraseScreen(
+        launcher: ActivityResultLauncher<Intent>,
         activityContext: Context,
         mnemonic: String,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         masterSignerId: String = "",
         walletId: String = "",
         groupId: String? = null,
@@ -133,7 +135,7 @@ interface SignerNavigator {
     fun openAddSoftwareSignerNameScreen(
         activityContext: Context,
         mnemonic: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         username: String? = null,
         passphrase: String = "",
         address: String? = null,
@@ -149,7 +151,7 @@ interface SignerNavigator {
         mnemonic: String = "",
         signerName: String,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         groupId: String? = null,
         replacedXfp: String? = null,
         walletId: String = "",
@@ -160,11 +162,12 @@ interface SignerNavigator {
     fun openAddPrimaryKeyScreen(
         activityContext: Context,
         passphrase: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
     )
 
     fun openPrimaryKeyChooseUserNameScreen(
-        activityContext: Context, mnemonic: String,
+        activityContext: Context,
+        mnemonic: String,
         passphrase: String,
         signerName: String,
     )
@@ -181,7 +184,7 @@ interface SignerNavigator {
     fun openPrimaryKeyEnterPassphraseScreen(
         activityContext: Context,
         mnemonic: String = "",
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         xprv: String? = null,
     )
 
@@ -191,6 +194,6 @@ interface SignerNavigator {
 
     fun openPrimaryKeyReplaceIntroScreen(
         activityContext: Context,
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
     )
 }
