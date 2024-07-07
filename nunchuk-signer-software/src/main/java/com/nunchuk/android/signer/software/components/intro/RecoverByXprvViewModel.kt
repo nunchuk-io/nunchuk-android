@@ -18,6 +18,10 @@ class RecoverByXprvViewModel @Inject constructor(
     private val _state = MutableStateFlow(RecoverByXprvViewState())
     val state = _state.asStateFlow()
 
+    fun onXprvChanged(xprv: String) {
+        _state.update { it.copy(xprv = xprv, error = "") }
+    }
+
     fun validateXprv(xprv: String) {
         _state.update { it.copy(xprv = xprv) }
         viewModelScope.launch {
@@ -25,7 +29,7 @@ class RecoverByXprvViewModel @Inject constructor(
                 if (isValid) {
                     _state.update { it.copy(event = StateEvent.Unit) }
                 } else {
-                    _state.update { it.copy(event = StateEvent.String("Invalid XPRV")) }
+                    _state.update { it.copy(error = "Invalid XPRV") }
                 }
             }.onFailure { e ->
                 _state.update { it.copy(event = StateEvent.String(e.message.orEmpty())) }
@@ -40,5 +44,6 @@ class RecoverByXprvViewModel @Inject constructor(
 
 data class RecoverByXprvViewState(
     val xprv: String = "",
+    val error: String = "",
     val event: StateEvent = StateEvent.None,
 )

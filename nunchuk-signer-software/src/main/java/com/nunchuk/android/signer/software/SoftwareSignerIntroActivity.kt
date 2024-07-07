@@ -103,7 +103,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
     private fun onRecoverFromXprv(xprv: String) {
         when {
             !groupId.isNullOrEmpty() || !replacedXfp.isNullOrEmpty() -> {
-                val signerName = if (replacedXfp.isNullOrEmpty()) {
+                val signerName = if (!replacedXfp.isNullOrEmpty()) {
                     viewModel.state.value.replaceSignerName
                 } else {
                     "Key${viewModel.getSoftwareSignerName()}"

@@ -9,10 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,7 +65,9 @@ fun RecoverByXprvScreen(
 
     RecoverByXprvContent(
         modifier = modifier,
+        state = state,
         onContinueClicked = viewModel::validateXprv,
+        onXprvChanged = viewModel::onXprvChanged,
         snackState = snackState
     )
 }
@@ -76,10 +75,11 @@ fun RecoverByXprvScreen(
 @Composable
 fun RecoverByXprvContent(
     modifier: Modifier = Modifier,
+    state: RecoverByXprvViewState = RecoverByXprvViewState(),
     snackState: SnackbarHostState = remember { SnackbarHostState() },
-    onContinueClicked: (String) -> Unit = {}
+    onXprvChanged: (String) -> Unit = {},
+    onContinueClicked: (String) -> Unit = {},
 ) {
-    var xprv by rememberSaveable { mutableStateOf("") }
     NunchukTheme {
         NcScaffold(
             modifier = modifier,
@@ -94,7 +94,7 @@ fun RecoverByXprvContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = { onContinueClicked(xprv) }, enabled = xprv.isNotBlank()
+                    onClick = { onContinueClicked(state.xprv) }, enabled = state.xprv.isNotBlank()
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
@@ -113,9 +113,12 @@ fun RecoverByXprvContent(
 
                 NcTextField(
                     modifier = Modifier.padding(top = 24.dp),
-                    title = stringResource(R.string.nc_xprv), value = xprv, minLines = 5
+                    title = stringResource(R.string.nc_xprv),
+                    value = state.xprv,
+                    minLines = 5,
+                    error = state.error,
                 ) {
-                    xprv = it
+                    onXprvChanged(it)
                 }
             }
         }
