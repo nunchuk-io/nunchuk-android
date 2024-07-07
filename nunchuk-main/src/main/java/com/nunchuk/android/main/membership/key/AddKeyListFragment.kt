@@ -150,6 +150,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.NFC -> openSetupTapSigner()
                     SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
+                    SignerType.HARDWARE -> selectedSignerTag?.let { openRequestAddDesktopKey(it) }
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             }
