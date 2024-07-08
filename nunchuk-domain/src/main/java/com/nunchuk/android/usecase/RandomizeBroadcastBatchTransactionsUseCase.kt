@@ -17,22 +17,23 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.components.coin.collection
+package com.nunchuk.android.usecase
 
-import androidx.annotation.IntDef
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.TransactionRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-object CollectionFlow {
-    const val NONE = 0
-    const val ADD = 1
-    const val VIEW = 2
-    const val MOVE = 3
+class RandomizeBroadcastBatchTransactionsUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val repository: TransactionRepository,
+) : UseCase<RandomizeBroadcastBatchTransactionsUseCase.Param, Unit>(ioDispatcher) {
 
-    @IntDef(
-        NONE,
-        ADD,
-        VIEW,
-        MOVE,
-    )
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class CollectionFlowInfo
+    override suspend fun execute(parameters: Param) {
+        return repository.randomizeBroadcastBatchTransactions(parameters.walletId, parameters.groupId, parameters.transactionIds, parameters.days)
+    }
+
+    class Param(val walletId: String, val groupId: String, val transactionIds: List<String>, val days: Int)
 }

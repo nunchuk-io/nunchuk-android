@@ -62,12 +62,12 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.compose.CollectionItem
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.CoinCollectionAddition
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.coin.collection.CollectionItem
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -178,7 +178,9 @@ private fun FilterByCollectionContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(collections) { collectionAddition ->
-                        CollectionItem(id = collectionAddition.collection.id,
+                        CollectionItem(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            id = collectionAddition.collection.id,
                             name = collectionAddition.collection.name,
                             numCoins = collectionAddition.numCoins,
                             checked = selectedCollectionIds.contains(collectionAddition.collection.id),

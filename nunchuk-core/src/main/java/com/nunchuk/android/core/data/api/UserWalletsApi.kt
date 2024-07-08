@@ -57,6 +57,7 @@ import com.nunchuk.android.core.data.model.byzantine.SignInDummyTransactionRespo
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
+import com.nunchuk.android.core.data.model.membership.BatchTransactionPayload
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeResponse
@@ -76,6 +77,7 @@ import com.nunchuk.android.core.data.model.membership.InheritanceClaimStatusResp
 import com.nunchuk.android.core.data.model.membership.InheritanceResponse
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
+import com.nunchuk.android.core.data.model.membership.RandomizeBroadcastBatchTransactionsPayload
 import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
@@ -641,4 +643,16 @@ internal interface UserWalletsApi {
     suspend fun signinDummy(
         @Body payload: SigninDummyRequest,
     ): Data<SignInDummyTransactionResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/batch")
+    suspend fun batchTransactions(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: BatchTransactionPayload
+    ): Data<TransactionsResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/batch/randomize-broadcast")
+    suspend fun randomizeBroadcastBatchTransactions(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: RandomizeBroadcastBatchTransactionsPayload
+    ): Data<Unit>
 }

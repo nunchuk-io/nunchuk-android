@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBooleanValue
@@ -45,7 +46,8 @@ data class EstimatedFeeArgs(
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     val inputs: List<UnspentOutput> = emptyList(),
     val isConsolidateFlow: Boolean = false,
-    val title: String = ""
+    val title: String = "",
+    val rollOverWalletParam: RollOverWalletParam? = null,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, EstimatedFeeActivity::class.java).apply {
@@ -60,6 +62,7 @@ data class EstimatedFeeArgs(
         putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
         putExtra(EXTRA_IS_CONSOLIDATE_FLOW, isConsolidateFlow)
         putExtra(EXTRA_TITLE, title)
+        putExtra(EXTRA_ROLLOVER_WALLET, rollOverWalletParam)
     }
 
     companion object {
@@ -74,6 +77,7 @@ data class EstimatedFeeArgs(
         private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
         private const val EXTRA_IS_CONSOLIDATE_FLOW = "EXTRA_IS_CONSOLIDATE_FLOW"
         private const val EXTRA_TITLE = "EXTRA_TITLE"
+        private const val EXTRA_ROLLOVER_WALLET = "EXTRA_ROLLOVER_WALLET"
 
         fun deserializeFrom(intent: Intent) = EstimatedFeeArgs(
             walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
@@ -86,7 +90,8 @@ data class EstimatedFeeArgs(
             inputs = intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
             txReceipts = intent.extras?.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
             isConsolidateFlow = intent.extras.getBooleanValue(EXTRA_IS_CONSOLIDATE_FLOW),
-            title = intent.extras.getStringValue(EXTRA_TITLE)
+            title = intent.extras.getStringValue(EXTRA_TITLE),
+            rollOverWalletParam = intent.extras?.parcelable(EXTRA_ROLLOVER_WALLET)
         )
     }
 }

@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.send.fee
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.PairAmount
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
@@ -48,5 +49,6 @@ data class EstimatedFeeState(
     val allCoins: List<UnspentOutput> = emptyList(),
     val inputs: List<TxInput> = emptyList(),
     val manualFeeRate: Int = estimateFeeRates.defaultRate,
-    val cpfpFee: Amount = Amount.ZER0
+    val cpfpFee: Amount = Amount.ZER0,
+    val rollOverWalletPairAmount: PairAmount = PairAmount(Amount.ZER0, Amount.ZER0),
 )

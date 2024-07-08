@@ -69,9 +69,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.CollectionItem
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
@@ -251,7 +253,9 @@ fun CoinCollectionListScreenContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(collections) { collection ->
-                        CollectionItem(id = collection.collection.id,
+                        CollectionItem(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            id = collection.collection.id,
                             name = collection.collection.name,
                             numCoins = collection.numCoins,
                             checked = selectedCoinCollections.contains(collection.collection.id),
@@ -273,67 +277,6 @@ fun CoinCollectionListScreenContent(
                         Text(text = stringResource(id = R.string.nc_text_save))
                     }
                 }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun CollectionItem(
-    id: Int = -1,
-    name: String = "",
-    numCoins: Int = 0,
-    checked: Boolean = false,
-    collectionFlow: Int = CollectionFlow.NONE,
-    onCollectionClick: () -> Unit = {},
-    onCheckedChange: ((Boolean) -> Unit) = {}
-) {
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clickable {
-                if (collectionFlow == CollectionFlow.VIEW) {
-                    onCollectionClick()
-                }
-            },
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp, 48.dp)
-                .clip(CircleShape)
-                .background(color = colorResource(id = R.color.nc_beeswax_light)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = name.shorten())
-        }
-        Column(
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .weight(1f)
-        ) {
-            Text(
-                text = name, style = NunchukTheme.typography.body
-            )
-            Text(
-                text = stringResource(id = R.string.nc_num_coins_data, numCoins.toString()),
-                modifier = Modifier.padding(top = 4.dp),
-                style = NunchukTheme.typography.bodySmall
-            )
-        }
-        if (collectionFlow == CollectionFlow.VIEW) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_arrow), contentDescription = ""
-            )
-        } else {
-            if (collectionFlow != CollectionFlow.MOVE) {
-                Checkbox(checked = checked, onCheckedChange = onCheckedChange)
-            } else {
-                RadioButton(selected = checked, onClick = {
-                    onCheckedChange(true)
-                })
             }
         }
     }

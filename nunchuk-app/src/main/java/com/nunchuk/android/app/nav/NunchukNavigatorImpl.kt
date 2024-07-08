@@ -37,6 +37,7 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
+import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
@@ -46,7 +47,9 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationAc
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
+import com.nunchuk.android.main.rollover.RollOverWalletActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
@@ -95,7 +98,7 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
             },
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0,0)
+            activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0)
         } else {
             activity.overridePendingTransition(0, 0)
         }
@@ -357,5 +360,24 @@ interface AppNavigatorDelegate : AppNavigator {
 
     override fun openOnBoardingScreen(activityContext: Context) {
         activityContext.startActivity(Intent(activityContext, OnboardActivity::class.java))
+    }
+
+    override fun openRollOverWalletScreen(
+        activityContext: Context,
+        oldWalletId: String,
+        newWalletId: String,
+        @RollOverWalletFlow.RollOverWalletFlowInfo startScreen: Int,
+        selectedTagIds: List<Int>,
+        selectedCollectionIds: List<Int>,
+        feeRate: Amount,
+    ) {
+        RollOverWalletActivity.navigate(activity = activityContext,
+            oldWalletId = oldWalletId,
+            newWalletId = newWalletId,
+            startScreen = startScreen,
+            selectedTagIds = selectedTagIds,
+            selectedCollectionIds = selectedCollectionIds,
+            feeRate = feeRate
+        )
     }
 }

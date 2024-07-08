@@ -25,4 +25,16 @@ interface TransactionRepository {
     suspend fun getFees(): EstimateFeeRates
 
     suspend fun getLocalFee(): EstimateFeeRates
+    suspend fun batchTransactions(
+        walletId: String,
+        groupId: String,
+        notes: List<String>,
+        psbts: List<String>
+    )
+    suspend fun randomizeBroadcastBatchTransactions(
+        walletId: String,
+        groupId: String,
+        transactionIds: List<String>,
+        days: Int
+    )
 }

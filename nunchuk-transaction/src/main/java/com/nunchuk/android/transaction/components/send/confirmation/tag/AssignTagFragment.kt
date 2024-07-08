@@ -173,6 +173,7 @@ private fun AssignTagContent(
             ) {
                 items(tags) { tag ->
                     TagItem(
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         id = tag.coinTag.id,
                         name = tag.coinTag.name,
                         color = tag.coinTag.color,

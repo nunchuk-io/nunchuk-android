@@ -347,7 +347,7 @@
     <string name="nc_transfer_fund_desc">Would you like to transfer all funds from the old wallet to the new wallet?</string>
     <string name="nc_continue_to_transfer_funds">Continue to transfer funds</string>
     <string name="nc_transfer_funds">Transfer funds</string>
-    <string name="nc_transfer_funds_desc">Transfer all funds from the old wallet to %1$s.</string>
+    <string name="nc_transfer_funds_desc">Transfer all funds to %1$s.</string>
     <string name="nc_existing_balance">Existing balance</string>
     <string name="nc_remove_unused_keys">Remove unused keys</string>
     <string name="nc_remove_unused_key_desc">Upon completion of the roll-over process, keys that are associated with your old wallet and are no longer used will automatically be removed.</string>
@@ -360,4 +360,5 @@
     <string name="nc_decrease_cosigning_desc">For security, please note that a decrease in the co-signing delay will only become effective after an amount of time equal to the current delay has passed.</string>
     <string name="nc_select_personal_wallet_type">Select personal wallet type</string>
     <string name="nc_main_what_type_of_personal_wallet">What type of personal wallet do you want to create?</string>
+    <string name="nc_roll_over_broadcast_notification">The rollover transactions have been created. Please sign and broadcast them at your convenience.\n\nTo improve privacy, [A]we strongly recommend that you randomize the broadcast times of the rollover transactions.[/A] Avoid broadcasting them all at the same time.</string>
 </resources>

@@ -1,0 +1,93 @@
+package com.nunchuk.android.main.rollover
+
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.core.view.WindowCompat
+import androidx.navigation.fragment.NavHostFragment
+import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.main.R
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
+
+    @Inject
+    internal lateinit var membershipStepManager: MembershipStepManager
+
+    private val viewModel: RollOverWalletViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
+        val inflater = navHostFragment.navController.navInflater
+        val graph = inflater.inflate(R.navigation.rollover_wallet_navigation)
+
+
+        val startScreen = intent.getIntExtra(START_SCREEN, RollOverWalletFlow.NONE)
+        when (startScreen) {
+            RollOverWalletFlow.REFUND -> graph.setStartDestination(R.id.rollOverTransferFundFragment)
+            RollOverWalletFlow.PREVIEW -> graph.setStartDestination(R.id.rollOverPreviewFragment)
+        }
+
+        navHostFragment.navController.setGraph(graph, intent.extras)
+
+        viewModel.init(
+            oldWalletId = intent.getStringExtra(OLD_WALLET_ID).orEmpty(),
+            newWalletId = intent.getStringExtra(NEW_WALLET_ID).orEmpty(),
+            selectedTagIds = intent.getIntegerArrayListExtra(SELECT_TAG_IDS).orEmpty(),
+            selectedCollectionIds = intent.getIntegerArrayListExtra(SELECT_COLLECTION_IDS)
+                .orEmpty(),
+            feeRate = intent.parcelable<Amount>(FEE_RATE) ?: Amount.ZER0
+        )
+    }
+
+    override fun initializeBinding(): ActivityNavigationBinding {
+        return ActivityNavigationBinding.inflate(layoutInflater)
+    }
+
+    companion object {
+
+        private const val OLD_WALLET_ID = "old_wallet_id"
+        private const val NEW_WALLET_ID = "new_wallet_id"
+        private const val START_SCREEN = "start_screen"
+        private const val SELECT_TAG_IDS = "select_tag_ids"
+        private const val SELECT_COLLECTION_IDS = "select_collection_ids"
+        private const val FEE_RATE = "fee_rate"
+
+        fun navigate(
+            activity: Context,
+            @RollOverWalletFlow.RollOverWalletFlowInfo startScreen: Int,
+            oldWalletId: String,
+            newWalletId: String,
+            selectedTagIds: List<Int>,
+            selectedCollectionIds: List<Int>,
+            feeRate: Amount
+        ) {
+            val intent = Intent(activity, RollOverWalletActivity::class.java)
+                .apply {
+                    putExtra(OLD_WALLET_ID, oldWalletId)
+                    putExtra(NEW_WALLET_ID, newWalletId)
+                    putExtra(START_SCREEN, startScreen)
+                    putIntegerArrayListExtra(SELECT_TAG_IDS, ArrayList(selectedTagIds))
+                    putIntegerArrayListExtra(
+                        SELECT_COLLECTION_IDS,
+                        ArrayList(selectedCollectionIds)
+                    )
+                    putExtra(FEE_RATE, feeRate)
+                }
+            activity.startActivity(intent)
+        }
+    }
+}

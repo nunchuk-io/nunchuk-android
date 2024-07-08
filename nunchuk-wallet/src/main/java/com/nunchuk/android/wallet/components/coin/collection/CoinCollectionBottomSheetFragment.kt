@@ -30,6 +30,7 @@ import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
+import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.shorten

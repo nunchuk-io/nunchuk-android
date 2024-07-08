@@ -176,7 +176,9 @@ private fun FilterByTagContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(tags) { tag ->
-                        TagItem(id = tag.coinTag.id,
+                        TagItem(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            id = tag.coinTag.id,
                             name = tag.coinTag.name,
                             color = tag.coinTag.color,
                             numCoins = tag.numCoins,

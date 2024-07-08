@@ -34,16 +34,20 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
+import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
+import com.nunchuk.android.core.wallet.WalletBottomSheetResult
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.alias.AliasActivity
@@ -109,6 +113,21 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         setupViews()
         observeEvent()
         sharedViewModel.init(args.walletId)
+
+        supportFragmentManager.setFragmentResultListener(
+            WalletComposeBottomSheet.TAG,
+            this
+        ) { _, bundle ->
+            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT)
+                ?: return@setFragmentResultListener
+            if (result.walletId != null) {
+                navigator.openRollOverWalletScreen(
+                    this, oldWalletId = args.walletId, newWalletId = result.walletId!!,
+                    startScreen = RollOverWalletFlow.REFUND
+                )
+            }
+            supportFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
+        }
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -123,6 +142,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL -> showImportFormatOption()
             SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL -> showExportFormatOption()
             SheetOptionType.TYPE_EXPORT_NUNCHUK -> viewModel.exportCoinControlNunchuk()
+            SheetOptionType.TYPE_ROLL_OVER_ANOTHER_WALLET -> {
+                WalletComposeBottomSheet.show(
+                    fragmentManager = supportFragmentManager,
+                    exclusiveAssistedWalletIds = arrayListOf(args.walletId),
+                    configArgs = WalletComposeBottomSheet.ConfigArgs(
+                        isShowDeactivatedWallets = false
+                    )
+                )
+            }
 
             SheetOptionType.TYPE_EXPORT_BIP329 -> {
                 NCWarningDialog(this).showDialog(
@@ -442,6 +470,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     R.string.nc_replace_keys
                 )
             )
+            if (viewModel.getRole().isKeyHolderWithoutKeyHolderLimited || viewModel.getGroupId().isNullOrEmpty()) {
+                options.add(
+                    SheetOption(
+                        SheetOptionType.TYPE_ROLL_OVER_ANOTHER_WALLET,
+                        R.drawable.ic_wallet_info,
+                        R.string.nc_roll_funds_over_another_wallet
+                    )
+                )
+            }
         }
 
         if (viewModel.isShowDeleteWallet()) {
@@ -539,7 +576,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             message = getString(R.string.nc_enter_your_password_desc),
             onConfirmed = { password ->
                 when (targetAction) {
-                    TargetAction.DELETE_WALLET -> viewModel.verifyPasswordToDeleteAssistedWallet(password)
+                    TargetAction.DELETE_WALLET -> viewModel.verifyPasswordToDeleteAssistedWallet(
+                        password
+                    )
+
                     TargetAction.UPDATE_SERVER_KEY -> viewModel.verifyPassword(password, signer!!)
                     TargetAction.REPLACE_KEYS -> viewModel.verifyPasswordToReplaceKey(password)
                     else -> Unit

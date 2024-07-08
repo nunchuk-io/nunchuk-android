@@ -51,6 +51,7 @@ import com.nunchuk.android.compose.MODE_SELECT
 import com.nunchuk.android.compose.MODE_VIEW_DETAIL
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.fromSATtoBTC
@@ -63,7 +64,6 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
-import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.component.SelectCoinCreateTransactionBottomBar

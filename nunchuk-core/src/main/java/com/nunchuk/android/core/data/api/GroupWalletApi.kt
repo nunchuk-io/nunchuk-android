@@ -25,6 +25,7 @@ import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletConstraintsDataResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
+import com.nunchuk.android.core.data.model.membership.BatchTransactionPayload
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
@@ -35,6 +36,7 @@ import com.nunchuk.android.core.data.model.membership.HealthReminderResponse
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.data.model.membership.PermissionResponse
+import com.nunchuk.android.core.data.model.membership.RandomizeBroadcastBatchTransactionsPayload
 import com.nunchuk.android.core.data.model.membership.RequestDesktopKeyResponse
 import com.nunchuk.android.core.data.model.membership.RequestSignatureTransactionRequest
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
@@ -572,5 +574,19 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Body payload: Map<String, Boolean>,
+    ): Data<Unit>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/batch")
+    suspend fun batchTransactions(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: BatchTransactionPayload
+    ): Data<TransactionsResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/batch/randomize-broadcast")
+    suspend fun randomizeBroadcastBatchTransactions(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: RandomizeBroadcastBatchTransactionsPayload
     ): Data<Unit>
 }
