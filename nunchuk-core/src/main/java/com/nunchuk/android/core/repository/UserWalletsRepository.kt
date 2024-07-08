@@ -82,6 +82,7 @@ import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.data.model.membership.toWalletOption
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
+import com.nunchuk.android.core.exception.RequestAddSameKeyException
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.mapper.toAlert
@@ -1793,7 +1794,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } else {
             requestAddKeyDao.getRequest(requestId)?.let { listOf(it) }.orEmpty()
         }
-
+        val steps = membershipRepository.getSteps(plan, groupId).first()
+        val signerFingerprints = steps.map { it.masterSignerId }.toSet()
         localRequests.forEach { localRequest ->
             val response = if (groupId.isNotEmpty()) {
                 userWalletApiManager.groupWalletApi.getRequestAddKeyStatus(
@@ -1828,23 +1830,27 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         replace = false
                     )
                 }
-                membershipRepository.saveStepInfo(
-                    MembershipStepInfo(
-                        step = localRequest.step,
-                        masterSignerId = key.xfp.orEmpty(),
-                        plan = plan,
-                        verifyType = VerifyType.APP_VERIFIED,
-                        extraData = gson.toJson(
-                            SignerExtra(
-                                derivationPath = key.derivationPath.orEmpty(),
-                                isAddNew = false,
-                                signerType = type
-                            )
-                        ),
-                        groupId = groupId
-                    )
-                )
                 requestAddKeyDao.delete(localRequest)
+                if (!signerFingerprints.contains(key.xfp.orEmpty())) {
+                    membershipRepository.saveStepInfo(
+                        MembershipStepInfo(
+                            step = localRequest.step,
+                            masterSignerId = key.xfp.orEmpty(),
+                            plan = plan,
+                            verifyType = VerifyType.APP_VERIFIED,
+                            extraData = gson.toJson(
+                                SignerExtra(
+                                    derivationPath = key.derivationPath.orEmpty(),
+                                    isAddNew = false,
+                                    signerType = type
+                                )
+                            ),
+                            groupId = groupId
+                        )
+                    )
+                } else {
+                    throw RequestAddSameKeyException
+                }
                 if (requestId != null) return true
             } else if (request == null) {
                 requestAddKeyDao.delete(localRequest)

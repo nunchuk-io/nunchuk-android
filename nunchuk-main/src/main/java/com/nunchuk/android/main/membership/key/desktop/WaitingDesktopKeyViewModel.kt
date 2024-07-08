@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
+import com.nunchuk.android.core.exception.RequestAddSameKeyException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -48,14 +49,24 @@ class WaitingDesktopKeyViewModel @Inject constructor(
             ).onSuccess {
                 _state.update { state -> state.copy(isCompleted = it) }
             }.onFailure {
-                _state.update { state -> state.copy(isCompleted = false, requestCancel = it is RequestAddKeyCancelException) }
+                _state.update { state ->
+                    state.copy(
+                        isCompleted = false,
+                        requestCancel = it is RequestAddKeyCancelException,
+                        isDuplicateKey = it is RequestAddSameKeyException
+                    )
+                }
             }
         }
     }
 
     fun markHandleAddKeyResult() {
-        _state.update { state -> state.copy(isCompleted = null) }
+        _state.update { state -> state.copy(isCompleted = null, ) }
     }
 }
 
-data class WaitingDesktopKeyUiState(val isCompleted: Boolean? = null, val error: String? = null, val requestCancel: Boolean = false)
+data class WaitingDesktopKeyUiState(
+    val isCompleted: Boolean? = null,
+    val requestCancel: Boolean = false,
+    val isDuplicateKey: Boolean = false
+)
