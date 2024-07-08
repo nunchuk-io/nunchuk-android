@@ -196,43 +196,56 @@ private fun TransferFundContent(
                     }
                 }
 
-                // 1dp spacer with top and bottom padding are 24dp and background whisper
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(vertical = 24.dp),
-                    color = MaterialTheme.colorScheme.whisper,
-                    thickness = 1.dp
-                )
+                if (uiState.isAssistedWallet) {
+                    // 1dp spacer with top and bottom padding are 24dp and background whisper
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(vertical = 24.dp),
+                        color = MaterialTheme.colorScheme.whisper,
+                        thickness = 1.dp
+                    )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        Text(
-                            text = stringResource(R.string.nc_remove_unused_keys),
-                            style = NunchukTheme.typography.body,
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.nc_remove_unused_keys),
+                                style = NunchukTheme.typography.body,
+                            )
 
-                        Text(
-                            text = stringResource(R.string.nc_remove_unused_key_desc),
-                            style = NunchukTheme.typography.bodySmall,
-                        )
-                    }
+                            Text(
+                                text = stringResource(R.string.nc_remove_unused_key_desc),
+                                style = NunchukTheme.typography.bodySmall,
+                            )
+                        }
 
-                    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                        Checkbox(
-                            checked = isRemoveUnusedKeys,
-                            onCheckedChange = { isRemoveUnusedKeys = it })
+                        CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+                            Checkbox(
+                                checked = isRemoveUnusedKeys,
+                                onCheckedChange = { isRemoveUnusedKeys = it })
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+@Preview
+private fun TransferFundScreenContentAssistedWalletPreview() {
+    TransferFundContent(
+        uiState = TransferFundUiState(
+            newWallet = Wallet(name = "new wallet name"),
+            isAssistedWallet = true
+        )
+    )
 }
 
 @Composable
