@@ -115,6 +115,7 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                         val wallet = viewModel.state.value.replacedWallet
                         if (wallet.balance.pureBTC() == 0.0) {
                             navigator.returnToMainScreen(requireActivity())
+                            pushEventManager.push(PushEvent.CloseWalletDetail)
                         } else {
                             NCInfoDialog(requireActivity())
                                 .showDialog(

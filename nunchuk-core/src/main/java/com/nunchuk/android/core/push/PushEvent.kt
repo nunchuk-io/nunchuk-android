@@ -47,4 +47,5 @@ sealed class PushEvent {
      * Event for when a new local user signer is added, don't use it for create signer from sync API    
      */
     data class LocalUserSignerAdded(val signer: SingleSigner) : PushEvent()
+    data object CloseWalletDetail : PushEvent()
 }

@@ -32,6 +32,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.withResumed
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.paging.CombinedLoadStates
@@ -42,6 +43,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -99,14 +102,16 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     @Inject
     lateinit var sessionHolder: SessionHolder
 
+    @Inject
+    lateinit var pushEventManager: PushEventManager
+
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 when (data.serializable<WalletConfigAction>(WalletConfigActivity.EXTRA_WALLET_ACTION)) {
                     WalletConfigAction.DELETE -> {
-                        if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
-                        else findNavController().popBackStack()
+                        closeScreen()
                     }
 
                     WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
@@ -118,6 +123,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 }
             }
         }
+
+    private fun closeScreen() {
+        if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
+        else findNavController().popBackStack()
+    }
 
     private val controller: IntentSharingController by lazy {
         IntentSharingController.from(
@@ -162,7 +172,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun configureToolbar(state: WalletDetailsState) {
         val searchMenu = binding.toolbar.menu.findItem(R.id.menu_search)
         searchMenu.isVisible = state.walletExtended.wallet.name.isNotEmpty()
-        if (state.groupId.isNullOrEmpty().not() && state.walletStatus != WalletStatus.REPLACED.name) {
+        if (state.groupId.isNullOrEmpty()
+                .not() && state.walletStatus != WalletStatus.REPLACED.name
+        ) {
             searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_groups_menu)
         } else if (state.isAssistedWallet) {
             searchMenu.icon =
@@ -171,7 +183,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             searchMenu.icon =
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_search_white)
         }
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = state.walletStatus != WalletStatus.LOCKED.name
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
+            state.walletStatus != WalletStatus.LOCKED.name
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -230,6 +243,15 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+        viewLifecycleOwner.lifecycleScope.launch {
+            pushEventManager.event.collectLatest {
+                if (it is PushEvent.CloseWalletDetail) {
+                    viewLifecycleOwner.lifecycle.withResumed {
+                        closeScreen()
+                    }
+                }
+            }
+        }
     }
 
     private fun handleEvent(event: WalletDetailsEvent) {
