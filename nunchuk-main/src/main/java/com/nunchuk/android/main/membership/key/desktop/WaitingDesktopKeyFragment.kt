@@ -15,6 +15,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.toString
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -67,7 +68,9 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                 .collect { state ->
                     val isCompleted = state.isCompleted
                     if (isCompleted != null) {
-                        if (isCompleted) {
+                        if (state.isDuplicateKey) {
+                            showError(getString(R.string.nc_error_add_same_key))
+                        } else if (isCompleted) {
                             noDeviceDialog?.dismiss()
                             findNavController().navigate(
                                 WaitingDesktopKeyFragmentDirections.actionWaitingDesktopKeyFragmentToRequestAddKeySuccessFragment(
