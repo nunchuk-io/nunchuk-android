@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.wallet
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.replace.UpdateReplaceKeyConfigUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
@@ -19,11 +20,12 @@ class TransferFundViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
     private val updateReplaceKeyConfigUseCase: UpdateReplaceKeyConfigUseCase,
+    assistedWalletManager: AssistedWalletManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val args = TransferFundFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private val _uiState = MutableStateFlow(TransferFundUiState())
+    private val _uiState = MutableStateFlow(TransferFundUiState(isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)))
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -60,6 +62,7 @@ class TransferFundViewModel @Inject constructor(
 }
 
 data class TransferFundUiState(
+    val isAssistedWallet: Boolean = false,
     val replacedWallet: Wallet = Wallet(),
     val newWallet: Wallet = Wallet(),
     val address: String = "",
