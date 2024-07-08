@@ -21,6 +21,10 @@ package com.nunchuk.android.core.repository
 
 import com.google.gson.Gson
 import com.nunchuk.android.core.data.api.TransactionApi
+import com.nunchuk.android.core.data.model.membership.BatchTransactionPayload
+import com.nunchuk.android.core.data.model.membership.RandomizeBroadcastBatchTransactionsPayload
+import com.nunchuk.android.core.data.model.membership.TransactionPayload
+import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.repository.TransactionRepository
@@ -31,10 +35,11 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-class TransactionRepositoryImpl @Inject constructor(
+internal class TransactionRepositoryImpl @Inject constructor(
     private val transactionApi: TransactionApi,
     private val gson: Gson,
     private val ncDataStore: NcDataStore,
+    private val userWalletApiManager: UserWalletApiManager,
     applicationScope: CoroutineScope,
 ) : TransactionRepository {
     private val chain =
@@ -65,5 +70,60 @@ class TransactionRepositoryImpl @Inject constructor(
                 EstimateFeeRates::class.java
             )
         }.getOrNull() ?: EstimateFeeRates()
+    }
+
+    override suspend fun batchTransactions(
+        walletId: String,
+        groupId: String,
+        notes: List<String>,
+        psbts: List<String>
+    ) {
+        val txPayloads = arrayListOf<TransactionPayload>()
+        psbts.forEachIndexed { index, psbt ->
+            txPayloads.add(TransactionPayload(psbt = psbt, note = notes.getOrNull(index) ?: ""))
+        }
+        val response = if (groupId.isNotEmpty()) {
+            userWalletApiManager.groupWalletApi.batchTransactions(
+                walletId = walletId,
+                groupId = groupId,
+                payload = BatchTransactionPayload(txPayloads)
+            )
+        } else {
+            userWalletApiManager.walletApi.batchTransactions(
+                walletId = walletId,
+                payload = BatchTransactionPayload(txPayloads)
+            )
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun randomizeBroadcastBatchTransactions(
+        walletId: String,
+        groupId: String,
+        transactionIds: List<String>,
+        days: Int
+    ) {
+        val response = if (groupId.isNotEmpty()) {
+            userWalletApiManager.groupWalletApi.randomizeBroadcastBatchTransactions(
+                walletId = walletId,
+                groupId = groupId,
+                payload = RandomizeBroadcastBatchTransactionsPayload(
+                    transactionIds = transactionIds,
+                    days = days
+                ))
+        } else {
+            userWalletApiManager.walletApi.randomizeBroadcastBatchTransactions(
+                walletId = walletId,
+                RandomizeBroadcastBatchTransactionsPayload(
+                    transactionIds = transactionIds,
+                    days = days
+                )
+            )
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
     }
 }

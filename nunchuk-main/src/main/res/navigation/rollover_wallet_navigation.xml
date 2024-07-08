@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rollover_wallet_navigation"
+    app:startDestination="@id/rollOverTransferFundFragment">
+
+    <fragment
+        android:id="@+id/rollOverTransferFundFragment"
+        android:name="com.nunchuk.android.main.rollover.transferfund.RollOverTransferFundFragment"
+        android:label="RollOverTransferFundFragment">
+
+        <argument
+            android:name="old_wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="new_wallet_id"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_rollOverTransferFundFragment_to_rollOverCoinControlFragment"
+            app:destination="@id/rollOverCoinControlFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_rollOverTransferFundFragment_to_rollOverCoinControlIntroFragment"
+            app:destination="@id/rollOverCoinControlIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/rollOverCoinControlFragment"
+        android:name="com.nunchuk.android.main.rollover.coincontrol.RollOverCoinControlFragment"
+        android:label="RollOverCoinControlFragment">
+
+        <argument
+            android:name="old_wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="new_wallet_id"
+            app:argType="string" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/rollOverCoinControlIntroFragment"
+        android:name="com.nunchuk.android.main.rollover.RollOverCoinControlIntroFragment"
+        android:label="RollOverCoinControlIntroFragment">
+
+        <argument
+            android:name="old_wallet_id"
+            app:argType="string" />
+        <argument
+            android:name="new_wallet_id"
+            app:argType="string" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/rollOverPreviewFragment"
+        android:name="com.nunchuk.android.main.rollover.preview.RollOverPreviewFragment"
+        android:label="RollOverPreviewFragment">
+
+        <action
+            android:id="@+id/action_rollOverPreviewFragment_to_rollOverBroadcastTransactionFragment"
+            app:destination="@id/rollOverBroadcastTransactionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/rollOverBroadcastTransactionFragment"
+        android:name="com.nunchuk.android.main.rollover.broadcast.RollOverBroadcastTransactionFragment"
+        android:label="RollOverBroadcastTransactionFragment">
+    </fragment>
+
+</navigation>

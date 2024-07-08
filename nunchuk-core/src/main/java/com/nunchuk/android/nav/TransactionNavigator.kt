@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
@@ -81,7 +82,8 @@ interface TransactionNavigator {
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         isConsolidateFlow: Boolean = false,
-        title: String = ""
+        title: String = "",
+        rollOverWalletParam: RollOverWalletParam? = null
     )
 
     fun openTransactionConfirmScreen(

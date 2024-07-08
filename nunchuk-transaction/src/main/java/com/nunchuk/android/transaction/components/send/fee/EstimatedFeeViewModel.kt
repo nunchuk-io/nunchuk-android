@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.send.fee
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
@@ -42,6 +43,7 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.Est
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.usecase.EstimateRollOverAmountUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -58,6 +60,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
+    private val estimateRollOverAmountUseCase: EstimateRollOverAmountUseCase
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
@@ -68,6 +71,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private val inputs = mutableListOf<UnspentOutput>()
     private var address = ""
     private var claimInheritanceTxParam: ClaimInheritanceTxParam? = null
+    private var rollOverWalletParam: RollOverWalletParam? = null
     override val initialState = EstimatedFeeState()
 
     fun init(args: EstimatedFeeArgs) {
@@ -84,7 +88,12 @@ class EstimatedFeeViewModel @Inject constructor(
         address = args.txReceipts.first().address
         forceSubtractFeeFromAmount = args.subtractFeeFromAmount
         claimInheritanceTxParam = args.claimInheritanceTxParam
-        getEstimateFeeRates()
+        rollOverWalletParam = args.rollOverWalletParam
+        if (rollOverWalletParam != null) {
+            getEstimateRollOverAmount()
+        } else {
+            getEstimateFeeRates()
+        }
         if (slots.isEmpty()) {
             getAllTags()
             getAllCoins()
@@ -115,6 +124,40 @@ class EstimatedFeeViewModel @Inject constructor(
         }
     }
 
+    private fun getEstimateRollOverAmount() = viewModelScope.launch {
+        val resultFeeRate = estimateFeeUseCase(Unit)
+        if (resultFeeRate.isSuccess) {
+            updateState {
+                copy(
+                    estimateFeeRates = resultFeeRate.getOrThrow(),
+                    manualFeeRate = resultFeeRate.getOrThrow().defaultRate
+                )
+            }
+            val result = estimateRollOverAmountUseCase(
+                EstimateRollOverAmountUseCase.Param(
+                    oldWalletId = walletId,
+                    newWalletId = rollOverWalletParam?.newWalletId.orEmpty(),
+                    tags = rollOverWalletParam?.tags.orEmpty(),
+                    collections = rollOverWalletParam?.collections.orEmpty(),
+                    feeRate = getState().manualFeeRate.toManualFeeRate()
+                )
+            )
+            if (result.isSuccess) {
+                updateState {
+                    copy(
+                        estimatedFee = result.getOrThrow().second,
+                        manualFeeRate = result.getOrThrow().second.value.toInt(),
+                        rollOverWalletPairAmount = result.getOrThrow()
+                    )
+                }
+            } else {
+                if (result.exceptionOrNull() !is CancellationException) {
+                    setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                }
+            }
+        }
+    }
+
     fun getEstimateFeeRates() {
         viewModelScope.launch {
             val result = estimateFeeUseCase(Unit)
@@ -137,6 +180,7 @@ class EstimatedFeeViewModel @Inject constructor(
     }
 
     private fun draftTransaction() {
+        if (rollOverWalletParam != null) return
         draftTranJob?.cancel()
         draftTranJob = viewModelScope.launch {
             if (claimInheritanceTxParam.isInheritanceClaimFlow()) {
@@ -192,6 +236,10 @@ class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun getOutputAmount() = txReceipts.sumOf { it.amount }
+
+    fun getRollOverTotalAmount(): Amount {
+        return getState().rollOverWalletPairAmount.first + getState().rollOverWalletPairAmount.second
+    }
 
     private fun getOutputs(): Map<String, Amount> {
         val outputs = mutableMapOf<String, Amount>()

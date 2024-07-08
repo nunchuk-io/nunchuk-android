@@ -26,6 +26,8 @@ import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
+import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
@@ -77,7 +79,12 @@ interface AppNavigator {
      * @param role for Byzantine
      */
     fun openKeyRecoveryScreen(activityContext: Context, role: String? = null)
-    fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String, groupId: String? = null, walletId: String? = null)
+    fun openEmergencyLockdownScreen(
+        activityContext: Context,
+        verifyToken: String,
+        groupId: String? = null,
+        walletId: String? = null
+    )
 
     /**
      * @param verifyToken for view/update inheritance [InheritancePlanFlow.VIEW]
@@ -124,4 +131,17 @@ interface AppNavigator {
 
     fun openHotWalletScreen(activityContext: Context)
     fun openOnBoardingScreen(activityContext: Context)
+
+    /**
+     * @param selectedTagIds, selectedCollectionIds, feeRate for [RollOverWalletFlow.PREVIEW]
+     */
+    fun openRollOverWalletScreen(
+        activityContext: Context,
+        oldWalletId: String,
+        newWalletId: String,
+        @RollOverWalletFlow.RollOverWalletFlowInfo startScreen: Int,
+        selectedTagIds: List<Int> = emptyList(),
+        selectedCollectionIds: List<Int> = emptyList(),
+        feeRate: Amount = Amount.ZER0,
+    )
 }

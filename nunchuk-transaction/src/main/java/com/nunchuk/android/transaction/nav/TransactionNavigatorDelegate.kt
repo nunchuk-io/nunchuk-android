@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
@@ -129,6 +130,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
         isConsolidateFlow: Boolean,
         title: String,
+        rollOverWalletParam: RollOverWalletParam?
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -142,7 +144,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs,
             isConsolidateFlow = isConsolidateFlow,
-            title = title
+            title = title,
+            rollOverWalletParam = rollOverWalletParam
         )
     }
 

@@ -155,4 +155,6 @@ object SheetOptionType {
 
     const val TYPE_SIGN_IN_PAID_SUBSCRIPTION = 88
     const val TYPE_SIGN_IN_PRIMARY_KEY = 89
+
+    const val TYPE_ROLL_OVER_ANOTHER_WALLET = 90
 }

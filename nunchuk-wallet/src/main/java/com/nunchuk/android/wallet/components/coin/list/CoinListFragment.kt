@@ -56,6 +56,7 @@ import com.nunchuk.android.compose.MODE_SELECT
 import com.nunchuk.android.compose.MODE_VIEW_DETAIL
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
@@ -70,7 +71,6 @@ import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.collection.CoinCollectionListFragment
-import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode

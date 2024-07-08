@@ -41,6 +41,7 @@ import com.nunchuk.android.core.util.hexToColor
 @Preview
 @Composable
 fun TagItem(
+    modifier: Modifier,
     id: Int = -1,
     name: String = "",
     color: String = "",
@@ -51,8 +52,7 @@ fun TagItem(
     onCheckedChange: ((Boolean) -> Unit) = {}
 ) {
     Row(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
+        modifier = modifier
             .clickable {
                 if (tagFlow == TagFlow.VIEW) {
                     onTagClick()

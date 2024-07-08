@@ -27,9 +27,11 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
+import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.getBTCAmount
@@ -37,11 +39,13 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.transaction.components.utils.toTitle
@@ -136,7 +140,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             showEstimatedFeeTooltip()
         }
 
-        bindSubtotal(viewModel.getOutputAmount())
+        if (args.rollOverWalletParam != null) {
+            bindRollOverTotalAmount(viewModel.getRollOverTotalAmount())
+        } else {
+            bindSubtotal(viewModel.getOutputAmount())
+        }
 
         binding.tvCustomize.setOnDebounceClickListener {
             navigator.openCoinList(
@@ -160,6 +168,12 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.totalAmountUSD.text = subtotal.getCurrencyAmount()
     }
 
+    private fun bindRollOverTotalAmount(totalAmount: Amount) {
+        binding.totalAmountBTC.tag = totalAmount.value
+        binding.totalAmountBTC.text = totalAmount.getBTCAmount()
+        binding.totalAmountUSD.text = totalAmount.getCurrencyAmount()
+    }
+
     private fun handleState(state: EstimatedFeeState) {
         binding.estimatedFeeBTC.text = state.estimatedFee.getBTCAmount()
         binding.estimatedFeeUSD.text = state.estimatedFee.getCurrencyAmount()
@@ -172,7 +186,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.tvEffectiveFee.text = getString(R.string.nc_transaction_effective_fee_rate, (state.cpfpFee.value.toDouble() / 1000.0).formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS))
 
         if (state.subtractFeeFromAmount) {
-            bindSubtotal(viewModel.getOutputAmount())
+            if (args.rollOverWalletParam != null) {
+                bindRollOverTotalAmount(viewModel.getRollOverTotalAmount())
+            } else {
+                bindSubtotal(viewModel.getOutputAmount())
+            }
         } else {
             bindSubtotal((viewModel.getOutputAmount() + state.estimatedFee.pureBTC()).coerceAtMost(args.availableAmount))
         }
@@ -210,10 +228,25 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     private fun handleEvent(event: EstimatedFeeEvent) {
         when (event) {
             is EstimatedFeeErrorEvent -> onEstimatedFeeError(event)
-            is EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(
-                subtractFeeFromAmount = event.subtractFeeFromAmount,
-                manualFeeRate = event.manualFeeRate
-            )
+            is EstimatedFeeCompletedEvent -> {
+                if (args.rollOverWalletParam != null) {
+                    navigator.openRollOverWalletScreen(
+                        activityContext = this,
+                        oldWalletId = args.walletId,
+                        newWalletId = args.rollOverWalletParam!!.newWalletId,
+                        startScreen = RollOverWalletFlow.PREVIEW,
+                        selectedTagIds = args.rollOverWalletParam!!.tags.map { it.id },
+                        selectedCollectionIds = args.rollOverWalletParam!!.collections.map { it.id },
+                        feeRate = event.manualFeeRate.toManualFeeRate()
+                    )
+                } else {
+                    openTransactionConfirmScreen(
+                        subtractFeeFromAmount = event.subtractFeeFromAmount,
+                        manualFeeRate = event.manualFeeRate
+                    )
+                }
+            }
+
             is EstimatedFeeEvent.Loading -> showOrHideLoading(event.isLoading)
             is EstimatedFeeEvent.InvalidManualFee -> {
                 NCWarningDialog(this).showDialog(
@@ -263,7 +296,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             inputs: List<UnspentOutput> = emptyList(),
             isConsolidateFlow: Boolean = false,
-            title : String = ""
+            title : String = "",
+            rollOverWalletParam: RollOverWalletParam? = null
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -277,7 +311,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     claimInheritanceTxParam = claimInheritanceTxParam,
                     inputs = inputs,
                     isConsolidateFlow = isConsolidateFlow,
-                    title = title
+                    title = title,
+                    rollOverWalletParam = rollOverWalletParam
                 ).buildIntent(activityContext)
             )
         }

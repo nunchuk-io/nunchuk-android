@@ -26,6 +26,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -36,7 +37,6 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.list.CoinListEvent
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import kotlinx.coroutines.launch
