@@ -246,7 +246,7 @@ class AddKeyListViewModel @Inject constructor(
     }
 
     fun getHardwareSigners(tag: SignerTag) =
-        _state.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
+        _state.value.signers.filter { isSignerExist(it.fingerPrint).not() && it.type == SignerType.HARDWARE && it.tags.contains(tag)  }
 
     fun getAirgap(tag: SignerTag?): List<SignerModel> {
         return if (tag == null) {
@@ -271,8 +271,8 @@ class AddKeyListViewModel @Inject constructor(
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
     data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
-    object OnAddAllKey : AddKeyListEvent()
-    object SelectAirgapType : AddKeyListEvent()
+    data object OnAddAllKey : AddKeyListEvent()
+    data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
 }
 
