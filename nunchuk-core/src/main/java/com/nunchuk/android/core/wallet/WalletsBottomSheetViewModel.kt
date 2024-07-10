@@ -160,8 +160,10 @@ class WalletsBottomSheetViewModel @Inject constructor(
         val uis = arrayListOf<WalletUiModel>()
         wallets.forEach { wallet ->
             val assistedWallet = state.value.assistedWallets[wallet.wallet.id]
-            val group = state.value.joinedGroups[assistedWallet?.groupId]
-            if (assistedWallet != null && group == null) return@forEach // skip if group is not joined
+            var group: ByzantineGroup? = null
+            if (assistedWallet?.groupId.isNullOrEmpty().not()) {
+                group = state.value.joinedGroups[assistedWallet?.groupId] ?: return@forEach // skip if group is not joined
+            }
             val role = state.value.roles[assistedWallet?.groupId]
             val isLocked = state.value.lockdownWalletIds.contains(assistedWallet?.localId)
             val walletStatus = assistedWallet?.status ?: ""
