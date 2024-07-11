@@ -28,6 +28,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.auth.domain.SignInViaDigitalSignatureUseCase
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerSignInUseCase
 import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
@@ -40,6 +41,7 @@ import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.byzantine.SignInDummyTransactionUpdate
+import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -70,7 +72,9 @@ class SignInAuthenticationViewModel @Inject constructor(
     private val updateDummyTransactionSignInUseCase: UpdateDummyTransactionSignInUseCase,
     private val signInViaDigitalSignatureUseCase: SignInViaDigitalSignatureUseCase,
     private val signInModeHolder: SignInModeHolder,
-) : ViewModel() {
+    private val initNunchukUseCase: InitNunchukUseCase,
+    private val accountManager: AccountManager,
+    ) : ViewModel() {
 
     private val args = SignInAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -280,8 +284,11 @@ class SignInAuthenticationViewModel @Inject constructor(
                     deviceId = dummyTransactionUpdate.deviceId
                 )
             )
+            val resultInit = kotlin.runCatching {
+                initNunchuk()
+            }
             _event.emit(SignInAuthenticationEvent.Loading(false))
-            if (result.isSuccess) {
+            if (result.isSuccess && resultInit.isSuccess) {
                 signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                 _event.emit(
                     SignInAuthenticationEvent.SignInSuccess(
@@ -290,9 +297,14 @@ class SignInAuthenticationViewModel @Inject constructor(
                     )
                 )
             } else {
-                _event.emit(SignInAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(SignInAuthenticationEvent.ShowError(result.exceptionOrNull()?.message ?: resultInit.exceptionOrNull()?.message.orUnknownError()))
             }
         }
+    }
+
+    private suspend fun initNunchuk() {
+        val account = accountManager.getAccount()
+        return initNunchukUseCase(InitNunchukUseCase.Param(accountId = account.email)).getOrThrow()
     }
 
     fun getInteractSingleSigner() = _state.value.interactSignerModel
