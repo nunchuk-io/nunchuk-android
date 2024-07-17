@@ -127,15 +127,18 @@ class MembershipRepositoryImpl @Inject constructor(
             AppSettings::class.java
         )?.chain ?: Chain.MAIN
         var result = membershipApi.getSubscriptions()
-        if (result.isSuccess.not() && chain != Chain.MAIN) {
+        if ((result.isSuccess.not() || result.data.subscriptions.isEmpty()) && chain != Chain.MAIN) {
             result = membershipApi.getTestnetCurrentSubscription()
         }
         if (result.isSuccess) {
             val data = result.data
-            val validPlans = data
-                .subscriptions
-                .filter { plan -> plan.status == "PENDING" || (plan.status == "ACTIVE" && Calendar.getInstance().timeInMillis <= plan.graceValidUntilUtcMillis) }
-                .mapNotNull { it.plan?.slug }
+            val validPlans = if (chain == Chain.MAIN) {
+                data.subscriptions
+                    .filter { plan -> plan.status == "PENDING" || (plan.status == "ACTIVE" && Calendar.getInstance().timeInMillis <= plan.graceValidUntilUtcMillis) }
+                    .mapNotNull { it.plan?.slug }
+            } else {
+                data.subscriptions.mapNotNull { it.plan?.slug }
+            }
             ncDataStore.setPlans(validPlans)
 
             return MemberSubscription(validPlans.map { it.toMembershipPlan() })
