@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 class MembershipRepositoryImpl @Inject constructor(
@@ -132,9 +133,11 @@ class MembershipRepositoryImpl @Inject constructor(
         }
         if (result.isSuccess) {
             val data = result.data
+            val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            val utcTimeInMillis = utcCalendar.timeInMillis
             val validPlans = if (chain == Chain.MAIN) {
                 data.subscriptions
-                    .filter { plan -> plan.status == "PENDING" || (plan.status == "ACTIVE" && Calendar.getInstance().timeInMillis <= plan.graceValidUntilUtcMillis) }
+                    .filter { plan -> plan.status == "PENDING" || (plan.status == "ACTIVE" && utcTimeInMillis <= plan.graceValidUntilUtcMillis) }
                     .mapNotNull { it.plan?.slug }
             } else {
                 data.subscriptions.mapNotNull { it.plan?.slug }
