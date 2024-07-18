@@ -103,8 +103,6 @@ class PKeyManuallySignatureActivity : BaseActivity<ActivityPkeyManuallySignature
         } else {
             navigator.openMainScreen(
                 this@PKeyManuallySignatureActivity,
-                accountManager.getAccount().token,
-                accountManager.getAccount().deviceId,
                 messages = messages,
                 isClearTask = true
             )

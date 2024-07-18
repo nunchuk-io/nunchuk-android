@@ -53,7 +53,7 @@ internal class SplashActivity : AppCompatActivity() {
             SplashEvent.NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
             SplashEvent.NavSignInEvent -> navigator.openSignInScreen(this, false)
             is SplashEvent.NavHomeScreenEvent -> {
-                navigator.openMainScreen(this, loginHalfToken = event.loginHalfToken, deviceId = event.deviceId)
+                navigator.openMainScreen(this)
                 if (NotificationUtils.areNotificationsEnabled(this).not()) {
                     navigator.openTurnNotificationScreen(this)
                 }

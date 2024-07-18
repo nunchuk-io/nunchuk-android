@@ -99,8 +99,6 @@ class PKeyChooseUsernameActivity : BaseActivity<ActivityPkeyChooseUsernameBindin
         } else {
             navigator.openMainScreen(
                 this@PKeyChooseUsernameActivity,
-                accountManager.getAccount().token,
-                accountManager.getAccount().deviceId,
                 messages = messages,
                 isClearTask = true
             )

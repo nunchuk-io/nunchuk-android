@@ -157,8 +157,6 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
         } else {
             navigator.openMainScreen(
                 this,
-                accountManager.getAccount().token,
-                accountManager.getAccount().deviceId,
                 messages = messages,
                 isClearTask = true
             )

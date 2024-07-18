@@ -111,8 +111,6 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         } else {
             navigator.openMainScreen(
                 activityContext = this,
-                loginHalfToken = token,
-                deviceId = deviceId,
                 isClearTask = true
             )
         }

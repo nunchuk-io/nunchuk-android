@@ -24,6 +24,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.SyncFileModel
 import com.nunchuk.android.core.domain.CheckUpdateRecommendUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateSyncFileUseCase
@@ -122,6 +123,7 @@ internal class MainActivityViewModel @Inject constructor(
     private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase,
     private val sessionHolder: SessionHolder,
     private val getOnBoardUseCase: GetOnBoardUseCase,
+    private val accountManager: AccountManager,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
@@ -163,6 +165,7 @@ internal class MainActivityViewModel @Inject constructor(
                     enableAutoBackup()
                 }
         }
+
     }
 
     init {
@@ -583,6 +586,14 @@ internal class MainActivityViewModel @Inject constructor(
 
     fun onTokenRetrieved(token: String) {
         notificationManager.enqueueRegisterPusherWithFcmKey(token)
+    }
+
+    fun getSetupData(): Pair<String, String> {
+        val account = accountManager.getAccount()
+        val token = account.token
+        val deviceId = account.deviceId.orEmpty()
+        return Pair(token, deviceId)
+
     }
 
     override fun onCleared() {
