@@ -69,8 +69,6 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
         finish()
         navigator.openMainScreen(
             this,
-            accountManager.getAccount().token,
-            accountManager.getAccount().deviceId,
             isClearTask = true
         )
     }

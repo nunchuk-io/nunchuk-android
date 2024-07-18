@@ -54,6 +54,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.crypto.model.UnknownInfo.deviceId
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -78,12 +79,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     private val walletViewModel: WalletsViewModel by viewModels()
 
     private val syncInfoViewModel: SyncInfoViewModel by viewModels()
-
-    private val loginHalfToken
-        get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
-
-    private val deviceId
-        get() = intent.getStringExtra(EXTRAS_ENCRYPTED_DEVICE_ID).orEmpty()
 
     private val messages
         get() = intent.getStringArrayListExtra(EXTRAS_MESSAGE_LIST).orEmpty()
@@ -145,6 +140,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     }
 
     private fun setupData() {
+        val (loginHalfToken, deviceId) = viewModel.getSetupData()
         if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
             syncRoomViewModel.setupMatrixIfNeeded(loginHalfToken, deviceId)
         }
@@ -248,15 +244,11 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     companion object {
         private const val DISMISS_TIME = 2000L
 
-        const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
-        const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
         const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
         const val EXTRAS_MESSAGE_LIST = "EXTRAS_MESSAGE_LIST"
 
         fun start(
             activityContext: Context,
-            loginHalfToken: String? = null,
-            deviceId: String? = null,
             position: Int? = null,
             messages: ArrayList<String>? = null,
             isClearTask: Boolean = false,
@@ -264,8 +256,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             activityContext.startActivity(
                 createIntent(
                     activityContext = activityContext,
-                    loginHalfToken = loginHalfToken,
-                    deviceId = deviceId,
                     bottomNavViewPosition = position,
                     messages = messages,
                     isClearTask = isClearTask
@@ -276,8 +266,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         // TODO replace with args
         fun createIntent(
             activityContext: Context,
-            loginHalfToken: String? = null,
-            deviceId: String? = null,
             @IdRes bottomNavViewPosition: Int? = null,
             messages: ArrayList<String>? = null,
             isClearTask: Boolean = false,
@@ -288,8 +276,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
                 } else {
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }
-                putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
-                putExtra(EXTRAS_ENCRYPTED_DEVICE_ID, deviceId)
                 putExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, bottomNavViewPosition)
                 putExtra(EXTRAS_MESSAGE_LIST, messages)
             }

@@ -126,8 +126,6 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
         } else {
             navigator.openMainScreen(
                 activityContext = this,
-                loginHalfToken = token,
-                deviceId = deviceId,
                 isClearTask = true,
             )
         }

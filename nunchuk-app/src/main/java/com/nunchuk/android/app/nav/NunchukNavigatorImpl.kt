@@ -64,6 +64,7 @@ import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
 import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
+import org.matrix.android.sdk.api.session.crypto.model.UnknownInfo.deviceId
 import javax.inject.Inject
 
 internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
@@ -79,14 +80,12 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
 
     override fun openMainScreen(
         activityContext: Context,
-        loginHalfToken: String?,
-        deviceId: String?,
         bottomNavViewPosition: Int?,
         messages: ArrayList<String>?,
         isClearTask: Boolean,
     ) {
         MainActivity.start(
-            activityContext, loginHalfToken, deviceId, bottomNavViewPosition,
+            activityContext, bottomNavViewPosition,
             messages = messages, isClearTask = isClearTask
         )
     }

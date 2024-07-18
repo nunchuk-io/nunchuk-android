@@ -177,7 +177,7 @@ class SignInDummyTransactionDetailsFragment :
                                 if (NotificationUtils.areNotificationsEnabled(requireContext()).not()) {
                                     navigator.openTurnNotificationScreen(requireActivity())
                                 } else {
-                                    navigator.openMainScreen(requireActivity(), event.token, event.deviceId, isClearTask = true)
+                                    navigator.openMainScreen(requireActivity(), isClearTask = true)
                                 }
                                 requireActivity().finish()
                         }

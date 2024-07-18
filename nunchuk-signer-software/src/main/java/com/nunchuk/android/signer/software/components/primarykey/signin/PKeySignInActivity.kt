@@ -86,8 +86,8 @@ class PKeySignInActivity : BaseActivity<ActivityPkeySignInBinding>() {
         val messages = ArrayList<String>()
         messages.add(String.format(getString(R.string.nc_text_signed_in_with_data), args.primaryKey.account))
         navigator.openMainScreen(
-            this, loginHalfToken = accountManager.getAccount().token,
-            deviceId = accountManager.getAccount().deviceId, messages = messages,
+            this,
+             messages = messages,
             isClearTask = true
         )
         finish()

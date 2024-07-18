@@ -96,7 +96,7 @@ class RecoverPasswordActivity : BaseActivity<ActivityRecoverPasswordBinding>() {
     private fun openMainScreen(token: String, deviceId: String) {
         hideLoading()
         finish()
-        navigator.openMainScreen(this, token, deviceId, isClearTask = true)
+        navigator.openMainScreen(this, isClearTask = true)
     }
 
     private fun onSignInError(code: Int?, message: String, errorDetail: ErrorDetail?) {
