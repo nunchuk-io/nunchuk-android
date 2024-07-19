@@ -63,6 +63,8 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
         binding.btnChangeCvc.isVisible = signerType == SignerType.NFC
         binding.btnTopUpXpu.isVisible = signerType == SignerType.NFC
         binding.btnBackUpKey.isVisible = signerType == SignerType.NFC
+        binding.btnCheckFirmwareVersion.isVisible = signerType == SignerType.PORTAL_NFC
+        binding.btnUpdateFirmware.isVisible = signerType == SignerType.PORTAL_NFC
         binding.btnSignMessage.isVisible = signerType == SignerType.NFC || signerType == SignerType.SOFTWARE
     }
 
@@ -73,6 +75,8 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
             binding.btnChangeCvc.id -> listener.onOptionClickListener(SingerOption.CHANGE_CVC)
             binding.btnRemoveKey.id -> listener.onOptionClickListener(SingerOption.REMOVE_KEY)
             binding.btnSignMessage.id -> listener.onOptionClickListener(SingerOption.SIGN_MESSAGE)
+            binding.btnUpdateFirmware.id -> listener.onOptionClickListener(SingerOption.UPDATE_FIRMWARE)
+            binding.btnCheckFirmwareVersion.id -> listener.onOptionClickListener(SingerOption.CHECK_FIRMWARE)
         }
         dismiss()
     }
@@ -83,6 +87,8 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
         binding.btnChangeCvc.setOnClickListener(this)
         binding.btnRemoveKey.setOnClickListener(this)
         binding.btnSignMessage.setOnClickListener(this)
+        binding.btnUpdateFirmware.setOnClickListener(this)
+        binding.btnCheckFirmwareVersion.setOnClickListener(this)
     }
 
     interface OptionClickListener {

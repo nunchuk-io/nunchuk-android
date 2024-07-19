@@ -14,6 +14,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,10 +26,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTextField
@@ -36,31 +41,47 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.signer.R
 
-const val inputNameRoute = "input_name"
+const val inputWalletNameRoute = "input_wallet_name/{wallet_id}"
 
-fun NavGraphBuilder.inputName(
+fun NavGraphBuilder.inputWalletName(
     snackState: SnackbarHostState = SnackbarHostState(),
-    onInputName: (String) -> Unit = { },
+    onUpdateWalletNameSuccess: (String) -> Unit = { },
 ) {
-    composable(inputNameRoute) {
-        InputNameScreen(
-            onInputName = onInputName,
+    composable(inputWalletNameRoute, arguments = listOf(
+        navArgument("wallet_id") {
+            type = NavType.StringType
+        }
+    )) {
+        val walletId = it.arguments?.getString("wallet_id").orEmpty()
+        val viewModel = hiltViewModel<InputWalletNameViewModel>()
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        LaunchedEffect(state.isUpdateNameSuccess) {
+            if (state.isUpdateNameSuccess) {
+                onUpdateWalletNameSuccess(walletId)
+                viewModel.markUpdateNameSuccess()
+            }
+        }
+        InputWalletNameScreen(
+            onUpdateWalletName = { name ->
+                viewModel.updateWalletName(walletId, name)
+            },
             snackState = snackState
         )
     }
 }
 
-fun NavController.navigateToInputName(
-    navOptions: NavOptions? = null
+fun NavController.navigateToInputWalletName(
+    navOptions: NavOptions? = null,
+    walletId: String,
 ) {
-    navigate(inputNameRoute, navOptions)
+    navigate("input_wallet_name/$walletId", navOptions)
 }
 
 @Composable
-fun InputNameScreen(
+fun InputWalletNameScreen(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState = SnackbarHostState(),
-    onInputName: (String) -> Unit = { },
+    onUpdateWalletName: (String) -> Unit = { },
 ) {
     var name by rememberSaveable { mutableStateOf("") }
 
@@ -78,7 +99,7 @@ fun InputNameScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                onClick = { onInputName(name) },
+                onClick = { onUpdateWalletName(name) },
             ) {
                 Text(text = stringResource(id = R.string.nc_text_continue))
             }
@@ -120,8 +141,8 @@ fun InputNameScreen(
 
 @Preview
 @Composable
-private fun InputNameScreenPreview() {
+private fun InputWalletNameScreenPreview() {
     NunchukTheme {
-        InputNameScreen()
+        InputWalletNameScreen()
     }
 }

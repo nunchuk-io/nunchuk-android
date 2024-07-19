@@ -1,4 +1,4 @@
-package com.nunchuk.android.signer.portal
+package com.nunchuk.android.core.nfc
 
 import com.nunchuk.android.type.Chain
 

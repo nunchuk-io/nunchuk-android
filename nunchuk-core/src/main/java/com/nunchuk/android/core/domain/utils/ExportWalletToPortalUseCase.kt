@@ -17,8 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer.components.details.model
+package com.nunchuk.android.core.domain.utils
 
-enum class SingerOption {
-    TOP_UP, CHANGE_CVC, BACKUP_KEY, REMOVE_KEY, SIGN_MESSAGE, CHECK_FIRMWARE, UPDATE_FIRMWARE
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.BSMSData
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
+
+class ExportWalletToPortalUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk
+) : UseCase<String, BSMSData>(dispatcher) {
+
+    override suspend fun execute(parameters: String): BSMSData {
+        return nunchukNativeSdk.exportWalletToPortal(parameters) ?: throw IllegalStateException("Failed to export wallet to portal")
+    }
 }

@@ -47,10 +47,9 @@ fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String
         SOFTWARE -> context.getString(R.string.nc_signer_type_software)
         HARDWARE -> context.getString(R.string.nc_signer_type_hardware)
         FOREIGN_SOFTWARE -> context.getString(R.string.nc_signer_type_foreign_software)
-        NFC, COLDCARD_NFC -> context.getString(R.string.nc_nfc)
+        NFC, COLDCARD_NFC, PORTAL_NFC -> context.getString(R.string.nc_nfc)
         UNKNOWN -> context.getString(R.string.nc_unknown)
         SERVER -> context.getString(R.string.nc_server_key)
-        PORTAL_NFC -> context.getString(R.string.nc_portal_nfc)
     }
 }
 
@@ -81,7 +80,7 @@ private fun toReadableDrawableResId(
         type == FOREIGN_SOFTWARE -> R.drawable.ic_logo_dark_small
         type == NFC -> R.drawable.ic_nfc_card
         type == SERVER -> R.drawable.ic_server_key_dark
-        type == PORTAL_NFC -> R.drawable.ic_unknown_key // TODO Hai
+        type == PORTAL_NFC -> R.drawable.ic_portal_nfc
         else -> R.drawable.ic_unknown_key
     }
 }
@@ -100,21 +99,9 @@ fun SingleSigner.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
     return toReadableDrawableResId(type, tags, isPrimaryKey)
 }
 
-fun MasterSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) =
-    ContextCompat.getDrawable(
-        context,
-        toReadableDrawableResId(type, tags, isPrimaryKey)
-    ) ?: throw NullPointerException("Nunchuk can not get drawable")
-
 fun MasterSigner.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
     return toReadableDrawableResId(type, tags, isPrimaryKey)
 }
-
-fun SingleSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) =
-    ContextCompat.getDrawable(
-        context,
-        toReadableDrawableResId(type, tags, isPrimaryKey)
-    ) ?: throw NullPointerException("Nunchuk can not get drawable")
 
 val SignerTag.isAirgapTag: Boolean
     get() = this == SignerTag.JADE || this == SignerTag.SEEDSIGNER || this == SignerTag.PASSPORT || this == SignerTag.KEYSTONE

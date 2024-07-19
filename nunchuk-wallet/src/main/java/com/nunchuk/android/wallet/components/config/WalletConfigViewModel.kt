@@ -276,22 +276,21 @@ internal class WalletConfigViewModel @Inject constructor(
 
     private fun updateWallet(newWallet: Wallet, updateAction: UpdateAction) =
         viewModelScope.launch {
-            updateWalletUseCase.execute(
-                newWallet,
-                assistedWalletManager.isActiveAssistedWallet(walletId),
-                assistedWalletManager.getGroupId(walletId),
-            )
-                .flowOn(Dispatchers.IO)
-                .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    updateState { copy(walletExtended = walletExtended.copy(wallet = newWallet)) }
-                    if (updateAction == UpdateAction.NAME) {
-                        event(UpdateNameSuccessEvent)
-                    } else if (updateAction == UpdateAction.GAP_LIMIT) {
-                        event(WalletConfigEvent.UpdateGapLimitSuccessEvent)
-                    }
+            updateWalletUseCase(
+                UpdateWalletUseCase.Params(
+                    wallet = newWallet,
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                    groupId = assistedWalletManager.getGroupId(walletId)
+                )
+            ).onSuccess {
+                if (updateAction == UpdateAction.NAME) {
+                    event(UpdateNameSuccessEvent)
+                } else if (updateAction == UpdateAction.GAP_LIMIT) {
+                    event(WalletConfigEvent.UpdateGapLimitSuccessEvent)
                 }
+            }.onFailure {
+                event(UpdateNameErrorEvent(it.message.orUnknownError()))
+            }
         }
 
     private fun getTransactionHistory() {

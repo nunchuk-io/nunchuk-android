@@ -21,9 +21,17 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.domain.data.AddNewPortal
+import com.nunchuk.android.core.domain.data.ExportWallet
+import com.nunchuk.android.core.domain.data.GetXpub
+import com.nunchuk.android.core.domain.data.ImportWallet
+import com.nunchuk.android.core.domain.data.SetupPortal
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.PortalDeviceEvent
+import com.nunchuk.android.core.nfc.PortalDeviceViewModel
 import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.portal.intro.portalIntro
 import com.nunchuk.android.signer.portal.intro.portalIntroRoute
@@ -34,7 +42,9 @@ import com.nunchuk.android.signer.portal.seed.selectNumberWord
 import com.nunchuk.android.signer.portal.setup.navigateSelectSetupSeedPhrase
 import com.nunchuk.android.signer.portal.setup.selectSetupSeedPhrase
 import com.nunchuk.android.signer.portal.wallet.inputName
+import com.nunchuk.android.signer.portal.wallet.inputWalletName
 import com.nunchuk.android.signer.portal.wallet.navigateToInputName
+import com.nunchuk.android.signer.portal.wallet.navigateToInputWalletName
 import com.nunchuk.android.signer.portal.wallet.navigateToSelectIndex
 import com.nunchuk.android.signer.portal.wallet.navigateToSelectWalletType
 import com.nunchuk.android.signer.portal.wallet.selectIndex
@@ -47,6 +57,7 @@ import kotlinx.coroutines.flow.filter
 @AndroidEntryPoint
 class PortalDeviceActivity : BaseComposeNfcActivity() {
     private val viewModel: PortalDeviceViewModel by viewModels()
+    private val args by lazy { PortalDeviceArgs.fromBundle(intent.extras!!) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -56,6 +67,10 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                 val navigationController = rememberNavController()
                 val state by viewModel.state.collectAsStateWithLifecycle()
                 val snackState: SnackbarHostState = remember { SnackbarHostState() }
+
+                BackHandler(state.isLoading) {
+                    viewModel.hideLoading()
+                }
 
                 LaunchedEffect(state.event) {
                     val event = state.event
@@ -73,7 +88,8 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                             PortalDeviceEvent.RequestScan -> startNfcFlowIfNeeded()
 
                             PortalDeviceEvent.StartSetupWallet -> navigationController.navigateToSelectWalletType(
-                                navOptions = NavOptions.Builder().setPopUpTo(portalIntroRoute, false)
+                                navOptions = NavOptions.Builder()
+                                    .setPopUpTo(portalIntroRoute, false)
                                     .build()
                             )
 
@@ -93,6 +109,19 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                 )
                                 finish()
                             }
+
+                            is PortalDeviceEvent.ImportWalletSuccess -> navigationController.navigateToInputWalletName(
+                                walletId = event.walletId
+                            )
+
+                            PortalDeviceEvent.ExportWalletSuccess -> {
+                                setResult(RESULT_OK)
+                                finish()
+                            }
+
+                            // handle in other screens
+                            is PortalDeviceEvent.CheckFirmwareVersionSuccess,
+                            is PortalDeviceEvent.UpdateFirmwareSuccess -> Unit
                         }
                         viewModel.markEventHandled()
                     }
@@ -125,7 +154,17 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                     portalIntro(
                         snackState = snackState,
                         onScanPortalClicked = {
-                            viewModel.setPendingAction(AddNewPortal)
+                            when (args.type) {
+                                PortalDeviceFlow.SETUP -> {
+                                    viewModel.setPendingAction(AddNewPortal)
+                                }
+                                PortalDeviceFlow.RECOVER -> {
+                                    viewModel.setPendingAction(ImportWallet)
+                                }
+                                PortalDeviceFlow.EXPORT -> {
+                                    viewModel.setPendingAction(ExportWallet(args.walletId))
+                                }
+                            }
                         },
                     )
                     selectSetupSeedPhrase(
@@ -172,6 +211,15 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                             viewModel.setPendingAction(GetXpub)
                         }
                     )
+                    inputWalletName(
+                        onUpdateWalletNameSuccess = {
+                            navigator.openWalletConfigScreen(
+                                activityContext = this@PortalDeviceActivity,
+                                walletId = it
+                            )
+                            finish()
+                        }
+                    )
                 }
             }
         }
@@ -183,11 +231,8 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
             .showDialog(
                 title = getString(R.string.nc_enter_pin),
                 onConfirmed = { cvc ->
-                    if (viewModel.isConnectedToSdk) {
-                        viewModel.updatePin(cvc)
-                    } else {
-                        startNfcFlowIfNeeded()
-                    }
+                    viewModel.updatePin(cvc)
+                    startNfcFlowIfNeeded()
                 },
                 isMaskedInput = true,
                 errorMessage = errorMessage,

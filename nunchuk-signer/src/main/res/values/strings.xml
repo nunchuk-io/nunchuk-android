@@ -156,4 +156,9 @@
     <string name="nc_24_words">24 words</string>
     <string name="nc_continue_without_a_pin">Continue without a PIN</string>
     <string name="nc_confirm_setup_portal_without_pin">Enabling a device PIN will make the device more secure. Are you sure you want to continue without a PIN?</string>
+    <string name="nc_check_firmware_verion">Check firmware verion</string>
+    <string name="nc_update_firmware">Update firmware</string>
+    <string name="nc_firmware_successfully_updated_to_version">Firmware successfully updated to version %1$s.</string>
+    <string name="nc_current_firmware_version">Current firmware version is %1$s.</string>
+    <string name="nc_text_update_firmware">Update firmware</string>
 </resources>

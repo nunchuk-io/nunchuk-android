@@ -30,6 +30,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseCameraFragment
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -207,6 +209,13 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 RecoverWalletOption.HotWallet -> navigator.openRecoverSeedScreen(
                     activityContext = requireActivity(),
                     isRecoverHotWallet = true
+                )
+
+                RecoverWalletOption.PortalWallet -> navigator.openPortalScreen(
+                    activity = requireActivity(),
+                    args = PortalDeviceArgs(
+                        type = PortalDeviceFlow.RECOVER
+                    )
                 )
             }
         }

@@ -1,4 +1,4 @@
-package com.nunchuk.android.signer.portal
+package com.nunchuk.android.core.nfc
 
 import android.nfc.tech.NfcA
 import xyz.twenty_two.CardStatus

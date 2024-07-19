@@ -82,11 +82,13 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.latoBold
+import com.nunchuk.android.core.domain.data.CheckFirmwareVersion
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_GENERATE_HEAL_CHECK_MSG
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_IMPORT_SIGNATURE
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_HEALTH_CHECK
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_VIEW_BACKUP_KEY
+import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -227,6 +229,12 @@ class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickLi
                     signerType = args.signerType
                 )
             )
+
+            SingerOption.CHECK_FIRMWARE -> (requireActivity() as BasePortalActivity<*>).handlePortalAction(
+                CheckFirmwareVersion
+            )
+
+            SingerOption.UPDATE_FIRMWARE -> (requireActivity() as BasePortalActivity<*>).selectFirmwareFile()
         }
     }
 
@@ -528,89 +536,119 @@ private fun SignerInfoContent(
     }
     val color = uiState.lastHealthCheckTimeMillis.healthCheckTimeColor()
     val isMyKey = uiState.masterSigner?.isVisible ?: uiState.remoteSigner?.isVisible ?: false
+    val isPortal = uiState.remoteSigner?.type == SignerType.PORTAL_NFC
 
     NunchukTheme {
-        Scaffold(modifier = Modifier
-            .navigationBarsPadding(), topBar = {
-            Column(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                colorResource(id = R.color.nc_primary_light_color),
-                                colorResource(id = R.color.nc_primary_dark_color)
+        Scaffold(
+            modifier = Modifier
+                .navigationBarsPadding(),
+            topBar = {
+                Column(
+                    modifier = Modifier
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    colorResource(id = R.color.nc_primary_light_color),
+                                    colorResource(id = R.color.nc_primary_dark_color)
+                                ),
+                                start = Offset(0f, 1000f),
+                                end = Offset(0f, 0f)
                             ),
-                            start = Offset(0f, 1000f),
-                            end = Offset(0f, 0f)
+                            shape = RectangleShape
                         ),
-                        shape = RectangleShape
-                    ),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                NcTopAppBar(
-                    textStyle = NunchukTheme.typography.titleLarge.copy(color = Color.White),
-                    backgroundColor = Color.Transparent,
-                    title = stringResource(id = R.string.nc_text_signer_info),
-                    tintColor = Color.White,
-                    onBackPress = onBackClicked,
-                    actions = {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more_horizontal),
-                                contentDescription = "More",
-                                tint = Color.White
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    NcTopAppBar(
+                        textStyle = NunchukTheme.typography.titleLarge.copy(color = Color.White),
+                        backgroundColor = Color.Transparent,
+                        title = stringResource(id = R.string.nc_text_signer_info),
+                        tintColor = Color.White,
+                        onBackPress = onBackClicked,
+                        actions = {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more_horizontal),
+                                    contentDescription = "More",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    )
+                    val resId = if (uiState.masterSigner != null) {
+                        uiState.masterSigner.toReadableDrawableResId(isPrimaryKey = isPrimaryKey)
+                    } else if (uiState.remoteSigner != null) {
+                        uiState.remoteSigner.toReadableDrawableResId()
+                    } else {
+                        null
+                    }
+                    resId?.let {
+                        NcCircleImage(
+                            modifier = Modifier.padding(top = 12.dp),
+                            resId = resId,
+                            size = 96.dp,
+                            iconSize = 60.dp,
+                            color = if (uiState.assistedWalletIds.isEmpty()) Color.White else color
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .clickable { onEditClicked() }
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = uiState.signerName,
+                            style = NunchukTheme.typography.heading.copy(color = Color.White)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_edit),
+                            contentDescription = "",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .size(18.dp)
+                        )
+                    }
+
+                    Row(modifier = Modifier.padding(top = 8.dp)) {
+                        if (isPrimaryKey) {
+                            Text(
+                                modifier = Modifier
+                                    .background(
+                                        color = colorResource(id = R.color.nc_beeswax_light),
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .padding(horizontal = 8.dp),
+                                text = stringResource(id = R.string.nc_signer_type_primary_key),
+                                style = TextStyle(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.W500,
+                                    fontFamily = latoBold
+                                )
                             )
                         }
-                    }
-                )
-                val resId = if (uiState.masterSigner != null) {
-                    uiState.masterSigner.toReadableDrawableResId(isPrimaryKey = isPrimaryKey)
-                } else if (uiState.remoteSigner != null) {
-                    uiState.remoteSigner.toReadableDrawableResId()
-                } else {
-                    null
-                }
-                resId?.let {
-                    NcCircleImage(
-                        modifier = Modifier.padding(top = 12.dp),
-                        resId = resId,
-                        size = 96.dp,
-                        iconSize = 60.dp,
-                        color = if (uiState.assistedWalletIds.isEmpty()) Color.White else color
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .clickable { onEditClicked() }
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = uiState.signerName,
-                        style = NunchukTheme.typography.heading.copy(color = Color.White)
-                    )
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_edit),
-                        contentDescription = "",
-                        tint = Color.White,
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .size(18.dp)
-                    )
-                }
-
-                Row(modifier = Modifier.padding(top = 8.dp)) {
-                    if (isPrimaryKey) {
+                        val signerType =
+                            uiState.masterSigner?.type?.toReadableString(
+                                LocalContext.current,
+                                false
+                            )
+                                ?: uiState.remoteSigner?.type?.toReadableString(
+                                    LocalContext.current,
+                                    isPrimaryKey
+                                )
+                                ?: ""
                         Text(
                             modifier = Modifier
+                                .padding(start = 8.dp)
                                 .background(
-                                    color = colorResource(id = R.color.nc_beeswax_light),
+                                    color = colorResource(id = R.color.nc_whisper_color),
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 .padding(horizontal = 8.dp),
-                            text = stringResource(id = R.string.nc_signer_type_primary_key),
+                            text = signerType,
                             style = TextStyle(
                                 color = MaterialTheme.colorScheme.primary,
                                 fontSize = 12.sp,
@@ -619,65 +657,40 @@ private fun SignerInfoContent(
                             )
                         )
                     }
-                    val signerType =
-                        uiState.masterSigner?.type?.toReadableString(
-                            LocalContext.current,
-                            false
-                        )
-                            ?: uiState.remoteSigner?.type?.toReadableString(
-                                LocalContext.current,
-                                isPrimaryKey
-                            )
-                            ?: ""
-                    Text(
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .background(
-                                color = colorResource(id = R.color.nc_whisper_color),
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .padding(horizontal = 8.dp),
-                        text = signerType,
-                        style = TextStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.W500,
-                            fontFamily = latoBold
-                        )
-                    )
-                }
 
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }, bottomBar = {
-            Column(modifier = Modifier.padding()) {
-                if (justAdded) {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 16.dp),
-                        onClick = onDoneClicked
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_text_done))
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+            },
+            bottomBar = {
+                Column(modifier = Modifier.padding()) {
+                    if (justAdded) {
+                        NcPrimaryDarkButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                            onClick = onDoneClicked
+                        ) {
+                            Text(text = stringResource(id = R.string.nc_text_done))
+                        }
+                    }
+                    if (isMyKey && !isPortal) {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    top = if (justAdded) 0.dp else 16.dp,
+                                    bottom = 16.dp
+                                ),
+                            onClick = onHealthCheckClicked
+                        ) {
+                            Text(text = stringResource(id = R.string.nc_txt_run_health_check))
+                        }
                     }
                 }
-                if (isMyKey) {
-                    NcOutlineButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                start = 16.dp,
-                                end = 16.dp,
-                                top = if (justAdded) 0.dp else 16.dp,
-                                bottom = 16.dp
-                            ),
-                        onClick = onHealthCheckClicked
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_txt_run_health_check))
-                    }
-                }
-            }
-        }) { innerPadding ->
+            },
+        ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)

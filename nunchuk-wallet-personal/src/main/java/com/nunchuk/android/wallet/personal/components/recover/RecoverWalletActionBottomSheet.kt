@@ -50,6 +50,7 @@ internal class RecoverWalletActionBottomSheet :
         binding.btnUsingBSMSFile.setOnClickListener { onActionClicked(RecoverWalletOption.BSMSFile) }
         binding.btnRecoverFromColdcard.setOnClickListener { onActionClicked(RecoverWalletOption.ColdCard) }
         binding.btnRecoverHotWallet.setOnClickListener { onActionClicked(RecoverWalletOption.HotWallet) }
+        binding.btnRecoverPortalWallet.setOnClickListener { onActionClicked(RecoverWalletOption.PortalWallet) }
     }
 
     private fun onActionClicked(option: RecoverWalletOption) {
@@ -71,6 +72,7 @@ sealed class RecoverWalletOption {
     data object BSMSFile : RecoverWalletOption()
     data object ColdCard : RecoverWalletOption()
     data object HotWallet : RecoverWalletOption()
+    data object PortalWallet : RecoverWalletOption()
 }
 
 

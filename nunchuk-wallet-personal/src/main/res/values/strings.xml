@@ -27,5 +27,6 @@
     <string name="nc_recover_hot_wallet">Recover hot wallet</string>
     <string name="nc_run_out_of_group_wallet">You don\'t have any group wallets remaining. To purchase additional group wallets, please visit nunchuk.io/my-plan.</string>
     <string name="nc_run_out_of_personal_wallet">You don\'t have any personal wallets remaining. To purchase additional personal wallets, please visit nunchuk.io/my-plan.</string>
+    <string name="nc_recover_wallet_from_portal">Recover wallet from Portal</string>
 
 </resources>

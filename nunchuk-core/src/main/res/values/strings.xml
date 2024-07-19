@@ -757,4 +757,5 @@
     <string name="nc_enter_pin">Enter PIN</string>
     <string name="nc_enter_xpub_desc">To verify that you are the account owner, please enter the master public key (XPUB) of one of the keys in your assisted wallets. You can find the XPUBs in your wallet configuration (BSMS file). You can also paste in the entire BSMS file.</string>
     <string name="nc_portal_nfc">Portal</string>
+    <string name="nc_text_add_a_wallet">Add a wallet</string>
 </resources>

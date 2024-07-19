@@ -45,10 +45,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -239,12 +237,14 @@ class ReplaceKeysViewModel @Inject constructor(
             createWallet2UseCase(
                 newWallet
             ).onSuccess {
-                updateWalletUseCase.execute(
-                    oldWallet.copy(name = "[DEPRECATED] ${oldWallet.name}"),
-                    false
-                ).catch {
+                updateWalletUseCase(
+                    UpdateWalletUseCase.Params(
+                        wallet = oldWallet.copy(name = "[DEPRECATED] ${oldWallet.name}"),
+                        isAssistedWallet = false
+                    )
+                ).onFailure {
                     _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
-                }.first()
+                }
                 _uiState.update { state -> state.copy(createWalletSuccess = StateEvent.String(it.id)) }
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
