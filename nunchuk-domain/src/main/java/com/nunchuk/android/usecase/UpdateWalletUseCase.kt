@@ -19,31 +19,30 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface UpdateWalletUseCase {
-    fun execute(wallet: Wallet, isAssistedWallet: Boolean = false, groupId: String? = null): Flow<Boolean>
-}
-
-internal class UpdateWalletUseCaseImpl @Inject constructor(
+class UpdateWalletUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val userWalletsRepository: PremiumWalletRepository,
-) : UpdateWalletUseCase {
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<UpdateWalletUseCase.Params, Boolean>(ioDispatcher) {
 
-    override fun execute(
-        wallet: Wallet,
-        isAssistedWallet: Boolean,
-        groupId: String?
-    ): Flow<Boolean> = flow {
+    override suspend fun execute(parameters: Params): Boolean {
+        val (wallet, isAssistedWallet, groupId) = parameters
         if (isAssistedWallet) {
             userWalletsRepository.updateServerWallet(wallet.id, wallet.name, groupId)
         }
-        emit(nativeSdk.updateWallet(wallet))
+        return nativeSdk.updateWallet(wallet)
     }
 
+    data class Params(
+        val wallet: Wallet,
+        val isAssistedWallet: Boolean = false,
+        val groupId: String? = null
+    )
 }

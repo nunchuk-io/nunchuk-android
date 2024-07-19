@@ -19,7 +19,24 @@
 
 package com.nunchuk.android.domain.di
 
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.CreateWalletUseCase
+import com.nunchuk.android.usecase.CreateWalletUseCaseImpl
+import com.nunchuk.android.usecase.DeleteWalletUseCase
+import com.nunchuk.android.usecase.DeleteWalletUseCaseImpl
+import com.nunchuk.android.usecase.DraftWalletUseCase
+import com.nunchuk.android.usecase.DraftWalletUseCaseImpl
+import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
+import com.nunchuk.android.usecase.ExportKeystoneWalletUseCaseImpl
+import com.nunchuk.android.usecase.ExportWalletUseCase
+import com.nunchuk.android.usecase.ExportWalletUseCaseImpl
+import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.GetWalletUseCaseImpl
+import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.usecase.GetWalletsUseCaseImpl
+import com.nunchuk.android.usecase.ImportKeystoneWalletUseCase
+import com.nunchuk.android.usecase.ImportKeystoneWalletUseCaseImpl
+import com.nunchuk.android.usecase.ImportWalletUseCase
+import com.nunchuk.android.usecase.ImportWalletUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -46,9 +63,6 @@ internal interface WalletDomainModule {
 
     @Binds
     fun bindGetWalletUseCase(useCase: GetWalletUseCaseImpl): GetWalletUseCase
-
-    @Binds
-    fun bindUpdateWalletUseCase(useCase: UpdateWalletUseCaseImpl): UpdateWalletUseCase
 
     @Binds
     fun bindDeleteWalletUseCase(useCase: DeleteWalletUseCaseImpl): DeleteWalletUseCase

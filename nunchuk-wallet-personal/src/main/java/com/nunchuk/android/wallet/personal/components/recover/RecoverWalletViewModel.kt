@@ -28,9 +28,9 @@ import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -69,12 +69,14 @@ internal class RecoverWalletViewModel @Inject constructor(
         getWalletUseCase.execute(walletId)
             .flowOn(Dispatchers.IO)
             .onException { event(RecoverWalletEvent.UpdateWalletErrorEvent(it.message.orEmpty())) }
-            .flatMapConcat {
-                updateWalletUseCase.execute(it.wallet.copy(name = walletName))
-                    .flowOn(Dispatchers.IO)
-                    .onException { err ->
-                        event(RecoverWalletEvent.UpdateWalletErrorEvent(err.message.orEmpty()))
-                    }
+            .map {
+                updateWalletUseCase(
+                    UpdateWalletUseCase.Params(
+                        it.wallet.copy(name = walletName)
+                    )
+                ).onFailure { err ->
+                    event(RecoverWalletEvent.UpdateWalletErrorEvent(err.message.orEmpty()))
+                }
             }.onEach {
                 event(RecoverWalletEvent.UpdateWalletSuccessEvent(walletId, walletName))
             }.flowOn(Dispatchers.Main).launchIn(viewModelScope)

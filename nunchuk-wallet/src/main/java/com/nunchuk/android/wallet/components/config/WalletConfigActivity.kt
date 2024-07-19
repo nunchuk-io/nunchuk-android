@@ -102,6 +102,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
         }
 
+    private val exportWalletToPortalLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+
+            }
+        }
+
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 
     override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater)

@@ -25,26 +25,48 @@ import android.os.Bundle
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
-import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.BasePortalActivity
+import com.nunchuk.android.core.nfc.PortalDeviceEvent
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
+class SignerInfoActivity : BasePortalActivity<ActivityNavigationBinding>() {
 
     override fun initializeBinding() = ActivityNavigationBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val navController = navHostFragment.navController
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.signer_info_navigation)
         navController.setGraph(graph, intent.extras)
     }
+
+    override fun onHandledPortalAction(event: PortalDeviceEvent) {
+        when (event) {
+            is PortalDeviceEvent.UpdateFirmwareSuccess -> NCToastMessage(this).show(
+                getString(R.string.nc_firmware_successfully_updated_to_version, event.status.version.orEmpty())
+            )
+            is PortalDeviceEvent.CheckFirmwareVersionSuccess -> NCInfoDialog(this).showDialog(
+                message = getString(R.string.nc_current_firmware_version, event.status.version.orEmpty()),
+                btnYes = getString(R.string.nc_text_got_it),
+                btnInfo = getString(R.string.nc_text_update_firmware),
+                onInfoClick = {
+                    selectFirmwareFile()
+                }
+            )
+            else -> Unit
+        }
+    }
+
     companion object {
 
         fun start(
@@ -63,23 +85,29 @@ class SignerInfoActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             customMessage: String,
             existingKey: WalletsExistingKey? = null,
         ) {
-            activityContext.startActivity(Intent(activityContext, SignerInfoActivity::class.java).apply {
-                putExtras(SignerInfoFragmentArgs(
-                    id = id,
-                    name = name,
-                    derivationPath = derivationPath,
-                    justAdded = justAdded,
-                    signerType = type,
-                    setPassphrase = setPassphrase,
-                    masterFingerprint = masterFingerprint,
-                    isInWallet = isInWallet,
-                    isInAssistedWallet = isInAssistedWallet,
-                    isReplacePrimaryKey = isReplacePrimaryKey,
-                    customMessage = customMessage,
-                    isMasterSigner = isMasterSigner,
-                    existingKey = existingKey
-                ).toBundle())
-            })
+            activityContext.startActivity(
+                Intent(
+                    activityContext,
+                    SignerInfoActivity::class.java
+                ).apply {
+                    putExtras(
+                        SignerInfoFragmentArgs(
+                            id = id,
+                            name = name,
+                            derivationPath = derivationPath,
+                            justAdded = justAdded,
+                            signerType = type,
+                            setPassphrase = setPassphrase,
+                            masterFingerprint = masterFingerprint,
+                            isInWallet = isInWallet,
+                            isInAssistedWallet = isInAssistedWallet,
+                            isReplacePrimaryKey = isReplacePrimaryKey,
+                            customMessage = customMessage,
+                            isMasterSigner = isMasterSigner,
+                            existingKey = existingKey
+                        ).toBundle()
+                    )
+                })
         }
     }
 }
