@@ -31,8 +31,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.CoinTagGroupView
+import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.BasePortalActivity
+import com.nunchuk.android.core.nfc.PortalDeviceEvent
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.share.IntentSharingController
@@ -126,7 +128,7 @@ import java.util.Date
 
 
 @AndroidEntryPoint
-class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBinding>(),
+class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetailsBinding>(),
     InputBottomSheetListener, BottomSheetOptionListener {
     private var shouldReload: Boolean = true
 
@@ -224,6 +226,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
         binding.estimatedFeeLabel.setOnClickListener {
             showEstimatedFeeTooltip()
+        }
+    }
+
+    override fun onHandledPortalAction(event: PortalDeviceEvent) {
+        if (event is PortalDeviceEvent.SignTransactionSuccess) {
+            viewModel.handleSignPortalKey(event.psbt)
         }
     }
 
@@ -482,6 +490,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
                     signer.type == SignerType.AIRGAP || signer.type == SignerType.UNKNOWN -> showSignByAirgapOptions()
                     signer.type == SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+                    signer.type == SignerType.PORTAL_NFC -> handlePortalAction(SignTransaction(viewModel.getTransaction().psbt))
                     else -> viewModel.handleSignSoftwareKey(signer)
                 }
             }).bindItems()

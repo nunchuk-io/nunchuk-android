@@ -15,6 +15,7 @@ import com.nunchuk.android.core.domain.data.ImportWallet
 import com.nunchuk.android.core.domain.data.PortalAction
 import com.nunchuk.android.core.domain.data.PortalActionWithPin
 import com.nunchuk.android.core.domain.data.SetupPortal
+import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.data.UpdateFirmware
 import com.nunchuk.android.core.domain.utils.ExportWalletToPortalUseCase
 import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
@@ -88,6 +89,7 @@ class PortalDeviceViewModel @Inject constructor(
                     is ExportWallet -> exportWallet(action.walletId)
                     CheckFirmwareVersion -> checkFirmwareVersion()
                     is UpdateFirmware -> updateFirmware(action.uri)
+                    is SignTransaction -> signTransaction(action.psbt)
                 }
             }.onFailure {
                 Timber.e(it)
@@ -100,6 +102,13 @@ class PortalDeviceViewModel @Inject constructor(
                 savedStateHandle.remove<PortalAction>(EXTRA_PENDING_ACTION)
             }
             _state.update { state -> state.copy(isLoading = false) }
+        }
+    }
+
+    private suspend fun signTransaction(psbt: String) {
+        unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
+            val signedPsbt = sdk.signPsbt(psbt)
+            _state.update { state -> state.copy(event = PortalDeviceEvent.SignTransactionSuccess(signedPsbt)) }
         }
     }
 
@@ -335,4 +344,5 @@ sealed class PortalDeviceEvent {
     data object ExportWalletSuccess : PortalDeviceEvent()
     data class CheckFirmwareVersionSuccess(val status: CardStatus) : PortalDeviceEvent()
     data class UpdateFirmwareSuccess(val status: CardStatus) : PortalDeviceEvent()
+    data class SignTransactionSuccess(val psbt: String) : PortalDeviceEvent()
 }

@@ -88,7 +88,6 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.UpdateTransactionMemoSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ViewBlockchainExplorer
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.BroadcastTransactionUseCase
 import com.nunchuk.android.usecase.CreateShareFileUseCase
@@ -110,6 +109,7 @@ import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
+import com.nunchuk.android.usecase.transaction.ImportPsbtUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.TransactionException
@@ -169,6 +169,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
+    private val importPsbtUseCase: ImportPsbtUseCase,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -785,15 +786,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
-    private fun isIronHandWallet() = getState().signers.size == 3 && getState().signers.any { it.type == SignerType.SERVER }
+    private fun isIronHandWallet() =
+        getState().signers.size == 3 && getState().signers.any { it.type == SignerType.SERVER }
+
     fun isSupportScheduleBroadcast() = isAssistedWallet() && !isIronHandWallet()
 
     fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
 
     fun getMembers() = getState().members
-
-    fun isInheritanceSigner(xfp: String): Boolean =
-        masterSigners.find { it.device.masterFingerprint == xfp }?.tags?.contains(SignerTag.INHERITANCE) == true
 
     fun importTransactionViaFile(walletId: String, uri: Uri) {
         viewModelScope.launch {
@@ -860,6 +860,22 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 || emailOrUsername == accountManager.getAccount().username
 
     fun getWalletPlan() = assistedWalletManager.getWalletPlan(walletId)
+
+    fun handleSignPortalKey(psbt: String) {
+        viewModelScope.launch {
+            importPsbtUseCase(
+                ImportPsbtUseCase.Param(
+                    psbt = psbt,
+                    walletId = walletId,
+                )
+            ).onSuccess {
+                updateTransaction(transaction = it,)
+                setEvent(SignTransactionSuccess())
+            }.onFailure {
+                event(TransactionError(it.readableMessage()))
+            }
+        }
+    }
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1

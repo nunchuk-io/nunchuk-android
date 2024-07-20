@@ -161,4 +161,10 @@
     <string name="nc_firmware_successfully_updated_to_version">Firmware successfully updated to version %1$s.</string>
     <string name="nc_current_firmware_version">Current firmware version is %1$s.</string>
     <string name="nc_text_update_firmware">Update firmware</string>
+    <string name="nc_set_up_new_pin">Set up new PIN</string>
+    <string name="nc_new_pin">New PIN</string>
+    <string name="nc_confirm_new_pin">Confirm new PIN</string>
+    <string name="nc_portal_pin_desc">The PIN code is a security feature that prevents unauthorized access to your key. Please back it up and keep it safe. You’ll need it for signing transactions.</string>
+    <string name="nc_set_up_a_pin">Set up a PIN</string>
+    <string name="nc_i_don_t_need_a_pin">I don’t need a PIN</string>
 </resources>

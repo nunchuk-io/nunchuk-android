@@ -68,10 +68,6 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                 val state by viewModel.state.collectAsStateWithLifecycle()
                 val snackState: SnackbarHostState = remember { SnackbarHostState() }
 
-                BackHandler(state.isLoading) {
-                    viewModel.hideLoading()
-                }
-
                 LaunchedEffect(state.event) {
                     val event = state.event
                     if (event != null) {
@@ -121,6 +117,7 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
 
                             // handle in other screens
                             is PortalDeviceEvent.CheckFirmwareVersionSuccess,
+                            is PortalDeviceEvent.SignTransactionSuccess,
                             is PortalDeviceEvent.UpdateFirmwareSuccess -> Unit
                         }
                         viewModel.markEventHandled()
@@ -128,7 +125,11 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                 }
 
                 if (state.isLoading) {
-                    NcLoadingDialog()
+                    NcLoadingDialog(
+                        onDismiss = {
+                            viewModel.hideLoading()
+                        },
+                    )
                 }
 
                 LaunchedEffect(state.message) {
@@ -158,9 +159,11 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                 PortalDeviceFlow.SETUP -> {
                                     viewModel.setPendingAction(AddNewPortal)
                                 }
+
                                 PortalDeviceFlow.RECOVER -> {
                                     viewModel.setPendingAction(ImportWallet)
                                 }
+
                                 PortalDeviceFlow.EXPORT -> {
                                     viewModel.setPendingAction(ExportWallet(args.walletId))
                                 }
