@@ -29,3 +29,6 @@ data object CheckFirmwareVersion : PortalAction
 
 @Parcelize
 data class UpdateFirmware(val uri: Uri) : PortalActionWithPin
+
+@Parcelize
+data class SignTransaction(val psbt: String) : PortalActionWithPin

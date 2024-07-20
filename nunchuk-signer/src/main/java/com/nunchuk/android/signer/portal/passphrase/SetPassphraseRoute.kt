@@ -122,21 +122,21 @@ fun SetPassphraseScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Set up new PIN",
+                text = stringResource(R.string.nc_set_up_new_pin),
                 style = NunchukTheme.typography.heading,
             )
 
-            NcPasswordTextField(title = "New PIN", value = pin) {
+            NcPasswordTextField(title = stringResource(R.string.nc_new_pin), value = pin) {
                 pin = it
             }
 
-            NcPasswordTextField(title = "Confirm new PIN", value = confirmPin, error = error) {
+            NcPasswordTextField(title = stringResource(R.string.nc_confirm_new_pin), value = confirmPin, error = error) {
                 confirmPin = it
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            NcHintMessage(messages = listOf(ClickAbleText("The PIN code is a security feature that prevents unauthorized access to your key. Please back it up and keep it safe. You’ll need it for signing transactions.")))
+            NcHintMessage(messages = listOf(ClickAbleText(stringResource(R.string.nc_portal_pin_desc))))
         }
     }
 
@@ -144,6 +144,8 @@ fun SetPassphraseScreen(
         NcInfoDialog(
             title = stringResource(id = R.string.nc_continue_without_a_pin),
             message = stringResource(R.string.nc_confirm_setup_portal_without_pin),
+            positiveButtonText = stringResource(R.string.nc_set_up_a_pin),
+            negativeButtonText = stringResource(R.string.nc_i_don_t_need_a_pin),
             onPositiveClick = {
                 showConfirmWithoutPinDialog = false
                 onSetupPortal(mnemonic, numberOfWords, "")
