@@ -7,11 +7,14 @@ import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -51,6 +54,17 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
                 .orEmpty(),
             feeRate = intent.parcelable<Amount>(FEE_RATE) ?: Amount.ZER0
         )
+
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is RollOverWalletEvent.Error -> NCToastMessage(this).showError(event.message)
+                is RollOverWalletEvent.Loading -> showOrHideLoading(event.isLoading)
+                RollOverWalletEvent.Success -> {
+                    navigator.returnToMainScreen(this)
+                    NcToastManager.scheduleShowMessage(message = "Please sign the rollover transactions at your convenience.")
+                }
+            }
+        }
     }
 
     override fun initializeBinding(): ActivityNavigationBinding {

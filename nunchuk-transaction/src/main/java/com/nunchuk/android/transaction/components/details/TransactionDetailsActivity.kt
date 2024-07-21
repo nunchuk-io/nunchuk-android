@@ -391,7 +391,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             binding.toolbar.menu.clear()
         }
 
-        bindTransaction(state.transaction, state.coins)
+        bindTransaction(state.transaction, state.coins, state.serverTransaction)
         if (state.transaction.isReceive.not()) {
             bindSigners(
                 state.transaction.signers,
@@ -454,6 +454,10 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
     }
 
+    private fun isServerBroadcastTime(transaction: Transaction, serverTransaction: ServerTransaction?): Boolean {
+        return serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED && serverTransaction.broadcastTimeInMilis > 0L
+    }
+
     private fun bindSigners(
         signerMap: Map<String, Boolean>,
         signers: List<SignerModel>,
@@ -483,7 +487,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             }).bindItems()
     }
 
-    private fun bindTransaction(transaction: Transaction, coins: List<UnspentOutput>) {
+    private fun bindTransaction(transaction: Transaction, coins: List<UnspentOutput>, serverTransaction: ServerTransaction?) {
         binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
         binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
@@ -508,7 +512,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.signersContainer.isVisible =
             !transaction.isReceive && args.isInheritanceClaimingFlow.not()
         binding.btnBroadcast.isVisible =
-            transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not() && viewModel.getUserRole().isObserver.not()
+            transaction.status.canBroadCast() && args.isInheritanceClaimingFlow.not() && viewModel.getUserRole().isObserver.not() &&
+                    isServerBroadcastTime(transaction, serverTransaction).not()
         binding.btnViewBlockChain.isVisible =
             transaction.isReceive || transaction.status.hadBroadcast()
         if (transaction.status.canBroadCast() || transaction.status.isPendingConfirm() || transaction.status.isConfirmed()) {

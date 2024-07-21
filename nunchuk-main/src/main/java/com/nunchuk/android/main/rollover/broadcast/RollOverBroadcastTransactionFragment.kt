@@ -59,7 +59,6 @@ import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.progress
 import com.nunchuk.android.compose.track
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
@@ -88,7 +87,9 @@ class RollOverBroadcastTransactionFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                RollOverBroadcastTransactionView(viewModel)
+                RollOverBroadcastTransactionView(viewModel) { randomizeBroadcast, days ->
+                    rollOverWalletViewModel.createRollOverTransactions(randomizeBroadcast, days)
+                }
             }
         }
     }
@@ -96,42 +97,24 @@ class RollOverBroadcastTransactionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        flowObserver(rollOverWalletViewModel.uiState) { state ->
-            if (rollOverWalletViewModel.getSelectedTags() != null
-                && rollOverWalletViewModel.getSelectedCollections() != null
-            ) {
-                viewModel.init(
-                    oldWalletId = rollOverWalletViewModel.getOldWalletId(),
-                    newWalletId = rollOverWalletViewModel.getNewWalletId(),
-                    tags = rollOverWalletViewModel.getSelectedTags()!!,
-                    collections = rollOverWalletViewModel.getSelectedCollections()!!,
-                    feeRate = rollOverWalletViewModel.getFeeRate(),
-                )
-            }
-        }
-
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is RollOverBroadcastTransactionEvent.Error -> showError(event.message)
-                is RollOverBroadcastTransactionEvent.Loading -> showOrHideLoading(event.isLoading)
-                RollOverBroadcastTransactionEvent.Success -> {
-                    navigator.returnToMainScreen(requireActivity())
-                    NcToastManager.scheduleShowMessage(message = "Please sign the rollover transactions at your convenience.")
-                }
-            }
+        flowObserver(rollOverWalletViewModel.uiState) {
+            viewModel.updateIsFreeWallet(it.isFreeWallet)
         }
     }
 }
 
 @Composable
-private fun RollOverBroadcastTransactionView(viewModel: RollOverBroadcastTransactionViewModel = hiltViewModel()) {
+private fun RollOverBroadcastTransactionView(
+    viewModel: RollOverBroadcastTransactionViewModel = hiltViewModel(),
+    onContinueClicked: (Boolean, Int) -> Unit = { _, _ -> },
+) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     RollOverBroadcastTransactionContent(
         uiState = uiState,
         onContinueClicked = {
-            viewModel.createRollOverTransactions()
+            onContinueClicked(uiState.randomizeBroadcast, uiState.days)
         },
         onSlideChanged = { days ->
             viewModel.updateDays(days)
@@ -218,7 +201,7 @@ private fun RollOverBroadcastTransactionContent(
                     )
                 )
 
-                if (uiState.isPaidUser) {
+                if (uiState.isFreeWallet.not()) {
                     Column(
                         modifier = Modifier
                             .padding(top = 24.dp)
@@ -283,7 +266,10 @@ private fun RollOverBroadcastTransactionContent(
                                 },
                                 label = { value ->
                                     Text(
-                                        text = when (value) {1 -> "1 day" else -> "$value days" },
+                                        text = when (value) {
+                                            1 -> "1 day"
+                                            else -> "$value days"
+                                        },
                                         style = NunchukTheme.typography.title
                                     )
                                 },
@@ -314,6 +300,6 @@ private fun RollOverBroadcastTransactionContent(
 @Preview
 private fun RollOverBroadcastTransactionScreenContentPreview() {
     RollOverBroadcastTransactionContent(
-        uiState = RollOverBroadcastTransactionUiState(isPaidUser = true, randomizeBroadcast = true),
+        uiState = RollOverBroadcastTransactionUiState(isFreeWallet = true, randomizeBroadcast = true),
     )
 }

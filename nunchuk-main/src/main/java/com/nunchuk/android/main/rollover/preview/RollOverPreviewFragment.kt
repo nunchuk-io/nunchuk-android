@@ -146,10 +146,10 @@ private fun RollOverPreviewContent(
                 )
                 NcPrimaryDarkButton(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding(top = 16.dp)
                         .fillMaxWidth(), onClick = onContinueClicked
                 ) {
-                    Text(text = stringResource(R.string.nc_continue_to_transfer_funds))
+                    Text(text = stringResource(R.string.nc_confirm_create_transactions))
                 }
             }
         }) { innerPadding ->

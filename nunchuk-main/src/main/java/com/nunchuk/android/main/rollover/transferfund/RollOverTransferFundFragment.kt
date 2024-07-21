@@ -180,12 +180,12 @@ private fun RollOverTransferFundContent(
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(
-                            text = uiState.newWallet.getBTCAmount(),
+                            text = uiState.oldWallet.getBTCAmount(),
                             style = NunchukTheme.typography.title,
                         )
 
                         Text(
-                            text = uiState.newWallet.getCurrencyAmount(),
+                            text = uiState.oldWallet.getCurrencyAmount(),
                             style = NunchukTheme.typography.bodySmall,
                         )
                     }

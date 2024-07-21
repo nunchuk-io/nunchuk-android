@@ -278,7 +278,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             sweepType = args.sweepType,
             slots = args.slots,
             inputs = viewModel.getSelectedCoins(),
-            claimInheritanceTxParam = args.claimInheritanceTxParam
+            claimInheritanceTxParam = args.claimInheritanceTxParam,
+            actionButtonText = args.confirmTxActionButtonText
         )
     }
 
@@ -297,7 +298,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             inputs: List<UnspentOutput> = emptyList(),
             isConsolidateFlow: Boolean = false,
             title : String = "",
-            rollOverWalletParam: RollOverWalletParam? = null
+            rollOverWalletParam: RollOverWalletParam? = null,
+            confirmTxActionButtonText: String = ""
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -312,7 +314,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     inputs = inputs,
                     isConsolidateFlow = isConsolidateFlow,
                     title = title,
-                    rollOverWalletParam = rollOverWalletParam
+                    rollOverWalletParam = rollOverWalletParam,
+                    confirmTxActionButtonText = confirmTxActionButtonText
                 ).buildIntent(activityContext)
             )
         }

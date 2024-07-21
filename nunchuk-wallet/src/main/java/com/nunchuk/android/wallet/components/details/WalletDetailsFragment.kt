@@ -141,6 +141,14 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         super.onDestroy()
     }
 
+    override fun onResume() {
+        super.onResume()
+        with(viewModel) {
+            syncServerTransaction()
+            syncData(loadingSilent = true)
+        }
+    }
+
     private val viewModel: WalletDetailsViewModel by viewModels()
 
     private val adapter: TransactionAdapter = TransactionAdapter {

@@ -121,11 +121,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletUseCase(args.walletId)
         }
-        viewModelScope.launch {
-            if (assistedWalletManager.isActiveAssistedWallet(args.walletId)) {
-                syncTransactionFromServer()
-            }
-        }
+        syncServerTransaction()
         getCoins()
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
@@ -154,18 +150,26 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
+    fun syncServerTransaction() {
+        viewModelScope.launch {
+            if (assistedWalletManager.isActiveAssistedWallet(args.walletId)) {
+                syncTransactionFromServer()
+            }
+        }
+    }
+
     // well, don't do this, you know why
     fun getRoomWallet() = getState().walletExtended.roomWallet
 
-    fun syncData() {
-        getWalletDetails()
+    fun syncData(loadingSilent: Boolean = false) {
+        getWalletDetails(loadingSilent = loadingSilent)
     }
 
-    fun getWalletDetails(shouldRefreshTransaction: Boolean = true) {
+    fun getWalletDetails(shouldRefreshTransaction: Boolean = true, loadingSilent: Boolean = false) {
         syncWalletJob?.cancel()
         syncWalletJob = viewModelScope.launch {
             getWalletUseCase.execute(args.walletId)
-                .onStart { event(Loading(true)) }
+                .onStart { if (loadingSilent.not()) event(Loading(true)) }
                 .flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Main)

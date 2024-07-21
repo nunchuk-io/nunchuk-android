@@ -130,7 +130,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
         isConsolidateFlow: Boolean,
         title: String,
-        rollOverWalletParam: RollOverWalletParam?
+        rollOverWalletParam: RollOverWalletParam?,
+        confirmTxActionButtonText: String
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -145,7 +146,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             inputs = inputs,
             isConsolidateFlow = isConsolidateFlow,
             title = title,
-            rollOverWalletParam = rollOverWalletParam
+            rollOverWalletParam = rollOverWalletParam,
+            confirmTxActionButtonText = confirmTxActionButtonText
         )
     }
 
@@ -161,6 +163,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         slots: List<SatsCardSlot>,
         inputs: List<UnspentOutput>,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
+        actionButtonText: String
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -173,7 +176,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             sweepType = sweepType,
             slots = slots,
             claimInheritanceTxParam = claimInheritanceTxParam,
-            inputs = inputs
+            inputs = inputs,
+            actionButtonText = actionButtonText
         )
     }
 

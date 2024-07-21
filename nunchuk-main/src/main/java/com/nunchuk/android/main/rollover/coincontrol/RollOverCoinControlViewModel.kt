@@ -140,6 +140,7 @@ class RollOverCoinControlViewModel @Inject constructor(
     private fun calculateTransactionAndAmount() {
         calculateTransactionAndAmountJob?.cancel()
         calculateTransactionAndAmountJob = viewModelScope.launch {
+            _uiState.update { it.copy(isCalculating = true) }
             val tags =
                 _uiState.value.tags.filter { it.coinTag.id in _uiState.value.selectedCoinTags }
                     .map { it.coinTag }
@@ -166,6 +167,7 @@ class RollOverCoinControlViewModel @Inject constructor(
                 .onFailure {
                     _event.emit(RollOverCoinControlEvent.Error(it.message.orEmpty()))
                 }
+            _uiState.update { it.copy(isCalculating = false) }
         }
     }
 
@@ -200,5 +202,6 @@ data class RollOverCoinControlUiState(
     val selectedCoinCollections: Set<Int> = hashSetOf(),
     val numOfTxs: Int = 1,
     val feeAmount: Amount = Amount.ZER0,
-    val manualFeeRate: Int = -1
+    val manualFeeRate: Int = -1,
+    val isCalculating: Boolean = false,
 )
