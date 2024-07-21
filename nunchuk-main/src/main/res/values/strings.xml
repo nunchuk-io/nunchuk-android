@@ -346,6 +346,7 @@
     <string name="nc_confirm_cancel_replacement_desc">Are you sure you want to cancel the key replacement?</string>
     <string name="nc_transfer_fund_desc">Would you like to transfer all funds from the old wallet to the new wallet?</string>
     <string name="nc_continue_to_transfer_funds">Continue to transfer funds</string>
+    <string name="nc_confirm_create_transactions">Confirm and create transactions</string>
     <string name="nc_transfer_funds">Transfer funds</string>
     <string name="nc_transfer_funds_desc">Transfer all funds to %1$s.</string>
     <string name="nc_existing_balance">Existing balance</string>

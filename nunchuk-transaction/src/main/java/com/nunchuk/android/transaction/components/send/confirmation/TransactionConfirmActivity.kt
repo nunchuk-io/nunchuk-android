@@ -141,6 +141,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         binding.noteContent.isVisible = args.privateNote.isNotEmpty()
         binding.privateNote.isVisible = args.privateNote.isNotEmpty()
         binding.noteContent.text = args.privateNote
+        binding.btnConfirm.text = args.actionButtonText.ifEmpty { binding.btnConfirm.text }
 
         binding.btnConfirm.setOnClickListener {
             if (args.slots.isNotEmpty()) {
@@ -249,6 +250,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             slots: List<SatsCardSlot> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             inputs: List<UnspentOutput> = emptyList(),
+            actionButtonText: String
         ) {
             activityContext.startActivity(
                 TransactionConfirmArgs(
@@ -261,7 +263,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     sweepType = sweepType,
                     slots = slots,
                     claimInheritanceTxParam = claimInheritanceTxParam,
-                    inputs = inputs
+                    inputs = inputs,
+                    actionButtonText = actionButtonText
                 ).buildIntent(activityContext)
             )
         }

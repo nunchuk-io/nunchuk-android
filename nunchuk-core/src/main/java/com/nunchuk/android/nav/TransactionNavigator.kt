@@ -83,7 +83,8 @@ interface TransactionNavigator {
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         isConsolidateFlow: Boolean = false,
         title: String = "",
-        rollOverWalletParam: RollOverWalletParam? = null
+        rollOverWalletParam: RollOverWalletParam? = null,
+        confirmTxActionButtonText: String = ""
     )
 
     fun openTransactionConfirmScreen(
@@ -98,6 +99,7 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+        actionButtonText: String = ""
     )
 
     /**

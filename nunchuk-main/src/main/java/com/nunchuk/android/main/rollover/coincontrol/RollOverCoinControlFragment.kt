@@ -56,7 +56,6 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.rollover.RollOverWalletViewModel
-import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
@@ -106,6 +105,7 @@ class RollOverCoinControlFragment : Fragment() {
                             subtractFeeFromAmount = true,
                             title = getString(R.string.nc_transaction_new),
                             rollOverWalletParam = rollOverWalletParam,
+                            confirmTxActionButtonText = getString(R.string.nc_confirm_withdraw_balance)
                         )
                     },
                 )
@@ -217,7 +217,7 @@ private fun RollOverCoinControlContent(
                     )
                     Text(
                         modifier = Modifier.padding(top = 8.dp),
-                        text = if (uiState.feeAmount == Amount.ZER0) {
+                        text = if (uiState.isCalculating) {
                             "Estimated fee: calculating..."
                         } else {
                             "Estimated fee: ${uiState.feeAmount.getBTCAmount()}"

@@ -48,6 +48,7 @@ data class EstimatedFeeArgs(
     val isConsolidateFlow: Boolean = false,
     val title: String = "",
     val rollOverWalletParam: RollOverWalletParam? = null,
+    val confirmTxActionButtonText: String = ""
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, EstimatedFeeActivity::class.java).apply {
@@ -63,6 +64,7 @@ data class EstimatedFeeArgs(
         putExtra(EXTRA_IS_CONSOLIDATE_FLOW, isConsolidateFlow)
         putExtra(EXTRA_TITLE, title)
         putExtra(EXTRA_ROLLOVER_WALLET, rollOverWalletParam)
+        putExtra(EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT, confirmTxActionButtonText)
     }
 
     companion object {
@@ -78,6 +80,7 @@ data class EstimatedFeeArgs(
         private const val EXTRA_IS_CONSOLIDATE_FLOW = "EXTRA_IS_CONSOLIDATE_FLOW"
         private const val EXTRA_TITLE = "EXTRA_TITLE"
         private const val EXTRA_ROLLOVER_WALLET = "EXTRA_ROLLOVER_WALLET"
+        private const val EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT = "EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT"
 
         fun deserializeFrom(intent: Intent) = EstimatedFeeArgs(
             walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
@@ -91,7 +94,8 @@ data class EstimatedFeeArgs(
             txReceipts = intent.extras?.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
             isConsolidateFlow = intent.extras.getBooleanValue(EXTRA_IS_CONSOLIDATE_FLOW),
             title = intent.extras.getStringValue(EXTRA_TITLE),
-            rollOverWalletParam = intent.extras?.parcelable(EXTRA_ROLLOVER_WALLET)
+            rollOverWalletParam = intent.extras?.parcelable(EXTRA_ROLLOVER_WALLET),
+            confirmTxActionButtonText = intent.extras.getStringValue(EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT)
         )
     }
 }

@@ -51,6 +51,7 @@ import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.simpleWeekDayYearFormat
+import com.nunchuk.android.utils.weekDayYearFormat
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
 import com.nunchuk.android.widget.util.inflate
@@ -181,11 +182,7 @@ internal class TransactionAdapter(
                 )
                 if (serverTransaction.broadcastTimeInMilis > 0L) {
                     val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
-                    binding.status.text = context.getString(
-                        R.string.nc_broadcast_on,
-                        broadcastTime.simpleWeekDayYearFormat(),
-                        broadcastTime.formatByHour()
-                    )
+                    binding.status.text = "${broadcastTime.formatByHour()} ${broadcastTime.weekDayYearFormat()}"
                 }
             } else {
                 binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)

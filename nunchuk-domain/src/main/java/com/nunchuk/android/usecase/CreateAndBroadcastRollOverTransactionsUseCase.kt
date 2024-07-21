@@ -44,6 +44,7 @@ class CreateAndBroadcastRollOverTransactionsUseCase @Inject constructor(
             feeRate = parameters.feeRate
         )
         if (transactions.isEmpty()) return null
+        if (parameters.isFreeWallet) return transactions
         transactionRepository.batchTransactions(
             walletId = parameters.oldWalletId,
             groupId = parameters.groupId,
@@ -69,6 +70,7 @@ class CreateAndBroadcastRollOverTransactionsUseCase @Inject constructor(
         val feeRate: Amount,
         val days: Int,
         val groupId: String,
-        val randomizeBroadcast: Boolean
+        val randomizeBroadcast: Boolean,
+        val isFreeWallet: Boolean
     )
 }

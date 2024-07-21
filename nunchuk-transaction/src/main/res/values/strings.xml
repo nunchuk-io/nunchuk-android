@@ -89,6 +89,7 @@
     <string name="nc_amount_receive">Amount receive</string>
     <string name="nc_save_pdf">Save PDF</string>
     <string name="nc_transaction_id">Transaction ID</string>
+    <string name="nc_confirm_withdraw_balance">Confirm and withdraw balance</string>
     <string name="nc_save_an_address_subsequent_uses">Save an address for subsequent uses.</string>
     <string name="nc_saved_address">Saved address</string>
     <string name="nc_enter_a_label">Enter a label</string>

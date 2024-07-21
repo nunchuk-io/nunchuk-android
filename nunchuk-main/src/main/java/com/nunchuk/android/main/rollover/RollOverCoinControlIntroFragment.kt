@@ -75,6 +75,7 @@ class RollOverCoinControlIntroFragment : Fragment() {
                             privateNote = "",
                             subtractFeeFromAmount = true,
                             title = getString(R.string.nc_transaction_new),
+                            confirmTxActionButtonText = getString(R.string.nc_confirm_withdraw_balance)
                         )
                     },
                     onAddTagOrCollectionClicked = {

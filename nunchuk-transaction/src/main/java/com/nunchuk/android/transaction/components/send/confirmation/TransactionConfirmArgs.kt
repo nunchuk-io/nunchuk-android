@@ -46,6 +46,7 @@ data class TransactionConfirmArgs(
     val slots: List<SatsCardSlot>,
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     val inputs: List<UnspentOutput> = emptyList(),
+    val actionButtonText: String = ""
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -60,6 +61,7 @@ data class TransactionConfirmArgs(
             putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
             putParcelableArrayListExtra(EXTRA_INPUTS, ArrayList(inputs))
+            putExtra(EXTRA_ACTION_BUTTON_TEXT, actionButtonText)
         }
 
     companion object {
@@ -73,6 +75,7 @@ data class TransactionConfirmArgs(
         private const val EXTRA_INPUTS = "EXTRA_INPUTS"
         private const val EXTRA_TX_RECEIPTS = "EXTRA_TX_RECEIPTS"
         private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
+        private const val EXTRA_ACTION_BUTTON_TEXT = "EXTRA_ACTION_BUTTON_TEXT"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
             val extras = intent.extras
@@ -86,7 +89,8 @@ data class TransactionConfirmArgs(
                 slots = extras.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
                 claimInheritanceTxParam = extras.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
                 inputs = extras.parcelableArrayList<UnspentOutput>(EXTRA_INPUTS).orEmpty(),
-                txReceipts = extras.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty()
+                txReceipts = extras.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
+                actionButtonText = extras.getStringValue(EXTRA_ACTION_BUTTON_TEXT)
             )
         }
     }

@@ -3,11 +3,15 @@ package com.nunchuk.android.main.rollover
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.isPersonalPlan
+import com.nunchuk.android.usecase.CreateAndBroadcastRollOverTransactionsUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
@@ -30,6 +34,8 @@ class RollOverWalletViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
+    private val createAndBroadcastRollOverTransactionsUseCase: CreateAndBroadcastRollOverTransactionsUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RollOverWalletUiState())
@@ -62,7 +68,7 @@ class RollOverWalletViewModel @Inject constructor(
         getAllCollections()
 
         viewModelScope.launch {
-            getUnusedWalletAddressUseCase(oldWalletId).onSuccess { addresses ->
+            getUnusedWalletAddressUseCase(newWalletId).onSuccess { addresses ->
                 _uiState.update { state ->
                     state.copy(address = addresses.first())
                 }
@@ -77,6 +83,9 @@ class RollOverWalletViewModel @Inject constructor(
             getWalletDetail2UseCase(newWalletId).onSuccess { wallet ->
                 _uiState.update { it.copy(newWallet = wallet) }
             }
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isFreeWallet = assistedWalletManager.getWalletPlan(oldWalletId) == MembershipPlan.NONE) }
         }
     }
 
@@ -109,6 +118,35 @@ class RollOverWalletViewModel @Inject constructor(
                     state.copy(coinCollections = collections)
                 }
             }
+        }
+    }
+
+    fun createRollOverTransactions(randomizeBroadcast: Boolean, days: Int) {
+        viewModelScope.launch {
+            _event.emit(RollOverWalletEvent.Loading(true))
+            val groupId = assistedWalletManager.getGroupId(getOldWalletId()).orEmpty()
+            createAndBroadcastRollOverTransactionsUseCase(
+                CreateAndBroadcastRollOverTransactionsUseCase.Param(
+                    newWalletId = getNewWalletId(),
+                    oldWalletId = getOldWalletId(),
+                    tags = getSelectedTags().orEmpty(),
+                    collections = getSelectedCollections().orEmpty(),
+                    feeRate = feeRate,
+                    groupId = groupId,
+                    days = days,
+                    randomizeBroadcast = randomizeBroadcast,
+                    isFreeWallet = uiState.value.isFreeWallet
+                )
+            ).onSuccess {
+                if (it.isNullOrEmpty()) {
+                    _event.emit(RollOverWalletEvent.Error("Failed to create transactions"))
+                    return@onSuccess
+                }
+                _event.emit(RollOverWalletEvent.Success)
+            }.onFailure {
+                _event.emit(RollOverWalletEvent.Error(it.message.orEmpty()))
+            }
+            _event.emit(RollOverWalletEvent.Loading(false))
         }
     }
 
@@ -166,6 +204,8 @@ class RollOverWalletViewModel @Inject constructor(
 
 sealed class RollOverWalletEvent {
     data class Loading(val isLoading: Boolean) : RollOverWalletEvent()
+    data class Error(val message: String) : RollOverWalletEvent()
+    data object Success : RollOverWalletEvent()
 }
 
 data class RollOverWalletUiState(
@@ -175,4 +215,5 @@ data class RollOverWalletUiState(
     val oldWallet: Wallet = Wallet(),
     val newWallet: Wallet = Wallet(),
     val address: String = "",
+    val isFreeWallet: Boolean = false,
 )
