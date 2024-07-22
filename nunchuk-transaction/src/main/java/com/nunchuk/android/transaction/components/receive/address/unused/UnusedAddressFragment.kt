@@ -25,8 +25,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.domain.data.VerifyAddress
+import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -41,6 +44,7 @@ import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -50,7 +54,11 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
     @Inject
     lateinit var textUtils: TextUtils
 
-    private val controller: IntentSharingController by lazy { IntentSharingController.from(requireActivity()) }
+    private val controller: IntentSharingController by lazy {
+        IntentSharingController.from(
+            requireActivity()
+        )
+    }
 
     lateinit var adapter: UnusedAddressAdapter
 
@@ -118,7 +126,8 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         getCurrentAddress()?.let(::copyAddress)
     }
 
-    private fun getCurrentAddress() = if (adapter.items.isNotEmpty()) adapter.items[binding.viewPager.currentItem] else null
+    private fun getCurrentAddress() =
+        if (adapter.items.isNotEmpty()) adapter.items[binding.viewPager.currentItem] else null
 
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
@@ -166,14 +175,20 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
     }
 
     private fun showMoreOptions() {
-        val options = mutableListOf<SheetOption>()
+        val options = mutableListOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
+                resId = R.drawable.ic_visibility,
+                label = getString(R.string.nc_verify_address_via_portal),
+            )
+        )
         if (viewModel.isSingleSignWallet()) {
             options.add(
                 SheetOption(
-                type = SheetOptionType.TYPE_ADDRESS_DERIVATION_PATH,
-                resId = R.drawable.ic_copy,
-                label = getString(R.string.nc_copy_address_derivation_path),
-            )
+                    type = SheetOptionType.TYPE_ADDRESS_DERIVATION_PATH,
+                    resId = R.drawable.ic_copy,
+                    label = getString(R.string.nc_copy_address_derivation_path),
+                )
             )
         }
         if (options.isEmpty()) return
@@ -183,11 +198,21 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE -> {
-
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val address = getCurrentAddress().orEmpty()
+                    if (address.isNotBlank()) {
+                        val index = viewModel.getAddressIndex(address)
+                        if (index != -1) {
+                            (requireActivity() as BasePortalActivity<*>).handlePortalAction(VerifyAddress(index))
+                        }
+                    }
+                }
             }
+
             SheetOptionType.TYPE_ADDRESS_DERIVATION_PATH -> {
                 viewModel.getAddressPath(getCurrentAddress().orEmpty())
             }
+
             else -> {
                 // do nothing
             }

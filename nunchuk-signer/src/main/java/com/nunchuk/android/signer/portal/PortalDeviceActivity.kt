@@ -118,6 +118,7 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                             // handle in other screens
                             is PortalDeviceEvent.CheckFirmwareVersionSuccess,
                             is PortalDeviceEvent.SignTransactionSuccess,
+                            is PortalDeviceEvent.VerifyAddressSuccess,
                             is PortalDeviceEvent.UpdateFirmwareSuccess -> Unit
                         }
                         viewModel.markEventHandled()
@@ -195,8 +196,8 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                         }
                     )
                     selectWalletType(
-                        onSelectWalletType = { isSingleSig ->
-                            viewModel.updateMultisig(!isSingleSig)
+                        onSelectWalletType = { isSingleSig, addressType ->
+                            viewModel.updateWalletConfig(!isSingleSig, addressType)
                             navigationController.navigateToSelectIndex()
                         }
                     )

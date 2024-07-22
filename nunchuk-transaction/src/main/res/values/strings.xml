@@ -96,4 +96,6 @@
     <string name="nc_add_a_new_address">Add a new address</string>
     <string name="nc_remove_saved_addresses">Remove from saved addresses</string>
     <string name="nc_saved_address_warning_desc">For privacy and security reasons, reusing addresses is generally not recommended in Bitcoin. Only save and reuse an address if you must.</string>
+    <string name="nc_verify_address_via_portal">Verify address via PORTAL</string>
+    <string name="nc_please_check_this_address_on_your_device">Please check this address on your device</string>
 </resources>

@@ -25,6 +25,7 @@ import android.os.Bundle
 import android.text.InputFilter.LengthFilter
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
@@ -92,12 +93,7 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
     }
 
     private fun handleSuccessRecoverEvent(walletId: String, walletName: String) {
-        NCToastMessage(this).show(
-            getString(
-                R.string.nc_txt_import_wallet_success,
-                walletName
-            )
-        )
+        NcToastManager.scheduleShowMessage(getString(R.string.nc_txt_import_wallet_success, walletName))
         openWalletConfigScreen(walletId)
     }
 
