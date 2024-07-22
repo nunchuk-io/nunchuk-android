@@ -17,6 +17,7 @@ import com.nunchuk.android.core.domain.data.PortalActionWithPin
 import com.nunchuk.android.core.domain.data.SetupPortal
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.data.UpdateFirmware
+import com.nunchuk.android.core.domain.data.VerifyAddress
 import com.nunchuk.android.core.domain.utils.ExportWalletToPortalUseCase
 import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
@@ -90,6 +91,7 @@ class PortalDeviceViewModel @Inject constructor(
                     CheckFirmwareVersion -> checkFirmwareVersion()
                     is UpdateFirmware -> updateFirmware(action.uri)
                     is SignTransaction -> signTransaction(action.psbt)
+                    is VerifyAddress -> verifyAddress(action.index)
                 }
             }.onFailure {
                 Timber.e(it)
@@ -102,6 +104,13 @@ class PortalDeviceViewModel @Inject constructor(
                 savedStateHandle.remove<PortalAction>(EXTRA_PENDING_ACTION)
             }
             _state.update { state -> state.copy(isLoading = false) }
+        }
+    }
+
+    private suspend fun verifyAddress(index: Int) {
+        unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
+            val address = sdk.displayAddress(index.toUInt())
+            _state.update { state -> state.copy(event = PortalDeviceEvent.VerifyAddressSuccess(address)) }
         }
     }
 
@@ -168,7 +177,7 @@ class PortalDeviceViewModel @Inject constructor(
             val index = savedStateHandle.get<Int>(EXTRA_INDEX) ?: 0
             val walletType =
                 if (savedStateHandle.get<Boolean>(EXTRA_MULTISIG) == true) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
-            val addressType = AddressType.NATIVE_SEGWIT
+            val addressType = savedStateHandle.get<AddressType>(EXTRA_ADDRESS_TYPE) ?: AddressType.NATIVE_SEGWIT
             val path =
                 getBip32PathUseCase(
                     GetBip32PathUseCase.Param(
@@ -287,8 +296,9 @@ class PortalDeviceViewModel @Inject constructor(
         savedStateHandle[EXTRA_INDEX] = index
     }
 
-    fun updateMultisig(isMultisig: Boolean) {
+    fun updateWalletConfig(isMultisig: Boolean, addressType: AddressType) {
         savedStateHandle[EXTRA_MULTISIG] = isMultisig
+        savedStateHandle[EXTRA_ADDRESS_TYPE] = addressType
     }
 
     fun updatePin(pin: String) {
@@ -326,6 +336,7 @@ class PortalDeviceViewModel @Inject constructor(
 
     companion object {
         const val EXTRA_MULTISIG = "is_multisig"
+        const val EXTRA_ADDRESS_TYPE = "address_type"
         const val EXTRA_INDEX = "index"
         const val EXTRA_PENDING_ACTION = "pending_action"
         const val EXTRA_PIN = "pin"
@@ -345,4 +356,5 @@ sealed class PortalDeviceEvent {
     data class CheckFirmwareVersionSuccess(val status: CardStatus) : PortalDeviceEvent()
     data class UpdateFirmwareSuccess(val status: CardStatus) : PortalDeviceEvent()
     data class SignTransactionSuccess(val psbt: String) : PortalDeviceEvent()
+    data class VerifyAddressSuccess(val address: String) : PortalDeviceEvent()
 }

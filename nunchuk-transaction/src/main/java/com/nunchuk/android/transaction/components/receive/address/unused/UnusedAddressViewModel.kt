@@ -26,9 +26,9 @@ import com.nunchuk.android.usecase.GetAddressPathUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
+import com.nunchuk.android.usecase.wallet.GetAddressIndexUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,6 +38,7 @@ internal class UnusedAddressViewModel @Inject constructor(
     private val newAddressUseCase: NewAddressUseCase,
     private val getAddressPathUseCase: GetAddressPathUseCase,
     private val getWalletUseCase: GetWalletUseCase,
+    private val getAddressIndexUseCase: GetAddressIndexUseCase
     ) : NunchukViewModel<UnusedAddressState, UnusedAddressEvent>() {
 
     private lateinit var walletId: String
@@ -101,4 +102,7 @@ internal class UnusedAddressViewModel @Inject constructor(
         }
     }
 
+    suspend fun getAddressIndex(address: String): Int {
+        return getAddressIndexUseCase(GetAddressIndexUseCase.Params(walletId, address)).getOrThrow()
+    }
 }

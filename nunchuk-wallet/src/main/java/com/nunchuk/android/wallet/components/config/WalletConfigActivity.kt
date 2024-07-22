@@ -29,6 +29,8 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
@@ -147,6 +149,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
             SheetOptionType.TYPE_EXPORT_BSMS -> handleExportBSMS()
+            SheetOptionType.TYPE_EXPORT_PORTAL -> navigator.openPortalScreen(
+                activity = this,
+                args = PortalDeviceArgs(walletId = args.walletId, type = PortalDeviceFlow.EXPORT)
+            )
             SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL -> showImportFormatOption()
             SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL -> showExportFormatOption()
             SheetOptionType.TYPE_EXPORT_NUNCHUK -> viewModel.exportCoinControlNunchuk()
@@ -515,6 +521,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_TO_COLD_CARD,
                     stringId = R.string.nc_coldcard
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_PORTAL,
+                    stringId = R.string.nc_portal
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_AS_QR,

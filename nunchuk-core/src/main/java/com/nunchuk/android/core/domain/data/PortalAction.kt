@@ -32,3 +32,6 @@ data class UpdateFirmware(val uri: Uri) : PortalActionWithPin
 
 @Parcelize
 data class SignTransaction(val psbt: String) : PortalActionWithPin
+
+@Parcelize
+data class VerifyAddress(val index: Int) : PortalActionWithPin

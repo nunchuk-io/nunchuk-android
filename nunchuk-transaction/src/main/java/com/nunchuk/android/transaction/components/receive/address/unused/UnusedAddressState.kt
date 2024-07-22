@@ -26,4 +26,8 @@ sealed class UnusedAddressEvent {
     data class GetAddressPathSuccessEvent(val address: String) : UnusedAddressEvent()
 }
 
-data class UnusedAddressState(val addresses: List<String> = emptyList(), val wallet: Wallet = Wallet())
+data class UnusedAddressState(
+    val addresses: List<String> = emptyList(),
+    val wallet: Wallet = Wallet(),
+    val totalUsedAddresses: Int = 0,
+)

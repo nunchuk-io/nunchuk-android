@@ -21,20 +21,21 @@ package com.nunchuk.android.transaction.components.receive
 
 import android.content.Context
 import android.os.Bundle
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.nfc.BasePortalActivity
+import com.nunchuk.android.core.nfc.PortalDeviceEvent
+import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentFactory
 import com.nunchuk.android.transaction.components.receive.address.AddressPagerAdapter
 import com.nunchuk.android.transaction.components.receive.address.AddressTab
 import com.nunchuk.android.transaction.components.receive.address.AddressTab.UNUSED
 import com.nunchuk.android.transaction.components.receive.address.AddressTab.USED
-import com.nunchuk.android.transaction.components.receive.address.AddressTab.values
 import com.nunchuk.android.transaction.databinding.ActivityTransactionReceiveBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ReceiveTransactionActivity : BaseActivity<ActivityTransactionReceiveBinding>(),
+class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceiveBinding>(),
     TabCountChangeListener {
 
     private lateinit var pagerAdapter: AddressPagerAdapter
@@ -56,8 +57,8 @@ class ReceiveTransactionActivity : BaseActivity<ActivityTransactionReceiveBindin
 
         pagerAdapter =
             AddressPagerAdapter(this, AddressFragmentFactory(args.walletId), supportFragmentManager)
-        binding.pagers.offscreenPageLimit = values().size
-        values().forEach {
+        binding.pagers.offscreenPageLimit = AddressTab.entries.size
+        AddressTab.entries.forEach {
             tabs.addTab(tabs.newTab().setText(it.titleId(this@ReceiveTransactionActivity, 0)))
         }
         val position = pagers.currentItem
@@ -67,6 +68,15 @@ class ReceiveTransactionActivity : BaseActivity<ActivityTransactionReceiveBindin
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
+        }
+    }
+
+    override fun onHandledPortalAction(event: PortalDeviceEvent) {
+        if (event is PortalDeviceEvent.VerifyAddressSuccess) {
+            BottomSheetTooltip.newInstance(
+                title = getString(R.string.nc_please_check_this_address_on_your_device),
+                message = event.address
+            ).show(supportFragmentManager, "BottomSheetTooltip")
         }
     }
 
@@ -89,6 +99,15 @@ class ReceiveTransactionActivity : BaseActivity<ActivityTransactionReceiveBindin
 }
 
 fun AddressTab.titleId(context: Context, count: Int) = when (this) {
-    UNUSED -> context.resources.getQuantityString(R.plurals.nc_transaction_unused_with_count, count, count)
-    USED -> context.resources.getQuantityString(R.plurals.nc_transaction_used_with_count, count, count)
+    UNUSED -> context.resources.getQuantityString(
+        R.plurals.nc_transaction_unused_with_count,
+        count,
+        count
+    )
+
+    USED -> context.resources.getQuantityString(
+        R.plurals.nc_transaction_used_with_count,
+        count,
+        count
+    )
 }

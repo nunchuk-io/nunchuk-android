@@ -157,4 +157,6 @@ object SheetOptionType {
     const val TYPE_SIGN_IN_PRIMARY_KEY = 89
 
     const val TYPE_ROLL_OVER_ANOTHER_WALLET = 90
+
+    const val TYPE_EXPORT_PORTAL = 88
 }
