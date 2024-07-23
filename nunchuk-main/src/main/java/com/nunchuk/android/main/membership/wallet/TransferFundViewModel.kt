@@ -25,7 +25,7 @@ class TransferFundViewModel @Inject constructor(
 ) : ViewModel() {
     private val args = TransferFundFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private val _uiState = MutableStateFlow(TransferFundUiState(isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)))
+    private val _uiState = MutableStateFlow(TransferFundUiState(isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.replacedWalletId)))
     val uiState = _uiState.asStateFlow()
 
     init {
