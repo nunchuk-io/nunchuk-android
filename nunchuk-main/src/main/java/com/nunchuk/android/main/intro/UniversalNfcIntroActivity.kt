@@ -26,7 +26,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -76,14 +80,26 @@ class UniversalNfcIntroActivity : AppCompatActivity() {
 @Composable
 private fun UniversalNfcIntroScreen(viewModel: UniversalNfcIntroViewModel = viewModel()) = NunchukTheme {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcImageAppBar(backgroundRes = R.drawable.nc_bg_universal_nfc_intro)
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                    onClick = { viewModel.onGotInClicked() }) {
+                    Text(text = stringResource(id = R.string.nc_text_got_it))
+                }
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(backgroundRes = R.drawable.nc_bg_universal_nfc_intro)
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_locate_phone_nfc),
@@ -94,13 +110,6 @@ private fun UniversalNfcIntroScreen(viewModel: UniversalNfcIntroViewModel = view
                     text = stringResource(R.string.nc_universal_nfc_intro_desc),
                     style = NunchukTheme.typography.body
                 )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                    onClick = { viewModel.onGotInClicked() }) {
-                    Text(text = stringResource(id = R.string.nc_text_got_it))
-                }
             }
         }
     }
