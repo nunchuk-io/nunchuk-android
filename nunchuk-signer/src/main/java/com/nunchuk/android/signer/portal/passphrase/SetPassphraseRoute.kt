@@ -146,9 +146,12 @@ fun SetPassphraseScreen(
             message = stringResource(R.string.nc_confirm_setup_portal_without_pin),
             positiveButtonText = stringResource(R.string.nc_set_up_a_pin),
             negativeButtonText = stringResource(R.string.nc_i_don_t_need_a_pin),
-            onPositiveClick = {
+            onNegativeClick = {
                 showConfirmWithoutPinDialog = false
                 onSetupPortal(mnemonic, numberOfWords, "")
+            },
+            onPositiveClick = {
+                showConfirmWithoutPinDialog = false
             },
             onDismiss = {
                 showConfirmWithoutPinDialog = false
