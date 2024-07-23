@@ -82,7 +82,7 @@ class PortalDeviceViewModel @Inject constructor(
     private fun executeAction(newAction: PortalAction? = null) {
         val action = newAction ?: savedStateHandle.get<PortalAction>(EXTRA_PENDING_ACTION) ?: return
         executingJob?.cancel()
-        executingJob = viewModelScope.launch {
+        executingJob = viewModelScope.launch(ioDispatcher) {
             _state.update { state -> state.copy(isLoading = true) }
             runCatching {
                 when (action) {
