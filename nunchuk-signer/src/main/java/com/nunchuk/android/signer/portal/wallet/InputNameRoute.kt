@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -78,6 +79,7 @@ fun InputNameScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
+                enabled = name.isNotEmpty(),
                 onClick = { onInputName(name) },
             ) {
                 Text(text = stringResource(id = R.string.nc_text_continue))
@@ -98,7 +100,8 @@ fun InputNameScreen(
                     onValueChange = { name = it },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
+                        imeAction = ImeAction.Done,
+                        capitalization = KeyboardCapitalization.Sentences,
                     ),
                     maxLength = 20,
                     enableMaxLength = true,

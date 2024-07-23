@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.data.ExportWallet
 import com.nunchuk.android.core.domain.data.GetXpub
 import com.nunchuk.android.core.domain.data.ImportWallet
 import com.nunchuk.android.core.domain.data.SetupPortal
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.PortalDeviceEvent
@@ -216,11 +217,12 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                         }
                     )
                     inputWalletName(
-                        onUpdateWalletNameSuccess = {
+                        onUpdateWalletNameSuccess = { walletId, name ->
                             navigator.openWalletConfigScreen(
                                 activityContext = this@PortalDeviceActivity,
-                                walletId = it
+                                walletId = walletId
                             )
+                            NcToastManager.scheduleShowMessage(getString(R.string.nc_txt_import_wallet_success, name))
                             finish()
                         }
                     )
