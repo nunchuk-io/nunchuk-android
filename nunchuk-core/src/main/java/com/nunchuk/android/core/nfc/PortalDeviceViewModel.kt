@@ -148,6 +148,8 @@ class PortalDeviceViewModel @Inject constructor(
     }
 
     private suspend fun checkFirmwareVersion() {
+        Timber.d("debugWipeDevice")
+        sdk.debugWipeDevice()
         _state.update { state ->
             state.copy(
                 event = PortalDeviceEvent.CheckFirmwareVersionSuccess(

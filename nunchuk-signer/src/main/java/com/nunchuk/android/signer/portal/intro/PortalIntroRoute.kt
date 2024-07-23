@@ -74,20 +74,20 @@ fun PortalIntroScreen(
             )
 
             Text(
-                text = "Please take note of the following before you begin:",
+                text = stringResource(R.string.nc_add_portal_note_title),
                 style = NunchukTheme.typography.body,
             )
 
             NCLabelWithIndex(
                 index = 1,
-                title = "Maintain NFC connectivity",
-                label = "To operate, Portal requires continuous power from the mobile device via NFC. Please place the Portal device on a flat surface, then put the mobile device on top of it, aligning the NFC chips."
+                title = stringResource(R.string.nc_maintain_nfc_connectivity),
+                label = stringResource(R.string.nc_maintain_nfc_connectivity_desc)
             )
 
             NCLabelWithIndex(
                 index = 2,
-                title = "On-device confirmation",
-                label = "To operate, Portal requires continuous power from the mobile device via NFC. Please place the Portal device on a flat surface, then put the mobile device on top of it, aligning the NFC chips."
+                title = stringResource(R.string.nc_on_device_confirmation),
+                label = stringResource(R.string.nc_on_device_confirmation_desc)
             )
         }
     }
