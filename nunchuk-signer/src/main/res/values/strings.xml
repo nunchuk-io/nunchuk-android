@@ -164,7 +164,7 @@
     <string name="nc_set_up_new_pin">Set up new PIN</string>
     <string name="nc_new_pin">New PIN</string>
     <string name="nc_confirm_new_pin">Confirm new PIN</string>
-    <string name="nc_portal_pin_desc">The PIN code is a security feature that prevents unauthorized access to your key. Please back it up and keep it safe. You’ll need it for signing transactions.</string>
+    <string name="nc_portal_pin_desc">The device PIN is a security feature that prevents unauthorized access to your key. Please back it up and keep it safe. You’ll need it for signing transactions.</string>
     <string name="nc_set_up_a_pin">Set up a PIN</string>
     <string name="nc_i_don_t_need_a_pin">I don’t need a PIN</string>
     <string name="nc_select_wallet_address_type"><![CDATA[Select wallet & address type]]></string>
