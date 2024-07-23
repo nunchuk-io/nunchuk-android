@@ -2,6 +2,7 @@ package com.nunchuk.android.core.nfc
 
 import android.app.Application
 import android.net.Uri
+import android.nfc.TagLostException
 import android.nfc.tech.NfcA
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -23,6 +24,7 @@ import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.exception.IncorrectPinException
 import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
@@ -59,11 +61,14 @@ class PortalDeviceViewModel @Inject constructor(
     private val exportWalletToPortalUseCase: ExportWalletToPortalUseCase,
     private val application: Application
 ) : ViewModel() {
-    private val sdk = PortalSdk(true)
+    private var _sdk: PortalSdk? = null
+    private val sdk: PortalSdk
+        get() = _sdk ?: throw NullPointerException("SDK is not initialized")
     private val _state = MutableStateFlow(PortalDeviceUiState())
     val state = _state.asStateFlow()
 
     private var sdkJob: Job? = null
+    private var executingJob: Job? = null
 
     fun setPendingAction(action: PortalAction) {
         savedStateHandle[EXTRA_PENDING_ACTION] = action
@@ -78,7 +83,10 @@ class PortalDeviceViewModel @Inject constructor(
 
     private fun executeAction(newAction: PortalAction? = null) {
         val action = newAction ?: savedStateHandle.get<PortalAction>(EXTRA_PENDING_ACTION) ?: return
-        viewModelScope.launch {
+        val pin = savedStateHandle.get<String>(EXTRA_PIN).orEmpty()
+        if (action is PortalActionWithPin && pin.isEmpty()) return
+        executingJob?.cancel()
+        executingJob = viewModelScope.launch {
             _state.update { state -> state.copy(isLoading = true) }
             runCatching {
                 when (action) {
@@ -97,8 +105,6 @@ class PortalDeviceViewModel @Inject constructor(
                 Timber.e(it)
                 if (it is IncorrectPinException) {
                     _state.update { state -> state.copy(event = PortalDeviceEvent.IncorrectPin) }
-                } else {
-                    _state.update { state -> state.copy(message = it.message.orEmpty()) }
                 }
             }.onSuccess {
                 savedStateHandle.remove<PortalAction>(EXTRA_PENDING_ACTION)
@@ -110,14 +116,26 @@ class PortalDeviceViewModel @Inject constructor(
     private suspend fun verifyAddress(index: Int) {
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
             val address = sdk.displayAddress(index.toUInt())
-            _state.update { state -> state.copy(event = PortalDeviceEvent.VerifyAddressSuccess(address)) }
+            _state.update { state ->
+                state.copy(
+                    event = PortalDeviceEvent.VerifyAddressSuccess(
+                        address
+                    )
+                )
+            }
         }
     }
 
     private suspend fun signTransaction(psbt: String) {
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
             val signedPsbt = sdk.signPsbt(psbt)
-            _state.update { state -> state.copy(event = PortalDeviceEvent.SignTransactionSuccess(signedPsbt)) }
+            _state.update { state ->
+                state.copy(
+                    event = PortalDeviceEvent.SignTransactionSuccess(
+                        signedPsbt
+                    )
+                )
+            }
         }
     }
 
@@ -132,7 +150,13 @@ class PortalDeviceViewModel @Inject constructor(
     }
 
     private suspend fun checkFirmwareVersion() {
-        _state.update { state -> state.copy(event = PortalDeviceEvent.CheckFirmwareVersionSuccess(sdk.getStatus()))}
+        _state.update { state ->
+            state.copy(
+                event = PortalDeviceEvent.CheckFirmwareVersionSuccess(
+                    sdk.getStatus()
+                )
+            )
+        }
     }
 
     private suspend fun exportWallet(walletId: String) {
@@ -177,7 +201,8 @@ class PortalDeviceViewModel @Inject constructor(
             val index = savedStateHandle.get<Int>(EXTRA_INDEX) ?: 0
             val walletType =
                 if (savedStateHandle.get<Boolean>(EXTRA_MULTISIG) == true) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
-            val addressType = savedStateHandle.get<AddressType>(EXTRA_ADDRESS_TYPE) ?: AddressType.NATIVE_SEGWIT
+            val addressType =
+                savedStateHandle.get<AddressType>(EXTRA_ADDRESS_TYPE) ?: AddressType.NATIVE_SEGWIT
             val path =
                 getBip32PathUseCase(
                     GetBip32PathUseCase.Param(
@@ -273,22 +298,33 @@ class PortalDeviceViewModel @Inject constructor(
         sdkJob?.cancel()
         sdkJob = viewModelScope.launch(ioDispatcher) {
             runCatching {
+                // sdk is buggy can't reuse same instance
+                _sdk?.destroy()
+                _sdk = PortalSdk(true)
                 sdk.newTag()
             }.onSuccess {
                 _state.update { state -> state.copy(isConnected = true) }
                 executeAction()
-                while (isActive && newTag.isConnected) {
+                while (isActive) {
                     val msg = sdk.poll()
                     try {
                         val resp = newTag.transceive(msg.data)
                         sdk.incomingData(msg.msgIndex, resp!!)
                     } catch (e: Exception) {
-                        _state.update { state -> state.copy(isConnected = false) }
+                        Timber.e(e)
+                        if (e is TagLostException) {
+                            _state.update { state -> state.copy(message = e.message.orUnknownError()) }
+                        }
+                        _state.update { state ->
+                            state.copy(
+                                isConnected = false,
+                                isLoading = false
+                            )
+                        }
                         break
                     }
                 }
             }
-
         }
     }
 
@@ -330,7 +366,7 @@ class PortalDeviceViewModel @Inject constructor(
 
     override fun onCleared() {
         runCatching { _state.value.tag?.close() }
-        sdk.destroy()
+        _sdk?.destroy()
         super.onCleared()
     }
 

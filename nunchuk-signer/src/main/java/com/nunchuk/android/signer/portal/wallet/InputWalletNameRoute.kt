@@ -45,27 +45,30 @@ const val inputWalletNameRoute = "input_wallet_name/{wallet_id}"
 
 fun NavGraphBuilder.inputWalletName(
     snackState: SnackbarHostState = SnackbarHostState(),
-    onUpdateWalletNameSuccess: (String) -> Unit = { },
+    onUpdateWalletNameSuccess: (String, String) -> Unit = { _, _ -> },
 ) {
     composable(inputWalletNameRoute, arguments = listOf(
         navArgument("wallet_id") {
             type = NavType.StringType
         }
     )) {
+        var name by rememberSaveable { mutableStateOf("") }
         val walletId = it.arguments?.getString("wallet_id").orEmpty()
         val viewModel = hiltViewModel<InputWalletNameViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
         LaunchedEffect(state.isUpdateNameSuccess) {
             if (state.isUpdateNameSuccess) {
-                onUpdateWalletNameSuccess(walletId)
+                onUpdateWalletNameSuccess(walletId, name)
                 viewModel.markUpdateNameSuccess()
             }
         }
         InputWalletNameScreen(
-            onUpdateWalletName = { name ->
-                viewModel.updateWalletName(walletId, name)
+            onUpdateWalletName = { newName ->
+                viewModel.updateWalletName(walletId, newName)
             },
-            snackState = snackState
+            snackState = snackState,
+            name = name,
+            onNameChange = { newName -> name = newName }
         )
     }
 }
@@ -81,16 +84,16 @@ fun NavController.navigateToInputWalletName(
 fun InputWalletNameScreen(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState = SnackbarHostState(),
+    name: String = "",
+    onNameChange: (String) -> Unit = { },
     onUpdateWalletName: (String) -> Unit = { },
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
-
     NcScaffold(
         snackState = snackState,
         modifier = modifier.systemBarsPadding(),
         topBar = {
             NcTopAppBar(
-                title = stringResource(id = R.string.nc_name_your_key),
+                title = stringResource(id = R.string.nc_text_add_a_wallet),
                 textStyle = NunchukTheme.typography.titleLarge,
             )
         },
@@ -99,6 +102,7 @@ fun InputWalletNameScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
+                enabled = name.isNotEmpty(),
                 onClick = { onUpdateWalletName(name) },
             ) {
                 Text(text = stringResource(id = R.string.nc_text_continue))
@@ -114,18 +118,21 @@ fun InputWalletNameScreen(
                 verticalArrangement = Arrangement.Top,
             ) {
                 NcTextField(
-                    title = stringResource(id = R.string.nc_ssigner_text_name),
+                    title = stringResource(id = R.string.nc_wallet_name),
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = onNameChange,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
+                    placeholder = {
+                        Text(text = stringResource(R.string.nc_enter_your_wallet_name))
+                    },
                     maxLength = 20,
                     enableMaxLength = true,
                     rightContent = {
                         if (name.isNotEmpty()) {
-                            IconButton(onClick = { name = "" }) {
+                            IconButton(onClick = { onNameChange("") }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_close),
                                     contentDescription = "Close"
