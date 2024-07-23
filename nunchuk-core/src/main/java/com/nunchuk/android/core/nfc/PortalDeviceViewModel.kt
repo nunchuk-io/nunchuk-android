@@ -23,7 +23,6 @@ import com.nunchuk.android.core.domain.utils.ExportWalletToPortalUseCase
 import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.exception.IncorrectPinException
-import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
@@ -46,7 +45,6 @@ import xyz.twenty_two.CardStatus
 import xyz.twenty_two.GenerateMnemonicWords
 import xyz.twenty_two.PortalSdk
 import xyz.twenty_two.SetDescriptorBsmsData
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -140,12 +138,14 @@ class PortalDeviceViewModel @Inject constructor(
     }
 
     private suspend fun updateFirmware(uri: Uri) {
-        withContext(ioDispatcher) {
-            getFileFromUri(application.contentResolver, uri, application.cacheDir)?.let { file ->
-                File(file.absolutePath).readBytes()
+        unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
+            // get bytes from uri
+            withContext(ioDispatcher) {
+                application.contentResolver.openInputStream(uri)?.use {
+                    val bytes = it.readBytes()
+                    sdk.updateFirmware(bytes)
+                }
             }
-        }?.let { bytes ->
-            sdk.updateFirmware(bytes)
         }
     }
 
