@@ -268,11 +268,12 @@ class PortalDeviceViewModel @Inject constructor(
     private suspend fun setupPortal(action: SetupPortal) {
         val chain =
             getAppSettingUseCase(Unit).getOrThrow().chain.toPortalNetwork()
+        val pin = action.pin.takeIf { it.isNotEmpty() }
         if (action.mnemonic.isNotEmpty()) {
             sdk.restoreMnemonic(
                 mnemonic = action.mnemonic,
                 network = chain,
-                password = action.pin
+                password = pin
             )
         } else {
             val numWords =
@@ -280,7 +281,7 @@ class PortalDeviceViewModel @Inject constructor(
             sdk.generateMnemonic(
                 numWords = numWords,
                 network = chain,
-                password = action.pin
+                password = pin
             )
         }
         _state.update { state -> state.copy(event = PortalDeviceEvent.StartSetupWallet) }
