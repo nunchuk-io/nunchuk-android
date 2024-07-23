@@ -48,6 +48,8 @@ import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
@@ -254,7 +256,17 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         }
         flowObserver(
             nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_AUTO_CARD_STATUS }) {
-            walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
+            if (it.tag.techList.contains(IsoDep::class.java.name)) {
+                walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
+            } else {
+                navigator.openPortalScreen(
+                    activity = requireActivity(),
+                    args = PortalDeviceArgs(
+                        PortalDeviceFlow.SETUP
+                    )
+                )
+            }
+
             nfcViewModel.clearScanInfo()
         }
     }
