@@ -81,8 +81,6 @@ class PortalDeviceViewModel @Inject constructor(
 
     private fun executeAction(newAction: PortalAction? = null) {
         val action = newAction ?: savedStateHandle.get<PortalAction>(EXTRA_PENDING_ACTION) ?: return
-        val pin = savedStateHandle.get<String>(EXTRA_PIN).orEmpty()
-        if (action is PortalActionWithPin && pin.isEmpty()) return
         executingJob?.cancel()
         executingJob = viewModelScope.launch {
             _state.update { state -> state.copy(isLoading = true) }
