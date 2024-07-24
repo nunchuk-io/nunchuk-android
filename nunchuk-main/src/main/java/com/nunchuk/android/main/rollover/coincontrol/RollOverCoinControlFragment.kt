@@ -81,7 +81,7 @@ class RollOverCoinControlFragment : Fragment() {
                 RollOverCoinControlView(
                     viewModel = viewModel,
                     onContinueClicked = {
-                        val rollOverWalletParam = if (viewModel.numOfTxs() > 1) {
+                        val rollOverWalletParam = if (viewModel.isSelectTagOrCollection()) {
                             RollOverWalletParam(
                                 newWalletId = rollOverWalletViewModel.getNewWalletId(),
                                 tags = viewModel.getSelectedCoinTags(),

@@ -181,8 +181,8 @@ class RollOverCoinControlViewModel @Inject constructor(
             .map { it.collection }
     }
 
-    fun numOfTxs(): Int {
-        return uiState.value.numOfTxs
+    fun isSelectTagOrCollection(): Boolean {
+        return _uiState.value.selectedCoinTags.isNotEmpty() || _uiState.value.selectedCoinCollections.isNotEmpty()
     }
 }
 
