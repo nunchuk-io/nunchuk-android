@@ -103,11 +103,7 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
                 is InheritanceClaimNoteEvent.WithdrawClick -> showSweepOptions()
                 is InheritanceClaimNoteEvent.Error -> showError(message = event.message)
                 is InheritanceClaimNoteEvent.CheckHasWallet -> {
-                    if (event.isHasWallet) {
-                        openSelectWallet()
-                    } else {
-                        navigator.openQuickWalletScreen(launcher, requireActivity())
-                    }
+                    openSelectWallet()
                 }
             }
         }
