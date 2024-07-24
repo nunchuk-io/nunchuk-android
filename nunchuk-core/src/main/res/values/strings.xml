@@ -83,7 +83,9 @@
     <string name="nc_satscard_unsealed_slots">SATSCARD unsealed slots</string>
     <string name="nc_unconfirmed">Unconfirmed</string>
     <string name="nc_sweep_balance">Sweep balance</string>
+    <string name="nc_withdraw_to_nunchuk_wallet">Withdraw to a Nunchuk wallet</string>
     <string name="nc_which_wallet_do_you_want_to_deposit_into">Which wallet do you want to deposit into?</string>
+    <string name="nc_which_wallet_do_you_want_to_withdraw_bitcoin">Which wallet do you want to withdraw bitcoin to?</string>
     <string name="nc_wallet_not_configured">Not configured</string>
     <string name="nc_wallet_single_sig">Single-sig</string>
     <string name="nc_wallet_multisig">Multisig</string>
@@ -140,6 +142,7 @@
     <string name="nc_scan_qr">Scan QR</string>
     <string name="nc_batch_transaction">Batch transaction</string>
     <string name="nc_continue_to_sweep">Continue to sweep</string>
+    <string name="nc_continue_to_withdraw">Continue to withdraw</string>
     <string name="nc_data_transfer_in_progress">Data transfer in progress…</string>
     <string name="nc_keep_hold_coldcard_until_finish">Keep holding your device near the COLDCARD until it\'s finished.</string>
     <string name="nc_multisig_wallet">Multisig wallet</string>
