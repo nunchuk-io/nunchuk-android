@@ -148,8 +148,6 @@ class PortalDeviceViewModel @Inject constructor(
     }
 
     private suspend fun checkFirmwareVersion() {
-        Timber.d("debugWipeDevice")
-        sdk.debugWipeDevice()
         _state.update { state ->
             state.copy(
                 event = PortalDeviceEvent.CheckFirmwareVersionSuccess(
@@ -291,12 +289,14 @@ class PortalDeviceViewModel @Inject constructor(
 
     fun newTag(newTag: NfcA) {
         runCatching { _state.value.tag?.close() }
-        newTag.timeout = 5000
+        sdkJob?.cancel()
+        executingJob?.cancel()
+        while (_state.value.tag?.isConnected == true) Unit // ensure previous tag disconnected
+        newTag.timeout = 1000
         if (!newTag.isConnected) {
             newTag.connect()
         }
         _state.update { state -> state.copy(tag = newTag, isConnected = false) }
-        sdkJob?.cancel()
         sdkJob = viewModelScope.launch(ioDispatcher) {
             runCatching {
                 // sdk is buggy can't reuse same instance
