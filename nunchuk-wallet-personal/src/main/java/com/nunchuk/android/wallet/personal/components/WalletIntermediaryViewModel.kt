@@ -67,9 +67,8 @@ class WalletIntermediaryViewModel @Inject constructor(
 
     private var getWalletConfigJob: Job? = null
 
-    init {
-        val args = WalletIntermediaryFragmentArgs.fromSavedStateHandle(savedStateHandle)
-        if (args.isQuickWallet) {
+    fun init(isQuickWallet: Boolean) {
+        if (isQuickWallet) {
             viewModelScope.launch {
                 getCompoundSignersUseCase.get().execute().collect { signers ->
                     _state.update { it.copy(isHasSigner = signers.first.isNotEmpty() || signers.second.isNotEmpty()) }

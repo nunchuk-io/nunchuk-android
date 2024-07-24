@@ -8,12 +8,12 @@ import androidx.navigation.compose.composable
 const val hotWalletIntroRoute = "hotWalletIntroRoute"
 
 fun NavGraphBuilder.hotWalletIntro(
-    returnToMainScreen: () -> Unit = {},
+    returnToScreen: () -> Unit = {},
     openServiceTab: () -> Unit = {},
 ) {
     composable(hotWalletIntroRoute) {
         HotWalletIntroScreen(
-            returnToMainScreen = returnToMainScreen,
+            returnToMainScreen = returnToScreen,
             openServiceTab = openServiceTab
         )
     }

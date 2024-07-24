@@ -42,12 +42,14 @@ class QuickWalletActivity : BaseActivity<ActivityQuickWalletBinding>() {
         super.onCreate(savedInstanceState)
         setLightStatusBar()
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        navHostFragment.findNavController().setGraph(R.navigation.quick_wallet_navigation, WalletIntermediaryFragmentArgs(isQuickWallet = true).toBundle())
+        navHostFragment.findNavController().setGraph(R.navigation.quick_wallet_navigation, intent.extras)
     }
 
     companion object {
         fun start(launcher: ActivityResultLauncher<Intent>, activityContext: Context) {
-            launcher.launch(Intent(activityContext, QuickWalletActivity::class.java))
+            launcher.launch(Intent(activityContext, QuickWalletActivity::class.java).apply {
+                putExtras(WalletIntermediaryFragmentArgs(isQuickWallet = true).toBundle())
+            })
         }
     }
 }
