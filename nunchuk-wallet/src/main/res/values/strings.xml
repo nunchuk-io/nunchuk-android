@@ -102,4 +102,5 @@
     <string name="nc_export_via_qr">Export via QR</string>
     <string name="nc_export_via_bbqr">Export via BBQR</string>
     <string name="nc_replace_keys">Replace key(s)</string>
+    <string name="nc_export_to_portal_success">You have successfully exported your wallet.</string>
 </resources>

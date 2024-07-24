@@ -106,9 +106,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private val exportWalletToPortalLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val data = it.data?.extras
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
-
+            if (it.resultCode == Activity.RESULT_OK) {
+                NCToastMessage(this).showMessage(getString(R.string.nc_export_to_portal_success))
             }
         }
 
@@ -150,6 +149,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
             SheetOptionType.TYPE_EXPORT_BSMS -> handleExportBSMS()
             SheetOptionType.TYPE_EXPORT_PORTAL -> navigator.openPortalScreen(
+                launcher = exportWalletToPortalLauncher,
                 activity = this,
                 args = PortalDeviceArgs(walletId = args.walletId, type = PortalDeviceFlow.EXPORT)
             )

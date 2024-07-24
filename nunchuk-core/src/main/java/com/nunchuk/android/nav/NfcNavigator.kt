@@ -77,5 +77,7 @@ interface NfcNavigator {
         walletId: String = "",
     )
 
-    fun openPortalScreen(activity: Activity, args: PortalDeviceArgs)
+    fun openPortalScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activity: Activity, args: PortalDeviceArgs)
 }
