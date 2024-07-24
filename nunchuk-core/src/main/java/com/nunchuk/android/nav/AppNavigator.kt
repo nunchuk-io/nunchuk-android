@@ -129,7 +129,7 @@ interface AppNavigator {
         @PrimaryOwnerFlow.PrimaryOwnerFlowInfo flowInfo: Int
     )
 
-    fun openHotWalletScreen(activityContext: Context)
+    fun openHotWalletScreen(launcher: ActivityResultLauncher<Intent>?, activityContext: Context, isQuickWallet: Boolean)
     fun openOnBoardingScreen(activityContext: Context)
 
     /**

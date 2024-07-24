@@ -353,8 +353,8 @@ interface AppNavigatorDelegate : AppNavigator {
         )
     }
 
-    override fun openHotWalletScreen(activityContext: Context) {
-        OnboardActivity.openHotWalletIntroScreen(activityContext)
+    override fun openHotWalletScreen(launcher: ActivityResultLauncher<Intent>?, activityContext: Context, isQuickWallet: Boolean) {
+        OnboardActivity.openHotWalletIntroScreen(launcher, activityContext, isQuickWallet)
     }
 
     override fun openOnBoardingScreen(activityContext: Context) {

@@ -19,11 +19,13 @@
 
 package com.nunchuk.android.wallet.personal.components
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -59,7 +61,17 @@ import dagger.hilt.android.AndroidEntryPoint
 class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediaryBinding>(),
     BottomSheetOptionListener {
     private val viewModel: WalletIntermediaryViewModel by viewModels()
-    private val args: WalletIntermediaryFragmentArgs by navArgs()
+    private val isQuickWallet: Boolean by lazy { requireActivity().intent.getBooleanExtra("is_quick_wallet", false) }
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                requireActivity().apply {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
+            }
+        }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -73,6 +85,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.init(isQuickWallet)
         initUi()
         setupViews()
         observer()
@@ -112,7 +125,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 }
             }
             SheetOptionType.TYPE_CREATE_NEW_WALLET -> {
-                if (args.isQuickWallet) {
+                if (isQuickWallet) {
                     navigator.openCreateNewSeedScreen(this, true)
                 } else if (hasSigner) {
                     openCreateNewWalletScreen()
@@ -121,7 +134,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 }
             }
             SheetOptionType.TYPE_CREATE_HOT_WALLET -> {
-                navigator.openHotWalletScreen(requireActivity())
+                navigator.openHotWalletScreen(launcher, requireActivity(), isQuickWallet)
             }
         }
     }
@@ -187,7 +200,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
     }
 
     private fun initUi() {
-        if (args.isQuickWallet) {
+        if (isQuickWallet) {
             binding.title.isVisible = true
             binding.message.text = getString(R.string.nc_create_single_sig_for_sweep)
             binding.btnCreateNewWallet.text = getString(R.string.nc_text_continue)
@@ -239,7 +252,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             showCreateWalletOption()
         }
         binding.btnRecoverWallet.setOnClickListener {
-            if (args.isQuickWallet) {
+            if (isQuickWallet) {
                 navigator.openWalletIntermediaryScreen(requireActivity(), viewModel.hasSigner)
                 requireActivity().finish()
             } else {

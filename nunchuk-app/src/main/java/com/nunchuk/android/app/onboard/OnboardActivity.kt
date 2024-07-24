@@ -1,8 +1,10 @@
 package com.nunchuk.android.app.onboard
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
@@ -33,6 +35,7 @@ class OnboardActivity : BaseComposeActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val startDestination = intent.getStringExtra(EXTRA_START_DESTINATION) ?: onboardIntroRoute
+        val isQuickWallet = intent.getBooleanExtra(EXTRA_IS_QUICK_WALLET, false)
         setContentView(
             ComposeView(this).apply {
                 setContent {
@@ -65,8 +68,13 @@ class OnboardActivity : BaseComposeActivity() {
                                 }
                             )
                             hotWalletIntro(
-                                returnToMainScreen = {
-                                    navigator.returnToMainScreen(this@OnboardActivity)
+                                returnToScreen = {
+                                    if (isQuickWallet) {
+                                        setResult(Activity.RESULT_OK)
+                                        finish()
+                                    } else {
+                                        navigator.returnToMainScreen(this@OnboardActivity)
+                                    }
                                 },
                                 openServiceTab = {
                                     navigator.returnToMainScreen(this@OnboardActivity)
@@ -122,11 +130,20 @@ class OnboardActivity : BaseComposeActivity() {
 
     companion object {
         private const val EXTRA_START_DESTINATION = "start_destination"
+        private const val EXTRA_IS_QUICK_WALLET = "is_quick_wallet"
 
-        fun openHotWalletIntroScreen(context: Context) {
-            context.startActivity(Intent(context, OnboardActivity::class.java).apply {
-                putExtra(EXTRA_START_DESTINATION, hotWalletIntroRoute)
-            })
+        fun openHotWalletIntroScreen(launcher: ActivityResultLauncher<Intent>?, context: Context, isQuickWallet: Boolean) {
+            if (launcher != null) {
+                launcher.launch(Intent(context, OnboardActivity::class.java).apply {
+                    putExtra(EXTRA_START_DESTINATION, hotWalletIntroRoute)
+                    putExtra(EXTRA_IS_QUICK_WALLET, isQuickWallet)
+                })
+            } else {
+                context.startActivity(Intent(context, OnboardActivity::class.java).apply {
+                    putExtra(EXTRA_START_DESTINATION, hotWalletIntroRoute)
+                    putExtra(EXTRA_IS_QUICK_WALLET, isQuickWallet)
+                })
+            }
         }
     }
 }
