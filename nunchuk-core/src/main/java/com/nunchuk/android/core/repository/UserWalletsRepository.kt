@@ -1433,7 +1433,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         }
         if (response.isSuccess) {
-            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, 0)
+            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, -1)
         }
         return response.data.transaction?.toServerTransaction()
             ?: throw NullPointerException("transaction from server null")
@@ -1500,6 +1500,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             nunchukNativeSdk.updateTransactionSchedule(
                 walletId, transactionId, transaction.broadCastTimeMillis / 1000
             )
+        } else if (transaction.type != ServerTransactionType.SCHEDULED) {
+            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, -1)
         }
     }
 

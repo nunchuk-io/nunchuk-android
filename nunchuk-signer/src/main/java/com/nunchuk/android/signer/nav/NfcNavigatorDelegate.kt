@@ -142,8 +142,17 @@ interface NfcNavigatorDelegate : NfcNavigator {
         )
     }
 
-    override fun openPortalScreen(activity: Activity, args: PortalDeviceArgs) {
-        activity.startActivity(
+    override fun openPortalScreen(
+        launcher: ActivityResultLauncher<Intent>?,
+        activity: Activity,
+        args: PortalDeviceArgs
+    ) {
+        launcher?.launch(
+            PortalDeviceActivity.buildIntent(
+                activity = activity,
+                args = args
+            )
+        ) ?: activity.startActivity(
             PortalDeviceActivity.buildIntent(
                 activity = activity,
                 args = args
