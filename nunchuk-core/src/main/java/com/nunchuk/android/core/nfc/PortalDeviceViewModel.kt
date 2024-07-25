@@ -325,6 +325,9 @@ class PortalDeviceViewModel @Inject constructor(
                         break
                     }
                 }
+            }.onFailure {
+                Timber.e(it)
+                _state.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
         }
     }
