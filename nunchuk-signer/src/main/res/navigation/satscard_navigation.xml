@@ -59,19 +59,6 @@
             app:argType="float" />
 
         <argument
-            android:name="master_signer_ids"
-            app:argType="string[]" />
-
-        <argument
-            android:name="magical_phrase"
-            android:defaultValue=""
-            app:argType="string" />
-
-        <argument
-            android:name="derivation_paths"
-            app:argType="string[]" />
-
-        <argument
             android:name="claim_param"
             android:defaultValue="@null"
             app:nullable="true"

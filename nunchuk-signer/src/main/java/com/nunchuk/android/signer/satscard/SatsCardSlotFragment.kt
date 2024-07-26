@@ -172,7 +172,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     private fun openSelectWallet(slots: Array<SatsCardSlot>) {
         val type = if (isSweepActiveSlot) SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT else SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT
-        val action = SatscardNavigationDirections.toSelectWalletFragment(slots = slots, type = type, masterSignerIds = arrayOf(), derivationPaths = arrayOf())
+        val action = SatscardNavigationDirections.toSelectWalletFragment(slots = slots, type = type)
         findNavController().navigate(action)
     }
 
