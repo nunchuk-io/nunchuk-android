@@ -171,6 +171,7 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                 }
                             }
                         },
+                        flow = args.type
                     )
                     selectSetupSeedPhrase(
                         openSetPassphraseScreen = { mnemonic, numberOfWords ->

@@ -39,6 +39,7 @@ import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -67,7 +68,7 @@ class NcDataStore @Inject constructor(
     private val groupIdKey = stringPreferencesKey("group_id")
     private val currentStepKey = intPreferencesKey("current_step")
     private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
-    private val showHealthCheckReminderIntro = booleanPreferencesKey("show_health_check_reminder_intro")
+    private val showNewPortalKey = booleanPreferencesKey("show_new_portal")
     private val passwordTokenKey = stringPreferencesKey("password_token")
 
     /**
@@ -343,6 +344,18 @@ class NcDataStore @Inject constructor(
         get() = context.dataStore.data.map {
             it[passwordTokenKey].orEmpty()
         }
+
+    suspend fun getShowPortalAndSet() : Boolean {
+        return context.dataStore.data.map {
+            it[showNewPortalKey] ?: true
+        }.first()
+    }
+
+    suspend fun setShowPortal(show: Boolean) {
+        context.dataStore.edit {
+            it[showNewPortalKey] = show
+        }
+    }
 
     suspend fun clear() {
         context.dataStore.edit {

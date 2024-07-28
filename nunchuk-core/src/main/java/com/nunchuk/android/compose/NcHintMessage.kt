@@ -20,6 +20,7 @@
 package com.nunchuk.android.compose
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -70,6 +71,41 @@ fun NcHintMessage(
                 messages = messages,
                 style = NunchukTheme.typography.titleSmall
             )
+        }
+    }
+}
+
+@Composable
+fun NcHintMessage(
+    modifier: Modifier = Modifier,
+    type: HighlightMessageType = HighlightMessageType.HINT,
+    content: @Composable () -> Unit,
+) {
+    val backgroundColor = when(type) {
+        HighlightMessageType.WARNING -> colorResource(id = R.color.nc_beeswax_tint)
+        HighlightMessageType.HINT -> colorResource(id = R.color.nc_whisper_color)
+    }
+    val icon =  when(type) {
+        HighlightMessageType.HINT -> painterResource(id = R.drawable.ic_info)
+        HighlightMessageType.WARNING -> painterResource(id = R.drawable.ic_warning_amber)
+    }
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Image(
+                modifier = Modifier.size(36.dp),
+                contentScale = ContentScale.Crop,
+                painter = icon,
+                contentDescription = "Info icon"
+            )
+            content()
         }
     }
 }

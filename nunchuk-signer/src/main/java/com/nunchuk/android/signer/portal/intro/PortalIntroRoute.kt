@@ -21,18 +21,21 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.signer.R
 
 const val portalIntroRoute = "portal_intro_route"
 
 fun NavGraphBuilder.portalIntro(
     snackState: SnackbarHostState = SnackbarHostState(),
+    flow: PortalDeviceFlow,
     onScanPortalClicked: () -> Unit = {},
 ) {
     composable(portalIntroRoute) {
         PortalIntroScreen(
             onScanPortalClicked = onScanPortalClicked,
-            snackState = snackState
+            snackState = snackState,
+            flow = flow,
         )
     }
 }
@@ -41,6 +44,7 @@ fun NavGraphBuilder.portalIntro(
 fun PortalIntroScreen(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState = SnackbarHostState(),
+    flow: PortalDeviceFlow = PortalDeviceFlow.SETUP,
     onScanPortalClicked: () -> Unit = {}
 ) {
     NcScaffold(
@@ -69,7 +73,8 @@ fun PortalIntroScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = stringResource(id = R.string.nc_add_portal),
+                text = if (flow == PortalDeviceFlow.SETUP) stringResource(id = R.string.nc_add_portal)
+                else stringResource(id = R.string.nc_portal_tips),
                 style = NunchukTheme.typography.heading,
             )
 

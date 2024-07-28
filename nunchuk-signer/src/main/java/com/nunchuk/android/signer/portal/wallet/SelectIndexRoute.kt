@@ -20,10 +20,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -34,9 +38,11 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSpannedClickableText
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.signer.R
 
 const val selectIndexRoute = "select_index"
@@ -63,6 +69,7 @@ fun SelectIndexScreen(
     snackState: SnackbarHostState = SnackbarHostState(),
     onSelectIndex: (Int) -> Unit = { },
 ) {
+    val context = LocalContext.current
     var index by rememberSaveable { mutableStateOf("0") }
     NcScaffold(
         snackState = snackState,
@@ -90,10 +97,12 @@ fun SelectIndexScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(text = "Select account index", style = NunchukTheme.typography.heading)
+            Text(text = stringResource(R.string.nc_select_account_index), style = NunchukTheme.typography.heading)
 
             NcTextField(
-                title = "Account index", value = index,
+                title = stringResource(R.string.nc_account_index),
+                value = index,
+                titleHint = stringResource(R.string.nc_portal_default_index),
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Done,
                     keyboardType = KeyboardType.Number
@@ -116,10 +125,24 @@ fun SelectIndexScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
+
             NcHintMessage(
                 modifier = Modifier.fillMaxWidth(),
-                messages = listOf(ClickAbleText(content = "Each key can support multiple accounts, as per BIP 32. Leave it as 0 (the first account) if you are unsure."))
-            )
+            ) {
+                NcSpannedClickableText(
+                    text = stringResource(R.string.nc_select_index_hint),
+                    baseStyle = NunchukTheme.typography.titleSmall,
+                    styles = mapOf(
+                        SpanIndicator('A') to SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    ),
+                    onClick = {
+                        context.openExternalLink("https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki")
+                    }
+                )
+            }
         }
     }
 }

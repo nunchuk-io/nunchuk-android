@@ -24,11 +24,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.signer.databinding.DialogSetUpOptionsSheetBinding
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
-class SetUpNfcOptionSheet : BaseBottomSheet<DialogSetUpOptionsSheetBinding>(), View.OnClickListener {
+@AndroidEntryPoint
+class SetUpNfcOptionSheet : BaseBottomSheet<DialogSetUpOptionsSheetBinding>(),
+    View.OnClickListener {
     private lateinit var listener: OptionClickListener
+    private val viewModel : SetUpNfcOptionSheetViewModel by viewModels()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -50,6 +57,11 @@ class SetUpNfcOptionSheet : BaseBottomSheet<DialogSetUpOptionsSheetBinding>(), V
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (!viewModel.showPortal()) {
+                binding.btnAddPortal.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+            }
+        }
         registerEvents()
     }
 
@@ -58,7 +70,10 @@ class SetUpNfcOptionSheet : BaseBottomSheet<DialogSetUpOptionsSheetBinding>(), V
             binding.btnAddNewNfc.id -> listener.onOptionClickListener(SetUpNfcOption.ADD_NEW)
             binding.btnRecoverNfcKey.id -> listener.onOptionClickListener(SetUpNfcOption.RECOVER)
             binding.btnAddMk4.id -> listener.onOptionClickListener(SetUpNfcOption.Mk4)
-            binding.btnAddPortal.id -> listener.onOptionClickListener(SetUpNfcOption.PORTAL)
+            binding.btnAddPortal.id -> {
+                viewModel.markShowPortal()
+                listener.onOptionClickListener(SetUpNfcOption.PORTAL)
+            }
         }
         dismiss()
     }

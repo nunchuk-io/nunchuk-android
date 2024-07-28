@@ -765,4 +765,6 @@
     <string name="nc_wallet_customize_address_type">Customize address type</string>
     <string name="nc_enter_your_wallet_name">Enter your wallet name</string>
     <string name="nc_txt_import_wallet_success">%s has been successfully recovered</string>
+    <string name="nc_account_index">Account index</string>
+    <string name="nc_select_account_index">Select account index</string>
 </resources>

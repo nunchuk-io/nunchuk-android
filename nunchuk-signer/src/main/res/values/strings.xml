@@ -185,4 +185,7 @@
     <string name="nc_on_device_confirmation">On-device confirmation</string>
     <string name="nc_maintain_nfc_connectivity_desc">To operate, Portal requires continuous power from the mobile device via NFC. Please place the Portal device on a flat surface, then put the mobile device on top of it, aligning the NFC chips.</string>
     <string name="nc_on_device_confirmation_desc">Certain tasks will require pressing the confirmation button on the Portal device.</string>
+    <string name="nc_portal_tips">Portal NFC tips</string>
+    <string name="nc_portal_default_index">(default = 0)</string>
+    <string name="nc_select_index_hint">Each key can support multiple accounts, as per [A]BIP 32[/A]. Leave it as 0 (the first account) if you are unsure.</string>
 </resources>
