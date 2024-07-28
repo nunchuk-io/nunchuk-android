@@ -173,7 +173,7 @@ private fun ReplaceKeysContent(
                                     onReplaceKeyClicked(it)
                                 }
                             },
-                            isNeedVerify = uiState.isActiveAssistedWallet && !uiState.verifiedSigners.contains(item.fingerPrint) && item.type == SignerType.NFC,
+                            isNeedVerify = uiState.isActiveAssistedWallet && !uiState.verifiedSigners.contains(item.fingerPrint) && uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC,
                             onVerifyClicked = onVerifyClicked,
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
                         )
