@@ -237,7 +237,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                         startScreen = RollOverWalletFlow.PREVIEW,
                         selectedTagIds = args.rollOverWalletParam!!.tags.map { it.id },
                         selectedCollectionIds = args.rollOverWalletParam!!.collections.map { it.id },
-                        feeRate = event.manualFeeRate.toManualFeeRate()
+                        feeRate = event.manualFeeRate.toManualFeeRate(),
+                        source = args.rollOverWalletParam!!.source
                     )
                 } else {
                     openTransactionConfirmScreen(

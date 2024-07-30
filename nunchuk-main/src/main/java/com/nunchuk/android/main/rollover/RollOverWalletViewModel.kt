@@ -3,6 +3,7 @@ package com.nunchuk.android.main.rollover
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
@@ -10,7 +11,6 @@ import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.model.isPersonalPlan
 import com.nunchuk.android.usecase.CreateAndBroadcastRollOverTransactionsUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
@@ -47,13 +47,15 @@ class RollOverWalletViewModel @Inject constructor(
     private var selectedTagIds: List<Int> = emptyList()
     private var selectedCollectionIds: List<Int> = emptyList()
     private var feeRate: Amount = Amount.ZER0
+    private var source: Int = RollOverWalletSource.WALLET_CONFIG
 
     fun init(
         oldWalletId: String,
         newWalletId: String,
         selectedTagIds: List<Int>,
         selectedCollectionIds: List<Int>,
-        feeRate: Amount
+        feeRate: Amount,
+        source: Int
     ) {
 
         savedStateHandle[OLD_WALLET_ID] = oldWalletId
@@ -62,6 +64,7 @@ class RollOverWalletViewModel @Inject constructor(
         this.selectedTagIds = selectedTagIds
         this.selectedCollectionIds = selectedCollectionIds
         this.feeRate = feeRate
+        this.source = source
 
         getAllCoins()
         getAllTags()
@@ -194,6 +197,10 @@ class RollOverWalletViewModel @Inject constructor(
 
     fun getFeeRate(): Amount {
         return feeRate
+    }
+
+    fun getSource(): Int {
+        return source
     }
 
     companion object {

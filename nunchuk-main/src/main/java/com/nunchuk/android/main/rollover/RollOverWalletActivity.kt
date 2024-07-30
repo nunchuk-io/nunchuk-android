@@ -9,6 +9,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Amount
@@ -50,9 +51,9 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
             oldWalletId = intent.getStringExtra(OLD_WALLET_ID).orEmpty(),
             newWalletId = intent.getStringExtra(NEW_WALLET_ID).orEmpty(),
             selectedTagIds = intent.getIntegerArrayListExtra(SELECT_TAG_IDS).orEmpty(),
-            selectedCollectionIds = intent.getIntegerArrayListExtra(SELECT_COLLECTION_IDS)
-                .orEmpty(),
-            feeRate = intent.parcelable<Amount>(FEE_RATE) ?: Amount.ZER0
+            selectedCollectionIds = intent.getIntegerArrayListExtra(SELECT_COLLECTION_IDS).orEmpty(),
+            feeRate = intent.parcelable<Amount>(FEE_RATE) ?: Amount.ZER0,
+            source = intent.getIntExtra(SOURCE, RollOverWalletSource.WALLET_CONFIG)
         )
 
         flowObserver(viewModel.event) { event ->
@@ -60,7 +61,13 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
                 is RollOverWalletEvent.Error -> NCToastMessage(this).showError(event.message)
                 is RollOverWalletEvent.Loading -> showOrHideLoading(event.isLoading)
                 RollOverWalletEvent.Success -> {
-                    navigator.returnToMainScreen(this)
+                    val source = intent.getIntExtra(SOURCE, RollOverWalletSource.WALLET_CONFIG)
+                    if (source == RollOverWalletSource.REPLACE_KEY) {
+                        navigator.returnToMainScreen(this)
+                        navigator.openWalletDetailsScreen(this, intent.getStringExtra(OLD_WALLET_ID).orEmpty())
+                    } else {
+                        navigator.returnToMainScreen(this)
+                    }
                     NcToastManager.scheduleShowMessage(message = "Please sign the rollover transactions at your convenience.")
                 }
             }
@@ -79,6 +86,7 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val SELECT_TAG_IDS = "select_tag_ids"
         private const val SELECT_COLLECTION_IDS = "select_collection_ids"
         private const val FEE_RATE = "fee_rate"
+        private const val SOURCE = "source"
 
         fun navigate(
             activity: Context,
@@ -87,7 +95,8 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
             newWalletId: String,
             selectedTagIds: List<Int>,
             selectedCollectionIds: List<Int>,
-            feeRate: Amount
+            feeRate: Amount,
+            source: Int
         ) {
             val intent = Intent(activity, RollOverWalletActivity::class.java)
                 .apply {
@@ -100,6 +109,7 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
                         ArrayList(selectedCollectionIds)
                     )
                     putExtra(FEE_RATE, feeRate)
+                    putExtra(SOURCE, source)
                 }
             activity.startActivity(intent)
         }

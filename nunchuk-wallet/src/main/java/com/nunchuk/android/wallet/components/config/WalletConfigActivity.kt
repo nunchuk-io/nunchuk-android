@@ -38,6 +38,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
@@ -135,7 +136,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             if (result.walletId != null) {
                 navigator.openRollOverWalletScreen(
                     this, oldWalletId = args.walletId, newWalletId = result.walletId!!,
-                    startScreen = RollOverWalletFlow.REFUND
+                    startScreen = RollOverWalletFlow.REFUND,
+                    source = RollOverWalletSource.WALLET_CONFIG
                 )
             }
             supportFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)

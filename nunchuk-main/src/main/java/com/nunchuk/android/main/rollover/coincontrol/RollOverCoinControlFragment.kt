@@ -85,7 +85,8 @@ class RollOverCoinControlFragment : Fragment() {
                             RollOverWalletParam(
                                 newWalletId = rollOverWalletViewModel.getNewWalletId(),
                                 tags = viewModel.getSelectedCoinTags(),
-                                collections = viewModel.getSelectedCoinCollections()
+                                collections = viewModel.getSelectedCoinCollections(),
+                                source = rollOverWalletViewModel.getSource()
                             )
                         } else {
                             null

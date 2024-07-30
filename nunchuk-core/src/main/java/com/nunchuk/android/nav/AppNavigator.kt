@@ -143,5 +143,6 @@ interface AppNavigator {
         selectedTagIds: List<Int> = emptyList(),
         selectedCollectionIds: List<Int> = emptyList(),
         feeRate: Amount = Amount.ZER0,
+        source: Int
     )
 }

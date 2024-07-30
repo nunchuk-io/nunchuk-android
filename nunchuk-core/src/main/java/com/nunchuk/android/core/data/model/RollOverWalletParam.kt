@@ -9,5 +9,6 @@ import kotlinx.parcelize.Parcelize
 data class RollOverWalletParam(
     val newWalletId: String,
     val tags: List<CoinTag>,
-    val collections: List<CoinCollection>
+    val collections: List<CoinCollection>,
+    val source: Int
 ) : Parcelable

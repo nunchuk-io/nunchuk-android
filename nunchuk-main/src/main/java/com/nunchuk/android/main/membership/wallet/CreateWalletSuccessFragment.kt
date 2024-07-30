@@ -54,6 +54,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
@@ -124,11 +126,12 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                     btnYes = getString(R.string.nc_yes_do_it_now),
                                     btnInfo = getString(R.string.nc_i_ll_do_it_later),
                                     onYesClick = {
-                                        findNavController().navigate(
-                                            CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToTransferFundFragment(
-                                                args.walletId,
-                                                args.replacedWalletId
-                                            )
+                                        navigator.openRollOverWalletScreen(
+                                            activityContext = requireActivity(),
+                                            oldWalletId = args.replacedWalletId,
+                                            newWalletId = args.walletId,
+                                            startScreen = RollOverWalletFlow.REFUND,
+                                            source = RollOverWalletSource.REPLACE_KEY
                                         )
                                     },
                                     onInfoClick = {

@@ -17,3 +17,8 @@ object RollOverWalletFlow {
     annotation class RollOverWalletFlowInfo
 
 }
+
+object RollOverWalletSource {
+    const val WALLET_CONFIG = 0
+    const val REPLACE_KEY = 1
+}

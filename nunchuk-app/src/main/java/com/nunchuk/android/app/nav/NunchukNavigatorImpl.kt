@@ -369,6 +369,7 @@ interface AppNavigatorDelegate : AppNavigator {
         selectedTagIds: List<Int>,
         selectedCollectionIds: List<Int>,
         feeRate: Amount,
+        source: Int
     ) {
         RollOverWalletActivity.navigate(activity = activityContext,
             oldWalletId = oldWalletId,
@@ -376,7 +377,8 @@ interface AppNavigatorDelegate : AppNavigator {
             startScreen = startScreen,
             selectedTagIds = selectedTagIds,
             selectedCollectionIds = selectedCollectionIds,
-            feeRate = feeRate
+            feeRate = feeRate,
+            source = source
         )
     }
 }
