@@ -31,7 +31,7 @@ data object CheckFirmwareVersion : PortalAction
 data class UpdateFirmware(val uri: Uri) : PortalActionWithPin
 
 @Parcelize
-data class SignTransaction(val psbt: String) : PortalActionWithPin
+data class SignTransaction(val fingerPrint: String, val psbt: String) : PortalAction
 
 @Parcelize
 data class VerifyAddress(val index: Int) : PortalActionWithPin

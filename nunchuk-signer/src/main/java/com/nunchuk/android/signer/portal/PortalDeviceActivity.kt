@@ -121,6 +121,8 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                             is PortalDeviceEvent.SignTransactionSuccess,
                             is PortalDeviceEvent.VerifyAddressSuccess,
                             is PortalDeviceEvent.UpdateFirmwareSuccess -> Unit
+
+                            PortalDeviceEvent.GetXpubSuccess -> navigationController.navigateToInputName()
                         }
                         viewModel.markEventHandled()
                     }
@@ -207,14 +209,13 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                         snackState = snackState,
                         onSelectIndex = {
                             viewModel.updateIndex(it)
-                            navigationController.navigateToInputName()
+                            viewModel.setPendingAction(GetXpub)
                         }
                     )
                     inputName(
                         snackState = snackState,
                         onInputName = { name ->
                             viewModel.updateName(name)
-                            viewModel.setPendingAction(GetXpub)
                         }
                     )
                     inputWalletName(

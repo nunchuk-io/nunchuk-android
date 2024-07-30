@@ -536,7 +536,6 @@ private fun SignerInfoContent(
     }
     val color = uiState.lastHealthCheckTimeMillis.healthCheckTimeColor()
     val isMyKey = uiState.masterSigner?.isVisible ?: uiState.remoteSigner?.isVisible ?: false
-    val isPortal = uiState.remoteSigner?.type == SignerType.PORTAL_NFC
 
     NunchukTheme {
         Scaffold(
@@ -673,7 +672,7 @@ private fun SignerInfoContent(
                             Text(text = stringResource(id = R.string.nc_text_done))
                         }
                     }
-                    if (isMyKey && !isPortal) {
+                    if (isMyKey) {
                         NcOutlineButton(
                             modifier = Modifier
                                 .fillMaxWidth()

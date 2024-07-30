@@ -17,11 +17,19 @@ class CreatePortalWalletUseCase @Inject constructor(
         val portalSigner = wallet.signers.find {
             it.masterFingerprint == parameters.portalXfp
         } ?: throw IllegalArgumentException("Portal signer not found")
-        val newPortalSigner = portalSigner.copy(
-            name = "Portal",
-            type = SignerType.PORTAL_NFC
-        )
+        var newPortalSigner = portalSigner.copy(type = SignerType.PORTAL_NFC)
         if (!nativeSdk.hasSigner(newPortalSigner)) {
+            val remoteSigners = nativeSdk.getRemoteSigners()
+            val portalSignerNames = remoteSigners
+                .filter { it.type == SignerType.PORTAL_NFC }
+                .map { it.name }.toSet()
+            val newPortalSignerName = generateSequence(1) { it + 1 }
+                .map { "Portal" + if (it == 1) "" else " #$it" }
+                .first { it !in portalSignerNames }
+            newPortalSigner = portalSigner.copy(
+                name = newPortalSignerName,
+                type = SignerType.PORTAL_NFC
+            )
             nativeSdk.createSigner(
                 name = newPortalSigner.name,
                 xpub = newPortalSigner.xpub,

@@ -67,10 +67,14 @@ class PortalDeviceViewModel @Inject constructor(
 
     private var sdkJob: Job? = null
     private var executingJob: Job? = null
+    private var shouldAskPin = true
+    private val signerPin = mutableMapOf<String, String>() // fingerprint to pin
 
     fun setPendingAction(action: PortalAction) {
         savedStateHandle[EXTRA_PENDING_ACTION] = action
-        if (action is PortalActionWithPin) {
+        if (action is SignTransaction && !signerPin.containsKey(action.fingerPrint)) {
+            _state.update { state -> state.copy(event = PortalDeviceEvent.AskPin) }
+        } else if (action is PortalActionWithPin && shouldAskPin) {
             _state.update { state -> state.copy(event = PortalDeviceEvent.AskPin) }
         } else if (!isConnectedToSdk) {
             _state.update { state -> state.copy(event = PortalDeviceEvent.RequestScan) }
@@ -89,12 +93,12 @@ class PortalDeviceViewModel @Inject constructor(
                     AddNewPortal -> getStatus()
 
                     is SetupPortal -> setupPortal(action)
-                    GetXpub -> createSigner()
+                    GetXpub -> getXpub()
                     ImportWallet -> importWallet()
                     is ExportWallet -> exportWallet(action.walletId)
                     CheckFirmwareVersion -> checkFirmwareVersion()
                     is UpdateFirmware -> updateFirmware(action.uri)
-                    is SignTransaction -> signTransaction(action.psbt)
+                    is SignTransaction -> signTransaction(action.fingerPrint, action.psbt)
                     is VerifyAddress -> verifyAddress(action.index)
                 }
             }.onFailure {
@@ -122,8 +126,9 @@ class PortalDeviceViewModel @Inject constructor(
         }
     }
 
-    private suspend fun signTransaction(psbt: String) {
+    private suspend fun signTransaction(fingerPrint: String, psbt: String) {
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
+            signerPin[fingerPrint] = savedStateHandle.get<String>(EXTRA_PIN).orEmpty()
             val signedPsbt = sdk.signPsbt(psbt)
             _state.update { state ->
                 state.copy(
@@ -194,7 +199,7 @@ class PortalDeviceViewModel @Inject constructor(
         }
     }
 
-    private suspend fun createSigner() {
+    private suspend fun getXpub() {
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
             val index = savedStateHandle.get<Int>(EXTRA_INDEX) ?: 0
             val walletType =
@@ -209,7 +214,9 @@ class PortalDeviceViewModel @Inject constructor(
                         addressType
                     )
                 ).getOrThrow()
-            createSigner(path)
+            val xpub = sdk.getXpub(path).xpub
+            savedStateHandle[EXTRA_XPUB] = xpub
+            _state.update { state -> state.copy(event = PortalDeviceEvent.GetXpubSuccess) }
         }
     }
 
@@ -231,23 +238,25 @@ class PortalDeviceViewModel @Inject constructor(
         }
     }
 
-    private suspend fun createSigner(path: String) {
-        val xpub = sdk.getXpub(path).xpub
-        val signer = parseSignerStringUseCase(xpub).getOrNull() ?: return
-        createSignerUseCase(
-            CreateSignerUseCase.Params(
-                xpub = signer.xpub,
-                derivationPath = signer.derivationPath,
-                name = savedStateHandle.get<String>(EXTRA_NAME).orEmpty(),
-                masterFingerprint = signer.masterFingerprint,
-                type = SignerType.PORTAL_NFC,
-                publicKey = signer.publicKey,
-            )
-        ).onSuccess {
-            _state.update { state -> state.copy(event = PortalDeviceEvent.OpenSignerInfo(it)) }
-        }.onFailure {
-            Timber.e(it)
-            _state.update { state -> state.copy(message = it.message.orEmpty()) }
+    private fun createSigner() {
+        viewModelScope.launch {
+            val xpub = savedStateHandle.get<String>(EXTRA_XPUB).orEmpty()
+            val signer = parseSignerStringUseCase(xpub).getOrNull() ?: return@launch
+            createSignerUseCase(
+                CreateSignerUseCase.Params(
+                    xpub = signer.xpub,
+                    derivationPath = signer.derivationPath,
+                    name = savedStateHandle.get<String>(EXTRA_NAME).orEmpty(),
+                    masterFingerprint = signer.masterFingerprint,
+                    type = SignerType.PORTAL_NFC,
+                    publicKey = signer.publicKey,
+                )
+            ).onSuccess {
+                _state.update { state -> state.copy(event = PortalDeviceEvent.OpenSignerInfo(it)) }
+            }.onFailure {
+                Timber.e(it)
+                _state.update { state -> state.copy(message = it.message.orEmpty()) }
+            }
         }
     }
 
@@ -284,6 +293,7 @@ class PortalDeviceViewModel @Inject constructor(
                 password = pin
             )
         }
+        shouldAskPin = pin != null
         _state.update { state -> state.copy(event = PortalDeviceEvent.StartSetupWallet) }
     }
 
@@ -350,6 +360,7 @@ class PortalDeviceViewModel @Inject constructor(
 
     fun updateName(name: String) {
         savedStateHandle[EXTRA_NAME] = name
+        createSigner()
     }
 
     fun markEventHandled() {
@@ -381,6 +392,7 @@ class PortalDeviceViewModel @Inject constructor(
         const val EXTRA_PENDING_ACTION = "pending_action"
         const val EXTRA_PIN = "pin"
         const val EXTRA_NAME = "name"
+        const val EXTRA_XPUB = "xpub"
     }
 }
 
@@ -397,4 +409,5 @@ sealed class PortalDeviceEvent {
     data class UpdateFirmwareSuccess(val status: CardStatus) : PortalDeviceEvent()
     data class SignTransactionSuccess(val psbt: String) : PortalDeviceEvent()
     data class VerifyAddressSuccess(val address: String) : PortalDeviceEvent()
+    data object GetXpubSuccess : PortalDeviceEvent()
 }

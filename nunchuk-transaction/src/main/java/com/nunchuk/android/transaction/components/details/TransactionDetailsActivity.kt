@@ -490,7 +490,10 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
 
                     signer.type == SignerType.AIRGAP || signer.type == SignerType.UNKNOWN -> showSignByAirgapOptions()
                     signer.type == SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
-                    signer.type == SignerType.PORTAL_NFC -> handlePortalAction(SignTransaction(viewModel.getTransaction().psbt))
+                    signer.type == SignerType.PORTAL_NFC -> handlePortalAction(SignTransaction(
+                        signer.fingerPrint,
+                        viewModel.getTransaction().psbt)
+                    )
                     else -> viewModel.handleSignSoftwareKey(signer)
                 }
             }).bindItems()
