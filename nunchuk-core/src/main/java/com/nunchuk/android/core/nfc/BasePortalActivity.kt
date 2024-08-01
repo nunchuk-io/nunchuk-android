@@ -32,6 +32,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NUMBER_TYPE
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 
 abstract class BasePortalActivity<Binding : ViewBinding> : BaseNfcActivity<Binding>(), NfcActionListener {
     private val portalViewModel: PortalDeviceViewModel by viewModels()
@@ -53,6 +54,9 @@ abstract class BasePortalActivity<Binding : ViewBinding> : BaseNfcActivity<Bindi
                 else -> onHandledPortalAction(state.event)
             }
             portalViewModel.markEventHandled()
+        }
+        flowObserver(portalViewModel.state.map { it.isLoading }) {
+            showOrHideLoading(it)
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_PORTAL }) {
