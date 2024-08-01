@@ -31,6 +31,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.wallet.CreatePortalWalletUseCase
+import com.nunchuk.android.usecase.wallet.GetPortalSignerNameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
@@ -57,7 +58,8 @@ class PortalDeviceViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val createPortalWalletUseCase: CreatePortalWalletUseCase,
     private val exportWalletToPortalUseCase: ExportWalletToPortalUseCase,
-    private val application: Application
+    private val getPortalSignerNameUseCase: GetPortalSignerNameUseCase,
+    private val application: Application,
 ) : ViewModel() {
     private var _sdk: PortalSdk? = null
     private val sdk: PortalSdk
@@ -128,14 +130,19 @@ class PortalDeviceViewModel @Inject constructor(
 
     private suspend fun signTransaction(fingerPrint: String, psbt: String) {
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
-            signerPin[fingerPrint] = savedStateHandle.get<String>(EXTRA_PIN).orEmpty()
-            val signedPsbt = sdk.signPsbt(psbt)
-            _state.update { state ->
-                state.copy(
-                    event = PortalDeviceEvent.SignTransactionSuccess(
-                        signedPsbt
+            val status = sdk.getStatus()
+            if (status.fingerprint != fingerPrint) {
+                _state.update { state -> state.copy(message = "Portal fingerprint mismatch") }
+            } else {
+                signerPin[fingerPrint] = savedStateHandle.get<String>(EXTRA_PIN).orEmpty()
+                val signedPsbt = sdk.signPsbt(psbt)
+                _state.update { state ->
+                    state.copy(
+                        event = PortalDeviceEvent.SignTransactionSuccess(
+                            signedPsbt
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -203,7 +210,7 @@ class PortalDeviceViewModel @Inject constructor(
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
             val index = savedStateHandle.get<Int>(EXTRA_INDEX) ?: 0
             val walletType =
-                if (savedStateHandle.get<Boolean>(EXTRA_MULTISIG) == true) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+                if (savedStateHandle.get<Boolean>(EXTRA_MULTISIG) == false) WalletType.SINGLE_SIG else WalletType.MULTI_SIG
             val addressType =
                 savedStateHandle.get<AddressType>(EXTRA_ADDRESS_TYPE) ?: AddressType.NATIVE_SEGWIT
             val path =
@@ -235,6 +242,16 @@ class PortalDeviceViewModel @Inject constructor(
             }
         } else {
             onSuccess()
+        }
+    }
+
+    fun createSignerForAssistedWallet() {
+        viewModelScope.launch {
+            getPortalSignerNameUseCase(Unit)
+                .onSuccess {
+                    updateName(it)
+                    createSigner()
+                }
         }
     }
 

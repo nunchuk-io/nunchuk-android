@@ -6,8 +6,11 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.type.SignerType
 
-fun getKeyOptions(context: Context, isKeyHolderLimited: Boolean, isStandard: Boolean) =
-    if (isKeyHolderLimited) {
+fun getKeyOptions(context: Context,
+                  isKeyHolderLimited: Boolean,
+                  isStandard: Boolean,
+                  shouldShowNewPortal: Boolean = false
+) = if (isKeyHolderLimited) {
         listOfNotNull(
             SheetOption(
                 type = SignerType.NFC.ordinal,
@@ -32,6 +35,12 @@ fun getKeyOptions(context: Context, isKeyHolderLimited: Boolean, isStandard: Boo
             SheetOption(
                 type = SignerType.NFC.ordinal,
                 label = context.getString(R.string.nc_tapsigner),
+                showDivider = false
+            ),
+            SheetOption(
+                type = SignerType.PORTAL_NFC.ordinal,
+                resId = if(shouldShowNewPortal) R.drawable.ic_new else 0,
+                label = context.getString(R.string.nc_portal),
                 showDivider = true
             ),
             SheetOption(

@@ -34,6 +34,7 @@ import com.nunchuk.android.core.nfc.PortalDeviceViewModel
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.portal.intro.portalIntro
 import com.nunchuk.android.signer.portal.intro.portalIntroRoute
 import com.nunchuk.android.signer.portal.passphrase.navigateToSetPassphrase
@@ -77,6 +78,9 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                 val status = (state.event as PortalDeviceEvent.AddPortal).status
                                 if (!status.initialized) {
                                     navigationController.navigateSelectSetupSeedPhrase()
+                                } else if (args.isMembershipFlow) {
+                                    viewModel.setPendingAction(GetXpub)
+                                    return@LaunchedEffect
                                 } else {
                                     navigationController.navigateToSelectWalletType()
                                 }
@@ -84,26 +88,42 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
 
                             PortalDeviceEvent.RequestScan -> startNfcFlowIfNeeded()
 
-                            PortalDeviceEvent.StartSetupWallet -> navigationController.navigateToSelectWalletType(
-                                navOptions = NavOptions.Builder()
-                                    .setPopUpTo(portalIntroRoute, false)
-                                    .build()
-                            )
+                            PortalDeviceEvent.StartSetupWallet -> {
+                                if (args.isMembershipFlow) {
+                                    viewModel.setPendingAction(GetXpub)
+                                    return@LaunchedEffect
+                                } else {
+                                    navigationController.navigateToSelectWalletType(
+                                        navOptions = NavOptions.Builder()
+                                            .setPopUpTo(portalIntroRoute, false)
+                                            .build()
+                                    )
+                                }
+                            }
 
                             PortalDeviceEvent.IncorrectPin -> showInputCvcDialog(getString(R.string.nc_incorrect_cvc_please_try_again))
                             PortalDeviceEvent.AskPin -> showInputCvcDialog()
                             is PortalDeviceEvent.OpenSignerInfo -> {
                                 val signer = event.signer
-                                navigator.openSignerInfoScreen(
-                                    activityContext = this@PortalDeviceActivity,
-                                    isMasterSigner = signer.hasMasterSigner,
-                                    id = signer.masterFingerprint,
-                                    derivationPath = signer.derivationPath,
-                                    justAdded = true,
-                                    name = signer.name,
-                                    type = signer.type,
-                                    masterFingerprint = signer.masterFingerprint
-                                )
+                                if (args.isMembershipFlow) {
+                                    setResult(
+                                        RESULT_OK,
+                                        Intent().apply {
+                                            putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
+                                        },
+                                    )
+                                } else {
+                                    navigator.openSignerInfoScreen(
+                                        activityContext = this@PortalDeviceActivity,
+                                        isMasterSigner = signer.hasMasterSigner,
+                                        id = signer.masterFingerprint,
+                                        derivationPath = signer.derivationPath,
+                                        justAdded = true,
+                                        name = signer.name,
+                                        type = signer.type,
+                                        masterFingerprint = signer.masterFingerprint
+                                    )
+                                }
                                 finish()
                             }
 
@@ -122,7 +142,13 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                             is PortalDeviceEvent.VerifyAddressSuccess,
                             is PortalDeviceEvent.UpdateFirmwareSuccess -> Unit
 
-                            PortalDeviceEvent.GetXpubSuccess -> navigationController.navigateToInputName()
+                            PortalDeviceEvent.GetXpubSuccess -> {
+                                if (args.isMembershipFlow) {
+                                    viewModel.createSignerForAssistedWallet()
+                                } else {
+                                    navigationController.navigateToInputName()
+                                }
+                            }
                         }
                         viewModel.markEventHandled()
                     }
@@ -224,7 +250,12 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                 activityContext = this@PortalDeviceActivity,
                                 walletId = walletId
                             )
-                            NcToastManager.scheduleShowMessage(getString(R.string.nc_txt_import_wallet_success, name))
+                            NcToastManager.scheduleShowMessage(
+                                getString(
+                                    R.string.nc_txt_import_wallet_success,
+                                    name
+                                )
+                            )
                             finish()
                         }
                     )

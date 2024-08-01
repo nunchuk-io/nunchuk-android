@@ -12,7 +12,7 @@ class SetUpNfcOptionSheetViewModel @Inject constructor(
     private val dataStore: NcDataStore,
     private val applicationScope: CoroutineScope
 ) : ViewModel() {
-    suspend fun showPortal() = dataStore.getShowPortalAndSet()
+    suspend fun showPortal() = dataStore.shouldShowNewPortal()
 
     fun markShowPortal() {
         applicationScope.launch {

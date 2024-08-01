@@ -10,6 +10,7 @@ import javax.inject.Inject
 
 class CreatePortalWalletUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
+    private val getPortalSignerNameUseCase: GetPortalSignerNameUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<CreatePortalWalletUseCase.Params, Wallet>(ioDispatcher) {
     override suspend fun execute(parameters: Params): Wallet {
@@ -19,13 +20,7 @@ class CreatePortalWalletUseCase @Inject constructor(
         } ?: throw IllegalArgumentException("Portal signer not found")
         var newPortalSigner = portalSigner.copy(type = SignerType.PORTAL_NFC)
         if (!nativeSdk.hasSigner(newPortalSigner)) {
-            val remoteSigners = nativeSdk.getRemoteSigners()
-            val portalSignerNames = remoteSigners
-                .filter { it.type == SignerType.PORTAL_NFC }
-                .map { it.name }.toSet()
-            val newPortalSignerName = generateSequence(1) { it + 1 }
-                .map { "Portal" + if (it == 1) "" else " #$it" }
-                .first { it !in portalSignerNames }
+            val newPortalSignerName = getPortalSignerNameUseCase(Unit).getOrThrow()
             newPortalSigner = portalSigner.copy(
                 name = newPortalSignerName,
                 type = SignerType.PORTAL_NFC

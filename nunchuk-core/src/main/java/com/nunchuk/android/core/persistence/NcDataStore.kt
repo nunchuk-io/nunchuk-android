@@ -345,7 +345,7 @@ class NcDataStore @Inject constructor(
             it[passwordTokenKey].orEmpty()
         }
 
-    suspend fun getShowPortalAndSet() : Boolean {
+    suspend fun shouldShowNewPortal() : Boolean {
         return context.dataStore.data.map {
             it[showNewPortalKey] ?: true
         }.first()

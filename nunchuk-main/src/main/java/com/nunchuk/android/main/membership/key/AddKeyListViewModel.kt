@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedPath
@@ -70,6 +71,7 @@ class AddKeyListViewModel @Inject constructor(
     private val gson: Gson,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val checkRequestAddDesktopKeyStatusUseCase: CheckRequestAddDesktopKeyStatusUseCase,
+    private val ncDataStore: NcDataStore
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     private val _event = MutableSharedFlow<AddKeyListEvent>()
@@ -92,6 +94,7 @@ class AddKeyListViewModel @Inject constructor(
     val key = _keys.asStateFlow()
 
     private val singleSigners = mutableListOf<SingleSigner>()
+    var shouldShowNewPortal: Boolean = false
 
     init {
         viewModelScope.launch {
@@ -120,10 +123,13 @@ class AddKeyListViewModel @Inject constructor(
             membershipStepState.collect {
                 val news = _keys.value.map { addKeyData ->
                     val info = getStepInfo(addKeyData.type)
+                    val extra = runCatching { gson.fromJson(info.extraData, SignerExtra::class.java) }.getOrNull()
                     if (addKeyData.signer == null && info.masterSignerId.isNotEmpty()) {
                         loadSigners()
+                        val path = extra?.derivationPath.orEmpty()
+                        val signer = _state.value.signers.find { it.fingerPrint == info.masterSignerId && it.derivationPath == path }
                         return@map addKeyData.copy(
-                            signer = _state.value.signers.find { it.fingerPrint == info.masterSignerId },
+                            signer = signer,
                             verifyType = info.verifyType
                         )
                     }
@@ -138,6 +144,9 @@ class AddKeyListViewModel @Inject constructor(
                     membershipStepManager.localMembershipPlan
                 )
             )
+        }
+        viewModelScope.launch {
+            shouldShowNewPortal = ncDataStore.shouldShowNewPortal()
         }
     }
 
@@ -246,7 +255,11 @@ class AddKeyListViewModel @Inject constructor(
     }
 
     fun getHardwareSigners(tag: SignerTag) =
-        _state.value.signers.filter { isSignerExist(it.fingerPrint).not() && it.type == SignerType.HARDWARE && it.tags.contains(tag)  }
+        _state.value.signers.filter {
+            isSignerExist(it.fingerPrint).not() && it.type == SignerType.HARDWARE && it.tags.contains(
+                tag
+            )
+        }
 
     fun getAirgap(tag: SignerTag?): List<SignerModel> {
         return if (tag == null) {
@@ -262,6 +275,9 @@ class AddKeyListViewModel @Inject constructor(
             }
         }
     }
+
+    fun getPortal(): List<SignerModel> =
+        _state.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"

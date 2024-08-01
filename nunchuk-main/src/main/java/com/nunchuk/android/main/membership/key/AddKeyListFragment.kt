@@ -19,10 +19,12 @@
 
 package com.nunchuk.android.main.membership.key
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,11 +73,14 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignerModelProvider
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -90,13 +95,16 @@ import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Collections.emptyList
 import javax.inject.Inject
@@ -109,6 +117,16 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel by activityViewModels<AddKeyListViewModel>()
 
     private var selectedSignerTag: SignerTag? = null
+
+    private val addPortalLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
+                    viewModel.onSelectedExistingHardwareSigner(it.toModel())
+                }
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -130,10 +148,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             if (data.signers.isNotEmpty()) {
                 when (data.type) {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
-                    SignerType.AIRGAP,
-                    SignerType.COLDCARD_NFC,
-                    SignerType.HARDWARE
-                    -> {
+                    else -> {
                         val signer = data.signers.first()
                         val selectedSignerTag = selectedSignerTag
                         if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
@@ -142,12 +157,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                             viewModel.onSelectedExistingHardwareSigner(signer)
                         }
                     }
-
-                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             } else {
                 when (data.type) {
                     SignerType.NFC -> openSetupTapSigner()
+                    SignerType.PORTAL_NFC -> openSetupPortal()
                     SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
                     SignerType.HARDWARE -> selectedSignerTag?.let { openRequestAddDesktopKey(it) }
@@ -165,6 +179,12 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 viewModel.getTapSigners(),
                 SignerType.NFC,
                 ::openSetupTapSigner
+            )
+
+            SignerType.PORTAL_NFC.ordinal -> handleShowKeysOrCreate(
+                viewModel.getPortal(),
+                SignerType.PORTAL_NFC,
+                ::openSetupPortal
             )
 
             SignerType.COLDCARD_NFC.ordinal -> {
@@ -206,6 +226,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.HARDWARE
                 ) { openRequestAddDesktopKey(SignerTag.LEDGER) }
             }
+
             SheetOptionType.TYPE_ADD_TREZOR -> {
                 selectedSignerTag = SignerTag.TREZOR
                 handleShowKeysOrCreate(
@@ -213,6 +234,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.HARDWARE
                 ) { openRequestAddDesktopKey(SignerTag.TREZOR) }
             }
+
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
             SheetOptionType.TYPE_ADD_BITBOX -> {
                 selectedSignerTag = SignerTag.BITBOX
@@ -347,7 +369,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         val options = getKeyOptions(
             context = requireContext(),
             isKeyHolderLimited = false,
-            isStandard = false
+            isStandard = false,
+            shouldShowNewPortal = viewModel.shouldShowNewPortal
         )
         BottomSheetOption.newInstance(
             options = options,
@@ -386,6 +409,17 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         navigator.openSetupTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
+        )
+    }
+
+    private fun openSetupPortal() {
+        navigator.openPortalScreen(
+            launcher = addPortalLauncher,
+            activity = requireActivity(),
+            args = PortalDeviceArgs(
+                type = PortalDeviceFlow.SETUP,
+                isMembershipFlow = true
+            ),
         )
     }
 

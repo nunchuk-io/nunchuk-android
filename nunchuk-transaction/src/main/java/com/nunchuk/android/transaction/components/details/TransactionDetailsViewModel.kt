@@ -89,6 +89,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ViewBlockchainExplorer
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.BroadcastTransactionUseCase
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
@@ -869,8 +870,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     walletId = walletId,
                 )
             ).onSuccess {
-                updateTransaction(transaction = it,)
-                setEvent(SignTransactionSuccess())
+                val signer = currentSigner() ?: return@onSuccess
+                if (it.status != TransactionStatus.READY_TO_BROADCAST && it.signers[signer.fingerPrint] == false) {
+                    event(TransactionError("Wallet has not registered to Portal yet"))
+                } else {
+                    updateTransaction(transaction = it)
+                    setEvent(SignTransactionSuccess())
+                }
             }.onFailure {
                 event(TransactionError(it.readableMessage()))
             }
