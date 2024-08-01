@@ -87,6 +87,7 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
+import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
@@ -143,11 +144,23 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observer()
+        setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
+            val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
+            if (signer != null) {
+                viewModel.onSelectedExistingHardwareSigner(signer.toModel())
+            }
+            clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
+        }
         setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
             if (data.signers.isNotEmpty()) {
                 when (data.type) {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
+                    SignerType.PORTAL_NFC -> findNavController().navigate(
+                        AddKeyListFragmentDirections.actionAddKeyListFragmentToCustomKeyAccountFragmentFragment(
+                            data.signers.first()
+                        )
+                    )
                     else -> {
                         val signer = data.signers.first()
                         val selectedSignerTag = selectedSignerTag

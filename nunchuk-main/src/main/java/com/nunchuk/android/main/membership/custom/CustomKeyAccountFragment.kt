@@ -47,6 +47,8 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignerModelProvider
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -67,6 +69,7 @@ import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -87,6 +90,15 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                 findNavController().popBackStack()
             } else if (it.resultCode == GlobalResult.RESULT_INDEX_NOT_MATCH) {
                 showError(getString(R.string.nc_coldcard_index_not_match, viewModel.getNewIndex()))
+            }
+        }
+
+    private val portalLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                it.data?.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                    setResultAndFinish(signer)
+                }
             }
         }
 
@@ -246,6 +258,19 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
 
                 args.signer.type == SignerType.NFC -> openCreateBackUpTapSigner(viewModel.getNewIndex())
 
+                args.signer.type == SignerType.PORTAL_NFC -> {
+                    navigator.openPortalScreen(
+                        activity = requireActivity(),
+                        launcher = portalLauncher,
+                        args = PortalDeviceArgs(
+                            type = PortalDeviceFlow.RESCAN,
+                            signer = args.signer,
+                            newIndex = viewModel.getNewIndex(),
+                            isMembershipFlow = true
+                        )
+                    )
+                }
+
                 else -> {
                     NCWarningDialog(requireActivity()).showDialog(
                         message = getString(R.string.nc_master_signer_new_index_not_available),
@@ -258,14 +283,18 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                 }
             }
         } else {
-            setFragmentResult(
-                REQUEST_KEY,
-                Bundle().apply {
-                    putParcelable(GlobalResultKey.EXTRA_SIGNER, signer)
-                },
-            )
-            findNavController().popBackStack()
+            setResultAndFinish(signer)
         }
+    }
+
+    private fun setResultAndFinish(signer: SingleSigner) {
+        setFragmentResult(
+            REQUEST_KEY,
+            Bundle().apply {
+                putParcelable(GlobalResultKey.EXTRA_SIGNER, signer)
+            },
+        )
+        findNavController().popBackStack()
     }
 
     private fun showAddColdcardOptions() {

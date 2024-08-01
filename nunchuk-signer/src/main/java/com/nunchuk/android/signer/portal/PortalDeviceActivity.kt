@@ -197,9 +197,14 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                 PortalDeviceFlow.EXPORT -> {
                                     viewModel.setPendingAction(ExportWallet(args.walletId))
                                 }
+
+                                PortalDeviceFlow.RESCAN -> {
+                                    viewModel.updateIndex(args.newIndex)
+                                    viewModel.setPendingAction(GetXpub)
+                                }
                             }
                         },
-                        flow = args.type
+                        args = args
                     )
                     selectSetupSeedPhrase(
                         openSetPassphraseScreen = { mnemonic, numberOfWords ->

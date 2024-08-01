@@ -232,6 +232,10 @@ class PortalDeviceViewModel @Inject constructor(
         onSuccess: suspend () -> Unit
     ) {
         val status = sdk.getStatus()
+        if (!status.initialized) {
+            _state.update { state -> state.copy(message = "Portal not initialized") }
+            return
+        }
         if (!status.unlocked) {
             runCatching {
                 sdk.unlock(pin)
