@@ -30,12 +30,13 @@ import com.nunchuk.android.core.domain.data.PortalAction
 import com.nunchuk.android.core.domain.data.UpdateFirmware
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NUMBER_TYPE
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 
 abstract class BasePortalActivity<Binding : ViewBinding> : BaseNfcActivity<Binding>(), NfcActionListener {
-    private val portalViewModel: PortalDeviceViewModel by viewModels()
+    protected val portalViewModel: PortalDeviceViewModel by viewModels()
 
     private val pickFile = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
@@ -46,28 +47,37 @@ abstract class BasePortalActivity<Binding : ViewBinding> : BaseNfcActivity<Bindi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         flowObserver(portalViewModel.state) { state ->
-            state.event ?: return@flowObserver
-            when(state.event) {
-                PortalDeviceEvent.RequestScan -> startNfcFlowIfNeeded()
-                PortalDeviceEvent.IncorrectPin -> showInputCvcDialog(getString(R.string.nc_incorrect_cvc_please_try_again))
-                PortalDeviceEvent.AskPin -> showInputCvcDialog()
-                else -> onHandledPortalAction(state.event)
+            if (state.event != null) {
+                when (state.event) {
+                    PortalDeviceEvent.RequestScan -> startNfcFlowIfNeeded()
+                    PortalDeviceEvent.IncorrectPin -> showInputCvcDialog(getString(R.string.nc_incorrect_cvc_please_try_again))
+                    PortalDeviceEvent.AskPin -> showInputCvcDialog()
+                    else -> onHandledPortalAction(state.event)
+                }
+                portalViewModel.markEventHandled()
             }
-            portalViewModel.markEventHandled()
-        }
-        flowObserver(portalViewModel.state.map { it.isLoading }) {
-            showOrHideLoading(it)
+            if (state.message.isNotEmpty()) {
+                NCToastMessage(this).showError(state.message)
+                portalViewModel.markMessageHandled()
+            }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_PORTAL }) {
             NfcA.get(it.tag)?.let { newTag -> portalViewModel.newTag(newTag) }
             nfcViewModel.clearScanInfo()
         }
+        handleLoading()
+    }
+
+    open fun handleLoading() {
+        flowObserver(portalViewModel.state.map { it.isLoading }) {
+            showOrHideLoading(it)
+        }
     }
 
     abstract fun onHandledPortalAction(event : PortalDeviceEvent)
 
-    fun handlePortalAction(action: PortalAction) {
+    open fun handlePortalAction(action: PortalAction) {
         portalViewModel.setPendingAction(action)
     }
 

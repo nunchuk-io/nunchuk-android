@@ -203,7 +203,12 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
                     if (address.isNotBlank()) {
                         val index = viewModel.getAddressIndex(address)
                         if (index != -1) {
-                            (requireActivity() as BasePortalActivity<*>).handlePortalAction(VerifyAddress(index))
+                            (requireActivity() as BasePortalActivity<*>).handlePortalAction(
+                                VerifyAddress(
+                                    address = address,
+                                    index = index
+                                )
+                            )
                         }
                     }
                 }

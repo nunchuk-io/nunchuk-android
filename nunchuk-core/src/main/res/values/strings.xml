@@ -767,4 +767,5 @@
     <string name="nc_txt_import_wallet_success">%s has been successfully recovered</string>
     <string name="nc_account_index">Account index</string>
     <string name="nc_select_account_index">Select account index</string>
+    <string name="nc_put_your_device_near_the_nfc_key_to_verify_address">Put your device near the NFC key. Please verify the address on the device:</string>
 </resources>

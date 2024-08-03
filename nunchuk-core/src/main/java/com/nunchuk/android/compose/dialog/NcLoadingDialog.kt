@@ -23,6 +23,7 @@ import com.nunchuk.android.core.R
 @Composable
 fun NcLoadingDialog(
     title: String = stringResource(id = R.string.nc_please_wait),
+    customMessage : String? = null,
     onDismiss: () -> Unit = {},
 ) {
     Dialog(
@@ -50,6 +51,14 @@ fun NcLoadingDialog(
                 modifier = Modifier.padding(top = 24.dp),
                 text = title, style = NunchukTheme.typography.body,
             )
+
+            customMessage?.let {
+                Text(
+                    modifier = Modifier.padding(top = 16.dp),
+                    text = customMessage,
+                    style = NunchukTheme.typography.body,
+                )
+            }
         }
     }
 }
@@ -59,6 +68,7 @@ fun NcLoadingDialog(
 fun NcLoadingDialogPreview() {
     NunchukTheme {
         NcLoadingDialog(
+            customMessage = "Custom message",
             onDismiss = {}
         )
     }

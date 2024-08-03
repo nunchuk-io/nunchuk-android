@@ -21,9 +21,11 @@ package com.nunchuk.android.transaction.components.receive
 
 import android.content.Context
 import android.os.Bundle
+import com.nunchuk.android.core.domain.data.PortalAction
+import com.nunchuk.android.core.domain.data.VerifyAddress
 import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.PortalDeviceEvent
-import com.nunchuk.android.core.sheet.BottomSheetTooltip
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentFactory
 import com.nunchuk.android.transaction.components.receive.address.AddressPagerAdapter
@@ -33,12 +35,14 @@ import com.nunchuk.android.transaction.components.receive.address.AddressTab.USE
 import com.nunchuk.android.transaction.databinding.ActivityTransactionReceiveBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.map
 
 @AndroidEntryPoint
 class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceiveBinding>(),
     TabCountChangeListener {
 
     private lateinit var pagerAdapter: AddressPagerAdapter
+    private var currentAddress: String = ""
 
     private val args: ReceiveTransactionArgs by lazy { ReceiveTransactionArgs.deserializeFrom(intent) }
 
@@ -49,6 +53,16 @@ class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceive
 
         setLightStatusBar()
         setupViews()
+    }
+
+    override fun handleLoading() {
+        flowObserver(portalViewModel.state.map { it.isLoading }) {
+            showOrHideLoading(
+                loading = it,
+                title = getString(R.string.nc_put_your_device_near_the_nfc_key_to_verify_address),
+                message = currentAddress
+            )
+        }
     }
 
     private fun setupViews() {
@@ -71,14 +85,12 @@ class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceive
         }
     }
 
-    override fun onHandledPortalAction(event: PortalDeviceEvent) {
-        if (event is PortalDeviceEvent.VerifyAddressSuccess) {
-            BottomSheetTooltip.newInstance(
-                title = getString(R.string.nc_please_check_this_address_on_your_device),
-                message = event.address
-            ).show(supportFragmentManager, "BottomSheetTooltip")
-        }
+    override fun handlePortalAction(action: PortalAction) {
+        currentAddress = (action as? VerifyAddress)?.address.orEmpty()
+        super.handlePortalAction(action)
     }
+
+    override fun onHandledPortalAction(event: PortalDeviceEvent) {}
 
     override fun onChange(tab: AddressTab, count: Int) {
         binding.tabs.getTabAt(tab.position)?.apply {

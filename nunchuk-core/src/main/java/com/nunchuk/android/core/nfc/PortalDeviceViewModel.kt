@@ -117,14 +117,7 @@ class PortalDeviceViewModel @Inject constructor(
 
     private suspend fun verifyAddress(index: Int) {
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
-            val address = sdk.displayAddress(index.toUInt())
-            _state.update { state ->
-                state.copy(
-                    event = PortalDeviceEvent.VerifyAddressSuccess(
-                        address
-                    )
-                )
-            }
+            sdk.displayAddress(index.toUInt())
         }
     }
 
@@ -429,6 +422,5 @@ sealed class PortalDeviceEvent {
     data class CheckFirmwareVersionSuccess(val status: CardStatus) : PortalDeviceEvent()
     data class UpdateFirmwareSuccess(val status: CardStatus) : PortalDeviceEvent()
     data class SignTransactionSuccess(val psbt: String) : PortalDeviceEvent()
-    data class VerifyAddressSuccess(val address: String) : PortalDeviceEvent()
     data object GetXpubSuccess : PortalDeviceEvent()
 }

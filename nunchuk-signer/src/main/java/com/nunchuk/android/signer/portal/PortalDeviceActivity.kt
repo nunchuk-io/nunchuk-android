@@ -139,7 +139,6 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                             // handle in other screens
                             is PortalDeviceEvent.CheckFirmwareVersionSuccess,
                             is PortalDeviceEvent.SignTransactionSuccess,
-                            is PortalDeviceEvent.VerifyAddressSuccess,
                             is PortalDeviceEvent.UpdateFirmwareSuccess -> Unit
 
                             PortalDeviceEvent.GetXpubSuccess -> {
