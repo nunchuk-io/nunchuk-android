@@ -15,6 +15,7 @@ import com.nunchuk.android.usecase.CreateAndBroadcastRollOverTransactionsUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
+import com.nunchuk.android.usecase.replace.UpdateReplaceKeyConfigUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,6 +37,7 @@ class RollOverWalletViewModel @Inject constructor(
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
     private val createAndBroadcastRollOverTransactionsUseCase: CreateAndBroadcastRollOverTransactionsUseCase,
     private val assistedWalletManager: AssistedWalletManager,
+    private val updateReplaceKeyConfigUseCase: UpdateReplaceKeyConfigUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RollOverWalletUiState())
@@ -201,6 +203,20 @@ class RollOverWalletViewModel @Inject constructor(
 
     fun getSource(): Int {
         return source
+    }
+
+    fun updateReplaceKeyConfig(isRemoveKey: Boolean) {
+        viewModelScope.launch {
+            val walletId = getOldWalletId()
+            val groupId = assistedWalletManager.getGroupId(walletId).orEmpty()
+            updateReplaceKeyConfigUseCase(
+                UpdateReplaceKeyConfigUseCase.Param(
+                    groupId = groupId,
+                    walletId = walletId,
+                    isRemoveKey = isRemoveKey
+                )
+            )
+        }
     }
 
     companion object {

@@ -32,5 +32,4 @@ enum class MembershipStage {
     DONE,
     ADD_KEY_ONLY,
     REGISTER_WALLET,
-    TRANSFER_FUNDS,
 }

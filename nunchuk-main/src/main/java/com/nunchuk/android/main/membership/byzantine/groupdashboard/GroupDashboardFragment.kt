@@ -29,6 +29,8 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
+import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
@@ -53,7 +55,6 @@ import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
-import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
@@ -555,10 +556,12 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
         } else if (alert.type == AlertType.SETUP_INHERITANCE_PLAN) {
             viewModel.getInheritance()
         } else if (alert.type == AlertType.TRANSFER_FUNDS) {
-            MembershipActivity.openTransferFund(
-                activity = requireActivity(),
-                replacedWalletId = viewModel.getWalletId(),
-                walletId = alert.payload.newWalletId
+            navigator.openRollOverWalletScreen(
+                activityContext = requireActivity(),
+                oldWalletId = viewModel.getWalletId(),
+                newWalletId = alert.payload.newWalletId,
+                startScreen = RollOverWalletFlow.REFUND,
+                source = RollOverWalletSource.REPLACE_KEY
             )
         }
     }
