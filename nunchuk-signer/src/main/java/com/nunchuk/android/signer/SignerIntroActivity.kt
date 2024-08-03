@@ -68,6 +68,8 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(),
                     activity = this,
                     args = PortalDeviceArgs(
                         type = PortalDeviceFlow.SETUP,
+                        isMembershipFlow = walletId.isNotEmpty(),
+                        walletId = walletId
                     )
                 )
                 finish()

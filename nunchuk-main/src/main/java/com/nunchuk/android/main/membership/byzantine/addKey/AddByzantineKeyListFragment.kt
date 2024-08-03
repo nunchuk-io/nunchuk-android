@@ -19,11 +19,13 @@
 
 package com.nunchuk.android.main.membership.byzantine.addKey
 
+import android.app.Activity
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -36,6 +38,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -81,6 +85,16 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 
     private val isKeyHolderLimited: Boolean by lazy { args.role.toRole == AssistedWalletRole.KEYHOLDER_LIMITED }
 
+    private val addPortalLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
+                    viewModel.handleSignerNewIndex(it)
+                }
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -107,14 +121,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             if (data.signers.isNotEmpty()) {
                 val signer = data.signers.first()
                 when (signer.type) {
-                    SignerType.NFC, SignerType.SOFTWARE, SignerType.FOREIGN_SOFTWARE -> {
-                        findNavController().navigate(
-                            AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
-                                signer
-                            )
-                        )
-                    }
-
                     SignerType.AIRGAP -> {
                         val hasTag = signer.tags.any { it.isAirgapTag || it == SignerTag.COLDCARD }
                         val selectedSignerTag = selectedSignerTag
@@ -129,23 +135,13 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                         }
                     }
 
-                    SignerType.COLDCARD_NFC -> {
+                    else -> {
                         findNavController().navigate(
                             AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
                                 signer
                             )
                         )
                     }
-
-                    SignerType.HARDWARE -> {
-                        findNavController().navigate(
-                            AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
-                                signer
-                            )
-                        )
-                    }
-
-                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             } else {
                 when (data.type) {
@@ -156,6 +152,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                         openRequestAddDesktopKey(tag)
                     }
 
+                    SignerType.PORTAL_NFC -> openSetupPortal()
                     SignerType.SOFTWARE -> openAddSoftwareKey()
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
@@ -183,6 +180,12 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 viewModel.getTapSigners(),
                 SignerType.NFC,
                 ::openSetupTapSigner
+            )
+
+            SignerType.PORTAL_NFC.ordinal -> handleShowKeysOrCreate(
+                viewModel.getPortalSigners(),
+                SignerType.PORTAL_NFC,
+                ::openSetupPortal
             )
 
             SignerType.COLDCARD_NFC.ordinal -> {
@@ -260,7 +263,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 
     private fun showFacilitatorInfoDialog() {
         NCInfoDialog(requireActivity())
-            .showDialog(message = getString(R.string.nc_info_facilitator),)
+            .showDialog(message = getString(R.string.nc_info_facilitator))
     }
 
     private fun checkTwoSoftwareKeySameDevice(onSuccess: () -> Unit) {
@@ -475,6 +478,17 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             activity = requireActivity(),
             fromMembershipFlow = true,
             groupId = (activity as MembershipActivity).groupId,
+        )
+    }
+
+    private fun openSetupPortal() {
+        navigator.openPortalScreen(
+            launcher = addPortalLauncher,
+            activity = requireActivity(),
+            args = PortalDeviceArgs(
+                type = PortalDeviceFlow.SETUP,
+                isMembershipFlow = true
+            ),
         )
     }
 }

@@ -449,6 +449,8 @@ class ReplaceKeysViewModel @Inject constructor(
         get() = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()
 
     fun isMultiSig() = _uiState.value.isMultiSig
+    fun getPortalSigners() =
+        _uiState.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
 
     companion object {
         const val REPLACE_XFP = "REPLACE_XFP"

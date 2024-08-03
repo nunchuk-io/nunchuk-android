@@ -266,7 +266,8 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                             type = PortalDeviceFlow.RESCAN,
                             signer = args.signer,
                             newIndex = viewModel.getNewIndex(),
-                            isMembershipFlow = true
+                            isMembershipFlow = true,
+                            walletId = (activity as MembershipActivity).walletId,
                         )
                     )
                 }

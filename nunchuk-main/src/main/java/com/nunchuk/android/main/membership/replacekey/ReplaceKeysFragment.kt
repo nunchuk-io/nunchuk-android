@@ -1,10 +1,12 @@
 package com.nunchuk.android.main.membership.replacekey
 
+import android.app.Activity
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.text.bold
@@ -15,6 +17,8 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -49,6 +53,16 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
 
     private val args by navArgs<ReplaceKeysFragmentArgs>()
     private var selectedSignerTag: SignerTag? = null
+    private val addPortalLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
+                    viewModel.onReplaceKey(it)
+                }
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -100,17 +114,6 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             if (data.signers.isNotEmpty()) {
                 val signer = data.signers.first()
                 when (signer.type) {
-                    SignerType.NFC, SignerType.SOFTWARE, SignerType.FOREIGN_SOFTWARE, SignerType.COLDCARD_NFC, SignerType.HARDWARE -> {
-                        findNavController().navigate(
-                            ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
-                                signer = signer,
-                                replacedXfp = viewModel.replacedXfp,
-                                isFreeWallet = !viewModel.isActiveAssistedWallet,
-                                isMultisigWallet = viewModel.isMultiSig(),
-                            )
-                        )
-                    }
-
                     SignerType.AIRGAP -> {
                         val hasTag = signer.tags.any { it.isAirgapTag || it == SignerTag.COLDCARD }
                         val selectedSignerTag = selectedSignerTag
@@ -127,14 +130,23 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                         }
                     }
 
-                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
+                    else -> {
+                        findNavController().navigate(
+                            ReplaceKeysFragmentDirections.actionReplaceKeysFragmentToCustomKeyAccountFragmentFragment(
+                                signer = signer,
+                                replacedXfp = viewModel.replacedXfp,
+                                isFreeWallet = !viewModel.isActiveAssistedWallet,
+                                isMultisigWallet = viewModel.isMultiSig(),
+                            )
+                        )
+                    }
                 }
             } else {
                 when (data.type) {
                     SignerType.NFC -> openSetupTapSigner()
                     SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
-
+                    SignerType.PORTAL_NFC -> openSetupPortal()
                     SignerType.SOFTWARE -> openAddSoftwareKey()
                     SignerType.HARDWARE -> showAddKeyByDesktopApp()
                     SignerType.UNKNOWN -> openSignerIntro()
@@ -181,6 +193,12 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 viewModel.getTapSigners(),
                 SignerType.NFC,
                 ::openSetupTapSigner
+            )
+
+            SignerType.PORTAL_NFC.ordinal -> handleShowKeysOrCreate(
+                viewModel.getPortalSigners(),
+                SignerType.PORTAL_NFC,
+                ::openSetupPortal
             )
 
             SignerType.COLDCARD_NFC.ordinal -> {
@@ -338,6 +356,18 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             groupId = (activity as MembershipActivity).groupId,
             replacedXfp = viewModel.replacedXfp,
             walletId = args.walletId
+        )
+    }
+
+    private fun openSetupPortal() {
+        navigator.openPortalScreen(
+            launcher = addPortalLauncher,
+            activity = requireActivity(),
+            args = PortalDeviceArgs(
+                type = PortalDeviceFlow.SETUP,
+                isMembershipFlow = true,
+                walletId = args.walletId
+            ),
         )
     }
 

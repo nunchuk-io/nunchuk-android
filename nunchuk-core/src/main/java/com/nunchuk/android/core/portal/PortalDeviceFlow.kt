@@ -26,7 +26,7 @@ data class PortalDeviceArgs(
 ) : Parcelable {
     companion object {
         private const val EXTRA_TYPE = "EXTRA_TYPE"
-        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "EXTRA_IS_MEMBERSHIP_FLOW"
         private const val EXTRA_XFP = "EXTRA_XFP"
         private const val EXTRA_NEW_INDEX = "EXTRA_NEW_INDEX"

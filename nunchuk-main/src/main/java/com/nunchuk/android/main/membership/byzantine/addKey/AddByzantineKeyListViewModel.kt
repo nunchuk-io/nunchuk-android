@@ -303,6 +303,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     fun getGroupWalletType() = _state.value.groupWalletType
     fun getCountWalletSoftwareSignersInDevice() = key.value.count { it.signer != null && it.signer.type == SignerType.SOFTWARE && it.signer.isVisible }
+    fun getPortalSigners() = _state.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"

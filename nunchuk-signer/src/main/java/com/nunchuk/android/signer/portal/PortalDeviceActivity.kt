@@ -103,7 +103,7 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
 
                             PortalDeviceEvent.IncorrectPin -> showInputCvcDialog(getString(R.string.nc_incorrect_cvc_please_try_again))
                             PortalDeviceEvent.AskPin -> showInputCvcDialog()
-                            is PortalDeviceEvent.OpenSignerInfo -> {
+                            is PortalDeviceEvent.AddSignerSuccess -> {
                                 val signer = event.signer
                                 if (args.isMembershipFlow) {
                                     setResult(

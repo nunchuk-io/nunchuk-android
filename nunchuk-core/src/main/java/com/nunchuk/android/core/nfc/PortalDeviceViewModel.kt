@@ -23,6 +23,9 @@ import com.nunchuk.android.core.domain.utils.ExportWalletToPortalUseCase
 import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.exception.IncorrectPinException
+import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
@@ -32,6 +35,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.wallet.CreatePortalWalletUseCase
 import com.nunchuk.android.usecase.wallet.GetPortalSignerNameUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
@@ -60,6 +64,8 @@ class PortalDeviceViewModel @Inject constructor(
     private val exportWalletToPortalUseCase: ExportWalletToPortalUseCase,
     private val getPortalSignerNameUseCase: GetPortalSignerNameUseCase,
     private val application: Application,
+    private val pushEventManager: PushEventManager,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase
 ) : ViewModel() {
     private var _sdk: PortalSdk? = null
     private val sdk: PortalSdk
@@ -71,6 +77,18 @@ class PortalDeviceViewModel @Inject constructor(
     private var executingJob: Job? = null
     private var shouldAskPin = true
     private val signerPin = mutableMapOf<String, String>() // fingerprint to pin
+
+    init {
+        val walletId = savedStateHandle.get<String>(PortalDeviceArgs.EXTRA_WALLET_ID).orEmpty()
+        if (walletId.isNotEmpty()) {
+            viewModelScope.launch {
+                getWalletDetail2UseCase(walletId).onSuccess {
+                    savedStateHandle[EXTRA_MULTISIG] = it.signers.size > 1
+                    savedStateHandle[EXTRA_ADDRESS_TYPE] = it.addressType
+                }
+            }
+        }
+    }
 
     fun setPendingAction(action: PortalAction) {
         savedStateHandle[EXTRA_PENDING_ACTION] = action
@@ -266,7 +284,8 @@ class PortalDeviceViewModel @Inject constructor(
                     publicKey = signer.publicKey,
                 )
             ).onSuccess {
-                _state.update { state -> state.copy(event = PortalDeviceEvent.OpenSignerInfo(it)) }
+                _state.update { state -> state.copy(event = PortalDeviceEvent.AddSignerSuccess(it)) }
+                pushEventManager.push(PushEvent.LocalUserSignerAdded(it))
             }.onFailure {
                 Timber.e(it)
                 _state.update { state -> state.copy(message = it.message.orEmpty()) }
@@ -416,7 +435,7 @@ sealed class PortalDeviceEvent {
     data object AskPin : PortalDeviceEvent()
     data object StartSetupWallet : PortalDeviceEvent()
     data object IncorrectPin : PortalDeviceEvent()
-    data class OpenSignerInfo(val signer: SingleSigner) : PortalDeviceEvent()
+    data class AddSignerSuccess(val signer: SingleSigner) : PortalDeviceEvent()
     data class ImportWalletSuccess(val walletId: String) : PortalDeviceEvent()
     data object ExportWalletSuccess : PortalDeviceEvent()
     data class CheckFirmwareVersionSuccess(val status: CardStatus) : PortalDeviceEvent()
