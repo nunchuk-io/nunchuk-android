@@ -272,7 +272,7 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
     private fun showInputCvcDialog(errorMessage: String? = null, descMessage: String? = null) {
         NCInputDialog(this)
             .showDialog(
-                title = getString(R.string.nc_enter_pin),
+                title = getString(R.string.nc_enter_device_password),
                 onConfirmed = { cvc ->
                     viewModel.updatePin(cvc)
                     startNfcFlowIfNeeded()
