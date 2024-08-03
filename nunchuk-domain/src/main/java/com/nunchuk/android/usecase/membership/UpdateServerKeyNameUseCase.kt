@@ -31,8 +31,16 @@ class UpdateServerKeyNameUseCase @Inject constructor(
 ) : UseCase<UpdateServerKeyNameUseCase.Param, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param) {
-        return repository.updateServerKeyName(parameters.xfp, parameters.name)
+        return repository.updateServerKeyName(
+            xfp = parameters.xfp,
+            name = parameters.name,
+            path = parameters.path
+        )
     }
 
-    data class Param(val xfp: String, val name: String)
+    data class Param(
+        val xfp: String,
+        val name: String,
+        val path: String
+    )
 }

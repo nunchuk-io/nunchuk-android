@@ -402,7 +402,9 @@ internal interface UserWalletsApi {
 
     @PUT("/v1.1/user-wallets/wallet-keys/{xfp}")
     suspend fun updateServerKey(
-        @Path("xfp") xfp: String, @Body payload: UpdateKeyPayload
+        @Path("xfp") xfp: String,
+        @Body payload: UpdateKeyPayload,
+        @Query("derivation_path") derivationPath: String
     ): Data<Unit>
 
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/coin-control")

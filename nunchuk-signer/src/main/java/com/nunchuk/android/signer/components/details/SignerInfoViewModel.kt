@@ -201,7 +201,7 @@ internal class SignerInfoViewModel @Inject constructor(
                     updateMasterSignerUseCase(parameters = signer.copy(name = updateSignerName))
                         .onSuccess {
                             _state.update { it.copy(signerName = updateSignerName) }
-                            updateServerKeyName(signer.id, updateSignerName)
+                            updateServerKeyName(xfp = signer.id, name = updateSignerName, path = "")
                         }
                         .onFailure { e ->
                             _event.emit(UpdateNameErrorEvent(e.message.orUnknownError()))
@@ -214,7 +214,11 @@ internal class SignerInfoViewModel @Inject constructor(
                         is Success -> {
                             _state.update { it.copy(signerName = updateSignerName) }
                             _event.emit(UpdateNameSuccessEvent(updateSignerName))
-                            updateServerKeyName(signer.masterFingerprint, updateSignerName)
+                            updateServerKeyName(
+                                xfp = signer.masterFingerprint,
+                                name = updateSignerName,
+                                path = signer.derivationPath
+                            )
                         }
 
                         is Error -> _event.emit(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
@@ -224,10 +228,10 @@ internal class SignerInfoViewModel @Inject constructor(
         }
     }
 
-    private fun updateServerKeyName(xfp: String, name: String) {
+    private fun updateServerKeyName(xfp: String, name: String, path: String) {
         viewModelScope.launch {
             if (assistedKeys.value.contains(xfp)) {
-                updateServerKeyNameUseCase(UpdateServerKeyNameUseCase.Param(xfp, name))
+                updateServerKeyNameUseCase(UpdateServerKeyNameUseCase.Param(xfp, name, path))
             }
         }
     }

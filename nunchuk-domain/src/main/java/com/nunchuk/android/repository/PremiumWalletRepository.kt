@@ -101,7 +101,6 @@ interface PremiumWalletRepository {
     ): SeverWallet
 
     suspend fun getServerWallet(): WalletServerSync
-    suspend fun updateServerKey(xfp: String, name: String): Boolean
     suspend fun createServerTransaction(
         groupId: String?,
         walletId: String,
@@ -333,7 +332,7 @@ interface PremiumWalletRepository {
         groupId: String?,
     )
 
-    suspend fun updateServerKeyName(xfp: String, name: String)
+    suspend fun updateServerKeyName(xfp: String, name: String, path: String)
     suspend fun getGroupAssistedWalletConfig(): GroupConfig
 
     fun assistedKeys(): Flow<Set<String>>

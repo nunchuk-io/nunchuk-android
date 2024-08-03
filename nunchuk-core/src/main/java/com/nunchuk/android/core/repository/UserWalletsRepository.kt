@@ -188,6 +188,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import timber.log.Timber
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
 
@@ -608,10 +609,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
         return wallet.toModel()
-    }
-
-    override suspend fun updateServerKey(xfp: String, name: String): Boolean {
-        return userWalletApiManager.walletApi.updateServerKey(xfp, UpdateKeyPayload(name)).isSuccess
     }
 
     override suspend fun getServerTransaction(
@@ -1463,6 +1460,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
             if (response.isSuccess.not()) throw response.error
             response.data.transactions.forEach { transition ->
+                Timber.d("${transition.transactionId} - $transition")
                 if (transition.psbt.isNullOrEmpty().not()) {
                     val importTx = nunchukNativeSdk.importPsbt(walletId, transition.psbt.orEmpty())
                     if (transition.note.isNullOrEmpty().not() && importTx.memo != transition.note) {
@@ -1683,8 +1681,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateServerKeyName(xfp: String, name: String) {
-        val response = userWalletApiManager.walletApi.updateServerKey(xfp, UpdateKeyPayload(name))
+    override suspend fun updateServerKeyName(xfp: String, name: String, path: String) {
+        val response =
+            userWalletApiManager.walletApi.updateServerKey(xfp, UpdateKeyPayload(name), path)
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -2492,13 +2491,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             null
         }
         val response = userWalletApiManager.walletApi.updateServerKey(
-            localSigner.masterFingerprint,
-            UpdateKeyPayload(
+            xfp = localSigner.masterFingerprint,
+            payload = UpdateKeyPayload(
                 name = localSigner.name,
                 type = localSigner.type.name,
                 tags = localSigner.tags.map { it.name },
                 tapSignerPayload = tapSigner
-            )
+            ),
+            derivationPath = ""
         )
         if (response.isSuccess.not()) {
             throw response.error
@@ -2521,26 +2521,39 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }.onFailure {
             return emptyList()
         }
-        val localAddresses = savedAddressDao.getSavedAddressList(chatId = chatId, chain = chain.value)
+        val localAddresses =
+            savedAddressDao.getSavedAddressList(chatId = chatId, chain = chain.value)
         val remoteAddresses = remoteList.map { it.address }
         val deleteAddresses = localAddresses.filter {
             it.address !in remoteAddresses
         }
         savedAddressDao.updateData(
-        updateOrInsertList = remoteList.map { it.toSavedAddressEntity(chain = chain.value, chatId = chatId)},
-        deleteList = deleteAddresses
+            updateOrInsertList = remoteList.map {
+                it.toSavedAddressEntity(
+                    chain = chain.value,
+                    chatId = chatId
+                )
+            },
+            deleteList = deleteAddresses
         )
         return remoteList
     }
 
     override fun getSavedAddressesLocal(): Flow<List<SavedAddress>> {
-        return savedAddressDao.getSavedAddressFlow(chain = chain.value, chatId = accountManager.getAccount().chatId)
+        return savedAddressDao.getSavedAddressFlow(
+            chain = chain.value,
+            chatId = accountManager.getAccount().chatId
+        )
             .map { savedAddresses ->
                 savedAddresses.map { it.toSavedAddress() }
             }
     }
 
-    override suspend fun addOrUpdateSavedAddress(address: String, label: String, isPremiumUser: Boolean) {
+    override suspend fun addOrUpdateSavedAddress(
+        address: String,
+        label: String,
+        isPremiumUser: Boolean
+    ) {
         if (isPremiumUser) {
             val response = userWalletApiManager.walletApi.addOrUpdateSavedAddress(
                 SavedAddressRequest(address = address, label = label)
@@ -2568,7 +2581,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 throw response.error
             }
         }
-        val entity = savedAddressDao.getByAddress(address, chain = chain.value, chatId = accountManager.getAccount().chatId)
+        val entity = savedAddressDao.getByAddress(
+            address,
+            chain = chain.value,
+            chatId = accountManager.getAccount().chatId
+        )
         entity?.let {
             savedAddressDao.delete(entity)
         }

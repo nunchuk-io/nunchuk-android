@@ -52,7 +52,7 @@ import com.nunchuk.android.signer.portal.wallet.navigateToSelectWalletType
 import com.nunchuk.android.signer.portal.wallet.selectIndex
 import com.nunchuk.android.signer.portal.wallet.selectWalletType
 import com.nunchuk.android.widget.NCInputDialog
-import com.nunchuk.android.widget.NUMBER_TYPE
+import com.nunchuk.android.widget.TEXT_TYPE
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
@@ -280,7 +280,7 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                 isMaskedInput = true,
                 errorMessage = errorMessage,
                 descMessage = descMessage,
-                inputType = NUMBER_TYPE
+                inputType = TEXT_TYPE
             ).show()
     }
 

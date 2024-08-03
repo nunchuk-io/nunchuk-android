@@ -31,7 +31,7 @@ import com.nunchuk.android.core.domain.data.UpdateFirmware
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.NUMBER_TYPE
+import com.nunchuk.android.widget.TEXT_TYPE
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 
@@ -96,7 +96,7 @@ abstract class BasePortalActivity<Binding : ViewBinding> : BaseNfcActivity<Bindi
                 isMaskedInput = true,
                 errorMessage = errorMessage,
                 descMessage = descMessage,
-                inputType = NUMBER_TYPE
+                inputType = TEXT_TYPE
             ).show()
     }
 
