@@ -46,6 +46,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
@@ -78,6 +79,7 @@ class RollOverTransferFundFragment : Fragment() {
                 RollOverTransferFundView(
                     viewModel = viewModel,
                     isFreeWallet = rollOverWalletState.isFreeWallet,
+                    source = rollOverWalletViewModel.getSource(),
                     onContinueClicked = {
                         rollOverWalletViewModel.updateReplaceKeyConfig(it)
                         if (viewModel.isHasTagOrCollection()) {
@@ -114,6 +116,7 @@ class RollOverTransferFundFragment : Fragment() {
 private fun RollOverTransferFundView(
     viewModel: RollOverTransferFundViewModel = hiltViewModel(),
     isFreeWallet: Boolean = false,
+    source: Int = 0,
     onContinueClicked: (Boolean) -> Unit = { },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -121,6 +124,7 @@ private fun RollOverTransferFundView(
     RollOverTransferFundContent(
         uiState = uiState,
         isFreeWallet = isFreeWallet,
+        source = source,
         onContinueClicked = onContinueClicked
     )
 }
@@ -130,6 +134,7 @@ private fun RollOverTransferFundView(
 private fun RollOverTransferFundContent(
     uiState: RollOverTransferFundUiState = RollOverTransferFundUiState(),
     isFreeWallet: Boolean = false,
+    source: Int = 0,
     onContinueClicked: (Boolean) -> Unit = { },
 ) {
     var isRemoveUnusedKeys by rememberSaveable { mutableStateOf(false) }
@@ -203,7 +208,7 @@ private fun RollOverTransferFundContent(
                     }
                 }
 
-                if (!isFreeWallet) {
+                if (!isFreeWallet && source == RollOverWalletSource.REPLACE_KEY) {
                     // 1dp spacer with top and bottom padding are 24dp and background whisper
                     HorizontalDivider(
                         modifier = Modifier

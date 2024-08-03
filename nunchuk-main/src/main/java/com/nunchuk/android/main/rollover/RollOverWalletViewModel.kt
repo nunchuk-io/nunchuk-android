@@ -206,7 +206,7 @@ class RollOverWalletViewModel @Inject constructor(
     }
 
     fun updateReplaceKeyConfig(isRemoveKey: Boolean) {
-        if (!uiState.value.isFreeWallet) {
+        if (source == RollOverWalletSource.REPLACE_KEY) {
             viewModelScope.launch {
                 val walletId = getOldWalletId()
                 val groupId = assistedWalletManager.getGroupId(walletId).orEmpty()
