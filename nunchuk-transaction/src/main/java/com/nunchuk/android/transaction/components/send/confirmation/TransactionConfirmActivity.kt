@@ -210,6 +210,9 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     handleCopyContent(it)
                 }.bindItems()
             }
+
+            is TransactionConfirmEvent.AssignTagError -> {}
+            is TransactionConfirmEvent.AssignTagSuccess -> {}
         }
     }
 

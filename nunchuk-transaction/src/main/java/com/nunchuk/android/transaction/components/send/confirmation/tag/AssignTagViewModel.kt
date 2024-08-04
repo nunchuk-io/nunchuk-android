@@ -96,7 +96,7 @@ class AssignTagViewModel @Inject constructor(
                 AddToCoinTagUseCase.Param(
                     groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
-                    tagIds = tags.map { it.id },
+                    tagIds = state.value.selectedCoinTags.toList(),
                     coins = listOf(output),
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
                 )

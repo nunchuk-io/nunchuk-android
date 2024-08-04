@@ -52,6 +52,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
@@ -79,6 +80,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
     private val pushEventManager: PushEventManager,
     private val isMyCoinUseCase: IsMyCoinUseCase,
+    private val addToCoinTagUseCase: AddToCoinTagUseCase,
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
@@ -280,19 +282,24 @@ class TransactionConfirmViewModel @Inject constructor(
                     }
                 }
                 val commonTags = commonTagMap.filter { it.value == inputs.size }.map { it.key }
-                if (commonTags.isNotEmpty() && transaction.hasChangeIndex() && !isQuickCreateTransaction) {
+                if (commonTags.isNotEmpty() && transaction.hasChangeIndex()) {
                     val tags = commonTags.mapNotNull { tagId -> _state.value.allTags[tagId] }
-                    setEvent(
-                        AssignTagEvent(
-                            walletId = walletId,
-                            txId = transaction.txId,
-                            output = UnspentOutput(
-                                txid = transaction.txId,
-                                vout = transaction.changeIndex
-                            ),
-                            tags = tags
-                        )
+                    val output = UnspentOutput(
+                        txid = transaction.txId,
+                        vout = transaction.changeIndex
                     )
+                    if (isQuickCreateTransaction) {
+                        addAddTagsToChangeCoin(tags, output, transaction.txId)
+                    } else {
+                        setEvent(
+                            AssignTagEvent(
+                                walletId = walletId,
+                                txId = transaction.txId,
+                                output = output,
+                                tags = tags
+                            )
+                        )
+                    }
                 } else {
                     setEvent(CreateTxSuccessEvent(result.getOrThrow()))
                 }
@@ -319,6 +326,22 @@ class TransactionConfirmViewModel @Inject constructor(
             setEvent(CreateTxSuccessEvent(result.getOrThrow()))
         } else {
             event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    private fun addAddTagsToChangeCoin(tags: List<CoinTag>, output: UnspentOutput, txId: String) = viewModelScope.launch {
+        addToCoinTagUseCase(
+            AddToCoinTagUseCase.Param(
+                groupId = assistedWalletManager.getGroupId(walletId),
+                walletId = walletId,
+                tagIds = tags.map { it.id },
+                coins = listOf(output),
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
+            )
+        ).onSuccess {
+            setEvent(TransactionConfirmEvent.AssignTagSuccess(txId))
+        }.onFailure {
+            setEvent(TransactionConfirmEvent.AssignTagError(it.message.orUnknownError()))
         }
     }
 

@@ -279,6 +279,20 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
             is TransactionConfirmEvent.UpdateChangeAddress -> {}
             is TransactionConfirmEvent.AssignTagEvent -> {}
+            is TransactionConfirmEvent.AssignTagError -> {
+                hideLoading()
+                NCToastMessage(this).showError(event.message)
+            }
+            is TransactionConfirmEvent.AssignTagSuccess -> {
+                hideLoading()
+                NCToastMessage(this).showMessage(getString(R.string.nc_tags_assigned))
+                openTransactionDetailScreen(
+                    event.txId,
+                    args.walletId,
+                    sessionHolder.getActiveRoomIdSafe(),
+                    transactionConfirmViewModel.isInheritanceClaimingFlow()
+                )
+            }
             else -> {}
         }
     }
