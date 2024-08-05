@@ -11,6 +11,7 @@ import com.nunchuk.android.core.domain.membership.EditGroupMemberUserDataUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -312,6 +313,11 @@ class ByzantineInviteMembersViewModel @Inject constructor(
                 )
             )
         } else {
+            val exception = resultCalculate.exceptionOrNull()
+            if (exception is NunchukApiException && exception.code == 1403) {
+                _event.emit(ByzantineInviteMembersEvent.FacilitatorAdminWarning(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
+                return
+            }
             _event.emit(ByzantineInviteMembersEvent.Error(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
         }
     }

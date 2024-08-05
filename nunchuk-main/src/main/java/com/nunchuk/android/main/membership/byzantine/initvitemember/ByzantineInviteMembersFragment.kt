@@ -151,12 +151,10 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 InviteMembersScreen(
                     flow = args.flow, viewModel = viewModel,
                     onSelectRole = {
-                        Log.e("group-role", args.groupRole)
                         findNavController().navigate(
                             ByzantineInviteMembersFragmentDirections.actionByzantineInviteMembersFragmentToByzantineSelectRoleFragment(
                                 role = it,
-                                groupType = args.groupType,
-                                groupRole = args.groupRole
+                                groupType = args.groupType
                             )
                         )
                     },
@@ -225,6 +223,9 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                 }
 
                 ByzantineInviteMembersEvent.RemoveMemberInheritanceWarning -> showRemoveMemberInheritanceDialog()
+                is ByzantineInviteMembersEvent.FacilitatorAdminWarning -> {
+                    NCInfoDialog(requireActivity()).showDialog(message = event.message)
+                }
             }
         }
     }

@@ -21,6 +21,7 @@ sealed class ByzantineInviteMembersEvent {
 
     data class EditGroupMemberSuccess(val members: List<ByzantineMember>) :
         ByzantineInviteMembersEvent()
+    data class FacilitatorAdminWarning(val message: String) : ByzantineInviteMembersEvent()
 }
 
 data class ByzantineInviteMembersState(

@@ -78,18 +78,7 @@ class ByzantineSelectRoleFragment : MembershipFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.getPermissionGroupWallet(args.groupType)
-        viewModel.onOptionClick(args.role, args.groupRole, args.role)
-
-        flowObserver(viewModel.event) {
-            when (it) {
-                is ByzantineSelectRoleEvent.DowngradeInfo -> showDowngradeInfoDialog()
-                else -> {}
-            }
-        }
-    }
-
-    private fun showDowngradeInfoDialog() {
-        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_only_admin_can_downgrade_member_role))
+        viewModel.onOptionClick(args.role)
     }
 
     companion object {
@@ -109,7 +98,7 @@ private fun SelectRoleScreen(
         selectedRole = state.selectedRole,
         options = state.roles,
         onOptionClick = {
-            viewModel.onOptionClick(it, args.groupRole, args.role)
+            viewModel.onOptionClick(it)
         },
         onContinueClicked = onContinueClicked
     )

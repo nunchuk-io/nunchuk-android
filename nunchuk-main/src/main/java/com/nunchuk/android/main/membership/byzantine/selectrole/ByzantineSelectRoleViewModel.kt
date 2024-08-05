@@ -56,15 +56,8 @@ class ByzantineSelectRoleViewModel @Inject constructor(
         }
     }
 
-    fun onOptionClick(selectRole: String, groupRole: String, defaultRole: String) =
+    fun onOptionClick(selectRole: String) =
         viewModelScope.launch {
-            if (groupRole.toRole.isFacilitatorAdmin
-                && defaultRole.toRole.getOrdinalInOrder() > selectRole.toRole.getOrdinalInOrder()
-                && defaultRole.toRole != AssistedWalletRole.NONE
-            ) {
-                _event.emit(ByzantineSelectRoleEvent.DowngradeInfo)
-                return@launch
-            }
             _state.update { it.copy(selectedRole = selectRole) }
         }
 
