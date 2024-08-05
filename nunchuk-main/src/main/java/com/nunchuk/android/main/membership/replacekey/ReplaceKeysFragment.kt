@@ -195,11 +195,14 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 ::openSetupTapSigner
             )
 
-            SignerType.PORTAL_NFC.ordinal -> handleShowKeysOrCreate(
-                viewModel.getPortalSigners(),
-                SignerType.PORTAL_NFC,
-                ::openSetupPortal
-            )
+            SignerType.PORTAL_NFC.ordinal -> {
+                viewModel.markNewPortalShown()
+                handleShowKeysOrCreate(
+                    viewModel.getPortalSigners(),
+                    SignerType.PORTAL_NFC,
+                    ::openSetupPortal
+                )
+            }
 
             SignerType.COLDCARD_NFC.ordinal -> {
                 selectedSignerTag = SignerTag.COLDCARD
@@ -409,7 +412,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             val options = getKeyOptions(
                 context = requireContext(),
                 isKeyHolderLimited = isKeyHolderLimited,
-                isStandard = isStandard
+                isStandard = isStandard,
+                shouldShowNewPortal = viewModel.shouldShowNewPortal
             )
             BottomSheetOption.newInstance(
                 options = options,

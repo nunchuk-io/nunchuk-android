@@ -182,11 +182,14 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 ::openSetupTapSigner
             )
 
-            SignerType.PORTAL_NFC.ordinal -> handleShowKeysOrCreate(
-                viewModel.getPortalSigners(),
-                SignerType.PORTAL_NFC,
-                ::openSetupPortal
-            )
+            SignerType.PORTAL_NFC.ordinal -> {
+                viewModel.markShowPortal()
+                handleShowKeysOrCreate(
+                    viewModel.getPortalSigners(),
+                    SignerType.PORTAL_NFC,
+                    ::openSetupPortal
+                )
+            }
 
             SignerType.COLDCARD_NFC.ordinal -> {
                 selectedSignerTag = SignerTag.COLDCARD
@@ -437,7 +440,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         val options = getKeyOptions(
             context = requireContext(),
             isKeyHolderLimited = isKeyHolderLimited,
-            isStandard = viewModel.getGroupWalletType()?.isStandard == true
+            isStandard = viewModel.getGroupWalletType()?.isStandard == true,
+            shouldShowNewPortal = viewModel.shouldShowNewPortal
         )
         BottomSheetOption.newInstance(
             options = options,

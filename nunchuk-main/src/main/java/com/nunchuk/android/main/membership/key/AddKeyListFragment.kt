@@ -194,11 +194,14 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 ::openSetupTapSigner
             )
 
-            SignerType.PORTAL_NFC.ordinal -> handleShowKeysOrCreate(
-                viewModel.getPortal(),
-                SignerType.PORTAL_NFC,
-                ::openSetupPortal
-            )
+            SignerType.PORTAL_NFC.ordinal -> {
+                viewModel.markShowPortal()
+                handleShowKeysOrCreate(
+                    viewModel.getPortal(),
+                    SignerType.PORTAL_NFC,
+                    ::openSetupPortal
+                )
+            }
 
             SignerType.COLDCARD_NFC.ordinal -> {
                 selectedSignerTag = SignerTag.COLDCARD

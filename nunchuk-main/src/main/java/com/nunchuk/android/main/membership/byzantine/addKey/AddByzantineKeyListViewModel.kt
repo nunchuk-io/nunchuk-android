@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -82,6 +83,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
+    private val ncDataStore: NcDataStore
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -103,6 +105,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     private val _keys = MutableStateFlow(listOf<AddKeyData>())
     val key = _keys.asStateFlow()
+    var shouldShowNewPortal: Boolean = false
 
     private val singleSigners = mutableListOf<SingleSigner>()
 
@@ -125,6 +128,9 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 loadSigners()
                 updateKeyData()
             }
+        }
+        viewModelScope.launch {
+            shouldShowNewPortal = ncDataStore.shouldShowNewPortal()
         }
     }
 
@@ -304,6 +310,11 @@ class AddByzantineKeyListViewModel @Inject constructor(
     fun getGroupWalletType() = _state.value.groupWalletType
     fun getCountWalletSoftwareSignersInDevice() = key.value.count { it.signer != null && it.signer.type == SignerType.SOFTWARE && it.signer.isVisible }
     fun getPortalSigners() = _state.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
+    fun markShowPortal() {
+        viewModelScope.launch {
+            ncDataStore.setShowPortal(false)
+        }
+    }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"

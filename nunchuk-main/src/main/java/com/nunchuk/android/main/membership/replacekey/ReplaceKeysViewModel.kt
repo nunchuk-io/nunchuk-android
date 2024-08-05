@@ -9,6 +9,7 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -78,6 +79,7 @@ class ReplaceKeysViewModel @Inject constructor(
     assistedWalletManager: AssistedWalletManager,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase,
+    private val ncDataStore: NcDataStore
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     val isActiveAssistedWallet: Boolean by lazy {
@@ -90,6 +92,7 @@ class ReplaceKeysViewModel @Inject constructor(
     private val replacedSigners = mutableListOf<SignerServer>()
 
     private var loadWalletStatusJob: Job? = null
+    var shouldShowNewPortal = false
 
     init {
         viewModelScope.launch {
@@ -160,6 +163,9 @@ class ReplaceKeysViewModel @Inject constructor(
             getReplaceWalletStatus()
         } else {
             _uiState.update { it.copy(isDataLoaded = true) }
+        }
+        viewModelScope.launch {
+            shouldShowNewPortal = ncDataStore.shouldShowNewPortal()
         }
         loadSigners()
     }
@@ -451,6 +457,11 @@ class ReplaceKeysViewModel @Inject constructor(
     fun isMultiSig() = _uiState.value.isMultiSig
     fun getPortalSigners() =
         _uiState.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
+    fun markNewPortalShown() {
+        viewModelScope.launch {
+            ncDataStore.setShowPortal(false)
+        }
+    }
 
     companion object {
         const val REPLACE_XFP = "REPLACE_XFP"

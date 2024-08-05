@@ -279,6 +279,12 @@ class AddKeyListViewModel @Inject constructor(
     fun getPortal(): List<SignerModel> =
         _state.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
 
+    fun markShowPortal() {
+        viewModelScope.launch {
+            ncDataStore.setShowPortal(false)
+        }
+    }
+
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
     }
