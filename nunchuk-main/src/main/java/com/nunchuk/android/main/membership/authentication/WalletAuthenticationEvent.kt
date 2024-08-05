@@ -42,6 +42,7 @@ sealed class WalletAuthenticationEvent {
     data object CanNotSignHardwareKey : WalletAuthenticationEvent()
     data object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
     data object ShowAirgapOption : WalletAuthenticationEvent()
+    data class RequestSignPortal(val fingerprint: String, val psbt: String) : WalletAuthenticationEvent()
     data object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
     data object CanNotSignDummyTx : WalletAuthenticationEvent()
     data class FinalizeDummyTxSuccess(val isGoBack: Boolean) : WalletAuthenticationEvent()

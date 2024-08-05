@@ -35,9 +35,11 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.push.PushEvent
@@ -211,6 +213,12 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                                 walletAuthenticationViewModel.handlePassphrase(it)
                             }
                         )
+
+                        is WalletAuthenticationEvent.RequestSignPortal -> {
+                            (requireActivity() as BasePortalActivity<*>).handlePortalAction(
+                                SignTransaction(fingerPrint = event.fingerprint, psbt = event.psbt)
+                            )
+                        }
 
                         is WalletAuthenticationEvent.SignFailed -> handleSignedFailed(event.singleSigner)
                         is WalletAuthenticationEvent.Loading,

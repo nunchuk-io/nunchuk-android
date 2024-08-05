@@ -243,6 +243,13 @@ class WalletAuthenticationViewModel @Inject constructor(
             signerModel.type == SignerType.SOFTWARE -> checkSoftwarePassPhrase(singleSigner)
             signerModel.type == SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
             signerModel.type == SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
+            signerModel.type == SignerType.PORTAL_NFC -> _event.emit(
+                WalletAuthenticationEvent.RequestSignPortal(
+                    fingerprint = signerModel.fingerPrint,
+                    psbt = dataToSign.value
+                )
+            )
+
             else -> {}
         }
     }
@@ -346,6 +353,35 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
+    fun handleSignPortalKey(psbt: String) {
+        viewModelScope.launch {
+            val signer = getInteractSingleSigner() ?: return@launch
+            val result = getDummyTransactionSignatureUseCase(
+                GetDummyTransactionSignatureUseCase.Param(
+                    signer,
+                    psbt
+                )
+            )
+            if (result.isSuccess) {
+                val signature = result.getOrThrow()
+                if (signature.isEmpty()) {
+                    _event.emit(WalletAuthenticationEvent.ShowError("Wallet has not registered to Portal yet"))
+                } else {
+                    handleSignatureResult(result, signer)
+                }
+            }
+            handleSignatureResult(
+                getDummyTransactionSignatureUseCase(
+                    GetDummyTransactionSignatureUseCase.Param(
+                        signer,
+                        psbt
+                    )
+                ),
+                signer
+            )
+        }
+    }
+
     private fun checkSoftwarePassPhrase(singleSigner: SingleSigner) {
         viewModelScope.launch {
             if (singleSigner.hasMasterSigner) {
@@ -360,7 +396,10 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
-    private suspend fun handleSignSoftware(singleSigner: SingleSigner, isRequiredPassphrase: Boolean = false) {
+    private suspend fun handleSignSoftware(
+        singleSigner: SingleSigner,
+        isRequiredPassphrase: Boolean = false
+    ) {
         val result = checkSignMessageUseCase(
             CheckSignMessageUseCase.Param(
                 signer = singleSigner,
@@ -521,13 +560,15 @@ class WalletAuthenticationViewModel @Inject constructor(
                 || type == SignerType.NFC
                 || type == SignerType.COLDCARD_NFC
                 || type == SignerType.FOREIGN_SOFTWARE
+                || type == SignerType.PORTAL_NFC
     }
 
     fun getDummyTransactionType() = _state.value.dummyTransactionType
     fun handlePassphrase(passphrase: String) {
         val currentSigner = getInteractSingleSigner() ?: return
         viewModelScope.launch {
-            sendSignerPassphrase.execute(currentSigner.masterSignerId, passphrase).flowOn(Dispatchers.IO)
+            sendSignerPassphrase.execute(currentSigner.masterSignerId, passphrase)
+                .flowOn(Dispatchers.IO)
                 .onException {
                     _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
                 }

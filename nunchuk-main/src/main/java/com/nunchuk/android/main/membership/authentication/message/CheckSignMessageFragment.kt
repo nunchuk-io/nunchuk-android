@@ -61,7 +61,9 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
+import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
@@ -144,6 +146,14 @@ class CheckSignMessageFragment : Fragment() {
                                 walletAuthenticationViewModel.handlePassphrase(it)
                             }
                         )
+                        is WalletAuthenticationEvent.RequestSignPortal -> {
+                            (activity as BasePortalActivity<*>).handlePortalAction(
+                               SignTransaction(
+                                   fingerPrint = event.fingerprint,
+                                   psbt = event.psbt
+                                )
+                            )
+                        }
                         is WalletAuthenticationEvent.ForceSyncSuccess,
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,

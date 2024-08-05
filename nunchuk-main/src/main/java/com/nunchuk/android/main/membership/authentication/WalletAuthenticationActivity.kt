@@ -26,7 +26,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
-import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.BasePortalActivity
+import com.nunchuk.android.core.nfc.PortalDeviceEvent
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.VerificationType
@@ -35,7 +36,7 @@ import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>() {
+class WalletAuthenticationActivity : BasePortalActivity<ActivityNavigationBinding>() {
     private val args: WalletAuthenticationActivityArgs by navArgs()
     private val viewModel: WalletAuthenticationViewModel by viewModels()
     override fun initializeBinding(): ActivityNavigationBinding {
@@ -73,6 +74,12 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
                     NCToastMessage(this).showError(it.message)
                 }
             }
+        }
+    }
+
+    override fun onHandledPortalAction(event: PortalDeviceEvent) {
+        if (event is PortalDeviceEvent.SignTransactionSuccess) {
+            viewModel.handleSignPortalKey(event.psbt)
         }
     }
 
