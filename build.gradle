@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 apply from: 'configs/dependencies.gradle'
 
 buildscript {
@@ -37,7 +39,7 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+tasks.withType(KotlinCompile).configureEach {
     compilerOptions.freeCompilerArgs.addAll(
             "-P",
             "plugin:androidx.compose.compiler.plugins.kotlin:experimentalStrongSkipping=true",
