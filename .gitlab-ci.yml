@@ -45,5 +45,5 @@ publishProduction:
 
 
 #Create checksum file: sha256sum * > SHA256SUMS
-#Sign the checksum file: gpg2 --clearsign SHA256SUMS
+#Sign the checksum file: gpg --clearsign SHA256SUMS
 #Attach the newly created file SHA256SUMS.asc to Github release

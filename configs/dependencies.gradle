@@ -21,8 +21,8 @@ ext {
     // Plugins versions
     gradleVersion = '8.5.0'
     googleServiceVersion = '4.4.2'
-    kotlinGradlePluginVersion = '1.9.20'
-    kotlinStdlibVersion = '1.9.20'
+    kotlinGradlePluginVersion = '1.9.24'
+    kotlinStdlibVersion = '1.9.24'
     pagingVersion = "3.1.1"
 
     hiltVersion = "2.48"
