@@ -193,8 +193,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             searchMenu.icon =
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_search_white)
         }
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
-            state.walletStatus != WalletStatus.LOCKED.name
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = state.walletStatus != WalletStatus.LOCKED.name && viewModel.isFacilitatorAdmin().not() && viewModel.isEmptyTransaction().not()
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -277,7 +276,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private fun startPagination(hasTx: Boolean) {
         hideLoading()
-        binding.emptyTxContainer.isVisible = !hasTx
+        emptyTxVisibility(!hasTx)
         binding.transactionTitle.isVisible = hasTx
         binding.transactionList.isVisible = hasTx
         if (hasTx) {
@@ -326,12 +325,17 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun bindUnusedAddress(address: String) {
         hideLoading()
         if (address.isEmpty()) {
-            binding.emptyTxContainer.isVisible = false
+            emptyTxVisibility(false)
         } else {
-            binding.emptyTxContainer.isVisible = true
+            emptyTxVisibility(true)
             binding.addressQR.setImageBitmap(address.convertToQRCode())
             binding.addressText.text = address
         }
+    }
+
+    private fun emptyTxVisibility(isVisible: Boolean) {
+        binding.emptyTxFacilitatorAdmin.isVisible = isVisible && viewModel.isFacilitatorAdmin()
+        binding.emptyTxContainer.isVisible = isVisible && viewModel.isFacilitatorAdmin().not()
     }
 
     private fun handleState(state: WalletDetailsState) {

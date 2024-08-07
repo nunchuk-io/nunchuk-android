@@ -221,7 +221,7 @@ fun AddKeyStepContent(
                     messages = listOf(ClickAbleText(stringResource(R.string.nc_this_step_require_hardware_key)))
                 )
             }
-            if (uiState.isMaster || uiState.role == AssistedWalletRole.FACILITATOR_ADMIN) {
+            if (uiState.isMaster) {
                 StepWithEstTime(
                     2,
                     stringResource(R.string.nc_setup_security_questions),
@@ -231,7 +231,7 @@ fun AddKeyStepContent(
                 )
             }
             StepWithEstTime(
-                if (uiState.isMaster || uiState.role == AssistedWalletRole.FACILITATOR_ADMIN) 3 else 2,
+                if (uiState.isMaster) 3 else 2,
                 stringResource(R.string.nc_create_your_wallet),
                 groupRemainTime[2],
                 isCreateWalletDone,

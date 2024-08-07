@@ -161,6 +161,7 @@ data class ServicesTabState(
             return items
         } else if (userRole == AssistedWalletRole.KEYHOLDER_LIMITED.name ||
             userRole == AssistedWalletRole.KEYHOLDER.name && allowInheritanceGroups.isEmpty()
+            || userRole == AssistedWalletRole.FACILITATOR_ADMIN.name
         ) {
             items.apply {
                 add(ServiceTabRowCategory.Emergency)
@@ -300,6 +301,14 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
                 add(ServiceTabRowItem.ReplaceKey)
+            }
+            return items
+        } else if (userRole == AssistedWalletRole.FACILITATOR_ADMIN.name) {
+            items.apply {
+                add(ServiceTabRowCategory.Emergency)
+                add(ServiceTabRowItem.KeyRecovery)
+                add(ServiceTabRowCategory.Inheritance)
+                add(ServiceTabRowItem.ClaimInheritance)
             }
             return items
         }

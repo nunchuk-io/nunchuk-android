@@ -236,6 +236,18 @@
             android:orientation="vertical"
             tools:ignore="ContentDescription">
 
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/empty_tx_facilitator_admin"
+                style="@style/NCText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_24"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/nc_padding_16"
+                android:paddingVertical="@dimen/nc_padding_4"
+                android:text="@string/nc_you_dont_have_any_transactions"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/emptyTxContainer"
                 android:layout_width="match_parent"

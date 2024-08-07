@@ -341,4 +341,8 @@ internal class WalletDetailsViewModel @Inject constructor(
         get() = getState().walletStatus == WalletStatus.LOCKED.name
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
+
+    fun isFacilitatorAdmin() = getState().role == AssistedWalletRole.FACILITATOR_ADMIN
+
+    fun isEmptyTransaction() = transactions.isEmpty()
 }
