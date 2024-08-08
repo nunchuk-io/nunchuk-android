@@ -349,6 +349,7 @@ fun AddressItem(
 ) {
     Row(
         modifier = Modifier
+            .fillMaxWidth()
             .background(
                 color = MaterialTheme.colorScheme.greyLight,
                 shape = RoundedCornerShape(8.dp)
