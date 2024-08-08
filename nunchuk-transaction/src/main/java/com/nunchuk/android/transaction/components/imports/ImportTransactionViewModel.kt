@@ -21,6 +21,7 @@ package com.nunchuk.android.transaction.components.imports
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
@@ -100,10 +101,12 @@ internal class ImportTransactionViewModel @Inject constructor(
                 )
             }
             result.onSuccess {
-                    setEvent(ImportTransactionSuccess(it))
-                }.onFailure {
-                    Timber.e(it, "[ImportTransaction]")
+                setEvent(ImportTransactionSuccess(it))
+            }.onFailure {
+                if (_state.value.progress >= 100) {
+                    setEvent(ImportTransactionEvent.ImportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
                 }
+            }
             isProcessing = false
         }
     }
@@ -122,7 +125,9 @@ internal class ImportTransactionViewModel @Inject constructor(
                     .onStart { isProcessing = true }
                     .flowOn(IO)
                     .onException {
-                        Timber.e(it, "[ImportTransaction]")
+                        if (_state.value.progress >= 100) {
+                            setEvent(ImportTransactionEvent.ImportTransactionError(it.message.orUnknownError()))
+                        }
                     }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }

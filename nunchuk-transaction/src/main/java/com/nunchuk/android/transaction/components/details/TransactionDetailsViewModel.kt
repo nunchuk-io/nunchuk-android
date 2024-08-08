@@ -584,7 +584,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             if (result.isSuccess) {
                 setEvent(DeleteTransactionSuccess(isCancel))
             } else {
-                setEvent(TransactionDetailsError("${result.exceptionOrNull()?.message.orUnknownError()}, walletId::$walletId, txId::$txId"))
+                setEvent(TransactionDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
@@ -617,7 +617,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 setEvent(PromptInputPassphrase {
                     viewModelScope.launch {
                         sendSignerPassphrase.execute(signer.id, it).flowOn(IO)
-                            .onException { setEvent(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
+                            .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
                             .collect { signTransaction(device, signer.id) }
                     }
                 })
@@ -644,7 +644,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 is Success -> exportTransaction(result.data)
                 is Error -> {
                     val message =
-                        "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
+                        result.exception.messageOrUnknownError()
                     setEvent(TransactionError(message))
                     CrashlyticsReporter.recordException(TransactionException(message))
                 }
@@ -657,8 +657,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             when (val result = exportTransactionUseCase.execute(walletId, txId, filePath)) {
                 is Success -> setEvent(ExportToFileSuccess(filePath))
                 is Error -> {
-                    val message =
-                        "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
+                    val message = result.exception.messageOrUnknownError()
                     setEvent(TransactionError(message))
                     CrashlyticsReporter.recordException(TransactionException(message))
                 }
@@ -781,7 +780,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun currentSigner() = savedStateHandle.get<SignerModel>(KEY_CURRENT_SIGNER)
 
     private fun fireSignError(e: Throwable?) {
-        val message = "${e?.message.orEmpty()},walletId::$walletId,txId::$txId"
+        val message = e?.message.orEmpty()
         setEvent(TransactionDetailsError(message, e))
         CrashlyticsReporter.recordException(TransactionException(message))
     }
