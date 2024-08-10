@@ -46,7 +46,9 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardState
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.SignerType
@@ -118,6 +120,7 @@ fun HealthCheckContent(
                             onHealthCheck = onHealthCheck,
                             onRequestHealthCheck = onRequestHealthCheck,
                             isShowRequestHealthCheck = state.groupId.isNotEmpty(),
+                            myRole = state.myRole,
                             onNavigateToSignerInfo = {
                                 onNavigateToSignerInfo(it)
                             }
@@ -134,6 +137,7 @@ private fun HealthCheckItem(
     signer: SignerModel,
     status: KeyHealthStatus?,
     isShowRequestHealthCheck: Boolean,
+    myRole: AssistedWalletRole,
     onHealthCheck: (SignerModel) -> Unit = {},
     onRequestHealthCheck: (SignerModel) -> Unit = {},
     onNavigateToSignerInfo: () -> Unit = {},
@@ -230,7 +234,7 @@ private fun HealthCheckItem(
                 modifier = Modifier
                     .weight(1f)
                     .height(36.dp),
-                enabled = signer.type != SignerType.FOREIGN_SOFTWARE,
+                enabled = signer.type != SignerType.FOREIGN_SOFTWARE && myRole.isFacilitatorAdmin.not(),
                 onClick = { onHealthCheck(signer) },
             ) {
                 Text(
