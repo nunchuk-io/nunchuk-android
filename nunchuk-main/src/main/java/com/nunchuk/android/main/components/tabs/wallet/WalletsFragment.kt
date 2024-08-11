@@ -50,6 +50,7 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
+import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
@@ -91,6 +92,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.signer.satscard.SatsCardActivity
@@ -151,16 +153,12 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         binding.signerList.adapter = signerAdapter
         binding.btnAddSigner.setOnClickListener { walletsViewModel.handleAddSigner() }
         binding.ivAddWallet.setOnClickListener { walletsViewModel.handleAddWallet() }
-        binding.toolbar.setOnMenuItemClickListener {
-            if (it.itemId == R.id.menu_nfc) {
-                if (walletsViewModel.isShownNfcUniversal.value) {
-                    UniversalNfcIntroActivity.navigate(launcher, requireActivity())
-                } else {
-                    (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
-                }
-                return@setOnMenuItemClickListener true
+        binding.ivNfc.setOnClickListener {
+            if (walletsViewModel.isShownNfcUniversal.value) {
+                UniversalNfcIntroActivity.navigate(launcher, requireActivity())
+            } else {
+                (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
             }
-            return@setOnMenuItemClickListener false
         }
         binding.introContainer.setOnDebounceClickListener {
             val stage = walletsViewModel.getGroupStage()
@@ -190,6 +188,15 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {
             NonSubscriberActivity.start(requireActivity(), it.tag as String)
+        }
+        binding.llCampaigns.setOnDebounceClickListener {
+            navigator.openReferralScreen(
+                activityContext = requireActivity(),
+                args = ReferralArgs(
+                    campaign = walletsViewModel.getCurrentCampaign(),
+                    localReferrerCode = walletsViewModel.getLocalReferrerCode()
+                )
+            )
         }
     }
 
@@ -389,6 +396,12 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         showConnectionBlockchainStatus(state)
         showIntro(state)
         showPendingWallet(state)
+        showCampaign(state.campaign, state.wallets.isNotEmpty())
+    }
+
+    private fun showCampaign(campaign: Campaign?, isHasWallet: Boolean = false) {
+        binding.llCampaigns.isVisible = campaign?.isValid() == true && isHasWallet
+        binding.tvCampaigns.text = campaign?.cta
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {

@@ -54,7 +54,6 @@ import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.matrix.android.sdk.api.session.crypto.model.UnknownInfo.deviceId
 import javax.inject.Inject
 
 @AndroidEntryPoint

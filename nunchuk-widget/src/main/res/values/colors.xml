@@ -41,5 +41,7 @@
     <color name="nc_slime_dark">#1C652D</color>
     <color name="nc_tealish_green">#A7F0BA</color>
     <color name="nc_text_disable">#A6A6A6</color>
+    <color name="nc_color_031F2B_40">#66031F2B</color>
+    <color name="nc_color_222222_40">#66222222</color>
 
 </resources>

@@ -37,7 +37,6 @@
     <string name="nc_transaction_confirm_and_create_transaction">Confirm and create transaction</string>
     <string name="nc_transaction_receive_address">Receive address</string>
     <string name="nc_transaction_insufficient_funds">Insufficient funds</string>
-    <string name="nc_transaction_invalid_address">Invalid address</string>
 
     <string name="nc_text_n_a">N/A</string>
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>

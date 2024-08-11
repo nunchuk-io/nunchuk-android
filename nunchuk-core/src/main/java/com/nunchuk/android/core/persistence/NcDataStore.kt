@@ -70,6 +70,7 @@ class NcDataStore @Inject constructor(
     private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
     private val showNewPortalKey = booleanPreferencesKey("show_new_portal")
     private val passwordTokenKey = stringPreferencesKey("password_token")
+    private val campaign = stringPreferencesKey("campaign")
 
     /**
      * Current membership plan key
@@ -95,6 +96,15 @@ class NcDataStore @Inject constructor(
     private fun getShowHealthCheckReminderIntroKey(): Preferences.Key<Boolean> {
         val userId = accountManager.getAccount().chatId
         return booleanPreferencesKey("show_health_check_reminder_intro-${userId}")
+    }
+
+    private fun getCampaignKey(email: String): Preferences.Key<String> {
+        return stringPreferencesKey("campaign-${email.hashCode()}")
+    }
+
+    private fun getReferrerCodeKey(): Preferences.Key<String> {
+        val userId = accountManager.getAccount().chatId
+        return stringPreferencesKey("referrer_code-${userId}")
     }
 
     val syncRoomSuccess: Flow<Boolean>
@@ -355,6 +365,29 @@ class NcDataStore @Inject constructor(
     suspend fun setShowPortal(show: Boolean) {
         context.dataStore.edit {
             it[showNewPortalKey] = show
+        }
+    }
+
+    suspend fun setReferrerCode(code: String) {
+        context.dataStore.edit {
+            it[getReferrerCodeKey()] = code
+        }
+    }
+
+    val referralCodeFlow: Flow<String>
+        get() = context.dataStore.data.map {
+            it[getReferrerCodeKey()].orEmpty()
+        }
+
+    suspend fun setCampaign(campaign: String, email: String) {
+        context.dataStore.edit {
+            it[getCampaignKey(email)] = campaign
+        }
+    }
+
+    fun getCampaignFlow(email: String): Flow<String> {
+        return context.dataStore.data.map {
+            it[getCampaignKey(email)].orEmpty()
         }
     }
 

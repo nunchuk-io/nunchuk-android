@@ -76,6 +76,11 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"/>
 
+        <activity android:name=".app.referral.ReferralActivity"
+            android:label="Referral"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

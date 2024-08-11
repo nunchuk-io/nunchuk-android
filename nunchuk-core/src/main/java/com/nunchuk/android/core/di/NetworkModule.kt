@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.di
 
 import com.nunchuk.android.core.data.api.BannerApi
+import com.nunchuk.android.core.data.api.CampaignsApi
 import com.nunchuk.android.core.data.api.GroupWalletApi
 import com.nunchuk.android.core.data.api.PriceConverterAPI
 import com.nunchuk.android.core.data.api.TransactionApi
@@ -75,4 +76,8 @@ internal object NetworkModule {
     @Singleton
     @Provides
     fun provideBannerApi(retrofit: Retrofit): BannerApi = retrofit.create(BannerApi::class.java)
+
+    @Singleton
+    @Provides
+    fun provideCampaignsApi(retrofit: Retrofit): CampaignsApi = retrofit.create(CampaignsApi::class.java)
 }

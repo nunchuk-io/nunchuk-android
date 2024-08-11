@@ -769,4 +769,7 @@
     <string name="nc_select_account_index">Select account index</string>
     <string name="nc_put_your_device_near_the_nfc_key_to_verify_address">Put your device near the NFC key. Please verify the address on the device:</string>
     <string name="nc_enter_device_password">Enter device password</string>
+    <string name="nc_email_address_already_associated_referral_link">This email address already has an associated referral link. Do you want to reuse it?</string>
+    <string name="nc_use_another_email">Use another email</string>
+    <string name="nc_transaction_invalid_address">Invalid address</string>
 </resources>

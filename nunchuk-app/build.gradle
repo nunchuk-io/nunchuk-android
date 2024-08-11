@@ -7,6 +7,7 @@ apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.firebase.appdistribution'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
+apply plugin: 'kotlin-parcelize'
 
 android {
     compileSdkVersion androidConfig.compileSdkVersion
@@ -190,6 +191,9 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-base:18.2.0'
     implementation 'com.google.firebase:firebase-messaging-ktx:23.2.0'
+
+    implementation "io.github.mataku:middle-ellipsis-text:1.2.0"
+    implementation zxingDeps.values()
 
     def multidex_version = "2.0.1"
     implementation "androidx.multidex:multidex:$multidex_version"

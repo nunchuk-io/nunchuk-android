@@ -31,6 +31,8 @@ import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
+import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
@@ -53,7 +55,9 @@ internal data class WalletsState(
     val alerts: Map<String, Int> = emptyMap(),
     val keyHealthStatus: Map<String, List<KeyHealthStatus>> = emptyMap(),
     val useLargeFont: Boolean = false,
-    val personalSteps: List<MembershipStepInfo> = emptyList()
+    val personalSteps: List<MembershipStepInfo> = emptyList(),
+    val campaign: Campaign? = null,
+    val localReferrerCode: ReferrerCode? = null,
 )
 
 internal sealed class WalletsEvent {

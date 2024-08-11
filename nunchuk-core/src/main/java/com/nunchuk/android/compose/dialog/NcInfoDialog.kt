@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
@@ -27,6 +28,7 @@ fun NcInfoDialog(
     title: String = stringResource(id = R.string.nc_text_info),
     positiveButtonText: String = stringResource(id = R.string.nc_text_got_it),
     negativeButtonText: String? = null,
+    isOutlineButton: Boolean = false,
     onNegativeClick: () -> Unit = {},
     onDismiss: () -> Unit,
     onPositiveClick: () -> Unit = onDismiss,
@@ -64,14 +66,25 @@ fun NcInfoDialog(
             }
 
             negativeButtonText?.let {
-                TextButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .padding(top = 16.dp),
-                    onClick = onNegativeClick
-                ) {
-                    Text(text = it)
+                if (isOutlineButton) {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        onClick = onNegativeClick,
+                    ) {
+                        Text(text = it)
+                    }
+                } else {
+                    TextButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .padding(top = 16.dp),
+                        onClick = onNegativeClick
+                    ) {
+                        Text(text = it)
+                    }
                 }
             }
         }

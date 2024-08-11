@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -145,4 +146,6 @@ interface AppNavigator {
         feeRate: Amount = Amount.ZER0,
         source: Int
     )
+
+    fun openReferralScreen(activityContext: Context, args: ReferralArgs)
 }
