@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -156,7 +157,9 @@ private fun AssignTagContent(
                     style = NunchukTheme.typography.title,
                 )
                 Text(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp).clickable { onSelectedAll(isSelectAll) },
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 16.dp, top = 24.dp)
+                        .clickable { onSelectedAll(isSelectAll) },
                     text = if (isSelectAll)
                         stringResource(id = R.string.nc_unselect_all)
                     else
@@ -200,7 +203,9 @@ private fun AssignTagContent(
                     .padding(16.dp)
                     .fillMaxWidth(), onClick = onDismiss
             ) {
-                Text(text = stringResource(R.string.nc_dont_assign_any_tags))
+                Text(text = stringResource(R.string.nc_dont_assign_any_tags), color = colorResource(
+                    id = R.color.nc_primary_color
+                ))
             }
         }
     }

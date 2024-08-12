@@ -281,7 +281,7 @@ class TransactionConfirmViewModel @Inject constructor(
                         commonTagMap[it] = commonTagMap.getOrDefault(it, 0).inc()
                     }
                 }
-                val commonTags = commonTagMap.filter { it.value == inputs.size }.map { it.key }
+                val commonTags = commonTagMap.map { it.key }
                 if (commonTags.isNotEmpty() && transaction.hasChangeIndex()) {
                     val tags = commonTags.mapNotNull { tagId -> _state.value.allTags[tagId] }
                     val output = UnspentOutput(
