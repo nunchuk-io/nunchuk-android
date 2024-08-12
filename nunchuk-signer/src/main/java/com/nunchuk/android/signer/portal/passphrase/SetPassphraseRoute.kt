@@ -108,7 +108,7 @@ fun SetPassphraseScreen(
                         .fillMaxWidth(),
                     onClick = { showConfirmWithoutPinDialog = true },
                 ) {
-                    Text(text = stringResource(R.string.nc_continue_without_a_pin))
+                    Text(text = stringResource(R.string.nc_continue_without_a_password))
                 }
             }
         }
@@ -122,15 +122,15 @@ fun SetPassphraseScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.nc_set_up_new_pin),
+                text = stringResource(R.string.nc_set_up_new_password),
                 style = NunchukTheme.typography.heading,
             )
 
-            NcPasswordTextField(title = stringResource(R.string.nc_new_pin), value = pin) {
+            NcPasswordTextField(title = stringResource(R.string.nc_new_password), value = pin) {
                 pin = it
             }
 
-            NcPasswordTextField(title = stringResource(R.string.nc_confirm_new_pin), value = confirmPin, error = error) {
+            NcPasswordTextField(title = stringResource(R.string.nc_confirm_new_password), value = confirmPin, error = error) {
                 confirmPin = it
             }
 
@@ -142,10 +142,10 @@ fun SetPassphraseScreen(
 
     if (showConfirmWithoutPinDialog) {
         NcInfoDialog(
-            title = stringResource(id = R.string.nc_continue_without_a_pin),
-            message = stringResource(R.string.nc_confirm_setup_portal_without_pin),
-            positiveButtonText = stringResource(R.string.nc_set_up_a_pin),
-            negativeButtonText = stringResource(R.string.nc_i_don_t_need_a_pin),
+            title = stringResource(id = R.string.nc_continue_without_a_password),
+            message = stringResource(R.string.nc_confirm_setup_portal_without_password),
+            positiveButtonText = stringResource(R.string.nc_set_up_a_password),
+            negativeButtonText = stringResource(R.string.nc_i_don_t_need_a_password),
             onNegativeClick = {
                 showConfirmWithoutPinDialog = false
                 onSetupPortal(mnemonic, numberOfWords, "")
