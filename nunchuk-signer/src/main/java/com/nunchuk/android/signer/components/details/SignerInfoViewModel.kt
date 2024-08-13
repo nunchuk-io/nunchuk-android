@@ -212,6 +212,7 @@ internal class SignerInfoViewModel @Inject constructor(
                     when (val result =
                         updateRemoteSignerUseCase.execute(signer = signer.copy(name = updateSignerName))) {
                         is Success -> {
+                            _state.update { it.copy(signerName = updateSignerName) }
                             _event.emit(UpdateNameSuccessEvent(updateSignerName))
                             updateServerKeyName(signer.masterFingerprint, updateSignerName)
                         }
