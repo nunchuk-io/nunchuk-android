@@ -21,7 +21,8 @@ dependencies {
     implementation project(':nunchuk-wallet-core')
     implementation project(':nunchuk-utils')
 
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
     implementation matrixDeps.matrixSdk
 
     implementation androidxDeps.values()

@@ -14,7 +14,8 @@ android {
 
 dependencies {
     implementation project(':nunchuk-utils')
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
 
     kapt hiltDeps.processor
     api hiltDeps.hilt

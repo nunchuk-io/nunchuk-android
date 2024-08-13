@@ -21,7 +21,8 @@ dependencies {
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-network')
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
 
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()

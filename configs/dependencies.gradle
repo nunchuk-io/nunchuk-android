@@ -29,6 +29,7 @@ ext {
 
     // Nunchuk dep versions
     nativeSdkVersion = '1.1.74'
+    prebuildNativeSdkVersion = '1.1.74'
 
     // Matrix
     matrixSdkVersion = '1.5.30'
@@ -167,7 +168,8 @@ ext {
     ]
 
     nunchukDeps = [
-            nativeSdk: "io.nunchuk.android:nativesdk:${nativeSdkVersion}"
+            nativeSdk: "io.nunchuk.android:nativesdk:${nativeSdkVersion}",
+            prebuildNativeSdk: "com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:${prebuildNativeSdkVersion}"
     ]
 
     matrixDeps = [

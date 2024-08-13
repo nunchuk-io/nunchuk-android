@@ -26,7 +26,8 @@ dependencies {
     implementation project(':nunchuk-signer-core')
     implementation(files('../libs/libportal-android.aar'))
     implementation("net.java.dev.jna:jna:5.14.0@aar")
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
 
     implementation pluginsDeps.kotlinAndroidRuntime
     implementation networkDeps.values()

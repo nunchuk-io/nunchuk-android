@@ -23,7 +23,8 @@ dependencies {
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation networkDeps.values()
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
     implementation matrixDeps.matrixSdk
     implementation platform(playServices.firebaseBom)
 

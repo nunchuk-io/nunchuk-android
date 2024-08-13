@@ -22,7 +22,8 @@ dependencies {
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-signer-core')
     implementation project(':nunchuk-network')
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
 
     implementation pluginsDeps.kotlinAndroidRuntime
     implementation androidxDeps.values()

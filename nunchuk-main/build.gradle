@@ -34,7 +34,8 @@ dependencies {
     implementation project(':nunchuk-database')
     implementation project(':nunchuk-network')
     implementation project(':nunchuk-auth')
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
     implementation matrixDeps.matrixSdk
     implementation pluginsDeps.kotlinAndroidRuntime
 

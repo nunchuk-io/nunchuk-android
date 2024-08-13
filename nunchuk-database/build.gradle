@@ -20,7 +20,8 @@ dependencies {
     implementation project(':nunchuk-domain')
 
     implementation androidxDeps.values()
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
     // Room
     ksp roomArch.roomCompiler
     implementation roomArch.roomKtx

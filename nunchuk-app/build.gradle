@@ -158,7 +158,8 @@ dependencies {
     implementation project(':nunchuk-settings')
     implementation project(':nunchuk-notifications')
 
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
     implementation matrixDeps.matrixSdk
     implementation workMangerDeps.values()
 

@@ -21,7 +21,8 @@ dependencies {
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-network')
     implementation project(':nunchuk-database')
-    implementation nunchukDeps.nativeSdk
+    debugImplementation nunchukDeps.nativeSdk
+    releaseImplementation nunchukDeps.prebuildNativeSdk
 
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
