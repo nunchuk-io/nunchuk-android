@@ -10,6 +10,13 @@
     android:paddingVertical="@dimen/nc_padding_16"
     tools:ignore="ContentDescription">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        app:navigationIcon="@drawable/ic_back"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
     <CheckBox
         android:id="@+id/staySignIn"
         style="@style/NCText.Body"
@@ -21,7 +28,7 @@
         android:checked="false"
         android:text="@string/nc_text_stay_sign_in"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/password" />
+        app:layout_constraintTop_toBottomOf="@+id/name" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -69,11 +76,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="@dimen/nc_padding_16"
         app:edit_title="@string/nc_text_password"
+        app:edit_hint="@string/nc_enter_your_password"
         app:errorEnabled="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/email" />
+
+    <com.nunchuk.android.widget.NCEditTextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        app:edit_title="@string/nc_your_name"
+        app:edit_hint="@string/nc_enter_your_name"
+        app:errorEnabled="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/password" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/signIn"
@@ -82,7 +104,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_sign_in"
+        android:text="@string/nc_text_continue"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/staySignIn" />
 
@@ -98,29 +120,27 @@
         app:layout_constraintTop_toBottomOf="@id/signIn" />
 
     <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/signUp"
+        android:id="@+id/signInPrimary"
         style="@style/NCPrimaryButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_create_account"
+        android:text="@string/nc_text_signin_via_digital_signature"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signInDigitalSignature" />
+        app:layout_constraintTop_toBottomOf="@id/signIn" />
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/guestMode"
-        style="@style/NCText.Title"
-        android:layout_width="wrap_content"
+        style="@style/NCPrimaryButton.Light"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginVertical="@dimen/nc_padding_24"
-        android:gravity="center"
-        android:background="?attr/selectableItemBackground"
         android:text="@string/nc_text_signin_guest_mode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signUp" />
+        app:layout_constraintTop_toBottomOf="@+id/signInDigitalSignature" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/tvTermAndPolicy"

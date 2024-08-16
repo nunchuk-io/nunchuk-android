@@ -21,6 +21,7 @@ package com.nunchuk.android.auth.domain
 
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
+import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -35,7 +36,7 @@ interface SignInUseCase {
         email: String,
         password: String,
         staySignedIn: Boolean = true,
-    ): Flow<Pair<String, String>>
+    ): Flow<AccountInfo>
 }
 
 internal class SignInUseCaseImpl @Inject constructor(
@@ -58,24 +59,22 @@ internal class SignInUseCaseImpl @Inject constructor(
         email: String,
         response: UserTokenResponse,
         staySignedIn: Boolean,
-    ): Pair<String, String> {
-        val account = accountManager.getAccount()
-        accountManager.storeAccount(
-            account.copy(
-                email = email,
-                token = response.tokenId,
-                activated = true,
-                staySignedIn = staySignedIn,
-                deviceId = response.deviceId,
-            )
+    ): AccountInfo {
+        val account = accountManager.getAccount().copy(
+            email = email,
+            token = response.tokenId,
+            activated = true,
+            staySignedIn = staySignedIn,
+            deviceId = response.deviceId,
         )
+        accountManager.storeAccount(account)
 
         runCatching {
             getUserProfileUseCase(Unit)
             checkShowOnboardUseCase(Unit)
         }
 
-        return response.tokenId to response.deviceId
+        return accountManager.getAccount()
     }
 
 }

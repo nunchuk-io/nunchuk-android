@@ -169,6 +169,16 @@ class NCEditTextView @JvmOverloads constructor(
         }
     }
 
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+        binding.editText.isEnabled = enabled
+        if (enabled) {
+            binding.editText.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_bg, null)
+        } else {
+            binding.editText.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_bg_disabled, null)
+        }
+    }
+
     fun getTextView(): TextView = binding.textView
 
     fun getEditText(): String = binding.editText.text.toString()

@@ -22,7 +22,8 @@
     <string name="nc_text_name_invalid">Name is invalid</string>
     <string name="nc_text_email_invalid">Email is invalid</string>
     <string name="nc_text_password_does_not_match">Confirm password does not match</string>
-    <string name="nc_text_email_sent">We’ve sent a temporary password to %1$s. Please change your password</string>
+    <string name="nc_text_email_sent">We’ve sent a temporary password to %1$s. Please change your password.</string>
+    <string name="nc_text_create_account_and_email_sent">We have created an account for you at %1$s and sent a temporary password to this email. Please change your password.</string>
     <string name="nc_text_reset_password">Reset password</string>
     <string name="nc_text_term_and_policy">By creating an account, you agree to our Terms and Conditions and Privacy Policy.</string>
     <string name="nc_text_term_and_policy_guest_mode">By creating an account or continuing as guest, you agree to our Terms and Conditions and Privacy Policy.</string>
@@ -46,4 +47,10 @@
     <string name="nc_select_your_account_type">Please select your account type</string>
     <string name="nc_have_a_paid_subscription">I have a paid subscription</string>
     <string name="nc_have_a_primary_key_account">I have a Primary Key account</string>
+    <string name="nc_text_resend_password">Resend password</string>
+    <string name="nc_your_name">Your name</string>
+    <string name="nc_enter_your_password">Enter your password</string>
+    <string name="nc_enter_your_name">Enter your name</string>
+    <string name="nc_resend_request_submitted">Resend request submitted, please check your email in a moment</string>
+    <string name="nc_try_again_in">try again in</string>
 </resources>

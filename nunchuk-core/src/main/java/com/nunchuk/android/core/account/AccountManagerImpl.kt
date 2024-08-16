@@ -21,6 +21,7 @@ package com.nunchuk.android.core.account
 
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.util.AppUpdateStateHolder
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,12 +49,17 @@ interface AccountManager {
     fun loginType(): Int
 
     fun removeAccount()
+
+    fun shouldShowOnboard(): Boolean?
+
+    fun setShouldShowOnboard(shouldShow: Boolean)
 }
 
 @Singleton
 internal class AccountManagerImpl @Inject constructor(
     private val accountSharedPref: AccountSharedPref,
 ) : AccountManager {
+    private val shouldShowOnBoard = MutableStateFlow<Boolean?>(null)
 
     override fun isHasAccountBefore(): Boolean = accountSharedPref.isHasAccountBefore()
 
@@ -93,5 +99,11 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun removeAccount() {
         accountSharedPref.removeAccount()
+    }
+
+    override fun shouldShowOnboard() = shouldShowOnBoard.value
+
+    override fun setShouldShowOnboard(shouldShow: Boolean) {
+        shouldShowOnBoard.value = shouldShow
     }
 }

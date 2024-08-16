@@ -28,20 +28,26 @@ import com.nunchuk.android.auth.components.recover.RecoverPasswordActivity
 import com.nunchuk.android.auth.components.signin.SignInActivity
 import com.nunchuk.android.auth.components.signup.SignUpActivity
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceActivity
+import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.nav.AuthNavigator
 
 interface AuthNavigatorDelegate : AuthNavigator {
 
-    override fun openSignInScreen(activityContext: Context, isNeedNewTask: Boolean, isAccountDeleted: Boolean) {
-        SignInActivity.start(activityContext, isNeedNewTask, isAccountDeleted)
+    override fun openSignInScreen(
+        activityContext: Context,
+        isNeedNewTask: Boolean,
+        isAccountDeleted: Boolean,
+        type: SignInType
+    ) {
+        SignInActivity.start(activityContext, isNeedNewTask, isAccountDeleted, type)
     }
 
-    override fun openSignUpScreen(activityContext: Context, isOnboardingFlow: Boolean) {
-        SignUpActivity.start(activityContext, isOnboardingFlow)
+    override fun openSignUpScreen(activityContext: Context) {
+        SignUpActivity.start(activityContext)
     }
 
-    override fun openChangePasswordScreen(activityContext: Context, isOnboardingFlow: Boolean) {
-        ChangePasswordActivity.start(activityContext, isOnboardingFlow)
+    override fun openChangePasswordScreen(activityContext: Context, isNewAccount: Boolean) {
+        ChangePasswordActivity.start(activityContext, isNewAccount)
     }
 
     override fun openRecoverPasswordScreen(activityContext: Context, email: String) {

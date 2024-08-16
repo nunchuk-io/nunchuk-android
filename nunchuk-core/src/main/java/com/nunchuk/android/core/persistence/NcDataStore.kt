@@ -324,6 +324,7 @@ class NcDataStore @Inject constructor(
         context.dataStore.edit { settings ->
             if (settings.asMap().size <= 1) {
                 settings[getShowOnBoardKey()] = true
+                accountManager.setShouldShowOnboard(true)
             }
         }
     }

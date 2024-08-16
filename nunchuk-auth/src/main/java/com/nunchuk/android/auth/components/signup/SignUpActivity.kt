@@ -23,9 +23,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.core.view.isVisible
 import com.nunchuk.android.auth.R
-import com.nunchuk.android.auth.components.signup.SignUpEvent.*
+import com.nunchuk.android.auth.components.signup.SignUpEvent.AccountExistedEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailInvalidEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailRequiredEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailValidEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.LoadingEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.SignUpErrorEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.SignUpSuccessEvent
 import com.nunchuk.android.auth.databinding.ActivitySignupBinding
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.linkify
@@ -42,10 +47,6 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
 
     override fun initializeBinding() = ActivitySignupBinding.inflate(layoutInflater)
 
-    private val isOnboardingFlow: Boolean by lazy {
-        intent.getBooleanExtra(EXTRA_IS_ONBOARDING_FLOW, false)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -56,19 +57,15 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
 
     private fun setupViews() {
         binding.signUp.setOnDebounceClickListener { onRegisterClicked() }
-        binding.signIn.setOnDebounceClickListener { openLoginScreen() }
         binding.signUpPrimaryKey.setOnDebounceClickListener { openSignUpPrimaryKeyScreen() }
         binding.ivBack.setOnDebounceClickListener { finish() }
 
         binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_term), TERM_URL)
         binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_policy), PRIVACY_URL)
-
-        binding.signUpPrimaryKey.isVisible = isOnboardingFlow.not()
-        binding.ivBack.isVisible = isOnboardingFlow
     }
 
     private fun onRegisterClicked() {
-        viewModel.handleRegister(binding.name.getEditText().trim(), binding.email.getEditText().trim())
+        viewModel.handleRegister(binding.email.getEditText().trim(), binding.email.getEditText().trim())
     }
 
     private fun observeEvent() {
@@ -77,11 +74,8 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
 
     private fun handleEvent(event: SignUpEvent) {
         when (event) {
-            NameRequiredEvent -> showNameError(R.string.nc_text_required)
-            NameInvalidEvent -> showNameError(R.string.nc_text_name_invalid)
             EmailInvalidEvent -> showEmailError(R.string.nc_text_email_invalid)
             EmailRequiredEvent -> showEmailError(R.string.nc_text_required)
-            NameValidEvent -> hideNameError()
             EmailValidEvent -> hideEmailError()
             LoadingEvent -> showLoading()
             is SignUpSuccessEvent -> openChangePasswordScreen()
@@ -101,16 +95,8 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
         openLoginScreen()
     }
 
-    private fun hideNameError() {
-        binding.name.hideError()
-    }
-
     private fun hideEmailError() {
         binding.email.hideError()
-    }
-
-    private fun showNameError(errorMessageId: Int) {
-        binding.name.setError(getString(errorMessageId))
     }
 
     private fun showEmailError(errorMessageId: Int) {
@@ -130,17 +116,14 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     private fun openChangePasswordScreen() {
         hideLoading()
         finish()
-        navigator.openChangePasswordScreen(this, isOnboardingFlow)
+        navigator.openChangePasswordScreen(this, true)
     }
 
     companion object {
         private const val PRIVACY_URL = "https://www.nunchuk.io/privacy"
         private const val TERM_URL = "https://www.nunchuk.io/terms"
-        const val EXTRA_IS_ONBOARDING_FLOW = "is_onboarding_flow"
-        fun start(activityContext: Context, isOnboardingFlow: Boolean = false) {
-            val intent = Intent(activityContext, SignUpActivity::class.java).apply {
-                putExtra(EXTRA_IS_ONBOARDING_FLOW, isOnboardingFlow)
-            }
+        fun start(activityContext: Context) {
+            val intent = Intent(activityContext, SignUpActivity::class.java)
             activityContext.startActivity(intent)
         }
     }

@@ -105,7 +105,7 @@ class OnboardActivity : BaseComposeActivity() {
                                     navController.navigateToOnboardAdvisorInput()
                                 },
                                 onCreateAccount = {
-                                    navigator.openSignUpScreen(this@OnboardActivity, isOnboardingFlow = true)
+                                    navigator.openSignUpScreen(this@OnboardActivity)
                                 },
                             )
                             onboardAdvisorInput(

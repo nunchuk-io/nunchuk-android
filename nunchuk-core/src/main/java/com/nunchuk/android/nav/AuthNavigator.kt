@@ -22,13 +22,19 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.account.SignInType
 
 interface AuthNavigator {
-    fun openSignInScreen(activityContext: Context, isNeedNewTask: Boolean = true, isAccountDeleted: Boolean = false)
+    fun openSignInScreen(
+        activityContext: Context,
+        isNeedNewTask: Boolean = true,
+        isAccountDeleted: Boolean = false,
+        type: SignInType = SignInType.EMAIL,
+    )
 
-    fun openSignUpScreen(activityContext: Context, isOnboardingFlow: Boolean = false)
+    fun openSignUpScreen(activityContext: Context)
 
-    fun openChangePasswordScreen(activityContext: Context, isOnboardingFlow: Boolean = false)
+    fun openChangePasswordScreen(activityContext: Context, isNewAccount: Boolean = false)
 
     fun openRecoverPasswordScreen(activityContext: Context, email: String)
 
@@ -36,6 +42,10 @@ interface AuthNavigator {
 
     fun openVerifyNewDeviceScreen(
         launcher: ActivityResultLauncher<Intent>,
-        activityContext: Context, email: String, loginHalfToken: String, deviceId: String, staySignedIn: Boolean
+        activityContext: Context,
+        email: String,
+        loginHalfToken: String,
+        deviceId: String,
+        staySignedIn: Boolean
     )
 }

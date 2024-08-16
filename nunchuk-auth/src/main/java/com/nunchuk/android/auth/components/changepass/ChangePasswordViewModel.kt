@@ -33,6 +33,7 @@ import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPas
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordValidEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ShowEmailSentEvent
 import com.nunchuk.android.auth.domain.ChangePasswordUseCase
+import com.nunchuk.android.auth.domain.ResendPasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.utils.onException
@@ -47,6 +48,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ChangePasswordViewModel @Inject constructor(
     private val changePasswordUseCase: ChangePasswordUseCase,
+    private val resendPasswordUseCase: ResendPasswordUseCase,
     accountManager: AccountManager,
 ) : NunchukViewModel<Unit, ChangePasswordEvent>() {
 
@@ -107,4 +109,14 @@ internal class ChangePasswordViewModel @Inject constructor(
         else -> doAfterValidate { event(ConfirmPasswordValidEvent) }
     }
 
+    fun resendPassword() {
+        viewModelScope.launch {
+            resendPasswordUseCase(account.email)
+                .onSuccess {
+                    setEvent(ChangePasswordEvent.ResendPasswordSuccessEvent(account.email))
+                }.onFailure {
+                    setEvent(ChangePasswordSuccessError(it.message))
+                }
+        }
+    }
 }

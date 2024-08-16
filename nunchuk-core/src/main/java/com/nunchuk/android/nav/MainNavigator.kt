@@ -30,6 +30,4 @@ interface MainNavigator {
         isClearTask: Boolean = false
     )
     fun returnToMainScreen(activity: Activity)
-    fun openGuestModeIntroScreen(activityContext: Context)
-    fun openGuestModeMessageIntroScreen(activityContext: Context)
 }

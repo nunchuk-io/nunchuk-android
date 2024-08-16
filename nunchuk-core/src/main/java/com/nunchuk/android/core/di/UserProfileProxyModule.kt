@@ -19,7 +19,15 @@
 
 package com.nunchuk.android.core.di
 
-import com.nunchuk.android.core.profile.*
+import com.nunchuk.android.core.profile.CompromiseUserDevicesUseCase
+import com.nunchuk.android.core.profile.CompromiseUserDevicesUseCaseImpl
+import com.nunchuk.android.core.profile.DeleteUserDevicesUseCase
+import com.nunchuk.android.core.profile.DeleteUserDevicesUseCaseImpl
+import com.nunchuk.android.core.profile.GetUserDevicesUseCase
+import com.nunchuk.android.core.profile.GetUserDevicesUseCaseImpl
+import com.nunchuk.android.core.profile.UserProfileApi
+import com.nunchuk.android.core.profile.UserRepository
+import com.nunchuk.android.core.profile.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -39,10 +47,6 @@ internal interface UserProfileDomainModule {
 
     @Binds
     fun bindGetUserDevicesUseCase(userCase: GetUserDevicesUseCaseImpl): GetUserDevicesUseCase
-
-    @Binds
-    fun bindUpdateUserProfileUseCase(userCase: UpdateUseProfileUseCaseImpl): UpdateUseProfileUseCase
-
 }
 
 @Module

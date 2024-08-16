@@ -39,11 +39,11 @@ class SignInModeHolder @Inject constructor(private val accountManager: AccountMa
                 SignInMode.PRIMARY_KEY.value -> {
                     setCurrentMode(SignInMode.PRIMARY_KEY)
                 }
-                else -> {
+                SignInMode.GUEST_MODE.value -> {
                     setCurrentMode(SignInMode.GUEST_MODE)
                 }
             }
-        } else {
+        } else if (loginType == SignInMode.GUEST_MODE.value) {
             setCurrentMode(SignInMode.GUEST_MODE)
         }
     }
