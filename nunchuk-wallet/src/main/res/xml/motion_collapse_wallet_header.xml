@@ -15,9 +15,11 @@
 
     <ConstraintSet android:id="@+id/start">
 
-        <Constraint
-            android:id="@id/fab"
-            motion:visibilityMode="ignore"/>
+        <Constraint android:id="@id/fab">
+            <PropertySet
+                app:applyMotionScene="false"
+                app:visibilityMode="ignore" />
+        </Constraint>
 
         <Constraint android:id="@+id/tv_wallet_warning">
             <PropertySet
