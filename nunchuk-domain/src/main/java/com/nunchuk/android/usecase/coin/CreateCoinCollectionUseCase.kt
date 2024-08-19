@@ -38,7 +38,8 @@ class CreateCoinCollectionUseCase @Inject constructor(
         )
         nunchukNativeSdk.updateCoinCollection(
             walletId = parameters.walletId,
-            coinCollection = parameters.coinCollection.copy(id = createCoinCollection.id)
+            coinCollection = parameters.coinCollection.copy(id = createCoinCollection.id),
+            applyToExistingCoins = parameters.applyToExistingCoins,
         )
         return createCoinCollection
     }
@@ -47,6 +48,7 @@ class CreateCoinCollectionUseCase @Inject constructor(
         override val groupId: String?,
         override val walletId: String,
         val coinCollection: CoinCollection,
+        val applyToExistingCoins: Boolean,
         override val isAssistedWallet: Boolean
     ) : BaseSyncCoinUseCase.Param(groupId, walletId, isAssistedWallet)
 }

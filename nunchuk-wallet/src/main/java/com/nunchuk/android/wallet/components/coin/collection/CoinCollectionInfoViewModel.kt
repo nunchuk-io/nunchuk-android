@@ -30,47 +30,46 @@ import com.nunchuk.android.usecase.coin.CreateCoinCollectionUseCase
 import com.nunchuk.android.usecase.coin.UpdateCoinCollectionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CoinCollectionBottomSheetViewModel @Inject constructor(
+class CoinCollectionInfoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val createCoinCollectionUseCase: CreateCoinCollectionUseCase,
     private val updateCoinCollectionUseCase: UpdateCoinCollectionUseCase,
     private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(CoinCollectionUiState())
+    val uiState = _uiState.asStateFlow()
 
-    val args = CoinCollectionBottomSheetFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    val args = CoinCollectionInfoFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private val _event = MutableSharedFlow<CoinCollectionBottomSheetEvent>()
     val event = _event.asSharedFlow()
 
-    private lateinit var coinCollection: CoinCollection
-    private var allCollections = arrayListOf<CoinCollection>()
+    private val allCollections = arrayListOf<CoinCollection>()
 
     init {
-        if (args.flow == CollectionFlow.ADD) {
-            this.coinCollection = CoinCollection()
-        } else if (args.flow == CollectionFlow.VIEW) {
-            this.coinCollection = args.coinCollection!!
-        }
+        _uiState.update { it.copy(selectedTags = args.coinCollection?.tagIds.orEmpty()) }
     }
 
-    fun createCoinCollection(name: String) = viewModelScope.launch {
-        val ignoreCheckingName = if (args.flow == CollectionFlow.VIEW) {
-            coinCollection.name == name
-        } else { false }
-        if (ignoreCheckingName.not()) {
-            val existedCollection =
-                allCollections.firstOrNull { it.name == name }
-            if (existedCollection != null) {
-                _event.emit(CoinCollectionBottomSheetEvent.ExistedCollectionError)
-                return@launch
-            }
+    fun createCoinCollection(
+        coinCollection: CoinCollection,
+        applyToExistingCoins: Boolean
+    ) = viewModelScope.launch {
+        val existedCollection =
+            allCollections.filter { it != args.coinCollection }.firstOrNull { it.name == coinCollection.name }
+        if (existedCollection != null) {
+            _uiState.update { it.copy(isExist = true) }
+            return@launch
+        } else {
+            _uiState.update { it.copy(isExist = false) }
         }
-        coinCollection = coinCollection.copy(name = name)
         val result = when (args.flow) {
             CollectionFlow.ADD -> {
                 createCoinCollectionUseCase(
@@ -78,7 +77,8 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
                         groupId = assistedWalletManager.getGroupId(args.walletId),
                         walletId = args.walletId,
                         coinCollection = coinCollection,
-                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
+                        applyToExistingCoins = applyToExistingCoins
                     )
                 )
             }
@@ -89,7 +89,8 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
                         groupId = assistedWalletManager.getGroupId(args.walletId),
                         walletId = args.walletId,
                         coinCollection = coinCollection,
-                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
+                        applyToExistingCoins = applyToExistingCoins
                     )
                 )
             }
@@ -100,31 +101,25 @@ class CoinCollectionBottomSheetViewModel @Inject constructor(
         }
 
         if (result.isSuccess) {
-            _event.emit(CoinCollectionBottomSheetEvent.CreateOrUpdateCollectionSuccess)
+            _event.emit(CoinCollectionBottomSheetEvent.CreateOrUpdateCollectionSuccess(coinCollection))
         } else {
             _event.emit(CoinCollectionBottomSheetEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
-    fun setAddNewCoin(checked: Boolean) {
-        coinCollection = coinCollection.copy(isAddNewCoin = checked)
-    }
-
-    fun setAutoLock(checked: Boolean) {
-        coinCollection = coinCollection.copy(isAutoLock = checked)
+    fun addTags(tags: Set<Int>) {
+        _uiState.update { it.copy(selectedTags = tags) }
     }
 
     fun setCollections(collections: List<CoinCollection>) {
         allCollections.clear()
         allCollections.addAll(collections)
     }
-
-    fun getCoinCollection() = coinCollection
 }
 
 sealed class CoinCollectionBottomSheetEvent {
     data class Error(val message: String) : CoinCollectionBottomSheetEvent()
-    object CreateOrUpdateCollectionSuccess : CoinCollectionBottomSheetEvent()
-    object ExistedCollectionError : CoinCollectionBottomSheetEvent()
+    class CreateOrUpdateCollectionSuccess(val collection: CoinCollection) :
+        CoinCollectionBottomSheetEvent()
 }
 

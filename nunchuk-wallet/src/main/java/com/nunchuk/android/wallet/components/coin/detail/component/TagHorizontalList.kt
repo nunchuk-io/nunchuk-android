@@ -44,19 +44,18 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.CoinTagView
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.wallet.R
 
 @Composable
 fun TagHorizontalList(
     modifier: Modifier = Modifier,
-    output: UnspentOutput,
-    onUpdateTag: (output: UnspentOutput) -> Unit,
+    tags: Set<Int>,
+    onUpdateTag: () -> Unit,
     coinTags: Map<Int, CoinTag>,
     onViewTagDetail: (tag: CoinTag) -> Unit
 ) {
     Row(
-        modifier = modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -70,30 +69,30 @@ fun TagHorizontalList(
             text = stringResource(R.string.nc_tags),
             style = NunchukTheme.typography.title
         )
-        if (output.tags.isNotEmpty()) {
+        if (tags.isNotEmpty()) {
             Text(
                 modifier = Modifier.padding(start = 8.dp),
-                text = "(${output.tags.size})",
+                text = "(${tags.size})",
                 style = NunchukTheme.typography.bodySmall
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        if (output.tags.isNotEmpty()) {
+        if (tags.isNotEmpty()) {
             Text(
-                modifier = Modifier.clickable { onUpdateTag(output) },
+                modifier = Modifier.clickable { onUpdateTag() },
                 text = stringResource(id = R.string.nc_edit),
                 style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline),
             )
         } else {
             Icon(
-                modifier = Modifier.clickable { onUpdateTag(output) },
+                modifier = Modifier.clickable { onUpdateTag() },
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add"
             )
         }
     }
-    if (output.tags.isNotEmpty()) {
-        val tags = output.tags.mapNotNull {
+    if (tags.isNotEmpty()) {
+        val tags = tags.mapNotNull {
             coinTags[it]
         }.sortedBy { it.name }
         LazyRow(

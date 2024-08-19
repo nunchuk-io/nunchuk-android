@@ -169,6 +169,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinCollectionListFragment_to_collectionIntroFragment"
+            app:destination="@id/collectionIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
     </fragment>
 
@@ -233,8 +240,8 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
         <action
-            android:id="@+id/action_coinCollectionDetailFragment_to_coinCollectionBottomSheetFragment"
-            app:destination="@id/coinCollectionBottomSheetFragment"
+            android:id="@+id/action_coinCollectionDetailFragment_to_coinCollectionInfoFragment"
+            app:destination="@id/coinCollectionInfoFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -268,10 +275,10 @@
 
     </dialog>
 
-    <dialog
-        android:id="@+id/coinCollectionBottomSheetFragment"
-        android:name="com.nunchuk.android.wallet.components.coin.collection.CoinCollectionBottomSheetFragment"
-        android:label="CoinCollectionBottomSheetFragment">
+    <fragment
+        android:id="@+id/coinCollectionInfoFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.collection.CoinCollectionInfoFragment"
+        android:label="coinCollectionInfoFragment">
 
         <argument
             android:name="wallet_id"
@@ -285,7 +292,15 @@
         <argument
             android:name="flow"
             app:argType="integer" />
-    </dialog>
+
+        <action
+            android:id="@+id/action_coinCollectionInfoFragment_to_coinTagListFragment"
+            app:destination="@id/coinTagListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
 
     <action
         android:id="@+id/action_global_coinTagListFragment"
@@ -315,8 +330,8 @@
         app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
     <action
-        android:id="@+id/action_global_coinCollectionBottomSheetFragment"
-        app:destination="@id/coinCollectionBottomSheetFragment"
+        android:id="@+id/action_global_coinCollectionInfoFragment"
+        app:destination="@id/coinCollectionInfoFragment"
         app:enterAnim="@anim/nav_default_enter_anim"
         app:exitAnim="@anim/nav_default_exit_anim"
         app:launchSingleTop="true"
@@ -437,4 +452,12 @@
         app:launchSingleTop="true"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
         app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    <fragment
+        android:id="@+id/collectionIntroFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.collection.CollectionIntroFragment"
+        android:label="CollectionIntroFragment" >
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+    </fragment>
 </navigation>

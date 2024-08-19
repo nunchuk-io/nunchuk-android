@@ -27,10 +27,22 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,14 +63,24 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.CoinStatusBadge
+import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.denimTint
+import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getBtcFormatDate
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
@@ -212,7 +234,8 @@ private fun CoinDetailScreen(
     val coinListState by coinViewModel.state.collectAsStateWithLifecycle()
 
     val output =
-        coinListState.coins.find { it.txid == args.output.txid && it.vout == args.output.vout } ?: args.output
+        coinListState.coins.find { it.txid == args.output.txid && it.vout == args.output.vout }
+            ?: args.output
 
     CoinDetailContent(
         output = output,
@@ -248,7 +271,8 @@ private fun CoinDetailContent(
     onLockOrUnlock: (isLocked: Boolean) -> Unit = {},
     onViewCoinAncestry: (output: UnspentOutput) -> Unit = {},
 ) {
-    val backgroundColor = if (isSpentCoin) MaterialTheme.colorScheme.whisper else MaterialTheme.colorScheme.denimTint
+    val backgroundColor =
+        if (isSpentCoin) MaterialTheme.colorScheme.whisper else MaterialTheme.colorScheme.denimTint
     NunchukTheme {
         Scaffold(topBar = {
             Box(
@@ -268,7 +292,7 @@ private fun CoinDetailContent(
                         }
                     },
                     backgroundColor = backgroundColor
-                    )
+                )
             }
         }) { innerPadding ->
             Column(
@@ -330,9 +354,11 @@ private fun CoinDetailContent(
                     LockCoinRow(output = output, onLockCoin = onLockOrUnlock)
 
                     TagHorizontalList(
-                        modifier = Modifier.padding(top = 8.dp),
-                        output = output,
-                        onUpdateTag = onUpdateTag,
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+                        tags = output.tags,
+                        onUpdateTag = { onUpdateTag(output) },
                         coinTags = coinTags,
                         onViewTagDetail = onViewTagDetail
                     )
