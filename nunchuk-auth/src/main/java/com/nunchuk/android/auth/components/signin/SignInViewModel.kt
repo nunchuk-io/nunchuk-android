@@ -94,14 +94,14 @@ internal class SignInViewModel @Inject constructor(
     private var encryptedDeviceId: String? = null
 
     init {
+        if (type != SignInType.EMAIL) {
+            _state.update { state -> state.copy(email = accountManager.getAccount().email) }
+        }
         viewModelScope.launch {
             val isSignOut = savedStateHandle.get<Boolean>(EXTRA_SIGN_OUT) ?: true
             if (isSignOut) {
                 clearInfoSessionUseCase(Unit)
             }
-        }
-        if (type != SignInType.EMAIL) {
-            _state.update { state -> state.copy(email = accountManager.getAccount().email) }
         }
     }
 

@@ -36,6 +36,7 @@ interface SignInUseCase {
         email: String,
         password: String,
         staySignedIn: Boolean = true,
+        fetchUserInfo: Boolean = true,
     ): Flow<AccountInfo>
 }
 
@@ -47,18 +48,24 @@ internal class SignInUseCaseImpl @Inject constructor(
     private val checkShowOnboardUseCase: CheckShowOnboardUseCase,
 ) : SignInUseCase {
 
-    override fun execute(email: String, password: String, staySignedIn: Boolean) =
+    override fun execute(
+        email: String,
+        password: String,
+        staySignedIn: Boolean,
+        fetchUserInfo: Boolean
+    ): Flow<AccountInfo> =
         authRepository.login(
             email = email,
             password = password
         ).map {
-            storeAccount(email, it, staySignedIn)
+            storeAccount(email, it, staySignedIn, fetchUserInfo)
         }.flowOn(ioDispatcher)
 
     private suspend fun storeAccount(
         email: String,
         response: UserTokenResponse,
         staySignedIn: Boolean,
+        fetchUserInfo: Boolean
     ): AccountInfo {
         val account = accountManager.getAccount().copy(
             email = email,
@@ -69,9 +76,11 @@ internal class SignInUseCaseImpl @Inject constructor(
         )
         accountManager.storeAccount(account)
 
-        runCatching {
-            getUserProfileUseCase(Unit)
-            checkShowOnboardUseCase(Unit)
+        if (fetchUserInfo) {
+            runCatching {
+                getUserProfileUseCase(Unit)
+                checkShowOnboardUseCase(Unit)
+            }
         }
 
         return accountManager.getAccount()
