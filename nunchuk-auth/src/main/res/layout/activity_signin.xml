@@ -67,6 +67,7 @@
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
         app:edit_title="@string/nc_text_email_address"
+        app:edit_hint="@string/nc_enter_your_email"
         app:errorEnabled="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guideline" />

@@ -21,9 +21,13 @@ package com.nunchuk.android.auth.components.changepass
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface.BOLD
 import android.os.Bundle
+import android.text.Spannable.SPAN_INCLUSIVE_EXCLUSIVE
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.View
 import androidx.activity.viewModels
 import androidx.core.text.buildSpannedString
@@ -135,6 +139,14 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                             30 - seconds
                         }s)"
                     )
+                    val startIndex = indexOf(email)
+                    setSpan(StyleSpan(BOLD), startIndex, startIndex + email.length, SPAN_INCLUSIVE_EXCLUSIVE)
+                    setSpan(
+                        ForegroundColorSpan(getColor(R.color.nc_primary_color)),
+                        startIndex,
+                        startIndex + email.length,
+                        SPAN_INCLUSIVE_EXCLUSIVE
+                    )
                 }
                 delay(500.milliseconds)
             }
@@ -159,6 +171,14 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                 append(" ${getString(R.string.nc_text_resend_password)}")
             }
             append(" ")
+            val startIndex = indexOf(email)
+            setSpan(StyleSpan(BOLD), startIndex, startIndex + email.length, SPAN_INCLUSIVE_EXCLUSIVE)
+            setSpan(
+                ForegroundColorSpan(getColor(R.color.nc_primary_color)),
+                startIndex,
+                startIndex + email.length,
+                SPAN_INCLUSIVE_EXCLUSIVE
+            )
         }
     }
 
