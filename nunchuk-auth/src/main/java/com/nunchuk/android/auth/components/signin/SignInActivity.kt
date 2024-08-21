@@ -195,6 +195,10 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             getString(R.string.nc_hyperlink_text_policy),
             PRIVACY_URL
         )
+        if (viewModel.type == SignInType.GUEST) {
+            binding.toolbar.setNavigationIcon(R.drawable.ic_close)
+        }
+        binding.toolbar.setNavigationIcon(R.drawable.ic_close)
         binding.toolbar.setNavigationOnClickListener {
             if (viewModel.state.value.type == viewModel.type) {
                 finish()
