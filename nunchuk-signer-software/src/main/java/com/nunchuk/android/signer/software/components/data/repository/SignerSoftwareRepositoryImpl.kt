@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.software.components.data.repository
 
+import com.nunchuk.android.core.network.CODE_SUCCESS
 import com.nunchuk.android.model.PKeySignInResponse
 import com.nunchuk.android.model.PKeySignUpResponse
 import com.nunchuk.android.model.UserResponse
@@ -78,7 +79,7 @@ internal class SignerSoftwareRepositoryImpl @Inject constructor(
 
     override suspend fun pKeyCheckUsername(username: String) {
         val error = api.checkUsername(username).error
-        throw error
+        if (error.code != CODE_SUCCESS) throw error
     }
 
     override suspend fun pKeyChangeKey(
