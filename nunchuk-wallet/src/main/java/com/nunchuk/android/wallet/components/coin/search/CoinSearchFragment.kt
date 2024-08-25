@@ -26,13 +26,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.animation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -72,9 +88,10 @@ import com.nunchuk.android.wallet.components.coin.detail.component.CollectionHor
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragmentArgs
+import com.nunchuk.android.wallet.components.coin.list.CoinListEvent
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
-import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import javax.inject.Inject
@@ -118,16 +135,9 @@ class CoinSearchFragment : BaseCoinListFragment() {
                     onSendBtc = {
                         val selectedCoins = viewModel.getSelectedCoins()
                         if (selectedCoins.any { it.isLocked }) {
-                            NCInfoDialog(requireActivity())
-                                .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
+                            showUnlockBeforeCreateTransaction(selectedCoins)
                         } else {
-                            navigator.openInputAmountScreen(
-                                activityContext = requireActivity(),
-                                walletId = args.walletId,
-                                inputs = viewModel.getSelectedCoins(),
-                                availableAmount = viewModel.getSelectedCoins()
-                                    .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
-                            )
+                            openCreateTransaction()
                         }
                     },
                     onViewAllTags = {
@@ -151,8 +161,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
                     onUseCoinClicked = {
                         val selectedCoins = viewModel.getSelectedCoins()
                         if (selectedCoins.any { it.isLocked }) {
-                            NCInfoDialog(requireActivity())
-                                .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
+                            showUnlockBeforeCreateTransaction(selectedCoins)
                         } else {
                             requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
                                 putParcelableArrayListExtra(
@@ -176,6 +185,21 @@ class CoinSearchFragment : BaseCoinListFragment() {
         }
     }
 
+    private fun showUnlockBeforeCreateTransaction(selectedCoins: List<UnspentOutput>) {
+        NCWarningDialog(requireActivity())
+            .showDialog(
+                title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_locked_coin_can_not_used),
+                onYesClick = {
+                    coinListViewModel.onUnlockCoin(
+                        walletId = args.walletId,
+                        selectedCoins = selectedCoins,
+                        isCreateTransaction = true
+                    )
+                }
+            )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         args.inputs?.let { inputs ->
@@ -191,6 +215,21 @@ class CoinSearchFragment : BaseCoinListFragment() {
         flowObserver(coinListViewModel.state) { state ->
             viewModel.update(state.coins, state.tags, state.collections)
         }
+        flowObserver(coinListViewModel.event) {
+            if (it is CoinListEvent.CoinUnlocked && it.isCreateTransaction) {
+                openCreateTransaction()
+            }
+        }
+    }
+
+    private fun openCreateTransaction() {
+        navigator.openInputAmountScreen(
+            activityContext = requireActivity(),
+            walletId = args.walletId,
+            inputs = coinListViewModel.getSelectedCoins(),
+            availableAmount = coinListViewModel.getSelectedCoins()
+                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+        )
     }
 
     override val walletId: String

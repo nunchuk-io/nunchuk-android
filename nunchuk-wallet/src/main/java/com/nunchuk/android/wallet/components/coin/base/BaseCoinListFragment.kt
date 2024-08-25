@@ -56,9 +56,11 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                             resetSelect()
                         }
 
-                        CoinListEvent.CoinUnlocked -> {
-                            showSuccess(getString(R.string.nc_coin_unlocked))
-                            resetSelect()
+                        is CoinListEvent.CoinUnlocked -> {
+                            if (!event.isCreateTransaction) {
+                                showSuccess(getString(R.string.nc_coin_unlocked))
+                                resetSelect()
+                            }
                         }
 
                         is CoinListEvent.Error -> showError(event.message)
@@ -86,8 +88,9 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
             )
 
             SheetOptionType.TYPE_UNLOCK_COIN -> coinListViewModel.onUnlockCoin(
-                walletId,
-                getSelectedCoins()
+                walletId = walletId,
+                selectedCoins = getSelectedCoins(),
+                isCreateTransaction = false
             )
 
             SheetOptionType.TYPE_ADD_COLLECTION -> findNavController().navigate(

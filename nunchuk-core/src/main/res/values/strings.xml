@@ -652,7 +652,7 @@
     <string name="nc_filters">Filters</string>
     <string name="nc_selected_coins">Selected coins</string>
     <string name="nc_send_all_locked_coin_msg">The send amount exceeds the total value of all unlocked coins. Please unlock more coins and try again.</string>
-    <string name="nc_locked_coin_can_not_used">Locked coins cannot be used to create a transaction. Please update and try again.</string>
+    <string name="nc_locked_coin_can_not_used">The selected coins include locked coins. Would you like to unlock them to create the transaction?</string>
     <string name="nc_show_less">Show less</string>
     <string name="nc_more">More</string>
     <string name="nc_transaction_imported">Transaction imported</string>

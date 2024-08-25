@@ -146,7 +146,7 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
-    fun onUnlockCoin(walletId: String, selectedCoins: List<UnspentOutput>) {
+    fun onUnlockCoin(walletId: String, selectedCoins: List<UnspentOutput>, isCreateTransaction: Boolean) {
         viewModelScope.launch {
             selectedCoins.asSequence().filter { it.isLocked }.forEach {
                 unLockCoinUseCase(
@@ -159,8 +159,17 @@ class CoinListViewModel @Inject constructor(
                     )
                 )
             }
+            if (isCreateTransaction) {
+                _state.update {
+                    it.copy(selectedCoins = selectedCoins.map { coin ->
+                        coin.copy(
+                            isLocked = false
+                        )
+                    }.toSet())
+                }
+            }
             getAllCoins()
-            _event.emit(CoinListEvent.CoinUnlocked)
+            _event.emit(CoinListEvent.CoinUnlocked(isCreateTransaction))
         }
     }
 
@@ -237,7 +246,7 @@ sealed class CoinListEvent {
     data class Loading(val isLoading: Boolean) : CoinListEvent()
     data class Error(val message: String) : CoinListEvent()
     object CoinLocked : CoinListEvent()
-    object CoinUnlocked : CoinListEvent()
+    data class CoinUnlocked(val isCreateTransaction: Boolean) : CoinListEvent()
     object RemoveCoinFromTagSuccess : CoinListEvent()
     object RemoveCoinFromCollectionSuccess : CoinListEvent()
 }
