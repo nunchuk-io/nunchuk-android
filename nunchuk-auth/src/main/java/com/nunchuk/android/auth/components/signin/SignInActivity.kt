@@ -29,7 +29,6 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.enterxpub.EnterXPUBActivity
-import com.nunchuk.android.auth.components.signin.SignInEvent.CheckPrimaryKeyAccountEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailRequiredEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailValidEvent
@@ -92,13 +91,6 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
                 is SignInSuccessEvent -> openMainScreen()
                 is ProcessingEvent -> showOrHideLoading(it.isLoading)
-                is CheckPrimaryKeyAccountEvent -> {
-                    if (it.accounts.isNotEmpty()) {
-                        navigator.openPrimaryKeyAccountScreen(this, it.accounts)
-                    } else {
-                        navigator.openPrimaryKeySignInIntroScreen(this)
-                    }
-                }
 
                 is SignInEvent.RequireChangePassword -> navigator.openChangePasswordScreen(
                     activityContext = this,
@@ -113,6 +105,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             if (it.email.isNotEmpty()) {
                 binding.email.getEditTextView().setText(it.email)
             }
+            binding.signInPrimary.isVisible = it.type == SignInType.GUEST || it.accounts.isNotEmpty()
             initUiWithStage(it.type, it.isSubscriberUser)
         }
     }
@@ -126,7 +119,6 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
         binding.name.isVisible = stage == SignInType.NAME
 
-        binding.signInPrimary.isVisible = stage == SignInType.GUEST
         binding.guestMode.isVisible = stage == SignInType.EMAIL
         binding.tvTermAndPolicy.isVisible = stage == SignInType.EMAIL
 
@@ -186,7 +178,14 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         binding.signInDigitalSignature.setOnClickListener { EnterXPUBActivity.start(this) }
         binding.forgotPassword.setOnClickListener { onForgotPasswordClick() }
         binding.guestMode.setOnClickListener { onGuestModeClick() }
-        binding.signInPrimary.setOnClickListener { viewModel.checkPrimaryKeyAccounts() }
+        binding.signInPrimary.setOnClickListener {
+            val accounts = viewModel.state.value.accounts
+            if (accounts.isNotEmpty()) {
+                navigator.openPrimaryKeyAccountScreen(this, ArrayList(accounts))
+            } else {
+                navigator.openPrimaryKeySignInIntroScreen(this)
+            }
+        }
         binding.tvTermAndPolicy.linkify(
             getString(R.string.nc_hyperlink_text_term),
             TERM_URL

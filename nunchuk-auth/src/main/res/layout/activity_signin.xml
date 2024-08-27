@@ -127,7 +127,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_signin_via_digital_signature"
+        android:text="@string/nc_sign_in_via_primary_key"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/signIn" />
 

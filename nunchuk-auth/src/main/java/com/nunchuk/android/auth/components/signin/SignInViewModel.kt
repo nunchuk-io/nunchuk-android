@@ -22,7 +22,6 @@ package com.nunchuk.android.auth.components.signin
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.auth.components.signin.SignInEvent.CheckPrimaryKeyAccountEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailRequiredEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailValidEvent
@@ -103,6 +102,7 @@ internal class SignInViewModel @Inject constructor(
                 clearInfoSessionUseCase(Unit)
             }
         }
+        checkPrimaryKeyAccounts()
     }
 
     private suspend fun validateEmail(email: String) = when {
@@ -246,16 +246,11 @@ internal class SignInViewModel @Inject constructor(
         }
     }
 
-    fun checkPrimaryKeyAccounts() = viewModelScope.launch {
-        val result = getPrimaryKeyListUseCase(Unit)
-        if (result.isSuccess) {
-            val data = result.getOrNull().orEmpty()
-            if (data.isEmpty()) {
-                _event.emit(CheckPrimaryKeyAccountEvent(arrayListOf()))
-            } else {
-                _event.emit(CheckPrimaryKeyAccountEvent(ArrayList(data)))
+    private fun checkPrimaryKeyAccounts() = viewModelScope.launch {
+        getPrimaryKeyListUseCase(Unit)
+            .onSuccess { data ->
+                _state.update { state -> state.copy(accounts = data) }
             }
-        }
     }
 
     fun initGuestModeNunchuk() {

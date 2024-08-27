@@ -23,17 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.R
-import com.nunchuk.android.compose.NcSpannedClickableText
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.OptionCard
-import com.nunchuk.android.compose.SpanIndicator
 
 @Composable
 fun OnboardIntroScreen(
@@ -41,7 +37,6 @@ fun OnboardIntroScreen(
     onOpenUnassistedIntro: () -> Unit = {},
     onOpenAssistedIntro: () -> Unit = {},
     openMainScreen: () -> Unit = {},
-    onSignIn: () -> Unit = {},
     viewModel: OnboardIntroViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -52,7 +47,6 @@ fun OnboardIntroScreen(
         }
     }
     OnboardIntroContent(
-        state = state,
         modifier = modifier,
         onOpenUnassistedIntro = onOpenUnassistedIntro,
         onOpenAssistedIntro = onOpenAssistedIntro,
@@ -60,16 +54,13 @@ fun OnboardIntroScreen(
             viewModel.markOnBoardDone()
             openMainScreen()
         },
-        onSignIn = onSignIn
     )
 }
 
 @Composable
 fun OnboardIntroContent(
     modifier: Modifier = Modifier,
-    state: OnboardIntroState = OnboardIntroState(),
     onSkip: () -> Unit = {},
-    onSignIn: () -> Unit = {},
     onOpenUnassistedIntro: () -> Unit = {},
     onOpenAssistedIntro: () -> Unit = {}
 ) {
@@ -87,27 +78,6 @@ fun OnboardIntroContent(
                     text = stringResource(id = R.string.nc_text_skip),
                     style = NunchukTheme.typography.textLink
                 )
-            }
-        },
-        bottomBar = {
-            if (!state.isLoggedIn) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    NcSpannedClickableText(
-                        modifier = Modifier
-                            .padding(16.dp),
-                        text = stringResource(R.string.nc_already_have_an_account_sign_in),
-                        baseStyle = NunchukTheme.typography.body,
-                        styles = mapOf(
-                            SpanIndicator('A') to SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                            )
-                        ),
-                        onClick = { onSignIn() }
-                    )
-                }
             }
         },
     ) { innerPadding ->
@@ -158,6 +128,6 @@ fun OnboardIntroContent(
 @Composable
 fun OnboardIntroScreenPreview() {
     NunchukTheme {
-        OnboardIntroScreen()
+        OnboardIntroContent()
     }
 }
