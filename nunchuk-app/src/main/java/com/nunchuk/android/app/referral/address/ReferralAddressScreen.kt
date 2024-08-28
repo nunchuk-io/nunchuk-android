@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
@@ -68,20 +66,21 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.signer.R
 
-const val referralAddressRoute = "referral_address_route/{address}"
+const val referralAddressRoute = "referral_address_route/{address}/{walletId}"
 internal const val DEFAULT_ADDRESS = "DEFAULT_ADDRESS"
+internal const val DEFAULT_WALLET_ID = "DEFAULT_WALLET_ID"
 
 const val REFERRAL_ADDRESS_RESULT = "referral_address_result"
 
 fun NavGraphBuilder.referralAddress(
     navController: NavController,
-    onSaveChange: (String) -> Unit) {
+    onSaveChange: (String) -> Unit
+) {
     composable(referralAddressRoute, arguments = listOf(
         navArgument("address") {
             type = NavType.StringType
         }
     )) {
-        val preSelectedAddress = it.arguments?.getString("address").orEmpty()
 
         val viewModel = hiltViewModel<ReferralAddressViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
@@ -103,9 +102,9 @@ fun NavGraphBuilder.referralAddress(
 
         ReferralAddressScreen(
             modifier = Modifier,
-            preSelectedAddress = preSelectedAddress,
             navController = navController,
             state = state,
+            isEnableButton = viewModel.isEnableButton(),
             onScan = {
                 startQRCodeScan(launcher)
             },
@@ -119,13 +118,19 @@ fun NavGraphBuilder.referralAddress(
                     onSaveChange(address)
                 }
             },
+            onSelectedWallet = {
+                viewModel.updateSelectedWalletAddress(it)
+            },
             onUpdateReceiveAddress = { data ->
                 var result = data
                 if (data.action == ReferralAction.CHANGE.value) {
                     val walletId = viewModel.getWalletIdByAddress(data.address.orEmpty())
                     result = data.copy(walletId = walletId)
                 }
-                navController.previousBackStackEntry?.savedStateHandle?.set(REFERRAL_ADDRESS_RESULT, result)
+                navController.previousBackStackEntry?.savedStateHandle?.set(
+                    REFERRAL_ADDRESS_RESULT,
+                    result
+                )
                 navController.popBackStack()
             },
             onShowOtherAddress = {
@@ -138,8 +143,9 @@ fun NavGraphBuilder.referralAddress(
 fun NavController.navigateToReferralAddress(
     navOptions: NavOptions? = null,
     address: String,
+    walletId: String
 ) {
-    navigate("referral_address_route/$address", navOptions)
+    navigate("referral_address_route/$address/$walletId", navOptions)
 }
 
 @Composable
@@ -147,16 +153,14 @@ fun ReferralAddressScreen(
     modifier: Modifier = Modifier,
     navController: NavController = NavController(LocalContext.current),
     state: ReferralAddressUiState,
-    preSelectedAddress: String,
+    isEnableButton: Boolean = false,
     onSaveChange: (Boolean, String) -> Unit = { _, _ -> },
     onScan: () -> Unit = { },
     onEnterAddress: (String) -> Unit = { },
     onUpdateReceiveAddress: (ConfirmationCodeResultData) -> Unit = { },
-    onShowOtherAddress: (Boolean) -> Unit = { }
+    onShowOtherAddress: (Boolean) -> Unit = { },
+    onSelectedWallet: (WalletAddressUi?) -> Unit = { },
 ) {
-
-    var selectedAddress by remember { mutableStateOf(preSelectedAddress) }
-
     val context = LocalLifecycleOwner.current
     var handledResult by remember { mutableStateOf(false) }
 
@@ -199,16 +203,12 @@ fun ReferralAddressScreen(
                     modifier = Modifier
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
-                    enabled = if (state.showOtherAddress) {
-                        state.enteredAddress.isNotBlank() && state.enteredAddress != preSelectedAddress
-                    } else {
-                        selectedAddress != preSelectedAddress
-                    },
+                    enabled = isEnableButton,
                     onClick = {
                         if (state.showOtherAddress) {
                             onSaveChange(true, state.enteredAddress)
                         } else {
-                            onSaveChange(false, selectedAddress)
+                            onSaveChange(false, state.selectedWalletAddress?.address.orEmpty())
                         }
                     },
                 ) {
@@ -240,12 +240,14 @@ fun ReferralAddressScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp),
-                        isSelected = selectedAddress == addressWalletUi.address,
+                        isSelected = state.selectedWalletAddress?.address == addressWalletUi.address,
                         title = addressWalletUi.walletName,
                         desc = addressWalletUi.address,
                         disabled = state.showOtherAddress,
                         onClick = {
-                            if (state.showOtherAddress.not()) selectedAddress = addressWalletUi.address
+                            if (state.showOtherAddress.not()) {
+                                onSelectedWallet(addressWalletUi)
+                            }
                         }
                     )
                 }
@@ -267,7 +269,7 @@ fun ReferralAddressScreen(
                             onCheckedChange = {
                                 onShowOtherAddress(it)
                                 if (it) {
-                                    selectedAddress = DEFAULT_ADDRESS
+                                    onSelectedWallet(null)
                                 }
                             },
                             colors = SwitchDefaults.colors()
@@ -389,7 +391,6 @@ private fun ReferralAddressScreenPreview(
     NunchukTheme {
         ReferralAddressScreen(
             state = ReferralAddressUiState(),
-            preSelectedAddress = DEFAULT_ADDRESS
         )
     }
 }

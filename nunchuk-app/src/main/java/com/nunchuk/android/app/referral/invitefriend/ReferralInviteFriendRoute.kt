@@ -76,7 +76,7 @@ fun NavGraphBuilder.referralInviteFriend(
     args: ReferralArgs,
     snackState: SnackbarHostState,
     onCopyToClipboard: (String) -> Unit,
-    onChangeAddress: (String) -> Unit,
+    onChangeAddress: (String, String) -> Unit,
     onViewReferralAddress: (String) -> Unit = {},
     onShareLink: (Boolean, String) -> Unit = { _, _ -> },
 ) {
@@ -131,7 +131,7 @@ fun NavGraphBuilder.referralInviteFriend(
                     onCopyToClipboard(link)
                 }
             }, onChangeAddress = {
-                onChangeAddress(viewModel.getReceiveAddress())
+                onChangeAddress(viewModel.getReceiveAddress(), viewModel.getSelectWalletId())
             }, onViewReferralAddress = {
                 if (viewModel.getEmail().isNotEmpty()) {
                     onViewReferralAddress(viewModel.getEmail())

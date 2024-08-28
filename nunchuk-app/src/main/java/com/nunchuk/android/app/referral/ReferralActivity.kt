@@ -10,6 +10,7 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.app.referral.address.DEFAULT_ADDRESS
+import com.nunchuk.android.app.referral.address.DEFAULT_WALLET_ID
 import com.nunchuk.android.app.referral.address.navigateToReferralAddress
 import com.nunchuk.android.app.referral.address.referralAddress
 import com.nunchuk.android.app.referral.confirmationcode.navigateToReferralConfirmationCode
@@ -53,8 +54,10 @@ class ReferralActivity : BaseComposeActivity() {
                         onCopyToClipboard = {
                             copyToClipboard(label = "Nunchuk", text = it)
                             NCToastMessage(this@ReferralActivity).show("Link copied to clipboard")
-                        }, onChangeAddress = {
-                            navigationController.navigateToReferralAddress(address = it.ifBlank { DEFAULT_ADDRESS })
+                        }, onChangeAddress = { address, walletId ->
+                            navigationController.navigateToReferralAddress(
+                                address = address.ifBlank { DEFAULT_ADDRESS },
+                                walletId = walletId.ifBlank { DEFAULT_WALLET_ID })
                         },
                         onViewReferralAddress = {
                             navigationController.navigateToReferralConfirmationCode(
@@ -73,11 +76,11 @@ class ReferralActivity : BaseComposeActivity() {
                     referralAddress(
                         navController = navigationController,
                         onSaveChange = {
-                        navigationController.navigateToReferralConfirmationCode(
-                            action = ReferralAction.CHANGE.value,
-                            address = it
-                        )
-                    })
+                            navigationController.navigateToReferralConfirmationCode(
+                                action = ReferralAction.CHANGE.value,
+                                address = it
+                            )
+                        })
 
                     referralConfirmationCode(navigationController, snackState)
                 }

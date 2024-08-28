@@ -39,6 +39,11 @@ class ReferralAddressViewModel @Inject constructor(
             return if (field == DEFAULT_ADDRESS) null else field
         }
 
+    private val preWalletId: String? = savedStateHandle["walletId"]
+        get() {
+            return if (field == DEFAULT_WALLET_ID) null else field
+        }
+
     init {
         viewModelScope.launch {
             getWalletsUseCase.execute()
@@ -72,14 +77,33 @@ class ReferralAddressViewModel @Inject constructor(
                     }
                 }
             }.awaitAll()
+            val resultWalletList = addressList.filterNotNull()
             _state.update {
-                it.copy(addressWalletUis = addressList.filterNotNull())
+                it.copy(addressWalletUis = resultWalletList)
             }
-            if (preAddress.isNullOrEmpty().not()) {
-                addressList.filterNotNull().filter { it.address == preAddress }.also { list ->
+            var foundWalletId = false
+            if (preWalletId.isNullOrEmpty().not()) {
+                resultWalletList.find { it.walletId == preWalletId }
+                    .also { walletAddressUi ->
+                        if (walletAddressUi != null) {
+                            foundWalletId = true
+                            _state.update {
+                                it.copy(
+                                    selectedWalletAddress = walletAddressUi,
+                                    preSelectedWalletAddress = walletAddressUi.copy(address = preAddress.orEmpty())
+                                )
+                            }
+                        }
+                    }
+            }
+            if (foundWalletId.not() && preWalletId.isNullOrEmpty().not()) {
+                resultWalletList.filter { it.address == preAddress }.also { list ->
                     if (list.isEmpty()) {
                         _state.update {
-                            it.copy(enteredAddress = preAddress.orEmpty(), showOtherAddress = true)
+                            it.copy(
+                                enteredAddress = preAddress.orEmpty(),
+                                showOtherAddress = true
+                            )
                         }
                     }
                 }
@@ -141,6 +165,32 @@ class ReferralAddressViewModel @Inject constructor(
     fun getWalletIdByAddress(address: String): String? {
         return state.value.addressWalletUis.find { it.address == address }?.walletId
     }
+
+    fun updateSelectedWalletAddress(walletAddressUi: WalletAddressUi?) {
+        _state.update {
+            it.copy(
+                selectedWalletAddress = walletAddressUi,
+            )
+        }
+    }
+
+    fun isEnableButton(): Boolean {
+        val stateValue = state.value
+        if (stateValue.showOtherAddress) {
+            return stateValue.enteredAddress.isNotBlank() && stateValue.enteredAddress != preAddress
+        } else {
+            if (stateValue.preSelectedWalletAddress != null
+                && stateValue.selectedWalletAddress != null
+                && stateValue.preSelectedWalletAddress.address != stateValue.selectedWalletAddress.address
+            ) {
+                return true
+            }
+            if (stateValue.selectedWalletAddress != null && stateValue.selectedWalletAddress.address != preAddress) {
+                return true
+            }
+        }
+        return false
+    }
 }
 
 data class ReferralAddressUiState(
@@ -151,6 +201,8 @@ data class ReferralAddressUiState(
     val isAddressInvalid: Boolean = false,
     val checkAddressSuccess: Boolean = false,
     val showOtherAddress: Boolean = false,
+    val selectedWalletAddress: WalletAddressUi? = null,
+    val preSelectedWalletAddress: WalletAddressUi? = null,
 )
 
 data class WalletAddressUi(

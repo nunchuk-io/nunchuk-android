@@ -53,7 +53,6 @@ class ReferralConfirmationCodeViewModel @Inject constructor(
     fun sendConfirmationCodeByEmail() {
         val state = state.value
         if (state.email.isBlank() || action.isBlank()) return
-        Log.e("referral", "address: $address email: ${state.email} action: $action")
         _state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             sendConfirmationCodeByEmailUseCase(

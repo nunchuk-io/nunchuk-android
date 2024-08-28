@@ -61,7 +61,6 @@ class ReferralInviteFriendViewModel @Inject constructor(
         _state.update {
             it.copy(campaign = campaign, localReferrerCode = localReferrerCode)
         }
-        Log.e("referral", "init localReferrerCode: $localReferrerCode")
         val accountInfo = accountManager.getAccount()
         val isLoginByEmail = accountInfo.loginType == SignInMode.EMAIL.value
         _state.update { it.copy(isLoginByEmail = isLoginByEmail) }
@@ -82,7 +81,6 @@ class ReferralInviteFriendViewModel @Inject constructor(
             getLocalReferrerCodeUseCase(Unit)
                 .collect { result ->
                     if (result.getOrNull() != null) {
-                        Log.e("referral", "getLocalReferrerCodeUseCase: $result")
                         _state.update { it.copy(localReferrerCode = result.getOrThrow()) }
                     }
                 }
@@ -100,7 +98,6 @@ class ReferralInviteFriendViewModel @Inject constructor(
                 }
                 if (filterOutDeactivatedWallets.isNotEmpty()) {
                     val walletId = filterOutDeactivatedWallets.first().id
-                    Log.e("referral", "getReceiveWalletAddressTemp walletId: $walletId")
                     getUnusedWalletAddressUseCase(walletId).onSuccess { addresses ->
                         val address = addresses.first()
                         _state.update {
@@ -118,12 +115,10 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     private fun getWalletById(walletId: String) {
-        Log.e("referral", "getWalletDetail walletId: $walletId")
         if (walletId.isEmpty()) return
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId)
                 .onSuccess { wallet ->
-                    Log.e("referral", "getWalletDetail wallet: ${wallet.name}")
                     _state.update {
                         it.copy(wallet = wallet)
                     }
@@ -142,7 +137,6 @@ class ReferralInviteFriendViewModel @Inject constructor(
             if (getWalletId().isEmpty() && filterOutDeactivatedWallets.isNotEmpty()) {
                 val walletId = filterOutDeactivatedWallets.first().id
                 savedStateHandle["walletId"] = walletId
-                Log.e("referral", "pickWallet walletId: $walletId")
                 getWalletById(walletId)
                 getFirstUnusedAddress()
             }
@@ -165,7 +159,6 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     fun getReferrerCodeByEmail(email: String, token: String? = null) {
-        Log.e("referral", "getReferrerCodeByEmail: $email")
         if (token != null && token == currentToken) return
         currentToken = token ?: ""
         viewModelScope.launch {
@@ -175,7 +168,6 @@ class ReferralInviteFriendViewModel @Inject constructor(
                     token = token
                 )
             ).onSuccess { referrerCode ->
-                Log.e("referral", "getReferrerCodeByEmail: $referrerCode")
                 referrerCode?.let {
                     if (referrerCode.receiveAddress.isNotEmpty()) {
                         getWalletByAddress(referrerCode.receiveAddress)
@@ -304,6 +296,16 @@ class ReferralInviteFriendViewModel @Inject constructor(
         return _state.value.pickReceiveAddress ?: _state.value.localReferrerCode?.receiveAddress ?: ""
     }
 
+    fun getSelectWalletId(): String {
+        return if (_state.value.isHideAddress()) {
+            ""
+        } else {
+            _state.value.localReferrerCode?.localWalletId.orEmpty().ifEmpty {
+                _state.value.wallet?.id.orEmpty()
+            }
+        }
+    }
+
     private fun updateLocalReferrerCode(referrerCode: ReferrerCode) {
         viewModelScope.launch {
             _state.update { it.copy(localReferrerCode = referrerCode) }
@@ -328,7 +330,6 @@ class ReferralInviteFriendViewModel @Inject constructor(
                 )
             ).onSuccess { result ->
                 result?.let {
-                    Log.e("referral", "updateReceiveAddressByEmailUseCase: $result")
                     _state.update {
                         it.copy(
                             localReferrerCode = result,
