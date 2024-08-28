@@ -114,7 +114,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         binding.password.isVisible = stage == SignInType.PASSWORD
         binding.forgotPassword.isVisible = stage == SignInType.PASSWORD
         binding.staySignIn.isVisible = stage == SignInType.PASSWORD
-        binding.signInDigitalSignature.isVisible = isSubscriberUser
+        binding.signInDigitalSignature.isVisible = isSubscriberUser && stage == SignInType.PASSWORD
         binding.email.isEnabled = stage == SignInType.EMAIL || stage == SignInType.GUEST
 
         binding.name.isVisible = stage == SignInType.NAME
