@@ -35,6 +35,7 @@ import com.nunchuk.android.auth.databinding.ActivitySignupBinding
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showKeyboard
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -62,6 +63,7 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
 
         binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_term), TERM_URL)
         binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_policy), PRIVACY_URL)
+        binding.email.getEditTextView().showKeyboard()
     }
 
     private fun onRegisterClicked() {

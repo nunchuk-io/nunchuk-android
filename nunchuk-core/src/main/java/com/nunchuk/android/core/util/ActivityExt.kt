@@ -26,6 +26,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -99,6 +100,12 @@ fun Fragment.showOrHideLoading(
 
 fun View.hideKeyboard() =
     ViewCompat.getWindowInsetsController(this)?.hide(WindowInsetsCompat.Type.ime())
+
+fun View.showKeyboard() {
+    requestFocus()
+    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+}
 
 fun Activity.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) {
     val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)

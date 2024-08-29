@@ -45,8 +45,8 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.hideKeyboard
 import com.nunchuk.android.core.util.linkify
+import com.nunchuk.android.core.util.showKeyboard
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCToastMessage
@@ -107,6 +107,18 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             }
             binding.signInPrimary.isVisible = it.type == SignInType.GUEST || it.accounts.isNotEmpty()
             initUiWithStage(it.type, it.isSubscriberUser)
+
+            when (it.type) {
+                SignInType.EMAIL, SignInType.GUEST -> {
+                    binding.email.getEditTextView().showKeyboard()
+                }
+                SignInType.PASSWORD -> {
+                    binding.password.getEditTextView().showKeyboard()
+                }
+                SignInType.NAME -> {
+                    binding.name.getEditTextView().showKeyboard()
+                }
+            }
         }
     }
 
@@ -202,7 +214,6 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             if (viewModel.state.value.type == viewModel.type) {
                 finish()
             } else {
-                binding.root.hideKeyboard()
                 viewModel.setType(
                     intent.serializable<SignInType>(SignInViewModel.EXTRA_TYPE) ?: SignInType.EMAIL
                 )
