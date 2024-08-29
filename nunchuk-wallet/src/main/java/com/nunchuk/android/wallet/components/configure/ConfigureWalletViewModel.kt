@@ -41,12 +41,19 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -61,6 +68,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
     private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder,
     private val savedStateHandle: SavedStateHandle,
     private val cacheDefaultTapsignerMasterSignerXPubUseCase: CacheDefaultTapsignerMasterSignerXPubUseCase,
+    private val getWallets2UseCase: GetWallets2UseCase,
 ) : NunchukViewModel<ConfigureWalletState, ConfigureWalletEvent>() {
 
     private lateinit var args: ConfigureWalletArgs
@@ -70,6 +78,11 @@ internal class ConfigureWalletViewModel @Inject constructor(
     override val initialState = ConfigureWalletState()
 
     private val masterSignerIdSet = mutableSetOf<String>()
+    private val unBackedUpSignerXfpSet = mutableSetOf<String>()
+
+    init {
+        getUnBackedUpWallet()
+    }
 
     fun init(args: ConfigureWalletArgs) {
         this.args = args
@@ -303,6 +316,19 @@ internal class ConfigureWalletViewModel @Inject constructor(
 
 
     fun isShowPath() = getState().isShowPath
+
+    private fun getUnBackedUpWallet() {
+        viewModelScope.launch {
+            getWallets2UseCase(Unit)
+                .onSuccess { wallets ->
+                    wallets.filter { it.needBackup }.forEach {
+                        unBackedUpSignerXfpSet.add(it.signers.first().masterFingerprint)
+                    }
+                }
+        }
+    }
+
+    fun isUnBackedUpSigner(signer: SignerModel) = unBackedUpSignerXfpSet.contains(signer.fingerPrint)
 
     companion object {
         private const val EXTRA_CURRENT_SELECTED_MASTER_SIGNER = "_a"

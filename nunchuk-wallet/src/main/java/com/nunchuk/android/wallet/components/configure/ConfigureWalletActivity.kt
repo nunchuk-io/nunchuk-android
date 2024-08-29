@@ -35,6 +35,7 @@ import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
@@ -42,6 +43,7 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
 import com.nunchuk.android.wallet.databinding.ActivityConfigureWalletBinding
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -202,10 +204,14 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
             selectedSigners = selectedPFXs,
             isShowPath = isShowPath,
             onItemSelectedListener = { model, checked ->
-                viewModel.updateSelectedSigner(
-                    signer = model,
-                    checked = checked,
-                )
+                if (model.type == SignerType.SOFTWARE && viewModel.isUnBackedUpSigner(model) && checked) {
+                    showUnBackedUpSignerWarning()
+                } else {
+                    viewModel.updateSelectedSigner(
+                        signer = model,
+                        checked = checked,
+                    )
+                }
             }, onEditPath = { model ->
                 InputBipPathBottomSheet.show(
                     supportFragmentManager,
@@ -214,6 +220,13 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                 )
             }
         ).bindItems()
+    }
+
+    private fun showUnBackedUpSignerWarning() {
+        NCInfoDialog(this).showDialog(
+            message = getString(R.string.nc_unbacked_up_signer_warning_desc),
+            onYesClick = {}
+        )
     }
 
     private fun setupViews() {

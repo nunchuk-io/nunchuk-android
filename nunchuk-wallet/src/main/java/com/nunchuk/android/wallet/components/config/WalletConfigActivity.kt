@@ -45,9 +45,8 @@ import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
+import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -65,6 +64,7 @@ import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCDeleteConfirmationDialog
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -257,6 +257,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             NCWarningDialog(this).showDialog(
                 message = getString(R.string.nc_delete_collaborative_wallet),
                 onYesClick = { viewModel.handleDeleteWallet() }
+            )
+        } else if (viewModel.isHotWalletNeedBackup()) {
+            NCInfoDialog(this).showDialog(
+                message = getString(R.string.nc_delete_hot_wallet_need_backup),
+                onYesClick = {  }
             )
         } else {
             NCDeleteConfirmationDialog(this).showDialog(
