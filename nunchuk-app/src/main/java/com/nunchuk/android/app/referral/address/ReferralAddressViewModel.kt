@@ -96,7 +96,7 @@ class ReferralAddressViewModel @Inject constructor(
                         }
                     }
             }
-            if (foundWalletId.not() && preWalletId.isNullOrEmpty().not()) {
+            if (foundWalletId.not() && preAddress.isNullOrEmpty().not()) {
                 resultWalletList.filter { it.address == preAddress }.also { list ->
                     if (list.isEmpty()) {
                         _state.update {

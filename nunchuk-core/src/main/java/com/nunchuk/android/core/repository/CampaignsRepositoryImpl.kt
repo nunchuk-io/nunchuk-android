@@ -39,7 +39,6 @@ internal class CampaignsRepositoryImpl @Inject constructor(
 
     override suspend fun getCurrentCampaigns(email: String?): Campaign? {
         val campaign = api.getCurrentCampaigns(email = email).data.data?.toModel()
-        Log.e("referral", "getCurrentCampaigns: $campaign")
         if (campaign != null) {
             ncDataStore.setCampaign(
                 gson.toJson(campaign),

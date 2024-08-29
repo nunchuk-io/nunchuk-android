@@ -189,9 +189,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
         if (address.isEmpty()) return
         viewModelScope.launch {
             getWalletsUseCase.execute()
-                .onException {
-                    Log.e("referral", "getWalletsUseCase error: $it")
-                }
+                .onException {}
                 .collect { wallets ->
                     val myWallets = wallets.map { wallet ->
                         async {

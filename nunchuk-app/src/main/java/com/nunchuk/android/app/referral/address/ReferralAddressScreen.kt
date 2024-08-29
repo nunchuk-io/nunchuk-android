@@ -172,7 +172,6 @@ fun ReferralAddressScreen(
                 if (handledResult.not() && result.action == ReferralAction.CHANGE.value) {
                     handledResult = true
                     onUpdateReceiveAddress(result)
-                    Log.e("referral", "ReferralAddressScreen --- result-address: $result")
                 }
             }
     }

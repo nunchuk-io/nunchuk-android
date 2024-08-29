@@ -72,7 +72,6 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override val referrerCode: Flow<ReferrerCode?>
         get() = ncDataStore.referralCodeFlow.map {
-            Log.e("referral", "SettingRepositoryImpl- getReferralCode: $it")
             runCatching {
                 gson.fromJson(it, ReferrerCode::class.java)
             }.getOrNull()
