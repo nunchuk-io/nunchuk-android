@@ -19,19 +19,27 @@
 
 package com.nunchuk.android.core.repository
 
+import android.util.Log
+import com.google.gson.Gson
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 internal class SettingRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
-    private val ncEncryptedPreferences: NcEncryptedPreferences
-): SettingRepository {
+    private val ncEncryptedPreferences: NcEncryptedPreferences,
+    private val gson: Gson,
+    private val accountManager: AccountManager
+) : SettingRepository {
     override val syncEnable: Flow<Boolean>
         get() = ncDataStore.syncEnableFlow
 
@@ -61,6 +69,19 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override val isShowHealthCheckReminderIntro: Flow<Boolean>
         get() = ncDataStore.isShowHealthCheckReminderIntro
+
+    override val referrerCode: Flow<ReferrerCode?>
+        get() = ncDataStore.referralCodeFlow.map {
+            runCatching {
+                gson.fromJson(it, ReferrerCode::class.java)
+            }.getOrNull()
+        }
+    override val campaign: Flow<Campaign?>
+        get() = ncDataStore.getCampaignFlow(accountManager.getAccount().email).map {
+            runCatching {
+                gson.fromJson(it, Campaign::class.java)
+            }.getOrNull()
+        }
 
     override suspend fun markSyncRoomSuccess() {
         ncDataStore.markSyncRoomSuccess()
@@ -100,5 +121,13 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setHealthCheckReminderIntro(isShow: Boolean) {
         ncDataStore.setHealthCheckReminderIntro(isShow)
+    }
+
+    override suspend fun setReferrerCode(code: String) {
+        ncDataStore.setReferrerCode(code)
+    }
+
+    override suspend fun setCampaign(campaign: String, email: String) {
+        ncDataStore.setCampaign(campaign, email)
     }
 }

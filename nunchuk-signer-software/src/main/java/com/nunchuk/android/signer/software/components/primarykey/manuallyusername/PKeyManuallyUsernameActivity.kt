@@ -24,6 +24,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.showKeyboard
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.databinding.ActivityPkeyManuallyUsernameBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -74,6 +75,7 @@ class PKeyManuallyUsernameActivity : BaseActivity<ActivityPkeyManuallyUsernameBi
             finish()
         }
         binding.btnContinue.setOnClickListener { viewModel.handleContinue() }
+        binding.usernameInput.getEditTextView().showKeyboard()
     }
 
     companion object {

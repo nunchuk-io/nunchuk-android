@@ -25,11 +25,13 @@ object TagFlow {
     const val NONE = 0
     const val ADD = 1
     const val VIEW = 2
+    const val ADD_TO_COLLECTION = 3
 
     @IntDef(
         NONE,
         ADD,
         VIEW,
+        ADD_TO_COLLECTION
     )
     @Retention(AnnotationRetention.SOURCE)
     annotation class TagFlowInfo

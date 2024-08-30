@@ -19,7 +19,6 @@
         android:layout_marginTop="12dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_close"
-        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
@@ -34,26 +33,16 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.nunchuk.android.widget.NCEditTextView
-        android:id="@+id/name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        app:edit_title="@string/nc_text_your_name"
-        app:errorEnabled="true"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/guideline" />
-
-    <com.nunchuk.android.widget.NCEditTextView
         android:id="@+id/email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
         app:edit_title="@string/nc_text_email_address"
+        app:edit_hint="@string/nc_enter_your_email"
         app:errorEnabled="true"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/name" />
+        app:layout_constraintTop_toBottomOf="@+id/guideline" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
@@ -84,17 +73,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/signUp" />
 
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/signIn"
-        style="@style/NCPrimaryButton.Light"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_sign_in"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signUpPrimaryKey" />
-
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/tvTermAndPolicy"
         style="@style/NCText.Title.Small"
@@ -106,5 +84,5 @@
         android:textColorLink="@color/nc_primary_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signIn" />
+        app:layout_constraintTop_toBottomOf="@+id/signUpPrimaryKey" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -38,7 +38,6 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.util.hexToColor
 
-@Preview
 @Composable
 fun TagItem(
     modifier: Modifier,

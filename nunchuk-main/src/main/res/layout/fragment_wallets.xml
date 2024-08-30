@@ -15,16 +15,66 @@
         android:layout_gravity="center"
         android:background="@color/nc_primary_color"
         android:gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/menu_wallet">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/toolbarTitle"
-            style="@style/NCToolbar.Text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/nc_title_home"
-            android:textColor="@color/nc_white_color" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/ivNfc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_nfc"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/toolbarTitle"
+                style="@style/NCToolbar.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/nc_title_home"
+                android:textColor="@color/nc_white_color"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/llCampaigns"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_campaigns"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_gift" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tvCampaigns"
+                    style="@style/NCText.Bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_4"
+                    android:gravity="center"
+                    android:textSize="13sp"
+                    tools:text="Get $100" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </androidx.appcompat.widget.Toolbar>
 
     <LinearLayout

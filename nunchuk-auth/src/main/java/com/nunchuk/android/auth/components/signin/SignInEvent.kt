@@ -23,13 +23,15 @@ import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.model.PrimaryKey
 
 internal sealed class SignInEvent {
-    object EmailRequiredEvent : SignInEvent()
-    object EmailValidEvent : SignInEvent()
-    object EmailInvalidEvent : SignInEvent()
-    object PasswordRequiredEvent : SignInEvent()
-    object PasswordValidEvent : SignInEvent()
-    object ProcessingEvent : SignInEvent()
-    data class SignInSuccessEvent(val token: String, val deviceId: String) : SignInEvent()
+    data object EmailRequiredEvent : SignInEvent()
+    data object EmailValidEvent : SignInEvent()
+    data object EmailInvalidEvent : SignInEvent()
+    data object PasswordRequiredEvent : SignInEvent()
+    data object NameRequiredEvent : SignInEvent()
+    data object NameValidEvent : SignInEvent()
+    data object PasswordValidEvent : SignInEvent()
+    data class ProcessingEvent(val isLoading: Boolean = true) : SignInEvent()
+    data object SignInSuccessEvent : SignInEvent()
     data class SignInErrorEvent(val code: Int? = null, val message: String? = null, val errorDetail: ErrorDetail? = null) : SignInEvent()
-    data class CheckPrimaryKeyAccountEvent(val accounts: ArrayList<PrimaryKey>) : SignInEvent()
+    data class RequireChangePassword(val isNew: Boolean) : SignInEvent()
 }

@@ -21,8 +21,17 @@ package com.nunchuk.android.auth.components.recover
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.*
-import com.nunchuk.android.auth.components.signin.SignInEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.ConfirmPasswordNotMatchedEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.ConfirmPasswordRequiredEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.ConfirmPasswordValidEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.LoadingEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.NewPasswordRequiredEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.NewPasswordValidEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.OldPasswordRequiredEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.OldPasswordValidEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.RecoverPasswordErrorEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.RecoverPasswordSuccessEvent
+import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.SignInErrorEvent
 import com.nunchuk.android.auth.domain.RecoverPasswordUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.util.orUnknownError
@@ -40,7 +49,11 @@ import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
@@ -91,8 +104,8 @@ internal class RecoverPasswordViewModel @Inject constructor(
             .onStart { event(LoadingEvent) }
             .flowOn(Dispatchers.IO)
             .map {
-                token = it.first
-                encryptedDeviceId = it.second
+                token = it.token
+                encryptedDeviceId = it.deviceId
                 fileLog(message = "start initNunchuk")
                 val result = initNunchuk()
                 fileLog(message = "end initNunchuk")

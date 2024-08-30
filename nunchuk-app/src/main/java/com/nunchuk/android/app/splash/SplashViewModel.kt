@@ -22,6 +22,8 @@ package com.nunchuk.android.app.splash
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.profile.CheckShowOnBoardFreshInstallUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -30,7 +32,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class SplashViewModel @Inject constructor(
     private val accountManager: AccountManager,
-    private val checkShowOnBoardFreshInstallUseCase: CheckShowOnBoardFreshInstallUseCase
+    private val checkShowOnBoardFreshInstallUseCase: CheckShowOnBoardFreshInstallUseCase,
+    private val signInModeHolder: SignInModeHolder
 ) : NunchukViewModel<Unit, SplashEvent>() {
 
     override val initialState = Unit
@@ -39,19 +42,18 @@ internal class SplashViewModel @Inject constructor(
         viewModelScope.launch {
             checkShowOnBoardFreshInstallUseCase(Unit)
             val account = accountManager.getAccount()
+            val mode = signInModeHolder.getCurrentMode()
             when {
                 accountManager.isAccountExisted()
-                        && accountManager.isAccountActivated().not() -> event(
-                    SplashEvent.NavActivateAccountEvent
-                )
-                accountManager.isHasAccountBefore()
-                        && accountManager.isStaySignedIn().not() -> event(
-                    SplashEvent.NavSignInEvent
-                )
-                else -> event(
-                    SplashEvent.NavHomeScreenEvent(
-                        account.token, account.deviceId
+                        && accountManager.isAccountActivated() || mode.isGuestMode() ->
+                    setEvent(
+                        SplashEvent.NavHomeScreenEvent(
+                            account.token, account.deviceId
+                        )
                     )
+
+                else -> setEvent(
+                    SplashEvent.NavSignInEvent
                 )
             }
         }

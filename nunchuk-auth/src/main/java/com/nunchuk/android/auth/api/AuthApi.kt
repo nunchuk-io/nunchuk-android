@@ -19,9 +19,12 @@
 
 package com.nunchuk.android.auth.api
 
+import com.nunchuk.android.auth.domain.model.EmailAvailability
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface AuthApi {
 
@@ -68,5 +71,16 @@ interface AuthApi {
     @POST("/v1.1/passport/qr/confirm-login")
     suspend fun confirmLogin(
         @Body payload: ConfirmQrLoginRequest
+    ): Data<Unit>
+
+    @GET("/v1.1/passport/username-availability")
+    suspend fun checkUsernameAvailability(
+        @Query("username") username: String,
+        @Query("type") type: String,
+    ): Data<EmailAvailability>
+
+    @POST("/v1.1/passport/resend-password")
+    suspend fun resendPassword(
+        @Body payload: ResendPasswordRequest
     ): Data<Unit>
 }

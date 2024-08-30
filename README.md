@@ -14,3 +14,6 @@ Publish the SDK to the local maven. Note the SDK version number.
 Open `dependencies.gradle` and update `nativeSdkVersion` to the SDK version you just published.
 
 Build and run the app on your device.
+
+## Reproducible builds 
+See [instructions](./reproducible-builds)

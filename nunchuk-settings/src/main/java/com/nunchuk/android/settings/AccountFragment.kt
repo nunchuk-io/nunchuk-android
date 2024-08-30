@@ -31,6 +31,7 @@ import androidx.core.content.FileProvider
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
+import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
@@ -172,9 +173,11 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
                 EditPhotoOption.SelectAlbum -> {
                     openAlbum()
                 }
+
                 EditPhotoOption.TakePhoto -> {
                     requestCameraPermissionOrExecuteAction()
                 }
+
                 EditPhotoOption.RemovePhoto -> {
                     removePhoto()
                 }
@@ -216,14 +219,17 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
                 hideLoading()
                 navigator.restartApp(requireActivity())
             }
+
             is AccountEvent.GetUserProfileSuccessEvent -> {
             }
+
             is AccountEvent.UploadPhotoSuccessEvent -> {
                 viewModel.updateUserProfile(
                     name = viewModel.getCurrentAccountInfo().name,
                     avatarUrl = event.matrixUri
                 )
             }
+
             is AccountEvent.LoadingEvent -> showOrHideLoading(event.loading)
             is AccountEvent.ShowError -> showError(event.message)
         }
@@ -273,7 +279,11 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
     private fun setupViews() {
         binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }
         binding.signIn.setOnClickListener {
-            navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
+            navigator.openSignInScreen(
+                activityContext = requireActivity(),
+                isNeedNewTask = false,
+                type = SignInType.GUEST,
+            )
         }
         binding.signUp.setOnClickListener {
             navigator.openSignUpScreen(requireActivity())
@@ -283,7 +293,11 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.network.setOnClickListener { changeNetworkSetting() }
         binding.about.setOnClickListener { openAboutScreen() }
         binding.developerMode.setOnClickListener { openDeveloperScreen() }
-        binding.walletSecuritySettings.setOnClickListener { navigator.openWalletSecuritySettingScreen(requireContext()) }
+        binding.walletSecuritySettings.setOnClickListener {
+            navigator.openWalletSecuritySettingScreen(
+                requireContext()
+            )
+        }
         binding.localCurrency.setOnClickListener { navigator.openLocalCurrencyScreen(requireContext()) }
         if (signInModeHolder.getCurrentMode().isGuestMode()) {
             binding.name.setOnClickListener(null)

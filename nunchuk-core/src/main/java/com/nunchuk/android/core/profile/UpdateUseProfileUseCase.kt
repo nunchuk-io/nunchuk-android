@@ -20,22 +20,24 @@
 package com.nunchuk.android.core.profile
 
 import com.nunchuk.android.core.account.AccountManager
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface UpdateUseProfileUseCase {
-    fun execute(name: String?, avatarUrl: String?): Flow<String>
-}
-
-internal class UpdateUseProfileUseCaseImpl @Inject constructor(
+class UpdateUseProfileUseCase @Inject constructor(
     private val accountManager: AccountManager,
-    private val userRepository: UserRepository
-) : UpdateUseProfileUseCase {
+    private val userRepository: UserRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<UpdateUseProfileUseCase.Params, Unit>(ioDispatcher) {
 
-    override fun execute(name: String?, avatarUrl: String?) = userRepository.updateUserProfile(name, avatarUrl)
-        .map {
-            accountManager.storeAccount(accountManager.getAccount().copy(name = it.name.orEmpty(), avatarUrl = it.avatar.orEmpty()))
-            it.chatId.orEmpty()
-        }
+    override suspend fun execute(parameters: Params) {
+        val response = userRepository.updateUserProfile(parameters.name, parameters.avatarUrl)
+        accountManager.storeAccount(
+            accountManager.getAccount()
+                .copy(name = response.name.orEmpty(), avatarUrl = response.avatar.orEmpty())
+        )
+    }
+
+    data class Params(val name: String? = null, val avatarUrl: String? = null)
 }

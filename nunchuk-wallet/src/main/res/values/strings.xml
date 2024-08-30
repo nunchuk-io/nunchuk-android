@@ -104,4 +104,21 @@
     <string name="nc_export_via_bbqr">Export via BBQR</string>
     <string name="nc_replace_keys">Replace key(s)</string>
     <string name="nc_export_to_portal_success">You have successfully exported your wallet.</string>
+    <string name="nc_coin_collection">Coin collection</string>
+    <string name="nc_coin_collection_intro">A coin collection allows you to automate coin management tasks. Here’s how you create a collection:</string>
+    <string name="nc_create_a_filter">Create a filter</string>
+    <string name="nc_create_filter_desc">Specify which coins will be added to the collection. A filter can be applied to fresh new coins only, or both new coins and existing coins.</string>
+    <string name="nc_set_action">Set action</string>
+    <string name="nc_set_action_desc">Select the action you want to automatically apply to the coins in the collection.</string>
+    <string name="nc_coins_without_tags">Coins without tags</string>
+    <string name="nc_coin_without_tags">Move coins that have no tags to this collection</string>
+    <string name="nc_filter">Filter</string>
+    <string name="nc_coins_with_tags">Coins with tags</string>
+    <string name="nc_coins_with_tags_desc">Move coins that have a given tag, or one of the given tags, to this collection</string>
+    <string name="nc_apply_filter_to_existing_coins">Also apply filter to existing coins</string>
+    <string name="nc_action">Action</string>
+    <string name="nc_auto_lock_coins">Auto-lock coins</string>
+    <string name="nc_update_collection">Update collection settings</string>
+    <string name="nc_delete_hot_wallet_need_backup">This wallet must be backed up before it can be deleted. Please back it up first.</string>
+    <string name="nc_unbacked_up_signer_warning_desc">The hot wallet containing this key must be backed up before this key can be used in another wallet. Please back it up first.</string>
 </resources>

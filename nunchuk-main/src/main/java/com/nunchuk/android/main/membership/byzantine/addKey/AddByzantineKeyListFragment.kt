@@ -136,11 +136,15 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     }
 
                     else -> {
-                        findNavController().navigate(
-                            AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
-                                signer
+                        if (signer.type == SignerType.SOFTWARE && viewModel.isUnBackedUpSigner(signer)) {
+                            showUnBackedUpSignerWarning()
+                        } else {
+                            findNavController().navigate(
+                                AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
+                                    signer
+                                )
                             )
-                        )
+                        }
                     }
                 }
             } else {
@@ -493,6 +497,13 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 type = PortalDeviceFlow.SETUP,
                 isMembershipFlow = true
             ),
+        )
+    }
+
+    private fun showUnBackedUpSignerWarning() {
+        NCInfoDialog(requireActivity()).showDialog(
+            message = getString(com.nunchuk.android.wallet.R.string.nc_unbacked_up_signer_warning_desc),
+            onYesClick = {}
         )
     }
 }

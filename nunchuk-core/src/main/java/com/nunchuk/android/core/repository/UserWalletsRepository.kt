@@ -1284,7 +1284,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             || serverTransaction?.status == TransactionStatus.CONFIRMED.name
             || serverTransaction?.status == TransactionStatus.NETWORK_REJECTED.name
         ) {
-            nunchukNativeSdk.importPsbt(walletId, serverTransaction.psbt.orEmpty())
+            runCatching {
+                nunchukNativeSdk.importPsbt(walletId, serverTransaction.psbt.orEmpty())
+            }
             nunchukNativeSdk.updateTransaction(
                 walletId,
                 transactionId,
@@ -1293,7 +1295,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 serverTransaction.rejectMsg.orEmpty()
             ) to serverTransaction
         } else if (serverTransaction != null) {
-            val libTx = nunchukNativeSdk.importPsbt(walletId, serverTransaction.psbt.orEmpty())
+            val libTx = try {
+                nunchukNativeSdk.importPsbt(walletId, serverTransaction.psbt.orEmpty())
+            } catch (e: Exception) {
+                nunchukNativeSdk.getTransaction(walletId, transactionId)
+            }
             updateReplaceTransactionIdIfNeed(walletId, libTx, serverTransaction)
             if (libTx.psbt != serverTransaction.psbt) {
                 val response = if (!groupId.isNullOrEmpty()) {

@@ -19,7 +19,21 @@
 
 package com.nunchuk.android.auth.data
 
-import com.nunchuk.android.auth.api.*
+import com.nunchuk.android.auth.api.AuthApi
+import com.nunchuk.android.auth.api.ChangePasswordPayload
+import com.nunchuk.android.auth.api.ConfirmQrLoginRequest
+import com.nunchuk.android.auth.api.ForgotPasswordPayload
+import com.nunchuk.android.auth.api.RecoverPasswordPayload
+import com.nunchuk.android.auth.api.RegisterPayload
+import com.nunchuk.android.auth.api.ResendPasswordRequest
+import com.nunchuk.android.auth.api.ResendVerifyNewDeviceCodePayload
+import com.nunchuk.android.auth.api.SignInPayload
+import com.nunchuk.android.auth.api.TryLoginRequest
+import com.nunchuk.android.auth.api.UserTokenResponse
+import com.nunchuk.android.auth.api.VerifyNewDevicePayload
+import com.nunchuk.android.auth.domain.model.EmailAvailability
+import com.nunchuk.android.core.account.AccountInfo
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.network.ApiInterceptedException
 import com.nunchuk.android.model.setting.QrSignInData
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -49,7 +63,7 @@ interface AuthRepository {
 
     suspend fun forgotPassword(email: String)
 
-    suspend fun tryLogin(qr: String) : QrSignInData
+    suspend fun tryLogin(qr: String): QrSignInData
 
     suspend fun confirmLogin(uuid: String?, token: String)
 
@@ -58,11 +72,15 @@ interface AuthRepository {
         loginHalfToken: String,
         deviceId: String
     )
+
+    suspend fun resendPassword(email: String)
+    suspend fun checkAvailableEmail(email: String): EmailAvailability
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
     private val deviceManager: DeviceManager,
+    private val accountManager: AccountManager,
 ) : AuthRepository {
 
     override suspend fun register(name: String, email: String): UserTokenResponse {
@@ -99,7 +117,11 @@ internal class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String) {
-        val payload = RecoverPasswordPayload(email = email, forgotPasswordToken = oldPassword, newPassword = newPassword)
+        val payload = RecoverPasswordPayload(
+            email = email,
+            forgotPasswordToken = oldPassword,
+            newPassword = newPassword
+        )
         try {
             authApi.recoverPassword(payload).data
         } catch (e: ApiInterceptedException) {
@@ -123,7 +145,8 @@ internal class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun tryLogin(qr: String): QrSignInData {
-        val response = authApi.tryLogin(TryLoginRequest(uuid = deviceManager.getDeviceId(), qrCode = qr))
+        val response =
+            authApi.tryLogin(TryLoginRequest(uuid = deviceManager.getDeviceId(), qrCode = qr))
         return QrSignInData(
             uuid = response.data.uuid,
             token = response.data.token.orEmpty()
@@ -143,5 +166,14 @@ internal class AuthRepositoryImpl @Inject constructor(
         } catch (e: ApiInterceptedException) {
             CrashlyticsReporter.recordException(e)
         }
+    }
+
+    override suspend fun resendPassword(email: String) {
+        authApi.resendPassword(ResendPasswordRequest(email))
+    }
+
+    override suspend fun checkAvailableEmail(email: String): EmailAvailability {
+        accountManager.storeAccount(AccountInfo(email = email))
+        return authApi.checkUsernameAvailability(email, "Email").data
     }
 }

@@ -21,14 +21,18 @@ package com.nunchuk.android.auth.components.signup
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.auth.components.signup.SignUpEvent.*
+import com.nunchuk.android.auth.components.signup.SignUpEvent.AccountExistedEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailInvalidEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailRequiredEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailValidEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.LoadingEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.SignUpErrorEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.SignUpSuccessEvent
 import com.nunchuk.android.auth.domain.RegisterUseCase
 import com.nunchuk.android.auth.validator.NameValidator
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.network.accountExisted
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -36,26 +40,25 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class SignUpViewModel @Inject constructor(
-    private val nameValidator: NameValidator,
     private val registerUseCase: RegisterUseCase
 ) : NunchukViewModel<Unit, SignUpEvent>() {
 
     override val initialState = Unit
 
     fun handleRegister(name: String, email: String) {
-        if (validateName(name) && validateEmail(email)) {
+        if (validateEmail(email)) {
             viewModelScope.launch {
                 event(LoadingEvent)
-                when (val result = registerUseCase.execute(name = name, email = email)) {
-                    is Success -> event(SignUpSuccessEvent)
-                    is Error -> handleException(result)
+                registerUseCase.execute(name = name, email = email).onSuccess {
+                    event(SignUpSuccessEvent)
+                }.onFailure {
+                    handleException(it)
                 }
             }
         }
     }
 
-    private fun handleException(result: Error) {
-        val exception = result.exception
+    private fun handleException(exception: Throwable) {
         if (exception is NunchukApiException && exception.accountExisted()) {
             event(AccountExistedEvent(exception.message))
         } else {
@@ -68,11 +71,4 @@ internal class SignUpViewModel @Inject constructor(
         !EmailValidator.valid(email) -> doAfterValidate(false) { event(EmailInvalidEvent) }
         else -> doAfterValidate { event(EmailValidEvent) }
     }
-
-    private fun validateName(name: String) = when {
-        name.isBlank() -> doAfterValidate(false) { event(NameRequiredEvent) }
-        !nameValidator.valid(name) -> doAfterValidate(false) { event(NameInvalidEvent) }
-        else -> doAfterValidate { event(NameValidEvent) }
-    }
-
 }

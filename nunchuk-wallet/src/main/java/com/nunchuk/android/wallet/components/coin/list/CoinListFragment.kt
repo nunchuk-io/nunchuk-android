@@ -23,9 +23,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -61,6 +64,7 @@ import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
@@ -76,6 +80,7 @@ import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMo
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -104,16 +109,16 @@ class CoinListFragment : BaseCoinListFragment() {
                     onSendBtc = {
                         val selectedCoins = coinListViewModel.getSelectedCoins()
                         if (selectedCoins.any { it.isLocked }) {
-                            NCInfoDialog(requireActivity())
-                                .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
+                            NCWarningDialog(requireActivity())
+                                .showDialog(
+                                    title = getString(R.string.nc_confirmation),
+                                    message = getString(R.string.nc_locked_coin_can_not_used),
+                                    onYesClick = {
+                                        coinListViewModel.onUnlockCoin(args.walletId, selectedCoins, true)
+                                    }
+                                )
                         } else {
-                            navigator.openInputAmountScreen(
-                                activityContext = requireActivity(),
-                                walletId = args.walletId,
-                                inputs = coinListViewModel.getSelectedCoins(),
-                                availableAmount = coinListViewModel.getSelectedCoins()
-                                    .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
-                            )
+                            openCreateTransaction()
                         }
                     },
                     onShowSelectedCoinMoreOption = {
@@ -142,11 +147,26 @@ class CoinListFragment : BaseCoinListFragment() {
         }
     }
 
+    private fun openCreateTransaction() {
+        navigator.openInputAmountScreen(
+            activityContext = requireActivity(),
+            walletId = args.walletId,
+            inputs = coinListViewModel.getSelectedCoins(),
+            availableAmount = coinListViewModel.getSelectedCoins()
+                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+        )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setFragmentResultListener(CoinCollectionListFragment.REQUEST_KEY) { _, _ ->
             findNavController().popBackStack()
             clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
+        }
+        flowObserver(coinListViewModel.event) {
+            if (it is CoinListEvent.CoinUnlocked && it.isCreateTransaction) {
+                openCreateTransaction()
+            }
         }
     }
 
@@ -368,6 +388,7 @@ private fun CoinListContent(
                             onSelectDone = onSelectDone
                         )
                     }
+
                     CoinListMode.TRANSACTION_SELECT -> Unit
                 }
             }, floatingActionButton = {
@@ -377,7 +398,11 @@ private fun CoinListContent(
                         enter = scaleIn() + fadeIn(),
                         exit = scaleOut() + fadeOut()
                     ) {
-                        FloatingActionButton(shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary, onClick = enableSearchMode) {
+                        FloatingActionButton(
+                            shape = CircleShape,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            onClick = enableSearchMode
+                        ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_search_white),
                                 contentDescription = "Search"

@@ -50,7 +50,6 @@ internal class SplashActivity : AppCompatActivity() {
 
     private fun handleEvent(event: SplashEvent) {
         when (event) {
-            SplashEvent.NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
             SplashEvent.NavSignInEvent -> navigator.openSignInScreen(this, false)
             is SplashEvent.NavHomeScreenEvent -> {
                 navigator.openMainScreen(this)

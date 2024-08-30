@@ -53,6 +53,7 @@ import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
+import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,7 +84,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
-    private val ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore,
+    private val getWallets2UseCase: GetWallets2UseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -108,6 +110,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     var shouldShowNewPortal: Boolean = false
 
     private val singleSigners = mutableListOf<SingleSigner>()
+    private val unBackedUpSignerXfpSet = mutableSetOf<String>()
 
     init {
         if (args.isAddOnly) {
@@ -132,6 +135,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             shouldShowNewPortal = ncDataStore.shouldShowNewPortal()
         }
+        getUnBackedUpWallet()
     }
 
     private suspend fun loadSigners() {
@@ -315,6 +319,19 @@ class AddByzantineKeyListViewModel @Inject constructor(
             ncDataStore.setShowPortal(false)
         }
     }
+
+    private fun getUnBackedUpWallet() {
+        viewModelScope.launch {
+            getWallets2UseCase(Unit)
+                .onSuccess { wallets ->
+                    wallets.filter { it.needBackup }.forEach {
+                        unBackedUpSignerXfpSet.add(it.signers.first().masterFingerprint)
+                    }
+                }
+        }
+    }
+
+    fun isUnBackedUpSigner(signer: SignerModel) = unBackedUpSignerXfpSet.contains(signer.fingerPrint)
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"

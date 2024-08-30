@@ -33,10 +33,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -61,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -111,6 +111,15 @@ class CoinTagListFragment : Fragment() {
                             coinTag = it.coinTag
                         )
                     )
+                }, onSaveClick = {
+                    if (args.tagFlow != TagFlow.ADD_TO_COLLECTION) {
+                        viewModel.addCoinTag()
+                    } else {
+                        setFragmentResult(REQUEST_KEY, Bundle().apply {
+                            putIntArray(TAGS, viewModel.state.value.selectedCoinTags.toIntArray())
+                        })
+                        findNavController().popBackStack()
+                    }
                 })
             }
         }
@@ -165,6 +174,7 @@ class CoinTagListFragment : Fragment() {
     companion object {
         const val LIMIT_TAG_NAME = 40
         const val REQUEST_KEY = "CoinTagListFragment"
+        const val TAGS = "tags"
     }
 }
 
@@ -174,6 +184,7 @@ fun CoinTagListScreen(
     @TagFlow.TagFlowInfo tagFlow: Int = TagFlow.NONE,
     onSelectColorClick: (String) -> Unit = {},
     onTagClick: (CoinTagAddition) -> Unit = {},
+    onSaveClick: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     CoinTagListScreenContent(tags = state.tags.sortedBy { it.coinTag.name },
@@ -181,9 +192,7 @@ fun CoinTagListScreen(
         coinTagInputHolder = state.coinTagInputHolder,
         selectedCoinTags = state.selectedCoinTags,
         enableSaveButton = viewModel.enableButtonSave(),
-        onSaveClick = {
-            viewModel.addCoinTag()
-        },
+        onSaveClick = onSaveClick,
         onValueChange = {
             viewModel.onInputValueChange(it)
         }, onDoneClick = {
@@ -216,12 +225,9 @@ fun CoinTagListScreenContent(
     onCheckedChange: ((Int, Boolean) -> Unit) = { _, _ -> }
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-            ) {
+        Scaffold(
+            modifier = Modifier.systemBarsPadding(),
+            topBar = {
                 NcTopAppBar(
                     stringResource(id = R.string.nc_coin_tags),
                     textStyle = NunchukTheme.typography.titleLarge,
@@ -230,6 +236,24 @@ fun CoinTagListScreenContent(
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                     }
                 )
+            },
+            bottomBar = {
+                if (tagFlow == TagFlow.ADD || tagFlow == TagFlow.ADD_TO_COLLECTION) {
+                    NcPrimaryDarkButton(
+                        enabled = enableSaveButton,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onSaveClick,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_save))
+                    }
+                }
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier.padding(innerPadding)
+            ) {
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -288,17 +312,6 @@ fun CoinTagListScreenContent(
                                 onCheckedChange(tag.coinTag.id, it)
                             }
                         )
-                    }
-                }
-                if (tagFlow == TagFlow.ADD) {
-                    NcPrimaryDarkButton(
-                        enabled = enableSaveButton,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        onClick = onSaveClick,
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_text_save))
                     }
                 }
             }

@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.nfc.tech.IsoDep
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -64,6 +65,7 @@ import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.wallet.WalletStatus
@@ -82,6 +84,9 @@ import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberDenyRequestUseCase
 import com.nunchuk.android.usecase.byzantine.SyncDeletedWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
+import com.nunchuk.android.usecase.campaign.GetCurrentCampaignUseCase
+import com.nunchuk.android.usecase.campaign.GetLocalCurrentCampaignUseCase
+import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
@@ -145,6 +150,9 @@ internal class WalletsViewModel @Inject constructor(
     private val checkWalletsExistingKeyUseCase: CheckWalletsExistingKeyUseCase,
     private val updateExistingKeyUseCase: UpdateExistingKeyUseCase,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
+    private val getLocalCurrentCampaignUseCase: GetLocalCurrentCampaignUseCase,
+    private val getLocalReferrerCodeUseCase: GetLocalReferrerCodeUseCase,
+    private val getCurrentCampaignUseCase: GetCurrentCampaignUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -287,6 +295,25 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         checkAssistedSignerExistenceHelper.init(viewModelScope)
+        getReferrerCode()
+    }
+
+    private fun getCampaign() {
+
+        viewModelScope.launch {
+            getLocalCurrentCampaignUseCase(Unit).collect {
+                updateState { copy(campaign = it.getOrNull()) }
+            }
+        }
+    }
+
+    private fun getReferrerCode() {
+        viewModelScope.launch {
+           getLocalReferrerCodeUseCase(Unit).collect {
+               updateState { copy(localReferrerCode = it.getOrNull()) }
+               getCurrentCampaignUseCase(GetCurrentCampaignUseCase.Param(accountManager.getAccount().email.ifEmpty { it.getOrNull()?.email }))
+            }
+        }
     }
 
     private fun syncGroup() {
@@ -441,6 +468,7 @@ internal class WalletsViewModel @Inject constructor(
                     )
                 }
                 mapGroupWalletUi()
+                if (wallets.isNotEmpty()) getCampaign()
             }
         }
     }
@@ -681,4 +709,8 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun getWallet(walletId: String) = getState().wallets.find { it.wallet.id == walletId }
+
+    fun getCurrentCampaign(): Campaign = getState().campaign ?: error("Campaign is required")
+
+    fun getLocalReferrerCode() = getState().localReferrerCode
 }

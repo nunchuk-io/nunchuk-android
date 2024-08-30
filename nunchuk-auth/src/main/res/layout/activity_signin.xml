@@ -10,6 +10,13 @@
     android:paddingVertical="@dimen/nc_padding_16"
     tools:ignore="ContentDescription">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back" />
+
     <CheckBox
         android:id="@+id/staySignIn"
         style="@style/NCText.Body"
@@ -21,7 +28,7 @@
         android:checked="false"
         android:text="@string/nc_text_stay_sign_in"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/password" />
+        app:layout_constraintTop_toBottomOf="@+id/name" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -59,6 +66,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
+        app:edit_hint="@string/nc_enter_your_email"
         app:edit_title="@string/nc_text_email_address"
         app:errorEnabled="true"
         app:layout_constraintStart_toStartOf="parent"
@@ -69,11 +77,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="@dimen/nc_padding_16"
+        app:edit_hint="@string/nc_enter_your_password"
         app:edit_title="@string/nc_text_password"
         app:errorEnabled="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/email" />
+
+    <com.nunchuk.android.widget.NCEditTextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        app:edit_hint="@string/nc_enter_your_name"
+        app:edit_title="@string/nc_your_name"
+        app:errorEnabled="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/password" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/signIn"
@@ -82,7 +105,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_sign_in"
+        android:text="@string/nc_text_continue"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/staySignIn" />
 
@@ -95,32 +118,32 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_text_signin_via_digital_signature"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signIn" />
+        app:layout_constraintTop_toBottomOf="@id/signIn"
+        app:layout_goneMarginTop="0dp" />
 
     <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/signUp"
+        android:id="@+id/signInPrimary"
         style="@style/NCPrimaryButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_create_account"
+        android:text="@string/nc_sign_in_via_primary_key"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signInDigitalSignature" />
+        app:layout_constraintTop_toBottomOf="@id/signIn"
+        app:layout_goneMarginTop="0dp" />
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/guestMode"
-        style="@style/NCText.Title"
-        android:layout_width="wrap_content"
+        style="@style/NCPrimaryButton.Light"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginVertical="@dimen/nc_padding_24"
-        android:gravity="center"
-        android:background="?attr/selectableItemBackground"
+        android:layout_marginVertical="@dimen/nc_padding_16"
         android:text="@string/nc_text_signin_guest_mode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signUp" />
+        app:layout_constraintTop_toBottomOf="@+id/signInPrimary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/tvTermAndPolicy"
@@ -129,8 +152,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:gravity="center"
-        android:textColorLink="@color/nc_primary_color"
         android:text="@string/nc_text_term_and_policy_guest_mode"
+        android:textColorLink="@color/nc_primary_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guestMode" />

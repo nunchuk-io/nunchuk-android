@@ -521,6 +521,8 @@ internal class WalletConfigViewModel @Inject constructor(
     fun isEditableWalletName() =
         getGroupId().isNullOrEmpty() || getState().role.toRole == AssistedWalletRole.MASTER
 
+    fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup
+
     override val initialState: WalletConfigState
         get() = WalletConfigState()
 

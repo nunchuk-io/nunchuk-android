@@ -19,15 +19,16 @@
 
 package com.nunchuk.android.auth.components.signin
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.enterxpub.EnterXPUBActivity
-import com.nunchuk.android.auth.components.signin.SignInEvent.CheckPrimaryKeyAccountEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailRequiredEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailValidEvent
@@ -39,21 +40,21 @@ import com.nunchuk.android.auth.components.signin.SignInEvent.SignInSuccessEvent
 import com.nunchuk.android.auth.databinding.ActivitySigninBinding
 import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.auth.util.setUnderlineText
+import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
-import com.nunchuk.android.core.sheet.BottomSheetOption
-import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.linkify
+import com.nunchuk.android.core.util.showKeyboard
 import com.nunchuk.android.utils.NotificationUtils
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionListener {
+class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
     private val signInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -68,7 +69,6 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setTransparentStatusBar(false)
 
         setupViews()
@@ -81,7 +81,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this) {
+        flowObserver(viewModel.event) {
             when (it) {
                 is EmailRequiredEvent -> binding.email.setError(getString(R.string.nc_text_required))
                 is EmailInvalidEvent -> binding.email.setError(getString(R.string.nc_text_email_invalid))
@@ -89,17 +89,58 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
                 is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
-                is SignInSuccessEvent -> openMainScreen(it.token, it.deviceId)
-                is ProcessingEvent -> showLoading(false)
-                is CheckPrimaryKeyAccountEvent -> {
-                    if (it.accounts.isNotEmpty()) {
-                        navigator.openPrimaryKeyAccountScreen(this, it.accounts)
-                    } else {
-                        navigator.openPrimaryKeySignInIntroScreen(this)
-                    }
+                is SignInSuccessEvent -> openMainScreen()
+                is ProcessingEvent -> showOrHideLoading(it.isLoading)
+
+                is SignInEvent.RequireChangePassword -> navigator.openChangePasswordScreen(
+                    activityContext = this,
+                    isNewAccount = it.isNew
+                )
+
+                SignInEvent.NameRequiredEvent -> binding.name.setError(getString(R.string.nc_text_required))
+                SignInEvent.NameValidEvent -> binding.name.hideError()
+            }
+        }
+        flowObserver(viewModel.state) {
+            if (it.email.isNotEmpty()) {
+                binding.email.getEditTextView().setText(it.email)
+            }
+            binding.signInPrimary.isVisible = it.type == SignInType.GUEST || it.accounts.isNotEmpty()
+            initUiWithStage(it.type, it.isSubscriberUser)
+
+            when (it.type) {
+                SignInType.EMAIL, SignInType.GUEST -> {
+                    binding.email.getEditTextView().showKeyboard()
+                }
+                SignInType.PASSWORD -> {
+                    binding.password.getEditTextView().showKeyboard()
+                }
+                SignInType.NAME -> {
+                    binding.name.getEditTextView().showKeyboard()
                 }
             }
         }
+    }
+
+    private fun initUiWithStage(stage: SignInType, isSubscriberUser: Boolean) {
+        binding.password.isVisible = stage == SignInType.PASSWORD
+        binding.forgotPassword.isVisible = stage == SignInType.PASSWORD
+        binding.staySignIn.isVisible = stage == SignInType.PASSWORD
+        binding.signInDigitalSignature.isVisible = isSubscriberUser && stage == SignInType.PASSWORD
+        binding.email.isEnabled = stage == SignInType.EMAIL || stage == SignInType.GUEST
+
+        binding.name.isVisible = stage == SignInType.NAME
+
+        binding.guestMode.isVisible = stage == SignInType.EMAIL
+        binding.tvTermAndPolicy.isVisible = stage == SignInType.EMAIL
+
+        if (stage == SignInType.PASSWORD) {
+            binding.signIn.setText(R.string.nc_text_sign_in)
+        } else {
+            binding.signIn.setText(R.string.nc_text_continue)
+        }
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(stage != SignInType.EMAIL)
     }
 
     private fun onSignInError(code: Int?, message: String, errorDetail: ErrorDetail?) {
@@ -115,11 +156,12 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
                     staySignedIn = binding.staySignIn.isChecked
                 )
             }
+
             else -> NCToastMessage(this).showError(message)
         }
     }
 
-    private fun openMainScreen(token: String, deviceId: String) {
+    private fun openMainScreen() {
         hideLoading()
         if (NotificationUtils.areNotificationsEnabled(this).not()) {
             navigator.openTurnNotificationScreen(this)
@@ -133,6 +175,8 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
     }
 
     private fun setupViews() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.title = ""
         binding.forgotPassword.setUnderlineText(getString(R.string.nc_text_forgot_password))
 
         binding.password.makeMaskedInput()
@@ -142,11 +186,18 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
                 checked
             )
         }
-        binding.signUp.setOnClickListener { onSignUpClick() }
         binding.signIn.setOnClickListener { onSignInClick() }
-        binding.signInDigitalSignature.setOnClickListener { showSignInViaDigitalSignatureSheet() }
+        binding.signInDigitalSignature.setOnClickListener { EnterXPUBActivity.start(this) }
         binding.forgotPassword.setOnClickListener { onForgotPasswordClick() }
         binding.guestMode.setOnClickListener { onGuestModeClick() }
+        binding.signInPrimary.setOnClickListener {
+            val accounts = viewModel.state.value.accounts
+            if (accounts.isNotEmpty()) {
+                navigator.openPrimaryKeyAccountScreen(this, ArrayList(accounts))
+            } else {
+                navigator.openPrimaryKeySignInIntroScreen(this)
+            }
+        }
         binding.tvTermAndPolicy.linkify(
             getString(R.string.nc_hyperlink_text_term),
             TERM_URL
@@ -155,23 +206,21 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
             getString(R.string.nc_hyperlink_text_policy),
             PRIVACY_URL
         )
+        if (viewModel.type == SignInType.GUEST) {
+            binding.toolbar.setNavigationIcon(R.drawable.ic_close)
+        }
+        binding.toolbar.setNavigationIcon(R.drawable.ic_close)
+        binding.toolbar.setNavigationOnClickListener {
+            if (viewModel.state.value.type == viewModel.type) {
+                finish()
+            } else {
+                viewModel.setType(
+                    intent.serializable<SignInType>(SignInViewModel.EXTRA_TYPE) ?: SignInType.EMAIL
+                )
+                clearInputFields()
+            }
+        }
         clearInputFields()
-    }
-
-    private fun showSignInViaDigitalSignatureSheet() {
-        BottomSheetOption.newInstance(
-            title = getString(R.string.nc_select_your_account_type),
-            options = listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_SIGN_IN_PAID_SUBSCRIPTION,
-                    label = getString(R.string.nc_have_a_paid_subscription),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_SIGN_IN_PRIMARY_KEY,
-                    label = getString(R.string.nc_have_a_primary_key_account),
-                ),
-            )
-        ).show(supportFragmentManager, "BottomSheetOption")
     }
 
     override fun onDestroy() {
@@ -184,13 +233,10 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
         clearInputField(binding.password.getEditTextView())
     }
 
+    @SuppressLint("SetTextI18n")
     private fun clearInputField(edittext: EditText) {
         edittext.clearComposingText()
         edittext.setText("")
-    }
-
-    private fun onSignUpClick() {
-        navigator.openSignUpScreen(this)
     }
 
     private fun onForgotPasswordClick() {
@@ -198,37 +244,36 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>(), BottomSheetOptionL
     }
 
     private fun onSignInClick() {
-        viewModel.handleSignIn(
+        viewModel.onContinueClicked(
             email = binding.email.getEditText().trim(),
             password = binding.password.getEditText(),
+            name = binding.name.getEditText().trim()
         )
     }
 
     private fun onGuestModeClick() {
-        navigator.openGuestModeIntroScreen(this)
-        finish()
+        viewModel.initGuestModeNunchuk()
     }
 
     companion object {
         private const val PRIVACY_URL = "https://www.nunchuk.io/privacy.html"
         private const val TERM_URL = "https://www.nunchuk.io/terms.html"
         private const val EXTRA_IS_DELETED = "EXTRA_IS_DELETED"
-        fun start(activityContext: Context, isNeedNewTask: Boolean, isAccountDeleted: Boolean) {
+        fun start(
+            activityContext: Context,
+            isNeedNewTask: Boolean,
+            isAccountDeleted: Boolean,
+            type: SignInType
+        ) {
             val intent = Intent(activityContext, SignInActivity::class.java).apply {
+                putExtra(SignInViewModel.EXTRA_SIGN_OUT, isNeedNewTask)
                 if (isNeedNewTask) {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 }
                 putExtra(EXTRA_IS_DELETED, isAccountDeleted)
+                putExtra(SignInViewModel.EXTRA_TYPE, type)
             }
             activityContext.startActivity(intent)
         }
     }
-
-    override fun onOptionClicked(option: SheetOption) {
-        when (option.type) {
-            SheetOptionType.TYPE_SIGN_IN_PAID_SUBSCRIPTION -> EnterXPUBActivity.start(this)
-            SheetOptionType.TYPE_SIGN_IN_PRIMARY_KEY -> viewModel.checkPrimaryKeyAccounts()
-        }
-    }
-
 }

@@ -170,7 +170,6 @@ private fun InheritanceShareSecretContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OptionItem(
     modifier: Modifier = Modifier,

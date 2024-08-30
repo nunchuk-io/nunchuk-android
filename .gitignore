@@ -2,6 +2,7 @@
 .idea
 /build
 *.iml
+.gradle-home
 local.properties
 keystore.properties
 nunchuk-keystore.jks

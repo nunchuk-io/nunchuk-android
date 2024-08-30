@@ -652,7 +652,7 @@
     <string name="nc_filters">Filters</string>
     <string name="nc_selected_coins">Selected coins</string>
     <string name="nc_send_all_locked_coin_msg">The send amount exceeds the total value of all unlocked coins. Please unlock more coins and try again.</string>
-    <string name="nc_locked_coin_can_not_used">Locked coins cannot be used to create a transaction. Please update and try again.</string>
+    <string name="nc_locked_coin_can_not_used">The selected coins include locked coins. Would you like to unlock them to create the transaction?</string>
     <string name="nc_show_less">Show less</string>
     <string name="nc_more">More</string>
     <string name="nc_transaction_imported">Transaction imported</string>
@@ -769,4 +769,7 @@
     <string name="nc_select_account_index">Select account index</string>
     <string name="nc_put_your_device_near_the_nfc_key_to_verify_address">Put your device near the NFC key. Please verify the address on the device:</string>
     <string name="nc_enter_device_password">Enter device password</string>
+    <string name="nc_email_address_already_associated_referral_link">This email address already has an associated referral link. Do you want to reuse it?</string>
+    <string name="nc_use_another_email">Use another email</string>
+    <string name="nc_transaction_invalid_address">Invalid address</string>
 </resources>

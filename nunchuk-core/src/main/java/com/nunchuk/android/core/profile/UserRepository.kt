@@ -22,10 +22,8 @@ package com.nunchuk.android.core.profile
 import com.nunchuk.android.core.network.ApiInterceptedException
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.utils.CrashlyticsReporter
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface UserRepository {
@@ -36,7 +34,7 @@ interface UserRepository {
 
     fun requestDeleteAccount(): Flow<Unit>
 
-    fun updateUserProfile(name: String?, avatarUrl: String?): Flow<UserProfileResponse>
+    suspend fun updateUserProfile(name: String?, avatarUrl: String?): UserProfileResponse
 
     suspend fun sendSignOut()
 
@@ -58,12 +56,13 @@ internal class UserRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
 ) : UserRepository {
 
-    override suspend fun getUserProfile() : UserProfileResponse  {
-       return userProfileApi.getUserProfile().data.user
+    override suspend fun getUserProfile(): UserProfileResponse {
+        return userProfileApi.getUserProfile().data.user
     }
 
     override fun confirmDeleteAccount(confirmationCode: String) = flow {
-        val result = userProfileApi.confirmDeleteAccount(DeleteConfirmationPayload(confirmationCode))
+        val result =
+            userProfileApi.confirmDeleteAccount(DeleteConfirmationPayload(confirmationCode))
         if (result.isSuccess) {
             emit(Unit)
         } else {
@@ -81,10 +80,10 @@ internal class UserRepositoryImpl @Inject constructor(
         )
     }
 
-    override fun updateUserProfile(name: String?, avatarUrl: String?) = flow {
+    override suspend fun updateUserProfile(name: String?, avatarUrl: String?): UserProfileResponse {
         val payload = UpdateUserProfilePayload(name = name, avatarUrl = avatarUrl)
-        emit(userProfileApi.updateUserProfile(payload).data.user)
-    }.flowOn(Dispatchers.IO)
+        return userProfileApi.updateUserProfile(payload).data.user
+    }
 
     override suspend fun sendSignOut() {
         userProfileApi.signOut()
@@ -109,6 +108,8 @@ internal class UserRepositoryImpl @Inject constructor(
     override fun showOnBoard(): Flow<Boolean?> = ncDataStore.showOnBoard
 
     override suspend fun setShowOnBoard(isShow: Boolean) = ncDataStore.setShowOnBoard(isShow)
-    override suspend fun checkShowOnboardForFreshInstall() = ncDataStore.checkShowOnboardForFreshInstall()
+    override suspend fun checkShowOnboardForFreshInstall() =
+        ncDataStore.checkShowOnboardForFreshInstall()
+
     override suspend fun clearDataStore() = ncDataStore.clear()
 }

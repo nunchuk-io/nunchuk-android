@@ -8,6 +8,9 @@ import com.nunchuk.android.core.data.model.byzantine.HistoryPeriodResponseOrRequ
 import com.nunchuk.android.core.data.model.byzantine.MemberRequest
 import com.nunchuk.android.core.data.model.byzantine.SignatureDto
 import com.nunchuk.android.core.data.model.byzantine.toModel
+import com.nunchuk.android.core.data.model.campaigns.CampaignResponse
+import com.nunchuk.android.core.data.model.campaigns.RefereeCodeResponse
+import com.nunchuk.android.core.data.model.campaigns.ReferrerCodeResponse
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
@@ -38,6 +41,8 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.toAlertType
+import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.transaction.AlertPayload
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.entity.AlertEntity
@@ -324,4 +329,21 @@ internal fun SignatureDto.toModel() = DummySignature(
     signature = signature.orEmpty(),
     signedByUserId = signedByUserId.orEmpty(),
     createdTimeMillis = createdTimeMillis
+)
+
+internal fun CampaignResponse.toModel() = Campaign(
+    id = id.orEmpty(),
+    referrerTitle = referrerTitle.orEmpty(),
+    referrerDescriptionHtml = referrerDescriptionHtml.orEmpty(),
+    referrerBannerUrl = referrerBannerUrl.orEmpty(),
+    cta = cta.orEmpty()
+)
+
+internal fun ReferrerCodeResponse.toModel() = ReferrerCode(
+    code = code.orEmpty(),
+    link = link.orEmpty(),
+    receiveAddress = receiveAddress.orEmpty(),
+    receiveAddressHash = receiveAddressHash.orEmpty(),
+    textTemplate = textTemplate.orEmpty(),
+    campaign = campaign?.toModel() ?: Campaign.empty()
 )

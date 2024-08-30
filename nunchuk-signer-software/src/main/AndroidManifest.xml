@@ -89,6 +89,7 @@
         <activity
             android:name=".components.primarykey.manuallyusername.PKeyManuallyUsernameActivity"
             android:label="@string/nc_primary_key_signin_manually_username_title"
+            android:windowSoftInputMode="stateAlwaysVisible"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 

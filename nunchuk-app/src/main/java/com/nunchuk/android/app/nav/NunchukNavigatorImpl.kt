@@ -27,13 +27,13 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.QuickWalletNavigationDirections
-import com.nunchuk.android.app.intro.GuestModeIntroActivity
-import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
 import com.nunchuk.android.app.onboard.OnboardActivity
+import com.nunchuk.android.app.referral.ReferralActivity
 import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
+import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -64,7 +64,6 @@ import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
 import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
-import org.matrix.android.sdk.api.session.crypto.model.UnknownInfo.deviceId
 import javax.inject.Inject
 
 internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
@@ -101,14 +100,6 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         } else {
             activity.overridePendingTransition(0, 0)
         }
-    }
-
-    override fun openGuestModeIntroScreen(activityContext: Context) {
-        GuestModeIntroActivity.start(activityContext)
-    }
-
-    override fun openGuestModeMessageIntroScreen(activityContext: Context) {
-        GuestModeMessageIntroActivity.start(activityContext)
     }
 
     override fun openQuickWalletScreen(
@@ -167,6 +158,12 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
             walletId = walletId,
             flowInfo = flowInfo
         )
+    }
+
+    override fun openReferralScreen(activityContext: Context, args: ReferralArgs) {
+        ReferralActivity.buildIntent(activityContext, args).let {
+            activityContext.startActivity(it)
+        }
     }
 }
 

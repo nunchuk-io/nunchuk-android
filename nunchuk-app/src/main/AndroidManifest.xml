@@ -62,15 +62,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".app.intro.GuestModeIntroActivity"
-            android:screenOrientation="fullSensor" />
-
-        <activity
-            android:name=".app.intro.GuestModeMessageIntroActivity"
-            android:screenOrientation="fullSensor" />
-
         <activity android:name="com.nunchuk.android.app.wallet.QuickWalletActivity"
             android:label="@string/nc_wallet_add_wallet_title"
             android:screenOrientation="portrait"
@@ -82,6 +73,11 @@
             android:theme="@style/NunchukNoActionBar.Light"/>
         <activity android:name="com.nunchuk.android.app.onboard.OnboardActivity"
             android:label="Onboard"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
+
+        <activity android:name=".app.referral.ReferralActivity"
+            android:label="Referral"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"/>
 

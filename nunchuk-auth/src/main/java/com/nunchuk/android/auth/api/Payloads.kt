@@ -90,3 +90,8 @@ data class ResendVerifyNewDeviceCodePayload(
     @SerializedName("deviceId")
     val deviceId: String
 ): Serializable
+
+data class ResendPasswordRequest(
+    @SerializedName("email")
+    val email: String
+)

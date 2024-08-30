@@ -56,10 +56,6 @@ class OnboardActivity : BaseComposeActivity() {
                                     navigator.openMainScreen(this@OnboardActivity)
                                     finish()
                                 },
-                                onSignIn = {
-                                    navigator.openSignInScreen(this@OnboardActivity)
-                                    finish()
-                                }
                             )
                             unassistedIntro(
                                 openMainScreen = {
@@ -105,7 +101,7 @@ class OnboardActivity : BaseComposeActivity() {
                                     navController.navigateToOnboardAdvisorInput()
                                 },
                                 onCreateAccount = {
-                                    navigator.openSignUpScreen(this@OnboardActivity, isOnboardingFlow = true)
+                                    navigator.openSignUpScreen(this@OnboardActivity)
                                 },
                             )
                             onboardAdvisorInput(

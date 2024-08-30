@@ -19,7 +19,7 @@ ext {
     coroutinesVersion = '1.6.4'
 
     // Plugins versions
-    gradleVersion = '8.5.0'
+    gradleVersion = '8.5.2'
     googleServiceVersion = '4.4.2'
     kotlinGradlePluginVersion = '1.9.24'
     kotlinStdlibVersion = '1.9.24'
@@ -29,7 +29,7 @@ ext {
 
     // Nunchuk dep versions
     nativeSdkVersion = '1.1.75'
-    prebuildNativeSdkVersion = '1.1.75'
+    prebuildNativeSdkVersion = '8ef0c1473a@aar'
 
     // Matrix
     matrixSdkVersion = '1.5.30'
@@ -39,7 +39,7 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 49
+    PATCH_VERSION = 50
     TASK_LABEL = "DEV"
 
     VERSION_CODE = 242
@@ -168,7 +168,7 @@ ext {
     ]
 
     nunchukDeps = [
-            nativeSdk: "io.nunchuk.android:nativesdk:${nativeSdkVersion}",
+            nativeSdk: "com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:${prebuildNativeSdkVersion}",
             prebuildNativeSdk: "com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:${prebuildNativeSdkVersion}"
     ]
 

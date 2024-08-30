@@ -14,11 +14,14 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
@@ -78,8 +81,12 @@ class EnterXPUBActivity : BaseComposeActivity() {
     fun EnterXPUBContent(
         onContinueClick: (data: String) -> Unit = { }
     ) {
-
+        val focusRequester = remember { FocusRequester() }
         var inputXPUB by remember { mutableStateOf("") }
+
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
 
         NunchukTheme {
             Scaffold(
@@ -128,7 +135,9 @@ class EnterXPUBActivity : BaseComposeActivity() {
                         style = NunchukTheme.typography.body
                     )
                     NcTextField(
-                        modifier = Modifier.padding(top = 24.dp),
+                        modifier = Modifier
+                            .focusRequester(focusRequester)
+                            .padding(top = 24.dp),
                         title = stringResource(id = R.string.nc_xpub),
                         value = inputXPUB,
                         inputBoxHeight = 130.dp,

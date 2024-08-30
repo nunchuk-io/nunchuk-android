@@ -33,12 +33,15 @@ import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPas
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordValidEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ShowEmailSentEvent
 import com.nunchuk.android.auth.domain.ChangePasswordUseCase
+import com.nunchuk.android.auth.domain.ResendPasswordUseCase
+import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -47,6 +50,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ChangePasswordViewModel @Inject constructor(
     private val changePasswordUseCase: ChangePasswordUseCase,
+    private val resendPasswordUseCase: ResendPasswordUseCase,
+    private val signInUseCase: SignInUseCase,
     accountManager: AccountManager,
 ) : NunchukViewModel<Unit, ChangePasswordEvent>() {
 
@@ -68,6 +73,16 @@ internal class ChangePasswordViewModel @Inject constructor(
                 && validateConfirmPasswordMatched(newPassword, confirmPassword)
             ) {
                 changePasswordUseCase.execute(oldPassword = oldPassword, newPassword = newPassword)
+                    .onStart {
+                        if (account.token.isEmpty()) {
+                            signInUseCase.execute(
+                                email = account.email,
+                                password = oldPassword,
+                                staySignedIn = false,
+                                fetchUserInfo = false
+                            ).first()
+                        }
+                    }
                     .flowOn(IO)
                     .onStart { event(LoadingEvent) }
                     .onException { event(ChangePasswordSuccessError(it.message)) }
@@ -107,4 +122,14 @@ internal class ChangePasswordViewModel @Inject constructor(
         else -> doAfterValidate { event(ConfirmPasswordValidEvent) }
     }
 
+    fun resendPassword() {
+        viewModelScope.launch {
+            resendPasswordUseCase(account.email)
+                .onSuccess {
+                    setEvent(ChangePasswordEvent.ResendPasswordSuccessEvent(account.email))
+                }.onFailure {
+                    setEvent(ChangePasswordSuccessError(it.message))
+                }
+        }
+    }
 }

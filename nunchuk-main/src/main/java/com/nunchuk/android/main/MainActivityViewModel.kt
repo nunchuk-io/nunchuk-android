@@ -43,7 +43,6 @@ import com.nunchuk.android.core.matrix.DownloadFileUseCase
 import com.nunchuk.android.core.matrix.RegisterDownloadBackUpFileUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.UploadFileUseCase
-import com.nunchuk.android.core.profile.GetOnBoardUseCase
 import com.nunchuk.android.core.util.AppUpdateStateHolder
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.BTC_CURRENCY_EXCHANGE_RATE
@@ -78,9 +77,6 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -103,7 +99,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class MainActivityViewModel @Inject constructor(
     private val backupDataUseCase: BackupDataUseCase,
-    private val getSyncSettingUseCase: GetSyncSettingUseCase,
+    getSyncSettingUseCase: GetSyncSettingUseCase,
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
     private val registerAutoBackupUseCase: RegisterAutoBackupUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
@@ -122,7 +118,6 @@ internal class MainActivityViewModel @Inject constructor(
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
     private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase,
     private val sessionHolder: SessionHolder,
-    private val getOnBoardUseCase: GetOnBoardUseCase,
     private val accountManager: AccountManager,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, MainAppEvent>() {
@@ -142,16 +137,8 @@ internal class MainActivityViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     init {
-        viewModelScope.launch {
-            getOnBoardUseCase(Unit)
-                .map { it.getOrElse { false } }
-                .onException { Timber.e(it) }
-                .distinctUntilChanged()
-                .filterNotNull()
-                .filter { it }
-                .collect {
-                    setEvent(MainAppEvent.ShowOnBoardEvent)
-                }
+        if (accountManager.shouldShowOnboard() == true) {
+            setEvent(MainAppEvent.ShowOnBoardEvent)
         }
         viewModelScope.launch {
             timelineListenerAdapter.data.collect(::handleTimelineEvents)

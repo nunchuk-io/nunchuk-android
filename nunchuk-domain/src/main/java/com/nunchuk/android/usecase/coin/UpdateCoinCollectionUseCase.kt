@@ -38,7 +38,8 @@ class UpdateCoinCollectionUseCase @Inject constructor(
     override suspend fun run(parameters: Param): Boolean {
         return nunchukNativeSdk.updateCoinCollection(
             walletId = parameters.walletId,
-            coinCollection = parameters.coinCollection
+            coinCollection = parameters.coinCollection,
+            applyToExistingCoins = parameters.applyToExistingCoins
         )
     }
 
@@ -46,6 +47,7 @@ class UpdateCoinCollectionUseCase @Inject constructor(
         override val groupId: String?,
         override val walletId: String,
         val coinCollection: CoinCollection,
+        val applyToExistingCoins: Boolean,
         override val isAssistedWallet: Boolean
     ) : BaseSyncCoinUseCase.Param(groupId, walletId, isAssistedWallet)
 }

@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
@@ -41,6 +42,7 @@ import com.nunchuk.android.core.util.ClickAbleText
 @Composable
 fun NcHintMessage(
     modifier: Modifier = Modifier,
+    textStyle: TextStyle = NunchukTheme.typography.titleSmall,
     messages: List<ClickAbleText>,
     type: HighlightMessageType = HighlightMessageType.HINT
 ) {
@@ -69,7 +71,7 @@ fun NcHintMessage(
             NcClickableText(
                 modifier = Modifier.padding(start = 8.dp),
                 messages = messages,
-                style = NunchukTheme.typography.titleSmall
+                style = textStyle
             )
         }
     }

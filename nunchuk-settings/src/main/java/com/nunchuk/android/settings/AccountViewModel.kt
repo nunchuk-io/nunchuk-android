@@ -44,8 +44,6 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -122,13 +120,14 @@ internal class AccountViewModel @Inject constructor(
 
     fun updateUserProfile(name: String? = null, avatarUrl: String? = null) {
         viewModelScope.launch {
-            updateUseProfileUseCase.execute(name, avatarUrl)
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    updateStateUserAccount()
-                }
+            updateUseProfileUseCase(
+                UpdateUseProfileUseCase.Params(
+                    name = name,
+                    avatarUrl = avatarUrl
+                )
+            ).onSuccess {
+                updateStateUserAccount()
+            }
         }
     }
 
@@ -172,6 +171,7 @@ internal class AccountViewModel @Inject constructor(
     fun handleSignOutEvent() {
         appScope.launch {
             event(AccountEvent.LoadingEvent(true))
+            signInModeHolder.clear()
             clearInfoSessionUseCase.invoke(Unit)
             sendSignOutUseCase(Unit)
             event(AccountEvent.SignOutEvent)

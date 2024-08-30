@@ -23,7 +23,6 @@ import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.BaseUseCase
 import javax.inject.Inject
 
@@ -36,7 +35,7 @@ internal class RegisterUseCaseImpl @Inject constructor(
     private val accountManager: AccountManager
 ) : BaseUseCase(), RegisterUseCase {
 
-    override suspend fun execute(name: String, email: String) = exe {
+    override suspend fun execute(name: String, email: String) = kotlin.runCatching {
         authRepository.register(name = name, email = email).also {
             accountManager.storeAccount(AccountInfo(email = email, token = it.tokenId))
         }
