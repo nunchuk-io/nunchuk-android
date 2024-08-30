@@ -105,7 +105,21 @@ class ReferralAddressViewModel @Inject constructor(
                                 showOtherAddress = true
                             )
                         }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                selectedWalletAddress = list.first(),
+                            )
+                        }
                     }
+                }
+            }
+            if (foundWalletId.not() && preAddress.isNullOrEmpty()) {
+                _state.update {
+                    it.copy(
+                        selectedWalletAddress = resultWalletList.firstOrNull(),
+                        showOtherAddress = false
+                    )
                 }
             }
         }

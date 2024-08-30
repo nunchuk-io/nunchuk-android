@@ -5,5 +5,6 @@ import androidx.annotation.Keep
 @Keep
 enum class ReferralAction(val value: String) {
     VIEW("VIEW"),
-    CHANGE("CHANGE")
+    CHANGE("CHANGE"),
+    PICK("PICK")
 }

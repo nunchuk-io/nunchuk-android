@@ -54,10 +54,11 @@ class ReferralActivity : BaseComposeActivity() {
                         onCopyToClipboard = {
                             copyToClipboard(label = "Nunchuk", text = it)
                             NCToastMessage(this@ReferralActivity).show("Link copied to clipboard")
-                        }, onChangeAddress = { address, walletId ->
+                        }, onChangeAddress = { address, walletId, isHasLocalReferralCode ->
                             navigationController.navigateToReferralAddress(
                                 address = address.ifBlank { DEFAULT_ADDRESS },
-                                walletId = walletId.ifBlank { DEFAULT_WALLET_ID })
+                                walletId = walletId.ifBlank { DEFAULT_WALLET_ID },
+                                action = if (isHasLocalReferralCode) ReferralAction.CHANGE.value else ReferralAction.PICK.value)
                         },
                         onViewReferralAddress = {
                             navigationController.navigateToReferralConfirmationCode(

@@ -110,7 +110,7 @@ private fun String.asHTML(
                         end = end
                     )
                     if (span.url == "https://nunchuk.io/referral-terms") {
-                        URLSpanStyle.copy(color = Color.Blue)
+                        URLSpanStyle.copy(color = Color.Blue, textDecoration = TextDecoration.None)
                     } else {
                         URLSpanStyle
                     }

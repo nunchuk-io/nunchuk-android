@@ -1,6 +1,5 @@
 package com.nunchuk.android.app.referral.address
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -66,7 +65,7 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.signer.R
 
-const val referralAddressRoute = "referral_address_route/{address}/{walletId}"
+const val referralAddressRoute = "referral_address_route/{address}/{walletId}/{action}"
 internal const val DEFAULT_ADDRESS = "DEFAULT_ADDRESS"
 internal const val DEFAULT_WALLET_ID = "DEFAULT_WALLET_ID"
 
@@ -85,6 +84,8 @@ fun NavGraphBuilder.referralAddress(
         val viewModel = hiltViewModel<ReferralAddressViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
 
+        val action = it.arguments?.getString("action") ?: ReferralAction.PICK.value
+
         val launcher = rememberLauncherForActivityResult(
             contract = ScanContract()
         ) { result ->
@@ -93,10 +94,29 @@ fun NavGraphBuilder.referralAddress(
             }
         }
 
+        val onPickResult: (String) -> Unit = { address ->
+            val walletId = viewModel.getWalletIdByAddress(address)
+            val data = ConfirmationCodeResultData(
+                walletId = walletId,
+                address = address,
+                action = action,
+                token = ""
+            )
+            navController.previousBackStackEntry?.savedStateHandle?.set(
+                REFERRAL_ADDRESS_RESULT,
+                data
+            )
+            navController.popBackStack()
+        }
+
         LaunchedEffect(state.checkAddressSuccess) {
             if (state.checkAddressSuccess) {
                 viewModel.consumeCheckAddressSuccess()
-                onSaveChange(state.enteredAddress)
+                if (action == ReferralAction.PICK.value) {
+                    onPickResult(state.enteredAddress)
+                } else {
+                    onSaveChange(state.enteredAddress)
+                }
             }
         }
 
@@ -115,13 +135,17 @@ fun NavGraphBuilder.referralAddress(
                 if (isOtherAddress) {
                     viewModel.checkAddressValid(address)
                 } else {
-                    onSaveChange(address)
+                    if (action == ReferralAction.PICK.value) {
+                        onPickResult(address)
+                    } else {
+                        onSaveChange(address)
+                    }
                 }
             },
             onSelectedWallet = {
                 viewModel.updateSelectedWalletAddress(it)
             },
-            onUpdateReceiveAddress = { data ->
+            onUpdateReceiveAddressResult = { data ->
                 var result = data
                 if (data.action == ReferralAction.CHANGE.value) {
                     val walletId = viewModel.getWalletIdByAddress(data.address.orEmpty())
@@ -138,14 +162,17 @@ fun NavGraphBuilder.referralAddress(
             }
         )
     }
+
+
 }
 
 fun NavController.navigateToReferralAddress(
     navOptions: NavOptions? = null,
     address: String,
-    walletId: String
+    walletId: String,
+    action: String
 ) {
-    navigate("referral_address_route/$address/$walletId", navOptions)
+    navigate("referral_address_route/$address/$walletId/$action", navOptions)
 }
 
 @Composable
@@ -157,7 +184,7 @@ fun ReferralAddressScreen(
     onSaveChange: (Boolean, String) -> Unit = { _, _ -> },
     onScan: () -> Unit = { },
     onEnterAddress: (String) -> Unit = { },
-    onUpdateReceiveAddress: (ConfirmationCodeResultData) -> Unit = { },
+    onUpdateReceiveAddressResult: (ConfirmationCodeResultData) -> Unit = { },
     onShowOtherAddress: (Boolean) -> Unit = { },
     onSelectedWallet: (WalletAddressUi?) -> Unit = { },
 ) {
@@ -171,7 +198,7 @@ fun ReferralAddressScreen(
             ?.observe(context) { result ->
                 if (handledResult.not() && result.action == ReferralAction.CHANGE.value) {
                     handledResult = true
-                    onUpdateReceiveAddress(result)
+                    onUpdateReceiveAddressResult(result)
                 }
             }
     }

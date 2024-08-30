@@ -1,9 +1,9 @@
 package com.nunchuk.android.app.referral.invitefriend
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.app.referral.ConfirmationCodeResultData
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
@@ -53,7 +53,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private var isInitialized = false
-    private var currentToken = ""
+    private var currentData = ConfirmationCodeResultData.empty
 
     fun init(campaign: Campaign, localReferrerCode: ReferrerCode?) {
         if (isInitialized) return
@@ -66,7 +66,10 @@ class ReferralInviteFriendViewModel @Inject constructor(
         _state.update { it.copy(isLoginByEmail = isLoginByEmail) }
         if (localReferrerCode != null) {
             checkReferrerCodeByEmail(localReferrerCode.email)
-            getWalletInfo(walletId = localReferrerCode.localWalletId, receiveAddress = localReferrerCode.receiveAddress)
+            getWalletInfo(
+                walletId = localReferrerCode.localWalletId,
+                receiveAddress = localReferrerCode.receiveAddress
+            )
         } else {
             if (isLoginByEmail) {
                 getReferrerCodeByEmail(accountInfo.email)
@@ -158,14 +161,14 @@ class ReferralInviteFriendViewModel @Inject constructor(
         }
     }
 
-    fun getReferrerCodeByEmail(email: String, token: String? = null) {
-        if (token != null && token == currentToken) return
-        currentToken = token ?: ""
+    fun getReferrerCodeByEmail(email: String, resultData: ConfirmationCodeResultData? = null) {
+        if (resultData != null && resultData == currentData) return
+        currentData = resultData ?: ConfirmationCodeResultData.empty
         viewModelScope.launch {
             getReferrerCodeByEmailUseCase(
                 GetReferrerCodeByEmailUseCase.Param(
                     email = email,
-                    token = token
+                    token = resultData?.token
                 )
             ).onSuccess { referrerCode ->
                 referrerCode?.let {
@@ -178,7 +181,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
                     pickWallet()
                 }
             }.onFailure { error ->
-                if (token.isNullOrEmpty().not()) {
+                if (resultData?.token.isNullOrEmpty().not()) {
                     _state.update { it.copy(errorMsg = error.message) }
                 }
             }
@@ -225,8 +228,14 @@ class ReferralInviteFriendViewModel @Inject constructor(
             ).onSuccess { referrerCode ->
                 if (referrerCode != null) {
                     if (referrerCode.receiveAddress.isNotEmpty()) {
-                        val newReferrerCode = referrerCode.copy(email = email, localWalletId = _state.value.localReferrerCode?.localWalletId.orEmpty())
-                        getWalletInfo(walletId = referrerCode.localWalletId, receiveAddress = referrerCode.receiveAddress)
+                        val newReferrerCode = referrerCode.copy(
+                            email = email,
+                            localWalletId = _state.value.localReferrerCode?.localWalletId.orEmpty()
+                        )
+                        getWalletInfo(
+                            walletId = referrerCode.localWalletId,
+                            receiveAddress = referrerCode.receiveAddress
+                        )
                         updateLocalReferrerCode(newReferrerCode)
                     }
                     _state.update { it.copy(remoteReceiveAddressHash = referrerCode.receiveAddressHash) }
@@ -248,18 +257,21 @@ class ReferralInviteFriendViewModel @Inject constructor(
                 CreateReferrerCodeByEmailUseCase.Params(
                     email = email,
                     receiveAddress = receiveAddress,
-                    walletId = getWalletId()
+                    walletId = if (isPickTempAddress()) {
+                        _state.value.receiveWalletTemp?.wallet?.id.orEmpty()
+                    } else {
+                        getWalletId()
+                    }
                 )
             )
                 .onSuccess { referrerCode ->
-                    if (isPickTempAddress()) getWalletById(_state.value.receiveWalletTemp?.wallet?.id.orEmpty())
                     _state.update {
                         it.copy(
                             localReferrerCode = referrerCode,
                             forceShowInputEmail = false
                         )
                     }
-                    getWalletById(getWalletId())
+                    if (isPickTempAddress()) getWalletById(_state.value.receiveWalletTemp?.wallet?.id.orEmpty()) else getWalletById(getWalletId())
                 }
                 .onFailure { error ->
                     if (error is NunchukApiException && error.code == 1409) {
@@ -291,11 +303,25 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     fun getReceiveAddress(): String {
-        return _state.value.pickReceiveAddress ?: _state.value.localReferrerCode?.receiveAddress ?: ""
+        return if (isPickTempAddress()) {
+            _state.value.receiveWalletTemp?.receiveAddress.orEmpty()
+        }
+        else if (_state.value.isHideAddress()) {
+            ""
+        } else {
+            _state.value.localReferrerCode?.receiveAddress ?: _state.value.pickReceiveAddress ?: ""
+        }
+
+    }
+
+    fun isHasLocalReferrerCode(): Boolean {
+        return _state.value.localReferrerCode != null
     }
 
     fun getSelectWalletId(): String {
-        return if (_state.value.isHideAddress()) {
+        return if (isPickTempAddress()) {
+            _state.value.receiveWalletTemp?.wallet?.id.orEmpty()
+        } else if (_state.value.isHideAddress()) {
             ""
         } else {
             _state.value.localReferrerCode?.localWalletId.orEmpty().ifEmpty {
@@ -315,16 +341,26 @@ class ReferralInviteFriendViewModel @Inject constructor(
         return _state.value.localReferrerCode?.email ?: ""
     }
 
-    fun updateReceiveAddress(receiveAddress: String, token: String, walletId: String?) {
-        if (token == currentToken) return
-        currentToken = token
+    fun updatePickTempAddress(resultData: ConfirmationCodeResultData) {
+        if (resultData == currentData) return
+        currentData = resultData
+        if (resultData.walletId.isNullOrEmpty().not()) {
+            savedStateHandle["walletId"] = resultData.walletId
+            getWalletInfo(resultData.walletId!!, resultData.address.orEmpty())
+        }
+        _state.update { it.copy(pickReceiveAddress = resultData.address.orEmpty()) }
+    }
+
+    fun updateReceiveAddress(resultData: ConfirmationCodeResultData) {
+        if (currentData == resultData) return
+        currentData = resultData
         viewModelScope.launch {
             updateReceiveAddressByEmailUseCase(
                 UpdateReceiveAddressByEmailUseCase.Params(
                     email = getEmail(),
-                    receiveAddress = receiveAddress,
-                    token = token,
-                    walletId = walletId.orEmpty()
+                    receiveAddress = resultData.address.orEmpty(),
+                    token = resultData.token,
+                    walletId = resultData.walletId.orEmpty()
                 )
             ).onSuccess { result ->
                 result?.let {
@@ -334,7 +370,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
                             forceShowInputEmail = false
                         )
                     }
-                    getWalletInfo(walletId.orEmpty(), receiveAddress)
+                    getWalletInfo(resultData.walletId.orEmpty(), resultData.address.orEmpty())
                     _state.update { it.copy(event = ReferralInviteFriendEvent.ChangeAddressSuccess) }
                 }
             }.onFailure { error ->

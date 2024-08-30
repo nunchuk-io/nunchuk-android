@@ -76,7 +76,7 @@ fun NavGraphBuilder.referralInviteFriend(
     args: ReferralArgs,
     snackState: SnackbarHostState,
     onCopyToClipboard: (String) -> Unit,
-    onChangeAddress: (String, String) -> Unit,
+    onChangeAddress: (String, String, Boolean) -> Unit,
     onViewReferralAddress: (String) -> Unit = {},
     onShareLink: (Boolean, String) -> Unit = { _, _ -> },
 ) {
@@ -131,20 +131,23 @@ fun NavGraphBuilder.referralInviteFriend(
                     onCopyToClipboard(link)
                 }
             }, onChangeAddress = {
-                onChangeAddress(viewModel.getReceiveAddress(), viewModel.getSelectWalletId())
+                onChangeAddress(
+                    viewModel.getReceiveAddress(),
+                    viewModel.getSelectWalletId(),
+                    viewModel.isHasLocalReferrerCode()
+                )
             }, onViewReferralAddress = {
                 if (viewModel.getEmail().isNotEmpty()) {
                     onViewReferralAddress(viewModel.getEmail())
                 }
-            }, onShowReceiveAddress = {
+            }, onShowReceiveAddressResult = {
                 viewModel.getReferrerCodeByEmail(viewModel.getEmail(), it)
             }, onChangeReceiveAddress = {
-                viewModel.updateReceiveAddress(
-                    receiveAddress = it.address.orEmpty(),
-                    token = it.token,
-                    walletId = it.walletId.orEmpty()
-                )
-            }, onShareLink = onShareLink
+                viewModel.updateReceiveAddress(resultData = it)
+            }, onShareLink = onShareLink,
+            onPickReceiveAddressResult = {
+                viewModel.updatePickTempAddress(it)
+            }
         )
     }
 }
@@ -163,12 +166,12 @@ fun ReferralInviteFriendScreen(
     onCopyToClipboard: () -> Unit = {},
     onChangeAddress: () -> Unit = {},
     onViewReferralAddress: () -> Unit = {},
-    onShowReceiveAddress: (String) -> Unit = {},
+    onShowReceiveAddressResult: (ConfirmationCodeResultData) -> Unit = {},
     onChangeReceiveAddress: (ConfirmationCodeResultData) -> Unit = {},
+    onPickReceiveAddressResult: (ConfirmationCodeResultData) -> Unit = {},
     onShareLink: (Boolean, String) -> Unit = { _, _ -> },
 ) {
     var email by remember { mutableStateOf(state.localReferrerCode?.email.orEmpty()) }
-    var handledResult by remember { mutableStateOf(false) }
 
     val context = LocalLifecycleOwner.current
 
@@ -179,25 +182,25 @@ fun ReferralInviteFriendScreen(
             REFERRAL_CONFIRMATION_CODE_RESULT
         )?.distinctUntilChanged()
             ?.observe(context) { result ->
-                if (handledResult.not() && result.action == ReferralAction.VIEW.value) {
+                if (result.action == ReferralAction.VIEW.value) {
                     navController.currentBackStackEntry?.savedStateHandle?.remove<ConfirmationCodeResultData>(
                         REFERRAL_CONFIRMATION_CODE_RESULT
                     )
-                    handledResult = true
-                    onShowReceiveAddress(result.token)
+                    onShowReceiveAddressResult(result)
                 }
             }
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<ConfirmationCodeResultData>(
             REFERRAL_ADDRESS_RESULT
         )?.distinctUntilChanged()
             ?.observe(context) { result ->
-                if (handledResult.not() && result.action == ReferralAction.CHANGE.value) {
-                    navController.currentBackStackEntry?.savedStateHandle?.remove<ConfirmationCodeResultData>(
-                        REFERRAL_ADDRESS_RESULT
-                    )
-                    handledResult = true
+                if (result.action == ReferralAction.CHANGE.value) {
                     onChangeReceiveAddress(result)
+                } else if (result.action == ReferralAction.PICK.value) {
+                    onPickReceiveAddressResult(result)
                 }
+                navController.currentBackStackEntry?.savedStateHandle?.remove<ConfirmationCodeResultData>(
+                    REFERRAL_ADDRESS_RESULT
+                )
             }
     }
 
@@ -320,7 +323,6 @@ fun ReferralInviteFriendScreen(
                             .padding(start = 4.dp, top = 2.dp)
                             .clickable {
                                 onViewReferralAddress()
-                                handledResult = false
                             }
                     )
                 }

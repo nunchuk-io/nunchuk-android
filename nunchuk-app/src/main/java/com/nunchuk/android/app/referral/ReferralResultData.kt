@@ -9,4 +9,8 @@ data class ConfirmationCodeResultData(
     val action: String,
     val token: String,
     val walletId: String? = null
-) : Parcelable
+) : Parcelable {
+    companion object {
+        val empty = ConfirmationCodeResultData(null, "", "")
+    }
+}
