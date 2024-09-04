@@ -31,6 +31,7 @@ import com.nunchuk.android.widget.util.FontInitializer
 
 class NCFontEditText : AppCompatEditText {
     private var isMasked = true
+    var onTextPaste: () -> Unit = {}
 
     private val initializer: FontInitializer by lazy { FontInitializer(context) }
 
@@ -44,6 +45,16 @@ class NCFontEditText : AppCompatEditText {
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         initializer.initTypeface(this, attrs)
+    }
+
+    override fun onTextContextMenuItem(id: Int): Boolean {
+        val consumed = super.onTextContextMenuItem(id)
+
+        if (id == android.R.id.paste) {
+            onTextPaste()
+        }
+
+        return consumed
     }
 
     @SuppressLint("ClickableViewAccessibility")

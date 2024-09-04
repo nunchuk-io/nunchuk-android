@@ -37,14 +37,12 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
@@ -141,6 +139,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         binding.toolbarTitle.text = args.sweepType.toTitle(this, getString(R.string.nc_transaction_new))
         if (args.sweepType != SweepType.NONE) {
             binding.receiptLabel.text = getString(R.string.nc_enter_recipient_address)
+        }
+        binding.receiptInput.onTextPaste = {
+            viewModel.parseBtcUri(binding.receiptInput.text.toString())
         }
         lifecycleScope.launch {
             binding.receiptInput.textChanges()
