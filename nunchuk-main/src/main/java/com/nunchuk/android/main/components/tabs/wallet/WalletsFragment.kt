@@ -56,6 +56,8 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.formatMMMddyyyyDate
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
@@ -187,7 +189,12 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             }
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {
-            NonSubscriberActivity.start(requireActivity(), it.tag as String)
+            val banner = walletsViewModel.getBanner() ?: return@setOnDebounceClickListener
+            if (banner.type == Banner.Type.TYPE_REFERRAL_01) {
+                requireActivity().openExternalLink(banner.content.action.target)
+            } else {
+                NonSubscriberActivity.start(requireActivity(), it.tag as String)
+            }
         }
         binding.llCampaigns.setOnDebounceClickListener {
             navigator.openReferralScreen(
@@ -473,10 +480,19 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
     private fun showIntro(state: WalletsState) {
         binding.introContainer.isGone = walletsViewModel.getGroupStage() == MembershipStage.DONE
                 || state.allGroups.isNotEmpty()
-        binding.containerNonSubscriber.isVisible =
-            state.plans != null && state.plans.isEmpty()
-                    && state.isHideUpsellBanner.not() && state.banner != null
-                    && state.allGroups.isEmpty()
+        if (state.plans != null && state.plans.isEmpty() && state.banner != null) {
+            if (state.banner.type == Banner.Type.TYPE_01 && state.isHideUpsellBanner.not() && state.allGroups.isEmpty()) {
+                binding.containerNonSubscriber.isVisible = true
+            } else if (state.banner.type == Banner.Type.TYPE_REFERRAL_01) {
+                binding.containerNonSubscriber.isVisible = true
+                binding.tvNonSubscriberExpired.isVisible = true
+            } else {
+                binding.containerNonSubscriber.isVisible = false
+            }
+        } else {
+            binding.introContainer.isVisible = false
+        }
+
         if (state.plans != null) {
             val walletName = state.assistedWallets.firstOrNull()
                 ?.let { wallet -> state.wallets.find { wallet.localId == it.wallet.id }?.wallet?.name.orEmpty() }
@@ -495,10 +511,11 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         if (banner != null) {
             binding.containerNonSubscriber.tag = banner.id
             Glide.with(binding.ivNonSubscriber)
-                .load(banner.url)
+                .load(banner.content.imageUrl)
                 .override(binding.ivNonSubscriber.width)
                 .into(binding.ivNonSubscriber)
-            binding.tvNonSubscriber.text = banner.title
+            binding.tvNonSubscriber.text = banner.content.title
+            binding.tvNonSubscriberExpired.text = String.format(getString(R.string.nc_banner_expired_time), banner.payload.expiryAtMillis.formatMMMddyyyyDate)
         }
     }
 

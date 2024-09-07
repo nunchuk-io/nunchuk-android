@@ -26,6 +26,7 @@ import com.nunchuk.android.model.Country
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
 import com.nunchuk.android.model.banner.BannerPageItem
+import com.nunchuk.android.model.banner.toBannerType
 import com.nunchuk.android.repository.BannerRepository
 import javax.inject.Inject
 
@@ -62,9 +63,20 @@ internal class BannerRepositoryImpl @Inject constructor(
         val banner = response.data.banner ?: return null
         return Banner(
             id = banner.id.orEmpty(),
-            desc = banner.content?.description.orEmpty(),
-            title = banner.content?.title.orEmpty(),
-            url = banner.content?.imageUrl.orEmpty()
+            type = banner.type.orEmpty().toBannerType(),
+            content = Banner.Content(
+                title = banner.content?.title.orEmpty(),
+                description = banner.content?.description.orEmpty(),
+                imageUrl = banner.content?.imageUrl.orEmpty(),
+                action = Banner.Action(
+                    label = banner.content?.action?.label.orEmpty(),
+                    type = banner.content?.action?.type.orEmpty(),
+                    target = banner.content?.action?.target.orEmpty()
+                )
+            ),
+            payload = Banner.Payload(
+                expiryAtMillis = banner.payload?.expiryAtMillis ?: 0
+            )
         )
     }
 

@@ -142,7 +142,7 @@ data class ServicesTabState(
                 add(ServiceTabRowItem.ManageSubscription)
             }
             if (banner != null) {
-                items.add(Banner(banner.id, banner.url, banner.title))
+                items.add(Banner(banner.id, banner.content.imageUrl, banner.content.title))
             }
             return items
         } else if (plans.containsByzantineOrFinney()) {

@@ -37,7 +37,7 @@ internal interface BannerApi {
     @GET("/v1.1/banners/pages/assisted-wallet")
     suspend fun getAssistedWalletBannerContent(@Query("reminder_id") requestId: String): Data<AssistedContentResponse>
 
-    @GET("/v1.1/banners/reminders/home")
+    @GET("/v1.1/banners/reminders/home_v2")
     suspend fun getBanners(): Data<BannerListResponse>
 
     @GET("/v1.1/banners/onboarding/countries")

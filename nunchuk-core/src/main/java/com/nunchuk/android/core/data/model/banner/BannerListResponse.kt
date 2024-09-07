@@ -30,11 +30,23 @@ internal class BannerListResponse {
 internal data class BannerDto(
     @SerializedName("id") val id: String? = null,
     @SerializedName("type") val type: String? = null,
-    @SerializedName("content") val content: BannerContentDto? = null
+    @SerializedName("content") val content: BannerContentDto? = null,
+    @SerializedName("payload") val payload: BannerPayloadDto? = null,
 )
 
 internal data class BannerContentDto(
     @SerializedName("title") val title: String? = null,
     @SerializedName("description") val description: String? = null,
     @SerializedName("image_url") val imageUrl: String? = null,
+    @SerializedName("action") val action: BannerActionDto? = null,
+)
+
+internal data class BannerActionDto(
+    @SerializedName("label") val label: String? = null,
+    @SerializedName("type") val type: String? = null,
+    @SerializedName("target") val target: String? = null,
+)
+
+internal data class BannerPayloadDto(
+    @SerializedName("expiry_at_millis") val expiryAtMillis: Long? = null,
 )

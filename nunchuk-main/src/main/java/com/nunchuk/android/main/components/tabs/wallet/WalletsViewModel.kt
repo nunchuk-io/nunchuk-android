@@ -378,7 +378,7 @@ internal class WalletsViewModel @Inject constructor(
             } else {
                 updateState { copy(plans = emptyList()) }
             }
-            if (result.getOrNull()?.plans.isNullOrEmpty() && isHideUpsellBanner.value.not()) {
+            if (result.getOrNull()?.plans.isNullOrEmpty()) {
                 val bannerResult = getBannerUseCase(Unit)
                 updateState {
                     copy(banner = bannerResult.getOrNull())
@@ -713,4 +713,6 @@ internal class WalletsViewModel @Inject constructor(
     fun getCurrentCampaign(): Campaign = getState().campaign ?: error("Campaign is required")
 
     fun getLocalReferrerCode() = getState().localReferrerCode
+
+    fun getBanner() = getState().banner
 }

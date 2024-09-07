@@ -21,7 +21,37 @@ package com.nunchuk.android.model.banner
 
 data class Banner(
     val id: String,
-    val url: String,
-    val title: String,
-    val desc: String,
-)
+    val type: Type,
+    val content: Content,
+    val payload: Payload,
+) {
+    data class Content(
+        val title: String,
+        val description: String,
+        val imageUrl: String,
+        val action: Action,
+    )
+
+    data class Action(
+        val label: String,
+        val type: String,
+        val target: String,
+    )
+
+    data class Payload(
+        val expiryAtMillis: Long,
+    )
+
+    enum class Type {
+        TYPE_01,
+        TYPE_REFERRAL_01,
+    }
+}
+
+fun String.toBannerType(): Banner.Type {
+    return when (this) {
+        "TYPE_01" -> Banner.Type.TYPE_01
+        "TYPE_REFERRAL_01" -> Banner.Type.TYPE_REFERRAL_01
+        else -> Banner.Type.TYPE_01
+    }
+}
