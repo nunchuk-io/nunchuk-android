@@ -47,10 +47,6 @@ internal class AccountSharedPref @Inject constructor(
         sharedPreferences.edit().putString(ACCOUNT_KEY, gson.toJson(AccountInfo())).commit()
     }
 
-    fun removeAccount() {
-        sharedPreferences.edit().remove(ACCOUNT_KEY).commit()
-    }
-
     fun isHasAccountBefore() = sharedPreferences.contains(ACCOUNT_KEY)
 
     companion object {

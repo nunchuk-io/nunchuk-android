@@ -19,42 +19,54 @@
 
 package com.nunchuk.android.app.splash
 
+import android.app.Application
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
-import com.nunchuk.android.core.profile.CheckShowOnBoardFreshInstallUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class SplashViewModel @Inject constructor(
     private val accountManager: AccountManager,
-    private val checkShowOnBoardFreshInstallUseCase: CheckShowOnBoardFreshInstallUseCase,
-    private val signInModeHolder: SignInModeHolder
-) : NunchukViewModel<Unit, SplashEvent>() {
+    private val signInModeHolder: SignInModeHolder,
+    private val application: Application,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : ViewModel() {
+    private val _event = MutableSharedFlow<SplashEvent>(1)
+    val event = _event.asSharedFlow()
 
-    override val initialState = Unit
-
-    fun initFlow() {
-        viewModelScope.launch {
-            checkShowOnBoardFreshInstallUseCase(Unit)
-            val account = accountManager.getAccount()
+    init {
+        viewModelScope.launch(ioDispatcher) {
             val mode = signInModeHolder.getCurrentMode()
+            val info = application.packageManager.getPackageInfo(application.packageName, 0)
+            val isFreshInstall = info.firstInstallTime == info.lastUpdateTime
+            val isAccountExisted = accountManager.isAccountExisted()
+            @Suppress("DEPRECATION")
             when {
-                accountManager.isAccountExisted()
-                        && accountManager.isAccountActivated() || mode.isGuestMode() ->
-                    setEvent(
-                        SplashEvent.NavHomeScreenEvent(
-                            account.token, account.deviceId
-                        )
-                    )
-
-                else -> setEvent(
+                isAccountExisted && accountManager.isStaySignedIn().not() -> _event.emit(
                     SplashEvent.NavSignInEvent
                 )
+
+                isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() ->
+                    _event.emit(SplashEvent.NavHomeScreenEvent)
+
+                !isFreshInstall && !accountManager.isHasAccountBefore() && info.versionCode <= 245 -> {
+                    accountManager.storeAccount(AccountInfo(loginType = SignInMode.GUEST_MODE.value))
+                    signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
+                    _event.emit(SplashEvent.NavHomeScreenEvent)
+                }
+
+                else -> _event.emit(SplashEvent.NavSignInEvent)
             }
         }
     }

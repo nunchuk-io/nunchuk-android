@@ -22,6 +22,7 @@ package com.nunchuk.android.app.splash
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
@@ -41,22 +42,24 @@ internal class SplashActivity : AppCompatActivity() {
 
         setTransparentStatusBar()
         subscribeEvents()
-        viewModel.initFlow()
     }
 
     private fun subscribeEvents() {
-        viewModel.event.observe(this, ::handleEvent)
+        flowObserver(viewModel.event) {
+            handleEvent(it)
+        }
     }
 
     private fun handleEvent(event: SplashEvent) {
         when (event) {
-            SplashEvent.NavSignInEvent -> navigator.openSignInScreen(this, false)
-            is SplashEvent.NavHomeScreenEvent -> {
+            SplashEvent.NavSignInEvent -> navigator.openSignInScreen(this, true)
+            SplashEvent.NavHomeScreenEvent -> {
                 navigator.openMainScreen(this)
                 if (NotificationUtils.areNotificationsEnabled(this).not()) {
                     navigator.openTurnNotificationScreen(this)
                 }
             }
+
             is SplashEvent.InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
         overridePendingTransition(0, 0)

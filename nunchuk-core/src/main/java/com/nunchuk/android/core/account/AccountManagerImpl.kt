@@ -48,8 +48,6 @@ interface AccountManager {
 
     fun loginType(): Int
 
-    fun removeAccount()
-
     fun shouldShowOnboard(): Boolean?
 
     fun setShouldShowOnboard(shouldShow: Boolean)
@@ -96,10 +94,6 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     override fun loginType(): Int = accountSharedPref.getAccountInfo().loginType
-
-    override fun removeAccount() {
-        accountSharedPref.removeAccount()
-    }
 
     override fun shouldShowOnboard() = shouldShowOnBoard.value
 
