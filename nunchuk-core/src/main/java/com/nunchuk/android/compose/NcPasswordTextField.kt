@@ -113,7 +113,7 @@ fun NcPasswordTextField(
                 maxLines = maxLines,
                 enabled = enabled,
                 onValueChange = onValueChange,
-                visualTransformation = if (passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+                visualTransformation = if (!passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                 decorationBox = @Composable { innerTextField ->
                     // places leading icon, text field with label and placeholder, trailing icon
                     TextFieldDefaults.DecorationBox(

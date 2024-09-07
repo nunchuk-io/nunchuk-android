@@ -219,7 +219,7 @@ abstract class BaseComposeNfcActivity : BaseComposeActivity(), NfcActionListener
     protected fun isNfcIntent(intent: Intent) =
         NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action || NfcAdapter.ACTION_TAG_DISCOVERED == intent.action
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         processNfcIntent(intent ?: return)
     }

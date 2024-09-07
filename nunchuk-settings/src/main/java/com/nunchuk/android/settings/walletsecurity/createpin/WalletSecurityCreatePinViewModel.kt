@@ -29,7 +29,11 @@ import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.settings.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,8 +57,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
 
     init {
         val inputValue = hashMapOf<Int, InputValue>()
-        repeat((0..2).count()) {
-            if (createPinFlow && it == 2) return@repeat
+        repeat((0..if (createPinFlow) 1 else 2).count()) {
             inputValue[it] = InputValue()
         }
         _state.update {

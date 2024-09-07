@@ -34,7 +34,6 @@ import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.FragmentWalletSecuritySettingBinding
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -73,10 +72,6 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.passphraseOption.isVisible =
             signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY
         binding.passphraseOption.enableSwitchButton(state.isEnablePassphrase)
-        binding.pinOptionCreateButton.isVisible =
-            state.walletPin.isBlank() && state.walletSecuritySetting.protectWalletPin
-        binding.pinOptionChangeButton.isVisible =
-            state.walletPin.isBlank().not() && state.walletSecuritySetting.protectWalletPin
     }
 
     private fun handleEvent(event: WalletSecuritySettingEvent) {
@@ -138,25 +133,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
             }
         }
         binding.pinOption.setOptionChangeListener {
-            if (it.not() && viewModel.getWalletPin().isNotBlank()) {
-                showInputPinDialog(false)
-            } else {
-                viewModel.updateProtectWalletPin(it)
-            }
-        }
-        binding.pinOptionCreateButton.setOnDebounceClickListener {
-            findNavController().navigate(
-                WalletSecuritySettingFragmentDirections.actionWalletSecuritySettingFragmentToWalletSecurityCreatePinFragment(
-                    currentPin = viewModel.getWalletPin()
-                )
-            )
-        }
-        binding.pinOptionChangeButton.setOnDebounceClickListener {
-            findNavController().navigate(
-                WalletSecuritySettingFragmentDirections.actionWalletSecuritySettingFragmentToWalletSecurityCreatePinFragment(
-                    currentPin = viewModel.getWalletPin()
-                )
-            )
+            findNavController().navigate(R.id.pinStatusFragment)
         }
     }
 

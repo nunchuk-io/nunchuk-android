@@ -83,11 +83,12 @@ ext {
             constraintLayout : "androidx.constraintlayout:constraintlayout:${constraintLayoutVersion}",
             multidex         : "androidx.multidex:multidex:${mutlidexVersion}",
             core             : "androidx.core:core-ktx:1.9.0",
+            activityKtx      : "androidx.activity:activity-ktx:1.9.2",
     ]
 
     navigationDeps = [
             navigationUi      : "androidx.navigation:navigation-ui-ktx:$navVersion",
-            navigationFragment: "androidx.navigation:navigation-fragment-ktx:$navVersion"
+            navigationFragment: "androidx.navigation:navigation-fragment-ktx:$navVersion",
     ]
 
     playServices = [
@@ -191,6 +192,7 @@ ext {
             'composeFoundation'      : "androidx.compose.foundation:foundation",
             'composeMaterial'        : "androidx.compose.material3:material3",
             'composeActivity'        : "androidx.activity:activity-compose",
+            'composeFragment'        : "androidx.fragment:fragment-compose:1.8.3",
             'composeViewModel'       : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
             'composeSystemUi'        : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",
             'composeInsets'          : "com.google.accompanist:accompanist-insets:0.25.1",

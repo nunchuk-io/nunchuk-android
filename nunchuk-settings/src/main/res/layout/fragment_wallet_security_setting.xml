@@ -55,30 +55,6 @@
                 android:layout_height="wrap_content"
                 app:wss_desc="@string/nc_protect_wallet_with_pin_desc"
                 app:wss_title="@string/nc_protect_wallet_with_pin" />
-
-            <com.nunchuk.android.widget.NCFontButton
-                android:id="@+id/pin_option_create_button"
-                style="@style/NCPrimaryButton.Dark"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/nc_padding_16"
-                android:layout_marginTop="@dimen/nc_padding_8"
-                android:text="@string/nc_create_a_wallet_pin"
-                android:visibility="gone"
-                tools:visibility="visible" />
-
-            <com.nunchuk.android.widget.NCFontButton
-                android:id="@+id/pin_option_change_button"
-                style="@style/NCPrimaryButton.Light"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/nc_padding_16"
-                android:layout_marginTop="@dimen/nc_padding_8"
-                android:text="@string/nc_change_wallet_pin"
-                android:visibility="gone"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/signUp"
-                tools:visibility="visible" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 
 

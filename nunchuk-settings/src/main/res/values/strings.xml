@@ -78,13 +78,13 @@
     <string name="nc_change_wallet_pin">Change wallet PIN</string>
     <string name="nc_create_pin">Create PIN</string>
     <string name="nc_confirm_pin_does_not_match">Confirm PIN does not match</string>
-    <string name="nc_confirm_pin">Confirm PIN</string>
-    <string name="nc_pin_created">PIN created.</string>
-    <string name="nc_pin_updated">PIN updated.</string>
-    <string name="nc_confirm_new_pin">Confirm new PIN</string>
-    <string name="nc_enter_new_pin">Enter new PIN</string>
-    <string name="nc_enter_current_pin">Enter current PIN</string>
-    <string name="nc_create_a_wallet_pin_desc">[B]Please make sure to remember your PIN.[/B] If you forget your PIN and have not backed up your wallets, you might not be able to access them again.</string>
+    <string name="nc_confirm_pin">Confirm Your PIN</string>
+    <string name="nc_pin_created">PIN has been turned on</string>
+    <string name="nc_pin_updated">PIN has been updated</string>
+    <string name="nc_confirm_new_pin">Confirm your new PIN</string>
+    <string name="nc_enter_new_pin">Your new PIN</string>
+    <string name="nc_enter_current_pin">Your current PIN</string>
+    <string name="nc_create_a_wallet_pin_desc">You\'ll need to enter your PIN each time you access the app, ensuring your wallets stay secure. [B]Be sure to back up this PIN—losing it could mean losing access to your wallets.[/B]</string>
     <string name="nc_local_currency">Local currency</string>
     <string name="nc_local_currency_updated">Local currency updated</string>
     <string name="nc_ssigner_primary_key_notification_title">Stay in the know</string>
@@ -103,4 +103,6 @@
     <string name="nc_add_electrum_server">Add server</string>
     <string name="nc_server_list_updated">Server list updated</string>
     <string name="nc_server_added">Server added</string>
+    <string name="nc_be_sure_back_up_security_pin">Be sure to back up this PIN—losing it could mean losing access to your wallets.</string>
+    <string name="nc_your_pin">Your PIN</string>
 </resources>
