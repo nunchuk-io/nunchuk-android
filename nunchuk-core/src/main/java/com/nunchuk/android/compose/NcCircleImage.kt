@@ -20,6 +20,7 @@
 package com.nunchuk.android.compose
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -63,6 +64,35 @@ fun NcCircleImage(
             Icon(
                 painter = painterResource(id = resId),
                 tint = iconTintColor,
+                contentDescription = null,
+            )
+        }
+    }
+}
+
+@Composable
+fun NcCircleImage2(
+    modifier: Modifier = Modifier,
+    size: Dp = 48.dp,
+    iconSize: Dp = 0.dp,
+    color: Color = colorResource(id = R.color.nc_whisper_color),
+    @DrawableRes resId: Int,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .background(color = color, shape = CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        if (iconSize > 0.dp) {
+            Image(
+                modifier = Modifier.size(iconSize),
+                painter = painterResource(id = resId),
+                contentDescription = null
+            )
+        } else {
+            Image(
+                painter = painterResource(id = resId),
                 contentDescription = null,
             )
         }

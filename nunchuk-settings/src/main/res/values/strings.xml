@@ -105,4 +105,5 @@
     <string name="nc_server_added">Server added</string>
     <string name="nc_be_sure_back_up_security_pin">Be sure to back up this PIN—losing it could mean losing access to your wallets.</string>
     <string name="nc_your_pin">Your PIN</string>
+    <string name="nc_try_again_after_seconds">Try again after %1$ds</string>
 </resources>

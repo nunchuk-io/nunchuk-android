@@ -72,6 +72,7 @@ fun NcPasswordTextField(
     title: String,
     value: String,
     error: String? = null,
+    hasError: Boolean = !error.isNullOrEmpty(),
     onClick: () -> Unit = {},
     placeholder: @Composable (() -> Unit)? = null,
     keyboardActions: KeyboardActions = KeyboardActions(),
@@ -83,7 +84,6 @@ fun NcPasswordTextField(
     onValueChange: (value: String) -> Unit,
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    val hasError = !error.isNullOrEmpty()
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
@@ -157,7 +157,7 @@ fun NcPasswordTextField(
                 },
             )
         }
-        if (hasError) {
+        if (!error.isNullOrEmpty()) {
             Row(
                 modifier = Modifier.padding(top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -171,7 +171,7 @@ fun NcPasswordTextField(
                     tint = colorResource(id = R.color.nc_orange_color)
                 )
                 Text(
-                    text = error.orEmpty(), style = NunchukTheme.typography.bodySmall.copy(
+                    text = error, style = NunchukTheme.typography.bodySmall.copy(
                         color = colorResource(
                             id = R.color.nc_orange_color
                         )

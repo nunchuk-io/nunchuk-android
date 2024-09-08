@@ -47,7 +47,11 @@ class PinStatusFragment : Fragment() {
                 if (enable) {
                     findNavController().navigate(PinStatusFragmentDirections.actionPinStatusFragmentToWalletSecurityCreatePinFragment())
                 } else {
-                    // un pin flow
+                    findNavController().navigate(
+                        PinStatusFragmentDirections.actionPinStatusFragmentToUnlockPinFragment(
+                            isRemovePin = true
+                        )
+                    )
                 }
             },
             onChangePin = {
@@ -101,7 +105,7 @@ fun PinStatusContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(onClick = onChangePin)
+                        .clickable(onClick = onChangePin, enabled = isEnable)
                         .alpha(if (isEnable) 1f else 0.4f)
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,

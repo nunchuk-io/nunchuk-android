@@ -65,9 +65,14 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
-        <activity android:name="com.nunchuk.android.settings.network.SelectElectrumServerActivity"
+        <activity
+            android:name="com.nunchuk.android.settings.network.SelectElectrumServerActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light"/>
+            android:theme="@style/NunchukNoActionBar.Light" />
+        <activity
+            android:name="com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
 
     </application>
 </manifest>

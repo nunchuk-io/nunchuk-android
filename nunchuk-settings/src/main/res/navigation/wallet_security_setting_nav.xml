@@ -32,5 +32,22 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"
             />
+        <action
+            android:id="@+id/action_pinStatusFragment_to_unlockPinFragment"
+            app:destination="@id/unlockPinFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+    </fragment>
+    <fragment
+        android:id="@+id/unlockPinFragment"
+        android:name="com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinFragment"
+        android:label="UnlockPinFragment" >
+
+        <argument
+            android:name="is_remove_pin"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
 </navigation>
