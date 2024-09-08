@@ -17,17 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.base
+package com.nunchuk.android.usecase.pin
 
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class ForegroundAppBackgroundListener(
-    private val onResumeAppCallback: () -> Unit
-) : DefaultLifecycleObserver {
+class GetLastCloseAppUseCase @Inject constructor(
+    private val repository: SettingRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : FlowUseCase<Unit, Long>(ioDispatcher) {
 
-    override fun onResume(owner: LifecycleOwner) {
-        super.onResume(owner)
-        onResumeAppCallback.invoke()
+    override fun execute(parameters: Unit): Flow<Long> {
+        return repository.lastCloseApp
     }
 }

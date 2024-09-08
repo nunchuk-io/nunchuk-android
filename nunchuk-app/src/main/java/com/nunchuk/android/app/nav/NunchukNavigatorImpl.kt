@@ -84,8 +84,10 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         isClearTask: Boolean,
     ) {
         MainActivity.start(
-            activityContext, bottomNavViewPosition,
-            messages = messages, isClearTask = isClearTask
+            activityContext = activityContext,
+            position = bottomNavViewPosition,
+            messages = messages,
+            isClearTask = isClearTask,
         )
     }
 
@@ -350,7 +352,11 @@ interface AppNavigatorDelegate : AppNavigator {
         )
     }
 
-    override fun openHotWalletScreen(launcher: ActivityResultLauncher<Intent>?, activityContext: Context, isQuickWallet: Boolean) {
+    override fun openHotWalletScreen(
+        launcher: ActivityResultLauncher<Intent>?,
+        activityContext: Context,
+        isQuickWallet: Boolean
+    ) {
         OnboardActivity.openHotWalletIntroScreen(launcher, activityContext, isQuickWallet)
     }
 
@@ -368,7 +374,8 @@ interface AppNavigatorDelegate : AppNavigator {
         feeRate: Amount,
         source: Int
     ) {
-        RollOverWalletActivity.navigate(activity = activityContext,
+        RollOverWalletActivity.navigate(
+            activity = activityContext,
             oldWalletId = oldWalletId,
             newWalletId = newWalletId,
             startScreen = startScreen,

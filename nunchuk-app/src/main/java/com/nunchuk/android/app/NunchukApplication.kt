@@ -20,24 +20,20 @@
 package com.nunchuk.android.app
 
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
 import com.nunchuk.android.core.profile.CheckShowOnBoardFreshInstallUseCase
-import com.nunchuk.android.core.profile.GetUserProfileUseCase
-import com.nunchuk.android.core.util.AppEvenBus
-import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
@@ -64,32 +60,20 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     lateinit var initNunchukUseCase: InitNunchukUseCase
 
     @Inject
-    lateinit var getUserProfileUseCase: GetUserProfileUseCase
-
-    @Inject
     lateinit var checkShowOnBoardFreshInstallUseCase: CheckShowOnBoardFreshInstallUseCase
 
     @Inject
-    lateinit var applicationScope: CoroutineScope
-
-    private val foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
-        onResumeAppCallback = {
-            AppEvenBus.instance.publish(AppEvent.AppResumedEvent)
-            if (accountManager.getAccount().token.isNotEmpty()) {
-                applicationScope.launch {
-                    getUserProfileUseCase(Unit)
-                }
-            }
-        }
-    )
+    lateinit var appStateManager: AppStateManager
 
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
             Timber.plant(FileLogTree(this))
         }
-        runBlocking {
+        ProcessLifecycleOwner.get().lifecycleScope.launch {
             checkShowOnBoardFreshInstallUseCase(Unit)
+        }
+        runBlocking {
             matrixInitializerUseCase(Unit)
             val account = accountManager.getAccount()
             val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
@@ -105,10 +89,10 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     }
 
     private fun registerAppForegroundListener() {
-        ProcessLifecycleOwner.get().lifecycle.addObserver(NcToastManager)
-        ProcessLifecycleOwner.get()
-            .lifecycle
-            .addObserver(foregroundAppBackgroundListener)
+        ProcessLifecycleOwner.get().lifecycle.apply {
+            addObserver(NcToastManager)
+            addObserver(appStateManager)
+        }
     }
 
     override fun getWorkManagerConfiguration() = Configuration.Builder()

@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Switch
@@ -108,11 +109,18 @@ fun PinStatusContent(
                         .clickable(onClick = onChangePin, enabled = isEnable)
                         .alpha(if (isEnable) 1f else 0.4f)
                         .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "|** Change PIN", style = NunchukTheme.typography.body)
-
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_password),
+                        contentDescription = "PIN"
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = "Change PIN",
+                        style = NunchukTheme.typography.body,
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
                     Image(
                         painter = painterResource(id = R.drawable.ic_right_arrow_dark),
                         contentDescription = "Right arrow"

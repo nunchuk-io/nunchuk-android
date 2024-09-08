@@ -11,7 +11,12 @@ class UnlockPinActivity : BaseComposeActivity() {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
-                replace(android.R.id.content, UnlockPinFragment())
+                replace(
+                    android.R.id.content,
+                    UnlockPinFragment().apply {
+                        arguments = UnlockPinFragmentArgs(isRemovePin = false).toBundle()
+                    },
+                )
             }
         }
     }

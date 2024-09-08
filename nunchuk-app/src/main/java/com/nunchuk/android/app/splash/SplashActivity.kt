@@ -19,11 +19,13 @@
 
 package com.nunchuk.android.app.splash
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -53,10 +55,13 @@ internal class SplashActivity : AppCompatActivity() {
     private fun handleEvent(event: SplashEvent) {
         when (event) {
             SplashEvent.NavSignInEvent -> navigator.openSignInScreen(this, true)
-            SplashEvent.NavHomeScreenEvent -> {
+            is SplashEvent.NavHomeScreenEvent -> {
                 navigator.openMainScreen(this)
                 if (NotificationUtils.areNotificationsEnabled(this).not()) {
                     navigator.openTurnNotificationScreen(this)
+                }
+                if (event.askPin) {
+                    startActivity(Intent(this, UnlockPinActivity::class.java))
                 }
             }
 

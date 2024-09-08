@@ -39,6 +39,7 @@ interface SettingRepository {
     val isShowHealthCheckReminderIntro: Flow<Boolean>
     val referrerCode: Flow<ReferrerCode?>
     val campaign: Flow<Campaign?>
+    val lastCloseApp: Flow<Long>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
@@ -51,4 +52,5 @@ interface SettingRepository {
     suspend fun setHealthCheckReminderIntro(isShow: Boolean)
     suspend fun setReferrerCode(code: String)
     suspend fun setCampaign(campaign: String, email: String)
+    suspend fun setLastCloseApp(time: Long)
 }

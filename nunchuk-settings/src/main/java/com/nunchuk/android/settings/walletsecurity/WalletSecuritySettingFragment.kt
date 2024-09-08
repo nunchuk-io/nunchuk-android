@@ -66,7 +66,8 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
     private fun handleState(state: WalletSecuritySettingState) {
         binding.hideWalletDetailOption.setOptionChecked(state.walletSecuritySetting.hideWalletDetail)
         binding.passwordOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassword)
-        binding.pinOption.setOptionChecked(state.walletSecuritySetting.protectWalletPin)
+        binding.pinStatus.text =
+            if (state.walletPin.isNotEmpty()) getString(R.string.nc_on) else getString(R.string.nc_off)
         binding.passphraseOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassphrase)
         binding.passwordOption.isVisible = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
         binding.passphraseOption.isVisible =
@@ -132,7 +133,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 viewModel.updateProtectWalletPassphrase(it)
             }
         }
-        binding.pinOption.setOptionChangeListener {
+        binding.pinOption.setOnClickListener {
             findNavController().navigate(R.id.pinStatusFragment)
         }
     }

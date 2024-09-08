@@ -49,12 +49,55 @@
                 app:wss_desc="@string/nc_protect_wallet_with_account_passphrase_desc"
                 app:wss_title="@string/nc_protect_wallet_with_account_passphrase" />
 
-            <com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingItemView
-                android:id="@+id/pin_option"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:wss_desc="@string/nc_protect_wallet_with_pin_desc"
-                app:wss_title="@string/nc_protect_wallet_with_pin" />
+                android:id="@+id/pin_option"
+                android:padding="@dimen/nc_padding_16">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tv_title"
+                    style="@style/NCText.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/nc_padding_14"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/nc_protect_app_with_pin"
+                    app:layout_constraintEnd_toStartOf="@+id/pin_status"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Hide wallet details" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tv_desc"
+                    style="@style/NCText.Body.Small"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginEnd="@dimen/nc_padding_14"
+                    android:textColor="@color/nc_grey_dark_color"
+                    android:text="@string/nc_protect_app_with_pin_desc"
+                    app:layout_constraintEnd_toStartOf="@+id/pin_status"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_title"
+                    tools:text="Hide your wallet balance, transaction amounts and addresses by default." />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/pin_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/NCText.Body"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_desc"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/tv_title"
+                    android:gravity="center_vertical"
+                    android:drawablePadding="8dp"
+                    android:textColor="@color/nc_grey_dark_color"
+                    tools:text="On"
+                    android:drawableEnd="@drawable/ic_right_arrow_dark"
+                    />
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.appcompat.widget.LinearLayoutCompat>
 
 

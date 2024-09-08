@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
@@ -32,6 +33,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,6 +42,7 @@ import javax.inject.Inject
 internal class SplashViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val signInModeHolder: SignInModeHolder,
+    private val getWalletPinUseCase: GetWalletPinUseCase,
     private val application: Application,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -51,6 +55,7 @@ internal class SplashViewModel @Inject constructor(
             val info = application.packageManager.getPackageInfo(application.packageName, 0)
             val isFreshInstall = info.firstInstallTime == info.lastUpdateTime
             val isAccountExisted = accountManager.isAccountExisted()
+            val pin = getWalletPinUseCase(Unit).map { it.getOrDefault("") }.first()
             @Suppress("DEPRECATION")
             when {
                 isAccountExisted && accountManager.isStaySignedIn().not() -> _event.emit(
@@ -58,12 +63,13 @@ internal class SplashViewModel @Inject constructor(
                 )
 
                 isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() ->
-                    _event.emit(SplashEvent.NavHomeScreenEvent)
+                    _event.emit(SplashEvent.NavHomeScreenEvent(askPin = pin.isNotEmpty()))
 
+                // can delete after x version
                 !isFreshInstall && !accountManager.isHasAccountBefore() && info.versionCode <= 245 -> {
                     accountManager.storeAccount(AccountInfo(loginType = SignInMode.GUEST_MODE.value))
                     signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                    _event.emit(SplashEvent.NavHomeScreenEvent)
+                    _event.emit(SplashEvent.NavHomeScreenEvent(askPin = pin.isNotEmpty()))
                 }
 
                 else -> _event.emit(SplashEvent.NavSignInEvent)

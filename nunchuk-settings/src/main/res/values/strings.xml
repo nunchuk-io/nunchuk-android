@@ -72,8 +72,8 @@
     <string name="nc_protect_wallet_with_account_password_desc">Re-enter your account password for each wallet access.</string>
     <string name="nc_protect_wallet_with_account_passphrase">Protect wallets with account passphrase</string>
     <string name="nc_protect_wallet_with_account_passphrase_desc">Re-enter your account passphrase for each wallet access.</string>
-    <string name="nc_protect_wallet_with_pin">Protect wallets with a PIN (advanced)</string>
-    <string name="nc_protect_wallet_with_pin_desc">Require a PIN for each wallet access.</string>
+    <string name="nc_protect_app_with_pin">Protect app with a PIN</string>
+    <string name="nc_protect_app_with_pin_desc">Require a PIN for each app access.</string>
     <string name="nc_create_a_wallet_pin">Create a wallet PIN</string>
     <string name="nc_change_wallet_pin">Change wallet PIN</string>
     <string name="nc_create_pin">Create PIN</string>

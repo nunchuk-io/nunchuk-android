@@ -26,6 +26,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -70,7 +71,7 @@ class NcDataStore @Inject constructor(
     private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
     private val showNewPortalKey = booleanPreferencesKey("show_new_portal")
     private val passwordTokenKey = stringPreferencesKey("password_token")
-    private val campaign = stringPreferencesKey("campaign")
+    private val lastCloseAppKey = longPreferencesKey("last_close_app")
 
     /**
      * Current membership plan key
@@ -390,6 +391,17 @@ class NcDataStore @Inject constructor(
             it[getCampaignKey(email)].orEmpty()
         }
     }
+
+    suspend fun setLastCloseApp(time: Long) {
+        context.dataStore.edit {
+            it[lastCloseAppKey] = time
+        }
+    }
+
+    val lastCloseApp: Flow<Long>
+        get() = context.dataStore.data.map {
+            it[lastCloseAppKey] ?: 0L
+        }
 
     suspend fun clear() {
         context.dataStore.edit {

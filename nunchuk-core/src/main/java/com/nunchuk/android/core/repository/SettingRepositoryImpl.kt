@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.repository
 
-import android.util.Log
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.persistence.NcDataStore
@@ -130,4 +129,11 @@ internal class SettingRepositoryImpl @Inject constructor(
     override suspend fun setCampaign(campaign: String, email: String) {
         ncDataStore.setCampaign(campaign, email)
     }
+
+    override suspend fun setLastCloseApp(time: Long) {
+        ncDataStore.setLastCloseApp(time)
+    }
+
+    override val lastCloseApp: Flow<Long>
+        get() = ncDataStore.lastCloseApp
 }

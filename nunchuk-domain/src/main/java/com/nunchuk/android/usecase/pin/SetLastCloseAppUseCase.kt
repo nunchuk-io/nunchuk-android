@@ -17,13 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.app.splash
+package com.nunchuk.android.usecase.pin
 
-sealed class SplashEvent {
-    data object NavSignInEvent : SplashEvent()
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-    data class NavHomeScreenEvent(val askPin: Boolean) : SplashEvent()
+class SetLastCloseAppUseCase @Inject constructor(
+    private val repository: SettingRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<Long, Unit>(ioDispatcher) {
 
-    data class InitErrorEvent(val error: String) : SplashEvent()
-
+    override suspend fun execute(parameters: Long) {
+        repository.setLastCloseApp(parameters)
+    }
 }
