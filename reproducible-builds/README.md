@@ -145,6 +145,7 @@ cd $HOME/nunchuk-android/reproducible-builds
 ```
 
 ## Verifying nunchuk-android-nativesdk
+The `nunchuk-android` uses `nunchuk-android-nativesdk` as a wrapper library to call the functions of `libnunchuk`, which is known as a cross-platform C++ multisig library powered by Bitcoin Core. We have prebuilt `nunchuk-android-nativesdk` in the repository [nunchuk-android-nativesdk-prebuild](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild). If you want to build `nunchuk-android-nativesdk` yourself, you can follow these steps
 ``` bash
 cd nunchuk-android-nativesdk
 docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native  && ./.install_linux_deps.sh arm64-v8a"

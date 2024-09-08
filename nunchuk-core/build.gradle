@@ -39,7 +39,7 @@ dependencies {
     implementation zxingDeps.values()
 
     implementation "com.squareup.moshi:moshi:1.14.0"
-    implementation(files('../libs/libportal-android.aar'))
+    implementation "com.github.Nunchuk1:LibPortal:v2@aar"
     implementation("net.java.dev.jna:jna:5.14.0@aar")
 
     testImplementation otherTestDeps.junit
