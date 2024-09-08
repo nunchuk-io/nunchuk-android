@@ -25,7 +25,9 @@ abstract class BaseAuthenticationFragment<out Binding : ViewBinding> : BaseFragm
                 is WalletSecuritySettingsEvent.InvalidPin -> showError(requireContext().getString(R.string.nc_incorrect_current_pin))
                 is WalletSecuritySettingsEvent.ShowError -> showError(it.throwable?.message.orUnknownError())
                 is WalletSecuritySettingsEvent.OpenWalletDetailsScreen -> openWalletDetailsScreen(it.walletId)
-                is WalletSecuritySettingsEvent.DoNextAction -> actionAfterCheckingPasswordOrPassphrase(it.walletId)
+                is WalletSecuritySettingsEvent.DoNextAction -> actionAfterCheckingPasswordOrPassphrase(
+                    it.walletId
+                )
             }
         }
     }
@@ -35,28 +37,13 @@ abstract class BaseAuthenticationFragment<out Binding : ViewBinding> : BaseFragm
             enterPasswordDialog(walletId)
         } else if (walletSecuritySettingsViewModel.isWalletPassphraseEnabled()) {
             enterPassphraseDialog(walletId)
-        } else if (walletSecuritySettingsViewModel.isWalletPinEnabled()) {
-            showInputPinDialog(walletId)
         } else {
             openWalletDetailsScreen(walletId)
         }
-    }
-
-    private fun showInputPinDialog(walletId: String) {
-        NCInputDialog(requireContext()).showDialog(
-            title = requireContext().getString(R.string.nc_enter_your_pin),
-            onConfirmed = {
-                walletSecuritySettingsViewModel.checkWalletPin(it, walletId)
-            }
-        )
     }
 
     private fun actionAfterCheckingPasswordOrPassphrase(walletId: String) {
-        if (walletSecuritySettingsViewModel.isWalletPinEnabled()) {
-            showInputPinDialog(walletId)
-        } else {
-            openWalletDetailsScreen(walletId)
-        }
+        openWalletDetailsScreen(walletId)
     }
 
     private fun enterPasswordDialog(walletId: String) {

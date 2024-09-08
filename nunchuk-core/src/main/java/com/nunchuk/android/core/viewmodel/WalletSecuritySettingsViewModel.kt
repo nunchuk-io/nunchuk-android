@@ -3,8 +3,6 @@ package com.nunchuk.android.core.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.CheckWalletPinUseCase
-import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
@@ -20,15 +18,12 @@ import javax.inject.Inject
 @HiltViewModel
 class WalletSecuritySettingsViewModel @Inject constructor(
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
-    private val checkWalletPinUseCase: CheckWalletPinUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
-    private val getWalletPinUseCase: GetWalletPinUseCase,
     private val accountManager: AccountManager
 ) : ViewModel() {
 
     private var walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting()
-    private var currentWalletPin: String = ""
 
     private val _event = MutableSharedFlow<WalletSecuritySettingsEvent>()
     val event = _event.asSharedFlow()
@@ -40,22 +35,7 @@ class WalletSecuritySettingsViewModel @Inject constructor(
                     walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting()
                 }
         }
-        viewModelScope.launch {
-            getWalletPinUseCase(Unit).collect {
-                currentWalletPin = it.getOrDefault("")
-            }
-        }
     }
-
-    fun checkWalletPin(input: String, walletId: String) =
-        viewModelScope.launch {
-            val match = checkWalletPinUseCase(input).getOrDefault(false)
-            if (match) {
-                _event.emit(WalletSecuritySettingsEvent.OpenWalletDetailsScreen(walletId))
-            } else {
-                _event.emit(WalletSecuritySettingsEvent.InvalidPin)
-            }
-        }
 
     fun confirmPassword(password: String, walletId: String) =
         viewModelScope.launch {
@@ -87,9 +67,6 @@ class WalletSecuritySettingsViewModel @Inject constructor(
                 _event.emit(WalletSecuritySettingsEvent.ShowError(result.exceptionOrNull()))
             }
         }
-
-    fun isWalletPinEnabled() =
-        walletSecuritySetting.protectWalletPin && currentWalletPin.isNotEmpty()
 
     fun isWalletPasswordEnabled() =
         accountManager.loginType() == SignInMode.EMAIL.value && walletSecuritySetting.protectWalletPassword
