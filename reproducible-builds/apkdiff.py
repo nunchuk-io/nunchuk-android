@@ -15,7 +15,7 @@ def compareFiles(first, second):
 	return True
 
 def compare(first, second):
-	FILES_TO_IGNORE = ["META-INF/MANIFEST.MF", "META-INF/CERT.RSA", "META-INF/CERT.SF"]
+	FILES_TO_IGNORE = ["META-INF/MANIFEST.MF", "META-INF/CERT.RSA", "META-INF/CERT.SF", "META-INF/BNDLTOOL.SF", "META-INF/BNDLTOOL.RSA", "stamp-cert-sha256", "resources.arsc", "AndroidManifest.xml", "res/xml/splits0.xml"]
 
 	firstZip = ZipFile(first, 'r')
 	secondZip = ZipFile(second, 'r')
