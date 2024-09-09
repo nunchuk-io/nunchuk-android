@@ -60,6 +60,7 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.ClickAbleText
@@ -109,6 +110,14 @@ fun NavGraphBuilder.referralAddress(
             navController.popBackStack()
         }
 
+        val onCheckInternetConnection: (() -> Unit) -> Unit = { block ->
+            if (viewModel.onCheckInternetConnection()) {
+                block()
+            } else {
+                viewModel.showNoInternetDialog()
+            }
+        }
+
         LaunchedEffect(state.checkAddressSuccess) {
             if (state.checkAddressSuccess) {
                 viewModel.consumeCheckAddressSuccess()
@@ -132,13 +141,15 @@ fun NavGraphBuilder.referralAddress(
                 viewModel.updateEnteredAddress(it)
             },
             onSaveChange = { isOtherAddress, address ->
-                if (isOtherAddress) {
-                    viewModel.checkAddressValid(address)
-                } else {
-                    if (action == ReferralAction.PICK.value) {
-                        onPickResult(address)
+                onCheckInternetConnection {
+                    if (isOtherAddress) {
+                        viewModel.checkAddressValid(address)
                     } else {
-                        onSaveChange(address)
+                        if (action == ReferralAction.PICK.value) {
+                            onPickResult(address)
+                        } else {
+                            onSaveChange(address)
+                        }
                     }
                 }
             },
@@ -159,6 +170,9 @@ fun NavGraphBuilder.referralAddress(
             },
             onShowOtherAddress = {
                 viewModel.updateShowOtherAddress(it)
+            },
+            onShowNoInternetDialogConsumed = {
+                viewModel.onShowNoInternetDialogConsumed()
             }
         )
     }
@@ -187,6 +201,7 @@ fun ReferralAddressScreen(
     onUpdateReceiveAddressResult: (ConfirmationCodeResultData) -> Unit = { },
     onShowOtherAddress: (Boolean) -> Unit = { },
     onSelectedWallet: (WalletAddressUi?) -> Unit = { },
+    onShowNoInternetDialogConsumed: () -> Unit = { },
 ) {
     val context = LocalLifecycleOwner.current
     var handledResult by remember { mutableStateOf(false) }
@@ -361,6 +376,16 @@ fun ReferralAddressScreen(
                     }
                 }
             }
+        }
+
+        if (state.showNoInternet) {
+            NcInfoDialog(
+                title = stringResource(id = R.string.nc_text_warning),
+                message = stringResource(R.string.nc_no_internet_connection_try_again_later),
+                onDismiss = {
+                    onShowNoInternetDialogConsumed()
+                },
+            )
         }
     }
 }

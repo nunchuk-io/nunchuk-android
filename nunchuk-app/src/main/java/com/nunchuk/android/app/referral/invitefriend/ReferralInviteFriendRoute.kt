@@ -147,6 +147,9 @@ fun NavGraphBuilder.referralInviteFriend(
             }, onShareLink = onShareLink,
             onPickReceiveAddressResult = {
                 viewModel.updatePickTempAddress(it)
+            },
+            onShowNoInternetDialogConsumed = {
+                viewModel.onShowNoInternetDialogConsumed()
             }
         )
     }
@@ -162,6 +165,7 @@ fun ReferralInviteFriendScreen(
     isPickTempAddress: Boolean = false,
     onGenerateReferralLink: (String) -> Unit = {},
     onShowEmailAlreadyExistDialogConsumed: (Boolean, String) -> Unit = { _, _ -> },
+    onShowNoInternetDialogConsumed: () -> Unit = { },
     onForceShowInputEmail: (Boolean) -> Unit = {},
     onCopyToClipboard: () -> Unit = {},
     onChangeAddress: () -> Unit = {},
@@ -505,14 +509,21 @@ fun ReferralInviteFriendScreen(
                 },
             )
         }
+        if (state.showNoInternet) {
+            NcInfoDialog(
+                title = stringResource(id = R.string.nc_text_warning),
+                message = stringResource(R.string.nc_no_internet_connection_try_again_later),
+                onDismiss = {
+                    onShowNoInternetDialogConsumed()
+                },
+            )
+        }
     }
 }
 
 @Preview
 @Composable
-private fun ReferralInviteFriendScreenPreview(
-    @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
-) {
+private fun ReferralInviteFriendScreenPreview() {
     NunchukTheme {
         ReferralInviteFriendScreen(
             args = ReferralArgs.default,

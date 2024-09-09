@@ -10,6 +10,7 @@ import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
+import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -28,6 +29,7 @@ class ReferralAddressViewModel @Inject constructor(
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
     private val checkAddressValidUseCase: CheckAddressValidUseCase,
+    private val isNetworkConnectedUseCase: IsNetworkConnectedUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -205,6 +207,18 @@ class ReferralAddressViewModel @Inject constructor(
         }
         return false
     }
+
+    fun onCheckInternetConnection(): Boolean {
+        return isNetworkConnectedUseCase()
+    }
+
+    fun onShowNoInternetDialogConsumed() {
+        _state.update { it.copy(showNoInternet = false) }
+    }
+
+    fun showNoInternetDialog() {
+        _state.update { it.copy(showNoInternet = true) }
+    }
 }
 
 data class ReferralAddressUiState(
@@ -217,6 +231,7 @@ data class ReferralAddressUiState(
     val showOtherAddress: Boolean = false,
     val selectedWalletAddress: WalletAddressUi? = null,
     val preSelectedWalletAddress: WalletAddressUi? = null,
+    val showNoInternet: Boolean = false,
 )
 
 data class WalletAddressUi(

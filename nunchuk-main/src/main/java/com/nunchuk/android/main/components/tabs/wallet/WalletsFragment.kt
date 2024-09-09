@@ -197,13 +197,15 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             }
         }
         binding.llCampaigns.setOnDebounceClickListener {
-            navigator.openReferralScreen(
-                activityContext = requireActivity(),
-                args = ReferralArgs(
-                    campaign = walletsViewModel.getCurrentCampaign(),
-                    localReferrerCode = walletsViewModel.getLocalReferrerCode()
+            walletsViewModel.getCurrentCampaign()?.let {
+                navigator.openReferralScreen(
+                    activityContext = requireActivity(),
+                    args = ReferralArgs(
+                        campaign = it,
+                        localReferrerCode = walletsViewModel.getLocalReferrerCode()
+                    )
                 )
-            )
+            }
         }
     }
 

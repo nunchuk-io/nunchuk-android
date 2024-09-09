@@ -710,7 +710,7 @@ internal class WalletsViewModel @Inject constructor(
 
     fun getWallet(walletId: String) = getState().wallets.find { it.wallet.id == walletId }
 
-    fun getCurrentCampaign(): Campaign = getState().campaign ?: error("Campaign is required")
+    fun getCurrentCampaign(): Campaign? = getState().campaign
 
     fun getLocalReferrerCode() = getState().localReferrerCode
 

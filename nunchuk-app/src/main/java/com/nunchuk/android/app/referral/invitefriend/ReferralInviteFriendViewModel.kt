@@ -19,6 +19,7 @@ import com.nunchuk.android.usecase.campaign.GetReferrerCodeByEmailUseCase
 import com.nunchuk.android.usecase.campaign.SaveLocalReferrerCodeUseCase
 import com.nunchuk.android.usecase.campaign.UpdateReceiveAddressByEmailUseCase
 import com.nunchuk.android.usecase.coin.IsMyWalletUseCase
+import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.usecase.wallet.GetMostRecentlyUsedWalletsUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -47,6 +48,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     private val isMyWalletUseCase: IsMyWalletUseCase,
     private val updateReceiveAddressByEmailUseCase: UpdateReceiveAddressByEmailUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val isNetworkConnectedUseCase: IsNetworkConnectedUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReferralInviteFriendUiState())
@@ -245,6 +247,10 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     fun createReferrerCodeByEmail(email: String) {
+        if (isNetworkConnectedUseCase().not()) {
+            _state.update { it.copy(showNoInternet = true) }
+            return
+        }
         val receiveAddress = if (isPickTempAddress()) {
             _state.value.receiveWalletTemp?.receiveAddress ?: return
         } else if (_state.value.pickReceiveAddress.isNullOrEmpty().not()) {
@@ -352,6 +358,10 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     fun updateReceiveAddress(resultData: ConfirmationCodeResultData) {
+        if (isNetworkConnectedUseCase().not()) {
+            _state.update { it.copy(showNoInternet = true) }
+            return
+        }
         if (currentData == resultData) return
         currentData = resultData
         viewModelScope.launch {
@@ -391,6 +401,10 @@ class ReferralInviteFriendViewModel @Inject constructor(
         getWalletByAddress(receiveAddress)
         getWalletById(walletId)
     }
+
+    fun onShowNoInternetDialogConsumed() {
+        _state.update { it.copy(showNoInternet = false) }
+    }
 }
 
 data class ReceiveWalletTemp(
@@ -411,6 +425,7 @@ data class ReferralInviteFriendUiState(
     val event: ReferralInviteFriendEvent? = null,
     val receiveWalletTemp: ReceiveWalletTemp? = null,
     val inputEmail: String = "",
+    val showNoInternet: Boolean = false
 ) {
     fun isHideAddress(): Boolean {
         if (localReferrerCode == null) return false
