@@ -29,12 +29,6 @@ git checkout android.{VERSION FROM STEP 1}
 # For our example, the command would be:
 git checkout android.1.9.47
 ```
-```
-# For nunchuk-android-nativesdk
-git clone https://github.com/nunchuk-io/nunchuk-android-nativesdk $HOME/nunchuk-android-nativesdk
-cd $HOME/nunchuk-android-nativesdk
-git checkout main
-```
 
 ### 3. Build the app
 
@@ -54,17 +48,12 @@ Now we are ready to start building the Nunchuk Android app bundle.
 cd ..
 
 # Build the app
-docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android ./gradlew clean assembleProductionRelease bundleProductionRelease
+docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android ./gradlew clean bundleProductionRelease
 ```
 
 After that's done, you have your app bundle! It's located in:
 
 `./nunchuk-app/build/outputs/bundle/productionRelease/nunchuk-app-production-release.aab`
-
-There is also a release APK located here (this APK is used to [Verifying the github release APK](#verifying-the-github-release-apk)):
-
-`./nunchuk-app/build/outputs/apk/production/release/nunchuk-app-production-release.apk`
-
 
 
 ### 4. Generate the APKs from bundle
@@ -134,36 +123,39 @@ If each step says `APKs are the same!`, you're good to go! You've successfully v
 If you get APKs don't match!, it means something went wrong. Please see the [Troubleshooting section](#troubleshooting) for more information.
 
 ## Verifying the Github release APK
-If you download and install Nunchuk from the GitHub release page at https://github.com/nunchuk-io/nunchuk-android/releases, you can verify it with the APK from [step 3](#3-build-the-app)
+If you download and install Nunchuk from the GitHub release page at https://github.com/nunchuk-io/nunchuk-android/releases, you can verify it directly with the bundle from [step 3](#3-build-the-app)
 
 ``` bash
 cd $HOME/nunchuk-android/reproducible-builds
-./apkdiff.py ../nunchuk-app/build/outputs/apk/production/release/nunchuk-app-production-release.apk <Nunchuk Github Release.apk>
+./apkdiff.py ../nunchuk-app/build/outputs/apk/production/release/nunchuk-app-production-release.aab <Nunchuk Github Release.apk>
 
-# Or verify against device APK
-./apkdiff.py ../nunchuk-app/build/outputs/apk/production/release/nunchuk-app-production-release.apk ../apks/device-apks/base.apk
 ```
 
-## Verifying nunchuk-android-nativesdk
-The `nunchuk-android` uses `nunchuk-android-nativesdk` as a wrapper library to call the functions of `libnunchuk`, which is known as a cross-platform C++ multisig library powered by Bitcoin Core. We have prebuilt `nunchuk-android-nativesdk` in the repository [nunchuk-android-nativesdk-prebuild](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild). If you want to build `nunchuk-android-nativesdk` yourself, you can follow these steps
+## Verifying nunchuk-android-nativesdk (Advanced)
+Our Android repository, `nunchuk-android`, uses `nunchuk-android-nativesdk` as a wrapper library to call functions from `libnunchuk`, a cross-platform C++ multisig library powered by Bitcoin Core. 
+
+We have prebuilt `nunchuk-android-nativesdk` in the repository [nunchuk-android-nativesdk-prebuild](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild). To build `nunchuk-android-nativesdk` yourself, you can follow these steps:
+
 ``` bash
-cd nunchuk-android-nativesdk
-docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native  && ./.install_linux_deps.sh arm64-v8a"
+git clone https://github.com/nunchuk-io/nunchuk-android-nativesdk $HOME/nunchuk-android-nativesdk
+cd $HOME/nunchuk-android-nativesdk
+git checkout <version> # The version should match nunchuk-android-nativesdk-prebuild; 
+                       # it's defined in nunchuk-android/configs/dependencies.gradle
+docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh arm64-v8a"
 docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh armeabi-v7a"
 docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android ./gradlew assembleArm8Release
 ```
 After that's done, you have your sdk .aar file! It's located in:
 
-`./nunchuk-android-nativesdk/build/outputs/aar/nunchuk-app-production-release.aab`
+`./build/outputs/aar/nunchuk-arm8-release.aar`
 
-Download `nunchuk-android-nativesdk-arm8-release.aar` on [nunchuk-android-nativesdk-prebuild](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild)
+Download `nunchuk-android-nativesdk-arm8-release.aar` on [nunchuk-android-nativesdk-prebuild](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild). Note that you must switch to the same tag/version as `nunchuk-android-nativesdk` before downloading.
 
-Run the script below to check if the two `.aar` files on GitHub and the local build match with each other
+Run the command below to check if the two `.aar` files on GitHub and the local build match with each other
 
 ```
-diff nunchuk-app-production-release.aab nunchuk-android-nativesdk-arm8-release.aar
+diff ./build/outputs/aar/nunchuk-arm8-release.aar nunchuk-android-nativesdk-arm8-release.aar
 ```
-
 
 ## Troubleshooting
 If you're able to successfully build and retrieve all of the APKs yet some of them are failing to verify, please check the following:
