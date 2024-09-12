@@ -17,7 +17,7 @@ On the Nunchuk app, navigate to Profile > About. You should see the app version 
 
 <img src="./media/version.png" width=400 height=400 />
 
-In the above example, the app version is 1.9.47. The commit tag to check out the source code will be android.1.9.47.
+In the above example, the app version is 1.9.50. The commit tag to check out the source code will be android.1.9.50.
 
 ### 2. Obtain the source code
 Open Terminal, run the commands:
@@ -27,7 +27,7 @@ git clone https://github.com/nunchuk-io/nunchuk-android $HOME/nunchuk-android
 cd $HOME/nunchuk-android
 git checkout android.{VERSION FROM STEP 1}
 # For our example, the command would be:
-git checkout android.1.9.47
+git checkout android.1.9.50
 ```
 
 ### 3. Build the app
@@ -127,7 +127,7 @@ If you download and install Nunchuk from the GitHub release page at https://gith
 
 ``` bash
 cd $HOME/nunchuk-android/reproducible-builds
-./apkdiff.py ../nunchuk-app/build/outputs/apk/production/release/nunchuk-app-production-release.aab <Nunchuk Github Release.apk>
+./apkdiff.py ../nunchuk-app/build/outputs/bundle/productionRelease/nunchuk-app-production-release.aab <Nunchuk Github Release.apk>
 
 ```
 

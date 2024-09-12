@@ -41,6 +41,8 @@ def compareApkAndBundle(first, second):
     secondList = list(filter(lambda secondInfo: secondInfo.filename not in FILES_TO_IGNORE, bundleZip.infolist()))
 
     for apkInfo in firstList:
+        if (apkInfo.filename.startswith("META-INF/")):
+            continue
         if (apkInfo.filename.startswith("res/")):
             continue
 
@@ -80,6 +82,8 @@ def compareApks(first, second):
             "resources.arsc", 
             "res/xml/splits0.xml",
             "AndroidManifest.xml",
+            "assets/dexopt/baseline.prof",
+            "assets/dexopt/baseline.profm",
             ]
 
     firstZip = ZipFile(first, 'r')
