@@ -42,8 +42,6 @@ interface SignerNavigator {
         derivationPath: String = "",
         justAdded: Boolean = false,
         setPassphrase: Boolean = false,
-        isInWallet: Boolean = false,
-        isInAssistedWallet: Boolean = false,
         isReplacePrimaryKey: Boolean = false,
         customMessage: String = "",
         existingKey: WalletsExistingKey? = null

@@ -179,16 +179,7 @@ internal class SignerInfoViewModel @Inject constructor(
         }
         viewModelScope.launch {
             delay(500)
-            val assistedWalletIds = checkAssistedSignerExistenceHelper.getAssistedWallets(
-                SignerModel(
-                    id = args.id,
-                    name = args.name,
-                    derivationPath = args.derivationPath,
-                    fingerPrint = args.masterFingerprint,
-                    isMasterSigner = args.isMasterSigner,
-                    type = args.signerType
-                )
-            )
+            val assistedWalletIds = checkAssistedSignerExistenceHelper.getAssistedWallets(signer)
             _state.update { state -> state.copy(assistedWalletIds = assistedWalletIds) }
         }
     }
@@ -440,4 +431,26 @@ internal class SignerInfoViewModel @Inject constructor(
     fun getAssistedWalletIds(): List<String> {
         return getState().assistedWalletIds
     }
+
+    fun isInWallet(): Boolean {
+        return checkAssistedSignerExistenceHelper.isInWallet(signer)
+    }
+
+    fun isInAssistedWallet(): Boolean {
+        return checkAssistedSignerExistenceHelper.isInAssistedWallet(signer)
+    }
+
+    fun isInHotWallet(): Boolean {
+        return checkAssistedSignerExistenceHelper.isInHotWallet(signer)
+    }
+
+    private val signer: SignerModel
+        get() = SignerModel(
+            id = args.id,
+            name = args.name,
+            derivationPath = args.derivationPath,
+            fingerPrint = args.masterFingerprint,
+            isMasterSigner = args.isMasterSigner,
+            type = args.signerType
+        )
 }

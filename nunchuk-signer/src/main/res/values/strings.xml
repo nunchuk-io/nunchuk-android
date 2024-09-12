@@ -78,6 +78,7 @@
     <string name="nc_enter_decryption_key">Enter backup password</string>
     <string name="nc_backup_password">Backup Password</string>
     <string name="nc_warning_key_use_in_wallet">This key is currently being used in a wallet. Are you sure you want to delete it?</string>
+    <string name="nc_warning_key_use_in_hot_wallet">Your hot wallet has not been backed up yet. Deleting this key means losing access to your hot wallet forever. Are you sure you want to delete this key?</string>
     <string name="nc_warning_key_use_in_assisted_wallet">This key is currently being used in a wallet. Please remove the wallet first.</string>
     <string name="nc_please_remove_on_added_device">Please remove this key on the device that it was added to.</string>
     <string name="nc_backup_key_failed">Backup key failed</string>

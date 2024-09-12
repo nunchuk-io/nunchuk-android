@@ -31,12 +31,6 @@
             android:name="setPassphrase"
             app:argType="boolean" />
         <argument
-            android:name="isInWallet"
-            app:argType="boolean" />
-        <argument
-            android:name="isInAssistedWallet"
-            app:argType="boolean" />
-        <argument
             android:name="isReplacePrimaryKey"
             app:argType="boolean" />
         <argument

@@ -653,8 +653,6 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             name = signer.name,
             type = signer.type,
             derivationPath = signer.derivationPath,
-            isInWallet = walletsViewModel.isInWallet(signer),
-            isInAssistedWallet = walletsViewModel.isInAssistedWallet(signer),
             existingKey = existingKey
         )
     }

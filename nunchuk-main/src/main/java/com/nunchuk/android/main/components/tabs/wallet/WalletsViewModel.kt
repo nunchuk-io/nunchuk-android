@@ -20,7 +20,6 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.nfc.tech.IsoDep
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -35,7 +34,6 @@ import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.push.PushEvent
@@ -146,7 +144,6 @@ internal class WalletsViewModel @Inject constructor(
     private val cardIdManager: CardIdManager,
     private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkWalletsExistingKeyUseCase: CheckWalletsExistingKeyUseCase,
     private val updateExistingKeyUseCase: UpdateExistingKeyUseCase,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
@@ -294,7 +291,6 @@ internal class WalletsViewModel @Inject constructor(
                 updateState { copy(useLargeFont = it.getOrDefault(false)) }
             }
         }
-        checkAssistedSignerExistenceHelper.init(viewModelScope)
         getReferrerCode()
     }
 
@@ -699,14 +695,6 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun getPersonalSteps() = getState().personalSteps
-
-    fun isInWallet(signer: SignerModel): Boolean {
-        return checkAssistedSignerExistenceHelper.isInWallet(signer)
-    }
-
-    fun isInAssistedWallet(signer: SignerModel): Boolean {
-        return checkAssistedSignerExistenceHelper.isInAssistedWallet(signer)
-    }
 
     fun getWallet(walletId: String) = getState().wallets.find { it.wallet.id == walletId }
 

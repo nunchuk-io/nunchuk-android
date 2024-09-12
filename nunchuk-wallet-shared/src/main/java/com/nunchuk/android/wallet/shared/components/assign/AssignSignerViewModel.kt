@@ -48,7 +48,13 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 internal class AssignSignerViewModel @AssistedInject constructor(
@@ -73,17 +79,18 @@ internal class AssignSignerViewModel @AssistedInject constructor(
     }
 
     fun filterSigners(signer: SingleSigner) {
-        hasSignerUseCase.execute(signer).flowOn(Dispatchers.IO).onException { }.onEach {
-            if (it) {
-                updateState {
-                    val newList = filterRecSigners.toMutableList()
-                    newList.add(signer)
-                    copy(
-                        filterRecSigners = newList
-                    )
+        viewModelScope.launch {
+            hasSignerUseCase(signer)
+                .onSuccess {
+                    updateState {
+                        val newList = filterRecSigners.toMutableList()
+                        newList.add(signer)
+                        copy(
+                            filterRecSigners = newList
+                        )
+                    }
                 }
-            }
-        }.flowOn(Dispatchers.Main).launchIn(viewModelScope)
+        }
     }
 
     fun cacheTapSignerXpub(isoDep: IsoDep, cvc: String) {

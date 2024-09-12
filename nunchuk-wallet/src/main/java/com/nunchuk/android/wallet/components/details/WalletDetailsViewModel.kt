@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.wallet.components.details
 
-import android.util.Log
 import android.util.LruCache
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -27,6 +26,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -36,10 +36,10 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetAddressesUseCase
@@ -92,7 +92,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
     private val byzantineGroupUtils: ByzantineGroupUtils,
-    private val getGroupUseCase: GetGroupUseCase
+    private val getGroupUseCase: GetGroupUseCase,
+    private val hasSignerUseCase: HasSignerUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -146,7 +147,8 @@ internal class WalletDetailsViewModel @Inject constructor(
                     updateState {
                         val role = byzantineGroupUtils.getCurrentUserRole(it.getOrNull()).toRole
                         copy(
-                            role = role, hideWalletDetailLocal = getState().hideWalletDetailLocal || role == AssistedWalletRole.FACILITATOR_ADMIN
+                            role = role,
+                            hideWalletDetailLocal = getState().hideWalletDetailLocal || role == AssistedWalletRole.FACILITATOR_ADMIN
                         )
                     }
                 }
@@ -162,7 +164,11 @@ internal class WalletDetailsViewModel @Inject constructor(
     }
 
     private suspend fun syncTransactionFromServer() {
-        val result = syncTransactionUseCase(SyncTransactionUseCase.Params(assistedWalletManager.getGroupId(args.walletId), args.walletId))
+        val result = syncTransactionUseCase(
+            SyncTransactionUseCase.Params(
+                assistedWalletManager.getGroupId(args.walletId), args.walletId
+            )
+        )
         if (result.isSuccess) {
             getTransactionHistory()
         }
@@ -345,4 +351,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun isFacilitatorAdmin() = getState().role == AssistedWalletRole.FACILITATOR_ADMIN
 
     fun isEmptyTransaction() = transactions.isEmpty()
+
+    fun getWallet() = getState().walletExtended.wallet
+
+    suspend fun hasSigner(signer: SingleSigner) = hasSignerUseCase(signer)
 }

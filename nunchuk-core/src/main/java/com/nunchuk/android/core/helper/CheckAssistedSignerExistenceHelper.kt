@@ -46,6 +46,10 @@ class CheckAssistedSignerExistenceHelper @Inject constructor(
         return checkSignerExistence(signer, assistedWallets)
     }
 
+    fun isInHotWallet(signer: SignerModel): Boolean {
+        return checkSignerExistence(signer, wallets.filter { it.wallet.needBackup })
+    }
+
     fun isInAssistedWallet(masterSignerId: String): Boolean {
         val assistedWalletSet = assistedWallets.map { it.localId }.toHashSet()
         val assistedWallets = wallets.filter { it.wallet.id in assistedWalletSet }

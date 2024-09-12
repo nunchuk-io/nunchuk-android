@@ -11,7 +11,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
@@ -75,8 +74,6 @@ class HealthCheckFragment : MembershipFragment() {
             name = signer.name,
             type = signer.type,
             derivationPath = signer.derivationPath,
-            isInWallet = true,
-            isInAssistedWallet = true,
         )
     }
 

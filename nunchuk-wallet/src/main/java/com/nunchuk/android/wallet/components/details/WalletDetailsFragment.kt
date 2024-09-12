@@ -193,7 +193,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             searchMenu.icon =
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_search_white)
         }
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = state.walletStatus != WalletStatus.LOCKED.name && viewModel.isFacilitatorAdmin().not() && viewModel.isEmptyTransaction().not()
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
+            state.walletStatus != WalletStatus.LOCKED.name && viewModel.isFacilitatorAdmin()
+                .not() && viewModel.isEmptyTransaction().not()
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -528,13 +530,29 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.tvWalletWarning.makeTextLink(
             getString(R.string.nc_write_down_the_seed_pharse_warning),
             ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
-                showConfirmBackupDialog()
+                lifecycleScope.launch {
+                    viewModel.hasSigner(viewModel.getWallet().signers.first())
+                        .onSuccess {
+                            if (it) {
+                                showConfirmBackupDialog()
+                            } else {
+                               showHotKeyDeleted()
+                            }
+                        }
+                }
             })
         )
         binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
             R.drawable.ic_warning_outline, 0, 0, 0
         )
         binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_beeswax_background)
+    }
+
+    private fun showHotKeyDeleted() {
+        NCInfoDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_confirmation),
+            message = getString(R.string.nc_hot_key_deleted),
+        )
     }
 
     private fun showConfirmBackupDialog() {

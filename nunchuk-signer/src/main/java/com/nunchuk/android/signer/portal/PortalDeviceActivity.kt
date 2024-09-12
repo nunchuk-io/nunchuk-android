@@ -117,11 +117,11 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                         activityContext = this@PortalDeviceActivity,
                                         isMasterSigner = signer.hasMasterSigner,
                                         id = signer.masterFingerprint,
-                                        derivationPath = signer.derivationPath,
-                                        justAdded = true,
+                                        masterFingerprint = signer.masterFingerprint,
                                         name = signer.name,
                                         type = signer.type,
-                                        masterFingerprint = signer.masterFingerprint
+                                        derivationPath = signer.derivationPath,
+                                        justAdded = true
                                     )
                                 }
                                 finish()

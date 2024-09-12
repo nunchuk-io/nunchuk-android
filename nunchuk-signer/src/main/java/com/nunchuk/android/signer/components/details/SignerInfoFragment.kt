@@ -249,12 +249,22 @@ class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickLi
     }
 
     private fun handleRemoveKey() {
-        if (args.isInAssistedWallet) {
+        if (viewModel.isInAssistedWallet()) {
             NCInfoDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_confirmation),
                 message = getString(R.string.nc_warning_key_use_in_assisted_wallet),
             )
-        } else if (args.isInWallet) {
+        } else if (viewModel.isInHotWallet()) {
+            NCWarningDialog(requireActivity()).showDialog(
+                title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_warning_key_use_in_hot_wallet),
+                btnYes = getString(R.string.nc_text_yes),
+                btnNo = getString(R.string.nc_cancel),
+                onYesClick = {
+                    viewModel.handleRemoveSigner()
+                }
+            )
+        } else if (viewModel.isInWallet()) {
             NCWarningDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_confirmation),
                 message = getString(R.string.nc_warning_key_use_in_wallet),

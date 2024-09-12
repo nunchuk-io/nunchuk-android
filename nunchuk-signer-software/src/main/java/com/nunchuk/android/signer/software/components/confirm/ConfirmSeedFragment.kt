@@ -116,13 +116,11 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
             navigator.returnToMainScreen(requireActivity())
             navigator.openSignerInfoScreen(
                 activityContext = requireActivity(),
+                isMasterSigner = true,
                 id = args.masterSignerId,
-                isInAssistedWallet = false,
-                isInWallet = true,
                 masterFingerprint = args.masterSignerId,
-                type = SignerType.SOFTWARE,
                 name = "",
-                isMasterSigner = true
+                type = SignerType.SOFTWARE
             )
         } else if (args.isQuickWallet) {
             findNavController().navigate(
