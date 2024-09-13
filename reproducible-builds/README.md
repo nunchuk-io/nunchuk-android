@@ -139,6 +139,8 @@ We have prebuilt `nunchuk-android-nativesdk` in the repository [nunchuk-android-
 ``` bash
 git clone https://github.com/nunchuk-io/nunchuk-android-nativesdk $HOME/nunchuk-android-nativesdk
 cd $HOME/nunchuk-android-nativesdk
+git submodule add --force -b main https://github.com/nunchuk-io/libnunchuk.git src/main/native/libnunchuk
+git submodule update --init --recursive
 git checkout <version> # The version should match nunchuk-android-nativesdk-prebuild; 
                        # it's defined in nunchuk-android/configs/dependencies.gradle
 docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh arm64-v8a"
