@@ -20,6 +20,7 @@
 package com.nunchuk.android.settings.nav
 
 import android.content.Context
+import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.nav.SettingNavigator
 import com.nunchuk.android.settings.about.AboutActivity
 import com.nunchuk.android.settings.developer.DeveloperSettingActivity
@@ -62,8 +63,8 @@ interface SettingNavigatorDelegate : SettingNavigator {
         AboutActivity.start(activityContext)
     }
 
-    override fun openWalletSecuritySettingScreen(activityContext: Context) {
-        WalletSecuritySettingActivity.start(activityContext)
+    override fun openWalletSecuritySettingScreen(activityContext: Context, args: WalletSecurityArgs) {
+        WalletSecuritySettingActivity.start(activityContext, args)
     }
 
     override fun openLocalCurrencyScreen(activityContext: Context) {

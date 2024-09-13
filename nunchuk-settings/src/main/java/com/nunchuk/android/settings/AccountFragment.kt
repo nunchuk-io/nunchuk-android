@@ -44,6 +44,8 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.wallet.WalletSecurityArgs
+import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
@@ -295,7 +297,8 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.developerMode.setOnClickListener { openDeveloperScreen() }
         binding.walletSecuritySettings.setOnClickListener {
             navigator.openWalletSecuritySettingScreen(
-                requireContext()
+                requireContext(),
+                WalletSecurityArgs(type = WalletSecurityType.CREATE_PIN)
             )
         }
         binding.localCurrency.setOnClickListener { navigator.openLocalCurrencyScreen(requireContext()) }

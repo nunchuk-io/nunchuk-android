@@ -20,6 +20,7 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import com.nunchuk.android.core.wallet.WalletSecurityArgs
 
 interface SettingNavigator {
     fun openNetworkSettingScreen(activityContext: Context)
@@ -29,7 +30,7 @@ interface SettingNavigator {
     fun openSyncSettingScreen(activityContext: Context)
     fun openUserDevicesScreen(activityContext: Context)
     fun openAboutScreen(activityContext: Context)
-    fun openWalletSecuritySettingScreen(activityContext: Context)
+    fun openWalletSecuritySettingScreen(activityContext: Context, args: WalletSecurityArgs)
     fun openTurnNotificationScreen(
         activityContext: Context,
         messages: ArrayList<String> = arrayListOf()

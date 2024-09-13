@@ -54,13 +54,17 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.wallet.WalletSecurityArgs
+import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletSecurityCreatePinFragment : Fragment() {
-
+    private val activityArgs by lazy {
+        WalletSecurityArgs.fromBundle(requireActivity().intent.extras!!)
+    }
     private val viewModel: WalletSecurityCreatePinViewModel by viewModels()
     private val args: WalletSecurityCreatePinFragmentArgs by navArgs()
 
@@ -86,13 +90,19 @@ class WalletSecurityCreatePinFragment : Fragment() {
 
                 is WalletSecurityCreatePinEvent.Loading -> showOrHideLoading(loading = event.loading)
                 WalletSecurityCreatePinEvent.CreateOrUpdateSuccess -> {
-                    val message = if (args.currentPin.isBlank()) {
-                        getString(R.string.nc_pin_created)
+                    if (activityArgs.type == WalletSecurityType.CREATE_PIN) {
+                        val message = if (args.currentPin.isBlank()) {
+                            getString(R.string.nc_pin_created)
+                        } else {
+                            getString(R.string.nc_pin_updated)
+                        }
+                        NcToastManager.scheduleShowMessage(message)
+                        findNavController().popBackStack()
                     } else {
-                        getString(R.string.nc_pin_updated)
+                        findNavController().navigate(
+                            WalletSecurityCreatePinFragmentDirections.actionWalletSecurityCreatePinFragmentToDecoyPinFragment()
+                        )
                     }
-                    NcToastManager.scheduleShowMessage(message)
-                    findNavController().popBackStack()
                 }
             }
         }

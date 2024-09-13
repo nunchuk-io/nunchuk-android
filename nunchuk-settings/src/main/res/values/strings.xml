@@ -106,4 +106,7 @@
     <string name="nc_be_sure_back_up_security_pin">Be sure to back up this PIN—losing it could mean losing access to your wallets.</string>
     <string name="nc_your_pin">Your PIN</string>
     <string name="nc_try_again_after_seconds">Try again after %1$ds</string>
+    <string name="nc_decoy_wallet_intro_desc">Decoy wallets are Bitcoin wallets designed to hold small amounts of bitcoins as a safeguard against attackers. This feature utilizes two separate PINs: [B]the Decoy PIN[/B] and [B]the Security PIN[/B].\n\nIn a threatening situation, you can use the Decoy PIN to access the decoy wallet, allowing you to hand it over and defuse the situation.\n\nTo access your main wallets, you’ll need to enter the Security PIN.</string>
+    <string name="nc_decoy_pin_desc">Set up a Decoy PIN for alternate access to decoy wallets. Be sure to back up this PIN—losing the Decoy PIN could mean losing access to your decoy wallets.</string>
+    <string name="nc_decoy_wallet_intro_warning">To use the decoy wallet feature, you need to activate the Security PIN. The Security PIN protects access to your main (non-decoy) wallets. Would you like to enable it now?</string>
 </resources>

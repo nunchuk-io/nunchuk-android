@@ -30,7 +30,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
@@ -43,6 +42,8 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.wallet.WalletSecurityArgs
+import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.RecoverWalletData
@@ -135,6 +136,12 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
             SheetOptionType.TYPE_CREATE_HOT_WALLET -> {
                 navigator.openHotWalletScreen(launcher, requireActivity(), isQuickWallet)
+            }
+            SheetOptionType.TYPE_CREATE_NEW_DECOY_WALLET -> {
+                navigator.openWalletSecuritySettingScreen(
+                    activityContext = requireContext(),
+                    args = WalletSecurityArgs(type = WalletSecurityType.CREATE_DECOY_WALLET)
+                )
             }
         }
     }
@@ -348,6 +355,12 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     resId = R.drawable.ic_circle_hot_wallet,
                     stringId = R.string.nc_create_hot_wallet,
                     subStringId = R.string.nc_create_hot_wallet_desc,
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_CREATE_NEW_DECOY_WALLET,
+                    resId = R.drawable.ic_circle_decoy_wallet,
+                    stringId = R.string.nc_create_new_decoy_wallet,
+                    subStringId = R.string.nc_create_new_decoy_wallet_desc
                 ),
             )
         ).show(childFragmentManager, "BottomSheetOption")

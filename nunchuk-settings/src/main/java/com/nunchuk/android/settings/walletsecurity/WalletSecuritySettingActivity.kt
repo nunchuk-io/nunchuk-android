@@ -25,12 +25,17 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.wallet.WalletSecurityArgs
+import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletSecuritySettingActivity : BaseActivity<ActivityNavigationBinding>() {
+    private val args: WalletSecurityArgs by lazy {
+        WalletSecurityArgs.fromBundle(intent.extras!!)
+    }
 
     override fun initializeBinding() = ActivityNavigationBinding.inflate(layoutInflater)
 
@@ -42,17 +47,22 @@ class WalletSecuritySettingActivity : BaseActivity<ActivityNavigationBinding>() 
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.wallet_security_setting_nav)
-        navHostFragment.navController.graph = graph
+        if (args.type == WalletSecurityType.CREATE_DECOY_WALLET) {
+            graph.setStartDestination(R.id.decoyWalletIntroFragment)
+        }
+        navHostFragment.navController.setGraph(graph, intent.extras)
     }
 
     companion object {
 
-        fun start(activityContext: Context) {
+        fun start(activityContext: Context, args: WalletSecurityArgs) {
             activityContext.startActivity(
                 Intent(
                     activityContext,
                     WalletSecuritySettingActivity::class.java
-                )
+                ).apply {
+                    putExtras(args.buildBundle())
+                }
             )
         }
     }
