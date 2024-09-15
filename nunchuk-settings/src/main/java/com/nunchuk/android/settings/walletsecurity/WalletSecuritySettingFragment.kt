@@ -25,6 +25,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.guestmode.SignInMode
@@ -36,6 +37,7 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -128,8 +130,10 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                     title = getString(R.string.nc_text_confirmation),
                     message = getString(R.string.nc_disable_pin_warning),
                     onYesClick = {
-                        viewModel.updateProtectWalletPin(false)
-                        viewModel.updateProtectWalletPassword(it)
+                        lifecycleScope.launch {
+                            viewModel.updateProtectWalletPin(false).join()
+                            viewModel.updateProtectWalletPassword(it)
+                        }
                     }
                 )
             } else {
@@ -144,8 +148,10 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                     title = getString(R.string.nc_text_confirmation),
                     message = getString(R.string.nc_disable_pin_warning),
                     onYesClick = {
-                        viewModel.updateProtectWalletPin(false)
-                        viewModel.updateProtectWalletPassphrase(it)
+                        lifecycleScope.launch {
+                            viewModel.updateProtectWalletPin(false).join()
+                            viewModel.updateProtectWalletPassphrase(it)
+                        }
                     }
                 )
             } else {

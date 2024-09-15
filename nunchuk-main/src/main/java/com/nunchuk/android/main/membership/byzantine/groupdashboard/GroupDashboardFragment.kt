@@ -20,7 +20,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewbinding.ViewBinding
-import com.nunchuk.android.core.base.BaseAuthenticationFragment
+import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -69,7 +69,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), BottomSheetOptionListener {
+class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionListener {
 
     @Inject
     lateinit var isNetworkConnectedUseCase: IsNetworkConnectedUseCase
@@ -190,7 +190,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
                     },
                     onWalletClick = {
                         args.walletId?.let {
-                            checkWalletSecurity(it)
+                            openWalletDetailsScreen(it)
                         }
                     },
                     onGroupChatClick = {
@@ -261,7 +261,7 @@ class GroupDashboardFragment : BaseAuthenticationFragment<ViewBinding>(), Bottom
         }
     }
 
-    override fun openWalletDetailsScreen(walletId: String) {
+    private fun openWalletDetailsScreen(walletId: String) {
         navigator.openWalletDetailsScreen(
             activityContext = requireActivity(),
             walletId = walletId

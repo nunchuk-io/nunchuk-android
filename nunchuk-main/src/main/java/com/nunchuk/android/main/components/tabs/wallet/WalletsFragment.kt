@@ -43,7 +43,7 @@ import com.bumptech.glide.Glide
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.base.BaseAuthenticationFragment
+import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -112,7 +112,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBinding>() {
+internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     @Inject
     lateinit var accountManager: AccountManager
@@ -578,7 +578,7 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
                                         replaceByWalletId = briefWallet.replaceByWalletId
                                     )
                                 } else {
-                                    checkWalletSecurity(walletId)
+                                    openWalletDetailsScreen(walletId)
                                 }
                             }
                         )
@@ -595,10 +595,10 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
             message = getString(R.string.nc_wallet_replaced_desc, wallet?.wallet?.name.orEmpty()),
             btnInfo = getString(R.string.nc_go_to_the_new_wallet),
             onInfoClick = {
-                checkWalletSecurity(replaceByWalletId)
+                openWalletDetailsScreen(replaceByWalletId)
             },
             onYesClick = {
-                checkWalletSecurity(oldWalletId)
+                openWalletDetailsScreen(oldWalletId)
             }
         )
     }
@@ -611,7 +611,7 @@ internal class WalletsFragment : BaseAuthenticationFragment<FragmentWalletsBindi
         )
     }
 
-    override fun openWalletDetailsScreen(walletId: String) {
+    private fun openWalletDetailsScreen(walletId: String) {
         runCatching {
             findNavController().navigate(
                 WalletsFragmentDirections.actionNavigationWalletsToWalletDetailsFragment(
