@@ -34,6 +34,7 @@ import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.FragmentWalletSecuritySettingBinding
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -122,6 +123,15 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.passwordOption.setOptionChangeListener {
             if (it.not()) {
                 enterPasswordDialog(false)
+            } else if (viewModel.isWalletPinEnable()) {
+                NCWarningDialog(requireActivity()).showDialog(
+                    title = getString(R.string.nc_text_confirmation),
+                    message = getString(R.string.nc_disable_pin_warning),
+                    onYesClick = {
+                        viewModel.updateProtectWalletPin(false)
+                        viewModel.updateProtectWalletPassword(it)
+                    }
+                )
             } else {
                 viewModel.updateProtectWalletPassword(it)
             }
@@ -129,6 +139,15 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.passphraseOption.setOptionChangeListener {
             if (it.not()) {
                 enterPassphraseDialog(false)
+            } else if (viewModel.isWalletPinEnable()) {
+                NCWarningDialog(requireActivity()).showDialog(
+                    title = getString(R.string.nc_text_confirmation),
+                    message = getString(R.string.nc_disable_pin_warning),
+                    onYesClick = {
+                        viewModel.updateProtectWalletPin(false)
+                        viewModel.updateProtectWalletPassphrase(it)
+                    }
+                )
             } else {
                 viewModel.updateProtectWalletPassphrase(it)
             }

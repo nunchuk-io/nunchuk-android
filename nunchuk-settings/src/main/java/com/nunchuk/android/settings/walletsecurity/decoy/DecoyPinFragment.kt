@@ -24,7 +24,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -43,38 +44,54 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.compose.content
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPasswordTextField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class DecoyPinFragment : Fragment() {
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = content {
-        DecoyPinScreen()
+        DecoyPinScreen(
+            onContinueClick = {
+                navigator.openAddWalletScreen(requireContext(), true)
+            }
+        )
     }
 }
 
 @Composable
 fun DecoyPinScreen(
     viewModel: DecoyPinViewModel = viewModel(),
+    onContinueClick: () -> Unit = {},
 ) {
-    WalletSecurityCreatePinContent(
-        onContinueClick = {}
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    DecoyPinContent(
+        uiState = uiState,
+        onContinueClick = onContinueClick,
+        getHashPin = viewModel::getHashedPin
     )
 }
 
 @Composable
-private fun WalletSecurityCreatePinContent(
+private fun DecoyPinContent(
+    uiState: DecoyPinUiState = DecoyPinUiState(),
     onContinueClick: () -> Unit = {},
+    getHashPin: (String) -> String = { "" }
 ) {
     val context = LocalContext.current
     var pin by rememberSaveable { mutableStateOf("") }
@@ -94,7 +111,9 @@ private fun WalletSecurityCreatePinContent(
                         .padding(16.dp),
                     enabled = pin.isNotEmpty() && confirmPin.isNotEmpty(),
                     onClick = {
-                        if (pin != confirmPin) {
+                        if (getHashPin(pin) == uiState.walletPin) {
+                            pinErrorMsg = context.getString(R.string.nc_decoy_pin_same_as_wallet_pin)
+                        } else if (pin != confirmPin) {
                             confirmPinErrorMsg =
                                 context.getString(R.string.nc_confirm_pin_does_not_match)
                         } else {
@@ -110,7 +129,7 @@ private fun WalletSecurityCreatePinContent(
                 modifier = Modifier
                     .padding(innerPadding)
                     .padding(horizontal = 16.dp)
-                    .fillMaxHeight()
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
@@ -122,7 +141,7 @@ private fun WalletSecurityCreatePinContent(
                 NcHighlightText(
                     modifier = Modifier.padding(top = 16.dp),
                     text = stringResource(R.string.nc_decoy_pin_desc),
-                    style = NunchukTheme.typography.body
+                    style = NunchukTheme.typography.body,
                 )
                 NcPasswordTextField(
                     modifier = Modifier
@@ -146,6 +165,17 @@ private fun WalletSecurityCreatePinContent(
                         confirmPin = it
                     },
                 )
+                Spacer(modifier = Modifier.weight(1f))
+                NcHintMessage(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.nc_decoy_pin_hint),
+                        style = NunchukTheme.typography.caption
+                    )
+                }
             }
         }
     }
@@ -154,5 +184,5 @@ private fun WalletSecurityCreatePinContent(
 @Preview
 @Composable
 private fun DecoyPinScreenPreview() {
-    WalletSecurityCreatePinContent()
+    DecoyPinContent()
 }

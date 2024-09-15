@@ -20,6 +20,7 @@
 package com.nunchuk.android.wallet.components.configure
 
 import android.content.Context
+import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -33,10 +34,10 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nav.args.ConfigureWalletArgs
+import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
-import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import com.nunchuk.android.wallet.R
@@ -101,6 +102,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                 masterSigners = event.masterSigners,
                 remoteSigners = event.remoteSigners
             )
+
             is Loading -> showOrHideLoading(event.loading)
             is ConfigureWalletEvent.PromptInputPassphrase -> requireInputPassphrase(event.signer)
             is ConfigureWalletEvent.ShowError -> NCToastMessage(this).showError(event.message)
@@ -112,6 +114,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                     viewModel.handleContinueEvent()
                 }
             }
+
             is ConfigureWalletEvent.RequestCacheTapSignerXpub -> handleCacheXpub(event.signer)
             is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
             is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
@@ -159,12 +162,15 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
     ) {
         navigator.openReviewWalletScreen(
             activityContext = this,
-            walletName = args.walletName,
-            walletType = args.walletType,
-            addressType = args.addressType,
-            totalRequireSigns = totalRequireSigns,
-            masterSigners = masterSigners,
-            remoteSigners = remoteSigners
+            args = ReviewWalletArgs(
+                walletName = args.walletName,
+                walletType = args.walletType,
+                addressType = args.addressType,
+                isDecoyWallet = args.isDecoyWallet,
+                totalRequireSigns = totalRequireSigns,
+                masterSigners = masterSigners,
+                remoteSigners = remoteSigners
+            )
         )
     }
 
@@ -284,18 +290,13 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
 
         fun start(
             activityContext: Context,
-            walletName: String,
-            walletType: WalletType,
-            addressType: AddressType
+            args: ConfigureWalletArgs
         ) {
             activityContext.startActivity(
-                ConfigureWalletArgs(
-                    walletName,
-                    walletType,
-                    addressType
-                ).buildIntent(activityContext)
+                Intent(activityContext, ConfigureWalletActivity::class.java).apply {
+                    putExtras(args.buildBundle())
+                }
             )
         }
     }
-
 }

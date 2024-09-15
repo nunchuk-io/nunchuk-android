@@ -29,6 +29,8 @@ import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.WalletNavigator
+import com.nunchuk.android.nav.args.ConfigureWalletArgs
+import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
@@ -54,8 +56,8 @@ import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletAct
 
 interface WalletNavigatorDelegate : WalletNavigator {
 
-    override fun openAddWalletScreen(activityContext: Context) {
-        AddWalletActivity.start(activityContext)
+    override fun openAddWalletScreen(activityContext: Context, isDecoyWallet: Boolean) {
+        AddWalletActivity.start(activityContext, isDecoyWallet)
     }
 
     override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean) {
@@ -86,33 +88,12 @@ interface WalletNavigatorDelegate : WalletNavigator {
         )
     }
 
-    override fun openConfigureWalletScreen(
-        activityContext: Context,
-        walletName: String,
-        walletType: WalletType,
-        addressType: AddressType,
-    ) {
-        ConfigureWalletActivity.start(activityContext, walletName, walletType, addressType)
+    override fun openConfigureWalletScreen(activityContext: Context, args: ConfigureWalletArgs) {
+        ConfigureWalletActivity.start(activityContext, args)
     }
 
-    override fun openReviewWalletScreen(
-        activityContext: Context,
-        walletName: String,
-        walletType: WalletType,
-        addressType: AddressType,
-        totalRequireSigns: Int,
-        masterSigners: List<SingleSigner>,
-        remoteSigners: List<SingleSigner>,
-    ) {
-        ReviewWalletActivity.start(
-            activityContext = activityContext,
-            walletName = walletName,
-            walletType = walletType,
-            addressType = addressType,
-            totalRequireSigns = totalRequireSigns,
-            masterSigners = masterSigners,
-            remoteSigners = remoteSigners
-        )
+    override fun openReviewWalletScreen(activityContext: Context, args: ReviewWalletArgs) {
+        ReviewWalletActivity.start(activityContext, args)
     }
 
     override fun openBackupWalletScreen(

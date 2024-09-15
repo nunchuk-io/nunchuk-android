@@ -21,10 +21,10 @@ import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
-import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.widget.NCWarningDialog
@@ -32,6 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class DecoyWalletIntroFragment : Fragment() {
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -91,9 +92,9 @@ fun DecoyWalletScreen(
                     style = NunchukTheme.typography.heading,
                 )
 
-                NcSpannedText(
+                NcHighlightText(
                     text = stringResource(R.string.nc_decoy_wallet_intro_desc),
-                    baseStyle = NunchukTheme.typography.body,
+                    style = NunchukTheme.typography.body,
                 )
             }
         }

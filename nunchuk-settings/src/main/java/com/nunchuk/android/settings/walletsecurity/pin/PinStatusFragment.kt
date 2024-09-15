@@ -29,7 +29,9 @@ import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.settings.R
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -46,7 +48,36 @@ class PinStatusFragment : Fragment() {
             state = uiState,
             onEnablePinChange = { enable ->
                 if (enable) {
-                    findNavController().navigate(PinStatusFragmentDirections.actionPinStatusFragmentToWalletSecurityCreatePinFragment())
+                    val currentMode = viewModel.getCurrentMode()
+                    when {
+                        currentMode == SignInMode.EMAIL && uiState.settings.protectWalletPassword -> {
+                            NCWarningDialog(requireActivity())
+                                .showDialog(
+                                    title = getString(R.string.nc_text_confirmation),
+                                    message = getString(R.string.nc_text_disable_password),
+                                    btnNo = getString(R.string.nc_cancel),
+                                    btnYes = getString(R.string.nc_text_continue),
+                                    onYesClick = {
+                                        viewModel.disablePasswordOrPassphrase()
+                                        openCreateWalletPin()
+                                    }
+                                )
+                        }
+                        currentMode == SignInMode.PRIMARY_KEY && uiState.settings.protectWalletPassphrase -> {
+                            NCWarningDialog(requireActivity())
+                                .showDialog(
+                                    title = getString(R.string.nc_text_confirmation),
+                                    message = getString(R.string.nc_text_disable_passphrase),
+                                    btnNo = getString(R.string.nc_cancel),
+                                    btnYes = getString(R.string.nc_text_continue),
+                                    onYesClick = {
+                                        viewModel.disablePasswordOrPassphrase()
+                                        openCreateWalletPin()
+                                    }
+                                )
+                        }
+                        else -> openCreateWalletPin()
+                    }
                 } else {
                     findNavController().navigate(
                         PinStatusFragmentDirections.actionPinStatusFragmentToUnlockPinFragment(
@@ -62,6 +93,12 @@ class PinStatusFragment : Fragment() {
                     )
                 )
             }
+        )
+    }
+
+    private fun openCreateWalletPin() {
+        findNavController().navigate(
+            PinStatusFragmentDirections.actionPinStatusFragmentToWalletSecurityCreatePinFragment()
         )
     }
 }

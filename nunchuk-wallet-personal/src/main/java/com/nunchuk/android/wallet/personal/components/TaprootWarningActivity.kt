@@ -23,6 +23,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.core.text.HtmlCompat
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.personal.R
@@ -51,13 +52,16 @@ class TaprootWarningActivity : BaseActivity<ActivityTaprootWarningBinding>() {
             HtmlCompat.FROM_HTML_MODE_COMPACT
         )
 
+        // TODO Hai
         binding.btnContinue.setOnClickListener {
             finish()
             navigator.openConfigureWalletScreen(
                 activityContext = this,
-                walletName = args.walletName,
-                walletType = args.walletType,
-                addressType = args.addressType
+                args = ConfigureWalletArgs(
+                    walletName = args.walletName,
+                    walletType = args.walletType,
+                    addressType = args.addressType,
+                ),
             )
         }
 

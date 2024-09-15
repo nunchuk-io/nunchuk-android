@@ -27,8 +27,12 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.type.AddressType.*
+import com.nunchuk.android.type.AddressType.LEGACY
+import com.nunchuk.android.type.AddressType.NATIVE_SEGWIT
+import com.nunchuk.android.type.AddressType.NESTED_SEGWIT
+import com.nunchuk.android.type.AddressType.TAPROOT
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.add.AddWalletEvent.WalletNameRequiredEvent
@@ -40,7 +44,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
-
+    private val isDecoyWallet: Boolean by lazy(LazyThreadSafetyMode.NONE) {
+        intent.getBooleanExtra(DECOY_WALLET, false)
+    }
     private val viewModel: AddWalletViewModel by viewModels()
 
     override fun initializeBinding() = ActivityWalletAddBinding.inflate(layoutInflater)
@@ -112,15 +118,31 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
     private fun handleEvent(event: AddWalletEvent) {
         when (event) {
             WalletNameRequiredEvent -> binding.walletName.setError(getString(R.string.nc_text_required))
-            is WalletSetupDoneEvent -> openAssignSignerScreen(event.walletName, event.walletType, event.addressType)
+            is WalletSetupDoneEvent -> openAssignSignerScreen(
+                event.walletName,
+                event.walletType,
+                event.addressType,
+            )
         }
     }
 
-    private fun openAssignSignerScreen(walletName: String, walletType: WalletType, addressType: AddressType) {
+    private fun openAssignSignerScreen(
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType
+    ) {
         if (addressType.isTaproot()) {
             navigator.openTaprootWarningScreen(this, walletName, walletType, addressType)
         } else {
-            navigator.openConfigureWalletScreen(this, walletName, walletType, addressType)
+            navigator.openConfigureWalletScreen(
+                this,
+                args = ConfigureWalletArgs(
+                    walletName = walletName,
+                    walletType = walletType,
+                    addressType = addressType,
+                    isDecoyWallet = isDecoyWallet
+                )
+            )
         }
     }
 
@@ -137,8 +159,16 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
     private fun setupViews() {
         binding.walletName.getEditTextView().filters = arrayOf(LengthFilter(MAX_LENGTH))
 
-        binding.customizeAddressSwitch.setOnCheckedChangeListener { _, checked -> handleCustomizeAddressChanged(checked) }
-        binding.customizeWalletTypeSwitch.setOnCheckedChangeListener { _, checked -> handleCustomizeWalletChanged(checked) }
+        binding.customizeAddressSwitch.setOnCheckedChangeListener { _, checked ->
+            handleCustomizeAddressChanged(
+                checked
+            )
+        }
+        binding.customizeWalletTypeSwitch.setOnCheckedChangeListener { _, checked ->
+            handleCustomizeWalletChanged(
+                checked
+            )
+        }
 
         binding.standardWalletRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setStandardWalletType() }
         binding.escrowWalletRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setEscrowWalletType() }
@@ -171,9 +201,12 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
 
     companion object {
         private const val MAX_LENGTH = 20
+        private const val DECOY_WALLET = "decoy_wallet"
 
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, AddWalletActivity::class.java))
+        fun start(activityContext: Context, isDecoyWallet: Boolean) {
+            activityContext.startActivity(Intent(activityContext, AddWalletActivity::class.java).apply {
+                putExtra(DECOY_WALLET, isDecoyWallet)
+            })
         }
     }
 

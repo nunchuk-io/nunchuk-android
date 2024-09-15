@@ -28,12 +28,14 @@ import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nav.args.ConfigureWalletArgs
+import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 
 interface PersonalWalletNavigator {
 
-    fun openAddWalletScreen(activityContext: Context)
+    fun openAddWalletScreen(activityContext: Context, isDecoyWallet: Boolean)
 
     fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean)
 
@@ -47,12 +49,7 @@ interface PersonalWalletNavigator {
 
     fun openReviewWalletScreen(
         activityContext: Context,
-        walletName: String,
-        walletType: WalletType,
-        addressType: AddressType,
-        totalRequireSigns: Int,
-        masterSigners: List<SingleSigner>,
-        remoteSigners: List<SingleSigner>,
+        args: ReviewWalletArgs,
     )
 }
 
@@ -106,9 +103,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
 
     fun openConfigureWalletScreen(
         activityContext: Context,
-        walletName: String,
-        walletType: WalletType,
-        addressType: AddressType,
+        args: ConfigureWalletArgs,
     )
 
     fun openBackupWalletScreen(

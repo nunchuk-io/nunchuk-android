@@ -25,8 +25,8 @@ import com.nunchuk.android.core.domain.CheckHasPassphrasePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
@@ -48,7 +48,7 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
     private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase,
     private val signInModeHolder: SignInModeHolder,
-    private val checkHasPassphrasePrimaryKeyUseCase: CheckHasPassphrasePrimaryKeyUseCase
+    private val checkHasPassphrasePrimaryKeyUseCase: CheckHasPassphrasePrimaryKeyUseCase,
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
 
     override val initialState = WalletSecuritySettingState()
@@ -172,4 +172,6 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
+
+    fun isWalletPinEnable() = getState().walletPin.isNotEmpty()
 }

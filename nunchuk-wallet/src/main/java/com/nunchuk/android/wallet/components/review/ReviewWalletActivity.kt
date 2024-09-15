@@ -20,16 +20,17 @@
 package com.nunchuk.android.wallet.components.review
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
-import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.viewModelProviderFactoryOf
 import com.nunchuk.android.wallet.components.config.SignersViewBinder
-import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletErrorEvent
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletSuccessEvent
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.SetLoadingEvent
 import com.nunchuk.android.wallet.databinding.ActivityReviewWalletBinding
 import com.nunchuk.android.wallet.util.isWalletExisted
 import com.nunchuk.android.wallet.util.toReadableString
@@ -119,22 +120,12 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
 
         fun start(
             activityContext: Context,
-            walletName: String,
-            walletType: WalletType,
-            addressType: AddressType,
-            totalRequireSigns: Int,
-            masterSigners: List<SingleSigner>,
-            remoteSigners: List<SingleSigner>
+            args: ReviewWalletArgs
         ) {
             activityContext.startActivity(
-                ReviewWalletArgs(
-                    walletName = walletName,
-                    walletType = walletType,
-                    addressType = addressType,
-                    totalRequireSigns = totalRequireSigns,
-                    masterSigners = masterSigners,
-                    remoteSigners = remoteSigners
-                ).buildIntent(activityContext)
+                Intent(activityContext, ReviewWalletActivity::class.java).apply {
+                    putExtras(args.buildBundle())
+                }
             )
         }
     }
