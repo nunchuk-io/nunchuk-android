@@ -173,7 +173,7 @@ class NcDataStore @Inject constructor(
             gson.fromJson(
                 it[getWalletSecuritySettingKey()].orEmpty(),
                 WalletSecuritySetting::class.java
-            )
+            ) ?: WalletSecuritySetting()
         }
 
     val localCurrencyFlow: Flow<String>
