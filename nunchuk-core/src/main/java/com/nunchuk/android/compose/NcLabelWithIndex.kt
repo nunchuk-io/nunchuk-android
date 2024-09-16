@@ -71,7 +71,7 @@ fun NCLabelWithIndex(
                     style = NunchukTheme.typography.title
                 )
             }
-            Text(
+            NcHighlightText(
                 text = label,
                 style = style
             )

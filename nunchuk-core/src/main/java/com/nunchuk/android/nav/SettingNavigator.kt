@@ -36,4 +36,5 @@ interface SettingNavigator {
         messages: ArrayList<String> = arrayListOf()
     )
     fun openLocalCurrencyScreen(activityContext: Context)
+    fun openUnlockPinScreen(activityContext: Context)
 }

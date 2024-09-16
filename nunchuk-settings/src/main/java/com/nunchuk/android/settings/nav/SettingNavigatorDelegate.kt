@@ -20,6 +20,7 @@
 package com.nunchuk.android.settings.nav
 
 import android.content.Context
+import android.content.Intent
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.nav.SettingNavigator
 import com.nunchuk.android.settings.about.AboutActivity
@@ -32,6 +33,7 @@ import com.nunchuk.android.settings.notification.TurnNotificationActivity
 import com.nunchuk.android.settings.sync.SyncSettingActivity
 import com.nunchuk.android.settings.unit.DisplayUnitActivity
 import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
+import com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity
 
 interface SettingNavigatorDelegate : SettingNavigator {
 
@@ -69,6 +71,15 @@ interface SettingNavigatorDelegate : SettingNavigator {
 
     override fun openLocalCurrencyScreen(activityContext: Context) {
         LocalCurrencyActivity.start(activityContext)
+    }
+
+    override fun openUnlockPinScreen(activityContext: Context) {
+        activityContext.startActivity(
+            Intent(
+                activityContext,
+                UnlockPinActivity::class.java
+            )
+        )
     }
 
     override fun openTurnNotificationScreen(

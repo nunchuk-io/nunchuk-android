@@ -80,4 +80,20 @@
         android:id="@+id/decoyPinFragment"
         android:name="com.nunchuk.android.settings.walletsecurity.decoy.DecoyPinFragment"
         android:label="DecoyPinFragment" />
+    <fragment
+        android:id="@+id/decoyWalletSuccessFragment"
+        android:name="com.nunchuk.android.settings.walletsecurity.decoy.DecoyWalletSuccessFragment"
+        android:label="DecoyWalletSuccessFragment" >
+        <action
+            android:id="@+id/action_decoyWalletSuccessFragment_to_decoyPinNoteFragment"
+            app:destination="@id/decoyPinNoteFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+    </fragment>
+    <fragment
+        android:id="@+id/decoyPinNoteFragment"
+        android:name="com.nunchuk.android.settings.walletsecurity.decoy.DecoyPinNoteFragment"
+        android:label="DecoyPinNoteFragment" />
 </navigation>

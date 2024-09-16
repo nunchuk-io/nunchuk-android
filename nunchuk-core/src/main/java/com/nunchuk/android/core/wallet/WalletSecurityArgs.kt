@@ -7,7 +7,8 @@ import kotlinx.parcelize.Parcelize
 
 enum class WalletSecurityType {
     CREATE_PIN,
-    CREATE_DECOY_WALLET
+    CREATE_DECOY_WALLET,
+    CREATE_DECOY_SUCCESS
 }
 
 @Parcelize
