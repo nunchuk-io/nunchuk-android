@@ -166,7 +166,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                 walletName = args.walletName,
                 walletType = args.walletType,
                 addressType = args.addressType,
-                isDecoyWallet = args.isDecoyWallet,
+                decoyPin = args.decoyPin,
                 totalRequireSigns = totalRequireSigns,
                 masterSigners = masterSigners,
                 remoteSigners = remoteSigners

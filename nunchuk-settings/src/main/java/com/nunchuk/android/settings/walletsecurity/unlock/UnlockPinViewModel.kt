@@ -28,6 +28,8 @@ class UnlockPinViewModel @Inject constructor(
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase
 ) : ViewModel() {
+    private val _state = MutableStateFlow(UnlockPinUiState())
+    val state = _state.asStateFlow()
     init {
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
@@ -37,9 +39,6 @@ class UnlockPinViewModel @Inject constructor(
                 }
         }
     }
-
-    private val _state = MutableStateFlow(UnlockPinUiState())
-    val state = _state.asStateFlow()
 
     fun removePin(currentPin: String) {
         checkPin(currentPin) {

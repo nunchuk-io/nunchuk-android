@@ -24,6 +24,8 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.wallet.WalletSecurityArgs
+import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
@@ -74,7 +76,14 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
     }
 
     private fun navigateToNextScreen() {
-        if (args.isQuickWallet) {
+        if (args.isDecoyWallet) {
+            navigator.returnToMainScreen(this)
+            navigator.openWalletSecuritySettingScreen(
+                this, WalletSecurityArgs(
+                    type = WalletSecurityType.CREATE_DECOY_SUCCESS
+                )
+            )
+        } else if (args.isQuickWallet) {
             finish()
         } else if (args.numberOfSignKey > 1) {
             navigator.openUploadConfigurationScreen(this, args.walletId)
@@ -101,8 +110,21 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     companion object {
 
-        fun start(activityContext: Context, walletId: String, totalRequireSigns: Int, isQuickWallet: Boolean) {
-            activityContext.startActivity(BackupWalletArgs(walletId, totalRequireSigns, isQuickWallet).buildIntent(activityContext))
+        fun start(
+            activityContext: Context,
+            walletId: String,
+            totalRequireSigns: Int,
+            isQuickWallet: Boolean,
+            isDecoyWallet: Boolean
+        ) {
+            activityContext.startActivity(
+                BackupWalletArgs(
+                    walletId = walletId,
+                    numberOfSignKey = totalRequireSigns,
+                    isQuickWallet = isQuickWallet,
+                    isDecoyWallet = isDecoyWallet
+                ).buildIntent(activityContext)
+            )
         }
     }
 

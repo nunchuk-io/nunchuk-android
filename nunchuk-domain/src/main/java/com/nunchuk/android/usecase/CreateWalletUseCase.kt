@@ -19,47 +19,42 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
-import kotlin.properties.Delegates
 
-interface CreateWalletUseCase {
-    fun execute(
-        name: String,
-        totalRequireSigns: Int,
-        signers: List<SingleSigner>,
-        addressType: AddressType,
-        isEscrow: Boolean,
-        description: String = ""
-    ): Flow<Wallet>
-}
-
-internal class CreateWalletUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), CreateWalletUseCase {
-
-    override fun execute(
-        name: String,
-        totalRequireSigns: Int,
-        signers: List<SingleSigner>,
-        addressType: AddressType,
-        isEscrow: Boolean,
-        description: String
-    ) = flow {
-        emit(
-            nativeSdk.createWallet(
-                name = name,
-                totalRequireSigns = totalRequireSigns,
-                signers = signers,
-                addressType = addressType,
-                isEscrow = isEscrow,
-                description = description
-            )
+class CreateWalletUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    private val getOrCreateRootDirUseCase: GetOrCreateRootDirUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<CreateWalletUseCase.Params, Wallet>(ioDispatcher) {
+    override suspend fun execute(parameters: Params): Wallet {
+        if (parameters.decoyPin.isNotEmpty()) {
+            val path = getOrCreateRootDirUseCase(Unit).getOrThrow()
+            nativeSdk.createNewDecoyPin(storagePath = path, pin = parameters.decoyPin)
+        }
+        return nativeSdk.createWallet(
+            name = parameters.name,
+            totalRequireSigns = parameters.totalRequireSigns,
+            signers = parameters.signers,
+            addressType = parameters.addressType,
+            isEscrow = parameters.isEscrow,
+            description = parameters.description,
+            decoyPin = parameters.decoyPin
         )
     }
+
+    data class Params(
+        val name: String,
+        val totalRequireSigns: Int,
+        val signers: List<SingleSigner>,
+        val addressType: AddressType,
+        val isEscrow: Boolean,
+        val description: String = "",
+        val decoyPin: String = ""
+    )
 }

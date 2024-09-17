@@ -305,7 +305,7 @@ internal class WalletsViewModel @Inject constructor(
 
     private fun getReferrerCode() {
         viewModelScope.launch {
-           getLocalReferrerCodeUseCase(Unit).collect {
+           getLocalReferrerCodeUseCase(Unit).distinctUntilChanged().collect {
                updateState { copy(localReferrerCode = it.getOrNull()) }
                getCurrentCampaignUseCase(GetCurrentCampaignUseCase.Param(accountManager.getAccount().email.ifEmpty { it.getOrNull()?.email }))
             }

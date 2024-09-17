@@ -35,7 +35,7 @@ data class ReviewWalletArgs(
     val totalRequireSigns: Int,
     val masterSigners: List<SingleSigner>,
     val remoteSigners: List<SingleSigner>,
-    val isDecoyWallet: Boolean = false
+    val decoyPin: String = ""
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -45,6 +45,7 @@ data class ReviewWalletArgs(
         putInt(EXTRA_TOTAL_REQUIRED_SIGNS, totalRequireSigns)
         putParcelableArrayList(EXTRA_MASTER_SIGNERS, ArrayList(masterSigners))
         putParcelableArrayList(EXTRA_REMOTE_SIGNERS, ArrayList(remoteSigners))
+        putString(EXTRA_DECOY_PIN, decoyPin)
     }
 
     companion object {
@@ -54,6 +55,7 @@ data class ReviewWalletArgs(
         private const val EXTRA_TOTAL_REQUIRED_SIGNS = "EXTRA_TOTAL_REQUIRED_SIGNS"
         private const val EXTRA_MASTER_SIGNERS = "EXTRA_MASTER_SIGNERS"
         private const val EXTRA_REMOTE_SIGNERS = "EXTRA_REMOTE_SIGNERS"
+        private const val EXTRA_DECOY_PIN = "EXTRA_DECOY_PIN"
 
         fun deserializeFrom(intent: Intent): ReviewWalletArgs = ReviewWalletArgs(
             intent.extras.getStringValue(EXTRA_WALLET_NAME),
@@ -61,7 +63,8 @@ data class ReviewWalletArgs(
             intent.serializable<AddressType>(EXTRA_ADDRESS_TYPE)!!,
             intent.getIntExtra(EXTRA_TOTAL_REQUIRED_SIGNS, 0),
             intent.parcelableArrayList<SingleSigner>(EXTRA_MASTER_SIGNERS).orEmpty(),
-            intent.parcelableArrayList<SingleSigner>(EXTRA_REMOTE_SIGNERS).orEmpty()
+            intent.parcelableArrayList<SingleSigner>(EXTRA_REMOTE_SIGNERS).orEmpty(),
+            intent.extras.getStringValue(EXTRA_DECOY_PIN),
         )
     }
 

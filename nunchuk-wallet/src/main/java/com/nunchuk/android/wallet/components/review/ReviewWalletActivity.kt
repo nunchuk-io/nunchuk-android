@@ -86,7 +86,12 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
 
     private fun onCreateWalletSuccess(event: CreateWalletSuccessEvent) {
         showOrHideLoading(false)
-        navigator.openBackupWalletScreen(this, event.walletId, args.masterSigners.size + args.remoteSigners.size)
+        navigator.openBackupWalletScreen(
+            activityContext = this,
+            walletId = event.walletId,
+            numberOfSignKey = args.masterSigners.size + args.remoteSigners.size,
+            isDecoyWallet = args.decoyPin.isNotEmpty()
+        )
     }
 
     private fun setupViews() {
@@ -108,7 +113,8 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
                 addressType = args.addressType,
                 totalRequireSigns = args.totalRequireSigns,
                 masterSigners = args.masterSigners,
-                remoteSigners = args.remoteSigners
+                remoteSigners = args.remoteSigners,
+                decoyPin = args.decoyPin
             )
         }
         binding.toolbar.setNavigationOnClickListener {

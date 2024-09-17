@@ -40,9 +40,7 @@ import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,9 +48,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -196,19 +192,17 @@ class CreateWalletViewModel @Inject constructor(
                 CreateServerWalletUseCase.Params(wallet, serverKeyId)
             )
             if (result.isSuccess) {
-                createWalletUseCase.execute(
-                    name = _state.value.walletName,
-                    totalRequireSigns = 2,
-                    signers = signers,
-                    addressType = addressType,
-                    isEscrow = false
-                ).flowOn(Dispatchers.IO)
-                    .flowOn(Dispatchers.Main)
-                    .onCompletion { _event.emit(CreateWalletEvent.Loading(false)) }
-                    .onException {
-                        _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
-                    }
-                    .collect {
+                createWalletUseCase(
+                    CreateWalletUseCase.Params(
+                        name = _state.value.walletName,
+                        totalRequireSigns = 2,
+                        signers = signers,
+                        addressType = addressType,
+                        isEscrow = false,
+                    )
+                ).onFailure {
+                    _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
+                }.onSuccess {
                         val totalAirgap =
                             it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
                         if (totalAirgap > 0) {
@@ -226,6 +220,7 @@ class CreateWalletViewModel @Inject constructor(
                             )
                         )
                     }
+                _event.emit(CreateWalletEvent.Loading(false))
             } else {
                 _event.emit(
                     CreateWalletEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError())

@@ -67,8 +67,8 @@ class DecoyPinFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = content {
         DecoyPinScreen(
-            onContinueClick = {
-                navigator.openAddWalletScreen(requireContext(), true)
+            onContinueClick = { pin ->
+                navigator.openAddWalletScreen(activityContext = requireContext(), decoyPin = pin)
             }
         )
     }
@@ -77,7 +77,7 @@ class DecoyPinFragment : Fragment() {
 @Composable
 fun DecoyPinScreen(
     viewModel: DecoyPinViewModel = viewModel(),
-    onContinueClick: () -> Unit = {},
+    onContinueClick: (String) -> Unit = {},
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     DecoyPinContent(
@@ -90,7 +90,7 @@ fun DecoyPinScreen(
 @Composable
 private fun DecoyPinContent(
     uiState: DecoyPinUiState = DecoyPinUiState(),
-    onContinueClick: () -> Unit = {},
+    onContinueClick: (String) -> Unit = {},
     getHashPin: (String) -> String = { "" }
 ) {
     val context = LocalContext.current
@@ -117,7 +117,7 @@ private fun DecoyPinContent(
                             confirmPinErrorMsg =
                                 context.getString(R.string.nc_confirm_pin_does_not_match)
                         } else {
-                            onContinueClick()
+                            onContinueClick(pin)
                         }
                     },
                 ) {

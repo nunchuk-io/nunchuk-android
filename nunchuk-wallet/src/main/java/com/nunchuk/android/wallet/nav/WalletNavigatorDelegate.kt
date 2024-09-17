@@ -56,8 +56,8 @@ import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletAct
 
 interface WalletNavigatorDelegate : WalletNavigator {
 
-    override fun openAddWalletScreen(activityContext: Context, isDecoyWallet: Boolean) {
-        AddWalletActivity.start(activityContext, isDecoyWallet)
+    override fun openAddWalletScreen(activityContext: Context, decoyPin: String) {
+        AddWalletActivity.start(activityContext, decoyPin)
     }
 
     override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean) {
@@ -101,12 +101,14 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletId: String,
         numberOfSignKey: Int,
         isQuickWallet: Boolean,
+        isDecoyWallet: Boolean,
     ) {
         BackupWalletActivity.start(
             activityContext = activityContext,
             walletId = walletId,
             totalRequireSigns = numberOfSignKey,
-            isQuickWallet = isQuickWallet
+            isQuickWallet = isQuickWallet,
+            isDecoyWallet = isDecoyWallet
         )
     }
 

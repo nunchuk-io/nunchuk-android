@@ -36,12 +36,17 @@ import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.utils.onException
-import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletErrorEvent
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletSuccessEvent
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.SetLoadingEvent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
@@ -62,7 +67,8 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
         addressType: AddressType,
         totalRequireSigns: Int,
         masterSigners: List<SingleSigner>,
-        remoteSigners: List<SingleSigner>
+        remoteSigners: List<SingleSigner>,
+        decoyPin: String
     ) {
         val totalSigns = masterSigners.size + remoteSigners.size
         val normalizeWalletType =
@@ -83,14 +89,17 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
                     signers
                 }
                 .flowOn(Dispatchers.IO)
-                .flatMapMerge {
-                    createWalletUseCase.execute(
-                        name = walletName,
-                        totalRequireSigns = totalRequireSigns,
-                        signers = it,
-                        addressType = addressType,
-                        isEscrow = normalizeWalletType == ESCROW
-                    )
+                .map {
+                    createWalletUseCase(
+                        CreateWalletUseCase.Params(
+                            name = walletName,
+                            totalRequireSigns = totalRequireSigns,
+                            signers = it,
+                            addressType = addressType,
+                            isEscrow = normalizeWalletType == ESCROW,
+                            decoyPin = decoyPin,
+                        )
+                    ).getOrThrow()
                 }
                 .flowOn(Dispatchers.Main)
                 .onException {
@@ -109,7 +118,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
         }.map {
             if (it.type == SignerType.NFC) {
                 val status = runBlocking { getTapSignerStatusByIdUseCase(it.id) }
-               return@map it.copy(cardId = status.getOrNull()?.ident.orEmpty())
+                return@map it.copy(cardId = status.getOrNull()?.ident.orEmpty())
             }
             return@map it
         }

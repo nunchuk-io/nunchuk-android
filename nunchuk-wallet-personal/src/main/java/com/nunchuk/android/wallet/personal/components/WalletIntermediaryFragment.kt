@@ -216,7 +216,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
     }
 
     private fun openCreateNewWalletScreen() {
-        navigator.openAddWalletScreen(requireContext(), false)
+        navigator.openAddWalletScreen(requireContext())
     }
 
     private fun openRecoverWalletScreen() {

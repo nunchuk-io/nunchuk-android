@@ -29,24 +29,27 @@ data class ConfigureWalletArgs(
     val walletName: String,
     val walletType: WalletType,
     val addressType: AddressType,
-    val isDecoyWallet: Boolean = false
+    val decoyPin: String = ""
 ) {
 
     fun buildBundle() = Bundle().apply {
         putString(EXTRA_WALLET_NAME, walletName)
         putSerializable(EXTRA_WALLET_TYPE, walletType)
         putSerializable(EXTRA_ADDRESS_TYPE, addressType)
+        putString(EXTRA_DECOY_PIN, decoyPin)
     }
 
     companion object {
         private const val EXTRA_WALLET_NAME = "EXTRA_WALLET_NAME"
         private const val EXTRA_WALLET_TYPE = "EXTRA_WALLET_TYPE"
         private const val EXTRA_ADDRESS_TYPE = "EXTRA_ADDRESS_TYPE"
+        private const val EXTRA_DECOY_PIN = "EXTRA_DECOY_PIN"
 
         fun deserializeFrom(intent: Intent): ConfigureWalletArgs = ConfigureWalletArgs(
             intent.extras?.getString(EXTRA_WALLET_NAME, "").orEmpty(),
             intent.serializable<WalletType>(EXTRA_WALLET_TYPE)!!,
-            intent.serializable<AddressType>(EXTRA_ADDRESS_TYPE)!!
+            intent.serializable<AddressType>(EXTRA_ADDRESS_TYPE)!!,
+            intent.extras?.getString(EXTRA_DECOY_PIN, "").orEmpty()
         )
     }
 }

@@ -44,8 +44,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
-    private val isDecoyWallet: Boolean by lazy(LazyThreadSafetyMode.NONE) {
-        intent.getBooleanExtra(DECOY_WALLET, false)
+    private val pin: String by lazy(LazyThreadSafetyMode.NONE) {
+        intent.getStringExtra(DECOY_PIN).orEmpty()
     }
     private val viewModel: AddWalletViewModel by viewModels()
 
@@ -140,7 +140,7 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
                     walletName = walletName,
                     walletType = walletType,
                     addressType = addressType,
-                    isDecoyWallet = isDecoyWallet
+                    decoyPin = pin
                 )
             )
         }
@@ -201,11 +201,11 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
 
     companion object {
         private const val MAX_LENGTH = 20
-        private const val DECOY_WALLET = "decoy_wallet"
+        private const val DECOY_PIN = "decoy_wallet"
 
-        fun start(activityContext: Context, isDecoyWallet: Boolean) {
+        fun start(activityContext: Context, decoyPin: String) {
             activityContext.startActivity(Intent(activityContext, AddWalletActivity::class.java).apply {
-                putExtra(DECOY_WALLET, isDecoyWallet)
+                putExtra(DECOY_PIN, decoyPin)
             })
         }
     }

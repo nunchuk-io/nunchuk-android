@@ -63,7 +63,6 @@ import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -370,14 +369,16 @@ internal class SetPassphraseViewModel @Inject constructor(
                     it
                 }
                 .flowOn(Dispatchers.IO)
-                .flatMapMerge {
-                    createWalletUseCase.execute(
-                        name = DEFAULT_WALLET_NAME,
-                        totalRequireSigns = 1,
-                        signers = it,
-                        addressType = addressType,
-                        isEscrow = false
-                    )
+                .map {
+                    createWalletUseCase(
+                        CreateWalletUseCase.Params(
+                            name = DEFAULT_WALLET_NAME,
+                            totalRequireSigns = 1,
+                            signers = it,
+                            addressType = addressType,
+                            isEscrow = false,
+                        )
+                    ).getOrThrow()
                 }
                 .flowOn(Dispatchers.Main)
                 .onException {
