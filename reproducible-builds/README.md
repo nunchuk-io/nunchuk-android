@@ -15,9 +15,9 @@ Before you begin, ensure you have the following installed:
 On the Nunchuk app, navigate to Profile > About. You should see the app version here:
 
 
-<img src="./media/version.png" width=400 height=400 />
+<img src="./media/version.png" width=400 height=370 />
 
-In the above example, the app version is 1.9.50. The commit tag to check out the source code will be android.1.9.50.
+In the above example, the app version is 1.9.51. The commit tag to check out the source code will be android.1.9.51.
 
 ### 2. Obtain the source code
 Open Terminal, run the commands:
@@ -27,7 +27,7 @@ git clone https://github.com/nunchuk-io/nunchuk-android $HOME/nunchuk-android
 cd $HOME/nunchuk-android
 git checkout android.{VERSION FROM STEP 1}
 # For our example, the command would be:
-git checkout android.1.9.50
+git checkout android.1.9.51
 ```
 
 ### 3. Build the app
@@ -73,9 +73,9 @@ After that the directory `$HOME/nunchuk-android/apks/built-apks` should now look
 ```
 apks/built-apks/
 ├── splits
-│   ├── base-arm64_v8a.apk
-│   ├── base-master.apk
-│   └── base-xxhdpi.apk
+│   ├── base-arm64_v8a.apk
+│   ├── base-master.apk
+│   └── base-xxhdpi.apk
 └── toc.pb
 ```
 > Note: The filenames in the example above that include arm64-v8a and xxhdpi may be different depending on your device. This is because the APKs contain code that's specific to your device's CPU architecture and screen density, and the files are named accordingly.
@@ -93,11 +93,11 @@ If everything went well, your directory structure should now look something like
 ```
 apks/
 ├── built-apks
-│   ├── splits
-│   │   ├── base-arm64_v8a.apk
-│   │   ├── base-master.apk
-│   │   └── base-xxhdpi.apk
-│   └── toc.pb
+│   ├── splits
+│   │   ├── base-arm64_v8a.apk
+│   │   ├── base-master.apk
+│   │   └── base-xxhdpi.apk
+│   └── toc.pb
 └── device-apks
     ├── base.apk
     ├── split_config.arm64_v8a.apk
@@ -132,17 +132,22 @@ cd $HOME/nunchuk-android/reproducible-builds
 ```
 
 ## Verifying nunchuk-android-nativesdk (Advanced)
-Our Android repository, `nunchuk-android`, uses `nunchuk-android-nativesdk` as a wrapper library to call functions from `libnunchuk`, a cross-platform C++ multisig library powered by Bitcoin Core. 
+Our Android repository, `nunchuk-android`, uses `nunchuk-android-nativesdk` as a wrapper library to call functions from `libnunchuk`, a cross-platform C++ multisig library powered by Bitcoin Core.
 
 We have prebuilt `nunchuk-android-nativesdk` in the repository [nunchuk-android-nativesdk-prebuild](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild). To build `nunchuk-android-nativesdk` yourself, you can follow these steps:
 
 ``` bash
+# Set up the repository
 git clone https://github.com/nunchuk-io/nunchuk-android-nativesdk $HOME/nunchuk-android-nativesdk
 cd $HOME/nunchuk-android-nativesdk
 git submodule add --force -b main https://github.com/nunchuk-io/libnunchuk.git src/main/native/libnunchuk
 git submodule update --init --recursive
-git checkout <version> # The version should match nunchuk-android-nativesdk-prebuild; 
-                       # it's defined in nunchuk-android/configs/dependencies.gradle
+
+# Get the nunchuk-android-nativesdk version used in nunchuk-android
+sdk_version=$(sed -n "s/.*prebuildNativeSdkVersion = '\([0-9.]*\)@aar'.*/\1/p" $HOME/nunchuk-android/configs/dependencies.gradle)
+git checkout $sdk_version
+
+# Build the SDK
 docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh arm64-v8a"
 docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh armeabi-v7a"
 docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android ./gradlew assembleArm8Release
@@ -167,8 +172,3 @@ If you're able to successfully build and retrieve all of the APKs yet some of th
 - Are you using the latest version of the Docker image? The Dockerfile can change on a version-by-version basis, and you should be re-building the image each time to make sure it hasn't changed.
 
 If you're having trouble even after building and pulling all the APKs correctly and trying the troubleshooting steps above, please [open an issue](https://github.com/nunchuk-io/nunchuk-android/issues/new/choose).
-
-## References
-1. https://github.com/signalapp/Signal-Android/tree/main/reproducible-builds
-2. https://core.telegram.org/reproducible-builds
-3. https://github.com/emanuelb
