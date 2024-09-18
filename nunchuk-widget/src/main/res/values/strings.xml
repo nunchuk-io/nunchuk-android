@@ -10,6 +10,7 @@
 
     <string name="nc_text_warning">Warning</string>
     <string name="nc_text_info">Info</string>
+    <string name="nc_text_processing">Processing</string>
     <string name="nc_text_yes">Yes</string>
     <string name="nc_text_no">No</string>
 

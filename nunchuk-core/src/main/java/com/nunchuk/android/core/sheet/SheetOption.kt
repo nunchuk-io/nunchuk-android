@@ -158,4 +158,5 @@ object SheetOptionType {
     const val TYPE_ROLL_OVER_ANOTHER_WALLET = 90
 
     const val TYPE_EXPORT_PORTAL = 88
+    const val TYPE_EXPORT_TX_INVOICES = 89
 }

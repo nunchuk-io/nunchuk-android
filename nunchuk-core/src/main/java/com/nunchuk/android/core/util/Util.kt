@@ -192,3 +192,6 @@ val String.isValidPathForAssistedWallet: Boolean
 val Long.formatMMMddyyyyDate: String
     get() = SimpleDateFormat("MMM dd, yyyy", Locale.US).format(Date(this))
 
+val Long.formatddMMMyyyyDate: String
+    get() = SimpleDateFormat("ddMMMyyyy", Locale.US).format(Date(this))
+

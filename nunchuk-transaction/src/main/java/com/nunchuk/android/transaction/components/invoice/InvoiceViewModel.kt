@@ -1,14 +1,18 @@
 package com.nunchuk.android.transaction.components.invoice
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
 import com.nunchuk.android.utils.BitmapUtil
+import com.nunchuk.android.utils.ExportInvoices
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +25,7 @@ import javax.inject.Inject
 class InvoiceViewModel @Inject constructor(
     private val saveBitmapToPDFUseCase: SaveBitmapToPDFUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<InvoiceEvent>()
@@ -50,6 +55,21 @@ class InvoiceViewModel @Inject constructor(
                 }
             }
         }
+
+    fun exportInvoice(invoiceInfo: InvoiceInfo, fileName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val event = createShareFileUseCase.execute("Transaction_$fileName.pdf")) {
+                is Result.Success -> {
+                    ExportInvoices(context = context).generatePDF(listOf(invoiceInfo), event.data)
+                    _event.emit(InvoiceEvent.ShareFile(event.data))
+                }
+
+                is Result.Error -> {
+                    _event.emit(InvoiceEvent.Error(event.exception.messageOrUnknownError()))
+                }
+            }
+        }
+    }
 }
 
 data class InvoiceState(

@@ -63,6 +63,7 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.truncatedAddress
+import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -103,7 +104,6 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.invoice.InvoiceActivity
-import com.nunchuk.android.transaction.components.invoice.InvoiceInfo
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
@@ -114,6 +114,7 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.simpleWeekDayYearFormat
+import com.nunchuk.android.utils.toInvoiceInfo
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -935,21 +936,7 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
 
     private fun getInvoiceInfo(): InvoiceInfo {
         val transaction = viewModel.getTransaction()
-        val coins = if (transaction.isReceive)
-            transaction.receiveOutputs else
-            transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
-        val txOutput = if (transaction.hasChangeIndex()) transaction.outputs[transaction.changeIndex] else null
-        return InvoiceInfo(
-            amountSent = transaction.totalAmount.getBTCAmount(),
-            confirmTime = if (args.isInheritanceClaimingFlow.not()) transaction.getFormatDate() else "",
-            transactionId = args.txId,
-            txOutputs = coins,
-            estimatedFee = if (!transaction.isReceive) transaction.fee.getBTCAmount() else "",
-            changeAddress = if (transaction.hasChangeIndex()) txOutput?.first.orEmpty() else "",
-            changeAddressAmount = if (transaction.hasChangeIndex()) txOutput?.second?.getBTCAmount().orEmpty() else "",
-            note = transaction.memo.ifEmpty { getString(R.string.nc_none) },
-            isReceive = transaction.isReceive,
-        )
+        return transaction.toInvoiceInfo(this, isInheritanceClaimingFlow = args.isInheritanceClaimingFlow)
     }
 
     companion object {

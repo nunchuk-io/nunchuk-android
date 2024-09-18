@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.wallet.components.config
 
+import android.content.Context
+import android.util.Log
 import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -34,8 +36,10 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
@@ -62,15 +66,19 @@ import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
 import com.nunchuk.android.usecase.membership.ImportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ImportTxCoinControlUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
+import com.nunchuk.android.utils.ExportInvoices
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -78,6 +86,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -105,6 +114,7 @@ internal class WalletConfigViewModel @Inject constructor(
     getContactsUseCase: GetContactsUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    @ApplicationContext private val context: Context,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
     private val walletId: String
@@ -113,10 +123,22 @@ internal class WalletConfigViewModel @Inject constructor(
     private val contacts = getContactsUseCase.execute()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private val _progressFlow = MutableStateFlow(0 to 0)
+    val progressFlow: StateFlow<Pair<Int, Int>> get() = _progressFlow
+
+    private val exportInvoices = ExportInvoices(context)
+
     init {
         getWalletDetails()
         getUserRole()
         getWalletAlias()
+
+        viewModelScope.launch {
+            exportInvoices.progressFlow.collect { progress ->
+                Log.e("exportInvoices", "progress: $progress")
+                _progressFlow.emit(progress)
+            }
+        }
     }
 
     private fun getWalletAlias() {
@@ -151,9 +173,7 @@ internal class WalletConfigViewModel @Inject constructor(
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect {
-                    if (isAssistedWallet() && it.walletExtended.wallet.balance.pureBTC() == 0.0) {
-                        getTransactionHistory()
-                    }
+                    getTransactionHistory()
                     updateState {
                         copy(
                             walletExtended = it.walletExtended,
@@ -297,10 +317,10 @@ internal class WalletConfigViewModel @Inject constructor(
         viewModelScope.launch {
             setEvent(WalletConfigEvent.Loading(true))
             getTransactionHistoryUseCase.execute(walletId).flowOn(Dispatchers.IO)
-                .collect { transations ->
+                .collect { transactions ->
                     setEvent(WalletConfigEvent.Loading(false))
-                    val isPendingTransactionExisting = transations.any { it.status.isPending() }
-                    updateState { copy(isShowDeleteAssistedWallet = isPendingTransactionExisting.not()) }
+                    val isPendingTransactionExisting = transactions.any { it.status.isPending() }
+                    updateState { copy(isShowDeleteAssistedWallet = isPendingTransactionExisting.not(), transactions = transactions) }
                 }
         }
     }
@@ -493,6 +513,23 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
+    fun exportInvoice(invoiceInfos: List<InvoiceInfo>, fileName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val event = createShareFileUseCase.execute("$fileName.pdf")) {
+                is Result.Success -> {
+                    exportInvoices.generatePDF(invoiceInfos, event.data)
+                    withContext(Dispatchers.Main) {
+                        setEvent(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
+                    }
+                }
+
+                is Result.Error -> {
+                    setEvent(WalletConfigEvent.WalletDetailsError(event.exception.message.orUnknownError()))
+                }
+            }
+        }
+    }
+
     private fun isPrimaryKey(id: String) =
         accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
 
@@ -518,10 +555,14 @@ internal class WalletConfigViewModel @Inject constructor(
         return getState().role.toRole
     }
 
+    fun getWalletName() = getState().walletExtended.wallet.name
+
     fun isEditableWalletName() =
         getGroupId().isNullOrEmpty() || getState().role.toRole == AssistedWalletRole.MASTER
 
     fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup
+
+    fun getTransactions() = getState().transactions
 
     override val initialState: WalletConfigState
         get() = WalletConfigState()

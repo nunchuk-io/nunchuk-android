@@ -26,6 +26,7 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
@@ -39,13 +40,16 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.RollOverWalletSource
+import com.nunchuk.android.core.util.formatddMMMyyyyDate
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
+import com.nunchuk.android.core.util.upperCase
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
+import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
@@ -54,6 +58,7 @@ import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
+import com.nunchuk.android.utils.toInvoiceInfo
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.alias.AliasActivity
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
@@ -65,11 +70,13 @@ import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCProgressDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBinding>() {
@@ -115,6 +122,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
         }
 
+    private lateinit var ncProgressDialog: NCProgressDialog
+
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 
     override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater)
@@ -142,6 +151,18 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
             supportFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
         }
+
+        lifecycleScope.launch {
+            viewModel.progressFlow.collect { (current, total) ->
+                if (current == 0 || total == 0) {
+                    return@collect
+                }
+                when (current) {
+                    total -> ncProgressDialog.dialog?.dismiss()
+                    else -> ncProgressDialog.updateProgress(current, total)
+                }
+            }
+        }
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -158,6 +179,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 activity = this,
                 args = PortalDeviceArgs(walletId = args.walletId, type = PortalDeviceFlow.EXPORT)
             )
+
             SheetOptionType.TYPE_IMPORT_TX_COIN_CONTROL -> showImportFormatOption()
             SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL -> showExportFormatOption()
             SheetOptionType.TYPE_EXPORT_NUNCHUK -> viewModel.exportCoinControlNunchuk()
@@ -220,6 +242,20 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     )
                 }
             }
+
+            SheetOptionType.TYPE_EXPORT_TX_INVOICES -> {
+                ncProgressDialog = NCProgressDialog(activity = this@WalletConfigActivity)
+                ncProgressDialog.showDialog(
+                    currentStep = 1,
+                    totalSteps = viewModel.getTransactions().size,
+                )
+                viewModel.exportInvoice(
+                    viewModel.getTransactions().map { it.toInvoiceInfo(this, false) },
+                    "${viewModel.getWalletName()}_transaction_history_${
+                        System.currentTimeMillis().formatddMMMyyyyDate.upperCase()
+                    }"
+                )
+            }
         }
     }
 
@@ -261,7 +297,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         } else if (viewModel.isHotWalletNeedBackup()) {
             NCInfoDialog(this).showDialog(
                 message = getString(R.string.nc_delete_hot_wallet_need_backup),
-                onYesClick = {  }
+                onYesClick = { }
             )
         } else {
             NCDeleteConfirmationDialog(this).showDialog(
@@ -487,6 +523,18 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     R.string.nc_configure_gap_limit
                 )
             )
+            if (viewModel.getRole().isKeyHolderLimited.not() &&
+                viewModel.getRole().isFacilitatorAdmin.not() &&
+                viewModel.getTransactions().isEmpty().not()
+            ) {
+                options.add(
+                    2, SheetOption(
+                        SheetOptionType.TYPE_EXPORT_TX_INVOICES,
+                        R.drawable.ic_export_invoices,
+                        R.string.nc_export_transaction_invoices
+                    )
+                )
+            }
             if (viewModel.getRole().isMasterOrAdmin) {
                 options.add(
                     SheetOption(
@@ -497,24 +545,26 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             }
 
-        if (!viewModel.isReplacedOrLocked()) {
-            options.add(
-                SheetOption(
-                    SheetOptionType.TYPE_REPLACE_KEY,
-                    R.drawable.ic_hardware_key,
-                    R.string.nc_replace_keys
-                )
-            )
-            if (viewModel.getRole().isKeyHolderWithoutKeyHolderLimited || viewModel.getGroupId().isNullOrEmpty()) {
+            if (!viewModel.isReplacedOrLocked()) {
                 options.add(
                     SheetOption(
-                        SheetOptionType.TYPE_ROLL_OVER_ANOTHER_WALLET,
-                        R.drawable.ic_wallet_info,
-                        R.string.nc_roll_funds_over_another_wallet
+                        SheetOptionType.TYPE_REPLACE_KEY,
+                        R.drawable.ic_hardware_key,
+                        R.string.nc_replace_keys
                     )
                 )
+                if (viewModel.getRole().isKeyHolderWithoutKeyHolderLimited || viewModel.getGroupId()
+                        .isNullOrEmpty()
+                ) {
+                    options.add(
+                        SheetOption(
+                            SheetOptionType.TYPE_ROLL_OVER_ANOTHER_WALLET,
+                            R.drawable.ic_wallet_info,
+                            R.string.nc_roll_funds_over_another_wallet
+                        )
+                    )
+                }
             }
-        }
 
             if (viewModel.isShowDeleteWallet()) {
                 options.add(

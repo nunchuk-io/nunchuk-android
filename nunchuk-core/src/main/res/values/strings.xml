@@ -665,6 +665,7 @@
     <string name="nc_import_completed">Import completed</string>
     <string name="nc_export_labels">Export labels</string>
     <string name="nc_import_labels">Import labels</string>
+    <string name="nc_export_transaction_invoices">Export transaction invoices</string>
     <string name="nc_nunchuk">Nunchuk</string>
     <string name="nc_bip329">BIP329</string>
     <string name="nc_select_import_format">Select the import format</string>
@@ -772,4 +773,8 @@
     <string name="nc_email_address_already_associated_referral_link">This email address already has an associated referral link. Do you want to reuse it?</string>
     <string name="nc_use_another_email">Use another email</string>
     <string name="nc_transaction_invalid_address">Invalid address</string>
+    <string name="nc_amount_sent">Amount sent</string>
+    <string name="nc_amount_receive">Amount receive</string>
+    <string name="nc_transaction_id">Transaction ID</string>
+    <string name="nc_transaction_fee">Transaction fee</string>
 </resources>

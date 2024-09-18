@@ -29,7 +29,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -50,8 +49,10 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.utils.ExportInvoices
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import dev.shreyaspatil.capturable.capturable
@@ -85,10 +86,7 @@ class InvoiceFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 InvoiceScreen(viewModel, invoiceInfo) { bitmaps ->
-                    viewModel.saveBitmapToPDF(
-                        bitmaps.map { it.asAndroidBitmap() },
-                        invoiceInfo.transactionId
-                    )
+                    viewModel.exportInvoice(invoiceInfo, invoiceInfo.transactionId)
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.nunchuk.android.transaction.components.invoice
+package com.nunchuk.android.core.wallet
 
 import android.os.Parcelable
 import com.nunchuk.android.model.TxOutput

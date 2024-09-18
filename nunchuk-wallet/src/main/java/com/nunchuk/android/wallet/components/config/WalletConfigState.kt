@@ -20,6 +20,7 @@
 package com.nunchuk.android.wallet.components.config
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 
@@ -31,4 +32,5 @@ data class WalletConfigState(
     val isShowDeleteAssistedWallet: Boolean = false,
     val role: String = AssistedWalletRole.NONE.name,
     val alias: String = "",
+    val transactions: List<Transaction> = emptyList(),
 )
