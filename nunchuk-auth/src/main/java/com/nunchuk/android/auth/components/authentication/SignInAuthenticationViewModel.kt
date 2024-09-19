@@ -22,8 +22,6 @@ package com.nunchuk.android.auth.components.authentication
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
-import android.os.Bundle
-import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -42,7 +40,6 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.byzantine.SignInDummyTransactionUpdate
 import com.nunchuk.android.share.InitNunchukUseCase
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
@@ -304,7 +301,7 @@ class SignInAuthenticationViewModel @Inject constructor(
 
     private suspend fun initNunchuk() {
         val account = accountManager.getAccount()
-        return initNunchukUseCase(InitNunchukUseCase.Param(accountId = account.email)).getOrThrow()
+        initNunchukUseCase(InitNunchukUseCase.Param(accountId = account.email)).getOrThrow()
     }
 
     fun getInteractSingleSigner() = _state.value.interactSignerModel

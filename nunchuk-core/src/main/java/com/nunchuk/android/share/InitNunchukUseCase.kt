@@ -46,11 +46,11 @@ class InitNunchukUseCase @Inject constructor(
     private val deviceManager: DeviceManager,
     private val sessionHolder: SessionHolder,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : UseCase<InitNunchukUseCase.Param, Unit>(ioDispatcher) {
+) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
     private var lastParam : Param? = null
 
-    override suspend fun execute(parameters: Param) {
-        if (parameters == lastParam) return
+    override suspend fun execute(parameters: Param) : Boolean {
+        if (parameters == lastParam) return false
         lastParam = parameters
         val settings = getAppSettingUseCase(Unit).getOrThrow()
         initNunchuk(
@@ -60,6 +60,7 @@ class InitNunchukUseCase @Inject constructor(
             deviceId = deviceManager.getDeviceId(),
             decoyPin = parameters.decoyPin
         )
+        return true
     }
 
     private fun initNunchuk(

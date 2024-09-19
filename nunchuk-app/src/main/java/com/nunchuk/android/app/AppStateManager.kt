@@ -1,6 +1,7 @@
 package com.nunchuk.android.app
 
 import android.content.Intent
+import android.os.SystemClock
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.nunchuk.android.app.splash.SplashActivity
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
@@ -40,7 +42,9 @@ class AppStateManager @Inject constructor(
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
         AppEvenBus.instance.publish(AppEvent.AppResumedEvent)
-        if (pin.value.isNotEmpty() && System.currentTimeMillis() - lastCloseApp.value > 5.seconds.inWholeMilliseconds) {
+        Timber.d("lastCloseApp: ${lastCloseApp.value}")
+        Timber.d("current time: ${SystemClock.elapsedRealtime()}")
+        if (pin.value.isNotEmpty() && SystemClock.elapsedRealtime() - lastCloseApp.value > 5.seconds.inWholeMilliseconds) {
             ActivityManager.peek()?.let { topActivity ->
                 if (topActivity !is SplashActivity) {
                     // ignore splash activity
@@ -58,7 +62,9 @@ class AppStateManager @Inject constructor(
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
         applicationScope.launch {
-            setLastCloseAppUseCase(System.currentTimeMillis())
+            val time = SystemClock.elapsedRealtime()
+            Timber.d("setLastCloseAppUseCase: $time")
+            setLastCloseAppUseCase(time)
         }
     }
 }

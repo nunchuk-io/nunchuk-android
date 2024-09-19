@@ -42,12 +42,17 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class UnlockPinFragment : Fragment() {
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val args: UnlockPinFragmentArgs by navArgs()
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,14 +62,25 @@ class UnlockPinFragment : Fragment() {
         val viewModel = viewModel<UnlockPinViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
 
-        LaunchedEffect(state.isSuccess) {
-            if (state.isSuccess) {
-                if (args.isRemovePin) {
-                    showSuccess("PIN has been turned off")
-                    findNavController().popBackStack()
-                } else {
-                    requireActivity().finish()
+        LaunchedEffect(state.event) {
+            val event = state.event
+            if (event != null) {
+                when (event) {
+                    UnlockPinEvent.PinMatched -> {
+                        if (args.isRemovePin) {
+                            showSuccess("PIN has been turned off")
+                            findNavController().popBackStack()
+                        } else {
+                            requireActivity().finish()
+                        }
+                    }
+
+                    UnlockPinEvent.GoToMain -> navigator.openMainScreen(
+                        activityContext = requireActivity(),
+                        isClearTask = true
+                    )
                 }
+                viewModel.markEventHandled()
             }
         }
 

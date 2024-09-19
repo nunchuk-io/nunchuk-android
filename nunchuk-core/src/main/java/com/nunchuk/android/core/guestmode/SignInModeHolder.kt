@@ -36,9 +36,11 @@ class SignInModeHolder @Inject constructor(private val accountManager: AccountMa
                 SignInMode.UNKNOWN.value, SignInMode.EMAIL.value -> {
                     setCurrentMode(SignInMode.EMAIL)
                 }
+
                 SignInMode.PRIMARY_KEY.value -> {
                     setCurrentMode(SignInMode.PRIMARY_KEY)
                 }
+
                 SignInMode.GUEST_MODE.value -> {
                     setCurrentMode(SignInMode.GUEST_MODE)
                 }
@@ -51,14 +53,12 @@ class SignInModeHolder @Inject constructor(private val accountManager: AccountMa
     fun getCurrentMode(): SignInMode = currentMode
 
     fun setCurrentMode(mode: SignInMode) {
-        if (currentMode.isGuestMode().not() && mode != currentMode) {
-            val loginType = accountManager.loginType()
-            if (loginType != currentMode.value) {
-                val account = accountManager.getAccount()
-                accountManager.storeAccount(account.copy(loginType = currentMode.value))
-            }
-        }
         currentMode = mode
+        val loginType = accountManager.loginType()
+        if (loginType != currentMode.value) {
+            val account = accountManager.getAccount()
+            accountManager.storeAccount(account.copy(loginType = currentMode.value))
+        }
     }
 
     fun clear() {

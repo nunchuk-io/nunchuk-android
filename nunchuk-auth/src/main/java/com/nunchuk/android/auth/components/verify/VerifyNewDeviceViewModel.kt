@@ -104,6 +104,6 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
 
     private suspend fun initNunchuk() {
         val account = accountManager.getAccount()
-        return initNunchukUseCase(InitNunchukUseCase.Param(accountId = account.email)).getOrThrow()
+        initNunchukUseCase(InitNunchukUseCase.Param(accountId = account.email)).getOrThrow()
     }
 }

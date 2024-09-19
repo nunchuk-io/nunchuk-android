@@ -46,17 +46,17 @@ class UnlockPinViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getWalletSecuritySettingUseCase(Unit)
-                .map { it.getOrDefault(WalletSecuritySetting()) }
-                .collect { settings ->
-                    _state.update { it.copy(walletSecuritySetting = settings) }
-                }
-        }
-        viewModelScope.launch {
             getWalletPinUseCase(Unit)
                 .map { it.getOrDefault("") }
                 .collect { pin ->
                     walletPin = pin
+                }
+        }
+        viewModelScope.launch {
+            getWalletSecuritySettingUseCase(Unit)
+                .map { it.getOrDefault(WalletSecuritySetting()) }
+                .collect { settings ->
+                    _state.update { it.copy(walletSecuritySetting = settings) }
                 }
         }
     }
@@ -66,7 +66,7 @@ class UnlockPinViewModel @Inject constructor(
             checkPin(currentPin) {
                 createOrUpdateWalletPinUseCase("")
                     .onSuccess {
-                        _state.update { it.copy(isSuccess = true) }
+                        _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
                     }
             }
         }
@@ -85,9 +85,14 @@ class UnlockPinViewModel @Inject constructor(
                             accountId = "",
                             decoyPin = pin
                         )
-                    )
-                    signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                    _state.update { it.copy(isSuccess = true) }
+                    ).onSuccess { replaced ->
+                        signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
+                        if (replaced) {
+                            _state.update { it.copy(event = UnlockPinEvent.GoToMain) }
+                        } else {
+                            _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
+                        }
+                    }
                 } else {
                     checkPin(pin) {
                         val account = accountManager.getAccount()
@@ -96,10 +101,12 @@ class UnlockPinViewModel @Inject constructor(
                         } else {
                             account.email
                         }
-                        val mode = SignInMode.entries.find { it.value == account.loginType } ?: SignInMode.GUEST_MODE
+                        val mode = SignInMode.entries.find { it.value == account.loginType }
+                            ?.takeIf { it != SignInMode.UNKNOWN }
+                            ?: SignInMode.GUEST_MODE
                         signInModeHolder.setCurrentMode(mode)
                         initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId))
-                        _state.update { it.copy(isSuccess = true) }
+                        _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
                     }
                 }
             } else if (isWalletPasswordEnabled()) {
@@ -120,7 +127,7 @@ class UnlockPinViewModel @Inject constructor(
                     password = password, targetAction = TargetAction.PROTECT_WALLET.name
                 )
             ).onSuccess {
-                _state.update { it.copy(isSuccess = true) }
+                _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
             }.onFailure {
                 _state.update { it.copy(isFailed = true, attemptCount = it.attemptCount.inc()) }
             }
@@ -134,7 +141,7 @@ class UnlockPinViewModel @Inject constructor(
             }
             verifiedPKeyTokenUseCase(passphrase)
                 .onSuccess {
-                    _state.update { it.copy(isSuccess = true) }
+                    _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
                 }.onFailure {
                     _state.update { it.copy(isFailed = true, attemptCount = it.attemptCount.inc()) }
                 }
@@ -161,6 +168,10 @@ class UnlockPinViewModel @Inject constructor(
         }
     }
 
+    fun markEventHandled() {
+        _state.update { it.copy(event = null) }
+    }
+
     private fun isWalletPasswordEnabled() =
         signInModeHolder.getCurrentMode() == SignInMode.EMAIL && state.value.walletSecuritySetting.protectWalletPassword
 
@@ -171,7 +182,7 @@ class UnlockPinViewModel @Inject constructor(
 data class UnlockPinUiState(
     val isFailed: Boolean = false,
     val attemptCount: Int = 0,
-    val isSuccess: Boolean = false,
+    val event: UnlockPinEvent? = null,
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting()
 )
 
