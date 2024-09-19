@@ -37,7 +37,9 @@ import com.nunchuk.android.utils.DeviceManager
 import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class InitNunchukUseCase @Inject constructor(
     private val getAppSettingUseCase: GetAppSettingUseCase,
     private val nativeSdk: NunchukNativeSdk,
@@ -45,8 +47,11 @@ class InitNunchukUseCase @Inject constructor(
     private val sessionHolder: SessionHolder,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<InitNunchukUseCase.Param, Unit>(ioDispatcher) {
+    private var lastParam : Param? = null
 
     override suspend fun execute(parameters: Param) {
+        if (parameters == lastParam) return
+        lastParam = parameters
         val settings = getAppSettingUseCase(Unit).getOrThrow()
         initNunchuk(
             appSettings = settings,

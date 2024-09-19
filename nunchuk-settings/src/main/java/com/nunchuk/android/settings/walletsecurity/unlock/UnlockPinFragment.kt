@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -135,12 +138,12 @@ fun UnlockPinContent(
                 )
 
                 Text(
-                    text = "Enter your PIN",
+                    text = stringResource(id = R.string.nc_enter_your_pin),
                     style = NunchukTheme.typography.heading,
                 )
 
                 Text(
-                    text = "To continue, please enter your PIN.",
+                    text = stringResource(R.string.nc_to_continue_please_enter_your_pin),
                     style = NunchukTheme.typography.body,
                 )
 
@@ -148,6 +151,10 @@ fun UnlockPinContent(
                     modifier = Modifier.focusRequester(focusRequester),
                     title = "",
                     value = pin,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.NumberPassword,
+                        imeAction = ImeAction.Done
+                    ),
                     hasError = state.isFailed,
                 ) {
                     pin = it

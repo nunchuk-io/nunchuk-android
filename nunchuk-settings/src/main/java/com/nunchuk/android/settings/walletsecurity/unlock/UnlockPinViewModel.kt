@@ -2,15 +2,21 @@ package com.nunchuk.android.settings.walletsecurity.unlock
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
+import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
+import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,10 +32,18 @@ class UnlockPinViewModel @Inject constructor(
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val signInModeHolder: SignInModeHolder,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-    private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase
+    private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
+    private val getWalletPinUseCase: GetWalletPinUseCase,
+    private val decoyPinExistUseCase: DecoyPinExistUseCase,
+    private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
+    private val sendSignOutUseCase: SendSignOutUseCase,
+    private val initNunchukUseCase: InitNunchukUseCase,
+    private val accountManager: AccountManager
 ) : ViewModel() {
     private val _state = MutableStateFlow(UnlockPinUiState())
     val state = _state.asStateFlow()
+    private var walletPin: String = ""
+
     init {
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
@@ -38,30 +52,65 @@ class UnlockPinViewModel @Inject constructor(
                     _state.update { it.copy(walletSecuritySetting = settings) }
                 }
         }
-    }
-
-    fun removePin(currentPin: String) {
-        checkPin(currentPin) {
-            createOrUpdateWalletPinUseCase("")
-                .onSuccess {
-                    _state.update { it.copy(isSuccess = true) }
+        viewModelScope.launch {
+            getWalletPinUseCase(Unit)
+                .map { it.getOrDefault("") }
+                .collect { pin ->
+                    walletPin = pin
                 }
         }
     }
 
-    fun unlockPin(pin: String) {
-        if (isWalletPasswordEnabled()) {
-            confirmPassword(pin)
-        } else if (isWalletPassphraseEnabled()) {
-            confirmPassphrase(pin)
-        } else {
-            checkPin(pin) {
-                _state.update { it.copy(isSuccess = true) }
+    fun removePin(currentPin: String) {
+        viewModelScope.launch {
+            checkPin(currentPin) {
+                createOrUpdateWalletPinUseCase("")
+                    .onSuccess {
+                        _state.update { it.copy(isSuccess = true) }
+                    }
             }
         }
     }
 
-    fun confirmPassword(password: String) =
+    fun unlockPin(pin: String) {
+        viewModelScope.launch {
+            if (walletPin.isNotEmpty()) {
+                if (decoyPinExistUseCase(pin).getOrElse { false }) {
+                    signInModeHolder.clear()
+                    clearInfoSessionUseCase(Unit)
+                    sendSignOutUseCase(Unit)
+                    initNunchukUseCase(
+                        InitNunchukUseCase.Param(
+                            passphrase = "",
+                            accountId = "",
+                            decoyPin = pin
+                        )
+                    )
+                    signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
+                    _state.update { it.copy(isSuccess = true) }
+                } else {
+                    checkPin(pin) {
+                        val account = accountManager.getAccount()
+                        val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
+                            account.username
+                        } else {
+                            account.email
+                        }
+                        val mode = SignInMode.entries.find { it.value == account.loginType } ?: SignInMode.GUEST_MODE
+                        signInModeHolder.setCurrentMode(mode)
+                        initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId))
+                        _state.update { it.copy(isSuccess = true) }
+                    }
+                }
+            } else if (isWalletPasswordEnabled()) {
+                confirmPassword(pin)
+            } else if (isWalletPassphraseEnabled()) {
+                confirmPassphrase(pin)
+            }
+        }
+    }
+
+    suspend fun confirmPassword(password: String) =
         viewModelScope.launch {
             if (password.isBlank()) {
                 return@launch
@@ -78,7 +127,7 @@ class UnlockPinViewModel @Inject constructor(
         }
 
 
-    fun confirmPassphrase(passphrase: String) =
+    private suspend fun confirmPassphrase(passphrase: String) =
         viewModelScope.launch {
             if (passphrase.isBlank()) {
                 return@launch
@@ -91,7 +140,7 @@ class UnlockPinViewModel @Inject constructor(
                 }
         }
 
-    private fun checkPin(pin: String, onSuccess: suspend () -> Unit) {
+    private suspend fun checkPin(pin: String, onSuccess: suspend () -> Unit) {
         viewModelScope.launch {
             _state.update { it.copy(isFailed = false) }
             checkWalletPinUseCase(pin)
@@ -125,3 +174,8 @@ data class UnlockPinUiState(
     val isSuccess: Boolean = false,
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting()
 )
+
+sealed class UnlockPinEvent {
+    data object GoToMain : UnlockPinEvent()
+    data object PinMatched : UnlockPinEvent()
+}

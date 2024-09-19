@@ -36,7 +36,6 @@ class NcEncryptedPreferences @Inject constructor(
     context: Context,
     private val accountManager: AccountManager
 ) {
-
     private val prefs = EncryptedSharedPreferences.create(
         context,
         APP_SHARE_PREFERENCE_NAME,
@@ -46,6 +45,18 @@ class NcEncryptedPreferences @Inject constructor(
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
+    private val walletPinFlow: MutableStateFlow<String> = MutableStateFlow(getWalletPin())
+
+    init {
+        val oldPin = getLegacyWalletPin()
+        if (oldPin.isNotEmpty() && walletPinFlow.value.isEmpty()) {
+            setWalletPin(oldPin)
+            prefs.edit {
+                remove(getWalletPinKey())
+            }
+            walletPinFlow.value = oldPin
+        }
+    }
 
     private fun getUserId(): String {
         return accountManager.getAccount().chatId
@@ -53,13 +64,13 @@ class NcEncryptedPreferences @Inject constructor(
 
     private fun getWalletPinKey() = "$SP_WALLET_PIN-${getUserId()}"
 
-    private fun getWalletPin(): String = prefs.getString(getWalletPinKey(), "").orEmpty()
+    private fun getLegacyWalletPin(): String = prefs.getString(getWalletPinKey(), "").orEmpty()
 
-    private val walletPinFlow: MutableStateFlow<String> = MutableStateFlow(getWalletPin())
+    private fun getWalletPin(): String = prefs.getString(SP_WALLET_PIN, "").orEmpty()
 
     fun setWalletPin(value: String) {
         prefs.edit {
-            putString(getWalletPinKey(), value)
+            putString(SP_WALLET_PIN, value)
             apply()
         }
         walletPinFlow.value = value

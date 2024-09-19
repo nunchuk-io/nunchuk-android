@@ -51,14 +51,14 @@ class SignInModeHolder @Inject constructor(private val accountManager: AccountMa
     fun getCurrentMode(): SignInMode = currentMode
 
     fun setCurrentMode(mode: SignInMode) {
-        currentMode = mode
-        if (currentMode.isGuestMode().not()) {
+        if (currentMode.isGuestMode().not() && mode != currentMode) {
             val loginType = accountManager.loginType()
             if (loginType != currentMode.value) {
                 val account = accountManager.getAccount()
                 accountManager.storeAccount(account.copy(loginType = currentMode.value))
             }
         }
+        currentMode = mode
     }
 
     fun clear() {
@@ -67,7 +67,7 @@ class SignInModeHolder @Inject constructor(private val accountManager: AccountMa
 }
 
 enum class SignInMode(val value: Int) {
-    UNKNOWN(-1), EMAIL(0), PRIMARY_KEY(1), GUEST_MODE(2);
+    UNKNOWN(-1), EMAIL(0), PRIMARY_KEY(1), GUEST_MODE(2)
 }
 
 fun SignInMode.isGuestMode() = this == SignInMode.GUEST_MODE
