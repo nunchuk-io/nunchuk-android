@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -115,7 +116,7 @@ fun PinStatusContent(
         NcScaffold(
             topBar = {
                 NcTopAppBar(
-                    title = "Protect app with a PIN",
+                    title = stringResource(R.string.nc_protect_app_with_pin),
                     textStyle = NunchukTheme.typography.titleLarge
                 )
             }
@@ -135,7 +136,7 @@ fun PinStatusContent(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(text = "Protect app with a PIN", style = NunchukTheme.typography.body)
+                    Text(text = stringResource(R.string.nc_protect_app_with_pin), style = NunchukTheme.typography.body)
 
                     Switch(checked = isEnable, onCheckedChange = onEnablePinChange)
                 }

@@ -129,6 +129,8 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 NCWarningDialog(requireActivity()).showDialog(
                     title = getString(R.string.nc_text_confirmation),
                     message = getString(R.string.nc_disable_pin_warning),
+                    btnNo = getString(R.string.nc_cancel),
+                    btnYes = getString(R.string.nc_text_continue),
                     onYesClick = {
                         lifecycleScope.launch {
                             viewModel.updateProtectWalletPin(false).join()
@@ -147,6 +149,8 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 NCWarningDialog(requireActivity()).showDialog(
                     title = getString(R.string.nc_text_confirmation),
                     message = getString(R.string.nc_disable_pin_warning),
+                    btnNo = getString(R.string.nc_cancel),
+                    btnYes = getString(R.string.nc_text_continue),
                     onYesClick = {
                         lifecycleScope.launch {
                             viewModel.updateProtectWalletPin(false).join()
