@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.minutes
 
 class AppStateManager @Inject constructor(
     private val applicationScope: CoroutineScope,
@@ -44,7 +44,7 @@ class AppStateManager @Inject constructor(
         AppEvenBus.instance.publish(AppEvent.AppResumedEvent)
         Timber.d("lastCloseApp: ${lastCloseApp.value}")
         Timber.d("current time: ${SystemClock.elapsedRealtime()}")
-        if (pin.value.isNotEmpty() && SystemClock.elapsedRealtime() - lastCloseApp.value > 5.seconds.inWholeMilliseconds) {
+        if (pin.value.isNotEmpty() && SystemClock.elapsedRealtime() - lastCloseApp.value > 5.minutes.inWholeMilliseconds) {
             ActivityManager.peek()?.let { topActivity ->
                 if (topActivity !is SplashActivity) {
                     // ignore splash activity

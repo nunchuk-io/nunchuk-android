@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -74,6 +75,7 @@ class UnlockPinViewModel @Inject constructor(
 
     fun unlockPin(pin: String) {
         viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
             if (walletPin.isNotEmpty()) {
                 if (decoyPinExistUseCase(pin).getOrElse { false }) {
                     signInModeHolder.clear()
@@ -86,12 +88,15 @@ class UnlockPinViewModel @Inject constructor(
                             decoyPin = pin
                         )
                     ).onSuccess { replaced ->
+                        Timber.d("unlockPin: replaced $replaced")
                         signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
                         if (replaced) {
                             _state.update { it.copy(event = UnlockPinEvent.GoToMain) }
                         } else {
                             _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
                         }
+                    }.onFailure {
+                        Timber.e("unlockPin failed: $it")
                     }
                 } else {
                     checkPin(pin) {
@@ -114,6 +119,7 @@ class UnlockPinViewModel @Inject constructor(
             } else if (isWalletPassphraseEnabled()) {
                 confirmPassphrase(pin)
             }
+            _state.update { it.copy(isLoading = false) }
         }
     }
 
@@ -180,6 +186,7 @@ class UnlockPinViewModel @Inject constructor(
 }
 
 data class UnlockPinUiState(
+    val isLoading: Boolean = false,
     val isFailed: Boolean = false,
     val attemptCount: Int = 0,
     val event: UnlockPinEvent? = null,

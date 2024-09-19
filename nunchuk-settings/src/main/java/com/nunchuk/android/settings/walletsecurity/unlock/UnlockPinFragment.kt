@@ -41,6 +41,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
@@ -61,6 +62,10 @@ class UnlockPinFragment : Fragment() {
     ) = content {
         val viewModel = viewModel<UnlockPinViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
+
+        if (state.isLoading) {
+            NcLoadingDialog()
+        }
 
         LaunchedEffect(state.event) {
             val event = state.event

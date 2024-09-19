@@ -37,6 +37,7 @@ import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
+import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
@@ -55,12 +56,14 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -79,6 +82,7 @@ internal class SignInViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
     private val savedStateHandle: SavedStateHandle,
+    private val getWalletPinUseCase: GetWalletPinUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()
@@ -91,6 +95,10 @@ internal class SignInViewModel @Inject constructor(
 
     private var token: String? = null
     private var encryptedDeviceId: String? = null
+
+    val walletPinEnable = getWalletPinUseCase(Unit).map { it.getOrDefault("") }
+        .map { it.isNotBlank() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         if (type != SignInType.EMAIL) {
