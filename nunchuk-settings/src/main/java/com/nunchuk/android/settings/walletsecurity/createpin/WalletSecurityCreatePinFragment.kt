@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -194,6 +195,15 @@ private fun WalletSecurityCreatePinContent(
                         style = NunchukTheme.typography.body
                     )
                 }
+
+                Text(
+                    modifier = Modifier.padding(top = 12.dp),
+                    text = stringResource(R.string.nc_there_is_no_forgot_pin_feature),
+                    style = NunchukTheme.typography.body.copy(
+                        color = colorResource(R.color.nc_beeswax_dark)
+                    ),
+                )
+
                 inputTitleArray.forEachIndexed { index, title ->
                     NcPasswordTextField(
                         modifier = Modifier
