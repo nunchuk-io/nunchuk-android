@@ -772,9 +772,19 @@
     <string name="nc_enter_device_password">Enter device password</string>
     <string name="nc_email_address_already_associated_referral_link">This email address already has an associated referral link. Do you want to reuse it?</string>
     <string name="nc_use_another_email">Use another email</string>
+    <string name="nc_dismiss_referral_from_home_page">You can always find your referral link in the Profile tab if you want to invite friends later.</string>
     <string name="nc_transaction_invalid_address">Invalid address</string>
     <string name="nc_amount_sent">Amount sent</string>
     <string name="nc_amount_receive">Amount receive</string>
     <string name="nc_transaction_id">Transaction ID</string>
     <string name="nc_transaction_fee">Transaction fee</string>
+    <string name="nc_dismiss_from_home_screen">Dismiss from home screen</string>
+    <string name="nc_copy">Copy</string>
+    <string name="nc_referrer_email">Referrer email</string>
+    <string name="nc_your_email">Your email</string>
+    <string name="nc_invite_friends">Invite Friends</string>
+    <string name="nc_generate_referral_link">Generate referral link</string>
+    <string name="nc_receive_reward_via">Receive reward via</string>
+    <string name="nc_address_change_successfully">Address change successful.</string>
+    <string name="nc_we_send_email_confirm_reward_address">We\'ll send you an email to confirm (or change) the reward address each time there\'s a successful referral.</string>
 </resources>

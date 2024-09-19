@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -33,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +56,7 @@ import com.nunchuk.android.app.referral.confirmationcode.REFERRAL_CONFIRMATION_C
 import com.nunchuk.android.app.referral.simplifyAddress
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcToastType
@@ -150,11 +155,15 @@ fun NavGraphBuilder.referralInviteFriend(
             },
             onShowNoInternetDialogConsumed = {
                 viewModel.onShowNoInternetDialogConsumed()
-            }
+            },
+            onDismissCampaign = {
+                viewModel.dismissCampaign()
+            },
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReferralInviteFriendScreen(
     modifier: Modifier = Modifier,
@@ -174,8 +183,11 @@ fun ReferralInviteFriendScreen(
     onChangeReceiveAddress: (ConfirmationCodeResultData) -> Unit = {},
     onPickReceiveAddressResult: (ConfirmationCodeResultData) -> Unit = {},
     onShareLink: (Boolean, String) -> Unit = { _, _ -> },
+    onDismissCampaign: () -> Unit = {},
 ) {
     var email by remember { mutableStateOf(state.localReferrerCode?.email.orEmpty()) }
+    var showDismissCampaignSheet by remember { mutableStateOf(false) }
+    var showDismissCampaignDialog by remember { mutableStateOf(false) }
 
     val context = LocalLifecycleOwner.current
 
@@ -213,9 +225,23 @@ fun ReferralInviteFriendScreen(
         snackState = snackState,
         topBar = {
             NcTopAppBar(
-                title = "Invite Friends",
+                title = stringResource(R.string.nc_invite_friends),
                 isBack = false,
-                textStyle = NunchukTheme.typography.titleLarge
+                textStyle = NunchukTheme.typography.titleLarge,
+                actions = {
+                    if (state.campaign?.dismissible == true && state.campaign.isDismissed.not()) {
+                        IconButton(onClick = {
+                            showDismissCampaignSheet = true
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                    }
+                }
             )
         },
         bottomBar = {
@@ -236,7 +262,7 @@ fun ReferralInviteFriendScreen(
                         onGenerateReferralLink(email)
                     },
                 ) {
-                    Text(text = "Generate referral link")
+                    Text(text = stringResource(R.string.nc_generate_referral_link))
                 }
             }
         },
@@ -279,7 +305,7 @@ fun ReferralInviteFriendScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Receive reward via",
+                    text = stringResource(R.string.nc_receive_reward_via),
                     style = NunchukTheme.typography.title,
                     modifier = Modifier
                         .weight(1f)
@@ -371,14 +397,14 @@ fun ReferralInviteFriendScreen(
             if ((state.isLoginByEmail.not() && state.localReferrerCode == null) || state.forceShowInputEmail) {
                 NcTextField(
                     modifier = Modifier.padding(top = 24.dp),
-                    title = "Your email",
+                    title = stringResource(R.string.nc_your_email),
                     value = email,
                     onValueChange = {
                         email = it
                     })
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
-                    text = "We'll send you an email to confirm (or change) the reward address each time there's a successful referral.",
+                    text = stringResource(R.string.nc_we_send_email_confirm_reward_address),
                     style = NunchukTheme.typography.bodySmall,
                 )
             }
@@ -392,7 +418,7 @@ fun ReferralInviteFriendScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Referrer email",
+                        text = stringResource(R.string.nc_referrer_email),
                         style = NunchukTheme.typography.title,
                         modifier = Modifier
                             .weight(1f)
@@ -414,7 +440,7 @@ fun ReferralInviteFriendScreen(
                             .clickable {
                                 onForceShowInputEmail(true)
                             },
-                        text = "Change",
+                        text = stringResource(R.string.nc_change),
                         style = NunchukTheme.typography.captionTitle
                     )
                 }
@@ -454,7 +480,7 @@ fun ReferralInviteFriendScreen(
                             onCopyToClipboard()
                         },
                     ) {
-                        Text(text = "Copy")
+                        Text(text = stringResource(R.string.nc_copy))
                     }
                 }
                 Text(
@@ -516,6 +542,28 @@ fun ReferralInviteFriendScreen(
                 onDismiss = {
                     onShowNoInternetDialogConsumed()
                 },
+            )
+        }
+
+        if (showDismissCampaignDialog) {
+            NcInfoDialog(
+                title = stringResource(id = R.string.nc_text_info),
+                message = stringResource(R.string.nc_dismiss_referral_from_home_page),
+                onDismiss = {
+                    showDismissCampaignDialog = false
+                    onDismissCampaign()
+                },
+            )
+        }
+
+        if (showDismissCampaignSheet) {
+            NcSelectableBottomSheet(
+                options = listOf(stringResource(R.string.nc_dismiss_from_home_screen)),
+                onSelected = {
+                    showDismissCampaignDialog = true
+                    showDismissCampaignSheet = false
+                },
+                onDismiss = { showDismissCampaignSheet = false },
             )
         }
     }

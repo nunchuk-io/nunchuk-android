@@ -17,33 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.settings
+package com.nunchuk.android.usecase.campaign
 
-import com.nunchuk.android.core.account.AccountInfo
-import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.campaigns.Campaign
-import com.nunchuk.android.model.campaigns.ReferrerCode
+import com.nunchuk.android.repository.CampaignsRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class AccountState(
-    val account: AccountInfo = AccountInfo(),
-    val syncProgress: Int = 0,
-    val finishedSync: Boolean = false,
-    val localCurrency: String = "",
-    val plans: List<MembershipPlan> = emptyList(),
-    val campaign: Campaign? = null,
-    val localReferrerCode: ReferrerCode? = null,
-    val isHasWallet: Boolean = false,
-) {
-    fun isSyncing() = syncProgress in 1..99
-}
+class DismissCampaignUseCase @Inject constructor(
+    private val repository: CampaignsRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<DismissCampaignUseCase.Params, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: Params) {
+        return repository.dismissCampaign(parameters.email, parameters.campaign)
+    }
 
-sealed class AccountEvent {
-    object SignOutEvent : AccountEvent()
-    data class GetUserProfileSuccessEvent(val name: String? = null, val avatarUrl: String? = null) :
-        AccountEvent()
-
-    data class UploadPhotoSuccessEvent(val matrixUri: String? = null) : AccountEvent()
-    data class LoadingEvent(val loading: Boolean = false) : AccountEvent()
-
-    data class ShowError(val message: String? = null) : AccountEvent()
+    data class Params(val email: String, val campaign: Campaign)
 }

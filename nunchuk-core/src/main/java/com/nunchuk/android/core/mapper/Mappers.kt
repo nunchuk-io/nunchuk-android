@@ -336,7 +336,9 @@ internal fun CampaignResponse.toModel() = Campaign(
     referrerTitle = referrerTitle.orEmpty(),
     referrerDescriptionHtml = referrerDescriptionHtml.orEmpty(),
     referrerBannerUrl = referrerBannerUrl.orEmpty(),
-    cta = cta.orEmpty()
+    cta = cta.orEmpty(),
+    dismissible = dismissible.orFalse(),
+    isDismissed = isDismissed.orFalse()
 )
 
 internal fun ReferrerCodeResponse.toModel() = ReferrerCode(

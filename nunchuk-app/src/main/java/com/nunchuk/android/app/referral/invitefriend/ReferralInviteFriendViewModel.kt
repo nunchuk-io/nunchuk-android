@@ -8,12 +8,14 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.campaign.CreateReferrerCodeByEmailUseCase
+import com.nunchuk.android.usecase.campaign.DismissCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
 import com.nunchuk.android.usecase.campaign.GetReferrerCodeByEmailUseCase
 import com.nunchuk.android.usecase.campaign.SaveLocalReferrerCodeUseCase
@@ -48,7 +50,8 @@ class ReferralInviteFriendViewModel @Inject constructor(
     private val isMyWalletUseCase: IsMyWalletUseCase,
     private val updateReceiveAddressByEmailUseCase: UpdateReceiveAddressByEmailUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    private val isNetworkConnectedUseCase: IsNetworkConnectedUseCase
+    private val isNetworkConnectedUseCase: IsNetworkConnectedUseCase,
+    private val dismissCampaignUseCase: DismissCampaignUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReferralInviteFriendUiState())
@@ -277,7 +280,9 @@ class ReferralInviteFriendViewModel @Inject constructor(
                             forceShowInputEmail = false
                         )
                     }
-                    if (isPickTempAddress()) getWalletById(_state.value.receiveWalletTemp?.wallet?.id.orEmpty()) else getWalletById(getWalletId())
+                    if (isPickTempAddress()) getWalletById(_state.value.receiveWalletTemp?.wallet?.id.orEmpty()) else getWalletById(
+                        getWalletId()
+                    )
                 }
                 .onFailure { error ->
                     if (error is NunchukApiException && error.code == 1409) {
@@ -311,8 +316,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     fun getReceiveAddress(): String {
         return if (isPickTempAddress()) {
             _state.value.receiveWalletTemp?.receiveAddress.orEmpty()
-        }
-        else if (_state.value.isHideAddress()) {
+        } else if (_state.value.isHideAddress()) {
             ""
         } else {
             _state.value.localReferrerCode?.receiveAddress ?: _state.value.pickReceiveAddress ?: ""
@@ -404,6 +408,23 @@ class ReferralInviteFriendViewModel @Inject constructor(
 
     fun onShowNoInternetDialogConsumed() {
         _state.update { it.copy(showNoInternet = false) }
+    }
+
+    fun dismissCampaign() {
+        viewModelScope.launch {
+            dismissCampaignUseCase(
+                DismissCampaignUseCase.Params(
+                    accountManager.getAccount().email.ifEmpty { _state.value.localReferrerCode?.email.orEmpty() },
+                    _state.value.campaign ?: return@launch
+                )
+            )
+                .onSuccess {
+                    val newCampaign = _state.value.campaign?.copy(isDismissed = true)
+                    _state.update { it.copy(campaign = newCampaign) }
+                }.onFailure {
+                    _state.update { it.copy(errorMsg = it.errorMsg.orUnknownError()) }
+                }
+        }
     }
 }
 

@@ -118,4 +118,13 @@ internal class CampaignsRepositoryImpl @Inject constructor(
         return response.data.codeId
     }
 
+    override suspend fun dismissCampaign(email: String, campaign: Campaign) {
+        val response = api.dismissCampaign(email = email)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val newCampaign = campaign.copy(isDismissed = true)
+        ncDataStore.setCampaign(gson.toJson(newCampaign), email = email)
+    }
+
 }

@@ -62,4 +62,7 @@ internal interface CampaignsApi {
         @Path("code_id") codeId: String,
         @Body request: VerifyConfirmationCodeByEmailRequest
     ): Data<VerifyConfirmationCodeByEmailResponse>
+
+    @PUT("/v1.1/referral/campaigns/current/dismiss")
+    suspend fun dismissCampaign(@Query("email") email: String): Data<Unit>
 }

@@ -37,6 +37,7 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.guestmode.isPrimaryKey
 import com.nunchuk.android.core.media.NcMediaManager
+import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.loadImage
@@ -151,6 +152,8 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
 
         binding.premiumBadge.isVisible = state.plans.isNotEmpty()
         binding.premiumBadge.text = getPlanName(state.plans)
+        binding.inviteFriendsView.isVisible = state.campaign?.isValid().orFalse() && state.isHasWallet
+        binding.tvCampaigns.text = state.campaign?.cta.orEmpty()
     }
 
     private fun openAboutScreen() {
@@ -314,6 +317,15 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
                     requireActivity()
                 )
             }
+        }
+        binding.inviteFriendsView.setOnClickListener {
+            navigator.openReferralScreen(
+                activityContext = requireActivity(),
+                args = ReferralArgs(
+                    campaign = viewModel.getCampaign()!!,
+                    localReferrerCode = viewModel.getLocalReferrerCode()
+                )
+            )
         }
     }
 

@@ -32,4 +32,6 @@ interface CampaignsRepository {
         email: String,
         receiveAddress: String?
     ): String
+
+    suspend fun dismissCampaign(email: String, campaign: Campaign)
 }

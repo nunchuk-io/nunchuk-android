@@ -146,17 +146,17 @@
                 android:id="@+id/premium_badge"
                 style="@style/NCText.Title.Small"
                 android:layout_width="wrap_content"
-                android:drawablePadding="@dimen/nc_padding_4"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/nc_padding_4"
                 android:background="@drawable/nc_rounded_tag_whisper_background"
+                android:drawableStart="@drawable/ic_checked_badge"
+                android:drawablePadding="@dimen/nc_padding_4"
+                android:gravity="center_vertical"
                 android:paddingHorizontal="@dimen/nc_padding_10"
                 android:paddingVertical="@dimen/nc_padding_4"
-                android:layout_marginTop="@dimen/nc_padding_4"
-                android:drawableStart="@drawable/ic_checked_badge"
-                app:layout_constraintTop_toBottomOf="@+id/subContentLayout"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/subContentLayout"
                 tools:text="Iron Hand" />
 
             <com.nunchuk.android.widget.NCFontButton
@@ -236,6 +236,49 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/wallet_security_settings" />
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/invite_friends_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/developerMode"
+                tools:visibility="visible">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/invite_friends"
+                    style="@style/NCText.Settings"
+                    android:drawableStart="@drawable/ic_gift_setting"
+                    android:drawableEnd="@drawable/ic_arrow"
+                    android:text="@string/nc_invite_friends"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/llCampaigns"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="48dp"
+                    android:background="@drawable/bg_campaigns"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:visibility="visible">
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/tvCampaigns"
+                        style="@style/NCText.Body.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:textSize="13sp"
+                        tools:text="Get $100" />
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/about"
                 style="@style/NCText.Settings"
@@ -243,7 +286,7 @@
                 android:drawableEnd="@drawable/ic_arrow"
                 android:text="@string/nc_settings_about"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/developerMode" />
+                app:layout_constraintTop_toBottomOf="@+id/invite_friends_view" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/btnSignOut"

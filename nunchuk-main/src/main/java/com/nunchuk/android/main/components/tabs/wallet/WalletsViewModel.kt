@@ -295,7 +295,6 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun getCampaign() {
-
         viewModelScope.launch {
             getLocalCurrentCampaignUseCase(Unit).collect {
                 updateState { copy(campaign = it.getOrNull()) }

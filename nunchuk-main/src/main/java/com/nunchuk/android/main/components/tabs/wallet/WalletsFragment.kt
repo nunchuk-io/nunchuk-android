@@ -409,7 +409,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showCampaign(campaign: Campaign?, isHasWallet: Boolean = false) {
-        binding.llCampaigns.isVisible = campaign?.isValid() == true && isHasWallet
+        binding.llCampaigns.isVisible = campaign?.isValid() == true && isHasWallet && campaign.isDismissed.not()
         binding.tvCampaigns.text = campaign?.cta
     }
 
