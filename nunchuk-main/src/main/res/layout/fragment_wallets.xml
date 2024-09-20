@@ -337,4 +337,17 @@
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>
 
+    <FrameLayout
+        android:id="@+id/total_balance_frame"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#F9F9F9"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/total_balance_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </FrameLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

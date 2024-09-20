@@ -24,18 +24,34 @@ import android.app.Dialog
 import android.content.res.ColorStateList
 import android.nfc.tech.IsoDep
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.core.widget.NestedScrollView
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -57,9 +73,12 @@ import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatMMMddyyyyDate
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
@@ -87,6 +106,7 @@ import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.banner.Banner
@@ -138,6 +158,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private var existingKeyDialog: Dialog? = null
 
+    private var totalScrollDistance = 0 // Track the total scroll distance
+    private var threshold = 50 // Threshold in dp
+    private var isBalanceFrameVisible = true // Track visibility state
+
+    private val thresholdInPx by lazy {  TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, threshold.toFloat(), resources.displayMetrics).toInt() }
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -148,6 +174,90 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         setupViews()
 
         observeEvent()
+    }
+
+    private fun handleScrollChange(scrollY: Int, oldScrollY: Int) {
+        val scrollDelta = scrollY - oldScrollY
+
+        if (scrollDelta > 0) {
+            // Scrolling down
+            totalScrollDistance += scrollDelta
+            if (totalScrollDistance > thresholdInPx && isBalanceFrameVisible) {
+                hideBalanceFrameWithAnimation()
+                isBalanceFrameVisible = false
+            }
+        } else if (scrollDelta < 0) {
+            // Scrolling up
+            totalScrollDistance += scrollDelta
+            if (totalScrollDistance < -thresholdInPx && !isBalanceFrameVisible) {
+                showBalanceFrameWithAnimation()
+                isBalanceFrameVisible = true
+            }
+        }
+
+        // Reset totalScrollDistance when changing scroll direction
+        if (scrollDelta > 0 && totalScrollDistance < 0) {
+            totalScrollDistance = 0
+        } else if (scrollDelta < 0 && totalScrollDistance > 0) {
+            totalScrollDistance = 0
+        }
+    }
+
+    @Composable
+    fun TotalBalanceView(
+        isLargeFont: Boolean = false,
+        balanceSatoshis: String = "21,134,277,620,930 sat",
+        balanceDollars: String = "($5,540,000,000.00)"
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Total balance",
+                style = if (isLargeFont) NunchukTheme.typography.title else MaterialTheme.typography.titleSmall,
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
+
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = balanceSatoshis,
+                    style = if (isLargeFont) NunchukTheme.typography.title else MaterialTheme.typography.titleSmall,
+                    textAlign = TextAlign.End
+                )
+
+                Text(
+                    text = balanceDollars,
+                    style = if (isLargeFont) NunchukTheme.typography.body else MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.End
+                )
+            }
+        }
+    }
+
+    private fun hideBalanceFrameWithAnimation() {
+        binding.totalBalanceFrame.animate()
+            .translationY(binding.totalBalanceFrame.height.toFloat())
+            .alpha(0f)
+            .setDuration(200)
+            .withEndAction {
+                binding.totalBalanceFrame.visibility = View.GONE
+            }
+            .start()
+    }
+
+    private fun showBalanceFrameWithAnimation() {
+        binding.totalBalanceFrame.visibility = View.VISIBLE
+        binding.totalBalanceFrame.animate()
+            .translationY(0f)
+            .alpha(1f)
+            .setDuration(200)
+            .start()
     }
 
     private fun setupViews() {
@@ -207,6 +317,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 )
             }
         }
+        binding.content.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+            handleScrollChange(scrollY, oldScrollY)
+        })
     }
 
     private fun openAddWalletScreen() {
@@ -406,6 +519,18 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showIntro(state)
         showPendingWallet(state)
         showCampaign(state.campaign, state.wallets.isNotEmpty())
+        showTotalBalance(state)
+    }
+
+    private fun showTotalBalance(state: WalletsState) {
+        val totalBalance = state.wallets.sumOf { it.wallet.balance.value }
+        val totalInCurrency = Amount(value = totalBalance).getCurrencyAmount()
+        val totalInBtc = Amount(value = totalBalance).getBTCAmount()
+        binding.totalBalanceView.setContent {
+            NunchukTheme(false) {
+                TotalBalanceView(state.useLargeFont, totalInBtc, totalInCurrency)
+            }
+        }
     }
 
     private fun showCampaign(campaign: Campaign?, isHasWallet: Boolean = false) {
