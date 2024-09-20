@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.settings.R
+import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,6 +42,7 @@ import javax.inject.Inject
 class WalletSecurityCreatePinViewModel @Inject constructor(
     private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase,
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
+    private val decoyPinExistUseCase: DecoyPinExistUseCase,
     @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -53,7 +55,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
     private val _state = MutableStateFlow(WalletSecurityCreatePinState())
     val state = _state.asStateFlow()
 
-    private val createPinFlow = args.currentPin.isBlank()
+    private val createPinFlow = args.isEnable.not()
 
     init {
         val inputValue = hashMapOf<Int, InputValue>()
@@ -63,7 +65,6 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
         _state.update {
             it.copy(
                 inputValue = inputValue,
-                currentPin = args.currentPin,
                 createPinFlow = createPinFlow
             )
         }
@@ -82,7 +83,10 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
             updateInputValue(1, inputValue[1]?.value!!, errorMsg = errorMsg)
         } else {
             val matchPin = checkWalletPinUseCase(inputValue[0]!!.value)
-            if (matchPin.getOrDefault(false).not()) {
+            val decoyPinExist = decoyPinExistUseCase(inputValue[0]!!.value)
+            if (decoyPinExist.getOrDefault(false)) {
+                updateInputValue(0, inputValue[0]?.value!!, errorMsg = context.getString(R.string.nc_pin_exist))
+            } else if (matchPin.getOrDefault(false).not()) {
                 updateInputValue(0, inputValue[0]?.value!!, errorMsg = context.getString(R.string.nc_incorrect_current_pin))
             } else if (inputValue[1] != inputValue[2]) {
                 updateInputValue(2, inputValue[2]?.value!!, errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match))
@@ -109,7 +113,6 @@ data class InputValue(
 data class WalletSecurityCreatePinState(
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
     val inputValue: MutableMap<Int, InputValue> = hashMapOf(),
-    val currentPin: String = "",
     val createPinFlow: Boolean = false
 )
 

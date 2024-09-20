@@ -136,4 +136,10 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override val lastCloseApp: Flow<Long>
         get() = ncDataStore.lastCloseApp
+
+    override fun getCustomPinConfig(decoyPin: String): Flow<Boolean> = ncDataStore.getCustomPinConfig(decoyPin)
+
+    override suspend fun setCustomPinConfig(decoyPin: String, isEnable: Boolean) {
+        ncDataStore.setCustomPinConfig(decoyPin, isEnable)
+    }
 }

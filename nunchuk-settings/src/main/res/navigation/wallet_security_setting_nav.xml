@@ -15,9 +15,9 @@
         android:name="com.nunchuk.android.settings.walletsecurity.createpin.WalletSecurityCreatePinFragment"
         android:label="WalletSecurityCreatePinFragment">
         <argument
-            android:name="current_pin"
-            android:defaultValue=""
-            app:argType="string" />
+            android:name="is_enable"
+            android:defaultValue="false"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_walletSecurityCreatePinFragment_to_decoyPinFragment"
             app:destination="@id/decoyPinFragment"

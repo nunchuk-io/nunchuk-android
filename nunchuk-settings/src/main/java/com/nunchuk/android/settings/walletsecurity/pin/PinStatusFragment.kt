@@ -90,7 +90,7 @@ class PinStatusFragment : Fragment() {
             onChangePin = {
                 findNavController().navigate(
                     PinStatusFragmentDirections.actionPinStatusFragmentToWalletSecurityCreatePinFragment(
-                        currentPin = uiState.pin
+                        isEnable = uiState.isEnable
                     )
                 )
             }
@@ -111,7 +111,7 @@ fun PinStatusContent(
     onEnablePinChange: (Boolean) -> Unit = { },
     onChangePin: () -> Unit = { }
 ) {
-    val isEnable = state.pin.isNotBlank()
+    val isEnable = state.isEnable
     NunchukTheme {
         NcScaffold(
             topBar = {

@@ -17,41 +17,19 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.account
+package com.nunchuk.android.usecase.pin
 
-import com.google.gson.annotations.SerializedName
-import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-data class AccountInfo(
-    @SerializedName("id")
-    val id: String = "",
-    @SerializedName("email")
-    val email: String = "",
-    @SerializedName("name")
-    val name: String = "",
-    @SerializedName("token")
-    val token: String = "",
-    @SerializedName("chatId")
-    val chatId: String = "",
-    @SerializedName("activated")
-    val activated: Boolean = false,
-    @SerializedName("staySignedIn")
-    val staySignedIn: Boolean = false,
-    @SerializedName("avatar_url")
-    val avatarUrl: String? = "",
-    @SerializedName("device_id")
-    val deviceId: String? = "",
-    @SerializedName("login_type")
-    val loginType: Int = SignInMode.UNKNOWN.value,
-    @SerializedName("username")
-    val username: String = "",
-    @SerializedName("primary_key_info")
-    val primaryKeyInfo: PrimaryKeyInfo? = null,
-    @SerializedName("decoy_pin")
-    val decoyPin: String = ""
-)
-
-data class PrimaryKeyInfo(
-    @SerializedName("xfp")
-    val xfp: String = ""
-)
+class GetCustomPinConfigFlowUseCase @Inject constructor(
+    private val repository: SettingRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : FlowUseCase<String, Boolean>(ioDispatcher) {
+    override fun execute(parameters: String): Flow<Boolean> =
+        repository.getCustomPinConfig(parameters)
+}

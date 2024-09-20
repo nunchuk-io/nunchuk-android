@@ -53,4 +53,6 @@ interface SettingRepository {
     suspend fun setReferrerCode(code: String)
     suspend fun setCampaign(campaign: String, email: String)
     suspend fun setLastCloseApp(time: Long)
+    suspend fun setCustomPinConfig(decoyPin: String, isEnable: Boolean)
+    fun getCustomPinConfig(decoyPin: String): Flow<Boolean>
 }

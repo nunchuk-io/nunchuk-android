@@ -21,6 +21,7 @@ package com.nunchuk.android.settings.walletsecurity
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckHasPassphrasePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
@@ -34,8 +35,13 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.UpdateWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.pin.GetCustomPinConfigFlowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,9 +55,13 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase,
     private val signInModeHolder: SignInModeHolder,
     private val checkHasPassphrasePrimaryKeyUseCase: CheckHasPassphrasePrimaryKeyUseCase,
+    private val getCustomPinConfigFlowUseCase: GetCustomPinConfigFlowUseCase,
+    private val accountManager: AccountManager
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
 
     override val initialState = WalletSecuritySettingState()
+
+    private val decoyPin = accountManager.getAccount().decoyPin
 
     init {
         viewModelScope.launch {
@@ -65,9 +75,15 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getWalletPinUseCase(Unit).collect {
-                updateState { copy(walletPin = it.getOrDefault("")) }
-            }
+            combine(
+                getWalletPinUseCase(Unit).map { it.getOrDefault("").isNotBlank() },
+                getCustomPinConfigFlowUseCase(decoyPin).map { it.getOrDefault(true) }
+            ) { isAppPinEnable, custom ->
+                custom && isAppPinEnable
+            }.catch { Timber.e(it) }
+                .collect {
+                    updateState { copy(isAppPinEnable = it) }
+                }
         }
 
         viewModelScope.launch {
@@ -104,8 +120,6 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     }
 
     fun getWalletSecuritySetting() = getState().walletSecuritySetting
-
-    fun getWalletPin() = getState().walletPin
 
     fun clearEvent() = event(WalletSecuritySettingEvent.None)
 
@@ -173,5 +187,5 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
             }
         }
 
-    fun isWalletPinEnable() = getState().walletPin.isNotEmpty()
+    fun isAppPinEnable() = getState().isAppPinEnable
 }

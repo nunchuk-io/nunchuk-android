@@ -2,6 +2,7 @@ package com.nunchuk.android.settings.walletsecurity.unlock
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
@@ -89,6 +90,7 @@ class UnlockPinViewModel @Inject constructor(
                         )
                     ).onSuccess { replaced ->
                         Timber.d("unlockPin: replaced $replaced")
+                        accountManager.storeAccount(AccountInfo(decoyPin = pin, loginType = SignInMode.GUEST_MODE.value))
                         signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
                         if (replaced) {
                             _state.update { it.copy(event = UnlockPinEvent.GoToMain) }

@@ -81,7 +81,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
             } else {
                 account.email
             }
-            initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId))
+            initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId, decoyPin = account.decoyPin))
         }
         fileHelper.getOrCreateNunchukRootDir()
         registerActivityLifecycleCallbacks(ActivityManager)

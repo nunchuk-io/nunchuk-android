@@ -79,7 +79,7 @@ class WalletSecurityCreatePinFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                WalletSecurityCreatePinScreen(viewModel, args.currentPin.isBlank())
+                WalletSecurityCreatePinScreen(viewModel, args.isEnable.not())
             }
         }
     }
@@ -95,7 +95,7 @@ class WalletSecurityCreatePinFragment : Fragment() {
                 is WalletSecurityCreatePinEvent.Loading -> showOrHideLoading(loading = event.loading)
                 WalletSecurityCreatePinEvent.CreateOrUpdateSuccess -> {
                     if (activityArgs.type == WalletSecurityType.CREATE_PIN) {
-                        val message = if (args.currentPin.isBlank()) {
+                        val message = if (args.isEnable.not()) {
                             getString(R.string.nc_pin_created)
                         } else {
                             getString(R.string.nc_pin_updated)

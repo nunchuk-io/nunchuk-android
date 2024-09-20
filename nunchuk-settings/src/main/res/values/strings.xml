@@ -126,4 +126,5 @@
     <string name="nc_disabling_pin_for_guest_account_desc">To disable a PIN, you first need to enter the app using that PIN. Once the PIN is disabled in Settings, you’ll only have access to the wallets linked to it. To view wallets associated with other PINs, simply re-enable the PIN feature.</string>
     <string name="nc_to_continue_please_enter_your_pin">To continue, please enter your PIN.</string>
     <string name="nc_there_is_no_forgot_pin_feature">There is no \'Forgot PIN?\' feature!</string>
+    <string name="nc_pin_exist">This PIN already exists.</string>
 </resources>

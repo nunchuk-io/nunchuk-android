@@ -398,6 +398,18 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setCustomPinConfig(decoyPin: String, isEnable: Boolean) {
+        context.dataStore.edit {
+            it[booleanPreferencesKey("decoy_pin_${decoyPin}")] = isEnable
+        }
+    }
+
+    fun getCustomPinConfig(decoyPin: String): Flow<Boolean> {
+        return context.dataStore.data.map {
+            it[booleanPreferencesKey("decoy_pin_${decoyPin}")] ?: true
+        }
+    }
+
     val lastCloseApp: Flow<Long>
         get() = context.dataStore.data.map {
             it[lastCloseAppKey] ?: 0L

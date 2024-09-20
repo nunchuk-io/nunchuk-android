@@ -70,7 +70,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.hideWalletDetailOption.setOptionChecked(state.walletSecuritySetting.hideWalletDetail)
         binding.passwordOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassword)
         binding.pinStatus.text =
-            if (state.walletPin.isNotEmpty()) getString(R.string.nc_on) else getString(R.string.nc_off)
+            if (state.isAppPinEnable) getString(R.string.nc_on) else getString(R.string.nc_off)
         binding.passphraseOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassphrase)
         binding.passwordOption.isVisible = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
         binding.passphraseOption.isVisible =
@@ -101,9 +101,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
 
             WalletSecuritySettingEvent.None -> {}
             WalletSecuritySettingEvent.CheckPasswordSuccess, WalletSecuritySettingEvent.CheckPassphraseSuccess -> {
-                if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin()
-                        .isNotBlank()
-                ) {
+                if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.isAppPinEnable()) {
                     showInputPinDialog(true)
                 } else {
                     viewModel.updateHideWalletDetail()
@@ -125,7 +123,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.passwordOption.setOptionChangeListener {
             if (it.not()) {
                 enterPasswordDialog(false)
-            } else if (viewModel.isWalletPinEnable()) {
+            } else if (viewModel.isAppPinEnable()) {
                 NCWarningDialog(requireActivity()).showDialog(
                     title = getString(R.string.nc_text_confirmation),
                     message = getString(R.string.nc_disable_pin_warning),
@@ -145,7 +143,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.passphraseOption.setOptionChangeListener {
             if (it.not()) {
                 enterPassphraseDialog(false)
-            } else if (viewModel.isWalletPinEnable()) {
+            } else if (viewModel.isAppPinEnable()) {
                 NCWarningDialog(requireActivity()).showDialog(
                     title = getString(R.string.nc_text_confirmation),
                     message = getString(R.string.nc_disable_pin_warning),
@@ -172,9 +170,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
             enterPasswordDialog(true)
         } else if (viewModel.getWalletSecuritySetting().protectWalletPassphrase) {
             enterPassphraseDialog(true)
-        } else if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin()
-                .isNotBlank()
-        ) {
+        } else if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.isAppPinEnable()) {
             showInputPinDialog(true)
         } else {
             viewModel.updateHideWalletDetail()
