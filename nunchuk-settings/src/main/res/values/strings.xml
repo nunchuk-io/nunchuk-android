@@ -122,8 +122,8 @@
     <string name="nc_using_decoy_pin_for_signed_account_desc">When you enter the Decoy PIN, you\'ll be signed out and switched to Guest mode.[B]To regain access to your main wallets, you may need to sign back into your account after entering the Security PIN.[/B]</string>
     <string name="nc_disabling_pin_title">Disabling a PIN</string>
     <string name="nc_disabling_pin_for_signed_account_desc">To disable a PIN, you first need to enter the app using that PIN.[B] Once the PIN is disabled in Settings, you’ll only have access to the wallets linked to it.[/B] To view wallets associated with other PINs, simply re-enable the PIN feature.</string>
-    <string name="nc_using_decoy_pin_for_guest_account_desc">When you enter the Decoy PIN, you\'ll gain access to the decoy wallets. To return to your main wallets, simply restart the app and enter your Security PIN.</string>
-    <string name="nc_disabling_pin_for_guest_account_desc">To disable a PIN, you first need to enter the app using that PIN. Once the PIN is disabled in Settings, you’ll only have access to the wallets linked to it. To view wallets associated with other PINs, simply re-enable the PIN feature.</string>
+    <string name="nc_using_decoy_pin_for_guest_account_desc">When you enter the Decoy PIN, you\'ll gain access to the decoy wallets.[B] To return to your main wallets, simply restart the app and enter your Security PIN.[/B]</string>
+    <string name="nc_disabling_pin_for_guest_account_desc">To disable a PIN, you first need to enter the app using that PIN.[B] Once the PIN is disabled in Settings, you’ll only have access to the wallets linked to it. [/B]To view wallets associated with other PINs, simply re-enable the PIN feature.</string>
     <string name="nc_to_continue_please_enter_your_pin">To continue, please enter your PIN.</string>
     <string name="nc_there_is_no_forgot_pin_feature">There is no \'Forgot PIN?\' feature!</string>
     <string name="nc_pin_exist">This PIN already exists.</string>
