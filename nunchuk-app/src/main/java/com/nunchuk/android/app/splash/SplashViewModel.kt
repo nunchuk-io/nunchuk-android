@@ -31,6 +31,7 @@ import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.pin.GetCustomPinConfigFlowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -47,6 +48,7 @@ internal class SplashViewModel @Inject constructor(
     private val getWalletPinUseCase: GetWalletPinUseCase,
     private val application: Application,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
+    private val getCustomPinConfigFlowUseCase: GetCustomPinConfigFlowUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SplashEvent>(1)
@@ -55,12 +57,16 @@ internal class SplashViewModel @Inject constructor(
     init {
         viewModelScope.launch(ioDispatcher) {
             val mode = signInModeHolder.getCurrentMode()
+            val account = accountManager.getAccount()
             val info = application.packageManager.getPackageInfo(application.packageName, 0)
             val isFreshInstall = info.firstInstallTime == info.lastUpdateTime
             val isAccountExisted = accountManager.isAccountExisted()
             val pin = getWalletPinUseCase(Unit).map { it.getOrDefault("") }.first()
             val settings = getWalletSecuritySettingUseCase(Unit)
                 .map { it.getOrDefault(WalletSecuritySetting()) }
+                .first()
+            val isDecoyDisablePin = getCustomPinConfigFlowUseCase(account.decoyPin)
+                .map { it.getOrDefault(true) }
                 .first()
             val shouldAskPin = pin.isNotEmpty()
                     || (settings.protectWalletPassphrase && mode == SignInMode.PRIMARY_KEY)
@@ -72,13 +78,13 @@ internal class SplashViewModel @Inject constructor(
                 )
 
                 isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() ->
-                    _event.emit(SplashEvent.NavHomeScreenEvent(askPin = shouldAskPin))
+                    _event.emit(SplashEvent.NavHomeScreenEvent(askPin = shouldAskPin && isDecoyDisablePin))
 
                 // can delete after x version
                 !isFreshInstall && !accountManager.isHasAccountBefore() && info.versionCode <= 245 -> {
                     accountManager.storeAccount(AccountInfo(loginType = SignInMode.GUEST_MODE.value))
                     signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                    _event.emit(SplashEvent.NavHomeScreenEvent(askPin = shouldAskPin))
+                    _event.emit(SplashEvent.NavHomeScreenEvent(askPin = shouldAskPin && isDecoyDisablePin))
                 }
 
                 else -> _event.emit(SplashEvent.NavSignInEvent)

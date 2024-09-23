@@ -37,8 +37,8 @@ import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.UpdateWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.pin.GetCustomPinConfigFlowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -58,10 +58,8 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val getCustomPinConfigFlowUseCase: GetCustomPinConfigFlowUseCase,
     private val accountManager: AccountManager
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
-
+    private var customPinJob: Job? = null
     override val initialState = WalletSecuritySettingState()
-
-    private val decoyPin = accountManager.getAccount().decoyPin
 
     init {
         viewModelScope.launch {
@@ -75,12 +73,8 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            combine(
-                getWalletPinUseCase(Unit).map { it.getOrDefault("").isNotBlank() },
-                getCustomPinConfigFlowUseCase(decoyPin).map { it.getOrDefault(true) }
-            ) { isAppPinEnable, custom ->
-                custom && isAppPinEnable
-            }.catch { Timber.e(it) }
+            getWalletPinUseCase(Unit).map { it.getOrDefault("").isNotBlank() }
+                .catch { Timber.e(it) }
                 .collect {
                     updateState { copy(isAppPinEnable = it) }
                 }
@@ -89,8 +83,20 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
         viewModelScope.launch {
             if (signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY) {
                 val enablePassphrase = checkHasPassphrasePrimaryKeyUseCase(Unit)
-                updateState { copy(isEnablePassphrase = enablePassphrase.getOrDefault(false) ) }
+                updateState { copy(isEnablePassphrase = enablePassphrase.getOrDefault(false)) }
             }
+        }
+    }
+
+    fun checkCustomPinConfig() {
+        customPinJob?.cancel()
+        customPinJob = viewModelScope.launch {
+            getCustomPinConfigFlowUseCase(accountManager.getAccount().decoyPin)
+                .map { it.getOrDefault(true) }
+                .catch { Timber.e(it) }
+                .collect {
+                    updateState { copy(isCustomPinEnable = it) }
+                }
         }
     }
 
@@ -163,7 +169,9 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                     updateProtectWalletPassword(false)
                 }
             } else {
-                if (isHideWalletDetailFlow.not()) updateProtectWalletPassword(true) else updateHideWalletDetail(true)
+                if (isHideWalletDetailFlow.not()) updateProtectWalletPassword(true) else updateHideWalletDetail(
+                    true
+                )
                 event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
@@ -182,7 +190,9 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                     updateProtectWalletPassphrase(false)
                 }
             } else {
-                if (isHideWalletDetailFlow.not()) updateProtectWalletPassphrase(true) else updateHideWalletDetail(true)
+                if (isHideWalletDetailFlow.not()) updateProtectWalletPassphrase(true) else updateHideWalletDetail(
+                    true
+                )
                 event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
             }
         }

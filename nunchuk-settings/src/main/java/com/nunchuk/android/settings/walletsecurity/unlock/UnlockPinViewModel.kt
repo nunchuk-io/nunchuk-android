@@ -18,6 +18,7 @@ import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
+import com.nunchuk.android.usecase.pin.SetCustomPinConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +41,8 @@ class UnlockPinViewModel @Inject constructor(
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val sendSignOutUseCase: SendSignOutUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val setCustomPinConfigUseCase: SetCustomPinConfigUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(UnlockPinUiState())
     val state = _state.asStateFlow()
@@ -65,11 +67,27 @@ class UnlockPinViewModel @Inject constructor(
 
     fun removePin(currentPin: String) {
         viewModelScope.launch {
-            checkPin(currentPin) {
-                createOrUpdateWalletPinUseCase("")
-                    .onSuccess {
-                        _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
-                    }
+            val account = accountManager.getAccount()
+            if (account.decoyPin.isNotEmpty()) {
+                // flow decoy space
+                if (currentPin == account.decoyPin) {
+                    setCustomPinConfigUseCase(
+                        SetCustomPinConfigUseCase.Params(
+                            decoyPin = account.decoyPin,
+                            isEnable = false
+                        )
+                    )
+                    _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
+                } else {
+                    _state.update { it.copy(isFailed = true, attemptCount = it.attemptCount.inc()) }
+                }
+            } else {
+                checkPin(currentPin) {
+                    createOrUpdateWalletPinUseCase("")
+                        .onSuccess {
+                            _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
+                        }
+                }
             }
         }
     }
@@ -90,7 +108,12 @@ class UnlockPinViewModel @Inject constructor(
                         )
                     ).onSuccess { replaced ->
                         Timber.d("unlockPin: replaced $replaced")
-                        accountManager.storeAccount(AccountInfo(decoyPin = pin, loginType = SignInMode.GUEST_MODE.value))
+                        accountManager.storeAccount(
+                            AccountInfo(
+                                decoyPin = pin,
+                                loginType = SignInMode.GUEST_MODE.value
+                            )
+                        )
                         signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
                         if (replaced) {
                             _state.update { it.copy(event = UnlockPinEvent.GoToMain) }

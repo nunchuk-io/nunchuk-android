@@ -24,6 +24,7 @@ import com.nunchuk.android.model.setting.WalletSecuritySetting
 data class WalletSecuritySettingState(
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
     val isAppPinEnable: Boolean = false,
+    val isCustomPinEnable: Boolean = false,
     val isEnablePassphrase: Boolean = false
 )
 

@@ -61,6 +61,11 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         observeEvent()
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.checkCustomPinConfig()
+    }
+
     private fun observeEvent() {
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
@@ -70,7 +75,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.hideWalletDetailOption.setOptionChecked(state.walletSecuritySetting.hideWalletDetail)
         binding.passwordOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassword)
         binding.pinStatus.text =
-            if (state.isAppPinEnable) getString(R.string.nc_on) else getString(R.string.nc_off)
+            if (state.isAppPinEnable && state.isCustomPinEnable) getString(R.string.nc_on) else getString(R.string.nc_off)
         binding.passphraseOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassphrase)
         binding.passwordOption.isVisible = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
         binding.passphraseOption.isVisible =

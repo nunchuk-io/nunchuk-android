@@ -23,9 +23,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
@@ -37,12 +37,13 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class PinStatusFragment : Fragment() {
+    val viewModel by viewModels<PinStatusViewModel>()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = content {
-        val viewModel = viewModel<PinStatusViewModel>()
         val uiState by viewModel.state.collectAsStateWithLifecycle()
 
         PinStatusContent(
@@ -90,7 +91,7 @@ class PinStatusFragment : Fragment() {
             onChangePin = {
                 findNavController().navigate(
                     PinStatusFragmentDirections.actionPinStatusFragmentToWalletSecurityCreatePinFragment(
-                        isEnable = uiState.isEnable
+                        isEnable = uiState.isAppPinEnable
                     )
                 )
             }
@@ -102,6 +103,11 @@ class PinStatusFragment : Fragment() {
             PinStatusFragmentDirections.actionPinStatusFragmentToWalletSecurityCreatePinFragment()
         )
     }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.checkCustomPinConfig()
+    }
 }
 
 @Composable
@@ -111,7 +117,7 @@ fun PinStatusContent(
     onEnablePinChange: (Boolean) -> Unit = { },
     onChangePin: () -> Unit = { }
 ) {
-    val isEnable = state.isEnable
+    val isEnable = state.isAppPinEnable && state.isCustomPinEnable
     NunchukTheme {
         NcScaffold(
             topBar = {
