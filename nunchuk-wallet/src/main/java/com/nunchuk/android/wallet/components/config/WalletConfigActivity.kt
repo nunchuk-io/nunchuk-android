@@ -294,7 +294,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 message = getString(R.string.nc_delete_collaborative_wallet),
                 onYesClick = { viewModel.handleDeleteWallet() }
             )
-        } else if (viewModel.isHotWalletNeedBackup()) {
+        } else if (viewModel.isHotWalletNeedBackup() && !viewModel.isSignerDeleted()) {
             NCInfoDialog(this).showDialog(
                 message = getString(R.string.nc_delete_hot_wallet_need_backup),
                 onYesClick = { }

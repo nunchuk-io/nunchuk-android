@@ -20,7 +20,6 @@
 package com.nunchuk.android.wallet.components.config
 
 import android.content.Context
-import android.util.Log
 import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -36,9 +35,7 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isPending
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
@@ -135,7 +132,6 @@ internal class WalletConfigViewModel @Inject constructor(
 
         viewModelScope.launch {
             exportInvoices.progressFlow.collect { progress ->
-                Log.e("exportInvoices", "progress: $progress")
                 _progressFlow.emit(progress)
             }
         }
@@ -561,6 +557,8 @@ internal class WalletConfigViewModel @Inject constructor(
         getGroupId().isNullOrEmpty() || getState().role.toRole == AssistedWalletRole.MASTER
 
     fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup
+
+    fun isSignerDeleted() = getState().signers.firstOrNull()?.type == SignerType.UNKNOWN
 
     fun getTransactions() = getState().transactions
 
