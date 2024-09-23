@@ -22,32 +22,29 @@ package com.nunchuk.android.wallet.components.backup
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
-import com.nunchuk.android.core.util.getStringValue
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.utils.parcelable
 
 data class BackupWalletArgs(
-    val walletId: String,
-    val numberOfSignKey: Int,
+    val wallet: Wallet,
     val isQuickWallet: Boolean,
     val isDecoyWallet: Boolean
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
         Intent(activityContext, BackupWalletActivity::class.java).apply {
-            putExtra(EXTRA_WALLET_ID, walletId)
-            putExtra(EXTRA_WALLET_TOTAL_SIGN, numberOfSignKey)
+            putExtra(EXTRA_WALLET, wallet)
             putExtra(EXTRA_IS_QUICK_WALLET, isQuickWallet)
             putExtra(EXTRA_IS_DECOY_WALLET, isDecoyWallet)
         }
 
     companion object {
-        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
-        private const val EXTRA_WALLET_TOTAL_SIGN = "EXTRA_WALLET_TOTAL_SIGN"
+        private const val EXTRA_WALLET = "EXTRA_WALLET"
         private const val EXTRA_IS_QUICK_WALLET = "EXTRA_IS_QUICK_WALLET"
         private const val EXTRA_IS_DECOY_WALLET = "EXTRA_IS_DECOY_WALLET"
 
         fun deserializeFrom(intent: Intent): BackupWalletArgs = BackupWalletArgs(
-            walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
-            numberOfSignKey = intent.getIntExtra(EXTRA_WALLET_TOTAL_SIGN, 0),
+            wallet = intent.parcelable<Wallet>(EXTRA_WALLET)!!,
             isQuickWallet = intent.getBooleanExtra(EXTRA_IS_QUICK_WALLET, false),
             isDecoyWallet = intent.getBooleanExtra(EXTRA_IS_DECOY_WALLET, false)
         )

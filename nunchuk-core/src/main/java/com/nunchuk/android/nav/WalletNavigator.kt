@@ -108,8 +108,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
 
     fun openBackupWalletScreen(
         activityContext: Context,
-        walletId: String,
-        numberOfSignKey: Int,
+        wallet: Wallet,
         isQuickWallet: Boolean = false,
         isDecoyWallet: Boolean = false,
     )

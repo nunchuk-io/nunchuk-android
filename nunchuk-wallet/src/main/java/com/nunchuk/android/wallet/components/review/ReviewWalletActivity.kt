@@ -88,8 +88,7 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
         showOrHideLoading(false)
         navigator.openBackupWalletScreen(
             activityContext = this,
-            walletId = event.walletId,
-            numberOfSignKey = args.masterSigners.size + args.remoteSigners.size,
+            wallet = event.wallet,
             isDecoyWallet = args.decoyPin.isNotEmpty()
         )
     }

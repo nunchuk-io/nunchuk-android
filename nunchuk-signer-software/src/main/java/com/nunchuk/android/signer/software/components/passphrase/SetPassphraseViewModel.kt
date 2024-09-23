@@ -385,7 +385,7 @@ internal class SetPassphraseViewModel @Inject constructor(
                     setEvent(CreateWalletErrorEvent(it.message.orUnknownError()))
                 }
                 .collect {
-                    setEvent(CreateWalletSuccessEvent(it.id))
+                    setEvent(CreateWalletSuccessEvent(it))
                 }
         }
     }

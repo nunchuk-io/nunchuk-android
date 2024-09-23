@@ -107,7 +107,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
                 }
                 .collect {
                     Timber.d("create wallet completed:$it")
-                    event(CreateWalletSuccessEvent(it.id))
+                    event(CreateWalletSuccessEvent(it))
                 }
         }
     }

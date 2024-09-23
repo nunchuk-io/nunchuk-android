@@ -99,7 +99,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             is LoadingEvent -> showOrHideLoading(loading = event.loading)
             is CreateWalletErrorEvent -> showError(event.message)
             is CreateWalletSuccessEvent -> {
-                navigator.openBackupWalletScreen(requireActivity(), event.walletId, 1, true)
+                navigator.openBackupWalletScreen(requireActivity(), event.wallet, true)
                 requireActivity().apply {
                     setResult(Activity.RESULT_OK)
                     finish()

@@ -98,15 +98,13 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openBackupWalletScreen(
         activityContext: Context,
-        walletId: String,
-        numberOfSignKey: Int,
+        wallet: Wallet,
         isQuickWallet: Boolean,
         isDecoyWallet: Boolean,
     ) {
         BackupWalletActivity.start(
             activityContext = activityContext,
-            walletId = walletId,
-            totalRequireSigns = numberOfSignKey,
+            wallet = wallet,
             isQuickWallet = isQuickWallet,
             isDecoyWallet = isDecoyWallet
         )

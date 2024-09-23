@@ -21,35 +21,40 @@ package com.nunchuk.android.wallet.components.backup
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.wallet.GetWalletBsmsUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.type.ExportFormat
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.CreateShareFileUseCase
-import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 internal class BackupWalletViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
-    private val exportWalletUseCase: ExportWalletUseCase,
+    private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, BackupWalletEvent>() {
 
     override val initialState = Unit
 
-    private lateinit var walletId: String
+    private lateinit var wallet: Wallet
 
-    fun init(walletId: String) {
-        this.walletId = walletId
+    fun init(wallet: Wallet) {
+        this.wallet = wallet
     }
 
     fun handleBackupDescriptorEvent() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("$walletId.bsms")) {
-                is Result.Success -> exportWallet(walletId, event.data)
+            when (val event = createShareFileUseCase.execute("${wallet.id}.bsms")) {
+                is Result.Success -> exportWallet(event.data)
                 is Result.Error -> {
                     event(Failure(event.exception.message.orUnknownError()))
                 }
@@ -57,15 +62,15 @@ internal class BackupWalletViewModel @Inject constructor(
         }
     }
 
-    private fun exportWallet(walletId: String, filePath: String) {
+    private fun exportWallet(filePath: String) {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.BSMS)) {
-                is Result.Success -> {
-                    event(Success(filePath))
+            getWalletBsmsUseCase(wallet).onSuccess {
+                withContext(ioDispatcher) {
+                    File(filePath).writeText(it)
                 }
-                is Result.Error -> {
-                    event(Failure(event.exception.message.orUnknownError()))
-                }
+                event(Success(filePath))
+            }.onFailure {
+                event(Failure(it.message.orUnknownError()))
             }
         }
     }

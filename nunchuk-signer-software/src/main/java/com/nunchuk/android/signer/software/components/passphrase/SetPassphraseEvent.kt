@@ -20,7 +20,7 @@
 package com.nunchuk.android.signer.software.components.passphrase
 
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
 
 sealed class SetPassphraseEvent {
     data class LoadingEvent(val loading: Boolean) : SetPassphraseEvent()
@@ -34,7 +34,7 @@ sealed class SetPassphraseEvent {
     ) : SetPassphraseEvent()
 
     data class CreateSoftwareSignerErrorEvent(val message: String) : SetPassphraseEvent()
-    data class CreateWalletSuccessEvent(val walletId: String) : SetPassphraseEvent()
+    data class CreateWalletSuccessEvent(val wallet: Wallet) : SetPassphraseEvent()
     data class CreateWalletErrorEvent(val message: String) : SetPassphraseEvent()
     data class ExistingSignerEvent(val fingerprint: String) : SetPassphraseEvent()
 }

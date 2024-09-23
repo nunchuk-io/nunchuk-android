@@ -26,6 +26,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
@@ -53,7 +54,7 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId)
+        viewModel.init(args.wallet)
     }
 
     override fun onResume() {
@@ -85,8 +86,8 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
             )
         } else if (args.isQuickWallet) {
             finish()
-        } else if (args.numberOfSignKey > 1) {
-            navigator.openUploadConfigurationScreen(this, args.walletId)
+        } else if (args.wallet.signers.size > 1) {
+            navigator.openUploadConfigurationScreen(this, args.wallet.id)
         } else {
             navigator.openMainScreen(this)
         }
@@ -112,15 +113,13 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
         fun start(
             activityContext: Context,
-            walletId: String,
-            totalRequireSigns: Int,
+            wallet: Wallet,
             isQuickWallet: Boolean,
             isDecoyWallet: Boolean
         ) {
             activityContext.startActivity(
                 BackupWalletArgs(
-                    walletId = walletId,
-                    numberOfSignKey = totalRequireSigns,
+                    wallet = wallet,
                     isQuickWallet = isQuickWallet,
                     isDecoyWallet = isDecoyWallet
                 ).buildIntent(activityContext)
