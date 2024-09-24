@@ -26,13 +26,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingItemView
-                android:id="@+id/hide_wallet_detail_option"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:wss_desc="@string/nc_hide_wallet_details_desc"
-                app:wss_title="@string/nc_hide_wallet_details" />
-
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

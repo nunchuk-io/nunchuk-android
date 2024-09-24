@@ -114,6 +114,10 @@ internal class SettingRepositoryImpl @Inject constructor(
         ncDataStore.setUseLargeFontHomeBalances(useLargeFontHomeBalances)
     }
 
+    override suspend fun setDisplayTotalBalance(isDisplay: Boolean) {
+        ncDataStore.setDisplayTotalBalance(isDisplay)
+    }
+
     override suspend fun setLocalMembershipPlan(plan: MembershipPlan) {
         ncDataStore.setLocalMembershipPlan(plan)
     }
@@ -136,6 +140,9 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override val lastCloseApp: Flow<Long>
         get() = ncDataStore.lastCloseApp
+
+    override val displayTotalBalance: Flow<Boolean>
+        get() = ncDataStore.displayTotalBalanceFlow
 
     override fun getCustomPinConfig(decoyPin: String): Flow<Boolean> = ncDataStore.getCustomPinConfig(decoyPin)
 

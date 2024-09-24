@@ -69,6 +69,7 @@ class NcDataStore @Inject constructor(
     private val groupIdKey = stringPreferencesKey("group_id")
     private val currentStepKey = intPreferencesKey("current_step")
     private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
+    private val displayTotalBalance = booleanPreferencesKey("display_total_balance")
     private val showNewPortalKey = booleanPreferencesKey("show_new_portal")
     private val passwordTokenKey = stringPreferencesKey("password_token")
     private val lastCloseAppKey = longPreferencesKey("last_close_app")
@@ -304,9 +305,20 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setDisplayTotalBalance(isDisplay: Boolean) {
+        context.dataStore.edit {
+            it[displayTotalBalance] = isDisplay
+        }
+    }
+
     val useLargeFontHomeBalancesFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
             it[useLargeFontHomeBalances] ?: false
+        }
+
+    val displayTotalBalanceFlow: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[displayTotalBalance] ?: false
         }
 
     val currentStep: Flow<MembershipStep?>

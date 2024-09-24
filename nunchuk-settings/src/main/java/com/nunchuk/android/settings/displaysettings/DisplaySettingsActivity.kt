@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -52,9 +53,9 @@ class DisplaySettingsActivity : BaseComposeActivity() {
                     val state by viewModel.state.collectAsStateWithLifecycle()
 
                     DisplaySettingsContent(uiState = state,
-                        onFontSizeChange = {
-                        viewModel.onFontSizeChange(it)
-                    }, onDisplayUnitClick = {
+                        onWalletVisibilityClick = {
+                            navigator.openWalletVisibilitySettingsScreen(this@DisplaySettingsActivity)
+                        }, onDisplayUnitClick = {
                         navigator.openDisplayUnitScreen(this@DisplaySettingsActivity)
                     })
                 }
@@ -70,8 +71,8 @@ class DisplaySettingsActivity : BaseComposeActivity() {
     @Composable
     fun DisplaySettingsContent(
         uiState: DisplaySettingsUiState = DisplaySettingsUiState(),
-        onFontSizeChange: (Boolean) -> Unit = { },
-        onDisplayUnitClick: () -> Unit = { }
+        onDisplayUnitClick: () -> Unit = { },
+        onWalletVisibilityClick: () -> Unit = { }
     ) {
         NunchukTheme {
             Scaffold(topBar = {
@@ -115,19 +116,19 @@ class DisplaySettingsActivity : BaseComposeActivity() {
                     }
 
                     Row(
-                        modifier = Modifier.padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp, bottom = 16.dp)
+                            .clickable { onWalletVisibilityClick() }) {
                         Text(
-                            modifier = Modifier.weight(1f, true),
-                            text = stringResource(id = R.string.nc_use_large_font_home_balances),
-                            style = NunchukTheme.typography.body
+                            text = stringResource(id = R.string.nc_wallet_visibility_settings),
+                            style = NunchukTheme.typography.body,
+                            modifier = Modifier.weight(1f)
                         )
 
-                        Switch(
-                            checked = uiState.largeFont,
-                            onCheckedChange = onFontSizeChange,
-                            colors = SwitchDefaults.colors()
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow),
+                            contentDescription = ""
                         )
                     }
                 }

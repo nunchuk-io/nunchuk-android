@@ -40,6 +40,7 @@ interface SettingRepository {
     val referrerCode: Flow<ReferrerCode?>
     val campaign: Flow<Campaign?>
     val lastCloseApp: Flow<Long>
+    val displayTotalBalance: Flow<Boolean>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
@@ -48,6 +49,7 @@ interface SettingRepository {
     suspend fun setWalletPin(pin: String)
     suspend fun setLocalCurrency(currency: String)
     suspend fun setUseLargeFontHomeBalances(useLargeFontHomeBalances: Boolean)
+    suspend fun setDisplayTotalBalance(isDisplay: Boolean)
     suspend fun setLocalMembershipPlan(plan: MembershipPlan)
     suspend fun setHealthCheckReminderIntro(isShow: Boolean)
     suspend fun setReferrerCode(code: String)

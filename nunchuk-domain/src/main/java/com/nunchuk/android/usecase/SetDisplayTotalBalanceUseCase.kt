@@ -17,25 +17,19 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.nav
+package com.nunchuk.android.usecase
 
-import android.content.Context
-import com.nunchuk.android.core.wallet.WalletSecurityArgs
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface SettingNavigator {
-    fun openNetworkSettingScreen(activityContext: Context)
-    fun openDisplayUnitScreen(activityContext: Context)
-    fun openDisplaySettingsScreen(activityContext: Context)
-    fun openWalletVisibilitySettingsScreen(activityContext: Context)
-    fun openDeveloperScreen(activityContext: Context)
-    fun openSyncSettingScreen(activityContext: Context)
-    fun openUserDevicesScreen(activityContext: Context)
-    fun openAboutScreen(activityContext: Context)
-    fun openWalletSecuritySettingScreen(activityContext: Context, args: WalletSecurityArgs)
-    fun openTurnNotificationScreen(
-        activityContext: Context,
-        messages: ArrayList<String> = arrayListOf()
-    )
-    fun openLocalCurrencyScreen(activityContext: Context)
-    fun openUnlockPinScreen(activityContext: Context)
+class SetDisplayTotalBalanceUseCase @Inject constructor(
+    private val settingRepository: SettingRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<Boolean, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: Boolean) {
+        settingRepository.setDisplayTotalBalance(parameters)
+    }
+
 }

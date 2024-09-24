@@ -71,6 +71,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetDisplayTotalBalanceUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetUseLargeFontHomeBalancesUseCase
@@ -150,6 +151,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getLocalCurrentCampaignUseCase: GetLocalCurrentCampaignUseCase,
     private val getLocalReferrerCodeUseCase: GetLocalReferrerCodeUseCase,
     private val getCurrentCampaignUseCase: GetCurrentCampaignUseCase,
+    private val getDisplayTotalBalanceUseCase: GetDisplayTotalBalanceUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -292,6 +294,11 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         getReferrerCode()
+        viewModelScope.launch {
+            getDisplayTotalBalanceUseCase(Unit).collect {
+                updateState { copy(isDisplayTotalBalance = it.getOrDefault(false)) }
+            }
+        }
     }
 
     private fun getCampaign() {

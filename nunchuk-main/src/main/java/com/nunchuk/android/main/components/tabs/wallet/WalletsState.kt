@@ -58,6 +58,7 @@ internal data class WalletsState(
     val personalSteps: List<MembershipStepInfo> = emptyList(),
     val campaign: Campaign? = null,
     val localReferrerCode: ReferrerCode? = null,
+    val isDisplayTotalBalance: Boolean = false,
 )
 
 internal sealed class WalletsEvent {

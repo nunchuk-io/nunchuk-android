@@ -206,8 +206,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     @Composable
     fun TotalBalanceView(
         isLargeFont: Boolean = false,
-        balanceSatoshis: String = "21,134,277,620,930 sat",
-        balanceDollars: String = "($5,540,000,000.00)"
+        balanceSatoshis: String = "",
+        balanceDollars: String = ""
     ) {
         Row(
             modifier = Modifier
@@ -526,6 +526,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         val totalBalance = state.wallets.sumOf { it.wallet.balance.value }
         val totalInCurrency = Amount(value = totalBalance).getCurrencyAmount()
         val totalInBtc = Amount(value = totalBalance).getBTCAmount()
+        binding.totalBalanceView.isVisible = state.isDisplayTotalBalance
         binding.totalBalanceView.setContent {
             NunchukTheme(false) {
                 TotalBalanceView(state.useLargeFont, totalInBtc, totalInCurrency)

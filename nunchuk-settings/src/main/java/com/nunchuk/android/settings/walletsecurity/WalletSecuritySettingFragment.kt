@@ -72,7 +72,6 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
     }
 
     private fun handleState(state: WalletSecuritySettingState) {
-        binding.hideWalletDetailOption.setOptionChecked(state.walletSecuritySetting.hideWalletDetail)
         binding.passwordOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassword)
         binding.pinStatus.text =
             if (state.isAppPinEnable && state.isCustomPinEnable) getString(R.string.nc_on) else getString(R.string.nc_off)
@@ -118,13 +117,6 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
 
     private fun setupViews() {
         binding.toolbar.setNavigationOnClickListener { requireActivity().finish() }
-        binding.hideWalletDetailOption.setOptionChangeListener {
-            if (it.not()) {
-                checkWalletSecurity()
-            } else {
-                viewModel.updateHideWalletDetail()
-            }
-        }
         binding.passwordOption.setOptionChangeListener {
             if (it.not()) {
                 enterPasswordDialog(false)
