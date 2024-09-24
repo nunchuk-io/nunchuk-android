@@ -274,6 +274,7 @@ fun ReferralInviteFriendScreen(
                 .verticalScroll(rememberScrollState()),
         ) {
             GlideImage(modifier = Modifier
+                .height(100.dp)
                 .padding(top = 12.dp),
                 imageModel = {
                     args.campaign.referrerBannerUrl
@@ -284,7 +285,7 @@ fun ReferralInviteFriendScreen(
                 }, failure = {
                 })
             Text(
-                modifier = Modifier.padding(top = 20.dp),
+                modifier = Modifier.padding(top = 16.dp),
                 text = args.campaign.referrerTitle,
                 style = NunchukTheme.typography.heading,
             )
@@ -396,7 +397,7 @@ fun ReferralInviteFriendScreen(
 
             if ((state.isLoginByEmail.not() && state.localReferrerCode == null) || state.forceShowInputEmail) {
                 NcTextField(
-                    modifier = Modifier.padding(top = 24.dp),
+                    modifier = Modifier.padding(top = 20.dp),
                     title = stringResource(R.string.nc_your_email),
                     value = email,
                     onValueChange = {
@@ -413,7 +414,7 @@ fun ReferralInviteFriendScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp),
+                        .padding(top = 20.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
