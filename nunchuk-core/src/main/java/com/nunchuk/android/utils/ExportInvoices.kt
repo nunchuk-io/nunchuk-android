@@ -13,8 +13,11 @@ import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.model.Transaction
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.time.delay
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -55,12 +58,14 @@ class ExportInvoices(private val context: Context) {
         style = Paint.Style.FILL
     }
 
-    suspend fun generatePDF(invoicesInfos: List<InvoiceInfo>, filePath: String = "") {
+    suspend fun generatePDF(invoicesInfos: List<InvoiceInfo>, filePath: String = "", job: Job) {
         _progressFlow.emit(0 to 0)
         val pdfDocument = PdfDocument()
         invoicesInfos.forEachIndexed { index, invoiceInfo ->
+            job.ensureActive() // Check for cancellation
             addInvoiceToPDF(pdfDocument, invoiceInfo, index + 1)
             _progressFlow.emit(index + 1 to invoicesInfos.size)
+            kotlinx.coroutines.delay(200) // Add delay of 1 second
         }
 
         try {

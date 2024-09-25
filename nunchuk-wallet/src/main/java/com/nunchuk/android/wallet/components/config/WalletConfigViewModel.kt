@@ -72,6 +72,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -122,6 +123,8 @@ internal class WalletConfigViewModel @Inject constructor(
 
     private val _progressFlow = MutableStateFlow(0 to 0)
     val progressFlow: StateFlow<Pair<Int, Int>> get() = _progressFlow
+
+    private var exportInvoicesJob: Job? = null
 
     private val exportInvoices = ExportInvoices(context)
 
@@ -510,12 +513,14 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun exportInvoice(invoiceInfos: List<InvoiceInfo>, fileName: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        exportInvoicesJob?.cancel()
+        exportInvoicesJob = viewModelScope.launch(Dispatchers.IO) {
+            _progressFlow.emit(0 to invoiceInfos.size)
             when (val event = createShareFileUseCase.execute("$fileName.pdf")) {
                 is Result.Success -> {
-                    exportInvoices.generatePDF(invoiceInfos, event.data)
+                    exportInvoices.generatePDF(invoiceInfos, event.data, exportInvoicesJob!!)
                     withContext(Dispatchers.Main) {
-                        setEvent(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
+                        setEvent(WalletConfigEvent.ExportInvoiceSuccess(event.data))
                     }
                 }
 

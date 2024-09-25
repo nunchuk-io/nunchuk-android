@@ -14,6 +14,7 @@ import com.nunchuk.android.utils.ExportInvoices
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -60,7 +61,7 @@ class InvoiceViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             when (val event = createShareFileUseCase.execute("Transaction_$fileName.pdf")) {
                 is Result.Success -> {
-                    ExportInvoices(context = context).generatePDF(listOf(invoiceInfo), event.data)
+                    ExportInvoices(context = context).generatePDF(listOf(invoiceInfo), event.data, Job())
                     _event.emit(InvoiceEvent.ShareFile(event.data))
                 }
 

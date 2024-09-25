@@ -128,6 +128,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater)
 
+    private var isCancelExportInvoice = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -244,10 +246,17 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             SheetOptionType.TYPE_EXPORT_TX_INVOICES -> {
+                isCancelExportInvoice = false
+                kotlin.runCatching {
+                    ncProgressDialog.dialog?.dismiss()
+                }
                 ncProgressDialog = NCProgressDialog(activity = this@WalletConfigActivity)
                 ncProgressDialog.showDialog(
                     currentStep = 1,
                     totalSteps = viewModel.getTransactions().size,
+                    onCancelClick = {
+                        isCancelExportInvoice = true
+                    }
                 )
                 viewModel.exportInvoice(
                     viewModel.getTransactions().map { it.toInvoiceInfo(this, false) },
@@ -376,6 +385,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 walletId = args.walletId,
                 groupId = viewModel.getGroupId().orEmpty(),
             )
+
+            is WalletConfigEvent.ExportInvoiceSuccess -> {
+                if (isCancelExportInvoice) {
+                    return
+                }
+                if (event.filePath.isEmpty().not()) {
+                    shareConfigurationFile(event.filePath)
+                }
+            }
         }
     }
 
@@ -528,7 +546,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 viewModel.getTransactions().isEmpty().not()
             ) {
                 options.add(
-                    2, SheetOption(
+                    3, SheetOption(
                         SheetOptionType.TYPE_EXPORT_TX_INVOICES,
                         R.drawable.ic_export_invoices,
                         R.string.nc_export_transaction_invoices
