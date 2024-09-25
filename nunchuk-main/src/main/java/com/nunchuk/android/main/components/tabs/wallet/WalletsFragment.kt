@@ -618,7 +618,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 binding.containerNonSubscriber.isVisible = false
             }
         } else {
-            binding.introContainer.isVisible = false
+            binding.containerNonSubscriber.isVisible = false
         }
 
         if (state.plans != null) {
