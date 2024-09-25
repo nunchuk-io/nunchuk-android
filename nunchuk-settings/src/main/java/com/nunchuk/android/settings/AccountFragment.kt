@@ -338,16 +338,17 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
     }
 
     private fun getPlanName(plans: List<MembershipPlan>): String {
-        return when {
-            plans.size > 1 -> getString(R.string.nc_multiple_plans)
-            plans.isEmpty() -> ""
-            plans.first() == MembershipPlan.HONEY_BADGER -> getString(R.string.nc_honey_badger)
-            plans.first() == MembershipPlan.IRON_HAND -> getString(R.string.nc_iron_hand)
-            plans.first() == MembershipPlan.BYZANTINE -> getString(R.string.nc_byzantine)
-            plans.first() == MembershipPlan.BYZANTINE_PRO -> getString(R.string.nc_byzantine_pro)
-            plans.first() == MembershipPlan.BYZANTINE_PREMIER -> getString(R.string.nc_byzantine_premier)
-            plans.first() == MembershipPlan.FINNEY -> getString(R.string.nc_finney)
-            plans.first() == MembershipPlan.FINNEY_PRO -> getString(R.string.nc_finney_pro)
+        if (plans.isEmpty()) return ""
+        if (plans.size > 1) return getString(R.string.nc_multiple_plans)
+        return when(plans.first()) {
+            MembershipPlan.HONEY_BADGER -> getString(R.string.nc_honey_badger)
+            MembershipPlan.IRON_HAND -> getString(R.string.nc_iron_hand)
+            MembershipPlan.BYZANTINE -> getString(R.string.nc_byzantine)
+            MembershipPlan.BYZANTINE_PRO -> getString(R.string.nc_byzantine_pro)
+            MembershipPlan.BYZANTINE_PREMIER -> getString(R.string.nc_byzantine_premier)
+            MembershipPlan.FINNEY -> getString(R.string.nc_finney)
+            MembershipPlan.FINNEY_PRO -> getString(R.string.nc_finney_pro)
+            MembershipPlan.HONEY_BADGER_PLUS -> getString(R.string.nc_honey_badger_plus)
             else -> ""
         }
     }

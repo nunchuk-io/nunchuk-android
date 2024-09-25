@@ -1584,6 +1584,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         response.data.ironHand?.let {
             walletCounts["iron_hand"] = it.remainingWalletCount
         }
+        response.data.honeyBadgerPlus?.let {
+            walletCounts["honey_badger_plus"] = it.remainingWalletCount
+        }
 
         return GroupConfig(
             walletsCount = walletCounts,

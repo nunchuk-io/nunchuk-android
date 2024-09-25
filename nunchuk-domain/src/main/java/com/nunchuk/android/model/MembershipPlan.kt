@@ -23,7 +23,7 @@ import androidx.annotation.Keep
 
 @Keep
 enum class MembershipPlan {
-    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE, BYZANTINE_PRO, BYZANTINE_PREMIER, FINNEY, FINNEY_PRO
+    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE, BYZANTINE_PRO, BYZANTINE_PREMIER, FINNEY, FINNEY_PRO, HONEY_BADGER_PLUS
 }
 
 fun MembershipPlan.isByzantineOrFinney() =
@@ -32,6 +32,7 @@ fun MembershipPlan.isByzantineOrFinney() =
             || this == MembershipPlan.BYZANTINE_PREMIER
             || this == MembershipPlan.FINNEY
             || this == MembershipPlan.FINNEY_PRO
+            || this == MembershipPlan.HONEY_BADGER_PLUS
 
 fun MembershipPlan.isPersonalPlan() =
     this == MembershipPlan.IRON_HAND
@@ -66,6 +67,10 @@ fun String?.toMembershipPlan() = when (this) {
         MembershipPlan.FINNEY_PRO
     }
 
+    HONEY_BADGER_PLUS_PLAN, HONEY_BADGER_PLUS_PLAN_TESTNET -> {
+        MembershipPlan.HONEY_BADGER_PLUS
+    }
+
     else -> {
         MembershipPlan.NONE
     }
@@ -77,6 +82,7 @@ fun List<MembershipPlan>.containsByzantineOrFinney() =
             || this.contains(MembershipPlan.BYZANTINE_PREMIER)
             || this.contains(MembershipPlan.FINNEY)
             || this.contains(MembershipPlan.FINNEY_PRO)
+            || this.contains(MembershipPlan.HONEY_BADGER_PLUS)
 
 fun List<MembershipPlan>.containsPersonalPlan() =
     this.contains(MembershipPlan.IRON_HAND)
@@ -87,6 +93,7 @@ fun List<MembershipPlan>.isNonePlan() = this.isEmpty() || this.contains(Membersh
 private const val IRON_HAND_PLAN = "iron_hand"
 private const val IRON_HAND_PLAN_TESTNET = "iron_hand_testnet"
 private const val HONEY_BADGER_PLAN_TESTNET = "honey_badger_testnet"
+private const val HONEY_BADGER_PLUS_PLAN_TESTNET = "honey_badger_plus_testnet"
 private const val BYZANTINE_PLAN_TESTNET = "byzantine_testnet"
 private const val BYZANTINE_PRO_PLAN_TESTNET = "byzantine_pro_testnet"
 private const val BYZANTINE_PREMIER_TESTNET = "byzantine_premier_testnet"
@@ -94,6 +101,7 @@ private const val BYZANTINE_PRO_PLAN = "byzantine_pro"
 private const val BYZANTINE_PREMIER_PLAN = "byzantine_premier"
 private const val BYZANTINE_PLAN_ = "byzantine"
 private const val HONEY_BADGER_PLAN = "honey_badger"
+private const val HONEY_BADGER_PLUS_PLAN = "honey_badger_plus"
 private const val FINNEY_PLAN = "finney"
 private const val FINNEY_PLAN_TESTNET = "finney_testnet"
 private const val FINNEY_PRO_PLAN = "finney_pro"

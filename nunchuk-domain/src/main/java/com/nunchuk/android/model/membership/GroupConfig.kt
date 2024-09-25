@@ -25,6 +25,4 @@ data class GroupConfig(
     val walletsCount: Map<String, Int>,
     val personalOptions: List<WalletOption>,
     val groupOptions: List<WalletOption>,
-) {
-    val remainWalletCount = walletsCount.values.sum()
-}
+)

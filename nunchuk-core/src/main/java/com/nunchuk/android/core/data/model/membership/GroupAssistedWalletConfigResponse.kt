@@ -32,6 +32,7 @@ internal data class GroupAssistedWalletConfigResponse(
     @SerializedName("finney") val finney: AssistedWalletConfigResponse? = null,
     @SerializedName("finney_pro") val finneyPro: AssistedWalletConfigResponse? = null,
     @SerializedName("iron_hand") val ironHand: AssistedWalletConfigResponse? = null,
+    @SerializedName("honey_badger_plus") val honeyBadgerPlus: AssistedWalletConfigResponse? = null,
     @SerializedName("allow_group_wallet_types") val allowGroupWalletTypes: List<String> = emptyList(),
     @SerializedName("group_wallet_types") val groupWalletTypes: List<WalletOptionDto> = emptyList(),
     @SerializedName("personal_wallet_types") val personalWalletTypes: List<WalletOptionDto> = emptyList(),

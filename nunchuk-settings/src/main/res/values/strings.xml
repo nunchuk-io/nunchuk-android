@@ -131,4 +131,5 @@
     <string name="nc_to_continue_please_enter_your_pin">To continue, please enter your PIN.</string>
     <string name="nc_there_is_no_forgot_pin_feature">There is no \'Forgot PIN?\' feature!</string>
     <string name="nc_pin_exist">This PIN already exists.</string>
+    <string name="nc_honey_badger_plus">Honey Badger PLUS</string>
 </resources>

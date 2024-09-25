@@ -267,8 +267,14 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         binding.btnCreateGroupWallet.setOnDebounceClickListener {
-            if (viewModel.state.value.personalSteps.isNotEmpty()) {
+            val state = viewModel.state.value
+            val walletCount = state.walletsCount.values.sum()
+            if (state.personalSteps.isNotEmpty()) {
                 openCreateAssistedWallet()
+            } else if (viewModel.isPersonalWalletAvailable() && walletCount == 1) {
+                openCreateAssistedWallet()
+            } else if (viewModel.isGroupWalletAvailable() && walletCount == 1) {
+                openCreateGroupWallet()
             } else {
                 showOptionGroupWalletType()
             }
