@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.receive.address.used
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -77,7 +78,10 @@ internal class UsedAddressFragment : BaseFragment<FragmentUsedAddressBinding>() 
 
     private fun handleState(state: UsedAddressState) {
         adapter.items = state.addresses
-        (requireActivity() as TabCountChangeListener).onChange(AddressTab.USED, state.addresses.size)
+        (requireActivity() as TabCountChangeListener).onChange(
+            AddressTab.USED,
+            state.addresses.size
+        )
     }
 
     private fun handleEvent(event: UsedAddressEvent) {

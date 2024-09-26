@@ -17,18 +17,25 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.receive.address.unused
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.HandledEventRepository
+import com.nunchuk.android.usecase.MarkAddressAsUsedUseCase.Params
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-sealed class UnusedAddressEvent {
-    data class GenerateAddressErrorEvent(val message: String) : UnusedAddressEvent()
-    data class GetAddressPathSuccessEvent(val address: String) : UnusedAddressEvent()
-    data class MarkAddressAsUsedSuccessEvent(val address: String) : UnusedAddressEvent()
+class MarkAddressAsUsedUseCase @Inject constructor(
+    private val nunchukNativeSdk: NunchukNativeSdk,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<MarkAddressAsUsedUseCase.Params, Boolean>(ioDispatcher) {
+    override suspend fun execute(parameters: Params): Boolean {
+        return nunchukNativeSdk.markAddressAsUsed(walletId = parameters.walletId, address = parameters.address)
+    }
+
+    data class Params(
+        val walletId: String,
+        val address: String
+    )
 }
-
-data class UnusedAddressState(
-    val addresses: List<String> = emptyList(),
-    val wallet: Wallet = Wallet(),
-    val totalUsedAddresses: Int = 0,
-)

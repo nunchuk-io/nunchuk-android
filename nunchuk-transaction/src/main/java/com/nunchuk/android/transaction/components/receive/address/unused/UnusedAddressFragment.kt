@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -37,11 +38,13 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.TextUtils
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.TabCountChangeListener
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentArgs
 import com.nunchuk.android.transaction.components.receive.address.AddressTab
 import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -144,6 +147,11 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
                 copyDerivationPath(event.address)
             }
 
+            is UnusedAddressEvent.MarkAddressAsUsedSuccessEvent -> {
+                NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_marked_as_used))
+                (requireActivity() as? ReceiveTransactionActivity)?.switchToUsedTab(AddressTab.USED)
+            }
+
             else -> {
                 // do nothing
             }
@@ -176,6 +184,13 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
 
     private fun showMoreOptions() {
         val options = mutableListOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_MARK_ADDRESS_AS_USED,
+                resId = R.drawable.ic_mark_address,
+                label = "Mark address as used",
+            )
+        )
+        options.add(
             SheetOption(
                 type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
                 resId = R.drawable.ic_visibility,
@@ -218,10 +233,26 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
                 viewModel.getAddressPath(getCurrentAddress().orEmpty())
             }
 
+            SheetOptionType.TYPE_MARK_ADDRESS_AS_USED -> {
+                showMarkAddressAsUsedDialog()
+            }
+
             else -> {
                 // do nothing
             }
         }
+    }
+
+    private fun showMarkAddressAsUsedDialog() {
+        NCWarningVerticalDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_confirmation),
+            message = "Are you sure you want to mark the address as used?",
+            btnYes = getString(R.string.nc_text_continue),
+            btnNo = getString(R.string.nc_text_cancel),
+            onYesClick = {
+                viewModel.markAddressAsUsed(getCurrentAddress().orEmpty())
+            }
+        )
     }
 
     companion object {

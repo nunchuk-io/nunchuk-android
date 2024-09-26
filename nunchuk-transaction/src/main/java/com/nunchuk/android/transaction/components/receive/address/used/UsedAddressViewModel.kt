@@ -21,6 +21,8 @@ package com.nunchuk.android.transaction.components.receive.address.used
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -36,19 +38,31 @@ import javax.inject.Inject
 @HiltViewModel
 internal class UsedAddressViewModel @Inject constructor(
     private val getAddressesUseCase: GetAddressesUseCase,
-    private val getAddressBalanceUseCase: GetAddressBalanceUseCase
-) : NunchukViewModel<UsedAddressState, UsedAddressEvent>() {
+    private val getAddressBalanceUseCase: GetAddressBalanceUseCase,
+    private val pushEventManager: PushEventManager,
+    ) : NunchukViewModel<UsedAddressState, UsedAddressEvent>() {
 
     private lateinit var walletId: String
 
     override val initialState = UsedAddressState()
+
+    init {
+        viewModelScope.launch {
+            pushEventManager.event.collect { event ->
+                when (event) {
+                    is PushEvent.ReloadUsedAddress -> getUnusedAddress()
+                    else -> { }
+                }
+            }
+        }
+    }
 
     fun init(walletId: String) {
         this.walletId = walletId
         getUnusedAddress()
     }
 
-    private fun getUnusedAddress() {
+    fun getUnusedAddress() {
         viewModelScope.launch {
             getAddressesUseCase.execute(walletId = walletId, used = true)
                 .onException { event(GetUsedAddressErrorEvent(it.message.orEmpty())) }

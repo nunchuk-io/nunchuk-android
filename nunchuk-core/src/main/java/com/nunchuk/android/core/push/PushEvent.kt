@@ -42,6 +42,7 @@ sealed class PushEvent {
     data class InheritanceEvent(val walletId: String) : PushEvent()
     data class ReplaceKeyChange(val walletId: String) : PushEvent()
     data class WalletReplaced(val newWalletId: String, val newWalletName: String) : PushEvent()
+    data class ReloadUsedAddress(val address: String) : PushEvent()
 
     /**
      * Event for when a new local user signer is added, don't use it for create signer from sync API    

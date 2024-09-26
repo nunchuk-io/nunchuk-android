@@ -155,8 +155,9 @@ object SheetOptionType {
 
     const val TYPE_CREATE_NEW_DECOY_WALLET = 88
 
-    const val TYPE_ROLL_OVER_ANOTHER_WALLET = 90
+    const val TYPE_ROLL_OVER_ANOTHER_WALLET = 89
 
-    const val TYPE_EXPORT_PORTAL = 88
-    const val TYPE_EXPORT_TX_INVOICES = 89
+    const val TYPE_EXPORT_PORTAL = 90
+    const val TYPE_EXPORT_TX_INVOICES = 91
+    const val TYPE_MARK_ADDRESS_AS_USED = 92
 }

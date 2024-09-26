@@ -21,10 +21,13 @@ package com.nunchuk.android.transaction.components.receive.address.unused
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.transaction.components.receive.address.unused.UnusedAddressEvent.GenerateAddressErrorEvent
 import com.nunchuk.android.usecase.GetAddressPathUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.MarkAddressAsUsedUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetAddressIndexUseCase
 import com.nunchuk.android.utils.onException
@@ -38,7 +41,9 @@ internal class UnusedAddressViewModel @Inject constructor(
     private val newAddressUseCase: NewAddressUseCase,
     private val getAddressPathUseCase: GetAddressPathUseCase,
     private val getWalletUseCase: GetWalletUseCase,
-    private val getAddressIndexUseCase: GetAddressIndexUseCase
+    private val getAddressIndexUseCase: GetAddressIndexUseCase,
+    private val markAddressAsUsedUseCase: MarkAddressAsUsedUseCase,
+    private val pushEventManager: PushEventManager,
     ) : NunchukViewModel<UnusedAddressState, UnusedAddressEvent>() {
 
     private lateinit var walletId: String
@@ -80,7 +85,19 @@ internal class UnusedAddressViewModel @Inject constructor(
                 .onException { onError() }
                 .collect { onSuccess(it) }
         }
+    }
 
+    fun markAddressAsUsed(address: String) {
+        viewModelScope.launch {
+            markAddressAsUsedUseCase(MarkAddressAsUsedUseCase.Params(walletId, address))
+                .onSuccess {
+                    onSuccess(getState().addresses.filter { it != address })
+                    setEvent(UnusedAddressEvent.MarkAddressAsUsedSuccessEvent(address))
+                    pushEventManager.push(PushEvent.ReloadUsedAddress(address))
+                }.onFailure {
+
+                }
+        }
     }
 
     private fun onError() {
