@@ -91,7 +91,6 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.WalletEmptySignerEvent
 import com.nunchuk.android.main.components.tabs.wallet.emptystate.ConditionInfo
 import com.nunchuk.android.main.components.tabs.wallet.emptystate.EmptyStateFreeGuestUser
@@ -122,6 +121,7 @@ import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.signer.satscard.SatsCardActivity
+import com.nunchuk.android.signer.signer.SignersViewModel
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
@@ -150,7 +150,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
-    private val signerAdapter = SignerAdapter(::openSignerInfoScreen)
+    private val signersViewModel: SignersViewModel by activityViewModels()
 
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
@@ -272,9 +272,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun setupViews() {
-        binding.signerList.addItemDecoration(SimpleItemDecoration(requireContext()))
-        binding.signerList.adapter = signerAdapter
-        binding.btnAddSigner.setOnClickListener { walletsViewModel.handleAddSigner() }
         binding.ivAddWallet.setOnClickListener { walletsViewModel.handleAddWallet() }
         binding.ivNfc.setOnClickListener {
             if (walletsViewModel.isShownNfcUniversal.value) {
@@ -334,11 +331,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openAddWalletScreen() {
-        navigator.openWalletIntermediaryScreen(requireActivity(), walletsViewModel.hasSigner())
-    }
-
-    private fun openSignerIntroScreen() {
-        navigator.openSignerIntroScreen(requireActivity())
+        navigator.openWalletIntermediaryScreen(requireActivity(), signersViewModel.hasSigner())
     }
 
     private fun showAssistedWalletStart(
@@ -414,7 +407,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun handleEvent(event: WalletsEvent) {
         when (event) {
             AddWalletEvent -> openAddWalletScreen()
-            ShowSignerIntroEvent -> openSignerIntroScreen()
             WalletEmptySignerEvent -> openWalletIntroScreen()
             is ShowErrorEvent -> {
                 if (nfcViewModel.handleNfcError(event.e).not()) {
@@ -525,7 +517,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showWalletState(state: WalletsState) {
-        showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
         showPendingWallet(state)
@@ -567,7 +558,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             ),
                             resumeWizardMinutes = state.remainingTime,
                             walletType = walletType,
-                            hasSigner = walletsViewModel.hasSigner(),
+                            hasSigner = signersViewModel.hasSigner(),
                             groupStep = walletsViewModel.getGroupStage(),
                             assistedWalletId = walletsViewModel.getAssistedWalletId(),
                             plan = plans.firstOrNull() ?: MembershipPlan.NONE
@@ -576,11 +567,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
                     state.plans?.size.orDefault(0) > 1 && state.plans.orEmpty()
                         .any { it.isByzantineOrFinney() } -> {
-                        ConditionInfo.MultipleSubscriptionsUser(walletsViewModel.hasSigner())
+                        ConditionInfo.MultipleSubscriptionsUser(signersViewModel.hasSigner())
                     }
 
                     state.wallets.isEmpty() -> {
-                        ConditionInfo.FreeGuestUser(hasSigner = walletsViewModel.hasSigner())
+                        ConditionInfo.FreeGuestUser(hasSigner = signersViewModel.hasSigner())
                     }
 
                     else -> ConditionInfo.None
@@ -852,25 +843,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 )
             )
         }
-    }
-
-    private fun showSigners(signers: List<SignerModel>) {
-        if (signers.isEmpty()) {
-            showSignersEmptyView()
-        } else {
-            showSignersListView(signers)
-        }
-    }
-
-    private fun showSignersEmptyView() {
-        binding.signerEmpty.isVisible = true
-        binding.signerList.isVisible = false
-    }
-
-    private fun showSignersListView(signers: List<SignerModel>) {
-        binding.signerEmpty.isVisible = false
-        binding.signerList.isVisible = true
-        signerAdapter.submitList(signers)
     }
 
     private fun openSignerInfoScreen(

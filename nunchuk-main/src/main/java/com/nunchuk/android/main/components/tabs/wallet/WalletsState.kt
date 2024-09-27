@@ -40,7 +40,6 @@ import com.nunchuk.android.type.ConnectionStatus
 
 internal data class WalletsState(
     val wallets: List<WalletExtended> = emptyList(),
-    val signers: List<SignerModel> = emptyList(),
     val connectionStatus: ConnectionStatus? = null,
     val chain: Chain = Chain.MAIN,
     val plans: List<MembershipPlan>? = null,
@@ -65,7 +64,6 @@ internal sealed class WalletsEvent {
     data class Loading(val loading: Boolean) : WalletsEvent()
     data class ShowErrorEvent(val e: Throwable?) : WalletsEvent()
     data object AddWalletEvent : WalletsEvent()
-    data object ShowSignerIntroEvent : WalletsEvent()
     data object WalletEmptySignerEvent : WalletsEvent()
     class NeedSetupSatsCard(val status: SatsCardStatus) : WalletsEvent()
     class NfcLoading(val loading: Boolean) : WalletsEvent()

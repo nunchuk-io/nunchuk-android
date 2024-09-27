@@ -12,6 +12,11 @@
         tools:layout="@layout/fragment_chat" />
 
     <fragment
+        android:id="@+id/navigation_key"
+        android:name="com.nunchuk.android.signer.signer.SignersFragment"
+        android:label="@string/nc_title_signers" />
+
+    <fragment
         android:id="@+id/navigation_wallets"
         android:name="com.nunchuk.android.main.components.tabs.wallet.WalletsFragment"
         android:label="@string/nc_title_home"
@@ -35,7 +40,7 @@
         android:id="@+id/navigation_services"
         android:name="com.nunchuk.android.main.components.tabs.services.ServicesTabFragment"
         android:label="@string/nc_services_tab"
-        tools:layout="@layout/fragment_services_tab"/>
+        tools:layout="@layout/fragment_services_tab" />
 
     <fragment
         android:id="@+id/navigation_account"

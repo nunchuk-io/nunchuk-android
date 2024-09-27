@@ -7,6 +7,11 @@
         android:title="@string/nc_title_home" />
 
     <item
+        android:id="@+id/navigation_key"
+        android:icon="@drawable/ic_key"
+        android:title="@string/nc_title_signers" />
+
+    <item
         android:id="@+id/navigation_services"
         android:icon="@drawable/ic_services"
         android:title="@string/nc_services_tab" />

@@ -54,7 +54,6 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -70,7 +69,6 @@ import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetDisplayTotalBalanceUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
@@ -106,17 +104,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 @HiltViewModel
 internal class WalletsViewModel @Inject constructor(
-    private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val getNfcCardStatusUseCase: GetNfcCardStatusUseCase,
@@ -312,9 +309,9 @@ internal class WalletsViewModel @Inject constructor(
 
     private fun getReferrerCode() {
         viewModelScope.launch {
-           getLocalReferrerCodeUseCase(Unit).distinctUntilChanged().collect {
-               updateState { copy(localReferrerCode = it.getOrNull()) }
-               getCurrentCampaignUseCase(GetCurrentCampaignUseCase.Param(accountManager.getAccount().email.ifEmpty { it.getOrNull()?.email }))
+            getLocalReferrerCodeUseCase(Unit).distinctUntilChanged().collect {
+                updateState { copy(localReferrerCode = it.getOrNull()) }
+                getCurrentCampaignUseCase(GetCurrentCampaignUseCase.Param(accountManager.getAccount().email.ifEmpty { it.getOrNull()?.email }))
             }
         }
     }
@@ -446,33 +443,23 @@ internal class WalletsViewModel @Inject constructor(
         if (isRetrievingData.get()) return
         isRetrievingData.set(true)
         viewModelScope.launch {
-            getCompoundSignersUseCase.execute().zip(getWalletsUseCase.execute()) { p, wallets ->
-                Triple(p.first, p.second, wallets)
-            }.map {
-                mapSigners(it.second, it.first).sortedByDescending { signer ->
-                    isPrimaryKey(
-                        signer.id
-                    )
-                } to it.third
-            }.flowOn(Dispatchers.IO).onException {
-                updateState { copy(signers = emptyList()) }
-            }.flowOn(Dispatchers.Main).onStart {
-                if (getState().wallets.isEmpty()) {
-                    event(Loading(true))
+            getWalletsUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .onException {
+                    Timber.e(it)
+                }.flowOn(Dispatchers.Main)
+                .onStart {
+                    if (getState().wallets.isEmpty()) {
+                        event(Loading(true))
+                    }
+                }.onCompletion {
+                    event(Loading(false))
+                    isRetrievingData.set(false)
+                }.collect {
+                    updateState { copy(wallets = it) }
+                    mapGroupWalletUi()
+                    if (it.isNotEmpty()) getCampaign()
                 }
-            }.onCompletion {
-                event(Loading(false))
-                isRetrievingData.set(false)
-            }.collect {
-                val (signers, wallets) = it
-                updateState {
-                    copy(
-                        signers = signers, wallets = wallets
-                    )
-                }
-                mapGroupWalletUi()
-                if (wallets.isNotEmpty()) getCampaign()
-            }
         }
     }
 
@@ -559,7 +546,8 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             val groupIds = getState().allGroups.map { it.id }
             val assistedWalletIdsWithoutGroupId =
-                getState().assistedWallets.filter { it.groupId.isEmpty() && it.status != WalletStatus.LOCKED.name }.map { it.localId }
+                getState().assistedWallets.filter { it.groupId.isEmpty() && it.status != WalletStatus.LOCKED.name }
+                    .map { it.localId }
             if (groupIds.isEmpty() && assistedWalletIdsWithoutGroupId.isEmpty()) return@launch
             isRetrievingAlert.set(true)
             val result = getPendingWalletNotifyCountUseCase(
@@ -596,15 +584,9 @@ internal class WalletsViewModel @Inject constructor(
     private fun isPrimaryKey(id: String) =
         accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == id
 
-    fun handleAddSigner() {
-        event(ShowSignerIntroEvent)
-    }
-
     fun handleAddWallet() {
         event(AddWalletEvent)
     }
-
-    fun hasSigner() = getState().signers.isNotEmpty()
 
     fun hasWallet() = getState().wallets.isNotEmpty()
 
@@ -652,7 +634,8 @@ internal class WalletsViewModel @Inject constructor(
             if (assistedWallets.size == 1
                 && !assistedWallets.first().isSetupInheritance
                 && assistedWallets.first().status == WalletStatus.ACTIVE.name
-                && assistedWallets.first().plan == MembershipPlan.HONEY_BADGER) {
+                && assistedWallets.first().plan == MembershipPlan.HONEY_BADGER
+            ) {
                 return MembershipStage.SETUP_INHERITANCE
             }
             return MembershipStage.DONE

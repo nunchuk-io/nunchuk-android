@@ -283,60 +283,19 @@
                     android:visibility="gone"
                     tools:visibility="visible" />
 
-                <androidx.compose.ui.platform.ComposeView
-                    android:id="@+id/pending_wallet"
-                    android:layout_marginTop="8dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_8">
-
-                    <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/signerHeader"
-                        style="@style/NCText.Title"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/nc_title_signers"
-                        android:textColor="@color/nc_black_color"
-                        app:fontTextStyle="semi_bold"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageView
-                        android:id="@+id/btn_add_signer"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_plus"
-                        app:layout_constraintBottom_toBottomOf="@+id/signerHeader"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="@+id/signerHeader" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/signerEmpty"
-                    style="@style/NCText.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_16"
-                    android:gravity="center"
-                    android:text="@string/nc_text_you_have_not_add_signer"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/signerList"
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/walletList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_8"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:paddingVertical="@dimen/nc_padding_8"
-                    android:visibility="gone"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                    android:visibility="gone" />
+
+                <androidx.compose.ui.platform.ComposeView
+                    android:id="@+id/pending_wallet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>

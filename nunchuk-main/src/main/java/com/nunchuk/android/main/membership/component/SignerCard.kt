@@ -26,8 +26,8 @@ import com.nunchuk.android.main.R
 @Composable
 fun SignerCard(
     signer: SignerModel,
-    onSignerSelected: (signer: SignerModel) -> Unit = {},
     modifier: Modifier = Modifier,
+    onSignerSelected: (signer: SignerModel) -> Unit = {},
     isSelected: Boolean = false,
     isSelectable: Boolean = true,
 ) {

@@ -136,6 +136,7 @@ object NunchukTheme {
 @Composable
 fun NunchukTheme(
     statusBarColor: Color = Color.Transparent,
+    darkIcon: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val nunchukTypography = NunchukTypography(
@@ -186,7 +187,7 @@ fun NunchukTheme(
         medium = RoundedCornerShape(12.dp)
     )
     val systemUiController = rememberSystemUiController()
-    systemUiController.setSystemBarsColor(color = statusBarColor, darkIcons = true)
+    systemUiController.setSystemBarsColor(color = statusBarColor, darkIcons = darkIcon)
     CompositionLocalProvider(
         LocalNunchukTypography provides nunchukTypography,
         LocalNunchukShapes provides nunchukShapes
