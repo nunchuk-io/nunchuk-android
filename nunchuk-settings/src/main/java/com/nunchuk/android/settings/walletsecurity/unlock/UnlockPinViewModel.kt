@@ -20,6 +20,7 @@ import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
 import com.nunchuk.android.usecase.pin.SetCustomPinConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
@@ -100,28 +101,32 @@ class UnlockPinViewModel @Inject constructor(
                     signInModeHolder.clear()
                     clearInfoSessionUseCase(Unit)
                     sendSignOutUseCase(Unit)
-                    initNunchukUseCase(
-                        InitNunchukUseCase.Param(
-                            passphrase = "",
-                            accountId = "",
-                            decoyPin = pin
-                        )
-                    ).onSuccess { replaced ->
-                        Timber.d("unlockPin: replaced $replaced")
-                        accountManager.storeAccount(
-                            AccountInfo(
-                                decoyPin = pin,
-                                loginType = SignInMode.GUEST_MODE.value
+                    repeat(3) {
+                        initNunchukUseCase(
+                            InitNunchukUseCase.Param(
+                                passphrase = "",
+                                accountId = "",
+                                decoyPin = pin
                             )
-                        )
-                        signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                        if (replaced) {
-                            _state.update { it.copy(event = UnlockPinEvent.GoToMain) }
-                        } else {
-                            _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
+                        ).onSuccess { replaced ->
+                            Timber.d("unlockPin: replaced $replaced")
+                            accountManager.storeAccount(
+                                AccountInfo(
+                                    decoyPin = pin,
+                                    loginType = SignInMode.GUEST_MODE.value
+                                )
+                            )
+                            signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
+                            if (replaced) {
+                                _state.update { it.copy(event = UnlockPinEvent.GoToMain) }
+                            } else {
+                                _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
+                            }
+                            return@repeat
+                        }.onFailure {
+                            Timber.e("unlockPin failed: $it")
                         }
-                    }.onFailure {
-                        Timber.e("unlockPin failed: $it")
+                        delay(1000L)
                     }
                 } else {
                     checkPin(pin) {
