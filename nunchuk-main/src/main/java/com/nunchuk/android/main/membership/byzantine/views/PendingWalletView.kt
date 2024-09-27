@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.ActiveWallet
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
-import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
@@ -58,7 +58,6 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
-import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.wallet.WalletStatus
@@ -187,21 +186,45 @@ fun RowScope.PendingWalletInviteMember(
         text = stringResource(
             R.string.nc_pending_wallet_invite_member, inviterName
         ), style = NunchukTheme.typography.bodySmall, modifier = Modifier.weight(1f, fill = true)
+            .padding(end = 12.dp)
     )
-    NcPrimaryDarkButton(
+    Box(
         modifier = Modifier
-            .defaultMinSize(minWidth = 72.dp)
             .height(36.dp)
-            .padding(horizontal = 12.dp), onClick = onAccept
+            .defaultMinSize(minWidth = 62.dp)
+            .background(
+                color = Color.White, shape = RoundedCornerShape(48.dp)
+            ).clickable {
+                onDeny()
+            },
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = stringResource(id = R.string.nc_accept))
+        Text(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            text = stringResource(id = R.string.nc_deny),
+            color = colorResource(id = R.color.nc_primary_color),
+            style = NunchukTheme.typography.captionTitle
+        )
     }
-    NcOutlineButton(
+
+    Box(
         modifier = Modifier
+            .height(36.dp)
+            .padding(start = 12.dp)
             .defaultMinSize(minWidth = 72.dp)
-            .height(36.dp), onClick = onDeny
+            .background(
+                color = colorResource(R.color.nc_primary_color), shape = RoundedCornerShape(48.dp)
+            ).clickable {
+                onAccept()
+            },
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = stringResource(id = R.string.nc_deny))
+        Text(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            text = stringResource(id = R.string.nc_accept),
+            color = colorResource(id = R.color.nc_white_color),
+            style = NunchukTheme.typography.captionTitle
+        )
     }
 }
 

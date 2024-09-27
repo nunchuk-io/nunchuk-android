@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.main.components.tabs.wallet
 
+import EmptyStateHomeView
+import KeyWalletEntryView
 import android.app.Activity
 import android.app.Dialog
 import android.content.res.ColorStateList
@@ -71,6 +73,7 @@ import com.nunchuk.android.core.util.formatMMMddyyyyDate
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
@@ -90,6 +93,13 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsed
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.WalletEmptySignerEvent
+import com.nunchuk.android.main.components.tabs.wallet.emptystate.ConditionInfo
+import com.nunchuk.android.main.components.tabs.wallet.emptystate.EmptyStateFreeGuestUser
+import com.nunchuk.android.main.components.tabs.wallet.emptystate.EmptyStateMultipleSubscriptionsUser
+import com.nunchuk.android.main.components.tabs.wallet.emptystate.EmptyStateNone
+import com.nunchuk.android.main.components.tabs.wallet.emptystate.EmptyStatePersonalPlanUser
+import com.nunchuk.android.main.components.tabs.wallet.emptystate.KeyWalletEntryData
+import com.nunchuk.android.main.components.tabs.wallet.emptystate.WizardData
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
@@ -122,6 +132,7 @@ import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import org.matrix.android.sdk.api.extensions.orTrue
 import java.util.Locale
 import javax.inject.Inject
 
@@ -156,7 +167,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private var threshold = 50 // Threshold in dp
     private var isBalanceFrameVisible = true // Track visibility state
 
-    private val thresholdInPx by lazy {  TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, threshold.toFloat(), resources.displayMetrics).toInt() }
+    private val thresholdInPx by lazy {
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            threshold.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -514,6 +531,98 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showPendingWallet(state)
         showCampaign(state.campaign, state.wallets.isNotEmpty())
         showTotalBalance(state)
+        binding.contentContainer.isVisible = isShowEmptyState(state).not()
+        binding.emptyStateView.isVisible = isShowEmptyState(state)
+        if (isShowEmptyState(state)) showEmptyState(state)
+    }
+
+    private fun isShowEmptyState(state: WalletsState): Boolean {
+        return state.wallets.isEmpty() && state.groupWalletUis.isEmpty()
+    }
+
+    private fun showEmptyState(state: WalletsState) {
+        binding.emptyStateView.setContent {
+            val personalSteps = walletsViewModel.getPersonalSteps()
+            val plans = walletsViewModel.getPlans().orEmpty()
+            val walletType = when {
+                personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
+                personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
+                else -> null
+            }
+            NunchukTheme(false) {
+                val contentData: WizardData?
+                val keyWalletEntryData: KeyWalletEntryData?
+                val conditionInfo = when {
+                    state.plans?.size.orDefault(0) == 1 && state.plans?.any {
+                        it in setOf(
+                            MembershipPlan.IRON_HAND,
+                            MembershipPlan.HONEY_BADGER,
+                            MembershipPlan.HONEY_BADGER_PLUS
+                        )
+                    }.orTrue() -> {
+                        ConditionInfo.PersonalPlanUser(
+                            resumeWizard = walletsViewModel.getGroupStage() !in setOf(
+                                MembershipStage.DONE,
+                                MembershipStage.NONE
+                            ),
+                            resumeWizardMinutes = state.remainingTime,
+                            walletType = walletType,
+                            hasSigner = walletsViewModel.hasSigner(),
+                            groupStep = walletsViewModel.getGroupStage(),
+                            assistedWalletId = walletsViewModel.getAssistedWalletId(),
+                            plan = plans.firstOrNull() ?: MembershipPlan.NONE
+                        )
+                    }
+
+                    state.plans?.size.orDefault(0) > 1 && state.plans.orEmpty()
+                        .any { it.isByzantineOrFinney() } -> {
+                        ConditionInfo.MultipleSubscriptionsUser(walletsViewModel.hasSigner())
+                    }
+
+                    state.wallets.isEmpty() -> {
+                        ConditionInfo.FreeGuestUser(hasSigner = walletsViewModel.hasSigner())
+                    }
+
+                    else -> ConditionInfo.None
+                }
+                val emptyState = when (conditionInfo) {
+                    is ConditionInfo.PersonalPlanUser -> EmptyStatePersonalPlanUser(
+                        navigator,
+                        requireActivity()
+                    )
+
+                    is ConditionInfo.MultipleSubscriptionsUser -> EmptyStateMultipleSubscriptionsUser(
+                        navigator,
+                        requireActivity()
+                    )
+
+                    is ConditionInfo.FreeGuestUser -> EmptyStateFreeGuestUser(
+                        navigator,
+                        requireActivity()
+                    )
+
+                    else -> EmptyStateNone()
+                }
+                contentData = emptyState.getWizardData(conditionInfo)
+                keyWalletEntryData = emptyState.getKeyWalletEntryData(conditionInfo)
+
+                val onEmptyStateActionButtonClick = { contentData?.buttonAction?.invoke() }
+                val onKeyWalletEntryClick = { keyWalletEntryData?.buttonAction?.invoke() }
+                Column {
+                    if (contentData != null) {
+                        EmptyStateHomeView(contentData, onActionButtonClick = {
+                            onEmptyStateActionButtonClick()
+                        })
+                    }
+                    if (keyWalletEntryData != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        KeyWalletEntryView(keyWalletEntryData, onClick = {
+                            onKeyWalletEntryClick()
+                        })
+                    }
+                }
+            }
+        }
     }
 
     private fun showTotalBalance(state: WalletsState) {
@@ -529,7 +638,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showCampaign(campaign: Campaign?, isHasWallet: Boolean = false) {
-        binding.llCampaigns.isVisible = campaign?.isValid() == true && isHasWallet && campaign.isDismissed.not()
+        binding.llCampaigns.isVisible =
+            campaign?.isValid() == true && isHasWallet && campaign.isDismissed.not()
         binding.tvCampaigns.text = campaign?.cta
     }
 
@@ -601,7 +711,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showIntro(state: WalletsState) {
         binding.introContainer.isGone = walletsViewModel.getGroupStage() == MembershipStage.DONE
-                || state.allGroups.isNotEmpty()
+                || state.allGroups.isNotEmpty() || state.wallets.isEmpty()
         if (state.plans != null && state.plans.isEmpty() && state.banner != null) {
             if (state.banner.type == Banner.Type.TYPE_01 && state.isHideUpsellBanner.not() && state.allGroups.isEmpty()) {
                 binding.containerNonSubscriber.isVisible = true
@@ -637,7 +747,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 .override(binding.ivNonSubscriber.width)
                 .into(binding.ivNonSubscriber)
             binding.tvNonSubscriber.text = banner.content.title
-            binding.tvNonSubscriberExpired.text = String.format(getString(R.string.nc_banner_expired_time), banner.payload.expiryAtMillis.formatMMMddyyyyDate)
+            binding.tvNonSubscriberExpired.text = String.format(
+                getString(R.string.nc_banner_expired_time),
+                banner.payload.expiryAtMillis.formatMMMddyyyyDate
+            )
         }
     }
 
@@ -647,7 +760,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         val hideWalletDetail = state.walletSecuritySetting.hideWalletDetail
         val assistedWallets = state.assistedWallets.associateBy { it.localId }
         binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
-        binding.walletList.isVisible = groupWalletUis.isNotEmpty()
         binding.pendingWallet.setContent {
             NunchukTheme(false) {
                 Column {
