@@ -120,6 +120,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                         inputValue[0]?.value!!,
                         errorMsg = context.getString(R.string.nc_incorrect_current_pin)
                     )
+                    _state.update { it.copy(attemptCount = it.attemptCount.inc()) }
                 } else if (inputValue[1] != inputValue[2]) {
                     updateInputValue(
                         2,
@@ -189,6 +190,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                         inputValue[0]?.value!!,
                         errorMsg = context.getString(R.string.nc_incorrect_current_pin)
                     )
+                    _state.update { it.copy(attemptCount = it.attemptCount.inc()) }
                 } else if (inputValue[1] != inputValue[2]) {
                     updateInputValue(
                         2,
@@ -219,7 +221,8 @@ data class InputValue(
 data class WalletSecurityCreatePinState(
     val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
     val inputValue: MutableMap<Int, InputValue> = hashMapOf(),
-    val createPinFlow: Boolean = false
+    val createPinFlow: Boolean = false,
+    val attemptCount: Int = 0
 )
 
 sealed class WalletSecurityCreatePinEvent {

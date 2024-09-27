@@ -183,7 +183,7 @@ fun UnlockPinContent(
 
                 NcPrimaryDarkButton(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = enable,
+                    enabled = enable && pin.isNotEmpty(),
                     onClick = { onUnlock(pin) }) {
                     Text(text = btnMessage.ifEmpty { stringResource(id = R.string.nc_text_continue) })
                 }

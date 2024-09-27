@@ -33,9 +33,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -63,6 +68,7 @@ import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class WalletSecurityCreatePinFragment : Fragment() {
@@ -134,22 +140,39 @@ fun WalletSecurityCreatePinScreen(
     WalletSecurityCreatePinContent(
         createPinFlow = createPinFlow,
         inputTitleArray = inputTitleArray,
-        inputValue = state.inputValue,
+        state = state,
         onInputChange = { index, value ->
             viewModel.updateInputValue(index, value)
-        }, onContinueClick = {
+        },
+        onContinueClick = {
             viewModel.createOrUpdateWalletPin()
-        })
+        },
+    )
 }
 
 @Composable
 private fun WalletSecurityCreatePinContent(
     createPinFlow: Boolean = true,
     inputTitleArray: ArrayList<String> = arrayListOf(),
-    inputValue: MutableMap<Int, InputValue> = hashMapOf(),
+    state: WalletSecurityCreatePinState = WalletSecurityCreatePinState(),
     onContinueClick: () -> Unit = {},
     onInputChange: (Int, String) -> Unit = { _, _ -> },
 ) {
+    var enable by remember { mutableStateOf(true) }
+    var btnMessage by remember { mutableStateOf("") }
+    val inputValue = state.inputValue
+    val context = LocalContext.current
+    LaunchedEffect(state.attemptCount) {
+        if (state.attemptCount >= 3) {
+            enable = false
+            repeat(30) {
+                btnMessage = context.getString(R.string.nc_try_again_after_seconds, 30 - it)
+                delay(1000L)
+            }
+            btnMessage = ""
+            enable = true
+        }
+    }
     NunchukTheme {
         NcScaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -157,12 +180,12 @@ private fun WalletSecurityCreatePinContent(
                 NcImageAppBar(backgroundRes = R.drawable.bg_wallet_pin)
             },
             bottomBar = {
-                val isButtonEnable = inputValue.all { it.value.value.isBlank().not() }
+                val isAllInputFilled = inputValue.all { it.value.value.isBlank().not() }
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = isButtonEnable,
+                    enabled = isAllInputFilled && enable,
                     onClick = onContinueClick,
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
