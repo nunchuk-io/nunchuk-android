@@ -128,6 +128,8 @@ internal class WalletConfigViewModel @Inject constructor(
 
     private val exportInvoices = ExportInvoices(context)
 
+    private val accountInfo by lazy { accountManager.getAccount() }
+
     init {
         getWalletDetails()
         getUserRole()
@@ -532,7 +534,7 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     private fun isPrimaryKey(id: String) =
-        accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
+        accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == id
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
 

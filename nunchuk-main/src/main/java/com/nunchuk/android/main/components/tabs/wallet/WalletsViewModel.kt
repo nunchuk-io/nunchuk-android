@@ -170,6 +170,7 @@ internal class WalletsViewModel @Inject constructor(
     private var shouldShowExistingKeyDialog = AtomicBoolean(true)
 
     private var signersExistingMap = ConcurrentHashMap<String, WalletsExistingKey>()
+    private val accountInfo by lazy { accountManager.getAccount() }
 
     override val initialState = WalletsState()
 
@@ -593,7 +594,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun isPrimaryKey(id: String) =
-        accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
+        accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == id
 
     fun handleAddSigner() {
         event(ShowSignerIntroEvent)
