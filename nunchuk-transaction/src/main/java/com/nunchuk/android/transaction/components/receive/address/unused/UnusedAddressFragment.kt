@@ -187,7 +187,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
             SheetOption(
                 type = SheetOptionType.TYPE_MARK_ADDRESS_AS_USED,
                 resId = R.drawable.ic_mark_address,
-                label = "Mark address as used",
+                label = getString(R.string.nc_mark_address_as_used),
             )
         )
         options.add(
@@ -246,7 +246,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
     private fun showMarkAddressAsUsedDialog() {
         NCWarningVerticalDialog(requireActivity()).showDialog(
             title = getString(R.string.nc_confirmation),
-            message = "Are you sure you want to mark the address as used?",
+            message = getString(R.string.nc_mark_address_as_used_message),
             btnYes = getString(R.string.nc_text_continue),
             btnNo = getString(R.string.nc_text_cancel),
             onYesClick = {

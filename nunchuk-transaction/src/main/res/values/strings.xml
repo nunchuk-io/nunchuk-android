@@ -94,4 +94,6 @@
     <string name="nc_verify_address_via_portal">Verify address via PORTAL</string>
     <string name="nc_please_check_this_address_on_your_device">Please check this address on your device</string>
     <string name="nc_address_marked_as_used">Address marked as used.</string>
+    <string name="nc_mark_address_as_used">Mark address as used</string>
+    <string name="nc_mark_address_as_used_message">Are you sure you want to mark the address as used?</string>
 </resources>

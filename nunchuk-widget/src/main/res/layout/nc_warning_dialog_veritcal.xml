@@ -25,6 +25,7 @@
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            style="@style/NCText.Title"
             android:gravity="center"
             android:text="@string/nc_text_warning"
             android:textColor="@color/nc_black_color"
