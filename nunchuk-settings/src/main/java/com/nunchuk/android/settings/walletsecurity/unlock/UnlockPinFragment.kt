@@ -119,6 +119,13 @@ fun UnlockPinContent(
         delay(1000L)
         focusRequester.requestFocus()
     }
+    val isPinEnabled = state.walletSecuritySetting.protectWalletPin
+    val desc = when {
+        isRemovePinFlow -> stringResource(R.string.nc_to_continue_please_enter_your_pin)
+        state.walletSecuritySetting.protectWalletPin -> stringResource(R.string.nc_enter_your_pin_to_continue_use_app)
+        state.walletSecuritySetting.protectWalletPassword -> stringResource(R.string.nc_enter_your_password_to_continue_use_app)
+        else -> stringResource(R.string.nc_enter_your_passphrase_to_continue_use_app)
+    }
     var btnMessage by remember { mutableStateOf("") }
     var enable by remember { mutableStateOf(true) }
     LaunchedEffect(state.attemptCount) {
@@ -164,7 +171,7 @@ fun UnlockPinContent(
                 )
 
                 Text(
-                    text = stringResource(R.string.nc_to_continue_please_enter_your_pin),
+                    text = desc,
                     style = NunchukTheme.typography.body,
                 )
 
@@ -173,7 +180,7 @@ fun UnlockPinContent(
                     title = "",
                     value = pin,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.NumberPassword,
+                        keyboardType = if (isPinEnabled) KeyboardType.NumberPassword else KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
                     hasError = state.isFailed,

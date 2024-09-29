@@ -55,13 +55,20 @@ class UnlockPinViewModel @Inject constructor(
                 .map { it.getOrDefault("") }
                 .collect { pin ->
                     walletPin = pin
+                    _state.update { state ->
+                        state.copy(
+                            walletSecuritySetting = state.walletSecuritySetting.copy(
+                                protectWalletPin = walletPin.isNotEmpty()
+                            )
+                        )
+                    }
                 }
         }
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
                 .map { it.getOrDefault(WalletSecuritySetting()) }
                 .collect { settings ->
-                    _state.update { it.copy(walletSecuritySetting = settings) }
+                    _state.update { state -> state.copy(walletSecuritySetting = settings.copy(protectWalletPin = state.walletSecuritySetting.protectWalletPin)) }
                 }
         }
     }
