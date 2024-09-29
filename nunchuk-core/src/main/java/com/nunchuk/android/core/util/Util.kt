@@ -81,7 +81,8 @@ const val TAPSIGNER_INHERITANCE_NAME = "TAPSIGNER (inh.)"
 
 const val ONE_HOUR_TO_SECONDS = 60 * 60
 
-private const val SIGNER_PATH_PREFIX = "m/48h"
+private const val MULTI_SIG_SIGNER_PATH_PREFIX = "m/48h"
+private const val SINGLE_SIG_SIGNER_PATH_PREFIX = "m/84h"
 const val COLDCARD_GUIDE_URL = "https://coldcard.com/docs/quick"
 const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
 
@@ -183,11 +184,14 @@ fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     else -> getString(R.string.nc_currency_btc)
 }
 
-val String.isRecommendedPath: Boolean
-    get() = this.startsWith(SIGNER_PATH_PREFIX) && this.endsWith("2h")
+val String.isRecommendedMultiSigPath: Boolean
+    get() = this.startsWith(MULTI_SIG_SIGNER_PATH_PREFIX) && this.endsWith("2h")
+
+val String.isRecommendedSingleSigPath: Boolean
+    get() = this.startsWith(SINGLE_SIG_SIGNER_PATH_PREFIX) && this.endsWith("0h")
 
 val String.isValidPathForAssistedWallet: Boolean
-    get() = this.startsWith(SIGNER_PATH_PREFIX)
+    get() = this.startsWith(MULTI_SIG_SIGNER_PATH_PREFIX)
 
 val Long.formatMMMddyyyyDate: String
     get() = SimpleDateFormat("MMM dd, yyyy", Locale.US).format(Date(this))

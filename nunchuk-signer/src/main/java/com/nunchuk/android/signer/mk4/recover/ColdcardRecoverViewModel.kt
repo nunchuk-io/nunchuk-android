@@ -27,7 +27,7 @@ import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.gson
-import com.nunchuk.android.core.util.isRecommendedPath
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
@@ -134,7 +134,7 @@ class ColdcardRecoverViewModel @Inject constructor(
     ) =
         viewModelScope.launch {
             val signer =
-                singleSigners.find { it.derivationPath.isRecommendedPath }
+                singleSigners.find { it.derivationPath.isRecommendedMultiSigPath }
             if (signer == null) {
                 _event.emit(ColdcardRecoverEvent.ShowError("Can not find valid signer path"))
                 _event.emit(ColdcardRecoverEvent.LoadingEvent(false))

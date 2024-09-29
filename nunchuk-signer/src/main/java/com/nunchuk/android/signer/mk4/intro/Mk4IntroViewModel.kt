@@ -35,7 +35,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.core.util.gson
-import com.nunchuk.android.core.util.isRecommendedPath
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
@@ -118,7 +118,7 @@ class Mk4IntroViewModel @Inject constructor(
             if (result.isSuccess) {
                 if (args.isMembershipFlow) {
                     val sortedSigner = result.getOrThrow().sortedBy { it.derivationPath }
-                    val signer = sortedSigner.find { it.derivationPath.isRecommendedPath }
+                    val signer = sortedSigner.find { it.derivationPath.isRecommendedMultiSigPath }
                     if (signer == null) {
                         _event.emit(Mk4IntroViewEvent.ShowError("XPUBs file is invalid"))
                         _event.emit(Mk4IntroViewEvent.Loading(false))

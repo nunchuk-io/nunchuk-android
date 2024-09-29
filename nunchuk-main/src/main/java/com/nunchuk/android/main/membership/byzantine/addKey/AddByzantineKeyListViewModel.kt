@@ -30,7 +30,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.isRecommendedPath
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.toGroupWalletType
@@ -233,7 +233,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     fun getColdcard() = _state.value.signers.filter {
         (it.type == SignerType.COLDCARD_NFC
-                && it.derivationPath.isRecommendedPath
+                && it.derivationPath.isRecommendedMultiSigPath
                 && isSignerExist(it.fingerPrint).not()) || (it.type == SignerType.AIRGAP && it.tags.isEmpty())
     }
 

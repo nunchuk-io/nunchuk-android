@@ -63,7 +63,8 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.isRecommendedPath
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.core.util.isRecommendedSingleSigPath
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.SingleSigner
@@ -330,11 +331,21 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         val fragment = BottomSheetOption.newInstance(signers.mapIndexed { index, singleSigner ->
             SheetOption(
                 type = index,
-                label = if (singleSigner.derivationPath.isRecommendedPath) "${singleSigner.derivationPath} (${
-                    getString(
-                        R.string.nc_recommended_for_multisig
-                    )
-                })" else singleSigner.derivationPath
+                label = if (singleSigner.derivationPath.isRecommendedMultiSigPath) {
+                    "${singleSigner.derivationPath} (${
+                        getString(
+                            R.string.nc_recommended_for_multisig
+                        )
+                    })"
+                } else if (singleSigner.derivationPath.isRecommendedSingleSigPath) {
+                    "${singleSigner.derivationPath} (${
+                        getString(
+                            R.string.nc_recommended_for_single_sig
+                        )
+                    })"
+                } else {
+                    singleSigner.derivationPath
+                }
             )
         }, title = getString(R.string.nc_signer_select_key_dialog_title))
         fragment.show(childFragmentManager, "BottomSheetOption")

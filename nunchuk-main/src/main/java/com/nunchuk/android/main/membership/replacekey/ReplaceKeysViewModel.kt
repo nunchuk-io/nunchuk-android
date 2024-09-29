@@ -14,7 +14,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.isRecommendedPath
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.ByzantineGroup
@@ -308,13 +308,13 @@ class ReplaceKeysViewModel @Inject constructor(
     fun getAllSigners() = _uiState.value.signers.filter {
         isSignerExist(it.fingerPrint).not()
     }.filter {
-        (it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedPath)
+        (it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedMultiSigPath)
                 || it.type != SignerType.SERVER
     }
 
     fun getColdcard() = _uiState.value.signers.filter {
         isSignerExist(it.fingerPrint).not()
-                && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedPath)
+                && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedMultiSigPath)
                 || (it.type == SignerType.AIRGAP && it.tags.isEmpty()))
     }
 

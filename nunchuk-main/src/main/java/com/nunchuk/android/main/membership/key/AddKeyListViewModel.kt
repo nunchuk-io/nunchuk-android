@@ -28,7 +28,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.isRecommendedPath
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipPlan
@@ -250,7 +250,7 @@ class AddKeyListViewModel @Inject constructor(
 
     fun getColdcard() = _state.value.signers.filter {
         isSignerExist(it.fingerPrint).not()
-                && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedPath)
+                && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedMultiSigPath)
                 || (it.type == SignerType.AIRGAP && (it.tags.isEmpty() || it.tags.contains(SignerTag.COLDCARD))))
     }
 

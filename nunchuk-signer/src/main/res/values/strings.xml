@@ -191,4 +191,5 @@
     <string name="nc_select_index_hint">Each key can support multiple accounts, as per [A]BIP 32[/A]. Leave it as 0 (the first account) if you are unsure.</string>
     <string name="nc_please_scan_your_portal_again">"Please scan your portal again "</string>
     <string name="nc_please_scan_correct_portal">If you have more than one Portal, please make sure that you scan the correct one.</string>
+    <string name="nc_recommended_for_single_sig">Recommended for singlesig</string>
 </resources>
