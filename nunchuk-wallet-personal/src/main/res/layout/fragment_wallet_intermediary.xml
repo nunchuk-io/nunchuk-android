@@ -57,7 +57,6 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginVertical="@dimen/nc_padding_12"
-        android:gravity="center"
         android:text="@string/nc_text_recover_wallet_description"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
