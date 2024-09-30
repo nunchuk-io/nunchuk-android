@@ -46,15 +46,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.CoinStatus
-import com.nunchuk.android.utils.formatByHour
-import com.nunchuk.android.utils.simpleDateFormat
-import java.util.Date
 
 const val MODE_VIEW_ONLY = 1
 const val MODE_VIEW_DETAIL = 2
@@ -151,9 +149,8 @@ fun PreviewCoinCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (output.time > 0L) {
-                    val date = Date(output.time * 1000L)
                     Text(
-                        text = "${date.simpleDateFormat()} at ${date.formatByHour()}",
+                        text = (output.time * 1000L).formatDate(),
                         style = NunchukTheme.typography.bodySmall
                     )
                 } else {
