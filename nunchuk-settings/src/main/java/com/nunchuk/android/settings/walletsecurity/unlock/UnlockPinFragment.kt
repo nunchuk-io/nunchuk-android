@@ -28,6 +28,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.compose.content
@@ -43,6 +45,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -126,6 +129,11 @@ fun UnlockPinContent(
         state.walletSecuritySetting.protectWalletPassword -> stringResource(R.string.nc_enter_your_password_to_continue_use_app)
         else -> stringResource(R.string.nc_enter_your_passphrase_to_continue_use_app)
     }
+    val title = when {
+        state.walletSecuritySetting.protectWalletPin -> stringResource(R.string.nc_enter_your_pin)
+        state.walletSecuritySetting.protectWalletPassword -> stringResource(R.string.nc_enter_your_password)
+        else -> stringResource(R.string.nc_transaction_enter_passphrase)
+    }
     var btnMessage by remember { mutableStateOf("") }
     var enable by remember { mutableStateOf(true) }
     LaunchedEffect(state.attemptCount) {
@@ -166,7 +174,7 @@ fun UnlockPinContent(
                 )
 
                 Text(
-                    text = stringResource(id = R.string.nc_enter_your_pin),
+                    text = title,
                     style = NunchukTheme.typography.heading,
                 )
 
@@ -201,9 +209,27 @@ fun UnlockPinContent(
 
 @Preview
 @Composable
-private fun UnlockPinContentPreview() {
+private fun UnlockPinContentPreview(
+    @PreviewParameter(SettingProvider::class) setting: WalletSecuritySetting,
+) {
     UnlockPinContent(
         isRemovePinFlow = true,
-        state = UnlockPinUiState(isFailed = true, attemptCount = 3),
+        state = UnlockPinUiState(
+            isFailed = true,
+            attemptCount = 3,
+            walletSecuritySetting = setting
+        ),
     )
 }
+
+class SettingProvider : CollectionPreviewParameterProvider<WalletSecuritySetting>(
+    listOf(
+        WalletSecuritySetting(
+            protectWalletPin = true
+        ),
+        WalletSecuritySetting(
+            protectWalletPassword = true
+        ),
+        WalletSecuritySetting(protectWalletPassphrase = true)
+    )
+)

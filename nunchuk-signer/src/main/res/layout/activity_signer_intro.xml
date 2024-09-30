@@ -56,7 +56,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_16"
-                android:gravity="center"
                 android:padding="@dimen/nc_padding_8"
                 android:text="@string/nc_create_signer_description"
                 app:layout_constraintStart_toStartOf="parent"
