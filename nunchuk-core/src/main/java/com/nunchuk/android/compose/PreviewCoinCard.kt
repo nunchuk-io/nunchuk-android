@@ -150,7 +150,7 @@ fun PreviewCoinCard(
             ) {
                 if (output.time > 0L) {
                     Text(
-                        text = (output.time * 1000L).formatDate(),
+                        text = output.time.formatDate(),
                         style = NunchukTheme.typography.bodySmall
                     )
                 } else {
