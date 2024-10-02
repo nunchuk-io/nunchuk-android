@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.MasterSigner
@@ -22,7 +24,8 @@ import javax.inject.Inject
 class SignersViewModel @Inject constructor(
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val pushEventManager: PushEventManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SignerUiState())
     val uiState = _uiState.asStateFlow()
@@ -31,6 +34,21 @@ class SignersViewModel @Inject constructor(
     private var job: Job? = null
 
     init {
+        viewModelScope.launch {
+            pushEventManager.event.collect { event ->
+                when (event) {
+                    is PushEvent.WalletCreate -> {
+                        getAllSigners()
+                    }
+
+                    is PushEvent.WalletChanged, is PushEvent.SignedChanged -> {
+                        getAllSigners()
+                    }
+
+                    else -> Unit
+                }
+            }
+        }
         getAllSigners()
     }
 
