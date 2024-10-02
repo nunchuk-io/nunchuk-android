@@ -74,7 +74,7 @@
 
         <activity
             android:name=".components.intro.WalletEmptySignerActivity"
-            android:label="@string/nc_wallet_add_a_wallet"
+            android:label="@string/nc_wallet_add_wallet_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Dark" />
 

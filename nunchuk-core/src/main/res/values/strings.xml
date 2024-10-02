@@ -83,7 +83,7 @@
     <string name="nc_satscard_unsealed_slots">SATSCARD unsealed slots</string>
     <string name="nc_unconfirmed">Unconfirmed</string>
     <string name="nc_sweep_balance">Sweep balance</string>
-    <string name="nc_withdraw_to_nunchuk_wallet">Withdraw to a Nunchuk wallet</string>
+    <string name="nc_withdraw_to_nunchuk_wallet">Withdraw to Nunchuk wallet</string>
     <string name="nc_which_wallet_do_you_want_to_deposit_into">Which wallet do you want to deposit into?</string>
     <string name="nc_which_wallet_do_you_want_to_withdraw_bitcoin">Which wallet do you want to withdraw bitcoin to?</string>
     <string name="nc_wallet_not_configured">Not configured</string>
@@ -556,6 +556,7 @@
     <string name="nc_unselect_all">Unselect all</string>
     <string name="nc_change">Change</string>
     <string name="nc_add_to_a_collection">Add to a collection</string>
+    <string name="nc_add_to_collection">Add to collection</string>
     <string name="nc_add_tags">Add tags</string>
     <string name="nc_lock_coin">Lock coins</string>
     <string name="nc_unlock_coin">Unlock coins</string>
@@ -626,7 +627,8 @@
     <string name="nc_move_all_coins_collections">Move all new coins to this collection</string>
     <string name="nc_auto_lock_new_coins">Auto-lock all new coins</string>
     <string name="nc_create_collection">Create collection</string>
-    <string name="nc_create_new_collection">Create a new collection</string>
+    <string name="nc_create_a_new_collection">Create a new collection</string>
+    <string name="nc_create_new_collection">Create new collection</string>
     <string name="nc_view_collection_settings">View collection settings</string>
     <string name="nc_delete_collection">Delete collection</string>
     <string name="nc_collection_updated">Collection updated</string>
@@ -761,7 +763,7 @@
     <string name="nc_enter_pin">Enter PIN</string>
     <string name="nc_enter_xpub_desc">To verify that you are the account owner, please enter the master public key (XPUB) of one of the keys in your assisted wallets. You can find the XPUBs in your wallet configuration (BSMS file). You can also paste in the entire BSMS file.</string>
     <string name="nc_portal_nfc">Portal</string>
-    <string name="nc_text_add_a_wallet">Add a wallet</string>
+    <string name="nc_text_add_wallet">Add wallet</string>
     <string name="nc_portal">Portal</string>
     <string name="nc_wallet_customize_address_type">Customize address type</string>
     <string name="nc_enter_your_wallet_name">Enter your wallet name</string>

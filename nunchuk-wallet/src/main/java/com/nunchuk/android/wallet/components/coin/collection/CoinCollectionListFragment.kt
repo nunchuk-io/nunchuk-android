@@ -202,7 +202,7 @@ fun CoinCollectionListScreenContent(
     val context = LocalContext.current
     val title = remember(collectionFlow) {
         when (collectionFlow) {
-            CollectionFlow.ADD -> context.getString(R.string.nc_add_to_a_collection)
+            CollectionFlow.ADD -> context.getString(R.string.nc_add_to_collection)
             CollectionFlow.VIEW -> context.getString(R.string.nc_collections)
             CollectionFlow.MOVE -> context.getString(R.string.nc_move_to_another_collection)
             else -> throw IllegalArgumentException("invalid flow")
@@ -253,7 +253,7 @@ fun CoinCollectionListScreenContent(
                     )
                     Text(
                         modifier = Modifier.padding(start = 12.dp),
-                        text = stringResource(id = R.string.nc_create_new_collection),
+                        text = stringResource(id = R.string.nc_create_a_new_collection),
                         style = NunchukTheme.typography.title
                     )
                 }

@@ -93,7 +93,7 @@ fun InputWalletNameScreen(
         modifier = modifier.systemBarsPadding(),
         topBar = {
             NcTopAppBar(
-                title = stringResource(id = R.string.nc_text_add_a_wallet),
+                title = stringResource(id = R.string.nc_text_add_wallet),
                 textStyle = NunchukTheme.typography.titleLarge,
             )
         },

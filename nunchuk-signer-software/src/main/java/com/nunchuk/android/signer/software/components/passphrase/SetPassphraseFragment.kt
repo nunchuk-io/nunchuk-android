@@ -170,7 +170,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
 
         // add key to assisted wallet flow
         if (!args.groupId.isNullOrEmpty()) {
-            binding.toolbarTitle.text = getString(R.string.nc_set_a_passphrase_optional)
+            binding.toolbarTitle.text = getString(R.string.nc_set_passphrase_optional)
             binding.note.text =
                 getHtmlText(getString(R.string.nc_ssigner_text_set_passphrase_assisted_wallet_note))
         }

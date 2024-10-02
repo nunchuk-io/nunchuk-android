@@ -162,7 +162,7 @@ private fun PaymentSelectAddressTypeScreen(
 
                 AddressOption(
                     modifier = Modifier.padding(top = 16.dp),
-                    isSelected = useWallet == true,
+                    isSelected = useWallet,
                     title = stringResource(R.string.nc_use_a_destination_wallet),
                     desc = stringResource(R.string.nc_use_a_destination_wallet_desc),
                     onClick = {

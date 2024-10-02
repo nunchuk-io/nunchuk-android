@@ -23,7 +23,6 @@ dependencies {
     implementation project(':nunchuk-database')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-signer-software')
-    implementation project(':nunchuk-signer-core')
     implementation "com.github.Nunchuk1:LibPortal:v2@aar"
     implementation("net.java.dev.jna:jna:5.14.0@aar")
     debugImplementation nunchukDeps.nativeSdk

@@ -157,7 +157,6 @@ dependencies {
     implementation project(':nunchuk-network')
     implementation project(':nunchuk-signer')
     implementation project(':nunchuk-signer-software')
-    implementation project(':nunchuk-signer-core')
     implementation project(':nunchuk-wallet')
     implementation project(':nunchuk-wallet-personal')
     implementation project(':nunchuk-wallet-shared')
@@ -167,7 +166,7 @@ dependencies {
     implementation project(':nunchuk-utils')
     implementation project(':nunchuk-settings')
     implementation project(':nunchuk-notifications')
-    implementation 'androidx.profileinstaller:profileinstaller:1.3.1'
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.0'
     baselineProfile project(':baselineprofile')
 
     debugImplementation nunchukDeps.nativeSdk

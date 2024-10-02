@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nc_ssigner_title">Add a software key</string>
+    <string name="nc_ssigner_title">Add software key</string>
     <string name="nc_ssigner_new_seed_title">Seed phrase</string>
     <string name="nc_ssigner_new_seed">Create new seed</string>
     <string name="nc_ssigner_recover_seed">Recover existing seed</string>
@@ -14,8 +14,8 @@
     <string name="nc_ssigner_confirm_seed_title">Confirm seed phrase</string>
     <string name="nc_ssigner_confirm_seed_note">Please confirm the seed phrase.</string>
     <string name="nc_ssigner_confirm_seed_error">Incorrect words. Please try again.</string>
-    <string name="nc_ssigner_add_name_title">Give your key a name</string>
-    <string name="nc_ssigner_set_passphrase_title">Set a passphrase</string>
+    <string name="nc_ssigner_add_name_title">Give your key name</string>
+    <string name="nc_ssigner_set_passphrase_title">Set passphrase</string>
     <string name="nc_ssigner_text_dont_set_passphrase">I don\'t need a passphrase</string>
     <string name="nc_ssigner_text_set_passphrase">Set passphrase</string>
     <string name="nc_ssigner_text_set_passphrase_note">Passphrase adds another layer of security to your key. You will need to enter the passphrase every time you sign using this key. You can think of it as the 25th word of your seed phrase. Passphrase is optional.</string>
@@ -63,7 +63,7 @@
     <string name="nc_my_hot_wallet_has_been_recovered">My hot wallet has been recovered.</string>
     <string name="nc_review_seed_phrase">Review seed phrase</string>
     <string name="nc_before_you_start">Before you start</string>
-    <string name="nc_set_a_passphrase_optional">Set a passphrase (optional)</string>
+    <string name="nc_set_passphrase_optional">Set passphrase (optional)</string>
     <string name="nc_recover_key_via_xprv">Recover key via XPRV</string>
     <string name="nc_please_enter_the_master_private_key_xprv">Please enter the master private key (XPRV).</string>
     <string name="nc_xprv">XPRV</string>
