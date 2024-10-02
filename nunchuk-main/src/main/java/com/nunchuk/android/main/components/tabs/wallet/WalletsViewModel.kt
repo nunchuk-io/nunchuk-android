@@ -642,7 +642,7 @@ internal class WalletsViewModel @Inject constructor(
         }
         val plans = getState().plans
         if (!plans.isNullOrEmpty()) {
-            if (getState().personalSteps.isNotEmpty()) {
+            if (getState().personalSteps.orEmpty().isNotEmpty()) {
                 return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
             }
             return MembershipStage.NONE
@@ -684,7 +684,7 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    fun getPersonalSteps() = getState().personalSteps
+    fun getPersonalSteps() = getState().personalSteps.orEmpty()
 
     fun getWallet(walletId: String) = getState().wallets.find { it.wallet.id == walletId }
 

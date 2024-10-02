@@ -134,7 +134,7 @@ fun SignersContent(
                     }
 
                 }
-                items(uiState.signers) { signer ->
+                items(uiState.signers.orEmpty()) { signer ->
                     SignerCard(item = signer, onSignerSelected = onSignerClick)
                 }
             }

@@ -29,6 +29,9 @@ internal fun WalletEmptyStateView(
     signersViewModel: SignersViewModel,
     state: WalletsState
 ) {
+    if (state.plans == null || state.personalSteps == null || signersViewModel.getSigners() == null) {
+        return
+    }
     val personalSteps = walletsViewModel.getPersonalSteps()
     val plans = walletsViewModel.getPlans().orEmpty()
     val walletType = when {
@@ -40,7 +43,7 @@ internal fun WalletEmptyStateView(
         val contentData: WizardData?
         val keyWalletEntryData: KeyWalletEntryData?
         val conditionInfo = when {
-            state.plans?.size.orDefault(0) == 1 && state.plans?.any {
+            state.plans.size.orDefault(0) == 1 && state.plans.any {
                 it in setOf(
                     MembershipPlan.IRON_HAND,
                     MembershipPlan.HONEY_BADGER,
@@ -61,7 +64,7 @@ internal fun WalletEmptyStateView(
                 )
             }
 
-            state.plans?.size.orDefault(0) > 1 && state.plans.orEmpty()
+            state.plans.size.orDefault(0) > 1 && state.plans
                 .any { it.isByzantineOrFinney() } -> {
                 ConditionInfo.MultipleSubscriptionsUser(signersViewModel.hasSigner())
             }

@@ -83,6 +83,8 @@ class SignersViewModel @Inject constructor(
         } + singleSigners.map(SingleSigner::toModel)
     }
 
-    fun hasSigner() = uiState.value.signers.isNotEmpty()
+    fun hasSigner() = uiState.value.signers.orEmpty().isNotEmpty()
+
+    fun getSigners() = uiState.value.signers
 }
 

@@ -54,7 +54,7 @@ internal data class WalletsState(
     val alerts: Map<String, Int> = emptyMap(),
     val keyHealthStatus: Map<String, List<KeyHealthStatus>> = emptyMap(),
     val useLargeFont: Boolean = false,
-    val personalSteps: List<MembershipStepInfo> = emptyList(),
+    val personalSteps: List<MembershipStepInfo>? = null,
     val campaign: Campaign? = null,
     val localReferrerCode: ReferrerCode? = null,
     val isDisplayTotalBalance: Boolean = false,
