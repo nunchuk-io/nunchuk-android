@@ -526,8 +526,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             WalletEmptyStateView(
                 activityContext = requireActivity(),
                 navigator = navigator,
-                walletsViewModel = walletsViewModel,
-                signersViewModel = signersViewModel,
+                groupStage = walletsViewModel.getGroupStage(),
+                assistedWalletId = walletsViewModel.getAssistedWalletId().orEmpty(),
+                signers = signersViewModel.getSigners(),
                 state = state
             )
         }
