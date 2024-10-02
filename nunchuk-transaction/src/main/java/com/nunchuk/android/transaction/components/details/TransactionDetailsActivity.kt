@@ -502,7 +502,7 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
 
     private fun bindTransaction(transaction: Transaction, coins: List<UnspentOutput>, serverTransaction: ServerTransaction?) {
         binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
-        binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
+        binding.noteContent.text = transaction.memo
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
@@ -675,7 +675,7 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
         setResult(Activity.RESULT_OK)
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_private_note_updated))
-        binding.noteContent.text = event.newMemo.ifEmpty { getString(R.string.nc_none) }
+        binding.noteContent.text = event.newMemo
     }
 
     private fun handleSignError(event: TransactionDetailsError) {
