@@ -67,6 +67,10 @@ internal fun WalletEmptyStateView(
 
             state.plans.size.orDefault(0) > 1 && state.plans
                 .any { it.isByzantineOrFinney() } -> {
+                ConditionInfo.GroupMasterUser(hasSigner)
+            }
+
+            state.plans.size.orDefault(0) > 1 -> {
                 ConditionInfo.MultipleSubscriptionsUser(hasSigner)
             }
 
@@ -83,6 +87,11 @@ internal fun WalletEmptyStateView(
             )
 
             is ConditionInfo.MultipleSubscriptionsUser -> EmptyStateMultipleSubscriptionsUser(
+                navigator,
+                activityContext
+            )
+
+            is ConditionInfo.GroupMasterUser -> EmptyStateGroupMasterUser(
                 navigator,
                 activityContext
             )

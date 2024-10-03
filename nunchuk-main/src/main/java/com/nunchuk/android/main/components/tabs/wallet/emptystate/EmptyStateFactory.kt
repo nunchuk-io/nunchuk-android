@@ -39,4 +39,5 @@ sealed class ConditionInfo {
     ) : ConditionInfo()
 
     data class MultipleSubscriptionsUser(val hasSigner: Boolean) : ConditionInfo()
+    data class GroupMasterUser(val hasSigner: Boolean) : ConditionInfo()
 }
