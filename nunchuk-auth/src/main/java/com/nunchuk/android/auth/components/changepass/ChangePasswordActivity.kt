@@ -105,6 +105,11 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                     NCToastMessage(this).showMessage(getString(R.string.nc_resend_request_submitted))
                     showCountdownTimer(it.email)
                 }
+
+                ChangePasswordEvent.NewPasswordLengthErrorEvent -> binding.newPassword.setError(getString(R.string.nc_text_password_length_error))
+                ChangePasswordEvent.NewPasswordNumberErrorEvent -> binding.newPassword.setError(getString(R.string.nc_text_password_number_error))
+                ChangePasswordEvent.NewPasswordSpecialCharErrorEvent -> binding.newPassword.setError(getString(R.string.nc_text_password_special_char_error))
+                ChangePasswordEvent.NewPasswordUpperCaseErrorEvent -> binding.newPassword.setError(getString(R.string.nc_text_password_upper_case_error))
             }
         }
     }

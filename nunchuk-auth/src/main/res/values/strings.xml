@@ -54,4 +54,8 @@
     <string name="nc_resend_request_submitted">Resend request submitted, please check your email in a moment</string>
     <string name="nc_try_again_in">try again in</string>
     <string name="nc_sign_in_via_primary_key">Sign in via Primary Key</string>
+    <string name="nc_text_password_number_error">Password must contain at least one number</string>
+    <string name="nc_text_password_special_char_error">Password must contain at least one special character</string>
+    <string name="nc_text_password_upper_case_error">Password must contain at least one upper case letter</string>
+    <string name="nc_text_password_length_error">Password must be at least 8 characters long</string>
 </resources>

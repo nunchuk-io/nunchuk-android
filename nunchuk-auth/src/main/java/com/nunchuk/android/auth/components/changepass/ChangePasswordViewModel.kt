@@ -27,7 +27,6 @@ import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.Confir
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ConfirmPasswordRequiredEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ConfirmPasswordValidEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.LoadingEvent
-import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.NewPasswordRequiredEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.NewPasswordValidEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordRequiredEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordValidEvent
@@ -102,24 +101,29 @@ internal class ChangePasswordViewModel @Inject constructor(
     ): Boolean {
         val matched = newPassword == confirmPassword
         if (!matched) {
-            event(ConfirmPasswordNotMatchedEvent)
+            setEvent(ConfirmPasswordNotMatchedEvent)
         }
         return matched
     }
 
     private fun validateOldPassword(oldPassword: String) = when {
-        oldPassword.isEmpty() -> doAfterValidate(false) { event(OldPasswordRequiredEvent) }
-        else -> doAfterValidate { event(OldPasswordValidEvent) }
+        oldPassword.isEmpty() -> doAfterValidate(false) { setEvent(OldPasswordRequiredEvent) }
+        else -> doAfterValidate { setEvent(OldPasswordValidEvent) }
     }
 
-    private fun validateNewPassword(newPassword: String) = when {
-        newPassword.isEmpty() -> doAfterValidate(false) { event(NewPasswordRequiredEvent) }
-        else -> doAfterValidate { event(NewPasswordValidEvent) }
+    private fun validateNewPassword(newPassword: String): Boolean {
+        return when {
+            newPassword.length < 8 -> doAfterValidate(false) { setEvent(ChangePasswordEvent.NewPasswordLengthErrorEvent) }
+            newPassword.none { it.isDigit() } -> doAfterValidate(false) { setEvent(ChangePasswordEvent.NewPasswordNumberErrorEvent) }
+            newPassword.none { it.isUpperCase() } -> doAfterValidate(false) { setEvent(ChangePasswordEvent.NewPasswordUpperCaseErrorEvent) }
+            newPassword.none { it in SPECIAL_CHARACTERS } -> doAfterValidate(false) { setEvent(ChangePasswordEvent.NewPasswordSpecialCharErrorEvent) }
+            else -> doAfterValidate { setEvent(NewPasswordValidEvent) }
+        }
     }
 
     private fun validateConfirmPassword(confirmPassword: String) = when {
-        confirmPassword.isEmpty() -> doAfterValidate(false) { event(ConfirmPasswordRequiredEvent) }
-        else -> doAfterValidate { event(ConfirmPasswordValidEvent) }
+        confirmPassword.isEmpty() -> doAfterValidate(false) { setEvent(ConfirmPasswordRequiredEvent) }
+        else -> doAfterValidate { setEvent(ConfirmPasswordValidEvent) }
     }
 
     fun resendPassword() {
@@ -131,5 +135,9 @@ internal class ChangePasswordViewModel @Inject constructor(
                     setEvent(ChangePasswordSuccessError(it.message))
                 }
         }
+    }
+
+    companion object{
+        const val SPECIAL_CHARACTERS = "!@#\$%^&*()_+[]{}|;:',.<>?/~`-="
     }
 }

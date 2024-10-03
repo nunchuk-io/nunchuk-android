@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -92,7 +91,7 @@ fun SignersContent(
     onAddSignerClick: () -> Unit = {},
     onSignerClick: (SignerModel) -> Unit = {},
 ) {
-    NunchukTheme(statusBarColor = colorResource(R.color.nc_primary_color), darkIcon = false) {
+    NunchukTheme(isSetStatusBar = false) {
         NcScaffold(
             topBar = {
                 CenterAlignedTopAppBar(

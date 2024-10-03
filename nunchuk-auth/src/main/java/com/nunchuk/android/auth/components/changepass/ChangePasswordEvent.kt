@@ -32,4 +32,8 @@ internal sealed class ChangePasswordEvent {
     data object LoadingEvent : ChangePasswordEvent()
     data class ChangePasswordSuccessError(val errorMessage: String?) : ChangePasswordEvent()
     data class ResendPasswordSuccessEvent(val email: String) : ChangePasswordEvent()
+    data object NewPasswordLengthErrorEvent : ChangePasswordEvent()
+    data object NewPasswordSpecialCharErrorEvent : ChangePasswordEvent()
+    data object NewPasswordUpperCaseErrorEvent : ChangePasswordEvent()
+    data object NewPasswordNumberErrorEvent : ChangePasswordEvent()
 }
