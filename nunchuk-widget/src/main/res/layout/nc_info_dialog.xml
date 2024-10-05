@@ -63,7 +63,7 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/btnInfo"
-            style="@style/NCOutlineButton"
+            style="@style/NCPrimaryButton.Light"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_16"

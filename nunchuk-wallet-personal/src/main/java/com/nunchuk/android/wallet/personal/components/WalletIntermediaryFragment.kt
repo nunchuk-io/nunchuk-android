@@ -168,6 +168,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 is WalletIntermediaryEvent.OnLoadFileSuccess -> handleLoadFilePath(it)
                 is WalletIntermediaryEvent.ShowError -> showError(it.msg)
                 is WalletIntermediaryEvent.Loading -> showOrHideLoading(it.isLoading)
+                WalletIntermediaryEvent.NoSigner -> showNoSignerDialog()
             }
         }
         flowObserver(viewModel.state) {
@@ -192,6 +193,17 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             )
             binding.btnCreateNewWallet.setTextColor(textColor)
         }
+    }
+
+    private fun showNoSignerDialog() {
+        NCInfoDialog(requireActivity()).init(
+            message = getString(R.string.nc_no_signer_dialog_message),
+            btnYes = getString(R.string.nc_add_key),
+            btnInfo = getString(R.string.nc_cancel),
+            onYesClick = {
+                navigator.openSignerIntroScreen(requireActivity())
+            }
+        ).show()
     }
 
     private fun handleLoadFilePath(it: WalletIntermediaryEvent.OnLoadFileSuccess) {

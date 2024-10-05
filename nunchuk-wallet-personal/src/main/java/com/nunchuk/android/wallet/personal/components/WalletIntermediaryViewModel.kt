@@ -51,8 +51,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WalletIntermediaryViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    private val getCompoundSignersUseCase: Lazy<GetCompoundSignersUseCase>,
+    private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     private val application: Application,
@@ -68,13 +67,16 @@ class WalletIntermediaryViewModel @Inject constructor(
     private var getWalletConfigJob: Job? = null
 
     fun init(isQuickWallet: Boolean) {
-        if (isQuickWallet) {
-            viewModelScope.launch {
-                getCompoundSignersUseCase.get().execute().collect { signers ->
-                    _state.update { it.copy(isHasSigner = signers.first.isNotEmpty() || signers.second.isNotEmpty()) }
+        viewModelScope.launch {
+            getCompoundSignersUseCase.execute().collect { signers ->
+                val isHasSigner = signers.first.isNotEmpty() || signers.second.isNotEmpty()
+                _state.update { it.copy(isHasSigner = isHasSigner) }
+                if (isHasSigner.not()) {
+                    _event.emit(WalletIntermediaryEvent.NoSigner)
                 }
             }
-        } else {
+        }
+        if (isQuickWallet.not()) {
             viewModelScope.launch {
                 getLocalMembershipPlansFlowUseCase(Unit)
                     .map { it.getOrElse { emptyList() } }
@@ -152,6 +154,7 @@ sealed class WalletIntermediaryEvent {
     data class Loading(val isLoading: Boolean) : WalletIntermediaryEvent()
     data class OnLoadFileSuccess(val path: String) : WalletIntermediaryEvent()
     data class ShowError(val msg: String) : WalletIntermediaryEvent()
+    data object NoSigner : WalletIntermediaryEvent()
 }
 
 data class WalletIntermediaryState(

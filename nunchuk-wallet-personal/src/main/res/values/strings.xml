@@ -29,5 +29,6 @@
     <string name="nc_recover_wallet_from_portal">Recover wallet from Portal</string>
     <string name="nc_create_new_decoy_wallet">Create a decoy wallet</string>
     <string name="nc_create_new_decoy_wallet_desc">Generate a concealed wallet accessible via a specific PIN.</string>
+    <string name="nc_no_signer_dialog_message">You don’t have any keys yet. Would you like to add a key now?</string>
 
 </resources>
