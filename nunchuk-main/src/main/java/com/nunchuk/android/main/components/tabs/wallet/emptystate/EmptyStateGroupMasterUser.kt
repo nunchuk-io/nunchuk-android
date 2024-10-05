@@ -9,7 +9,7 @@ class EmptyStateGroupMasterUser(
     private val activityContext: Activity
 ) : EmptyStateFactory {
     override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
-        if (conditionInfo !is ConditionInfo.MultipleSubscriptionsUser) return null
+        if (conditionInfo !is ConditionInfo.GroupMasterUser) return null
         return WizardData(
             title = "Welcome to Nunchuk!",
             subtitle = "Let's get started by creating your first wallet.",

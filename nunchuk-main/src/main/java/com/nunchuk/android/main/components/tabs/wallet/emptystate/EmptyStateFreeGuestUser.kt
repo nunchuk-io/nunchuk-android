@@ -20,7 +20,7 @@ class EmptyStateFreeGuestUser(
                 buttonAction = {
                     navigator.openWalletIntermediaryScreen(activityContext, true)
                 },
-                imageResId = R.drawable.bg_empty_state_personal_plan,
+                imageResId = R.drawable.bg_empty_state_free_account,
                 backgroundColor = 0xFFD0E2FF
             )
         }
@@ -35,7 +35,7 @@ class EmptyStateFreeGuestUser(
             buttonAction = {
                 navigator.openSignerIntroScreen(activityContext)
             },
-            imageResId = R.drawable.bg_empty_state_personal_plan,
+            imageResId = R.drawable.bg_empty_state_free_account,
             backgroundColor = 0xFFFDEBD2
         )
     }

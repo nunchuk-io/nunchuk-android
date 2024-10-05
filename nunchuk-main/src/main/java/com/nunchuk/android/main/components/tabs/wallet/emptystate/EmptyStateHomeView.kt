@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NCLabelWithIndex
@@ -27,8 +29,8 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.wallet.emptystate.WizardData
 import com.nunchuk.android.main.components.tabs.wallet.emptystate.KeyWalletEntryData
+import com.nunchuk.android.main.components.tabs.wallet.emptystate.WizardData
 
 @Composable
 fun EmptyStateHomeView(
@@ -92,9 +94,14 @@ fun EmptyStateHomeView(
                 onClick = onActionButtonClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(36.dp),
+                    .defaultMinSize(minHeight = 36.dp),
+                isAutoExpandHeight = true
             ) {
-                Text(text = contentData.buttonText, color = Color.White)
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = contentData.buttonText,
+                    color = Color.White,
+                )
             }
         }
     }
@@ -103,7 +110,8 @@ fun EmptyStateHomeView(
 @Composable
 fun KeyWalletEntryView(data: KeyWalletEntryData, onClick: () -> Unit = {}) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .background(color = NcColor.greyLight, shape = RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
@@ -117,8 +125,9 @@ fun KeyWalletEntryView(data: KeyWalletEntryData, onClick: () -> Unit = {}) {
         )
         Text(
             text = data.title,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 8.dp)
+            style = NunchukTheme.typography.titleSmall,
+            modifier = Modifier
+                .padding(start = 8.dp)
                 .weight(1f)
         )
         Icon(
@@ -140,7 +149,7 @@ fun PreviewNunchukScreen() {
                     "Add a key (or multiple keys if using multisig), then create your wallet.",
                     "Or quickly create a hot wallet for immediate use, then back it up later."
                 ),
-                buttonText = "Add Key",
+                buttonText = "Add a key (or multiple keys if using multisig), then create you",
                 buttonAction = {},
                 imageResId = R.drawable.bg_empty_state_personal_plan,
                 backgroundColor = 0xFFFDEBD2

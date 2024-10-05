@@ -25,6 +25,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -65,6 +66,7 @@ fun NcPrimaryDarkButton(
     onClick: () -> Unit,
     enabled: Boolean = true,
     height: Dp = 48.dp,
+    isAutoExpandHeight: Boolean = false,
     content: @Composable RowScope.() -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -73,7 +75,7 @@ fun NcPrimaryDarkButton(
         if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_primary_color)
     Button(
         enabled = enabled,
-        modifier = modifier.height(height),
+        modifier = if (isAutoExpandHeight) modifier.wrapContentHeight() else modifier.height(height),
         onClick = onClick,
         interactionSource = interactionSource,
         content = content,

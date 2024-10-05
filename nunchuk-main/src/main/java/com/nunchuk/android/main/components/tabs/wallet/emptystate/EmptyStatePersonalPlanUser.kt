@@ -47,16 +47,14 @@ class EmptyStatePersonalPlanUser(
                 } else {
                     navigator.openMembershipActivity(
                         activityContext = activityContext,
-                        groupStep = MembershipStage.NONE,
-                        walletId = null,
+                        groupStep = conditionInfo.groupStep,
+                        walletId = conditionInfo.assistedWalletId,
                         isPersonalWallet = true,
                         walletType = conditionInfo.walletType
-                            ?: if (conditionInfo.plan == MembershipPlan.IRON_HAND) GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
-                            else GroupWalletType.TWO_OF_FOUR_MULTISIG
                     )
                 }
             },
-            imageResId = R.drawable.bg_empty_state_personal_plan,
+            imageResId = if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS) R.drawable.bg_empty_state_group_plan else R.drawable.bg_empty_state_personal_plan,
             backgroundColor = 0xFFD0E2FF
         )
     }

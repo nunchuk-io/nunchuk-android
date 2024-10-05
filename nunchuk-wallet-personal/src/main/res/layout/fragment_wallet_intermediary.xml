@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -21,7 +21,7 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_wallet_add_wallet_title" />
+            android:text="@string/nc_wallet_create_wallet_title" />
     </androidx.appcompat.widget.Toolbar>
 
     <ImageView
@@ -40,12 +40,12 @@
         android:id="@+id/title"
         style="@style/NCText.Heading"
         android:layout_width="0dp"
-        android:visibility="gone"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginVertical="@dimen/nc_padding_24"
         android:gravity="center"
         android:text="@string/nc_you_dont_have_a_wallet_yet"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ivBgCircle" />
@@ -62,36 +62,45 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title" />
 
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnCreateGroupWallet"
-        style="@style/NCPrimaryButton.Dark"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_16"
-        android:visibility="gone"
-        tools:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@id/message"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:text="Create new assisted wallet (2 remaining)" />
+        android:paddingBottom="@dimen/nc_padding_16"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnCreateNewWallet"
-        style="@style/NCPrimaryButton.Light"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_text_create_new_wallet"
-        app:layout_constraintTop_toBottomOf="@+id/btnCreateGroupWallet"
-        app:layout_constraintStart_toStartOf="parent" />
+        <com.nunchuk.android.widget.NCFontButton
+            android:id="@+id/btnCreateGroupWallet"
+            style="@style/NCPrimaryButton.Dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/nc_padding_16"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Create new assisted wallet (2 remaining)"
+            tools:visibility="visible" />
 
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnRecoverWallet"
-        style="@style/NCPrimaryButton.Light"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_text_recover_wallet"
-        app:layout_constraintTop_toBottomOf="@+id/btnCreateNewWallet"
-        app:layout_constraintStart_toStartOf="parent" />
+        <com.nunchuk.android.widget.NCFontButton
+            android:id="@+id/btnCreateNewWallet"
+            style="@style/NCPrimaryButton.Light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/nc_padding_16"
+            android:text="@string/nc_text_create_new_wallet"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnCreateGroupWallet" />
+
+        <com.nunchuk.android.widget.NCFontButton
+            android:id="@+id/btnRecoverWallet"
+            style="@style/NCPrimaryButton.Light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/nc_padding_16"
+            android:text="@string/nc_text_recover_wallet"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnCreateNewWallet" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

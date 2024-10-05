@@ -65,7 +65,7 @@ internal fun WalletEmptyStateView(
                 )
             }
 
-            state.plans.size.orDefault(0) > 1 && state.plans
+            state.plans.size.orDefault(0) == 1 && state.plans
                 .any { it.isByzantineOrFinney() } -> {
                 ConditionInfo.GroupMasterUser(hasSigner)
             }
