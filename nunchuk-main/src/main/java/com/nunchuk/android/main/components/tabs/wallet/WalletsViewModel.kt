@@ -169,6 +169,8 @@ internal class WalletsViewModel @Inject constructor(
     private var signersExistingMap = ConcurrentHashMap<String, WalletsExistingKey>()
     private val accountInfo by lazy { accountManager.getAccount() }
 
+    private var walletsRequestKey = ""
+
     override val initialState = WalletsState()
 
     init {
@@ -177,9 +179,11 @@ internal class WalletsViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect {
                     updateState { copy(assistedWallets = it) }
-                    checkInheritance(it)
                     mapGroupWalletUi()
-                    getKeyHealthStatus()
+                    checkWalletsRequestKey(it) {
+                        checkInheritance(it)
+                        getKeyHealthStatus()
+                    }
                 }
         }
         checkMemberMembership()
@@ -342,7 +346,7 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun checkInheritance(wallets: List<AssistedWalletBrief>) {
+    private fun checkInheritance(wallets: List<AssistedWalletBrief>) = viewModelScope.launch {
         val walletsUnSetupInheritance =
             wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO }
         supervisorScope {
@@ -566,7 +570,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun getKeyHealthStatus() {
-        if (isRetrievingKeyHealthStatus.get()) return
+        if (isRetrievingKeyHealthStatus.get() || getState().assistedWallets.isEmpty()) return
         viewModelScope.launch {
             isRetrievingKeyHealthStatus.set(true)
             getListGroupWalletKeyHealthStatusUseCase(
@@ -693,4 +697,11 @@ internal class WalletsViewModel @Inject constructor(
     fun getLocalReferrerCode() = getState().localReferrerCode
 
     fun getBanner() = getState().banner
+
+    private fun checkWalletsRequestKey(wallets: List<AssistedWalletBrief>, onConsumed: () -> Unit) {
+        val key = wallets.joinToString { "${it.localId}_${it.groupId}" }
+        if (walletsRequestKey == key) return
+        walletsRequestKey = key
+        onConsumed()
+    }
 }
