@@ -211,7 +211,7 @@
                     <TextView
                         android:id="@+id/tv_intro_action"
                         style="@style/NCText.Title.Small"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/nc_padding_12"
                         android:layout_marginTop="@dimen/nc_padding_8"
@@ -220,8 +220,11 @@
                         android:text="@string/nc_start_wizard"
                         app:drawableEndCompat="@drawable/ic_arrow"
                         app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0"
                         app:layout_constraintStart_toEndOf="@+id/iv_intro"
-                        app:layout_constraintTop_toBottomOf="@+id/tv_intro_desc" />
+                        app:layout_constraintTop_toBottomOf="@+id/tv_intro_desc"
+                        app:layout_constraintWidth_max="wrap" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -285,9 +288,9 @@
 
                 <androidx.compose.ui.platform.ComposeView
                     android:id="@+id/pending_wallet"
-                    android:layout_marginTop="@dimen/nc_padding_8"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_8" />
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>
