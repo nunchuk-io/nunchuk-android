@@ -473,9 +473,7 @@ class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickLi
                 WalletComposeBottomSheet.show(
                     childFragmentManager,
                     assistedWalletIds = viewModel.getAssistedWalletIds(),
-                    configArgs = WalletComposeBottomSheet.ConfigArgs(
-                        isShowDeactivatedWallets = false
-                    )
+                    configArgs = WalletComposeBottomSheet.ConfigArgs()
                 )
             }
             return

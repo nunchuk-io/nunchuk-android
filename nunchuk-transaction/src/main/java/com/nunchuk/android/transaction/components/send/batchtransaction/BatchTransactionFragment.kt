@@ -135,7 +135,9 @@ class BatchTransactionFragment : Fragment() {
                             childFragmentManager,
                             exclusiveAssistedWalletIds = arrayListOf(args.walletId) + viewModel.getRecipients().map { it.walletId },
                             configArgs = WalletComposeBottomSheet.ConfigArgs(
-                              isShowAddress = true,
+                              flags = WalletComposeBottomSheet.fromFlags(
+                                  WalletComposeBottomSheet.SHOW_ADDRESS,
+                              )
                             ),
                             exclusiveAddresses = viewModel.getRecipients().map { it.address }
                         )

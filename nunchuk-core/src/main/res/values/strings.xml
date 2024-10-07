@@ -261,6 +261,7 @@
     <string name="nc_co_signing_delay">Broadcast and delay</string>
     <string name="nc_edit">Edit</string>
     <string name="nc_your_wallets">Your wallets</string>
+    <string name="nc_select_a_wallet">Select a wallet</string>
     <string name="nc_automation_broadcast_transaction">Automatically broadcast transaction after co-signing</string>
     <string name="nc_on">On</string>
     <string name="nc_enable_co_signing_delay">Enable co-signing delay</string>

@@ -23,9 +23,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
-import com.nunchuk.android.core.guestmode.SignInModeHolder
-import com.nunchuk.android.core.guestmode.isGuestMode
-import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.WalletExtended
@@ -68,12 +65,12 @@ class WalletsBottomSheetViewModel @Inject constructor(
 
     fun init(
         configArgs: WalletComposeBottomSheet.ConfigArgs?,
-        assistedWalletIds: List<String>,
+        walletIds: List<String>,
         exclusiveWalletIds: List<String>,
         exclusiveAddresses: List<String>
     ) {
         this.exclusiveAddresses = exclusiveAddresses
-        _state.update { it.copy(config = configArgs) }
+        _state.update { it.copy(config = configArgs ?: WalletComposeBottomSheet.ConfigArgs()) }
         viewModelScope.launch {
             getGroupsUseCase(Unit)
                 .collect { result ->
@@ -98,8 +95,8 @@ class WalletsBottomSheetViewModel @Inject constructor(
                     _state.update { it.copy(isPremiumUser = plans.isNonePlan().not()) }
                 }
         }
-        if (configArgs?.isShowAddress == true) getSavedAddresses()
-        getWallets(exclusiveWalletIds, assistedWalletIds)
+        if (configArgs?.isShowAddress() == true) getSavedAddresses()
+        getWallets(exclusiveWalletIds, walletIds)
     }
 
     private fun syncSavedAddresses() {
@@ -108,13 +105,13 @@ class WalletsBottomSheetViewModel @Inject constructor(
         }
     }
 
-    private fun getWallets(exclusiveWalletIds: List<String>, assistedWalletIds: List<String>) {
+    private fun getWallets(exclusiveWalletIds: List<String>, walletIds: List<String>) {
         viewModelScope.launch {
             getWalletsUseCase.execute()
                 .catch { Timber.e(it) }
                 .collect { wallets ->
                     val filterWallets = wallets.filter { it.wallet.id !in exclusiveWalletIds }
-                        .filter { if (assistedWalletIds.isEmpty()) true else it.wallet.id in assistedWalletIds }
+                        .filter { if (walletIds.isEmpty()) true else it.wallet.id in walletIds }
                     _state.update { it.copy(wallets = filterWallets) }
                     composeWalletUiModels()
                 }
@@ -125,7 +122,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect { wallets ->
                     val filterWallets = wallets.filter { it.localId !in exclusiveWalletIds }
-                        .filter { if (assistedWalletIds.isEmpty()) true else it.localId in assistedWalletIds }
+                        .filter { if (walletIds.isEmpty()) true else it.localId in walletIds }
                     _state.update {
                         it.copy(
                             assistedWallets = filterWallets.associateBy { it.localId }
@@ -167,7 +164,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
             val role = state.value.roles[assistedWallet?.groupId]
             val isLocked = state.value.lockdownWalletIds.contains(assistedWallet?.localId)
             val walletStatus = assistedWallet?.status ?: ""
-            if (state.value.config?.isShowDeactivatedWallets?.not() == true && walletStatus == WalletStatus.REPLACED.name) return@forEach // skip if wallet is replaced
+            if (state.value.config.isShowDeactivatedWallets().not() && walletStatus == WalletStatus.REPLACED.name) return@forEach // skip if wallet is replaced
             uis.add(
                 WalletUiModel(
                     wallet = wallet,
@@ -201,7 +198,7 @@ data class WalletsBottomSheetState(
     val joinedGroups: Map<String, ByzantineGroup> = HashMap(),
     val savedAddresses: List<SavedAddress> = emptyList(),
     val roles: Map<String, AssistedWalletRole> = emptyMap(),
-    val config: WalletComposeBottomSheet.ConfigArgs? = null,
+    val config: WalletComposeBottomSheet.ConfigArgs = WalletComposeBottomSheet.ConfigArgs(),
     val walletUiModels: List<WalletUiModel> = emptyList(),
-    val isPremiumUser: Boolean = false
+    val isPremiumUser: Boolean = false,
 )

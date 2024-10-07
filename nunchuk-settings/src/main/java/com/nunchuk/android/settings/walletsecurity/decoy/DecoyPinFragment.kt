@@ -49,6 +49,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
@@ -70,8 +71,14 @@ class DecoyPinFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = content {
         DecoyPinScreen(
-            onContinueClick = { pin ->
-                navigator.openAddWalletScreen(activityContext = requireContext(), decoyPin = pin)
+            onContinueClick = { hasWallet, pin ->
+                if (hasWallet) {
+                    findNavController().navigate(
+                        DecoyPinFragmentDirections.actionDecoyPinFragmentToDecoyWalletCreateFragment(pin)
+                    )
+                } else {
+                    navigator.openAddWalletScreen(activityContext = requireContext(), decoyPin = pin)
+                }
             }
         )
     }
@@ -80,12 +87,14 @@ class DecoyPinFragment : Fragment() {
 @Composable
 fun DecoyPinScreen(
     viewModel: DecoyPinViewModel = viewModel(),
-    onContinueClick: (String) -> Unit = {},
+    onContinueClick: (Boolean, String) -> Unit = { _, _ -> }
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     DecoyPinContent(
         uiState = uiState,
-        onContinueClick = onContinueClick,
+        onContinueClick = {
+            onContinueClick(uiState.hasWallet, it)
+        },
         getHashPin = viewModel::getHashedPin
     )
 }

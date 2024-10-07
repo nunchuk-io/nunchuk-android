@@ -97,7 +97,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
             EXTRA_EXCLUSIVE_WALLET_IDS
         ).orEmpty()
     }
-    private val assistedWalletIds by lazy {
+    private val walletIds by lazy {
         requireArguments().getStringArrayList(EXTRA_WALLET_IDS).orEmpty()
     }
     private val exclusiveAddresses by lazy {
@@ -163,7 +163,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(configArgs, assistedWalletIds, exclusiveWalletIds, exclusiveAddresses)
+        viewModel.init(configArgs, walletIds, exclusiveWalletIds, exclusiveAddresses)
     }
 
     companion object {
@@ -179,7 +179,7 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
             exclusiveAssistedWalletIds: List<String> = emptyList(),
             exclusiveAddresses: List<String> = emptyList(),
             assistedWalletIds: List<String> = emptyList(),
-            configArgs: ConfigArgs? = null,
+            configArgs: ConfigArgs,
         ) = WalletComposeBottomSheet().apply {
             arguments = Bundle().apply {
                 putStringArrayList(
@@ -195,14 +195,27 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
             }
             show(fragmentManager, TAG)
         }
+
+        val SHOW_ADDRESS = 1 shl 0 // 0001
+        val SHOW_DEACTIVATED_WALLETS = 1 shl 1 // 0010
+
+        fun fromFlags(vararg options: Int): Int {
+            var combinedFlags = 0
+            for (option in options) {
+                combinedFlags = combinedFlags or option
+            }
+            return combinedFlags
+        }
     }
 
     @Parcelize
     data class ConfigArgs(
         val title: String? = null,
-        val isShowAddress: Boolean = false,
-        val isShowDeactivatedWallets: Boolean = true,
-    ) : Parcelable
+        val flags: Int = 0
+    ) : Parcelable {
+        fun isShowAddress(): Boolean = flags and SHOW_ADDRESS != 0
+        fun isShowDeactivatedWallets(): Boolean = flags and SHOW_DEACTIVATED_WALLETS != 0
+    }
 }
 
 @Composable
@@ -250,17 +263,7 @@ private fun AssistedWalletContent(
             contentPadding = PaddingValues(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-
-            if (uiState.config?.isShowAddress?.not() == true) {
-                item {
-                    Text(
-                        text = if (title.isNullOrEmpty()) stringResource(R.string.nc_select_an_assisted_wallet) else title,
-                        style = NunchukTheme.typography.title,
-                    )
-                }
-            }
-
-            if (uiState.config?.isShowAddress == true) {
+            if (uiState.config.isShowAddress()) {
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -300,24 +303,32 @@ private fun AssistedWalletContent(
                 }
             }
 
-            if (uiState.wallets.isNotEmpty() && uiState.config?.isShowAddress == true) {
+            if (uiState.wallets.isNotEmpty()) {
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.weight(1f, fill = true),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(24.dp),
-                                painter = painterResource(id = R.drawable.ic_wallet_small),
-                                contentDescription = ""
-                            )
+                        if (uiState.config.isShowAddress()) {
+                            Row(
+                                modifier = Modifier.weight(1f, fill = true),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(id = R.drawable.ic_wallet_small),
+                                    contentDescription = ""
+                                )
+                                Text(
+                                    text = stringResource(id = R.string.nc_your_wallets),
+                                    modifier = Modifier.padding(start = 8.dp),
+                                    style = NunchukTheme.typography.title
+                                )
+                            }
+                        } else {
                             Text(
-                                text = stringResource(id = R.string.nc_your_wallets),
-                                modifier = Modifier.padding(start = 8.dp),
+                                text = uiState.config.title
+                                    ?: stringResource(R.string.nc_select_a_wallet),
                                 style = NunchukTheme.typography.title
                             )
                         }
@@ -421,7 +432,9 @@ fun AssistedWalletContentPreview(
         AssistedWalletContent(
             uiState = WalletsBottomSheetState(
                 wallets = wallets, config = WalletComposeBottomSheet.ConfigArgs(
-                    isShowAddress = true
+                    flags = WalletComposeBottomSheet.fromFlags(
+                        WalletComposeBottomSheet.SHOW_ADDRESS
+                    )
                 )
             )
         )

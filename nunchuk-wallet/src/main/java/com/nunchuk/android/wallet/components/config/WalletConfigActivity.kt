@@ -189,9 +189,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 WalletComposeBottomSheet.show(
                     fragmentManager = supportFragmentManager,
                     exclusiveAssistedWalletIds = arrayListOf(args.walletId),
-                    configArgs = WalletComposeBottomSheet.ConfigArgs(
-                        isShowDeactivatedWallets = false
-                    )
+                    configArgs = WalletComposeBottomSheet.ConfigArgs()
                 )
             }
 
