@@ -2,9 +2,9 @@ package com.nunchuk.android.main.membership.model
 
 import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.ByzantineWalletConfig
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.GroupWalletType
 
 
@@ -54,18 +54,27 @@ fun String.toGroupWalletType(): GroupWalletType? {
     return GroupWalletType.entries.find { this == it.name }
 }
 
-fun ByzantineWalletConfig.toGroupWalletType(): GroupWalletType? {
+fun WalletConfig.toGroupWalletType(): GroupWalletType? {
     return GroupWalletType.entries
         .find { this.m == it.m && this.n == it.n && this.allowInheritance == it.allowInheritance && this.requiredServerKey == it.requiredServerKey }
 }
 
-fun GroupWalletType.toSteps(): List<MembershipStep> = when (this) {
-    GroupWalletType.TWO_OF_FOUR_MULTISIG -> listOf(
-        MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
-        MembershipStep.ADD_SEVER_KEY,
-    )
+fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false): List<MembershipStep> = when (this) {
+    GroupWalletType.TWO_OF_FOUR_MULTISIG -> if (isPersonalWallet) {
+        listOf(
+            MembershipStep.HONEY_ADD_TAP_SIGNER,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+            MembershipStep.ADD_SEVER_KEY,
+        )
+    } else {
+        listOf(
+            MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+            MembershipStep.ADD_SEVER_KEY,
+        )
+    }
 
     GroupWalletType.TWO_OF_THREE -> listOf(
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,

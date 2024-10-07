@@ -45,6 +45,7 @@ import com.nunchuk.android.model.SeverWallet
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TransactionAdditional
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletServerSync
@@ -96,9 +97,6 @@ interface PremiumWalletRepository {
     ): String
 
     suspend fun createSecurityQuestion(question: String): SecurityQuestion
-    suspend fun createServerWallet(
-        wallet: Wallet, serverKeyId: String
-    ): SeverWallet
 
     suspend fun getServerWallet(): WalletServerSync
     suspend fun createServerTransaction(
@@ -350,7 +348,7 @@ interface PremiumWalletRepository {
     suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep)
     suspend fun getPermissionGroupWallet(type: GroupWalletType): DefaultPermissions
     suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)
-    suspend fun syncKeyToGroup(groupId: String, step: MembershipStep, signer: SingleSigner)
+    suspend fun syncKey(groupId: String, step: MembershipStep, signer: SingleSigner)
     suspend fun createGroup(
         m: Int,
         n: Int,
@@ -394,6 +392,10 @@ interface PremiumWalletRepository {
         groupId: String,
         name: String,
         primaryMembershipId: String?
+    ): Wallet
+
+    suspend fun createPersonalWallet(
+        name: String
     ): Wallet
 
     suspend fun groupMemberAcceptRequest(groupId: String)
@@ -495,4 +497,8 @@ interface PremiumWalletRepository {
         groupId: String?,
         walletId: String,
     ): Wallet
+
+    suspend fun initPersonalWallet(
+       walletConfig: WalletConfig
+    )
 }

@@ -2,7 +2,7 @@ package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
-import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.WalletConfig
 
 internal data class DraftWalletResponse(
     @SerializedName("draft_wallet") val draftWallet: DraftWalletDto? = null
@@ -24,7 +24,7 @@ internal data class WalletConfigDto(
     @SerializedName("allow_inheritance") val allowInheritance: Boolean = false,
 )
 
-internal fun WalletConfigDto?.toModel(): ByzantineWalletConfig = ByzantineWalletConfig(
+internal fun WalletConfigDto?.toModel(): WalletConfig = WalletConfig(
     allowInheritance = this?.allowInheritance ?: false,
     m = this?.m ?: 0,
     n = this?.n ?: 0,

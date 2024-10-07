@@ -80,7 +80,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -124,7 +124,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             val data = result.data
             if (result.resultCode == Activity.RESULT_OK && data != null) {
                 data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
-                    viewModel.onSelectedExistingHardwareSigner(it.toModel())
+                    viewModel.onSelectedExistingHardwareSigner(it)
                 }
             }
         }
@@ -147,7 +147,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
             val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
             if (signer != null) {
-                viewModel.onSelectedExistingHardwareSigner(signer.toModel())
+                viewModel.onSelectedExistingHardwareSigner(signer)
             }
             clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
         }
@@ -167,7 +167,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                         if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
                             viewModel.onUpdateSignerTag(signer, selectedSignerTag)
                         } else {
-                            viewModel.onSelectedExistingHardwareSigner(signer)
+                            viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
                         }
                     }
                 }

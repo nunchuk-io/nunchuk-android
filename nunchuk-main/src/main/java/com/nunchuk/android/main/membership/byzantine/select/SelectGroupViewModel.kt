@@ -3,10 +3,13 @@ package com.nunchuk.android.main.membership.byzantine.select
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.model.WalletConfig
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.isPersonalPlan
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
+import com.nunchuk.android.usecase.wallet.InitPersonalWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,6 +24,7 @@ import javax.inject.Inject
 class SelectGroupViewModel @Inject constructor(
     private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
+    private val initPersonalWalletUseCase: InitPersonalWalletUseCase,
     private val applicationScope: CoroutineScope
 ) : ViewModel() {
     private val _state = MutableStateFlow(SelectGroupUiState())
@@ -48,10 +52,20 @@ class SelectGroupViewModel @Inject constructor(
     }
 
 
-    fun setLocalMembershipPlan(slug: String) {
+    fun setLocalMembershipPlan(slug: String, type: GroupWalletType) {
         applicationScope.launch {
             val plan = slug.toMembershipPlan()
             if (plan.isPersonalPlan()) {
+                initPersonalWalletUseCase(
+                    InitPersonalWalletUseCase.Param(
+                        WalletConfig(
+                            allowInheritance = type.allowInheritance,
+                            m = type.m,
+                            n = type.n,
+                            requiredServerKey = type.requiredServerKey
+                        )
+                    )
+                )
                 setLocalMembershipPlanFlowUseCase(slug.toMembershipPlan())
             }
         }

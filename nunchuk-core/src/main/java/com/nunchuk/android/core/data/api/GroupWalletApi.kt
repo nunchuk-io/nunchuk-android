@@ -6,7 +6,7 @@ import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
-import com.nunchuk.android.core.data.model.byzantine.CreateDraftGroupWalletRequest
+import com.nunchuk.android.core.data.model.byzantine.CreateDraftWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
@@ -164,7 +164,7 @@ internal interface GroupWalletApi {
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/create-from-draft")
     suspend fun createGroupWallet(
         @Path("group_id") groupId: String,
-        @Body payload: CreateDraftGroupWalletRequest,
+        @Body payload: CreateDraftWalletRequest,
     ): Data<CreateOrUpdateWalletResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/current")

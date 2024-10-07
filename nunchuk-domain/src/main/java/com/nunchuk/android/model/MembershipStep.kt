@@ -42,7 +42,7 @@ enum class MembershipStep {
 }
 
 val MembershipStep.isAddInheritanceKey: Boolean
-    get() = this == MembershipStep.BYZANTINE_ADD_TAP_SIGNER || this == MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1
+    get() = this == MembershipStep.BYZANTINE_ADD_TAP_SIGNER || this == MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 || this == MembershipStep.HONEY_ADD_TAP_SIGNER
 
 fun MembershipStep.toIndex() = when (this) {
     MembershipStep.BYZANTINE_ADD_TAP_SIGNER,

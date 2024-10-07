@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.ActiveWallet
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
-import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.core.signer.SignerModel
@@ -50,7 +48,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.User
@@ -663,7 +661,7 @@ fun PendingWalletViewPreview() {
         status = "PENDING_WALLET",
         isViewPendingWallet = false,
         isLocked = false,
-        walletConfig = ByzantineWalletConfig(
+        walletConfig = WalletConfig(
             m = 2, n = 4, requiredServerKey = true, allowInheritance = true
         ),
         slug = MembershipPlan.BYZANTINE_PREMIER.name

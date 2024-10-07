@@ -7,12 +7,12 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class SyncGroupDraftWalletUseCase @Inject constructor(
+class SyncDraftWalletUseCase @Inject constructor(
     private val repository: GroupWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UseCase<String, DraftWallet>(ioDispatcher) {
 
     override suspend fun execute(parameters: String): DraftWallet {
-        return repository.syncGroupDraftWallet(parameters)
+        return repository.syncDraftWallet(parameters)
     }
 }

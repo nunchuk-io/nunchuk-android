@@ -8,13 +8,13 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class SyncKeyToGroupUseCase @Inject constructor(
+class SyncKeyUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<SyncKeyToGroupUseCase.Param, Unit>(ioDispatcher) {
+) : UseCase<SyncKeyUseCase.Param, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param) {
-        return repository.syncKeyToGroup(
+        return repository.syncKey(
             parameters.groupId,
             parameters.step,
             parameters.signer,
@@ -22,7 +22,7 @@ class SyncKeyToGroupUseCase @Inject constructor(
     }
 
     data class Param(
-        val groupId: String,
+        val groupId: String = "",
         val step: MembershipStep,
         val signer: SingleSigner,
     )

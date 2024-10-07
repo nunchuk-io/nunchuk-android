@@ -31,7 +31,8 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
-import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.main.membership.model.toGroupWalletType
+import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.Result
@@ -41,17 +42,22 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -71,11 +77,15 @@ class AddKeyListViewModel @Inject constructor(
     private val gson: Gson,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val checkRequestAddDesktopKeyStatusUseCase: CheckRequestAddDesktopKeyStatusUseCase,
-    private val ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore,
+    private val syncKeyUseCase: SyncKeyUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
+    private val getIndexFromPathUseCase: GetIndexFromPathUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     private val _event = MutableSharedFlow<AddKeyListEvent>()
     val event = _event.asSharedFlow()
+    private var loadJob: Job? = null
 
     private val currentStep =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
@@ -86,8 +96,7 @@ class AddKeyListViewModel @Inject constructor(
                 membershipStepManager.localMembershipPlan,
                 ""
             )
-        )
-            .map { it.getOrElse { emptyList() } }
+        ).map { it.getOrElse { emptyList() } }
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _keys = MutableStateFlow(listOf<AddKeyData>())
@@ -102,41 +111,37 @@ class AddKeyListViewModel @Inject constructor(
                 membershipStepManager.setCurrentStep(it)
             }
         }
-        if (membershipStepManager.localMembershipPlan == MembershipPlan.IRON_HAND) {
-            _keys.value = listOf(
-                AddKeyData(type = MembershipStep.IRON_ADD_HARDWARE_KEY_1),
-                AddKeyData(type = MembershipStep.IRON_ADD_HARDWARE_KEY_2),
-                AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
-            )
-        } else {
-            _keys.value = listOf(
-                AddKeyData(type = MembershipStep.HONEY_ADD_TAP_SIGNER),
-                AddKeyData(type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1),
-                AddKeyData(type = MembershipStep.HONEY_ADD_HARDWARE_KEY_2),
-                AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
-            )
-        }
         viewModelScope.launch {
             loadSigners()
         }
         viewModelScope.launch {
-            membershipStepState.collect {
-                val news = _keys.value.map { addKeyData ->
-                    val info = getStepInfo(addKeyData.type)
-                    val extra = runCatching { gson.fromJson(info.extraData, SignerExtra::class.java) }.getOrNull()
-                    if (addKeyData.signer == null && info.masterSignerId.isNotEmpty()) {
-                        loadSigners()
-                        val path = extra?.derivationPath.orEmpty()
-                        val signer = _state.value.signers.find { it.fingerPrint == info.masterSignerId && it.derivationPath == path }
-                        return@map addKeyData.copy(
-                            signer = signer,
-                            verifyType = info.verifyType
-                        )
+            membershipStepState.combine(key) { _, keys -> keys }
+                .collect { keys ->
+                    val news = keys.map { addKeyData ->
+                        val info = getStepInfo(addKeyData.type)
+                        val extra = runCatching {
+                            gson.fromJson(
+                                info.extraData,
+                                SignerExtra::class.java
+                            )
+                        }.getOrNull()
+                        if (addKeyData.signer == null && info.masterSignerId.isNotEmpty() && extra != null) {
+                            loadSigners()
+                            val signer =
+                                _state.value.signers.find { it.fingerPrint == info.masterSignerId }
+                                    ?.copy(
+                                        index = getIndexFromPathUseCase(extra.derivationPath)
+                                            .getOrDefault(0)
+                                    )
+                            return@map addKeyData.copy(
+                                signer = signer,
+                                verifyType = info.verifyType
+                            )
+                        }
+                        addKeyData.copy(verifyType = info.verifyType)
                     }
-                    addKeyData.copy(verifyType = info.verifyType)
+                    _keys.value = news
                 }
-                _keys.value = news
-            }
         }
         viewModelScope.launch {
             checkRequestAddDesktopKeyStatusUseCase(
@@ -147,6 +152,24 @@ class AddKeyListViewModel @Inject constructor(
         }
         viewModelScope.launch {
             shouldShowNewPortal = ncDataStore.shouldShowNewPortal()
+        }
+        refresh()
+    }
+
+    fun refresh() {
+        if (loadJob?.isActive == true) return
+        loadJob = viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            syncDraftWalletUseCase("").onSuccess { draft ->
+                loadSigners()
+                draft.config.toGroupWalletType()?.let { type ->
+                    if (_keys.value.isEmpty()) {
+                        _keys.value = type.toSteps(isPersonalWallet = true)
+                            .map { step -> AddKeyData(type = step) }
+                    }
+                }
+            }
+            _state.update { it.copy(isLoading = false) }
         }
     }
 
@@ -166,14 +189,23 @@ class AddKeyListViewModel @Inject constructor(
         }
     }
 
-    // COLDCARD or Airgap
-    fun onSelectedExistingHardwareSigner(signer: SignerModel) {
+    fun onSelectedExistingHardwareSigner(signer: SingleSigner) {
         viewModelScope.launch {
+            syncKeyUseCase(
+                SyncKeyUseCase.Param(
+                    step = membershipStepManager.currentStep
+                        ?: throw IllegalArgumentException("Current step empty"),
+                    signer = signer
+                )
+            ).onFailure {
+                _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
+                return@launch
+            }
             saveMembershipStepUseCase(
                 MembershipStepInfo(
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
-                    masterSignerId = signer.fingerPrint,
+                    masterSignerId = signer.masterFingerprint,
                     plan = membershipStepManager.localMembershipPlan,
                     verifyType = VerifyType.APP_VERIFIED,
                     extraData = gson.toJson(
@@ -197,7 +229,7 @@ class AddKeyListViewModel @Inject constructor(
                         updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
                     if (result is Result.Success) {
                         loadSigners()
-                        onSelectedExistingHardwareSigner(signer.copy(tags = listOf(tag)))
+                        onSelectedExistingHardwareSigner(singleSigner.copy(tags = listOf(tag)))
                     } else {
                         _event.emit(AddKeyListEvent.ShowError((result as Result.Error).exception.message.orUnknownError()))
                     }
@@ -298,4 +330,7 @@ sealed class AddKeyListEvent {
     data class ShowError(val message: String) : AddKeyListEvent()
 }
 
-data class AddKeyListState(val signers: List<SignerModel> = emptyList())
+data class AddKeyListState(
+    val isLoading: Boolean = false,
+    val signers: List<SignerModel> = emptyList()
+)

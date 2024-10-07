@@ -57,11 +57,91 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
 
-    override suspend fun syncGroupDraftWallet(groupId: String): DraftWallet {
-        val response = userWalletApiManager.groupWalletApi.getDraftWallet(groupId)
+    override suspend fun syncDraftWallet(groupId: String): DraftWallet {
+        val response = if (groupId.isEmpty()) {
+            userWalletApiManager.walletApi.getDraftWallet()
+        } else {
+            userWalletApiManager.groupWalletApi.getDraftWallet(groupId)
+        }
         val draftWallet =
             response.data.draftWallet ?: throw NullPointerException("draftWallet null")
-        return handleDraftWallet(draftWallet, groupId)
+        return if (groupId.isEmpty()) {
+            handlePersonalDraftWallet(draftWallet, groupId)
+        } else {
+            handleDraftWallet(draftWallet, groupId)
+        }
+    }
+
+    private suspend fun handlePersonalDraftWallet(
+        draftWallet: DraftWalletDto,
+        groupId: String,
+    ): DraftWallet {
+        val chatId = accountManager.getAccount().chatId
+        val newSigner = mutableMapOf<String, Boolean>()
+        val plan = if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
+        draftWallet.signers.forEach { key ->
+            val signerType = key.type.toSignerType()
+            newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
+            if (signerType == SignerType.SERVER) {
+                if (membershipStepDao.getStep(
+                        chatId, chain.value, MembershipStep.ADD_SEVER_KEY, groupId
+                    ) == null
+                ) {
+                    membershipRepository.saveStepInfo(
+                        MembershipStepInfo(
+                            step = MembershipStep.ADD_SEVER_KEY,
+                            verifyType = VerifyType.APP_VERIFIED,
+                            extraData = gson.toJson(
+                                ServerKeyExtra(
+                                    name = key.name.orEmpty(),
+                                    xfp = key.xfp.orEmpty(),
+                                    derivationPath = key.derivationPath.orEmpty(),
+                                    xpub = key.xpub.orEmpty()
+                                )
+                            ),
+                            plan = plan,
+                            keyIdInServer = draftWallet.serverKeyId.orEmpty(),
+                            groupId = groupId
+                        )
+                    )
+                }
+            } else {
+                val step = when (key.index) {
+                    0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_TAP_SIGNER else MembershipStep.IRON_ADD_HARDWARE_KEY_1
+                    1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
+                    2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
+                    else -> throw IllegalArgumentException()
+                }
+                val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
+                val verifyType =
+                    if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
+                if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
+                    membershipRepository.saveStepInfo(
+                        MembershipStepInfo(
+                            id = info?.id ?: 0L,
+                            step = step,
+                            masterSignerId = key.xfp.orEmpty(),
+                            plan = plan,
+                            verifyType = verifyType,
+                            extraData = gson.toJson(
+                                SignerExtra(
+                                    derivationPath = key.derivationPath.orEmpty(),
+                                    isAddNew = false,
+                                    signerType = signerType
+                                )
+                            ),
+                            groupId = groupId
+                        )
+                    )
+                }
+            }
+        }
+        handleUpdateServerSigners(draftWallet.signers, newSigner)
+        return DraftWallet(
+            config = draftWallet.walletConfig.toModel(),
+            isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
+            signers = draftWallet.signers.map { it.toModel() }
+        )
     }
 
     private suspend fun handleDraftWallet(
@@ -211,14 +291,16 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             )
         } else {
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
-            nunchukNativeSdk.createSigner(name = signer.name.orEmpty(),
+            nunchukNativeSdk.createSigner(
+                name = signer.name.orEmpty(),
                 xpub = signer.xpub.orEmpty(),
                 publicKey = signer.pubkey.orEmpty(),
                 derivationPath = signer.derivationPath.orEmpty(),
                 masterFingerprint = signer.xfp.orEmpty(),
                 type = type,
                 tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
-                replace = false)
+                replace = false
+            )
         }
         return false
     }

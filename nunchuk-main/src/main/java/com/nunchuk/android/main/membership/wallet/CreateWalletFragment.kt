@@ -101,9 +101,6 @@ class CreateWalletFragment : MembershipFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (groupId.isEmpty()) {
-            viewModel.loadSignerFromDatabase()
-        }
         flowObserver(viewModel.event) {
             when (it) {
                 is CreateWalletEvent.Loading -> showOrHideLoading(it.isLoading)

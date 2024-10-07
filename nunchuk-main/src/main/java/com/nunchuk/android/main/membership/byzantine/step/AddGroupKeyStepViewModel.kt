@@ -32,7 +32,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
-import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -53,7 +53,7 @@ import javax.inject.Inject
 class AddGroupKeyStepViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val savedStateHandle: SavedStateHandle,
-    private val syncGroupDraftWalletUseCase: SyncGroupDraftWalletUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getGroupUseCase: GetGroupUseCase,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
@@ -136,7 +136,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
                 syncGroupWalletUseCase(groupId.value)
             }
             val draftWalletDeferred = async {
-                syncGroupDraftWalletUseCase(groupId.value)
+                syncDraftWalletUseCase(groupId.value)
             }
             val isCreateWallet = walletDeferred.await().isSuccess
             val draftWallet = draftWalletDeferred.await().getOrNull() ?: return@launch

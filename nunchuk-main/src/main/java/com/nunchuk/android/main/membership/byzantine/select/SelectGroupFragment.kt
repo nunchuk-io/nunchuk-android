@@ -77,7 +77,7 @@ class SelectGroupFragment : MembershipFragment() {
                     onContinueClicked = { option ->
                         if (viewModel.checkGroupTypeAvailable(option.slug)) {
                             if (args.isPersonal) {
-                                viewModel.setLocalMembershipPlan(option.slug)
+                                viewModel.setLocalMembershipPlan(option.slug, option.walletType)
                                 nunchukNavigator.openMembershipActivity(
                                     activityContext = requireActivity(),
                                     groupStep = MembershipStage.NONE,

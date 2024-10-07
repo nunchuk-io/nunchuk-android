@@ -40,6 +40,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
+import com.nunchuk.android.core.data.model.PersonalWalletConfig
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionDataResponse
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
@@ -48,6 +49,8 @@ import com.nunchuk.android.core.data.model.TransactionAdditionalResponse
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateSecurityQuestionResponse
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
+import com.nunchuk.android.core.data.model.byzantine.CreateDraftWalletRequest
+import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
 import com.nunchuk.android.core.data.model.byzantine.DummyTransactionResponse
 import com.nunchuk.android.core.data.model.byzantine.GroupAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
@@ -427,6 +430,24 @@ internal interface UserWalletsApi {
         @Body payload: DesktopKeyRequest
     ): Data<RequestDesktopKeyResponse>
 
+    @POST("/v1.1/user-wallets/draft-wallets/add-key")
+    suspend fun addKeyToServer(
+        @Body payload: SignerServerDto,
+    ): Data<SignerServerDto>
+
+    @POST("/v1.1/user-wallets/draft-wallets/set-server-key")
+    suspend fun setServerKey(
+        @Body payload: Map<String, String>,
+    ): Data<CreateServerKeyResponse>
+
+    @POST("/v1.1/user-wallets/draft-wallets/init")
+    suspend fun initDraftWallet(
+        @Body config: PersonalWalletConfig
+    ): Data<DraftWalletResponse>
+
+    @GET("/v1.1/user-wallets/draft-wallets/current")
+    suspend fun getDraftWallet(): Data<DraftWalletResponse>
+
     @DELETE("/v1.1/user-wallets/draft-wallets/current")
     suspend fun deleteDraftWallet(): Data<Unit>
 
@@ -657,4 +678,9 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Body payload: RandomizeBroadcastBatchTransactionsPayload
     ): Data<Unit>
+
+    @POST("/v1.1/user-wallets/wallets/create-from-draft")
+    suspend fun createWalletFromDraft(
+        @Body payload: CreateDraftWalletRequest
+    ): Data<CreateOrUpdateWalletResponse>
 }

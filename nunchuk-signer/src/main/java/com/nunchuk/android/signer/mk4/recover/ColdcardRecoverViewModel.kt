@@ -43,7 +43,7 @@ import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
-import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -63,7 +63,7 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val parseJsonSignerUseCase: ParseJsonSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val createSignerUseCase: CreateSignerUseCase,
-    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
+    private val syncKeyUseCase: SyncKeyUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
@@ -199,17 +199,15 @@ class ColdcardRecoverViewModel @Inject constructor(
                         groupId = groupId
                     )
                 )
-                if (groupId.isNotEmpty()) {
-                    syncKeyToGroupUseCase(
-                        SyncKeyToGroupUseCase.Param(
-                            step = membershipStepManager.currentStep
-                                ?: throw IllegalArgumentException("Current step empty"),
-                            groupId = groupId,
-                            signer = coldcardSigner
-                        )
-                    ).onFailure {
-                        _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
-                    }
+                syncKeyUseCase(
+                    SyncKeyUseCase.Param(
+                        step = membershipStepManager.currentStep
+                            ?: throw IllegalArgumentException("Current step empty"),
+                        groupId = groupId,
+                        signer = coldcardSigner
+                    )
+                ).onFailure {
+                    _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
                 }
             } else {
                 replaceKeyUseCase(

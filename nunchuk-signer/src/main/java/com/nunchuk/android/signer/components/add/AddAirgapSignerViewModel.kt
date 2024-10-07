@@ -60,7 +60,7 @@ import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
-import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -94,7 +94,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
-    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
+    private val syncKeyUseCase: SyncKeyUseCase,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
@@ -163,22 +163,23 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         newIndex: Int,
     ) {
         viewModelScope.launch {
-            val newSignerName = if (isMembershipFlow && !replacedXfp.isNullOrEmpty() && walletId.isNotEmpty()) {
-                getReplaceSignerNameUseCase(
-                    GetReplaceSignerNameUseCase.Params(
-                        walletId = walletId,
-                        signerType = SignerType.AIRGAP
-                    )
-                ).getOrThrow()
-            } else if (isMembershipFlow) {
-                "${signerTag.formattedName}${
-                    membershipStepManager.getNextKeySuffixByType(
-                        SignerType.AIRGAP
-                    )
-                }"
-            } else {
-                signerName
-            }
+            val newSignerName =
+                if (isMembershipFlow && !replacedXfp.isNullOrEmpty() && walletId.isNotEmpty()) {
+                    getReplaceSignerNameUseCase(
+                        GetReplaceSignerNameUseCase.Params(
+                            walletId = walletId,
+                            signerType = SignerType.AIRGAP
+                        )
+                    ).getOrThrow()
+                } else if (isMembershipFlow) {
+                    "${signerTag.formattedName}${
+                        membershipStepManager.getNextKeySuffixByType(
+                            SignerType.AIRGAP
+                        )
+                    }"
+                } else {
+                    signerName
+                }
             if (newSignerName.isEmpty()) {
                 _state.update { it.copy(showKeyNameError = true) }
                 return@launch
@@ -258,16 +259,14 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                 groupId = groupId
                             )
                         )
-                        if (groupId.isNotEmpty()) {
-                            syncKeyToGroupUseCase(
-                                SyncKeyToGroupUseCase.Param(
-                                    step = membershipStepManager.currentStep
-                                        ?: throw IllegalArgumentException("Current step empty"),
-                                    groupId = groupId,
-                                    signer = airgap
-                                )
+                        syncKeyUseCase(
+                            SyncKeyUseCase.Param(
+                                step = membershipStepManager.currentStep
+                                    ?: throw IllegalArgumentException("Current step empty"),
+                                groupId = groupId,
+                                signer = airgap
                             )
-                        }
+                        )
                     }
                     setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
                 } else {

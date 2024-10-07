@@ -50,7 +50,7 @@ import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
-import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -74,7 +74,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val parseMk4WalletUseCase: ParseMk4WalletUseCase,
     private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
     private val createWallet2UseCase: CreateWallet2UseCase,
-    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
+    private val syncKeyUseCase: SyncKeyUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
@@ -183,17 +183,15 @@ class Mk4IntroViewModel @Inject constructor(
                                     groupId = groupId
                                 )
                             )
-                            if (groupId.isNotEmpty()) {
-                                syncKeyToGroupUseCase(
-                                    SyncKeyToGroupUseCase.Param(
-                                        step = membershipStepManager.currentStep
-                                            ?: throw IllegalArgumentException("Current step empty"),
-                                        groupId = groupId,
-                                        signer = coldcardSigner
-                                    )
-                                ).onFailure {
-                                    _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
-                                }
+                            syncKeyUseCase(
+                                SyncKeyUseCase.Param(
+                                    step = membershipStepManager.currentStep
+                                        ?: throw IllegalArgumentException("Current step empty"),
+                                    groupId = groupId,
+                                    signer = coldcardSigner
+                                )
+                            ).onFailure {
+                                _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
                             }
                         } else {
                             replaceKeyUseCase(

@@ -21,6 +21,7 @@ package com.nunchuk.android.core.data.model
 
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
+import com.nunchuk.android.core.data.model.byzantine.WalletConfigDto
 import com.nunchuk.android.core.data.model.membership.KeyPoliciesDto
 import com.nunchuk.android.core.data.model.membership.ServerKeyDto
 import com.nunchuk.android.core.data.model.membership.TransactionServerDto
@@ -299,4 +300,9 @@ class EmptyRequest
 data class UpdateSecurityQuestionResponse(
     @SerializedName("dummy_transaction")
     val dummyTransaction: DummyTransactionDto? = null
+)
+
+internal data class PersonalWalletConfig(
+    @SerializedName("wallet_config")
+    val walletConfig: WalletConfigDto? = null
 )

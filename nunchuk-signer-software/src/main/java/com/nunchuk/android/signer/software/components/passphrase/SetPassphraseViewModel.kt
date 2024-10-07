@@ -55,7 +55,7 @@ import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
-import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.CreateSoftwareSignerByXprvUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
@@ -78,7 +78,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase,
     private val changePrimaryKeyUseCase: ChangePrimaryKeyUseCase,
-    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
+    private val syncKeyUseCase: SyncKeyUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
@@ -209,7 +209,7 @@ internal class SetPassphraseViewModel @Inject constructor(
                 if (replacedXfp.isNotEmpty() && walletId.isNotEmpty()) {
                     replacedKey(signer, groupId, replacedXfp, walletId)
                 } else if (groupId.isNotEmpty()) {
-                    syncKeyToGroup(signer, groupId.orEmpty())
+                    syncKeyToGroup(signer, groupId)
                 } else if (isQuickWallet) {
                     createQuickWallet(signer)
                 } else if (primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
@@ -312,8 +312,8 @@ internal class SetPassphraseViewModel @Inject constructor(
                     addressType = AddressType.NATIVE_SEGWIT
                 )
             ).onSuccess { signer ->
-                syncKeyToGroupUseCase(
-                    SyncKeyToGroupUseCase.Param(
+                syncKeyUseCase(
+                    SyncKeyUseCase.Param(
                         step = membershipStepManager.currentStep
                             ?: throw IllegalArgumentException("Current step empty"),
                         groupId = groupId,

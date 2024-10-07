@@ -50,8 +50,8 @@ import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
-import com.nunchuk.android.usecase.membership.SyncGroupDraftWalletUseCase
-import com.nunchuk.android.usecase.membership.SyncKeyToGroupUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
+import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -79,8 +79,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
-    private val syncKeyToGroupUseCase: SyncKeyToGroupUseCase,
-    private val syncGroupDraftWalletUseCase: SyncGroupDraftWalletUseCase,
+    private val syncKeyUseCase: SyncKeyUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val pushEventManager: PushEventManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
@@ -261,7 +261,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
-            syncGroupDraftWalletUseCase(args.groupId).onSuccess { draft ->
+            syncDraftWalletUseCase(args.groupId).onSuccess { draft ->
                 loadSigners()
                 _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType()) }
                 draft.config.toGroupWalletType()?.let { type ->
@@ -280,8 +280,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     fun handleSignerNewIndex(signer: SingleSigner) {
         viewModelScope.launch {
-            syncKeyToGroupUseCase(
-                SyncKeyToGroupUseCase.Param(
+            syncKeyUseCase(
+                SyncKeyUseCase.Param(
                     groupId = args.groupId,
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),

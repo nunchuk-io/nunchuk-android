@@ -12,7 +12,7 @@ data class ByzantineGroup(
     val members: List<ByzantineMember>,
     val setupPreference: String,
     val status: String,
-    val walletConfig: ByzantineWalletConfig,
+    val walletConfig: WalletConfig,
     val isViewPendingWallet: Boolean,
     val isLocked: Boolean,
     val slug: String,

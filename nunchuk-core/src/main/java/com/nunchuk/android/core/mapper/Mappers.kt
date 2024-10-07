@@ -9,7 +9,6 @@ import com.nunchuk.android.core.data.model.byzantine.MemberRequest
 import com.nunchuk.android.core.data.model.byzantine.SignatureDto
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.campaigns.CampaignResponse
-import com.nunchuk.android.core.data.model.campaigns.RefereeCodeResponse
 import com.nunchuk.android.core.data.model.campaigns.ReferrerCodeResponse
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
@@ -22,7 +21,7 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.ByzantineWalletConfig
+import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.CalculateRequiredSignatureStep
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
@@ -273,7 +272,7 @@ internal fun GroupResponse.toGroupEntity(chatId: String, chain: Chain, groupDao:
             user = it.user?.toUser()
         )
     }
-    val walletConfig = ByzantineWalletConfig(
+    val walletConfig = WalletConfig(
         allowInheritance = walletConfig?.allowInheritance.orFalse(),
         m = walletConfig?.m.orDefault(0),
         n = walletConfig?.n.orDefault(0),
@@ -310,7 +309,7 @@ internal fun GroupEntity.toByzantineGroup(): ByzantineGroup {
     val members = gson.fromJson<List<ByzantineMember>>(
         members, object : TypeToken<List<ByzantineMember>>() {}.type
     )
-    val walletConfig = gson.fromJson(walletConfig, ByzantineWalletConfig::class.java)
+    val walletConfig = gson.fromJson(walletConfig, WalletConfig::class.java)
     return ByzantineGroup(
         id = groupId,
         status = status,

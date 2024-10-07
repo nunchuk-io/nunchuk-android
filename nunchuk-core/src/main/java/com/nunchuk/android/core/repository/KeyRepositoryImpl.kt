@@ -123,16 +123,12 @@ internal class KeyRepositoryImpl @Inject constructor(
                 val chatId = accountManager.getAccount().chatId
                 val verifyType =
                     if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.SELF_VERIFIED else VerifyType.NONE
-                var signer: SingleSigner? = null
-                if (groupId.isNotEmpty()) {
-                    signer =
-                        nativeSdk.getSignerByIndex(
-                            xfp,
-                            WalletType.MULTI_SIG.ordinal,
-                            AddressType.NATIVE_SEGWIT.ordinal,
-                            newIndex
-                        )
-                }
+                val signer = nativeSdk.getSignerByIndex(
+                    xfp,
+                    WalletType.MULTI_SIG.ordinal,
+                    AddressType.NATIVE_SEGWIT.ordinal,
+                    newIndex
+                ) ?: throw NullPointerException("Can not get signer by index $newIndex")
                 val info = MembershipStepEntity(
                     chatId = chatId,
                     step = step,
@@ -151,36 +147,39 @@ internal class KeyRepositoryImpl @Inject constructor(
                     chain = chain.value,
                     groupId = groupId
                 )
-                if (groupId.isNotEmpty()) {
-                    if (signer == null) throw NullPointerException("Can not get signer by index $newIndex")
-                    val isInheritance = step.isAddInheritanceKey
-                    val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
-                    val keyResponse = userWalletApiManager.groupWalletApi.addKeyToServer(
+                val isInheritance = step.isAddInheritanceKey
+                val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
+                val payload = SignerServerDto(
+                    name = signer.name,
+                    xfp = signer.masterFingerprint,
+                    derivationPath = signer.derivationPath,
+                    xpub = signer.xpub,
+                    pubkey = signer.publicKey,
+                    type = SignerType.NFC.name,
+                    tapsigner = TapSignerDto(
+                        cardId = status.ident.toString(),
+                        version = status.version.orEmpty(),
+                        birthHeight = status.birthHeight,
+                        isTestnet = status.isTestNet,
+                        isInheritance = isInheritance
+                    ),
+                    tags = if (isInheritance) listOf(
+                        SignerTag.INHERITANCE.name
+                    ) else null,
+                    index = step.toIndex()
+                )
+                val keyResponse = if (groupId.isNotEmpty()) {
+                    userWalletApiManager.groupWalletApi.addKeyToServer(
                         groupId = groupId,
-                        payload = SignerServerDto(
-                            name = signer.name,
-                            xfp = signer.masterFingerprint,
-                            derivationPath = signer.derivationPath,
-                            xpub = signer.xpub,
-                            pubkey = signer.publicKey,
-                            type = SignerType.NFC.name,
-                            tapsigner = TapSignerDto(
-                                cardId = status.ident.toString(),
-                                version = status.version.orEmpty(),
-                                birthHeight = status.birthHeight,
-                                isTestnet = status.isTestNet,
-                                isInheritance = isInheritance
-                            ),
-                            tags = if (isInheritance) listOf(
-                                SignerTag.INHERITANCE.name
-                            ) else null,
-                            index = step.toIndex()
-                        ),
+                        payload = payload,
                     )
-
-                    if (keyResponse.isSuccess.not()) {
-                        throw keyResponse.error
-                    }
+                } else {
+                    userWalletApiManager.walletApi.addKeyToServer(
+                        payload = payload,
+                    )
+                }
+                if (keyResponse.isSuccess.not()) {
+                    throw keyResponse.error
                 }
                 membershipDao.updateOrInsert(info)
                 send(KeyUpload.Progress(100))
