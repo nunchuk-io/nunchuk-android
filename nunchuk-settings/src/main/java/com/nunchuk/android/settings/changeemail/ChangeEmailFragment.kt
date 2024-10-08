@@ -44,6 +44,8 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
+import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -115,7 +117,12 @@ class ChangeEmailFragment : Fragment() {
             when (event) {
                 is ChangeEmailEvent.Error -> {
                     showOrHideLoading(false)
-                    showError(event.message)
+                    NCInfoDialog(requireActivity())
+                        .showDialog(
+                            title = getString(R.string.nc_error),
+                            message = event.message,
+                            btnYes = getString(R.string.nc_ok)
+                        )
                 }
 
                 is ChangeEmailEvent.Loading -> {
