@@ -427,11 +427,21 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is NfcLoading -> showOrHideNfcLoading(event.loading)
 
             WalletsEvent.DenyWalletInvitationSuccess -> showSuccess(message = getString(R.string.nc_deny_wallet_invitation_msg))
-            is WalletsEvent.AcceptWalletInvitationSuccess -> navigator.openGroupDashboardScreen(
-                groupId = event.groupId,
-                walletId = event.walletId,
-                activityContext = requireActivity(),
-            )
+            is WalletsEvent.AcceptWalletInvitationSuccess -> {
+                if (event.role == AssistedWalletRole.OBSERVER.name) {
+                    if (event.isPendingWallet) return
+                    navigator.openWalletDetailsScreen(
+                        walletId = event.walletId.orEmpty(),
+                        activityContext = requireActivity()
+                    )
+                } else {
+                    navigator.openGroupDashboardScreen(
+                        groupId = event.groupId,
+                        walletId = event.walletId,
+                        activityContext = requireActivity(),
+                    )
+                }
+            }
 
             None -> {}
             is WalletsEvent.ShowExistingKeyDialog -> {
@@ -690,7 +700,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             walletStatus = briefWallet?.status,
                             onAccept = {
                                 it.group?.id?.let { groupId ->
-                                    walletsViewModel.acceptInviteMember(groupId)
+                                    walletsViewModel.acceptInviteMember(groupId, it.role)
                                 }
                             },
                             onDeny = {

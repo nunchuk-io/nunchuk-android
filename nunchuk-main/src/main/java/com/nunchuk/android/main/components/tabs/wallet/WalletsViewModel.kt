@@ -665,12 +665,13 @@ internal class WalletsViewModel @Inject constructor(
 
     fun clearEvent() = event(None)
 
-    fun acceptInviteMember(groupId: String) = viewModelScope.launch {
+    fun acceptInviteMember(groupId: String, role: String) = viewModelScope.launch {
         setEvent(Loading(true))
         groupMemberAcceptRequestUseCase(groupId)
             .onSuccess {
                 val walletId = getState().assistedWallets.find { it.groupId == groupId }?.localId
-                setEvent(WalletsEvent.AcceptWalletInvitationSuccess(walletId, groupId))
+                val wallet = getState().wallets.find { it.wallet.id == walletId }
+                setEvent(WalletsEvent.AcceptWalletInvitationSuccess(walletId, groupId, role, wallet == null))
                 syncGroup()
             }.onFailure {
                 event(ShowErrorEvent(it))

@@ -72,8 +72,14 @@ internal sealed class WalletsEvent {
     class SatsCardUsedUp(val numberOfSlot: Int) : WalletsEvent()
     data object DenyWalletInvitationSuccess : WalletsEvent()
     data object None : WalletsEvent()
-    data class AcceptWalletInvitationSuccess(val walletId: String?, val groupId: String) : WalletsEvent()
-    data class ShowExistingKeyDialog(val key: WalletsExistingKey): WalletsEvent()
+    data class AcceptWalletInvitationSuccess(
+        val walletId: String?,
+        val groupId: String,
+        val role: String,
+        val isPendingWallet: Boolean
+    ) : WalletsEvent()
+
+    data class ShowExistingKeyDialog(val key: WalletsExistingKey) : WalletsEvent()
 }
 
 internal data class GroupWalletUi(
@@ -82,7 +88,7 @@ internal data class GroupWalletUi(
     val role: String = AssistedWalletRole.NONE.name,
     val inviterName: String = "",
     val badgeCount: Int = 0,
-    val primaryOwnerMember: ByzantineMember?= null,
+    val primaryOwnerMember: ByzantineMember? = null,
     val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),
     val signers: List<SignerModel> = emptyList(),
 )
