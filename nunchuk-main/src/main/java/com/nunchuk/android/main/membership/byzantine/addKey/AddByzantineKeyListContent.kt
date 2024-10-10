@@ -172,7 +172,7 @@ fun AddKeyListScreenHoneyBadgerPreview(
     AddByzantineKeyListContent(
         keys = listOf(
             AddKeyData(
-                type = MembershipStep.HONEY_ADD_TAP_SIGNER,
+                type = MembershipStep.HONEY_ADD_INHERITANCE_KEY,
                 signer = signer.copy(isVisible = false),
                 verifyType = VerifyType.NONE
             ),

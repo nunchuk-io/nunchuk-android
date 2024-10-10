@@ -29,4 +29,6 @@ data class SignerExtra(
     val isAddNew: Boolean,
     @SerializedName("signer_type")
     val signerType: SignerType,
+    @SerializedName("file_name")
+    val userKeyFileName: String,
 )

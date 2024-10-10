@@ -42,6 +42,8 @@ data class KeyResponse(
     val verifiedTimeMilis: Long? = null,
     @SerializedName("derivation_path")
     val derivationPath: String? = null,
+    @SerializedName("file_name")
+    val fileName: String? = null,
 )
 
 data class KeyResponseData(

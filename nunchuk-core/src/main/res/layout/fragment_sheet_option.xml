@@ -28,7 +28,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/desc"
-        style="@style/NCText.Body.Small"
+        style="@style/NCText.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"

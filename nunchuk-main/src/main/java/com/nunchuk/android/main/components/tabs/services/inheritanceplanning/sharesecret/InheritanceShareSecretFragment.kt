@@ -198,5 +198,5 @@ private fun OptionItem(
 @Preview
 @Composable
 private fun InheritanceShareSecretScreenPreview() {
-    InheritanceShareSecretContent()
+    InheritanceShareSecretContent(options = initOptions())
 }

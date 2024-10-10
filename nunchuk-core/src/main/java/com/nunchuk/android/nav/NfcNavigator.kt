@@ -23,7 +23,10 @@ import android.app.Activity
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.ColdcardAction
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 
 interface NfcNavigator {
     fun openSetupMk4(
@@ -32,10 +35,15 @@ interface NfcNavigator {
         action: ColdcardAction = ColdcardAction.CREATE,
         groupId: String = "",
         newIndex: Int = -1,
-        xfp: String? = null,
         isScanQRCode: Boolean = false,
         replacedXfp: String? = null,
         walletId: String? = null,
+        signerType: SignerType? = null,
+        backUpFilePath: String? = null,
+        keyId: String? = null,
+        keyName: String? = null,
+        xfp: String? = null,
+        backUpFileName: String? = null
     )
 
     fun startSetupMk4ForResult(
@@ -79,5 +87,13 @@ interface NfcNavigator {
 
     fun openPortalScreen(
         launcher: ActivityResultLauncher<Intent>? = null,
-        activity: Activity, args: PortalDeviceArgs)
+        activity: Activity, args: PortalDeviceArgs
+    )
+
+    fun openAddDesktopKey(
+        activity: Activity,
+        signerTag: SignerTag,
+        groupId: String? = null,
+        step: MembershipStep,
+    )
 }

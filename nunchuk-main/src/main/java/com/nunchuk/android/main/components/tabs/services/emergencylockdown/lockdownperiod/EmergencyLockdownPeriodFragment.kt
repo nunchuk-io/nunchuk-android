@@ -202,7 +202,6 @@ private fun LockdownPeriodContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OptionItem(
     modifier: Modifier = Modifier,

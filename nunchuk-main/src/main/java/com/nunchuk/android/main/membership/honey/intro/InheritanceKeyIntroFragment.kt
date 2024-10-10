@@ -51,26 +51,28 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
+import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TapSignerInheritanceIntroFragment : MembershipFragment() {
+class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: TapSignerInheritanceIntroViewModel by viewModels()
 
     @Inject
@@ -94,19 +96,23 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        TapSignerInheritanceIntroEvent.OnContinueClicked -> handleAddTapSigner()
+                        TapSignerInheritanceIntroEvent.OnContinueClicked -> handleAddKey()
                     }
                 }
         }
         setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
-            findNavController().popBackStack()
-            bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
-                ?.let {
-                    openCreateBackUpTapSigner(it.id)
-                } ?: run {
-                openSetupTapSigner()
-                clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+            val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
+            if (data.signers.isNotEmpty()) {
+                when (data.signers.first().type) {
+                    SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
+                    SignerType.COLDCARD_NFC, SignerType.AIRGAP -> openCreateBackUpColdCard(data.signers.first())
+                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
+                }
+                findNavController().popBackStack()
+            } else {
+                openSelectHardwareOption()
             }
+            clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
     }
 
@@ -123,22 +129,39 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
         }
     }
 
+    private fun openCreateBackUpColdCard(signer: SignerModel) {
+        if (membershipStepManager.isKeyExisted(signer.fingerPrint).not()) {
+            navigator.openSetupMk4(
+                activity = requireActivity(),
+                fromMembershipFlow = true,
+                xfp = signer.fingerPrint,
+                groupId = (activity as MembershipActivity).groupId,
+                action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                walletId = (activity as MembershipActivity).walletId,
+                keyName = signer.name,
+                signerType = signer.type
+            )
+        } else {
+            showSameSignerAdded()
+        }
+    }
+
     private fun showSameSignerAdded() {
         showError(getString(R.string.nc_error_add_same_key))
     }
 
-    private fun handleAddTapSigner() {
+    private fun handleAddKey() {
         runCatching {
-            if (viewModel.getTapSigners().isNotEmpty()) {
+            if (viewModel.getSigners().isNotEmpty()) {
                 findNavController().navigate(
-                    TapSignerInheritanceIntroFragmentDirections.actionTapSignerInheritanceIntroFragmentToTapSignerListBottomSheetFragment(
-                        signers = viewModel.getTapSigners().toTypedArray(),
-                        type = SignerType.NFC
+                    InheritanceKeyIntroFragmentDirections.actionInheritanceKeyIntroFragmentToTapSignerListBottomSheetFragment(
+                        signers = viewModel.getSigners().toTypedArray(),
+                        type = SignerType.NFC,
+                        description = "We noticed that you already have a TAPSIGNER or COLDCARD in your key manager"
                     )
                 )
             } else {
-                openSetupTapSigner()
-                findNavController().popBackStack()
+                openSelectHardwareOption()
             }
         }
     }
@@ -149,6 +172,46 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
             fromMembershipFlow = true,
             groupId = (activity as MembershipActivity).groupId,
         )
+    }
+
+    private fun openSelectHardwareOption() {
+        val options = listOf(
+            SheetOption(
+                type = SignerType.NFC.ordinal,
+                label = getString(R.string.nc_tapsigner)
+            ),
+            SheetOption(
+                type = SignerType.COLDCARD_NFC.ordinal,
+                label = getString(R.string.nc_coldcard)
+            )
+        )
+        BottomSheetOption.newInstance(
+            options = options,
+            desc = "We support Inheritance Key on COLDCARD and TAPSIGNER.",
+            title = getString(R.string.nc_what_type_of_hardware_want_to_add),
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
+        when (option.type) {
+            SignerType.NFC.ordinal -> {
+                openSetupTapSigner()
+                findNavController().popBackStack()
+            }
+
+
+            SignerType.COLDCARD_NFC.ordinal -> {
+                navigator.openSetupMk4(
+                    activity = requireActivity(),
+                    fromMembershipFlow = true,
+                    action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                    groupId = (activity as MembershipActivity).groupId,
+                    walletId = (activity as MembershipActivity).walletId
+                )
+                findNavController().popBackStack()
+            }
+        }
     }
 }
 
@@ -174,7 +237,7 @@ private fun TapSignerInheritanceIntroContent(
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
-                backgroundRes = R.drawable.bg_inheritance_key,
+                backgroundRes = R.drawable.bg_inheritance_key_illustration,
                 title = stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
@@ -202,14 +265,10 @@ private fun TapSignerInheritanceIntroContent(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_inheritance_intro_desc),
+                    text = "This key will serve as your designated inheritance key. Please take a moment to label or mark it accordingly.",
                     style = NunchukTheme.typography.body
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
-                NcHintMessage(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(stringResource(R.string.nc_inheritance_intro_hint)))
-                )
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()

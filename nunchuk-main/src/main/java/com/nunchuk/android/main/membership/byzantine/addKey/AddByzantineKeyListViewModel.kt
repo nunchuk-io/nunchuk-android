@@ -210,7 +210,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 _event.emit(
                     AddKeyListEvent.OnVerifySigner(
                         signer = signer,
-                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer)
+                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
+                        backUpFileName = getBackUpFileName(stepInfo.extraData)
                     )
                 )
             }
@@ -302,7 +303,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
                         SignerExtra(
                             derivationPath = signer.derivationPath,
                             isAddNew = false,
-                            signerType = signer.type
+                            signerType = signer.type,
+                            userKeyFileName = ""
                         )
                     ),
                     groupId = args.groupId
@@ -333,6 +335,12 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     fun isUnBackedUpSigner(signer: SignerModel) = unBackedUpSignerXfpSet.contains(signer.fingerPrint)
 
+    private fun getBackUpFileName(extra: String): String {
+        return runCatching {
+            gson.fromJson(extra, SignerExtra::class.java).userKeyFileName
+        }.getOrDefault("")
+    }
+
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
     }
@@ -340,7 +348,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
-    data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
+    data class OnVerifySigner(val signer: SignerModel, val filePath: String, val backUpFileName: String) : AddKeyListEvent()
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()

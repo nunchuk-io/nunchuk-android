@@ -103,7 +103,7 @@ class AddTapSignerIntroViewModel @Inject constructor(
         membershipStepManager.isKeyExisted(masterSignerId)
 
     fun getSignerName() = _replaceSignerName.value.ifEmpty {
-        membershipStepManager.getTapSignerName()
+        membershipStepManager.getInheritanceKeyName(isTapsigner = true)
     }
 
     fun isInAssistedWallet(masterSignerId: String) =

@@ -55,7 +55,7 @@ class RequestAddKeySuccessFragment : MembershipFragment() {
                     remainingTime = remainingTime,
                     tag = args.signerTag,
                     onContinueClick = {
-                        findNavController().popBackStack()
+                        requireActivity().finish()
                     },
                     onMoreClicked = ::handleShowMore
                 )

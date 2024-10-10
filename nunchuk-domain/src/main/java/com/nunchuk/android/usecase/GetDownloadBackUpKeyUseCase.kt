@@ -17,12 +17,32 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer.tapsigner.backup.verify.model
+package com.nunchuk.android.usecase
 
-import androidx.annotation.StringRes
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinCollection
+import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.PairAmount
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.repository.TransactionRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class TsBackUpOption(val type : TsBackUpOptionType, val isSelected: Boolean = false, @StringRes val labelId: Int)
+class GetDownloadBackUpKeyUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val keyRepository: KeyRepository
+) : UseCase<GetDownloadBackUpKeyUseCase.Param, String>(ioDispatcher) {
 
-enum class TsBackUpOptionType {
-    BY_APP, BY_MYSELF, SKIP
+    override suspend fun execute(parameters: Param): String {
+        return keyRepository.getBackUpKey(
+            xfp = parameters.xfp
+        )
+    }
+
+    class Param(
+        val xfp: String,
+    )
 }

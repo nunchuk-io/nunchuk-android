@@ -25,6 +25,7 @@ import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.toVerifyType
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 data class SignerServerDto(
@@ -36,7 +37,7 @@ data class SignerServerDto(
     @SerializedName("type") val type: String? = null,
     @SerializedName("tapsigner") val tapsigner: TapSignerDto? = null,
     @SerializedName("tags") val tags: List<String>? = null,
-    @SerializedName("tapsigner_key") val tapsignerKey: KeyResponse? = null,
+    @SerializedName("user_key") val userKey: KeyResponse? = null,
     @SerializedName("key_index") val index: Int = 0,
     @SerializedName("is_visible") val isVisible: Boolean = true,
 )
@@ -49,13 +50,14 @@ internal fun SignerServerDto.toModel(): SignerServer {
         derivationPath = derivationPath,
         type = signerType,
         index = index,
-        tapsignerKeyId = tapsignerKey?.keyId,
-        verifyType = if (signerType == SignerType.NFC) tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED,
+        userKeyId = userKey?.keyId,
+        verifyType = if (signerType == SignerType.NFC || tags.orEmpty().contains(SignerTag.INHERITANCE.name)) userKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED,
         isVisible = isVisible,
         tapsigner = tapsigner?.toModel(),
         xpub = xpub,
         pubkey = pubkey,
-        tags = tags ?: emptyList()
+        tags = tags ?: emptyList(),
+        userBackUpFileName = userKey?.fileName
     )
 }
 

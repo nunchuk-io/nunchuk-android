@@ -209,6 +209,9 @@ class ReplaceKeysViewModel @Inject constructor(
                                     .getOrDefault(0)
                             )
                         },
+                        backUpFileName = status.signers.map { entry ->
+                            entry.value.xfp.orEmpty() to entry.value.userBackUpFileName.orEmpty()
+                        }.toMap(),
                         verifiedSigners = verifiedSigners,
                         pendingReplaceXfps = status.pendingReplaceXfps,
                     )
@@ -315,7 +318,7 @@ class ReplaceKeysViewModel @Inject constructor(
     fun getColdcard() = _uiState.value.signers.filter {
         isSignerExist(it.fingerPrint).not()
                 && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedMultiSigPath)
-                || (it.type == SignerType.AIRGAP && it.tags.isEmpty()))
+                || (it.type == SignerType.AIRGAP && (it.tags.isEmpty() || it.tags.contains(SignerTag.COLDCARD))))
     }
 
     fun getAirgap(tag: SignerTag?): List<SignerModel> {
@@ -446,10 +449,12 @@ class ReplaceKeysViewModel @Inject constructor(
     }
 
     fun getKeyId(xfp: String): String {
-        return replacedSigners.find { it.xfp == xfp }?.tapsignerKeyId.orEmpty()
+        return replacedSigners.find { it.xfp == xfp }?.userKeyId.orEmpty()
     }
 
     fun getFilePath(xfp: String) = nfcFileManager.buildFilePath(getKeyId(xfp))
+
+    fun getBackUpFileName(xfp: String) = _uiState.value.backUpFileName[xfp].orEmpty()
 
     val replacedXfp: String
         get() = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()
@@ -462,6 +467,8 @@ class ReplaceKeysViewModel @Inject constructor(
             ncDataStore.setShowPortal(false)
         }
     }
+
+    fun isInheritanceXfp(xfp: String) = _uiState.value.inheritanceXfps.contains(xfp)
 
     companion object {
         const val REPLACE_XFP = "REPLACE_XFP"
@@ -484,4 +491,5 @@ data class ReplaceKeysUiState(
     val inheritanceXfps: Set<String> = emptySet(),
     val isActiveAssistedWallet: Boolean = false,
     val isMultiSig: Boolean = false,
+    val backUpFileName: Map<String, String> = emptyMap()
 )

@@ -278,7 +278,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         name = key.name.orEmpty(),
                         xfp = key.xfp.orEmpty(),
                         derivationPath = key.derivationPath.orEmpty(),
-                        xpub = key.xpub.orEmpty()
+                        xpub = key.xpub.orEmpty(),
+                        userKeyFileName = ""
                     )
                 ),
                 plan = plan,
@@ -1694,7 +1695,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         name = key.name.orEmpty(),
                         xfp = key.xfp.orEmpty(),
                         derivationPath = key.derivationPath.orEmpty(),
-                        xpub = key.xpub.orEmpty()
+                        xpub = key.xpub.orEmpty(),
+                        userKeyFileName = "",
                     )
                 ),
                 plan = MembershipPlan.BYZANTINE,
@@ -1828,7 +1830,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                                 SignerExtra(
                                     derivationPath = key.derivationPath.orEmpty(),
                                     isAddNew = false,
-                                    signerType = type
+                                    signerType = type,
+                                    userKeyFileName = key.userKey?.fileName.orEmpty()
                                 )
                             ),
                             groupId = groupId

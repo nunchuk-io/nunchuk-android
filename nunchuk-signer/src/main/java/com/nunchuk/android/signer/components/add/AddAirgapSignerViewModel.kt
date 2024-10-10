@@ -253,7 +253,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                     SignerExtra(
                                         derivationPath = airgap.derivationPath,
                                         isAddNew = true,
-                                        signerType = airgap.type
+                                        signerType = airgap.type,
+                                        userKeyFileName = ""
                                     )
                                 ),
                                 groupId = groupId

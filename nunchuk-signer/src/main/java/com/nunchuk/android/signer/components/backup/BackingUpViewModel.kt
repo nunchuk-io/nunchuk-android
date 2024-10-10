@@ -17,9 +17,9 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer.tapsigner.backup.upload
+package com.nunchuk.android.signer.components.backup
 
-import androidx.lifecycle.SavedStateHandle
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.CardIdManager
@@ -42,19 +42,17 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class UploadBackUpTapSignerViewModel @Inject constructor(
+class BackingUpViewModel @Inject constructor(
     private val uploadBackupFileKeyUseCase: UploadBackupFileKeyUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val uploadReplaceBackupFileKeyUseCase: UploadReplaceBackupFileKeyUseCase,
     private val cardIdManager: CardIdManager,
-    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val args = UploadBackUpTapSignerFragmentArgs.fromSavedStateHandle(savedStateHandle)
-    private val _event = MutableSharedFlow<UploadBackUpTapSignerEvent>()
+    private val _event = MutableSharedFlow<BackingUpEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(UploadBackUpTapSignerState())
+    private val _state = MutableStateFlow(BackingUpState())
     val state = _state.asStateFlow()
 
     private var isAddNewKey = true
@@ -62,32 +60,47 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     private var signerIndex = 0
     private var replacedXfp = ""
     private var walletId = ""
+    private var filePath = ""
+    private var masterSignerId = ""
+    private var signerType = SignerType.NFC
+    private var keyName = ""
 
     fun init(
         isAddNewKey: Boolean,
         groupId: String,
         signerIndex: Int,
         replacedXfp: String,
-        walletId: String
+        walletId: String,
+        filePath: String,
+        masterSignerId: String,
+        signerType: SignerType = SignerType.NFC,
+        keyName: String = ""
     ) {
         this.isAddNewKey = isAddNewKey
         this.groupId = groupId
         this.signerIndex = signerIndex
         this.replacedXfp = replacedXfp
         this.walletId = walletId
+        this.filePath = filePath
+        this.masterSignerId = masterSignerId
+        this.signerType = signerType
+        this.keyName = keyName
     }
 
     fun upload() {
         viewModelScope.launch {
-            val result = getMasterSignerUseCase(args.masterSignerId)
+            if (signerType == SignerType.NFC) {
+                val result = getMasterSignerUseCase(masterSignerId)
+                keyName = result.getOrNull()?.name.orEmpty()
+            }
             if (replacedXfp.isNotEmpty() && walletId.isNotEmpty()) {
                 uploadReplaceBackupFileKeyUseCase(
                     UploadReplaceBackupFileKeyUseCase.Param(
-                        keyName = result.getOrNull()?.name.orEmpty(),
-                        keyType = SignerType.NFC.name,
-                        xfp = args.masterSignerId,
-                        cardId = cardIdManager.getCardId(args.masterSignerId),
-                        filePath = args.filePath,
+                        keyName = keyName,
+                        keyType = signerType.name,
+                        xfp = masterSignerId,
+                        cardId = cardIdManager.getCardId(masterSignerId),
+                        filePath = filePath,
                         isAddNewKey = isAddNewKey,
                         signerIndex = signerIndex,
                         groupId = groupId,
@@ -98,14 +111,16 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
             } else {
                 uploadBackupFileKeyUseCase(
                     UploadBackupFileKeyUseCase.Param(
-                        step = membershipStepManager.currentStep ?: MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-                        keyName = result.getOrNull()?.name.orEmpty(),
-                        keyType = SignerType.NFC.name,
-                        xfp = args.masterSignerId,
-                        cardId = cardIdManager.getCardId(args.masterSignerId),
-                        filePath = args.filePath,
+                        step = membershipStepManager.currentStep
+                            ?: MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                        keyName = keyName,
+                        keyType = signerType.name,
+                        xfp = masterSignerId,
+                        cardId = cardIdManager.getCardId(masterSignerId),
+                        filePath = filePath,
                         isAddNewKey = isAddNewKey,
-                        plan = membershipStepManager.localMembershipPlan.takeIf { groupId.isEmpty() } ?: MembershipPlan.BYZANTINE,
+                        plan = membershipStepManager.localMembershipPlan.takeIf { groupId.isEmpty() }
+                            ?: MembershipPlan.BYZANTINE,
                         groupId = groupId,
                         signerIndex = signerIndex,
                     )
@@ -121,24 +136,27 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                                 )
                             }
                         }
+
                         is KeyUpload.Data -> {
                             _state.update { state ->
-                                state.copy(serverFilePath = content.filePath)
+                                state.copy(serverFilePath = content.filePath, backUpFileName = content.backUpFileName)
                             }
                         }
+
                         is KeyUpload.KeyVerified -> {
-                            _event.emit(UploadBackUpTapSignerEvent.KeyVerified(content.message))
+                            _event.emit(BackingUpEvent.KeyVerified(content.message))
                         }
                     }
                 } else {
                     _state.update { state -> state.copy(isError = true) }
-                    _event.emit(UploadBackUpTapSignerEvent.ShowError(it.exceptionOrNull()?.message.orUnknownError()))
+                    _event.emit(BackingUpEvent.ShowError(it.exceptionOrNull()?.message.orUnknownError()))
                 }
             }
         }
     }
 
     fun getServerFilePath(): String = state.value.serverFilePath
+    fun getBackUpFileName(): String = state.value.backUpFileName
 
     fun onContinueClicked() {
         viewModelScope.launch {
@@ -146,20 +164,21 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                 upload()
                 _state.update { state -> state.copy(percent = 0, isError = false) }
             } else {
-                _event.emit(UploadBackUpTapSignerEvent.OnContinueClicked)
+                _event.emit(BackingUpEvent.OnContinueClicked)
             }
         }
     }
 }
 
-data class UploadBackUpTapSignerState(
+data class BackingUpState(
     val percent: Int = 0,
     val isError: Boolean = false,
-    val serverFilePath: String = ""
+    val serverFilePath: String = "",
+    val backUpFileName: String = ""
 )
 
-sealed class UploadBackUpTapSignerEvent {
-    object OnContinueClicked : UploadBackUpTapSignerEvent()
-    data class KeyVerified(val message: String) : UploadBackUpTapSignerEvent()
-    data class ShowError(val message: String) : UploadBackUpTapSignerEvent()
+sealed class BackingUpEvent {
+    data object OnContinueClicked : BackingUpEvent()
+    data class KeyVerified(val message: String) : BackingUpEvent()
+    data class ShowError(val message: String) : BackingUpEvent()
 }

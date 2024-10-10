@@ -28,6 +28,7 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.portal.PortalDeviceActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
+import com.nunchuk.android.type.SignerType
 
 interface NfcNavigatorDelegate : NfcNavigator {
     override fun openSetupMk4(
@@ -36,10 +37,15 @@ interface NfcNavigatorDelegate : NfcNavigator {
         action: ColdcardAction,
         groupId: String,
         newIndex: Int,
-        xfp: String?,
         isScanQRCode: Boolean,
         replacedXfp: String?,
         walletId: String?,
+        signerType: SignerType?,
+        backUpFilePath: String?,
+        keyId: String?,
+        keyName: String?,
+        xfp: String?,
+        backUpFileName: String?
     ) {
         Mk4Activity.navigate(
             activity = activity,
@@ -47,10 +53,15 @@ interface NfcNavigatorDelegate : NfcNavigator {
             action = action,
             groupId = groupId,
             newIndex = newIndex,
-            xfp = xfp,
             isScanQRCode = isScanQRCode,
             replacedXfp = replacedXfp,
             walletId = walletId,
+            signerType = signerType,
+            backUpFilePath = backUpFilePath,
+            keyId = keyId,
+            keyName = keyName,
+            xfp = xfp,
+            backUpFileName = backUpFileName
         )
     }
 

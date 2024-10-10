@@ -331,7 +331,8 @@ internal class SetPassphraseViewModel @Inject constructor(
                                 SignerExtra(
                                     derivationPath = signer.derivationPath,
                                     isAddNew = true,
-                                    signerType = signer.type
+                                    signerType = signer.type,
+                                    userKeyFileName = "",
                                 )
                             ),
                             groupId = groupId

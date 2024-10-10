@@ -79,10 +79,11 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                     onReplaceInheritanceClicked = { signer ->
                         viewModel.setReplacingXfp(signer.fingerPrint)
                         handleShowKeysOrCreate(
-                            viewModel.getTapSigners(),
+                            viewModel.getTapSigners() + viewModel.getColdcard(),
                             SignerType.NFC,
-                            ::openSetupTapSigner
-                        )
+                        ) {
+                            openSelectInheritanceHardwareOption()
+                        }
                     },
                     onCreateNewWalletSuccess = { walletId ->
                         findNavController().navigate(
@@ -93,14 +94,28 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                         )
                     },
                     onVerifyClicked = { signer ->
-                        navigator.openVerifyBackupTapSigner(
-                            activity = requireActivity(),
-                            fromMembershipFlow = true,
-                            backUpFilePath = viewModel.getFilePath(signer.id),
-                            masterSignerId = signer.id,
-                            groupId = (activity as MembershipActivity).groupId,
-                            keyId = viewModel.getKeyId(signer.id),
-                        )
+                        if (signer.type == SignerType.NFC) {
+                            navigator.openVerifyBackupTapSigner(
+                                activity = requireActivity(),
+                                fromMembershipFlow = true,
+                                backUpFilePath = viewModel.getFilePath(signer.id),
+                                masterSignerId = signer.id,
+                                groupId = (activity as MembershipActivity).groupId,
+                                keyId = viewModel.getKeyId(signer.id),
+                            )
+                        } else {
+                            navigator.openSetupMk4(
+                                activity = requireActivity(),
+                                fromMembershipFlow = true,
+                                backUpFilePath = viewModel.getFilePath(signer.id),
+                                xfp = signer.fingerPrint,
+                                action = ColdcardAction.VERIFY_KEY,
+                                keyName = signer.name,
+                                signerType = signer.type,
+                                keyId = viewModel.getKeyId(signer.id),
+                                backUpFileName = viewModel.getBackUpFileName(signer.fingerPrint),
+                            )
+                        }
                     }
                 )
             }
@@ -113,6 +128,20 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
             if (data.signers.isNotEmpty()) {
                 val signer = data.signers.first()
+                if (viewModel.isInheritanceXfp(viewModel.replacedXfp)) {
+                    if (signer.type == SignerType.COLDCARD_NFC || signer.type == SignerType.AIRGAP) {
+                        navigator.openSetupMk4(
+                            activity = requireActivity(),
+                            fromMembershipFlow = true,
+                            action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                            groupId = (activity as MembershipActivity).groupId,
+                            walletId = (activity as MembershipActivity).walletId,
+                            replacedXfp = viewModel.replacedXfp
+                        )
+                    }
+                    clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+                    return@setFragmentResultListener
+                }
                 when (signer.type) {
                     SignerType.AIRGAP -> {
                         val hasTag = signer.tags.any { it.isAirgapTag || it == SignerTag.COLDCARD }
@@ -142,6 +171,11 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                     }
                 }
             } else {
+                if (viewModel.isInheritanceXfp(viewModel.replacedXfp)) {
+                    openSelectInheritanceHardwareOption()
+                    clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+                    return@setFragmentResultListener
+                }
                 when (data.type) {
                     SignerType.NFC -> openSetupTapSigner()
                     SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
@@ -189,6 +223,20 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             viewModel.initReplaceKey()
         }
         when (option.type) {
+            SheetOptionType.TYPE_ADD_INHERITANCE_NFC -> {
+                openSetupTapSigner()
+            }
+
+            SheetOptionType.TYPE_ADD_INHERITANCE_COLDCARD -> {
+                navigator.openSetupMk4(
+                    activity = requireActivity(),
+                    fromMembershipFlow = true,
+                    action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                    groupId = (activity as MembershipActivity).groupId,
+                    walletId = (activity as MembershipActivity).walletId,
+                    replacedXfp = viewModel.replacedXfp
+                )
+            }
             SignerType.NFC.ordinal -> handleShowKeysOrCreate(
                 viewModel.getTapSigners(),
                 SignerType.NFC,
@@ -304,6 +352,25 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             onEmptySigner()
         }
     }
+
+    private fun openSelectInheritanceHardwareOption() {
+        val options = listOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_ADD_INHERITANCE_NFC,
+                label = getString(R.string.nc_tapsigner)
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_ADD_INHERITANCE_COLDCARD,
+                label = getString(R.string.nc_coldcard)
+            )
+        )
+        BottomSheetOption.newInstance(
+            options = options,
+            desc = "We support Inheritance Key on COLDCARD and TAPSIGNER.",
+            title = getString(R.string.nc_what_type_of_hardware_want_to_add),
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
 
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
         navigator.openAddAirSignerScreen(

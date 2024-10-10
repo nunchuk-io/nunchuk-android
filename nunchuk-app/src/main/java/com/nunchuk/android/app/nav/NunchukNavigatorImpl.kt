@@ -46,6 +46,7 @@ import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity
+import com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.main.rollover.RollOverWalletActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
@@ -54,6 +55,7 @@ import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
@@ -62,6 +64,7 @@ import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
 import javax.inject.Inject
@@ -166,6 +169,20 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         ReferralActivity.buildIntent(activityContext, args).let {
             activityContext.startActivity(it)
         }
+    }
+
+    override fun openAddDesktopKey(
+        activity: Activity,
+        signerTag: SignerTag,
+        groupId: String?,
+        step: MembershipStep,
+    ) {
+        AddDesktopKeyActivity.navigate(
+            activity = activity,
+            signerTag = signerTag,
+            groupId = groupId,
+            step = step
+        )
     }
 }
 

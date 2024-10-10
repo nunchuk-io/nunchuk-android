@@ -34,6 +34,7 @@ import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -99,7 +100,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                                 name = key.name.orEmpty(),
                                 xfp = key.xfp.orEmpty(),
                                 derivationPath = key.derivationPath.orEmpty(),
-                                xpub = key.xpub.orEmpty()
+                                xpub = key.xpub.orEmpty(),
+                                userKeyFileName = key.userKey?.fileName.orEmpty()
                             )
                         ),
                         plan = plan,
@@ -109,13 +111,21 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 )
             } else {
                 val step = when (key.index) {
-                    0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_TAP_SIGNER else MembershipStep.IRON_ADD_HARDWARE_KEY_1
+                    0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
                     1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
                     2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
                     else -> throw IllegalArgumentException()
                 }
                 val verifyType =
-                    if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
+                    if (signerType == SignerType.NFC) {
+                        key.userKey?.verificationType.toVerifyType()
+                    } else {
+                        if (key.tags?.contains(SignerTag.INHERITANCE.name) == true) {
+                            key.userKey?.verificationType.toVerifyType()
+                        } else {
+                            VerifyType.APP_VERIFIED
+                        }
+                    }
                 membershipRepository.saveStepInfo(
                     MembershipStepInfo(
                         step = step,
@@ -126,7 +136,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                             SignerExtra(
                                 derivationPath = key.derivationPath.orEmpty(),
                                 isAddNew = false,
-                                signerType = signerType
+                                signerType = signerType,
+                                userKeyFileName = key.userKey?.fileName.orEmpty()
                             )
                         ),
                         groupId = groupId
@@ -165,7 +176,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                                     name = key.name.orEmpty(),
                                     xfp = key.xfp.orEmpty(),
                                     derivationPath = key.derivationPath.orEmpty(),
-                                    xpub = key.xpub.orEmpty()
+                                    xpub = key.xpub.orEmpty(),
+                                    userKeyFileName = key.userKey?.fileName.orEmpty()
                                 )
                             ),
                             plan = MembershipPlan.BYZANTINE,
@@ -176,8 +188,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             } else {
                 val step = when (key.index) {
-                    0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_TAP_SIGNER else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
-                    1 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
+                    0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
+                    1 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
                     2 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
                     3 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
                     4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4
@@ -185,7 +197,15 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
                 val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
                 val verifyType =
-                    if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
+                    if (signerType == SignerType.NFC) {
+                        key.userKey?.verificationType.toVerifyType()
+                    } else {
+                        if (key.tags?.contains(SignerTag.INHERITANCE.name) == true) {
+                            key.userKey?.verificationType.toVerifyType()
+                        } else {
+                            VerifyType.APP_VERIFIED
+                        }
+                    }
                 if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
                     membershipRepository.saveStepInfo(
                         MembershipStepInfo(
@@ -198,7 +218,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                                 SignerExtra(
                                     derivationPath = key.derivationPath.orEmpty(),
                                     isAddNew = false,
-                                    signerType = signerType
+                                    signerType = signerType,
+                                    userKeyFileName = key.userKey?.fileName.orEmpty()
                                 )
                             ),
                             groupId = groupId

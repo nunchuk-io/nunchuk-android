@@ -32,11 +32,12 @@ data class SignerServer(
     val derivationPath: String? = null,
     val type: SignerType = SignerType.UNKNOWN,
     val verifyType: VerifyType = VerifyType.NONE,
-    val tapsignerKeyId: String? = null,
+    val userKeyId: String? = null,
     val index: Int = 0,
     val isVisible: Boolean = true,
     val tapsigner: TapSigner? = null,
     val xpub: String? = null,
     val pubkey: String? = null,
     val tags: List<String> = emptyList(),
+    val userBackUpFileName: String? = null,
 ) : Parcelable

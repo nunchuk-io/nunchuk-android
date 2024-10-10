@@ -55,6 +55,7 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.StateEvent
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 @Composable
@@ -173,7 +174,10 @@ private fun ReplaceKeysContent(
                                     onReplaceKeyClicked(it)
                                 }
                             },
-                            isNeedVerify = uiState.isActiveAssistedWallet && !uiState.verifiedSigners.contains(item.fingerPrint) && uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC,
+                            isNeedVerify = uiState.isActiveAssistedWallet &&
+                                    !uiState.verifiedSigners.contains(item.fingerPrint) &&
+                                    !uiState.verifiedSigners.contains(uiState.replaceSigners[item.fingerPrint]?.fingerPrint) &&
+                                    (uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC || uiState.replaceSigners[item.fingerPrint]?.tags.orEmpty().contains(SignerTag.INHERITANCE)),
                             onVerifyClicked = onVerifyClicked,
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
                         )

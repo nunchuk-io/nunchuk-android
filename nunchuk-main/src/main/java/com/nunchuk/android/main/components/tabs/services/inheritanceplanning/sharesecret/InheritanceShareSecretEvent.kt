@@ -30,7 +30,7 @@ data class InheritanceShareSecretState(
     val options: List<InheritanceOption> = initOptions()
 )
 
-private fun initOptions(): List<InheritanceOption> {
+internal fun initOptions(): List<InheritanceOption> {
     val options = mutableListOf<InheritanceOption>().apply {
         add(
             InheritanceOption(

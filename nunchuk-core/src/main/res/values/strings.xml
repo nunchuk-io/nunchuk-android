@@ -308,7 +308,7 @@
     <string name="nc_two_backup_password">Two Backup Passwords</string>
     <string name="nc_give_app_permission">Please give app the permission to use this feature</string>
     <string name="nc_start">Start</string>
-    <string name="nc_among_three_key_select_inheritance">Among your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.</string>
+    <string name="nc_among_three_key_select_inheritance">Among your keys, select one key to be the inheritance key.</string>
     <string name="nc_what_type_of_hardware_want_to_add">What type of key do you want to add?</string>
     <string name="nc_cosigning_spending_limit">Co-signing spending limit</string>
     <string name="nc_update_cosigning_delay">Update policies</string>

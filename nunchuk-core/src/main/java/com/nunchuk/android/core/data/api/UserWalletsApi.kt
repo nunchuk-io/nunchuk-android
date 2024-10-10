@@ -219,9 +219,9 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/download-backup")
     suspend fun downloadBackup(
-        @Header("Verify-token") verifyToken: String,
+        @Header("Verify-token") verifyToken: String? = null,
         @Path("key_id_or_xfp") id: String,
-        @Body payload: ConfigSecurityQuestionPayload
+        @Body payload: ConfigSecurityQuestionPayload = ConfigSecurityQuestionPayload(emptyList())
     ): Data<KeyResponse>
 
     @GET("/v1.1/user-wallets/user-keys/{key_id_or_xfp}")

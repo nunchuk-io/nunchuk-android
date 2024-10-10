@@ -218,7 +218,8 @@ class AddKeyListViewModel @Inject constructor(
                         SignerExtra(
                             derivationPath = signer.derivationPath,
                             isAddNew = false,
-                            signerType = signer.type
+                            signerType = signer.type,
+                            userKeyFileName = ""
                         )
                     ),
                     groupId = ""
@@ -261,7 +262,8 @@ class AddKeyListViewModel @Inject constructor(
                 _event.emit(
                     AddKeyListEvent.OnVerifySigner(
                         signer = signer,
-                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer)
+                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
+                        backUpFileName = getBackUpFileName(stepInfo.extraData)
                     )
                 )
             }
@@ -317,6 +319,12 @@ class AddKeyListViewModel @Inject constructor(
     fun getPortal(): List<SignerModel> =
         _state.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
 
+    private fun getBackUpFileName(extra: String): String {
+        return runCatching {
+            gson.fromJson(extra, SignerExtra::class.java).userKeyFileName
+        }.getOrDefault("")
+    }
+
     fun markShowPortal() {
         viewModelScope.launch {
             ncDataStore.setShowPortal(false)
@@ -330,7 +338,7 @@ class AddKeyListViewModel @Inject constructor(
 
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
-    data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
+    data class OnVerifySigner(val signer: SignerModel, val filePath: String, val backUpFileName: String) : AddKeyListEvent()
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()

@@ -76,6 +76,8 @@ import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.mk4.Mk4ViewModel
+import com.nunchuk.android.signer.mk4.recover.ColdcardRecoverFragmentDirections
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -90,6 +92,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<Mk4IntroViewModel>()
+    private val mk4ViewModel by activityViewModels<Mk4ViewModel>()
     private val args: Mk4IntroFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -149,9 +152,22 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 is Mk4IntroViewEvent.Loading -> showOrHideLoading(it.isLoading)
                 is Mk4IntroViewEvent.ShowError -> showError(it.message)
                 Mk4IntroViewEvent.OnContinueClicked -> onContinueClicked()
-                Mk4IntroViewEvent.OnCreateSignerSuccess -> {
-                    requireActivity().setResult(Activity.RESULT_OK)
-                    requireActivity().finish()
+                is Mk4IntroViewEvent.OnCreateSignerSuccess -> {
+                    if (args.isAddInheritanceKey) {
+                        mk4ViewModel.setOrUpdate(
+                            mk4ViewModel.coldCardBackUpParam.copy(
+                                xfp = it.signer.masterFingerprint,
+                                keyType = it.signer.type,
+                                keyName = it.signer.name
+                            )
+                        )
+                        findNavController().navigate(
+                            ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToColdCardBackUpIntroFragment()
+                        )
+                    } else {
+                        requireActivity().setResult(Activity.RESULT_OK)
+                        requireActivity().finish()
+                    }
                 }
 
                 Mk4IntroViewEvent.OnSignerExistInAssistedWallet -> showError(getString(R.string.nc_error_add_same_key))

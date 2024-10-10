@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.repository
 
+import android.util.Log
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
@@ -26,9 +27,11 @@ import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
+import com.nunchuk.android.core.mapper.toBackupKey
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.formattedName
+import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.KeyVerifiedRequest
 import com.nunchuk.android.model.MembershipPlan
@@ -137,9 +140,10 @@ internal class KeyRepositoryImpl @Inject constructor(
                     checkSum = response?.keyCheckSum.orEmpty(),
                     extraJson = gson.toJson(
                         SignerExtra(
-                            derivationPath = signer?.derivationPath.orEmpty(),
+                            derivationPath = signer.derivationPath,
                             isAddNew = isAddNewKey,
-                            signerType = SignerType.NFC
+                            signerType = keyType.toSignerType(),
+                            userKeyFileName = if (result.error.code != ALREADY_VERIFIED_CODE) result.data.fileName.orEmpty() else "",
                         )
                     ),
                     verifyType = verifyType,
@@ -148,24 +152,38 @@ internal class KeyRepositoryImpl @Inject constructor(
                     groupId = groupId
                 )
                 val isInheritance = step.isAddInheritanceKey
-                val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
+                val status =
+                    if (keyType == SignerType.NFC.name) nativeSdk.getTapSignerStatusFromMasterSigner(xfp) else null
+                val tags = if (isInheritance) {
+                    when (keyType) {
+                        SignerType.NFC.name -> {
+                            listOf(SignerTag.INHERITANCE.name)
+                        }
+                        SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name -> {
+                            listOf(SignerTag.INHERITANCE.name, SignerTag.COLDCARD.name)
+                        }
+                        else -> {
+                            listOf(SignerTag.INHERITANCE.name)
+                        }
+                    }
+                } else null
                 val payload = SignerServerDto(
                     name = signer.name,
                     xfp = signer.masterFingerprint,
                     derivationPath = signer.derivationPath,
                     xpub = signer.xpub,
                     pubkey = signer.publicKey,
-                    type = SignerType.NFC.name,
-                    tapsigner = TapSignerDto(
-                        cardId = status.ident.toString(),
-                        version = status.version.orEmpty(),
-                        birthHeight = status.birthHeight,
-                        isTestnet = status.isTestNet,
-                        isInheritance = isInheritance
-                    ),
-                    tags = if (isInheritance) listOf(
-                        SignerTag.INHERITANCE.name
-                    ) else null,
+                    type = keyType,
+                    tapsigner = if (keyType == SignerType.NFC.name) {
+                        TapSignerDto(
+                            cardId = status!!.ident.toString(),
+                            version = status.version.orEmpty(),
+                            birthHeight = status.birthHeight,
+                            isTestnet = status.isTestNet,
+                            isInheritance = isInheritance
+                        )
+                    } else null,
+                    tags = tags,
                     index = step.toIndex()
                 )
                 val keyResponse = if (groupId.isNotEmpty()) {
@@ -188,7 +206,9 @@ internal class KeyRepositoryImpl @Inject constructor(
                         result.data.keyId,
                         result.data.keyBackUpBase64
                     )
-                    send(KeyUpload.Data(serverKeyFilePath))
+                    send(
+                        KeyUpload.Data(filePath = serverKeyFilePath, backUpFileName = result.data.fileName.orEmpty(), keyId = result.data.keyId)
+                    )
                 } else {
                     send(KeyUpload.KeyVerified(result.error.message))
                 }
@@ -245,7 +265,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 AddressType.NATIVE_SEGWIT.ordinal,
                 0
             ) ?: throw NullPointerException("Can not get signer by index 0")
-            val status = nativeSdk.getTapSignerStatusFromMasterSigner(xfp)
+            val status = if (keyType == SignerType.NFC.name) nativeSdk.getTapSignerStatusFromMasterSigner(xfp) else null
             val wallet = if (groupId.isNotEmpty()) {
                 userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
             } else {
@@ -255,23 +275,36 @@ internal class KeyRepositoryImpl @Inject constructor(
                 wallet.signerServerDtos.find { it.xfp == replacedXfp }?.tags?.contains(
                     SignerTag.INHERITANCE.name
                 ) ?: false
+            val tags = if (isInheritance) {
+                when (keyType) {
+                    SignerType.NFC.name -> {
+                        listOf(SignerTag.INHERITANCE.name)
+                    }
+                    SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name -> {
+                        listOf(SignerTag.INHERITANCE.name, SignerTag.COLDCARD.name)
+                    }
+                    else -> {
+                        listOf(SignerTag.INHERITANCE.name)
+                    }
+                }
+            } else null
             val payload = SignerServerDto(
                 name = signer.name,
                 xfp = signer.masterFingerprint,
                 derivationPath = signer.derivationPath,
                 xpub = signer.xpub,
                 pubkey = signer.publicKey,
-                type = SignerType.NFC.name,
-                tapsigner = TapSignerDto(
-                    cardId = status.ident.toString(),
-                    version = status.version.orEmpty(),
-                    birthHeight = status.birthHeight,
-                    isTestnet = status.isTestNet,
-                    isInheritance = isInheritance
-                ),
-                tags = if (isInheritance) listOf(
-                    SignerTag.INHERITANCE.name
-                ) else null,
+                type = keyType,
+                tapsigner = if (keyType == SignerType.NFC.name) {
+                    TapSignerDto(
+                        cardId = status!!.ident.toString(),
+                        version = status.version.orEmpty(),
+                        birthHeight = status.birthHeight,
+                        isTestnet = status.isTestNet,
+                        isInheritance = isInheritance
+                    )
+                } else null,
+                tags = tags,
             )
             val verifyToken = ncDataStore.passwordToken.first()
             val replaceResponse = if (groupId.isNotEmpty()) {
@@ -301,7 +334,9 @@ internal class KeyRepositoryImpl @Inject constructor(
                     result.data.keyId,
                     result.data.keyBackUpBase64
                 )
-                send(KeyUpload.Data(serverKeyFilePath))
+                send(
+                    KeyUpload.Data(filePath = serverKeyFilePath, backUpFileName = result.data.fileName.orEmpty(), keyId = result.data.keyId)
+                )
 
             } else {
                 send(KeyUpload.KeyVerified(result.error.message))
@@ -539,6 +574,18 @@ internal class KeyRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun getBackUpKey(xfp: String): String {
+        val response = userWalletApiManager.walletApi.downloadBackup(id = xfp)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(
+            response.data.keyId,
+            response.data.keyBackUpBase64
+        )
+        return serverKeyFilePath
     }
 
     companion object {

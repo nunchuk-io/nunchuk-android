@@ -101,6 +101,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -267,11 +268,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private fun openRequestAddDesktopKey(tag: SignerTag) {
         membershipStepManager.currentStep?.let { step ->
-            findNavController().navigate(
-                AddKeyListFragmentDirections.actionAddKeyListFragmentToAddDesktopKeyFragment(
-                    tag,
-                    step
-                )
+            navigator.openAddDesktopKey(
+                activity = requireActivity(),
+                signerTag = tag,
+                step = step
             )
         }
     }
@@ -353,7 +353,13 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
-                is AddKeyListEvent.OnVerifySigner -> openVerifyTapSigner(event)
+                is AddKeyListEvent.OnVerifySigner -> {
+                    if (event.signer.type == SignerType.NFC) {
+                        openVerifyTapSigner(event)
+                    } else {
+                        openVerifyColdCard(event)
+                    }
+                }
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
@@ -370,8 +376,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             }
 
-            MembershipStep.HONEY_ADD_TAP_SIGNER -> {
-                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerInheritanceIntroFragment())
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY -> {
+                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToInheritanceKeyIntroFragment())
             }
 
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
@@ -421,6 +427,19 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             fromMembershipFlow = true,
             backUpFilePath = event.filePath,
             masterSignerId = event.signer.id,
+        )
+    }
+
+    private fun openVerifyColdCard(event: AddKeyListEvent.OnVerifySigner) {
+        navigator.openSetupMk4(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
+            xfp = event.signer.fingerPrint,
+            action = ColdcardAction.VERIFY_KEY,
+            keyName = event.signer.name,
+            signerType = event.signer.type,
+            backUpFileName = event.backUpFileName,
         )
     }
 
@@ -543,15 +562,13 @@ fun AddKeyListContent(
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
                                     append(stringResource(id = R.string.nc_add_key_list_desc_two))
                                 }
-                                if (keys.size > 3) {
-                                    append(stringResource(id = R.string.nc_honey_add_key_list_desc_three))
-                                } else {
-                                    append(stringResource(id = R.string.nc_add_key_list_desc_three))
-                                }
+
                                 if (keys.size > 3) {
                                     append("\n\n")
                                     append(stringResource(R.string.nc_among_three_key_select_inheritance))
                                 }
+
+                                append("\n\nPull to refresh the key statuses.")
                             },
                             style = NunchukTheme.typography.body
                         )
@@ -695,7 +712,7 @@ private fun ConfigItem(
                 style = NunchukTheme.typography.body
             )
             Row(modifier = Modifier.padding(top = 4.dp)) {
-                if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) {
+                if (item.type.isAddInheritanceKey) {
                     NcTag(
                         label = stringResource(R.string.nc_inheritance),
                         backgroundColor = colorResource(
@@ -705,7 +722,7 @@ private fun ConfigItem(
                 }
                 if (item.signer?.isShowAcctX() == true) {
                     NcTag(
-                        modifier = Modifier.padding(start = if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) 4.dp else 0.dp),
+                        modifier = Modifier.padding(start = if (item.type == MembershipStep.HONEY_ADD_INHERITANCE_KEY) 4.dp else 0.dp),
                         label = stringResource(R.string.nc_acct_x, item.signer.index),
                         backgroundColor = colorResource(
                             id = R.color.nc_whisper_color
@@ -770,7 +787,7 @@ fun AddKeyListScreenHoneyBadgerPreview(
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
-                type = MembershipStep.HONEY_ADD_TAP_SIGNER,
+                type = MembershipStep.HONEY_ADD_INHERITANCE_KEY,
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(

@@ -97,4 +97,6 @@ interface KeyRepository {
         groupId: String,
         isRemoveKey: Boolean,
     )
+
+    suspend fun getBackUpKey(xfp: String): String
 }
