@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.transaction.components.details
 
+import android.app.Activity
 import android.app.Application
 import android.net.Uri
 import android.nfc.NdefRecord
@@ -27,6 +28,9 @@ import android.nfc.tech.Ndef
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import com.google.android.play.core.ktx.requestReview
+import com.google.android.play.core.review.ReviewInfo
+import com.google.android.play.core.review.ReviewManagerFactory
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
@@ -172,7 +176,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val application: Application,
     private val importPsbtUseCase: ImportPsbtUseCase,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
-
+    private val reviewManager by lazy { ReviewManagerFactory.create(application) }
     private var walletId: String = ""
     private var txId: String = ""
     private var initEventId: String = ""
@@ -534,7 +538,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
             broadcastTransactionUseCase.execute(walletId, txId).flowOn(IO)
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }.collect {
                     updateTransaction(it)
-                    setEvent(BroadcastTransactionSuccess())
+
+                    val info = if (it.status == TransactionStatus.CONFIRMED) {
+                        runCatching { reviewManager.requestReview() }.getOrNull()
+                    } else {
+                        null
+                    }
+                    setEvent(BroadcastTransactionSuccess(reviewInfo = info))
                 }
         }
     }
@@ -879,6 +889,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }.onFailure {
                 event(TransactionError(it.readableMessage()))
             }
+        }
+    }
+
+    fun showReview(activity: Activity, reviewInfo: ReviewInfo, doneCallback: () -> Unit) {
+        val flow = reviewManager.launchReviewFlow(activity, reviewInfo)
+        flow.addOnCompleteListener {
+            doneCallback()
         }
     }
 

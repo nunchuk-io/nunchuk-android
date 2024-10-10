@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.transaction.components.details
 
+import com.google.android.play.core.review.ReviewInfo
 import com.nunchuk.android.type.TransactionStatus
 
 sealed class TransactionDetailsEvent {
@@ -28,7 +29,7 @@ sealed class TransactionDetailsEvent {
         val status: TransactionStatus? = null
     ) : TransactionDetailsEvent()
 
-    data class BroadcastTransactionSuccess(val roomId: String = "") : TransactionDetailsEvent()
+    data class BroadcastTransactionSuccess(val roomId: String = "", val reviewInfo: ReviewInfo? = null) : TransactionDetailsEvent()
 
     data class DeleteTransactionSuccess(val isCancel: Boolean = false) : TransactionDetailsEvent()
 

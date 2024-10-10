@@ -622,7 +622,7 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
     private fun handleEvent(event: TransactionDetailsEvent) {
         when (event) {
             is SignTransactionSuccess -> showSignTransactionSuccess(event)
-            is BroadcastTransactionSuccess -> showBroadcastTransactionSuccess(event.roomId)
+            is BroadcastTransactionSuccess -> showBroadcastTransactionSuccess(event)
             is DeleteTransactionSuccess -> showTransactionDeleteSuccess(event.isCancel)
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> handleSignError(event)
@@ -819,13 +819,20 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
         handleSignRequestSignature()
     }
 
-    private fun showBroadcastTransactionSuccess(roomId: String) {
+    private fun showBroadcastTransactionSuccess(event: BroadcastTransactionSuccess) {
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_transaction_broadcast_successful))
-        if (roomId.isEmpty()) {
-            finish()
+        val callback : () -> Unit = {
+            if (event.roomId.isEmpty()) {
+                finish()
+            } else {
+                returnActiveRoom()
+            }
+        }
+        if (event.reviewInfo != null) {
+            viewModel.showReview(this, event.reviewInfo, callback)
         } else {
-            returnActiveRoom()
+            callback()
         }
     }
 
