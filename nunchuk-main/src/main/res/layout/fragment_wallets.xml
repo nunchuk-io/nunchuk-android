@@ -231,7 +231,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_16">
+                    android:layout_marginTop="@dimen/nc_padding_8">
 
                     <com.nunchuk.android.widget.NCFontTextView
                         android:id="@+id/walletsHeader"
@@ -290,7 +290,7 @@
                     android:id="@+id/pending_wallet"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_8" />
+                    android:layout_marginTop="@dimen/nc_padding_12" />
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>
