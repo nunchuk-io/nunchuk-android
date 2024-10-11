@@ -78,33 +78,30 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     ): DraftWallet {
         val chatId = accountManager.getAccount().chatId
         val newSigner = mutableMapOf<String, Boolean>()
-        val plan = if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
+        val plan =
+            if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
+        membershipStepDao.deleteStepByChatId(chain.value, chatId)
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
             newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
             if (signerType == SignerType.SERVER) {
-                if (membershipStepDao.getStep(
-                        chatId, chain.value, MembershipStep.ADD_SEVER_KEY, groupId
-                    ) == null
-                ) {
-                    membershipRepository.saveStepInfo(
-                        MembershipStepInfo(
-                            step = MembershipStep.ADD_SEVER_KEY,
-                            verifyType = VerifyType.APP_VERIFIED,
-                            extraData = gson.toJson(
-                                ServerKeyExtra(
-                                    name = key.name.orEmpty(),
-                                    xfp = key.xfp.orEmpty(),
-                                    derivationPath = key.derivationPath.orEmpty(),
-                                    xpub = key.xpub.orEmpty()
-                                )
-                            ),
-                            plan = plan,
-                            keyIdInServer = draftWallet.serverKeyId.orEmpty(),
-                            groupId = groupId
-                        )
+                membershipRepository.saveStepInfo(
+                    MembershipStepInfo(
+                        step = MembershipStep.ADD_SEVER_KEY,
+                        verifyType = VerifyType.APP_VERIFIED,
+                        extraData = gson.toJson(
+                            ServerKeyExtra(
+                                name = key.name.orEmpty(),
+                                xfp = key.xfp.orEmpty(),
+                                derivationPath = key.derivationPath.orEmpty(),
+                                xpub = key.xpub.orEmpty()
+                            )
+                        ),
+                        plan = plan,
+                        keyIdInServer = draftWallet.serverKeyId.orEmpty(),
+                        groupId = groupId
                     )
-                }
+                )
             } else {
                 val step = when (key.index) {
                     0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_TAP_SIGNER else MembershipStep.IRON_ADD_HARDWARE_KEY_1
@@ -112,28 +109,24 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
                     else -> throw IllegalArgumentException()
                 }
-                val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
                 val verifyType =
                     if (signerType == SignerType.NFC) key.tapsignerKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED
-                if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
-                    membershipRepository.saveStepInfo(
-                        MembershipStepInfo(
-                            id = info?.id ?: 0L,
-                            step = step,
-                            masterSignerId = key.xfp.orEmpty(),
-                            plan = plan,
-                            verifyType = verifyType,
-                            extraData = gson.toJson(
-                                SignerExtra(
-                                    derivationPath = key.derivationPath.orEmpty(),
-                                    isAddNew = false,
-                                    signerType = signerType
-                                )
-                            ),
-                            groupId = groupId
-                        )
+                membershipRepository.saveStepInfo(
+                    MembershipStepInfo(
+                        step = step,
+                        masterSignerId = key.xfp.orEmpty(),
+                        plan = plan,
+                        verifyType = verifyType,
+                        extraData = gson.toJson(
+                            SignerExtra(
+                                derivationPath = key.derivationPath.orEmpty(),
+                                isAddNew = false,
+                                signerType = signerType
+                            )
+                        ),
+                        groupId = groupId
                     )
-                }
+                )
             }
         }
         handleUpdateServerSigners(draftWallet.signers, newSigner)

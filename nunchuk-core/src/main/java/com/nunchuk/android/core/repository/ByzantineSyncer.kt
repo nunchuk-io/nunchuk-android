@@ -50,12 +50,12 @@ internal class ByzantineSyncer @Inject constructor(
         var index = 0
         runCatching {
             while (true) {
-                val response = if (groupId.isNullOrEmpty().not()) {
-                    userWalletApiManager.groupWalletApi.getAlerts(groupId!!, offset = index)
-                } else if (walletId.isNullOrEmpty().not()) {
-                    userWalletApiManager.walletApi.getAlerts(walletId!!, offset = index)
+                val response = if (!groupId.isNullOrEmpty()) {
+                    userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
+                } else if (!walletId.isNullOrEmpty()) {
+                    userWalletApiManager.walletApi.getAlerts(walletId, offset = index)
                 } else {
-                    return null
+                    userWalletApiManager.walletApi.getDraftWalletAlerts(offset = index)
                 }
                 if (response.isSuccess.not()) return null
                 val alertList = response.data.alerts.orEmpty().map { it.toAlert() }

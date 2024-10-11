@@ -64,7 +64,6 @@ import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeVerifyRequest
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
-import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
 import com.nunchuk.android.core.data.model.membership.HealthReminderRequest
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
@@ -2150,33 +2149,35 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String) {
-        if (groupId.isNullOrEmpty().not()) {
-            userWalletApiManager.groupWalletApi.markAlertAsRead(groupId!!, alertId)
-        } else if (walletId.isNullOrEmpty().not()) {
-            userWalletApiManager.walletApi.markAlertAsRead(walletId!!, alertId)
+        if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.markAlertAsRead(groupId, alertId)
+        } else if (!walletId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.markAlertAsRead(walletId, alertId)
+        } else {
+            userWalletApiManager.walletApi.markDraftWalletAlertAsRead(alertId)
         }
     }
 
     override suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String) {
-        val response = if (groupId.isNullOrEmpty().not()) {
-            userWalletApiManager.groupWalletApi.dismissAlert(groupId!!, alertId)
-        } else if (walletId.isNullOrEmpty().not()) {
-            userWalletApiManager.walletApi.dismissAlert(walletId!!, alertId)
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.dismissAlert(groupId, alertId)
+        } else if (!walletId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.dismissAlert(walletId, alertId)
         } else {
-            throw NullPointerException("groupId and walletId is null")
+            userWalletApiManager.walletApi.dismissDraftWalletAlert(alertId)
         }
         if (response.isSuccess.not()) throw response.error
     }
 
     override suspend fun getAlertTotal(groupId: String?, walletId: String?): Int {
-        val response = if (groupId.isNullOrEmpty().not()) {
-            userWalletApiManager.groupWalletApi.getAlertTotal(groupId!!)
-        } else if (walletId.isNullOrEmpty().not()) {
-            userWalletApiManager.walletApi.getAlertTotal(walletId!!)
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.getAlertTotal(groupId)
+        } else if (!walletId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.getAlertTotal(walletId)
         } else {
-            throw NullPointerException("groupId and walletId is null")
+            userWalletApiManager.walletApi.getDraftWalletAlertTotal()
         }
-        return response.data.total ?: 0
+        return response.data.total
     }
 
     override suspend fun createOrUpdateGroupChat(

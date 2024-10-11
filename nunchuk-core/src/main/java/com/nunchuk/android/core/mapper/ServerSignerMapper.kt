@@ -34,12 +34,18 @@ internal class ServerSignerMapper @Inject constructor(
             ) else null
         )
     } else {
-        SignerServerDto(name = signer.name,
+        SignerServerDto(
+            name = signer.name,
             xfp = signer.masterFingerprint,
             derivationPath = signer.derivationPath,
             xpub = signer.xpub,
             pubkey = signer.publicKey,
             type = signer.type.name,
-            tags = signer.tags.map { it.name })
+            tags = signer.tags.map { it.name }.toMutableList().apply {
+                if (isInheritanceKey) {
+                    add(SignerTag.INHERITANCE.name)
+                }
+            },
+        )
     }
 }

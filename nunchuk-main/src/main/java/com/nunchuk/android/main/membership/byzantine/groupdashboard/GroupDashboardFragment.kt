@@ -152,6 +152,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     getString(R.string.nc_inheritance_plan_updated)
                 }
             }
+
             DummyTransactionType.CANCEL_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_canlled)
             else -> ""
         }
@@ -160,7 +161,10 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
         }
     }
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding = ViewBinding { View(context) }
+    private val isPendingPersonalWallet by lazy { args.walletId.isNullOrEmpty() && args.groupId.isNullOrEmpty() }
+
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding =
+        ViewBinding { View(context) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -457,8 +461,14 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
 
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
         viewModel.setCurrentSelectedAlert(alert)
-        if (alert.type == AlertType.GROUP_WALLET_PENDING) {
-            val isPersonalWallet = args.groupId.isNullOrEmpty()
+        if (alert.type == AlertType.WALLET_PENDING) {
+            navigator.openMembershipActivity(
+                activityContext = requireActivity(),
+                groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
+                isPersonalWallet = true,
+                walletType = viewModel.state.value.personalWalletType,
+            )
+        } else if (alert.type == AlertType.GROUP_WALLET_PENDING) {
             val walletType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()
             if (role.isMasterOrAdminOrFacilitatorAdmin) {
                 navigator.openMembershipActivity(
@@ -467,7 +477,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
                     walletId = args.walletId,
                     groupId = viewModel.getGroupId(),
-                    isPersonalWallet = isPersonalWallet,
+                    isPersonalWallet = true,
                     walletType = walletType
                 )
             } else {
@@ -476,7 +486,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.ADD_KEY_ONLY,
                     groupId = viewModel.getGroupId(),
-                    isPersonalWallet = isPersonalWallet,
+                    isPersonalWallet = true,
                     walletType = walletType
                 )
             }
@@ -500,7 +510,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 groupId = viewModel.getGroupId(),
                 dummyTransactionId = alert.payload.dummyTransactionId
             )
-        }  else if (alert.type == AlertType.CREATE_INHERITANCE_PLAN_SUCCESS) {
+        } else if (alert.type == AlertType.CREATE_INHERITANCE_PLAN_SUCCESS) {
             viewModel.getInheritance(isAlertFlow = true)
         } else if (alert.type == AlertType.GROUP_WALLET_SETUP) {
             if (alert.payload.claimKey) {
@@ -514,7 +524,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
             } else {
                 viewModel.handleRegisterSigners(alert.id, alert.payload.xfps)
             }
-        }  else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
+        } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
             navigator.openInheritancePlanningScreen(
                 walletId = viewModel.getWalletId(),
                 activityContext = requireContext(),
@@ -709,7 +719,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
     private fun showMoreOptionsNormalAssistedWallet() {
         val options = mutableListOf<SheetOption>()
         val uiState = viewModel.state.value
-        if (viewModel.isPendingCreateWallet().not()) {
+        if (viewModel.isPendingCreateWallet().not() && !isPendingPersonalWallet) {
             if (viewModel.membershipPlan() != MembershipPlan.IRON_HAND) {
                 if (uiState.isAlreadySetupInheritance) {
                     options.add(
@@ -748,7 +758,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 )
             )
         }
-        if (viewModel.isPendingCreateWallet()) {
+        if (viewModel.isPendingCreateWallet() || isPendingPersonalWallet) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_RESTART_WIZARD,

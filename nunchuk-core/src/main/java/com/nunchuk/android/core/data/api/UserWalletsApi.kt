@@ -683,4 +683,23 @@ internal interface UserWalletsApi {
     suspend fun createWalletFromDraft(
         @Body payload: CreateDraftWalletRequest
     ): Data<CreateOrUpdateWalletResponse>
+
+    @GET("/v1.1/user-wallets/draft-wallets/current/alerts")
+    suspend fun getDraftWalletAlerts(
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT,
+    ): Data<GroupAlertResponse>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/current/alerts/{alert_id}/dismiss")
+    suspend fun dismissDraftWalletAlert(
+        @Path("alert_id") alertId: String,
+    ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/draft-wallets/current/alerts/total")
+    suspend fun getDraftWalletAlertTotal(): Data<TotalAlertResponse>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/current/alerts/{alert_id}/mark-as-read")
+    suspend fun markDraftWalletAlertAsRead(
+        @Path("alert_id") alertId: String,
+    ): Data<Unit>
 }

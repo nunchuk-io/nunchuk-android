@@ -39,6 +39,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
@@ -53,6 +54,7 @@ import com.nunchuk.android.usecase.membership.GetAlertGroupUseCase
 import com.nunchuk.android.usecase.membership.GetGroupChatUseCase
 import com.nunchuk.android.usecase.membership.GetHistoryPeriodUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
+import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.MarkAlertAsReadUseCase
 import com.nunchuk.android.usecase.membership.MarkSetupInheritanceUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
@@ -117,6 +119,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val appScope: CoroutineScope,
     private val isShowHealthCheckReminderIntroUseCase: IsShowHealthCheckReminderIntroUseCase,
     private val markShowHealthCheckReminderIntroUseCase: MarkShowHealthCheckReminderIntroUseCase,
+    private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -137,34 +140,53 @@ class GroupDashboardViewModel @Inject constructor(
 
     private val timelineListenerAdapter = TimelineListenerAdapter()
 
+    private val isPendingPersonalWallet =
+        args.groupId.isNullOrEmpty() && args.walletId.isNullOrEmpty()
+
     init {
-        viewModelScope.launch {
-            getGroupUseCase(
-                GetGroupUseCase.Params(
-                    getGroupId()
-                )
-            )
-                .map { it.getOrElse { null } }
-                .distinctUntilChanged()
-                .collect { group ->
-                    val members = group?.members.orEmpty()
-                    _state.update { it.copy(group = group, myRole = currentUserRole(members)) }
+        if (isPendingPersonalWallet) {
+            viewModelScope.launch {
+                getPersonalMembershipStepUseCase(Unit).map { result ->
+                    result.getOrElse { emptyList() }
+                }.collect { steps ->
+                    val walletType = when {
+                        steps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
+                        steps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
+                        else -> null
+                    }
+                    _state.update { it.copy(personalWalletType = walletType) }
                 }
+            }
         }
         viewModelScope.launch {
-            getGroupWalletKeyHealthStatusUseCase(
-                GetGroupWalletKeyHealthStatusUseCase.Params(
-                    getGroupId(),
-                    getWalletId(),
-                )
-            )
-                .map { it.getOrElse { emptyList() } }
-                .distinctUntilChanged()
-                .collect { keyStatus ->
-                    _state.update { state ->
-                        state.copy(keyStatus = keyStatus.associateBy { it.xfp })
+            if (getGroupId().isNotEmpty()) {
+                getGroupUseCase(
+                    GetGroupUseCase.Params(
+                        getGroupId()
+                    )
+                ).map { it.getOrElse { null } }
+                    .distinctUntilChanged()
+                    .collect { group ->
+                        val members = group?.members.orEmpty()
+                        _state.update { it.copy(group = group, myRole = currentUserRole(members)) }
                     }
-                }
+            }
+        }
+        viewModelScope.launch {
+            if (!isPendingPersonalWallet) {
+                getGroupWalletKeyHealthStatusUseCase(
+                    GetGroupWalletKeyHealthStatusUseCase.Params(
+                        getGroupId(),
+                        getWalletId(),
+                    )
+                ).map { it.getOrElse { emptyList() } }
+                    .distinctUntilChanged()
+                    .collect { keyStatus ->
+                        _state.update { state ->
+                            state.copy(keyStatus = keyStatus.associateBy { it.xfp })
+                        }
+                    }
+            }
         }
         viewModelScope.launch {
             walletId.collect { walletId ->
@@ -180,22 +202,25 @@ class GroupDashboardViewModel @Inject constructor(
         }
         getGroupChat()
         viewModelScope.launch {
-            getAssistedWalletsFlowUseCase(Unit)
-                .map { it.getOrElse { emptyList() } }
-                .distinctUntilChanged()
-                .collect { wallets ->
-                    if (getGroupId().isNotEmpty()) {
-                        wallets.find { wallet -> wallet.localId == getGroupId() }?.let { wallet ->
-                            savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
+            if (!isPendingPersonalWallet) {
+                getAssistedWalletsFlowUseCase(Unit)
+                    .map { it.getOrElse { emptyList() } }
+                    .distinctUntilChanged()
+                    .collect { wallets ->
+                        if (getGroupId().isNotEmpty()) {
+                            wallets.find { wallet -> wallet.localId == getGroupId() }
+                                ?.let { wallet ->
+                                    savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
+                                }
+                        }
+                        _state.update {
+                            it.copy(
+                                isAlreadySetupInheritance = wallets.find { wallet -> wallet.localId == getWalletId() }?.isSetupInheritance.orFalse(),
+                                inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == getGroupId() }?.ext?.inheritanceOwnerId
+                            )
                         }
                     }
-                    _state.update {
-                        it.copy(
-                            isAlreadySetupInheritance = wallets.find { wallet -> wallet.localId == getWalletId() }?.isSetupInheritance.orFalse(),
-                            inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == getGroupId() }?.ext?.inheritanceOwnerId
-                        )
-                    }
-                }
+            }
         }
         viewModelScope.launch {
             getAlertGroupUseCase(
@@ -203,8 +228,7 @@ class GroupDashboardViewModel @Inject constructor(
                     groupId = getGroupId(),
                     walletId = getWalletId()
                 )
-            )
-                .map { it.getOrElse { emptyList() } }
+            ).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect { alerts ->
                     _state.update { state ->
@@ -524,6 +548,7 @@ class GroupDashboardViewModel @Inject constructor(
         silentLoading: Boolean = false,
         isForceRequest: Boolean = false
     ) = viewModelScope.launch {
+        if (isPendingPersonalWallet) return@launch
         if (getGroupId().isEmpty() || _state.value.group?.walletConfig?.allowInheritance == true || isForceRequest) {
             getInheritanceUseCase(
                 GetInheritanceUseCase.Param(

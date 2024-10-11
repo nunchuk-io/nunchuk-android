@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.nfc.tech.IsoDep
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -63,6 +64,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.containsPersonalPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.wallet.WalletStatus
@@ -88,6 +90,7 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
@@ -99,6 +102,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
@@ -149,6 +153,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getLocalReferrerCodeUseCase: GetLocalReferrerCodeUseCase,
     private val getCurrentCampaignUseCase: GetCurrentCampaignUseCase,
     private val getDisplayTotalBalanceUseCase: GetDisplayTotalBalanceUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -300,6 +305,14 @@ internal class WalletsViewModel @Inject constructor(
             getDisplayTotalBalanceUseCase(Unit).collect {
                 updateState { copy(isDisplayTotalBalance = it.getOrDefault(false)) }
             }
+        }
+        viewModelScope.launch {
+            state.asFlow().map { it.plans.orEmpty().containsPersonalPlan() }
+                .filter { true }
+                .distinctUntilChanged()
+                .collect {
+                    syncDraftWalletUseCase("")
+                }
         }
     }
 
@@ -475,6 +488,10 @@ internal class WalletsViewModel @Inject constructor(
             val assistedWallets = getState().assistedWallets
             val alerts = getState().alerts
             val pendingGroup = groups.filter { it.isPendingWallet() }
+            val isShowPendingPersonalWallet = getState().personalSteps.isNullOrEmpty().not()
+            if (isShowPendingPersonalWallet) {
+                results.add(GroupWalletUi(isPendingPersonalWallet = true))
+            }
             wallets.forEach { wallet ->
                 val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
                 val groupId = assistedWallet?.groupId
@@ -671,7 +688,14 @@ internal class WalletsViewModel @Inject constructor(
             .onSuccess {
                 val walletId = getState().assistedWallets.find { it.groupId == groupId }?.localId
                 val wallet = getState().wallets.find { it.wallet.id == walletId }
-                setEvent(WalletsEvent.AcceptWalletInvitationSuccess(walletId, groupId, role, wallet == null))
+                setEvent(
+                    WalletsEvent.AcceptWalletInvitationSuccess(
+                        walletId,
+                        groupId,
+                        role,
+                        wallet == null
+                    )
+                )
                 syncGroup()
             }.onFailure {
                 event(ShowErrorEvent(it))

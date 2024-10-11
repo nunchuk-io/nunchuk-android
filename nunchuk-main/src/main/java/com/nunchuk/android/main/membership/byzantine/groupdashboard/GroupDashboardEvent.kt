@@ -10,6 +10,7 @@ import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 
 sealed class GroupDashboardEvent {
@@ -24,14 +25,17 @@ sealed class GroupDashboardEvent {
         val token: String = "",
         val isAlertFlow: Boolean = false
     ) : GroupDashboardEvent()
+
     data class RegisterSignersSuccess(val totalAirgap: Int) : GroupDashboardEvent()
-    data class UpdateServerKey(val token: String, val signer: SignerModel, val groupId: String) : GroupDashboardEvent()
+    data class UpdateServerKey(val token: String, val signer: SignerModel, val groupId: String) :
+        GroupDashboardEvent()
+
     data class CalculateRequiredSignaturesSuccess(
         val type: String
     ) : GroupDashboardEvent()
 
-    data object RestartWizardSuccess: GroupDashboardEvent()
-    data class SyncTransactionSuccess(val txId: String): GroupDashboardEvent()
+    data object RestartWizardSuccess : GroupDashboardEvent()
+    data class SyncTransactionSuccess(val txId: String) : GroupDashboardEvent()
     data class DownloadBackupKeySuccess(val backupKey: BackupKey) : GroupDashboardEvent()
     data object SignOutEvent : GroupDashboardEvent()
     data object OpenReplaceKey : GroupDashboardEvent()
@@ -52,4 +56,5 @@ data class GroupDashboardState(
     val isRefreshing: Boolean = false,
     val isShowHealthCheckReminderIntro: Boolean = false,
     val walletStatus: String = "",
+    val personalWalletType: GroupWalletType? = null,
 )

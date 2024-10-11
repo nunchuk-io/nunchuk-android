@@ -688,7 +688,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             group = it.group,
                             walletsExtended = it.wallet,
                             inviterName = it.inviterName,
-                            isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name,
+                            isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name || it.isPendingPersonalWallet,
                             hideWalletDetail = hideWalletDetail,
                             badgeCount = it.badgeCount,
                             isLocked = it.group?.isLocked.orFalse(),

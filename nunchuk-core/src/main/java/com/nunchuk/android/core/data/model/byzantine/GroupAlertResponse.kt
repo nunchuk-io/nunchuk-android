@@ -9,7 +9,7 @@ data class GroupAlertResponse(
 
 data class TotalAlertResponse(
     @SerializedName("total")
-    val total: Int? = null
+    val total: Int = 0
 )
 
 data class AlertResponse(
