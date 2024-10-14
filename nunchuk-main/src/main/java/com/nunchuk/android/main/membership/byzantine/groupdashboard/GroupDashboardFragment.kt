@@ -463,6 +463,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
         viewModel.setCurrentSelectedAlert(alert)
         if (alert.type == AlertType.WALLET_PENDING) {
             navigator.openMembershipActivity(
+                launcher = createWalletLauncher,
                 activityContext = requireActivity(),
                 groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
                 isPersonalWallet = true,
