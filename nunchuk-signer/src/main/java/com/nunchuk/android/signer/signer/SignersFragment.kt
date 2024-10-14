@@ -4,6 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,8 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -29,6 +33,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
@@ -104,25 +109,73 @@ fun SignersContent(
                             modifier = Modifier.fillMaxWidth(),
                         )
                     },
-                    actions = {
-                        IconButton(onClick = onAddSignerClick) {
-                            Icon(
-                                painterResource(id = R.drawable.ic_add_dark),
-                                contentDescription = "Add Signer",
-                                tint = Color.White
-                            )
-                        }
-                    }
                 )
             }
         ) { innerPadding ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(vertical = 4.dp),
-            ) {
-                items(uiState.signers.orEmpty()) { signer ->
-                    SignerCard(item = signer, onSignerSelected = onSignerClick)
+            if (uiState.signers.isNullOrEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(32.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.bg_let_s_add_keys_transparent),
+                        contentDescription = "No keys",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = stringResource(R.string.nc_let_add_your_keys),
+                        style = NunchukTheme.typography.titleLarge,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+
+                    Text(
+                        text = stringResource(R.string.nc_add_your_first_key),
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
+                        onClick = onAddSignerClick
+                    ) {
+                        Text(text = stringResource(R.string.nc_add_key))
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(vertical = 4.dp),
+                ) {
+                    item("add_signer") {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(R.string.nc_add_key),
+                                style = NunchukTheme.typography.titleLarge,
+                            )
+
+                            IconButton(onClick = onAddSignerClick) {
+                                Icon(
+                                    painterResource(id = R.drawable.ic_add_dark),
+                                    contentDescription = "Add Signer",
+                                )
+                            }
+                        }
+
+                    }
+                    items(uiState.signers) { signer ->
+                        SignerCard(item = signer, onSignerSelected = onSignerClick)
+                    }
                 }
             }
         }
@@ -135,4 +188,11 @@ fun SignersContentPreview(
     @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
 ) {
     SignersContent(SignerUiState(signers = signers))
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SignersContentEmptyPreview(
+) {
+    SignersContent(SignerUiState(signers = emptyList()))
 }

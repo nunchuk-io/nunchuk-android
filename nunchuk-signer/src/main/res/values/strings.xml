@@ -192,4 +192,5 @@
     <string name="nc_please_scan_your_portal_again">"Please scan your portal again "</string>
     <string name="nc_please_scan_correct_portal">If you have more than one Portal, please make sure that you scan the correct one.</string>
     <string name="nc_recommended_for_single_sig">Recommended for singlesig</string>
+    <string name="nc_add_your_first_key">Manage your keys securely in one place. Add your first key to get started.</string>
 </resources>
