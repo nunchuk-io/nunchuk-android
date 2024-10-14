@@ -77,7 +77,11 @@ class SelectElectrumServerActivity : FragmentActivity(), InputBottomSheetListene
                             putExtra(EXTRA_SHOW_MESSAGE, showMessage)
                         },
                     )
-                    handleUpdateAppSettingsSuccess()
+                    if (showMessage) {
+                        handleUpdateAppSettingsSuccess()
+                    } else {
+                        finish()
+                    }
                 },
                 onPreSelectServer = { url, name ->
                     setResult(
