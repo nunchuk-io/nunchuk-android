@@ -2,10 +2,12 @@ package com.nunchuk.android.main.membership.byzantine.select
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.isPersonalPlan
+import com.nunchuk.android.model.slug
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,7 +29,8 @@ class SelectGroupViewModel @Inject constructor(
     private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
     private val initPersonalWalletUseCase: InitPersonalWalletUseCase,
-    private val applicationScope: CoroutineScope
+    private val applicationScope: CoroutineScope,
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(SelectGroupUiState())
     val state = _state.asStateFlow()
@@ -38,11 +43,15 @@ class SelectGroupViewModel @Inject constructor(
             _event.emit(SelectGroupEvent.Loading(true))
             getGroupAssistedWalletConfigUseCase(Unit)
                 .onSuccess { config ->
+                    val slug = getLocalMembershipPlansFlowUseCase(Unit)
+                        .map { it.getOrThrow() }.first()
+                        .takeIf { it.size == 1 }?.first()?.slug
                     _state.update {
                         it.copy(
                             walletsCount = config.walletsCount,
                             groupOptions = config.groupOptions,
                             personalOptions = config.personalOptions,
+                            defaultOption = (config.groupOptions + config.personalOptions).find { option -> option.slug == slug },
                             isLoaded = true
                         )
                     }
@@ -83,4 +92,5 @@ data class SelectGroupUiState(
     val personalOptions: List<WalletOption> = emptyList(),
     val isLoaded: Boolean = false,
     val walletsCount: Map<String, Int> = emptyMap(),
+    val defaultOption: WalletOption? = null
 )

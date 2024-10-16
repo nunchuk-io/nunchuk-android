@@ -26,6 +26,19 @@ enum class MembershipPlan {
     NONE, IRON_HAND, HONEY_BADGER, BYZANTINE, BYZANTINE_PRO, BYZANTINE_PREMIER, FINNEY, FINNEY_PRO, HONEY_BADGER_PLUS
 }
 
+val MembershipPlan.slug : String
+    get() = when (this) {
+        MembershipPlan.IRON_HAND -> IRON_HAND_PLAN
+        MembershipPlan.HONEY_BADGER -> HONEY_BADGER_PLAN
+        MembershipPlan.BYZANTINE -> BYZANTINE_PLAN_
+        MembershipPlan.BYZANTINE_PRO -> BYZANTINE_PRO_PLAN
+        MembershipPlan.BYZANTINE_PREMIER -> BYZANTINE_PREMIER_PLAN
+        MembershipPlan.FINNEY -> FINNEY_PLAN
+        MembershipPlan.FINNEY_PRO -> FINNEY_PRO_PLAN
+        MembershipPlan.HONEY_BADGER_PLUS -> HONEY_BADGER_PLUS_PLAN
+        else -> ""
+    }
+
 fun MembershipPlan.isByzantineOrFinney() =
     this == MembershipPlan.BYZANTINE
             || this == MembershipPlan.BYZANTINE_PRO

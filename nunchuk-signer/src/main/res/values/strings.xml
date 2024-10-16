@@ -17,7 +17,6 @@
     <string name="nc_signer_air_gapped">Air-gapped</string>
     <string name="nc_signer_airgapped">Airgapped</string>
 
-    <string name="nc_create_signer_before_you_start">Before you start</string>
     <string name="nc_create_signer_description">You can add NFC, air-gapped and software keys via this mobile app. If you need to add a wired key, please do so via the Nunchuk desktop app.</string>
     <string name="nc_scan_static_qr">Scan static QR</string>
     <string name="nc_scan_dynamic_qr">Scan dynamic QR</string>

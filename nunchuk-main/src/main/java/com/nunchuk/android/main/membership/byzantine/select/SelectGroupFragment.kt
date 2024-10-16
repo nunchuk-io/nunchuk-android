@@ -134,7 +134,8 @@ private fun SelectGroupScreen(
         isPersonal = isPersonal,
         options = if (isPersonal) uiState.personalOptions else uiState.groupOptions,
         onContinueClicked = onContinueClicked,
-        onMoreClicked = onMoreClicked
+        onMoreClicked = onMoreClicked,
+        defaultOption = uiState.defaultOption
     )
 }
 
@@ -144,9 +145,10 @@ private fun SelectGroupContent(
     options: List<WalletOption> = emptyList(),
     onContinueClicked: (WalletOption) -> Unit = {},
     onMoreClicked: () -> Unit = {},
+    defaultOption: WalletOption? = null,
 ) {
-    var selectedOption by remember(options) {
-        mutableStateOf(options.firstOrNull())
+    var selectedOption by remember(defaultOption) {
+        mutableStateOf(defaultOption)
     }
     NunchukTheme {
         Scaffold(modifier = Modifier
