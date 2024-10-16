@@ -160,7 +160,7 @@ fun SignersContent(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = stringResource(R.string.nc_add_key),
+                                text = stringResource(R.string.nc_title_signers),
                                 style = NunchukTheme.typography.titleLarge,
                             )
 
