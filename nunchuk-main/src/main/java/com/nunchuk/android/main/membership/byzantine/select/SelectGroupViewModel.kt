@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.select
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
@@ -30,13 +31,17 @@ class SelectGroupViewModel @Inject constructor(
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
     private val initPersonalWalletUseCase: InitPersonalWalletUseCase,
     private val applicationScope: CoroutineScope,
-    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase
+    private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(SelectGroupUiState())
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<SelectGroupEvent>()
     val event = _event.asSharedFlow()
+
+    private val args: SelectGroupFragmentArgs =
+        SelectGroupFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     init {
         viewModelScope.launch {
@@ -46,12 +51,14 @@ class SelectGroupViewModel @Inject constructor(
                     val slug = getLocalMembershipPlansFlowUseCase(Unit)
                         .map { it.getOrThrow() }.first()
                         .takeIf { it.size == 1 }?.first()?.slug
+                    val defaultOption =
+                        if (args.isPersonal) config.personalOptions.firstOrNull { it.slug == slug } else config.groupOptions.firstOrNull { it.slug == slug }
                     _state.update {
                         it.copy(
                             walletsCount = config.walletsCount,
                             groupOptions = config.groupOptions,
                             personalOptions = config.personalOptions,
-                            defaultOption = (config.groupOptions + config.personalOptions).find { option -> option.slug == slug },
+                            defaultOption = defaultOption,
                             isLoaded = true
                         )
                     }
