@@ -36,6 +36,7 @@ import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.utils.DeviceManager
 import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.CoroutineDispatcher
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,11 +49,14 @@ class InitNunchukUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
     private var lastParam : Param? = null
+    private var lastSettings : AppSettings? = null
 
     override suspend fun execute(parameters: Param) : Boolean {
-        if (parameters == lastParam) return false
-        lastParam = parameters
         val settings = getAppSettingUseCase(Unit).getOrThrow()
+        if (parameters == lastParam && lastSettings == settings) return false
+        lastSettings = settings
+        lastParam = parameters
+        Timber.d("InitNunchukUseCase: $settings")
         initNunchuk(
             appSettings = settings,
             passphrase = parameters.passphrase,
