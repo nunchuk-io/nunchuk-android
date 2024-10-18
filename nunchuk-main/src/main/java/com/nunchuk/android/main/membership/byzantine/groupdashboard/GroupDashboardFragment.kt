@@ -55,6 +55,7 @@ import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
@@ -462,6 +463,12 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
     private fun alertClick(alert: Alert, role: AssistedWalletRole) {
         viewModel.setCurrentSelectedAlert(alert)
         if (alert.type == AlertType.WALLET_PENDING) {
+            val walletType = viewModel.state.value.personalWalletType
+            when(walletType) {
+                GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> viewModel.setLocalMembershipPlan(MembershipPlan.IRON_HAND)
+                GroupWalletType.TWO_OF_FOUR_MULTISIG -> viewModel.setLocalMembershipPlan(MembershipPlan.HONEY_BADGER)
+                else -> Unit
+            }
             navigator.openMembershipActivity(
                 launcher = createWalletLauncher,
                 activityContext = requireActivity(),

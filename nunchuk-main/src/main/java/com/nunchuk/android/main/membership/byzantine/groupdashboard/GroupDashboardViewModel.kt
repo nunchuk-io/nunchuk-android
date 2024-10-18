@@ -11,6 +11,7 @@ import com.nunchuk.android.core.domain.MarkShowHealthCheckReminderIntroUseCase
 import com.nunchuk.android.core.domain.byzantine.SetRoomRetentionUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
+import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -120,6 +121,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val isShowHealthCheckReminderIntroUseCase: IsShowHealthCheckReminderIntroUseCase,
     private val markShowHealthCheckReminderIntroUseCase: MarkShowHealthCheckReminderIntroUseCase,
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
+    private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -764,6 +766,11 @@ class GroupDashboardViewModel @Inject constructor(
     fun membershipPlan(): MembershipPlan = assistedWalletManager.getWalletPlan(getWalletId())
 
     fun isShowRequestHealthCheckIntro(): Boolean = state.value.isShowHealthCheckReminderIntro
+    fun setLocalMembershipPlan(plan: MembershipPlan) {
+        viewModelScope.launch {
+            setLocalMembershipPlanFlowUseCase(plan)
+        }
+    }
 
     private val currentSelectedAlert: Alert?
         get() = savedStateHandle.get<Alert>(EXTRA_SELECTED_ALERT)
