@@ -59,7 +59,10 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
 
     override suspend fun syncDraftWallet(groupId: String): DraftWallet {
         val response = if (groupId.isEmpty()) {
-            userWalletApiManager.walletApi.getDraftWallet()
+            userWalletApiManager.walletApi.getDraftWallet().also {
+                val chatId = accountManager.getAccount().chatId
+                membershipStepDao.deleteStepByChatId(chain.value, chatId)
+            }
         } else {
             userWalletApiManager.groupWalletApi.getDraftWallet(groupId)
         }
@@ -76,11 +79,9 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         draftWallet: DraftWalletDto,
         groupId: String,
     ): DraftWallet {
-        val chatId = accountManager.getAccount().chatId
         val newSigner = mutableMapOf<String, Boolean>()
         val plan =
             if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
-        membershipStepDao.deleteStepByChatId(chain.value, chatId)
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
             newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
