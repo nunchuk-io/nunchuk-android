@@ -60,8 +60,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     override suspend fun syncDraftWallet(groupId: String): DraftWallet {
         val response = if (groupId.isEmpty()) {
             userWalletApiManager.walletApi.getDraftWallet().also {
-                val chatId = accountManager.getAccount().chatId
-                membershipStepDao.deleteStepByChatId(chain.value, chatId)
+                deletePersonalSteps()
             }
         } else {
             userWalletApiManager.groupWalletApi.getDraftWallet(groupId)
@@ -73,6 +72,11 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         } else {
             handleDraftWallet(draftWallet, groupId)
         }
+    }
+
+    private suspend fun deletePersonalSteps() {
+        val chatId = accountManager.getAccount().chatId
+        membershipStepDao.deleteStepByChatId(chain.value, chatId)
     }
 
     private suspend fun handlePersonalDraftWallet(

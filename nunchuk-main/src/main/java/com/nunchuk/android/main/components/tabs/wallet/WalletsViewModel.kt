@@ -34,7 +34,6 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.push.PushEvent
@@ -97,9 +96,11 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -172,7 +173,6 @@ internal class WalletsViewModel @Inject constructor(
     private var shouldShowExistingKeyDialog = AtomicBoolean(true)
 
     private var signersExistingMap = ConcurrentHashMap<String, WalletsExistingKey>()
-    private val accountInfo by lazy { accountManager.getAccount() }
 
     private var walletsRequestKey = ""
 
@@ -213,13 +213,17 @@ internal class WalletsViewModel @Inject constructor(
                 it.getOrElse { emptyList() }
             }.distinctUntilChanged().collect {
                 updateState { copy(personalSteps = it) }
+                mapGroupWalletUi()
             }
         }
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
                 when (event) {
                     is PushEvent.WalletCreate -> {
-                        if (!getState().wallets.any { it.wallet.id == event.walletId }) {
+                        if (event.groupId.isEmpty()) {
+                            // personal wallet
+                            syncDraftWalletUseCase("")
+                        } else if (!getState().wallets.any { it.wallet.id == event.walletId }) {
                             getServerWalletsUseCase(Unit).onSuccess {
                                 if (it.isNeedReload) {
                                     retrieveData()
@@ -229,8 +233,13 @@ internal class WalletsViewModel @Inject constructor(
                     }
 
                     is PushEvent.DraftResetWallet -> {
-                        syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
-                            if (shouldReload) retrieveData()
+                        if (event.groupId.isEmpty()) {
+                            // personal wallet
+                            syncDraftWalletUseCase("")
+                        } else {
+                            syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
+                                if (shouldReload) retrieveData()
+                            }
                         }
                     }
 
@@ -315,6 +324,8 @@ internal class WalletsViewModel @Inject constructor(
                 }
         }
     }
+
+    private var mapDataJob: Job? = null
 
     private fun getCampaign() {
         viewModelScope.launch {
@@ -481,7 +492,8 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun mapGroupWalletUi() {
-        viewModelScope.launch(ioDispatcher) {
+        mapDataJob?.cancel()
+        mapDataJob = viewModelScope.launch(ioDispatcher) {
             val results = arrayListOf<GroupWalletUi>()
             val wallets = getState().wallets
             val groups = getState().allGroups
@@ -493,6 +505,7 @@ internal class WalletsViewModel @Inject constructor(
                 results.add(GroupWalletUi(isPendingPersonalWallet = true))
             }
             wallets.forEach { wallet ->
+                ensureActive()
                 val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
                 val groupId = assistedWallet?.groupId
                 val group = groups.firstOrNull { it.id == groupId }
@@ -534,6 +547,7 @@ internal class WalletsViewModel @Inject constructor(
                 results.add(groupWalletUi)
             }
             pendingGroup.forEach { group ->
+                ensureActive()
                 var groupWalletUi = GroupWalletUi(group = group)
                 val role = byzantineGroupUtils.getCurrentUserRole(group)
                 var inviterName = ""
@@ -601,9 +615,6 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
     }
-
-    private fun isPrimaryKey(id: String) =
-        accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == id
 
     fun handleAddWallet() {
         event(AddWalletEvent)

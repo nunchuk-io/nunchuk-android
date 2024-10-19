@@ -77,6 +77,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     )
                 }
             }
+
             parameters.isAddKeyCompleted() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
@@ -84,35 +85,45 @@ class HandlePushMessageUseCase @Inject constructor(
                     pushEventManager.push(PushEvent.AddDesktopKeyCompleted)
                 }
             }
+
             parameters.isWalletCreated() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
                     saveHandledEventUseCase.invoke(parameters.eventId)
-                    pushEventManager.push(PushEvent.WalletCreate(parameters.getWalletId().orEmpty()))
+                    pushEventManager.push(
+                        PushEvent.WalletCreate(
+                            parameters.getWalletId().orEmpty(),
+                            parameters.getGroupId().orEmpty(),
+                        )
+                    )
                 }
             }
+
             parameters.isTransactionCancelled() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
                     saveHandledEventUseCase.invoke(parameters.eventId)
                     pushEventManager.push(
                         PushEvent.TransactionCancelled(
-                            parameters.getWalletId().orEmpty(), parameters.getTransactionId().orEmpty()
+                            parameters.getWalletId().orEmpty(),
+                            parameters.getTransactionId().orEmpty()
                         )
                     )
                 }
             }
+
             parameters.isDraftWalletResetEvent() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
                     saveHandledEventUseCase.invoke(parameters.eventId)
                     pushEventManager.push(
                         PushEvent.DraftResetWallet(
-                            parameters.getWalletId().orEmpty()
+                            parameters.getGroupId().orEmpty()
                         )
                     )
                 }
             }
+
             parameters.isGroupMembershipRequestCreatedEvent() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
@@ -124,6 +135,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     )
                 }
             }
+
             parameters.isGroupWalletCreatedEvent() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
@@ -135,6 +147,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     )
                 }
             }
+
             parameters.isGroupEmergencyLockdownStarted() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
@@ -146,6 +159,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     )
                 }
             }
+
             parameters.isInheritanceEvent() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
@@ -157,6 +171,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     )
                 }
             }
+
             parameters.isGroupNameChanged() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
@@ -172,6 +187,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     }
                 }
             }
+
             parameters.isGroupWalletPrimaryOwnerUpdated() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)
                 if (result.getOrDefault(false).not()) {
