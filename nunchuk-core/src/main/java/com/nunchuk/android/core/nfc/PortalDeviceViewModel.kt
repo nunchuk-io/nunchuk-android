@@ -166,6 +166,13 @@ class PortalDeviceViewModel @Inject constructor(
                     val bytes = it.readBytes()
                     sdk.updateFirmware(bytes)
                 }
+                _state.update { state ->
+                    state.copy(
+                        event = PortalDeviceEvent.UpdateFirmwareSuccess(
+                            sdk.getStatus()
+                        )
+                    )
+                }
             }
         }
     }
