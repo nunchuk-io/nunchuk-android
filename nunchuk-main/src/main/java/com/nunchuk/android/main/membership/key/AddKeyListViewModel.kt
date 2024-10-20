@@ -191,11 +191,15 @@ class AddKeyListViewModel @Inject constructor(
 
     fun onSelectedExistingHardwareSigner(signer: SingleSigner) {
         viewModelScope.launch {
+            val actualSigner = if (signer.xpub.isNotEmpty()) signer else singleSigners.find {
+                it.masterFingerprint == signer.masterFingerprint
+                        && it.derivationPath == signer.derivationPath
+            } ?: return@launch
             syncKeyUseCase(
                 SyncKeyUseCase.Param(
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
-                    signer = signer
+                    signer = actualSigner
                 )
             ).onFailure {
                 _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
