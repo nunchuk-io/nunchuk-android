@@ -44,7 +44,7 @@ class NCInfoDialog @Inject constructor(
         btnInfo: String = "",
         onYesClick: () -> Unit = {},
         onInfoClick: () -> Unit = {},
-        cancelable: Boolean = false
+        cancelable: Boolean = false,
     ) = Dialog(activity).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -76,7 +76,8 @@ class NCInfoDialog @Inject constructor(
         btnInfo: String = "",
         onYesClick: () -> Unit = {},
         onInfoClick: () -> Unit = {},
-        cancelable: Boolean = false
+        cancelable: Boolean = false,
+        showTextButton: Boolean = false,
     ) = Dialog(activity).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -114,6 +115,9 @@ class NCInfoDialog @Inject constructor(
         binding.btnInfo.setOnDebounceClickListener {
             onInfoClick()
             dismiss()
+        }
+        if (showTextButton) {
+            binding.btnInfo.setBackgroundDrawable(null)
         }
         show()
         window?.setLayout(MATCH_PARENT, MATCH_PARENT)

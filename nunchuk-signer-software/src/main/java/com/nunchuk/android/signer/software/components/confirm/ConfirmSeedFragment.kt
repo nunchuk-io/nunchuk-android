@@ -100,7 +100,8 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
             },
             onInfoClick = {
                 openSetPassphrase()
-            }
+            },
+            showTextButton = true
         )
     }
 
