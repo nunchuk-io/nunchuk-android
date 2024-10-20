@@ -210,7 +210,7 @@ internal class SignInViewModel @Inject constructor(
 
     private fun handleSignIn(email: String, password: String) {
         viewModelScope.launch {
-            if (validateEmail(email) && validatePassword(password)) {
+            if (validatePassword(password)) {
                 signInUseCase.execute(
                     email = email,
                     password = password,
