@@ -20,7 +20,6 @@
 package com.nunchuk.android.app
 
 import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
@@ -29,12 +28,10 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
-import com.nunchuk.android.core.profile.CheckShowOnBoardFreshInstallUseCase
 import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
@@ -60,18 +57,12 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     lateinit var initNunchukUseCase: InitNunchukUseCase
 
     @Inject
-    lateinit var checkShowOnBoardFreshInstallUseCase: CheckShowOnBoardFreshInstallUseCase
-
-    @Inject
     lateinit var appStateManager: AppStateManager
 
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
             Timber.plant(FileLogTree(this))
-        }
-        ProcessLifecycleOwner.get().lifecycleScope.launch {
-            checkShowOnBoardFreshInstallUseCase(Unit)
         }
         runBlocking {
             matrixInitializerUseCase(Unit)

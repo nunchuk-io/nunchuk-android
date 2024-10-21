@@ -343,15 +343,6 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun checkShowOnboardForFreshInstall() {
-        context.dataStore.edit { settings ->
-            if (settings.asMap().size <= 1) {
-                settings[getShowOnBoardKey()] = true
-                accountManager.setShouldShowOnboard(true)
-            }
-        }
-    }
-
     suspend fun setHealthCheckReminderIntro(isShow: Boolean) {
         context.dataStore.edit {
             it[getShowHealthCheckReminderIntroKey()] = isShow

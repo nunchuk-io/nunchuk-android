@@ -27,7 +27,7 @@ import com.nunchuk.android.core.profile.GetUserDevicesUseCase
 import com.nunchuk.android.core.profile.GetUserDevicesUseCaseImpl
 import com.nunchuk.android.core.profile.UserProfileApi
 import com.nunchuk.android.core.profile.UserRepository
-import com.nunchuk.android.core.profile.UserRepositoryImpl
+import com.nunchuk.android.core.repository.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
