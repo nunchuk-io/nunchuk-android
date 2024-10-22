@@ -88,11 +88,15 @@ fun AddByzantineKeyListContent(
                     }
                 }
             }) { innerPadding ->
-            Box(Modifier.pullRefresh(state)) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .pullRefresh(state)
+            ) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
                         .padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {

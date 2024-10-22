@@ -73,6 +73,9 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignerModelProvider
+import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
+import com.nunchuk.android.compose.pullrefresh.pullRefresh
+import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -455,6 +458,7 @@ fun AddKeyListScreen(
     onMoreClicked: () -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     AddKeyListContent(
         onContinueClicked = viewModel::onContinueClicked,
@@ -462,19 +466,24 @@ fun AddKeyListScreen(
         onVerifyClicked = viewModel::onVerifyClicked,
         keys = keys,
         remainingTime = remainingTime,
-        onMoreClicked = onMoreClicked
+        onMoreClicked = onMoreClicked,
+        refresh = viewModel::refresh,
+        isRefreshing = uiState.isRefresh
     )
 }
 
 @Composable
 fun AddKeyListContent(
-    onAddClicked: (data: AddKeyData) -> Unit = {},
-    onVerifyClicked: (data: AddKeyData) -> Unit = {},
+    isRefreshing: Boolean = false,
+    remainingTime: Int,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     keys: List<AddKeyData> = emptyList(),
-    remainingTime: Int,
+    onVerifyClicked: (data: AddKeyData) -> Unit = {},
+    onAddClicked: (data: AddKeyData) -> Unit = {},
+    refresh: () -> Unit = { },
 ) {
+    val state = rememberPullRefreshState(isRefreshing, refresh)
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -503,53 +512,61 @@ fun AddKeyListContent(
                 }
             },
         ) { innerPadding ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
+            Box(
+                Modifier
                     .fillMaxSize()
-                    .padding(top = 16.dp)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(innerPadding)
+                    .pullRefresh(state)
             ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.nc_let_add_your_keys),
-                        style = NunchukTheme.typography.heading
-                    )
-                    Text(
-                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                        text = buildAnnotatedString {
-                            append(
-                                stringResource(
-                                    id = R.string.nc_add_key_list_desc_one,
-                                    keys.size
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.nc_let_add_your_keys),
+                            style = NunchukTheme.typography.heading
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                            text = buildAnnotatedString {
+                                append(
+                                    stringResource(
+                                        id = R.string.nc_add_key_list_desc_one,
+                                        keys.size
+                                    )
                                 )
-                            )
-                            append(" ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                                append(stringResource(id = R.string.nc_add_key_list_desc_two))
-                            }
-                            if (keys.size > 3) {
-                                append(stringResource(id = R.string.nc_honey_add_key_list_desc_three))
-                            } else {
-                                append(stringResource(id = R.string.nc_add_key_list_desc_three))
-                            }
-                            if (keys.size > 3) {
-                                append("\n\n")
-                                append(stringResource(R.string.nc_among_three_key_select_inheritance))
-                            }
-                        },
-                        style = NunchukTheme.typography.body
-                    )
+                                append(" ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
+                                    append(stringResource(id = R.string.nc_add_key_list_desc_two))
+                                }
+                                if (keys.size > 3) {
+                                    append(stringResource(id = R.string.nc_honey_add_key_list_desc_three))
+                                } else {
+                                    append(stringResource(id = R.string.nc_add_key_list_desc_three))
+                                }
+                                if (keys.size > 3) {
+                                    append("\n\n")
+                                    append(stringResource(R.string.nc_among_three_key_select_inheritance))
+                                }
+                            },
+                            style = NunchukTheme.typography.body
+                        )
+                    }
+
+                    items(keys) { key ->
+                        AddKeyCard(
+                            item = key,
+                            onAddClicked = onAddClicked,
+                            onVerifyClicked = onVerifyClicked,
+                        )
+                    }
                 }
 
-                items(keys) { key ->
-                    AddKeyCard(
-                        item = key,
-                        onAddClicked = onAddClicked,
-                        onVerifyClicked = onVerifyClicked,
-                    )
-                }
+                PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
             }
         }
     }

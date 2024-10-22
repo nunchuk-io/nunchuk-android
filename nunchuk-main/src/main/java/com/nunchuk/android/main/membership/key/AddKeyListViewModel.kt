@@ -52,6 +52,7 @@ import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -83,6 +84,7 @@ class AddKeyListViewModel @Inject constructor(
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
+    val state = _state.asStateFlow()
     private val _event = MutableSharedFlow<AddKeyListEvent>()
     val event = _event.asSharedFlow()
     private var loadJob: Job? = null
@@ -159,7 +161,7 @@ class AddKeyListViewModel @Inject constructor(
     fun refresh() {
         if (loadJob?.isActive == true) return
         loadJob = viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update { it.copy(isRefresh = true) }
             syncDraftWalletUseCase("").onSuccess { draft ->
                 loadSigners()
                 draft.config.toGroupWalletType()?.let { type ->
@@ -169,7 +171,7 @@ class AddKeyListViewModel @Inject constructor(
                     }
                 }
             }
-            _state.update { it.copy(isLoading = false) }
+            _state.update { it.copy(isRefresh = false) }
         }
     }
 
@@ -336,5 +338,6 @@ sealed class AddKeyListEvent {
 
 data class AddKeyListState(
     val isLoading: Boolean = false,
+    val isRefresh: Boolean = false,
     val signers: List<SignerModel> = emptyList()
 )
