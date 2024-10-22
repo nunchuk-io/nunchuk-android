@@ -60,6 +60,7 @@ import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentDummyTransactionDetailsBinding
@@ -220,6 +221,8 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                             )
                         }
 
+                        is WalletAuthenticationEvent.NoInternetConnectionToSign -> showWarning(getString(R.string.nc_no_internet_connection_sign_dummy_tx))
+                        is WalletAuthenticationEvent.NoInternetConnectionForceSync -> showError(getString(R.string.nc_no_internet_connection_force_sync))
                         is WalletAuthenticationEvent.SignFailed -> handleSignedFailed(event.singleSigner)
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,

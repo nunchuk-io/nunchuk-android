@@ -40,12 +40,14 @@ import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.CardIdManager
+import com.nunchuk.android.core.util.isNoInternetException
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.model.byzantine.DummyTransactionUpdate
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -194,8 +196,16 @@ class WalletAuthenticationViewModel @Inject constructor(
                     }
                     tokens.filter { it.value.not() }.forEach {
                         val (xfp, token) = it.key.split(".")
-                        if (uploadSignature(xfp, token, signatures)) {
+                        uploadSignature(xfp, token, signatures).onSuccess {
                             signatures[xfp] = token
+                        }.onFailure { e ->
+                            if (isShowMessage) {
+                                if (e.isNoInternetException) {
+                                    _event.emit(WalletAuthenticationEvent.NoInternetConnectionForceSync)
+                                } else {
+                                    _event.emit(WalletAuthenticationEvent.ShowError(e.message.orUnknownError()))
+                                }
+                            }
                         }
                     }
                     if (isShowMessage) {
@@ -425,12 +435,19 @@ class WalletAuthenticationViewModel @Inject constructor(
             }
             signatures[singleSigner.masterFingerprint] = signature
             if (!args.dummyTransactionId.isNullOrEmpty()) {
-                if (uploadSignature(singleSigner.masterFingerprint, signature, signatures)) {
-                    val status = _state.value.transactionStatus
-                    if (status != TransactionStatus.CONFIRMED) {
-                        _event.emit(WalletAuthenticationEvent.UploadSignatureSuccess(status))
+                uploadSignature(singleSigner.masterFingerprint, signature, signatures)
+                    .onSuccess {
+                        val status = _state.value.transactionStatus
+                        if (status != TransactionStatus.CONFIRMED) {
+                            _event.emit(WalletAuthenticationEvent.UploadSignatureSuccess(status))
+                        }
+                    }.onFailure {
+                        if (it.isNoInternetException) {
+                            _event.emit(WalletAuthenticationEvent.NoInternetConnectionToSign)
+                        } else {
+                            _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+                        }
                     }
-                }
             } else {
                 if (signatures.size == args.requiredSignatures) {
                     _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess(signatures))
@@ -448,7 +465,7 @@ class WalletAuthenticationViewModel @Inject constructor(
         masterFingerprint: String,
         signature: String,
         signatures: MutableMap<String, String>,
-    ): Boolean {
+    ): Result<DummyTransactionUpdate> {
         return updateGroupDummyTransactionUseCase(
             UpdateGroupDummyTransactionUseCase.Param(
                 signatures = mapOf(masterFingerprint to signature),
@@ -456,9 +473,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 groupId = args.groupId.orEmpty(),
                 transactionId = args.dummyTransactionId.orEmpty()
             )
-        ).onFailure {
-            _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-        }.onSuccess { updateInfo ->
+        ).onSuccess { updateInfo ->
             _state.update {
                 it.copy(
                     signatures = signatures,
@@ -474,7 +489,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 }
                 _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess())
             }
-        }.isSuccess
+        }
     }
 
     fun getInteractSingleSigner() = _state.value.interactSingleSigner

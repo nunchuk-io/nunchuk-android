@@ -362,4 +362,6 @@
     <string name="nc_main_what_type_of_personal_wallet">What type of personal wallet do you want to create?</string>
     <string name="nc_roll_over_broadcast_notification">The rollover transactions have been created. Please sign and broadcast them at your convenience.\n\nTo improve privacy, [A]we strongly recommend that you randomize the broadcast times of the rollover transactions.[/A] Avoid broadcasting them all at the same time.</string>
     <string name="nc_banner_expired_time">Expires %1$s</string>
+    <string name="nc_no_internet_connection_sign_dummy_tx">No Internet connection. Transaction will be automatically updated when you are online.</string>
+    <string name="nc_no_internet_connection_force_sync">Transaction not updated</string>
 </resources>
