@@ -184,6 +184,9 @@ fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     else -> getString(R.string.nc_currency_btc)
 }
 
+val String.isTestNetSigner: Boolean
+    get() = split("/").getOrNull(2) == "1h"
+
 val String.isRecommendedMultiSigPath: Boolean
     get() = this.startsWith(MULTI_SIG_SIGNER_PATH_PREFIX) && this.endsWith("2h")
 

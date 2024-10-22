@@ -65,6 +65,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.isRecommendedSingleSigPath
+import com.nunchuk.android.core.util.isTestNetSigner
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.SingleSigner
@@ -77,6 +78,7 @@ import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.ResultExistingKey
@@ -176,7 +178,16 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> viewModel.changeKeyType(signerTag = SignerTag.SEEDSIGNER)
             SheetOptionType.TYPE_ADD_TREZOR -> viewModel.changeKeyType(signerTag = SignerTag.TREZOR)
             else -> viewModel.signers.getOrNull(option.type)?.let {
-                viewModel.updateKeySpec(it.descriptor)
+                val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
+                if (isMembershipFlow && it.derivationPath.isTestNetSigner && viewModel.chain == Chain.MAIN) {
+                  NCInfoDialog(requireActivity())
+                      .showDialog(
+                          title = getString(R.string.nc_error),
+                          message = getString(R.string.nc_error_device_in_testnet_msg_v2)
+                      )
+                } else {
+                    viewModel.updateKeySpec(it.descriptor)
+                }
             }
         }
     }
@@ -331,7 +342,9 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         val fragment = BottomSheetOption.newInstance(signers.mapIndexed { index, singleSigner ->
             SheetOption(
                 type = index,
-                label = if (singleSigner.derivationPath.isRecommendedMultiSigPath) {
+                label = if (singleSigner.derivationPath.isTestNetSigner) {
+                    "${singleSigner.derivationPath} (${getString(R.string.nc_testnet)})"
+                } else if (singleSigner.derivationPath.isRecommendedMultiSigPath) {
                     "${singleSigner.derivationPath} (${
                         getString(
                             R.string.nc_recommended_for_multisig

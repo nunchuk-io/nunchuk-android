@@ -105,7 +105,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
-    private var chain: Chain = Chain.MAIN
+    var chain: Chain = Chain.MAIN
     private var groupId: String = ""
     private var isMembershipFlow = false
     private var replacedXfp: String? = null
