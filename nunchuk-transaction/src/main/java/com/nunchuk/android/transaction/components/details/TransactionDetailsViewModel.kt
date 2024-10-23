@@ -539,7 +539,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }.collect {
                     updateTransaction(it)
 
-                    val info = if (it.status == TransactionStatus.CONFIRMED) {
+                    val info = if (it.status != TransactionStatus.NETWORK_REJECTED) {
                         runCatching { reviewManager.requestReview() }.getOrNull()
                     } else {
                         null
