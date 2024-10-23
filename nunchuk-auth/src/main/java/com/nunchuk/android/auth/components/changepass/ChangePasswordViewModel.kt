@@ -27,7 +27,6 @@ import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.Confir
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ConfirmPasswordRequiredEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ConfirmPasswordValidEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.LoadingEvent
-import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.NewPasswordValidEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordRequiredEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordValidEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ShowEmailSentEvent
@@ -67,7 +66,6 @@ internal class ChangePasswordViewModel @Inject constructor(
     fun handleChangePassword(oldPassword: String, newPassword: String, confirmPassword: String) {
         viewModelScope.launch {
             if (validateOldPassword(oldPassword)
-                && validateNewPassword(newPassword)
                 && validateConfirmPassword(confirmPassword)
                 && validateConfirmPasswordMatched(newPassword, confirmPassword)
             ) {
@@ -109,16 +107,6 @@ internal class ChangePasswordViewModel @Inject constructor(
     private fun validateOldPassword(oldPassword: String) = when {
         oldPassword.isEmpty() -> doAfterValidate(false) { setEvent(OldPasswordRequiredEvent) }
         else -> doAfterValidate { setEvent(OldPasswordValidEvent) }
-    }
-
-    private fun validateNewPassword(newPassword: String): Boolean {
-        return when {
-            newPassword.length < 8 -> doAfterValidate(false) { setEvent(ChangePasswordEvent.NewPasswordLengthErrorEvent) }
-            newPassword.none { it.isDigit() } -> doAfterValidate(false) { setEvent(ChangePasswordEvent.NewPasswordNumberErrorEvent) }
-            newPassword.none { it.isUpperCase() } -> doAfterValidate(false) { setEvent(ChangePasswordEvent.NewPasswordUpperCaseErrorEvent) }
-            newPassword.none { it in SPECIAL_CHARACTERS } -> doAfterValidate(false) { setEvent(ChangePasswordEvent.NewPasswordSpecialCharErrorEvent) }
-            else -> doAfterValidate { setEvent(NewPasswordValidEvent) }
-        }
     }
 
     private fun validateConfirmPassword(confirmPassword: String) = when {
