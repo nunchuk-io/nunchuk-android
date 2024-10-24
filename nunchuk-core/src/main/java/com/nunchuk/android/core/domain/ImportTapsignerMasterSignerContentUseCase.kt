@@ -31,7 +31,7 @@ class ImportTapsignerMasterSignerContentUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
 ) : UseCase<ImportTapsignerMasterSignerContentUseCase.Param, MasterSigner>(dispatcher) {
     override suspend fun execute(parameters: Param): MasterSigner {
-        return nunchukNativeSdk.importTapsignerMasterSignerContent(
+        return nunchukNativeSdk.importBackupKeyContent(
             content = parameters.content,
             backUpKey = parameters.backUpKey,
             rawName = parameters.rawName

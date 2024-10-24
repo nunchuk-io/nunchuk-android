@@ -51,7 +51,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.LabelNumberAndDesc
 import com.nunchuk.android.compose.NCLabelWithIndex
+import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
@@ -89,13 +91,17 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceShareSecretInfoScreen(viewModel, args) {
+                InheritanceShareSecretInfoScreen(viewModel, args, onActionClick = {
                     if (args.planFlow == InheritancePlanFlow.SETUP) {
                         showDialogInfo()
                     } else {
                         handleBack()
                     }
-                }
+                }, onLearnMoreClicked = {
+                    findNavController().navigate(
+                        InheritanceShareSecretInfoFragmentDirections.actionInheritanceShareSecretInfoFragmentToInheritanceBackUpDownloadFragment()
+                    )
+                })
             }
         }
     }
@@ -118,6 +124,7 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
                     ActivityManager.popUntil(GroupDashboardActivity::class.java)
                 }
             }
+
             InheritanceSourceFlow.SERVICE_TAB -> requireActivity().finish()
             else -> {
                 ActivityManager.popUntilRoot()
@@ -133,7 +140,8 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 private fun InheritanceShareSecretInfoScreen(
     viewModel: InheritanceShareSecretInfoViewModel = viewModel(),
     args: InheritanceShareSecretInfoFragmentArgs,
-    onActionClick: () -> Unit = {}
+    onActionClick: () -> Unit = {},
+    onLearnMoreClicked: () -> Unit = {}
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     InheritanceShareSecretInfoContent(
@@ -141,7 +149,8 @@ private fun InheritanceShareSecretInfoScreen(
         type = args.type,
         magicalPhrase = args.magicalPhrase,
         planFlow = args.planFlow,
-        onActionClick = onActionClick
+        onActionClick = onActionClick,
+        onLearnMoreClicked = onLearnMoreClicked
     )
 }
 
@@ -152,7 +161,8 @@ private fun InheritanceShareSecretInfoContent(
     magicalPhrase: String = "",
     type: Int = 0,
     planFlow: Int = InheritancePlanFlow.NONE,
-    onActionClick: () -> Unit = {}
+    onActionClick: () -> Unit = {},
+    onLearnMoreClicked: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -207,18 +217,36 @@ private fun InheritanceShareSecretInfoContent(
                             ) {
                                 Text(
                                     modifier = Modifier.fillMaxWidth(),
-                                    text = magicalPhrase.ifEmpty { Utils.maskValue("", isMask = true) },
+                                    text = magicalPhrase.ifEmpty {
+                                        Utils.maskValue(
+                                            "",
+                                            isMask = true
+                                        )
+                                    },
                                     style = NunchukTheme.typography.body,
                                     textAlign = TextAlign.Center
                                 )
                             }
                         }
 
-                        NCLabelWithIndex(
-                            modifier = Modifier.padding(16.dp),
+                        LabelNumberAndDesc(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                             index = 2,
-                            label = stringResource(R.string.nc_inheritance_share_secret_info_2),
-                        )
+                            title = stringResource(id = com.nunchuk.android.signer.R.string.nc_init_coldcard),
+                            titleStyle = NunchukTheme.typography.title,
+                        ) {
+                            NcClickableText(
+                                modifier = Modifier.padding(top = 8.dp, start = 36.dp),
+                                messages = listOf(
+                                    ClickAbleText(content = stringResource(id = R.string.nc_inheritance_share_secret_info_2)),
+                                    ClickAbleText(
+                                        content = stringResource(id = R.string.nc_learn_more),
+                                        onLearnMoreClicked
+                                    )
+                                ),
+                                style = NunchukTheme.typography.body
+                            )
+                        }
                     }
                 }
 

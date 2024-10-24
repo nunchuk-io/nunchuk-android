@@ -276,7 +276,7 @@
     <string name="nc_assisted">Assisted</string>
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key.\n\nPlease take a moment to mark or label this key.</string>
-    <string name="nc_inheritance_key_tip_desc">The inheritance key can function as a backup signing key on a day-to-day basis.\n\nHowever, since the TAPSIGNER used as the inheritance key contains sensitive information with regards to the inheritance (i.e., the Backup Password), [B]we recommend that you exercise extra caution when storing and accessing it.[/B]</string>
+    <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance.[/B] As such, it should rarely be accessed. However, in an emergency, it can function as a backup signing key.\n\nWe recommend that you put it away in a safe place. Only use this key to sign daily transactions as a last resort.</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_set_up_inheritance_plan_wallet">Set up an inheritance plan for this wallet</string>
     <string name="nc_view_inheritance_plan">View inheritance plan</string>
@@ -465,7 +465,8 @@
     <string name="nc_joint_control_desc">The Beneficiary and the Trustee have joint control over the inheritance. Upon the Activation Date, the Beneficiary and Trustee will need to combine their secrets in order to claim the inheritance.</string>
     <string name="nc_plan_magical_phrase">The plan’s Magic Phrase.</string>
     <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magic Phrase and Backup Password with the %s. Failure to share will result in the inheritance being unclaimable.</string>
-    <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup, which can be found on the back of the TAPSIGNER designated for inheritance. (it might be listed under “Backup key”).</string>
+    <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup.</string>
+    <string name="nc_learn_more">Learn more</string>
     <string name="nc_inheritance_share_secret_info_title_direct">Please share these two secrets with the Beneficiary:</string>
     <string name="nc_inheritance_share_secret_info_title_indirect">Please share these two secrets with the Trustee:</string>
     <string name="nc_inheritance_share_secret_info_title_joint_control">Please share one secret with the Beneficiary and the other secret with the Trustee. [B]Neither party should have both secrets.[/B]</string>

@@ -99,7 +99,12 @@ class CheckBackUpByAppViewModel @Inject constructor(
         }
     }
 
-    fun onReplaceKeyVerified(masterSignerId: String, keyId: String) {
+    fun onReplaceKeyVerified(
+        masterSignerId: String,
+        keyId: String,
+        groupId: String,
+        walletId: String
+    ) {
         viewModelScope.launch {
             val result =
                 verifyTapSignerBackupUseCase(
@@ -113,9 +118,11 @@ class CheckBackUpByAppViewModel @Inject constructor(
                 val apiResult =
                     setReplaceKeyVerifiedUseCase(
                         SetReplaceKeyVerifiedUseCase.Param(
-                            keyId,
-                            getChecksum(),
-                            true
+                            keyId = keyId,
+                            checkSum = getChecksum(),
+                            isAppVerified = true,
+                            groupId = groupId,
+                            walletId = walletId
                         )
                     )
                 if (apiResult.isSuccess) {

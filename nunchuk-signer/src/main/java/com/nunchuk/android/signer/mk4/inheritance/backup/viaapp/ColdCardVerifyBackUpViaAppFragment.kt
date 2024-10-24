@@ -104,10 +104,12 @@ class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
             }, onContinue = {
                 val keyId = mk4ViewModel.coldCardBackUpParam.keyId
                 val groupId = (requireActivity() as Mk4Activity).groupId
+                val walletId = (requireActivity() as Mk4Activity).walletId
                 val masterSignerId = mk4ViewModel.coldCardBackUpParam.xfp
                 val filePath = mk4ViewModel.coldCardBackUpParam.filePath
                 if (keyId.isNotEmpty()) {
-                    viewModel.onReplaceKeyVerified(masterSignerId, keyId, filePath)
+                    viewModel.onReplaceKeyVerified(masterSignerId, keyId, filePath,
+                        groupId = groupId, walletId = walletId.orEmpty())
                 } else {
                     viewModel.onContinueClicked(groupId, masterSignerId, filePath)
                 }

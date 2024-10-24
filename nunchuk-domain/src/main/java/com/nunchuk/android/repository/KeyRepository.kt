@@ -57,13 +57,15 @@ interface KeyRepository {
     suspend fun setKeyVerified(
         groupId: String,
         masterSignerId: String,
-        isAppVerify: Boolean,
+        isAppVerify: Boolean
     )
 
     suspend fun setReplaceKeyVerified(
         checkSum: String,
         keyId: String,
         isAppVerify: Boolean,
+        groupId: String,
+        walletId: String
     )
 
     suspend fun initReplaceKey(
@@ -98,5 +100,7 @@ interface KeyRepository {
         isRemoveKey: Boolean,
     )
 
-    suspend fun getBackUpKey(xfp: String): String
+    suspend fun getBackUpKey(xfp: String, groupId: String): String
+
+    suspend fun getBackUpKeyReplacement(xfp: String, groupId: String, walletId: String): String
 }

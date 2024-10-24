@@ -72,7 +72,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class CheckBackUpBySelfFragment : MembershipFragment() {
     private val viewModel: CheckBackUpBySelfViewModel by viewModels()
-    private val mk4ViewModel: Mk4ViewModel by activityViewModels()
 
     @Inject
     lateinit var masterSignerMapper: MasterSignerMapper
@@ -104,9 +103,11 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                 title = getString(R.string.nc_confirmation),
                                 message = getString(R.string.nc_confirm_verify_backup_by_self_desc),
                                 onYesClick = {
-                                    val keyId = mk4ViewModel.coldCardBackUpParam.keyId
+                                    val keyId = (activity as NfcSetupActivity).keyId
                                     if (keyId.isNotEmpty()) {
-                                        viewModel.setReplaceKeyVerified(keyId)
+                                        viewModel.setReplaceKeyVerified(keyId = keyId,
+                                            groupId = (requireActivity() as NfcSetupActivity).groupId,
+                                            walletId = (requireActivity() as NfcSetupActivity).walletId)
                                     } else {
                                         viewModel.setKeyVerified(
                                             (requireActivity() as NfcSetupActivity).groupId,

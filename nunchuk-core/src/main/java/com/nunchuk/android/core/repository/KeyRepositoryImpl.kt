@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.repository
 
-import android.util.Log
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
@@ -27,7 +26,6 @@ import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
-import com.nunchuk.android.core.mapper.toBackupKey
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.formattedName
@@ -114,13 +112,24 @@ internal class KeyRepositoryImpl @Inject constructor(
             val keyXfp: RequestBody = xfp.toRequestBody("multipart/form-data".toMediaTypeOrNull())
             val keyCardId: RequestBody =
                 cardId.toRequestBody("multipart/form-data".toMediaTypeOrNull())
-            val result = userWalletApiManager.walletApi.uploadBackupKey(
-                keyName = keyNameBody,
-                keyType = keyTypeBody,
-                keyXfp = keyXfp,
-                cardId = keyCardId,
-                image = body
-            )
+            val result = if (groupId.isEmpty()) {
+                userWalletApiManager.walletApi.uploadBackupKey(
+                    keyName = keyNameBody,
+                    keyType = keyTypeBody,
+                    keyXfp = keyXfp,
+                    cardId = keyCardId,
+                    image = body
+                )
+            } else {
+                userWalletApiManager.groupWalletApi.uploadBackupKey(
+                    groupId = groupId,
+                    keyName = keyNameBody,
+                    keyType = keyTypeBody,
+                    keyXfp = keyXfp,
+                    cardId = keyCardId,
+                    image = body
+                )
+            }
             if (result.isSuccess || result.error.code == ALREADY_VERIFIED_CODE) {
                 val response = if (result.isSuccess) result.data else null
                 val chatId = accountManager.getAccount().chatId
@@ -153,15 +162,19 @@ internal class KeyRepositoryImpl @Inject constructor(
                 )
                 val isInheritance = step.isAddInheritanceKey
                 val status =
-                    if (keyType == SignerType.NFC.name) nativeSdk.getTapSignerStatusFromMasterSigner(xfp) else null
+                    if (keyType == SignerType.NFC.name) nativeSdk.getTapSignerStatusFromMasterSigner(
+                        xfp
+                    ) else null
                 val tags = if (isInheritance) {
                     when (keyType) {
                         SignerType.NFC.name -> {
                             listOf(SignerTag.INHERITANCE.name)
                         }
+
                         SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name -> {
                             listOf(SignerTag.INHERITANCE.name, SignerTag.COLDCARD.name)
                         }
+
                         else -> {
                             listOf(SignerTag.INHERITANCE.name)
                         }
@@ -207,7 +220,11 @@ internal class KeyRepositoryImpl @Inject constructor(
                         result.data.keyBackUpBase64
                     )
                     send(
-                        KeyUpload.Data(filePath = serverKeyFilePath, backUpFileName = result.data.fileName.orEmpty(), keyId = result.data.keyId)
+                        KeyUpload.Data(
+                            filePath = serverKeyFilePath,
+                            backUpFileName = result.data.fileName.orEmpty(),
+                            keyId = result.data.keyId
+                        )
                     )
                 } else {
                     send(KeyUpload.KeyVerified(result.error.message))
@@ -230,7 +247,7 @@ internal class KeyRepositoryImpl @Inject constructor(
         isAddNewKey: Boolean,
         signerIndex: Int,
         walletId: String,
-        groupId: String
+        groupId: String,
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -249,13 +266,29 @@ internal class KeyRepositoryImpl @Inject constructor(
             val keyXfp: RequestBody = xfp.toRequestBody("multipart/form-data".toMediaTypeOrNull())
             val keyCardId: RequestBody =
                 cardId.toRequestBody("multipart/form-data".toMediaTypeOrNull())
-            val result = userWalletApiManager.walletApi.uploadBackupKey(
-                keyName = keyNameBody,
-                keyType = keyTypeBody,
-                keyXfp = keyXfp,
-                cardId = keyCardId,
-                image = body
-            )
+            val verifyToken = ncDataStore.passwordToken.first()
+            val result = if (groupId.isEmpty()) {
+                userWalletApiManager.walletApi.uploadBackupKeyReplacement(
+                    walletId = walletId,
+                    verifyToken = verifyToken,
+                    keyName = keyNameBody,
+                    keyType = keyTypeBody,
+                    keyXfp = keyXfp,
+                    cardId = keyCardId,
+                    image = body
+                )
+            } else {
+                userWalletApiManager.groupWalletApi.uploadBackupKeyReplacement(
+                    groupId = groupId,
+                    walletId = walletId,
+                    verifyToken = verifyToken,
+                    keyName = keyNameBody,
+                    keyType = keyTypeBody,
+                    keyXfp = keyXfp,
+                    cardId = keyCardId,
+                    image = body
+                )
+            }
             if (result.isSuccess.not() && result.error.code != ALREADY_VERIFIED_CODE) {
                 throw result.error
             }
@@ -265,7 +298,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 AddressType.NATIVE_SEGWIT.ordinal,
                 0
             ) ?: throw NullPointerException("Can not get signer by index 0")
-            val status = if (keyType == SignerType.NFC.name) nativeSdk.getTapSignerStatusFromMasterSigner(xfp) else null
+            val status =
+                if (keyType == SignerType.NFC.name) nativeSdk.getTapSignerStatusFromMasterSigner(xfp) else null
             val wallet = if (groupId.isNotEmpty()) {
                 userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
             } else {
@@ -280,9 +314,11 @@ internal class KeyRepositoryImpl @Inject constructor(
                     SignerType.NFC.name -> {
                         listOf(SignerTag.INHERITANCE.name)
                     }
+
                     SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name -> {
                         listOf(SignerTag.INHERITANCE.name, SignerTag.COLDCARD.name)
                     }
+
                     else -> {
                         listOf(SignerTag.INHERITANCE.name)
                     }
@@ -306,7 +342,6 @@ internal class KeyRepositoryImpl @Inject constructor(
                 } else null,
                 tags = tags,
             )
-            val verifyToken = ncDataStore.passwordToken.first()
             val replaceResponse = if (groupId.isNotEmpty()) {
                 userWalletApiManager.groupWalletApi.replaceKey(
                     verifyToken = verifyToken,
@@ -335,7 +370,11 @@ internal class KeyRepositoryImpl @Inject constructor(
                     result.data.keyBackUpBase64
                 )
                 send(
-                    KeyUpload.Data(filePath = serverKeyFilePath, backUpFileName = result.data.fileName.orEmpty(), keyId = result.data.keyId)
+                    KeyUpload.Data(
+                        filePath = serverKeyFilePath,
+                        backUpFileName = result.data.fileName.orEmpty(),
+                        keyId = result.data.keyId
+                    )
                 )
 
             } else {
@@ -360,7 +399,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 groupId = groupId
             )
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
-        val response =
+        val response = if (groupId.isEmpty()) {
             userWalletApiManager.walletApi.setKeyVerified(
                 stepInfo.keyIdInServer,
                 KeyVerifiedRequest(
@@ -368,6 +407,16 @@ internal class KeyRepositoryImpl @Inject constructor(
                     if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
                 )
             )
+        } else {
+            userWalletApiManager.groupWalletApi.setKeyVerified(
+                groupId,
+                stepInfo.keyIdInServer,
+                KeyVerifiedRequest(
+                    stepInfo.checkSum,
+                    if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
+                )
+            )
+        }
         if (response.isSuccess) {
             membershipDao.updateOrInsert(stepInfo.copy(verifyType = if (isAppVerify) VerifyType.APP_VERIFIED else VerifyType.SELF_VERIFIED))
         } else {
@@ -378,16 +427,34 @@ internal class KeyRepositoryImpl @Inject constructor(
     override suspend fun setReplaceKeyVerified(
         checkSum: String,
         keyId: String,
-        isAppVerify: Boolean
+        isAppVerify: Boolean,
+        groupId: String,
+        walletId: String
     ) {
-        val response =
-            userWalletApiManager.walletApi.setKeyVerified(
-                keyId,
+        val verifyToken = ncDataStore.passwordToken.first()
+        val response = if (groupId.isEmpty()) {
+            userWalletApiManager.walletApi.setKeyVerifiedReplacement(
+                verifyToken = verifyToken,
+                keyId = keyId,
+                walletId = walletId,
                 KeyVerifiedRequest(
                     checkSum,
                     if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
                 )
             )
+        } else {
+            userWalletApiManager.groupWalletApi.setKeyVerifiedReplacement(
+                verifyToken = verifyToken,
+                groupId = groupId,
+                keyId = keyId,
+                walletId = walletId,
+                payload = KeyVerifiedRequest(
+                    checkSum,
+                    if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
+                )
+            )
+        }
+
         if (response.isSuccess.not()) {
             throw response.error
         }
@@ -576,8 +643,42 @@ internal class KeyRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getBackUpKey(xfp: String): String {
-        val response = userWalletApiManager.walletApi.downloadBackup(id = xfp)
+    override suspend fun getBackUpKey(xfp: String, groupId: String): String {
+        val response = if (groupId.isEmpty()) {
+            userWalletApiManager.walletApi.downloadBackup(xfp = xfp)
+        } else {
+            userWalletApiManager.groupWalletApi.downloadBackup(groupId = groupId, xfp = xfp)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(
+            response.data.keyId,
+            response.data.keyBackUpBase64
+        )
+        return serverKeyFilePath
+    }
+
+    override suspend fun getBackUpKeyReplacement(
+        xfp: String,
+        groupId: String,
+        walletId: String
+    ): String {
+        val verifyToken = ncDataStore.passwordToken.first()
+        val response = if (groupId.isEmpty()) {
+            userWalletApiManager.walletApi.downloadBackupReplacement(
+                walletId = walletId,
+                verifyToken = verifyToken,
+                xfp = xfp
+            )
+        } else {
+            userWalletApiManager.groupWalletApi.downloadBackupReplacement(
+                groupId = groupId,
+                walletId = walletId,
+                verifyToken = verifyToken,
+                xfp = xfp
+            )
+        }
         if (response.isSuccess.not()) {
             throw response.error
         }

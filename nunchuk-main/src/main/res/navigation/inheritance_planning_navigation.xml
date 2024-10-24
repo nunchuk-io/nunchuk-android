@@ -123,6 +123,13 @@
 
         </action>
 
+        <action android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceBackUpDownloadFragment"
+            app:destination="@id/inheritanceBackUpDownloadFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+
         <action
             android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceNotifyPrefFragment"
             app:destination="@id/inheritanceNotifyPrefFragment"
@@ -273,6 +280,9 @@
         android:id="@+id/findBackupPasswordFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.FindBackupPasswordFragment"
         android:label="FindBackupPasswordFragment">
+        <argument android:name="step_number"
+            android:defaultValue="1"
+            app:argType="integer" />
         <action
             android:id="@+id/action_findBackupPasswordFragment_to_inheritanceKeyTipFragment"
             app:destination="@id/inheritanceKeyTipFragment"
@@ -283,6 +293,14 @@
         <action
             android:id="@+id/action_findBackupPasswordFragment_to_inheritanceActivationDateFragment"
             app:destination="@id/inheritanceActivationDateFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_findBackupPasswordFragment_self"
+            app:destination="@id/findBackupPasswordFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -330,6 +348,11 @@
     <fragment android:id="@+id/inheritanceRequestPlanningSentSuccessFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.InheritanceRequestPlanningSentSuccessFragment"
         android:label="InheritanceRequestPlanningSentFragment"/>
+
+    <fragment
+        android:id="@+id/inheritanceBackUpDownloadFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.backupdownload.InheritanceBackUpDownloadFragment"
+        android:label="InheritanceShareSecretSuccessFragment"/>
 
 
     <include app:graph="@navigation/select_wallet_navigation" />

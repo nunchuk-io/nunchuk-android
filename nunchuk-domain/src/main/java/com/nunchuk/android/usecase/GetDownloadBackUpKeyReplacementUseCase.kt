@@ -17,30 +17,35 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinCollection
+import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.PairAmount
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.KeyRepository
-import com.nunchuk.android.usecase.UseCase
+import com.nunchuk.android.repository.TransactionRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class SetReplaceKeyVerifiedUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val repository: KeyRepository
-) : UseCase<SetReplaceKeyVerifiedUseCase.Param, Unit>(dispatcher) {
-    override suspend fun execute(parameters: Param) {
-        repository.setReplaceKeyVerified(
-            keyId = parameters.keyId,
-            checkSum = parameters.checkSum,
-            isAppVerify = parameters.isAppVerified,
+class GetDownloadBackUpKeyReplacementUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val keyRepository: KeyRepository
+) : UseCase<GetDownloadBackUpKeyReplacementUseCase.Param, String>(ioDispatcher) {
+
+    override suspend fun execute(parameters: Param): String {
+        return keyRepository.getBackUpKeyReplacement(
+            xfp = parameters.xfp,
             groupId = parameters.groupId,
             walletId = parameters.walletId
         )
     }
 
-    data class Param(
-        val keyId: String, val checkSum: String, val isAppVerified: Boolean,
+    class Param(
+        val xfp: String,
         val groupId: String,
         val walletId: String
     )

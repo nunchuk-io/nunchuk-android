@@ -1,7 +1,5 @@
 package com.nunchuk.android.signer.mk4.inheritance.backup.viaapp
 
-import android.app.Application
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.VerifyColdCardBackupUseCase
@@ -86,7 +84,10 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
         }
     }
 
-    fun onReplaceKeyVerified(masterSignerId: String, keyId: String, filePath: String) {
+    fun onReplaceKeyVerified(
+        masterSignerId: String, keyId: String, filePath: String, groupId: String,
+        walletId: String
+    ) {
         _state.update { it.copy(showVerifyError = false) }
         viewModelScope.launch {
             val result =
@@ -101,9 +102,11 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
                 val apiResult =
                     setReplaceKeyVerifiedUseCase(
                         SetReplaceKeyVerifiedUseCase.Param(
-                            keyId,
-                            getChecksum(filePath),
-                            true
+                            keyId = keyId,
+                            checkSum = getChecksum(filePath),
+                            isAppVerified = true,
+                            groupId = groupId,
+                            walletId = walletId
                         )
                     )
                 if (apiResult.isSuccess) {

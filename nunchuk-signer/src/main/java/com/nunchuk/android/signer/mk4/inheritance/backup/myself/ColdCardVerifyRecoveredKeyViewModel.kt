@@ -3,8 +3,6 @@ package com.nunchuk.android.signer.mk4.inheritance.backup.myself
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.signer.tapsigner.backup.verify.byself.OnExitSelfCheck
-import com.nunchuk.android.signer.tapsigner.backup.verify.byself.ShowError
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.utils.ChecksumUtil
@@ -45,13 +43,18 @@ class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String, filePath: String) {
+    fun setReplaceKeyVerified(
+        keyId: String, filePath: String,
+        groupId: String, walletId: String
+    ) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
                     checkSum = getChecksum(filePath),
-                    isAppVerified = false
+                    isAppVerified = false,
+                    groupId = groupId,
+                    walletId = walletId
                 )
             ).onSuccess {
                 _event.emit(ColdCardVerifyRecoveredKeyEvent.OnExitSelfCheck)

@@ -134,16 +134,16 @@ internal fun ColdCardImportEncryptedBackUpScreen(
                     onClick = { onColdCardAction(ColdCardAction.FILE) }
                 )
 
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    thickness = 0.5.dp
-                )
-
-                ActionItem(
-                    title = "Import via NFC",
-                    iconId = R.drawable.ic_nfc_indicator_small,
-                    onClick = { onColdCardAction(ColdCardAction.NFC) }
-                )
+//                HorizontalDivider(
+//                    modifier = Modifier.padding(horizontal = 16.dp),
+//                    thickness = 0.5.dp
+//                )
+//
+//                ActionItem(
+//                    title = "Import via NFC",
+//                    iconId = R.drawable.ic_nfc_indicator_small,
+//                    onClick = { onColdCardAction(ColdCardAction.NFC) }
+//                )
             }
         }
     }

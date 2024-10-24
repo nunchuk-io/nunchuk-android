@@ -97,7 +97,7 @@ private fun InheritanceKeyTipContent(
                     .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_inheritance_key_tip,
+                    backgroundRes = R.drawable.bg_inheritance_key_illustration,
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime

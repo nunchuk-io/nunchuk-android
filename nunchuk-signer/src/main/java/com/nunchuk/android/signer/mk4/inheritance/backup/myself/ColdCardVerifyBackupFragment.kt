@@ -55,6 +55,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.tapsigner.backup.verify.byself.GetBackUpKeySuccess
@@ -90,9 +91,12 @@ class ColdCardVerifyBackupFragment : MembershipFragment() {
             requireActivity().finish()
         }, onDownloadFile = {
             viewModel.handleDownloadBackupKey(
+                isReplaceKey = mk4ViewModel.coldCardBackUpParam.keyId.isNotEmpty(),
                 backUpFileName = mk4ViewModel.coldCardBackUpParam.backUpFileName,
                 filePath = mk4ViewModel.coldCardBackUpParam.filePath,
-                xfp = mk4ViewModel.coldCardBackUpParam.xfp
+                xfp = mk4ViewModel.coldCardBackUpParam.xfp,
+                groupId = (requireActivity() as Mk4Activity).groupId,
+                walletId = (requireActivity() as Mk4Activity).walletId.orEmpty()
             )
         })
     }

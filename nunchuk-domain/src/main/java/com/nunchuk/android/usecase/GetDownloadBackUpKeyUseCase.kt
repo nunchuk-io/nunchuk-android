@@ -38,11 +38,13 @@ class GetDownloadBackUpKeyUseCase @Inject constructor(
 
     override suspend fun execute(parameters: Param): String {
         return keyRepository.getBackUpKey(
-            xfp = parameters.xfp
+            xfp = parameters.xfp,
+            groupId = parameters.groupId
         )
     }
 
     class Param(
         val xfp: String,
+        val groupId: String
     )
 }

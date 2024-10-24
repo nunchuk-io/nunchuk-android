@@ -93,13 +93,15 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String) {
+    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
                     checkSum = getChecksum(),
-                    isAppVerified = false
+                    isAppVerified = false,
+                    groupId = groupId,
+                    walletId = walletId
                 )
             ).onSuccess {
                 _event.emit(OnExitSelfCheck)

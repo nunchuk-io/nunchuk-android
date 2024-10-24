@@ -217,17 +217,11 @@ internal interface UserWalletsApi {
         @Body payload: CreateUpdateInheritancePlanRequest.Body
     ): Data<CalculateRequiredSignaturesResponse>
 
-    @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/download-backup")
+    @POST("/v1.1/user-wallets/draft-wallets/{xfp}/download-backup")
     suspend fun downloadBackup(
         @Header("Verify-token") verifyToken: String? = null,
-        @Path("key_id_or_xfp") id: String,
+        @Path("xfp") xfp: String,
         @Body payload: ConfigSecurityQuestionPayload = ConfigSecurityQuestionPayload(emptyList())
-    ): Data<KeyResponse>
-
-    @GET("/v1.1/user-wallets/user-keys/{key_id_or_xfp}")
-    suspend fun getKey(
-        @Path("key_id_or_xfp") id: String,
-        @Query("derivation_path") derivationPath: String,
     ): Data<KeyResponse>
 
     @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/calculate-required-signatures")
@@ -322,7 +316,7 @@ internal interface UserWalletsApi {
     ): Data<DummyTransactionResponse>
 
     @Multipart
-    @POST("/v1.1/user-wallets/user-keys/upload-backup")
+    @POST("/v1.1/user-wallets/draft-wallets/upload-backup")
     suspend fun uploadBackupKey(
         @Part("key_name") keyName: RequestBody,
         @Part("key_type") keyType: RequestBody,
@@ -331,9 +325,9 @@ internal interface UserWalletsApi {
         @Part image: MultipartBody.Part,
     ): Data<KeyResponse>
 
-    @POST("/v1.1/user-wallets/user-keys/{key_id}/verify")
+    @POST("/v1.1/user-wallets/draft-wallets/{xfp}/verify")
     suspend fun setKeyVerified(
-        @Path("key_id") keyId: String, @Body payload: KeyVerifiedRequest
+        @Path("xfp") xfp: String, @Body payload: KeyVerifiedRequest
     ): Data<Unit>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/status")
@@ -701,5 +695,32 @@ internal interface UserWalletsApi {
     @PUT("/v1.1/user-wallets/draft-wallets/current/alerts/{alert_id}/mark-as-read")
     suspend fun markDraftWalletAlertAsRead(
         @Path("alert_id") alertId: String,
+    ): Data<Unit>
+
+    @Multipart
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/upload-backup")
+    suspend fun uploadBackupKeyReplacement(
+        @Header("Verify-token") verifyToken: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Part("key_name") keyName: RequestBody,
+        @Part("key_type") keyType: RequestBody,
+        @Part("key_xfp") keyXfp: RequestBody,
+        @Part("card_id") cardId: RequestBody,
+        @Part image: MultipartBody.Part,
+    ): Data<KeyResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}/download-backup")
+    suspend fun downloadBackupReplacement(
+        @Header("Verify-token") verifyToken: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+    ): Data<KeyResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}/verify")
+    suspend fun setKeyVerifiedReplacement(
+        @Header("Verify-token") verifyToken: String,
+        @Path("xfp") keyId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: KeyVerifiedRequest
     ): Data<Unit>
 }

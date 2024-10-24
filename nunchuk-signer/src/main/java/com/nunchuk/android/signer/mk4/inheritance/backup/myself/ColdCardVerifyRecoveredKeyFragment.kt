@@ -72,8 +72,10 @@ class ColdCardVerifyRecoveredKeyFragment : MembershipFragment() {
                 val keyId = mk4ViewModel.coldCardBackUpParam.keyId
                 if (keyId.isNotEmpty()) {
                     viewModel.setReplaceKeyVerified(
-                        keyId,
-                        mk4ViewModel.coldCardBackUpParam.filePath
+                        keyId = keyId,
+                        filePath = mk4ViewModel.coldCardBackUpParam.filePath,
+                        groupId = (requireActivity() as? Mk4Activity)?.groupId.orEmpty(),
+                        walletId = (requireActivity() as? Mk4Activity)?.walletId.orEmpty()
                     )
                 } else {
                     viewModel.setKeyVerified(

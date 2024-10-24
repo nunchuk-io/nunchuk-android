@@ -74,7 +74,7 @@ class BackingUpViewModel @Inject constructor(
         filePath: String,
         masterSignerId: String,
         signerType: SignerType = SignerType.NFC,
-        keyName: String = ""
+        keyName: String = "",
     ) {
         this.isAddNewKey = isAddNewKey
         this.groupId = groupId
