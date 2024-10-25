@@ -25,17 +25,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -171,20 +172,21 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             SheetOptionType.TYPE_ADD_BITBOX -> viewModel.changeKeyType(signerTag = SignerTag.BITBOX)
             SheetOptionType.TYPE_ADD_AIRGAP_JADE -> viewModel.changeKeyType(signerTag = SignerTag.JADE)
             SignerType.COLDCARD_NFC.ordinal -> viewModel.changeKeyType(signerTag = SignerTag.COLDCARD)
-            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT-> viewModel.changeKeyType(signerTag = SignerTag.PASSPORT)
+            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> viewModel.changeKeyType(signerTag = SignerTag.PASSPORT)
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> viewModel.changeKeyType(signerTag = null)
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> viewModel.changeKeyType(signerTag = SignerTag.KEYSTONE)
             SheetOptionType.TYPE_ADD_LEDGER -> viewModel.changeKeyType(signerTag = SignerTag.LEDGER)
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> viewModel.changeKeyType(signerTag = SignerTag.SEEDSIGNER)
             SheetOptionType.TYPE_ADD_TREZOR -> viewModel.changeKeyType(signerTag = SignerTag.TREZOR)
             else -> viewModel.signers.getOrNull(option.type)?.let {
-                val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
+                val isMembershipFlow =
+                    (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
                 if (isMembershipFlow && it.derivationPath.isTestNetSigner && viewModel.chain == Chain.MAIN) {
-                  NCInfoDialog(requireActivity())
-                      .showDialog(
-                          title = getString(R.string.nc_error),
-                          message = getString(R.string.nc_error_device_in_testnet_msg_v2)
-                      )
+                    NCInfoDialog(requireActivity())
+                        .showDialog(
+                            title = getString(R.string.nc_error),
+                            message = getString(R.string.nc_error_device_in_testnet_msg_v2)
+                        )
                 } else {
                     viewModel.updateKeySpec(it.descriptor)
                 }
@@ -229,7 +231,10 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                     when (it.type) {
                         ResultExistingKey.Software -> NCInfoDialog(requireActivity())
                             .showDialog(
-                                message = String.format(getString(R.string.nc_existing_key_is_software_key_delete_key), it.singleSigner.masterFingerprint.uppercase(Locale.getDefault())),
+                                message = String.format(
+                                    getString(R.string.nc_existing_key_is_software_key_delete_key),
+                                    it.singleSigner.masterFingerprint.uppercase(Locale.getDefault())
+                                ),
                                 btnYes = getString(R.string.nc_text_yes),
                                 btnInfo = getString(R.string.nc_text_no),
                                 onYesClick = {
@@ -237,10 +242,12 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                                 },
                                 onInfoClick = {}
                             )
+
                         ResultExistingKey.Hardware -> {
                             NCInfoDialog(requireActivity())
                                 .showDialog(
-                                    message = String.format(getString(R.string.nc_existing_key_change_key_type),
+                                    message = String.format(
+                                        getString(R.string.nc_existing_key_change_key_type),
                                         it.singleSigner.masterFingerprint.uppercase(Locale.getDefault())
                                     ),
                                     btnYes = getString(R.string.nc_text_yes),
@@ -251,6 +258,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                                     onInfoClick = {}
                                 )
                         }
+
                         ResultExistingKey.None -> openSignerInfo(it.singleSigner)
                     }
                 }
@@ -377,29 +385,31 @@ private fun AddAirgapSignerContent(
     onKeySpecChange: (String) -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            val title = if (isMembershipFlow) {
-                stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                )
-            } else {
-                ""
-            }
-            NcTopAppBar(title = title, actions = {
-                Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-            })
-        }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                onClick = {
-                    onAddSigner(uiState.keyName, uiState.keySpec)
-                }) {
-                Text(text = stringResource(id = R.string.nc_text_add_signer))
-            }
-        }) { innerPadding ->
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                val title = if (isMembershipFlow) {
+                    stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    )
+                } else {
+                    ""
+                }
+                NcTopAppBar(title = title, actions = {
+                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                })
+            }, bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    onClick = {
+                        onAddSigner(uiState.keyName, uiState.keySpec)
+                    }) {
+                    Text(text = stringResource(id = R.string.nc_text_add_signer))
+                }
+            }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -462,12 +472,12 @@ private fun AddAirgapSignerContent(
                                 text = stringResource(id = R.string.nc_import_via_file),
                                 style = NunchukTheme.typography.captionTitle
                             )
-                            Image(
+                            Icon(
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .size(18.dp),
                                 painter = painterResource(id = R.drawable.ic_import),
-                                contentDescription = null,
+                                contentDescription = "Import",
                             )
                         }
                     }
@@ -487,12 +497,12 @@ private fun AddAirgapSignerContent(
                                 text = stringResource(id = R.string.nc_scan_qr),
                                 style = NunchukTheme.typography.captionTitle
                             )
-                            Image(
+                            Icon(
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .size(18.dp),
                                 painter = painterResource(id = R.drawable.ic_qr),
-                                contentDescription = null,
+                                contentDescription = "QR",
                             )
                         }
                     }

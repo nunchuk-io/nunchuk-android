@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -101,25 +102,28 @@ private fun AirgapIntroContent(
         else -> R.drawable.bg_airgap_other_intro
     }
     NunchukTheme {
-        Scaffold(topBar = {
-            NcImageAppBar(
-                backgroundRes = bgResId,
-                title = if (isMembershipFlow && !isReplaceKey) stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                ) else "",
-                actions = {
-                    if (isMembershipFlow && !isReplaceKey) {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcImageAppBar(
+                    backgroundRes = bgResId,
+                    title = if (isMembershipFlow && !isReplaceKey) stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else "",
+                    actions = {
+                        if (isMembershipFlow && !isReplaceKey) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
                         }
                     }
-                }
-            )
-        }) { innerPadding ->
+                )
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)

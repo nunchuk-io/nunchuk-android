@@ -5,9 +5,17 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/nc_header_gradient_background"
     app:layoutDescription="@xml/motion_collapse_wallet_header"
     app:layout_constraintTop_toTopOf="parent">
+
+    <View
+        android:id="@+id/statusBarBackground"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/nc_header_gradient_background"
+        app:layout_constraintBottom_toBottomOf="@+id/spaceBottom16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -66,6 +74,7 @@
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/configuration"
             style="@style/NCText.Badges"
+            android:backgroundTint="#EAEAEA"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/nc_rounded_tag_whisper_background"
@@ -74,6 +83,7 @@
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/share_icon"
             style="@style/NCText.Badges"
+            android:backgroundTint="#EAEAEA"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_4"
@@ -146,6 +156,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:background="@drawable/nc_circle_white_background"
+        android:backgroundTint="#F5F5F5"
         android:foreground="?attr/selectableItemBackgroundBorderless"
         android:padding="@dimen/nc_padding_12"
         app:layout_constraintEnd_toStartOf="@+id/iv_receive_btc"
@@ -159,6 +170,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/nc_circle_white_background"
+        android:backgroundTint="#F5F5F5"
         android:foreground="?attr/selectableItemBackgroundBorderless"
         android:padding="@dimen/nc_padding_12"
         app:layout_constraintEnd_toStartOf="@+id/iv_view_coin"
@@ -171,6 +183,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/nc_circle_white_background"
+        android:backgroundTint="#F5F5F5"
         android:foreground="?attr/selectableItemBackgroundBorderless"
         android:padding="@dimen/nc_padding_12"
         app:layout_constraintEnd_toEndOf="parent"
@@ -224,15 +237,14 @@
         android:id="@+id/scrollViewWalletTransactions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/nc_white_color"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spaceBottom16">
+        app:layout_constraintTop_toBottomOf="@+id/spaceBottom16"
+        tools:visibility="visible">
 
         <LinearLayout
             android:id="@+id/clWalletTransactions"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/nc_white_color"
             android:orientation="vertical"
             tools:ignore="ContentDescription">
 
@@ -267,7 +279,7 @@
                     android:paddingHorizontal="@dimen/nc_padding_16"
                     android:paddingVertical="@dimen/nc_padding_4"
                     android:text="@string/nc_transaction_empty_title"
-                    android:textColor="@color/nc_primary_dark_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
@@ -278,6 +290,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/nc_padding_16"
                     android:layout_marginVertical="@dimen/nc_padding_2"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="@dimen/nc_padding_8"
                     app:cardUseCompatPadding="true">
 
@@ -306,7 +319,7 @@
                             android:layout_marginTop="@dimen/nc_padding_8"
                             android:paddingHorizontal="@dimen/nc_padding_16"
                             android:paddingVertical="@dimen/nc_padding_4"
-                            android:textColor="@color/nc_primary_dark_color"
+                            android:textColor="@color/nc_text_primary"
                             android:textSize="@dimen/nc_text_size_16"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -409,7 +422,7 @@
                 android:paddingHorizontal="@dimen/nc_padding_16"
                 android:paddingVertical="@dimen/nc_padding_4"
                 android:text="@string/nc_transaction"
-                android:textColor="@color/nc_primary_dark_color"
+                android:textColor="@color/nc_text_primary"
                 android:textSize="@dimen/nc_text_size_16"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -423,7 +436,6 @@
         android:id="@+id/transactionList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@color/nc_white_color"
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingTop="@dimen/nc_padding_8"
         android:paddingBottom="@dimen/nc_padding_56"
@@ -441,10 +453,8 @@
         android:layout_gravity="center"
         android:layout_margin="@dimen/nc_padding_16"
         android:src="@drawable/ic_hide_pass"
-        app:backgroundTint="@color/nc_primary_color"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:tint="@color/nc_whisper_color" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 
 </androidx.constraintlayout.motion.widget.MotionLayout>

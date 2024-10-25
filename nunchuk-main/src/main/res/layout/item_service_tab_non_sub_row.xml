@@ -15,6 +15,7 @@
         android:padding="@dimen/nc_padding_12"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/nc_text_primary"
         tools:src="@drawable/ic_inheritance_planning" />
 
     <TextView

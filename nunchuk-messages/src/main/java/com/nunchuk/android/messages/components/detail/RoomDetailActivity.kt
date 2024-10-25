@@ -48,7 +48,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        setLightStatusBar(true)
+        setLightStatusBar()
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.nav_room_detail)
         navHostFragment.navController.setGraph(graph, intent.extras)

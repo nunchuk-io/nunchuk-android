@@ -1,13 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="NunchukTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="NunchukTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
-        <item name="colorAccent">@color/nc_primary_color</item>
+        <item name="colorSecondary">@color/nc_primary_color</item>
+        <item name="colorControlNormal">@color/nc_text_primary</item>
         <item name="android:datePickerStyle">@style/NunchukDateTimePicker</item>
+        <item name="cardViewStyle">@style/NcCardView</item>
+        <item name="floatingActionButtonStyle">@style/Widget.App.FloatingActionButton</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.App.ExtendedFloatingActionButton</item>
     </style>
 
+    <style name="Widget.App.ExtendedFloatingActionButton" parent="Widget.MaterialComponents.ExtendedFloatingActionButton.Icon">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.FloatingActionButton</item>
+    </style>
+
+    <style name="Widget.App.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.FloatingActionButton</item>
+    </style>
+
+    <style name="ThemeOverlay.App.FloatingActionButton" parent="">
+        <item name="colorSecondary">@color/nc_fill_primary</item>
+        <item name="colorOnSecondary">@color/nc_control_text_primary</item>
+        <item name="colorOnSurface">@color/nc_control_text_primary</item>
+    </style>
+
+    <style name="NcCardView" parent="CardView">
+        <item name="cardBackgroundColor">?attr/colorSurface</item>
+        <item name="cardElevation">1dp</item>
+    </style>
     <style name="NCToolbar">
         <item name="android:minHeight">?attr/actionBarSize</item>
         <item name="buttonGravity">center_vertical</item>
@@ -17,28 +38,26 @@
     <style name="NCToolbar.Text" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
         <item name="android:layout_gravity">center</item>
         <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/nc_black_color</item>
+        <item name="android:textColor">@color/nc_text_primary</item>
         <item name="android:textSize">@dimen/nc_text_size_18</item>
         <item name="fontTextStyle">bold</item>
     </style>
 
-    <style name="NunchukNoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar" />
+    <style name="NunchukNoActionBar" parent="NunchukTheme" />
 
-    <style name="NunchukNoActionBar.Light" parent="NunchukTheme"/>
+    <style name="NunchukNoActionBar.Light" parent="NunchukTheme" />
 
     <style name="NunchukNoActionBar.Dark" parent="NunchukNoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
         <item name="colorAccent">@color/nc_accent_color</item>
-        <item name="android:windowBackground">@color/nc_white_color</item>
     </style>
 
     <style name="NCTabLayout" parent="Base.Widget.Design.TabLayout">
-        <item name="tabIndicatorColor">@color/nc_primary_dark_color</item>
+        <item name="tabIndicatorColor">@color/nc_text_primary</item>
         <item name="tabIndicatorHeight">4dp</item>
-        <item name="tabBackground">@color/nc_white_color</item>
-        <item name="tabSelectedTextColor">@color/nc_primary_dark_color</item>
-        <item name="tabTextColor">@color/nc_primary_dark_color</item>
+        <item name="tabSelectedTextColor">@color/nc_text_primary</item>
+        <item name="tabTextColor">@color/nc_text_primary</item>
         <item name="tabGravity">fill</item>
         <item name="tabMode">fixed</item>
         <item name="paddingStart">0dp</item>
@@ -79,10 +98,14 @@
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
     </style>
 
-    <style name="NunchukDateTimePicker" parent="Theme.MaterialComponents.Light.Dialog">
+    <style name="NunchukDateTimePicker" parent="Theme.MaterialComponents.DayNight.Dialog">
         <item name="colorAccent">@color/nc_primary_color</item>
-        <item name="android:buttonBarNegativeButtonStyle">@style/DatePickerTheme.ButtonBarNegativeButtonStyle</item>
-        <item name="android:buttonBarPositiveButtonStyle">@style/DatePickerTheme.ButtonBarNegativeButtonStyle</item>
+        <item name="android:buttonBarNegativeButtonStyle">
+            @style/DatePickerTheme.ButtonBarNegativeButtonStyle
+        </item>
+        <item name="android:buttonBarPositiveButtonStyle">
+            @style/DatePickerTheme.ButtonBarNegativeButtonStyle
+        </item>
     </style>
 
     <style name="DatePickerTheme.ButtonBarNegativeButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">

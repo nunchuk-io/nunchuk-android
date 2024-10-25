@@ -21,9 +21,18 @@ package com.nunchuk.android.widget.util
 
 import android.app.Activity
 import android.graphics.Color
-import android.view.View.*
+import android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+import android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+import android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+import android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+import android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 
 @Suppress("DEPRECATION")
 fun Activity.setTransparentStatusBar(useDarkTheme: Boolean = true) {
@@ -41,14 +50,18 @@ fun Activity.setTransparentStatusBar(useDarkTheme: Boolean = true) {
 }
 
 @Suppress("DEPRECATION")
-fun Activity.setLightStatusBar(light: Boolean = true) {
-    window.apply {
-        statusBarColor = Color.WHITE
-        navigationBarColor =  Color.WHITE
-    }
-    WindowInsetsControllerCompat(window, window.decorView).apply {
-        isAppearanceLightStatusBars = light
-        isAppearanceLightNavigationBars = light
+fun AppCompatActivity.setLightStatusBar() {
+    enableEdgeToEdge()
+    ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, windowInsets ->
+        val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+        v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            leftMargin = insets.left
+            bottomMargin = insets.bottom
+            rightMargin = insets.right
+            topMargin = insets.top
+        }
+
+        WindowInsetsCompat.CONSUMED
     }
 }
 

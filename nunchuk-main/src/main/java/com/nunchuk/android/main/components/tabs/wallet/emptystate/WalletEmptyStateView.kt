@@ -40,7 +40,7 @@ internal fun WalletEmptyStateView(
         personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
         else -> null
     }
-    NunchukTheme(false) {
+    NunchukTheme(isSetStatusBar = false) {
         val contentData: WizardData?
         val keyWalletEntryData: KeyWalletEntryData?
         val conditionInfo = when {

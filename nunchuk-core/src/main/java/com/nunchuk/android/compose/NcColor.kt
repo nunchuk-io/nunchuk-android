@@ -35,11 +35,14 @@ object NcColor {
     val quickSilver = Color(0xFFA6A6A6)
 }
 
+val ColorScheme.isDark: Boolean
+    get() = primary == Color.Black
+
 val ColorScheme.border: Color
-    get() = Color(0xFFDEDEDE)
+    get() = if (isDark) Color(0xFF595959) else Color(0xFFDEDEDE)
 
 val ColorScheme.greyLight: Color
-    get() = Color(0xFFF5F5F5)
+    get() = if (isDark) Color(0xFF2C2C2C) else Color(0xFFF5F5F5)
 
 val ColorScheme.greyDark: Color
     get() = NcColor.greyDark
@@ -67,3 +70,6 @@ val ColorScheme.tealishGreen: Color
 
 val ColorScheme.quickSilver: Color
     get() = Color(0xFFA6A6A6)
+
+val ColorScheme.textPrimary: Color
+    get() = if (isDark) Color.White else Color(0xFF031F2B)

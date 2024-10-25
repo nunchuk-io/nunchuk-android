@@ -57,4 +57,6 @@ interface SettingRepository {
     suspend fun setLastCloseApp(time: Long)
     suspend fun setCustomPinConfig(decoyPin: String, isEnable: Boolean)
     fun getCustomPinConfig(decoyPin: String): Flow<Boolean>
+    suspend fun setDarkMode(isDarkMode: Boolean?)
+    fun getDarkMode(): Flow<Boolean?>
 }

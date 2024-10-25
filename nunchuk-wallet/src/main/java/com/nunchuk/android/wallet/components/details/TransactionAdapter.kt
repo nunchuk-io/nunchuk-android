@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.annotation.SuppressLint
 import android.util.Patterns
 import android.view.View
 import android.view.ViewGroup
@@ -50,7 +51,6 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.formatByHour
-import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import com.nunchuk.android.utils.weekDayYearFormat
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
@@ -87,7 +87,7 @@ internal class TransactionAdapter(
 
         private val binding = ItemTransactionBinding.bind(itemView)
         private val receivedAmountColor = ContextCompat.getColor(context, R.color.nc_slime_dark)
-        private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_primary_color)
+        private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_text_primary)
 
         init {
             binding.noteContainer.setOnDebounceClickListener {
@@ -169,6 +169,7 @@ internal class TransactionAdapter(
             }
         }
 
+        @SuppressLint("SetTextI18n")
         private fun handleServerTransaction(
             transaction: Transaction,
             serverTransaction: ServerTransaction?

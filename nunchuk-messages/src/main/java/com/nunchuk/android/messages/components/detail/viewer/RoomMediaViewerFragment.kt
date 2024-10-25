@@ -92,13 +92,11 @@ class RoomMediaViewerFragment : BasePermissionFragment<FragmentRoomMediaViewerBi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
-        requireActivity().setLightStatusBar(false)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         WindowCompat.setDecorFitsSystemWindows(requireActivity().window, true)
-        requireActivity().setLightStatusBar()
     }
 
     override fun initializeBinding(

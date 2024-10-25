@@ -29,7 +29,13 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
 import com.nunchuk.android.core.util.getString
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.databinding.*
+import com.nunchuk.android.main.databinding.ItemServiceTabCategoryBinding
+import com.nunchuk.android.main.databinding.ItemServiceTabEmptyStateBinding
+import com.nunchuk.android.main.databinding.ItemServiceTabNonSubHeaderBinding
+import com.nunchuk.android.main.databinding.ItemServiceTabNonSubRowBinding
+import com.nunchuk.android.main.databinding.ItemServiceTabObserverRoleBinding
+import com.nunchuk.android.main.databinding.ItemServiceTabRowBinding
+import com.nunchuk.android.main.databinding.ItemServicesTabBannerBinding
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 class ServicesTabAdapter constructor(
@@ -178,7 +184,7 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
     ) : ServiceTabViewHolder(binding.root) {
         fun bind(item: ServiceTabRowCategory) {
             binding.tvTitle.text = getString(item.title)
-            binding.ivLogo.setBackgroundResource(item.drawableId)
+            binding.ivLogo.setImageResource(item.drawableId)
         }
     }
 

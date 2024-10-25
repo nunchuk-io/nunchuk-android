@@ -22,7 +22,7 @@ package com.nunchuk.android.signer.components.add
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.core.view.WindowCompat
+import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.R
@@ -36,16 +36,10 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
         val navHostFragment =
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         navHostFragment.navController.setGraph(R.navigation.airgap_navigation)
-        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.addAirgapSignerFragment -> WindowCompat.setDecorFitsSystemWindows(window, true)
-                else -> WindowCompat.setDecorFitsSystemWindows(window, false)
-            }
-        }
     }
 
     val isMembershipFlow: Boolean by lazy {

@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_24"
                 android:layout_marginTop="@dimen/nc_padding_16"
-                android:textColor="@color/nc_primary_dark_color"
+                android:textColor="@color/nc_text_primary"
                 android:textSize="@dimen/nc_text_size_16"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/viewPager"
@@ -48,7 +48,7 @@
                 android:src="@drawable/ic_more_white"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/viewPager"
-                app:tint="@color/nc_primary_dark_color" />
+                app:tint="@color/nc_text_primary" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
@@ -71,14 +71,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_share"
-            app:tint="@color/nc_primary_color" />
+            app:tint="@color/nc_control_text_primary" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
             android:text="@string/nc_address_share"
-            android:textColor="@color/nc_white_color"
+            android:textColor="@color/nc_control_text_primary"
             android:textSize="@dimen/nc_text_size_14"
             app:fontTextStyle="semi_bold" />
     </LinearLayout>
@@ -100,14 +100,15 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_copy" />
+            android:src="@drawable/ic_copy"
+            app:tint="@color/nc_text_primary" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
             android:text="@string/nc_address_copy"
-            android:textColor="@color/nc_black_color"
+            android:textColor="@color/nc_text_primary"
             android:textSize="@dimen/nc_text_size_14"
             app:fontTextStyle="semi_bold" />
     </LinearLayout>

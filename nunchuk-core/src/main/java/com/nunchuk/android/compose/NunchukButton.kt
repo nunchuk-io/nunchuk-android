@@ -72,7 +72,7 @@ fun NcPrimaryDarkButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val color =
-        if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_primary_color)
+        if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_fill_primary)
     Button(
         enabled = enabled,
         modifier = if (isAutoExpandHeight) modifier.wrapContentHeight() else modifier.height(height),
@@ -83,6 +83,7 @@ fun NcPrimaryDarkButton(
         shape = RoundedCornerShape(48.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = color,
+            contentColor = colorResource(R.color.nc_control_text_primary),
             disabledContainerColor = colorResource(id = R.color.nc_whisper_color)
         )
     )

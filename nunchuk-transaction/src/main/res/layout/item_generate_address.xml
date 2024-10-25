@@ -35,6 +35,7 @@
                     android:id="@+id/qrCode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:tint="@color/nc_text_primary"
                     android:src="@drawable/ic_plus_big" />
             </RelativeLayout>
 
@@ -46,7 +47,7 @@
                 android:gravity="center"
                 android:lines="2"
                 android:text="@string/nc_address_generate_address"
-                android:textColor="@color/nc_black_color"
+                android:textColor="@color/nc_text_primary"
                 android:textSize="@dimen/nc_text_size_16"
                 app:fontTextStyle="semi_bold" />
         </androidx.appcompat.widget.LinearLayoutCompat>

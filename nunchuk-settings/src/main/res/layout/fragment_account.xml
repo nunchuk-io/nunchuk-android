@@ -69,6 +69,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:gravity="center"
+                    app:tint="@color/nc_text_primary"
                     android:src="@drawable/ic_camera" />
             </androidx.cardview.widget.CardView>
 
@@ -98,6 +99,7 @@
                 android:layout_marginTop="@dimen/nc_padding_12"
                 android:drawablePadding="@dimen/nc_padding_4"
                 android:gravity="center"
+                android:drawableTint="@color/nc_text_primary"
                 android:paddingHorizontal="@dimen/nc_padding_16"
                 app:drawableRightCompat="@drawable/ic_edit"
                 app:layout_constraintEnd_toEndOf="@+id/avatar"
@@ -136,7 +138,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/nc_padding_6"
                     android:gravity="center"
-                    android:textColor="@color/nc_grey_dark_color"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     tools:text="hung.tran@nunchuk.io" />
@@ -152,6 +153,7 @@
                 android:drawableStart="@drawable/ic_checked_badge"
                 android:drawablePadding="@dimen/nc_padding_4"
                 android:gravity="center_vertical"
+                android:drawableTint="@color/nc_text_primary"
                 android:paddingHorizontal="@dimen/nc_padding_10"
                 android:paddingVertical="@dimen/nc_padding_4"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -186,6 +188,7 @@
                 style="@style/NCText.Settings"
                 android:layout_marginTop="@dimen/nc_padding_24"
                 android:drawableStart="@drawable/ic_accounts_settings"
+                android:drawableTint="?attr/colorOnBackground"
                 android:drawableEnd="@drawable/ic_arrow"
                 android:text="@string/nc_settings_account_settings"
                 app:layout_constraintStart_toStartOf="parent"
@@ -196,6 +199,7 @@
                 style="@style/NCText.Settings"
                 android:drawableStart="@drawable/ic_bitcoin"
                 android:drawableEnd="@drawable/ic_arrow"
+                android:drawableTint="?attr/colorOnBackground"
                 android:text="@string/nc_display_settings"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/account_settings" />
@@ -203,6 +207,7 @@
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/local_currency"
                 style="@style/NCText.Settings"
+                android:drawableTint="?attr/colorOnBackground"
                 android:drawableStart="@drawable/ic_local_currency"
                 android:drawableEnd="@drawable/ic_arrow"
                 android:text="@string/nc_local_currency_data"
@@ -213,6 +218,7 @@
                 android:id="@+id/network"
                 style="@style/NCText.Settings"
                 android:drawableStart="@drawable/ic_network"
+                android:drawableTint="?attr/colorOnBackground"
                 android:drawableEnd="@drawable/ic_arrow"
                 android:text="@string/nc_settings_network"
                 app:layout_constraintStart_toStartOf="parent"
@@ -223,6 +229,7 @@
                 style="@style/NCText.Settings"
                 android:drawableStart="@drawable/nc_ic_wallet_security_setting"
                 android:drawableEnd="@drawable/ic_arrow"
+                android:drawableTint="?attr/colorOnBackground"
                 android:text="@string/nc_wallet_security_settings"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/network" />
@@ -232,6 +239,7 @@
                 style="@style/NCText.Settings"
                 android:drawableStart="@drawable/ic_developer_mode"
                 android:drawableEnd="@drawable/ic_arrow"
+                android:drawableTint="?attr/colorOnBackground"
                 android:text="@string/nc_settings_developer_mode"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/wallet_security_settings" />
@@ -249,6 +257,7 @@
                     style="@style/NCText.Settings"
                     android:drawableStart="@drawable/ic_gift_setting"
                     android:drawableEnd="@drawable/ic_arrow"
+                    android:drawableTint="?attr/colorOnBackground"
                     android:text="@string/nc_invite_friends"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -283,6 +292,7 @@
                 android:id="@+id/about"
                 style="@style/NCText.Settings"
                 android:drawableStart="@drawable/ic_about"
+                android:drawableTint="?attr/colorOnBackground"
                 android:drawableEnd="@drawable/ic_arrow"
                 android:text="@string/nc_settings_about"
                 app:layout_constraintStart_toStartOf="parent"

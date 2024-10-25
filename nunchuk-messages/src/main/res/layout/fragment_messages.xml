@@ -23,10 +23,8 @@
         android:layout_gravity="center"
         android:layout_margin="@dimen/nc_padding_16"
         android:src="@drawable/ic_new_message"
-        app:backgroundTint="@color/nc_primary_color"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:tint="@color/nc_whisper_color" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageView
         android:id="@+id/iv_empty_view"

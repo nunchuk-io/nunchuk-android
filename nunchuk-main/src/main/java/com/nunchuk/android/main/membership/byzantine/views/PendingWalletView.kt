@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.ActiveWallet
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.core.signer.SignerModel
@@ -48,11 +48,11 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.User
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
@@ -85,7 +85,6 @@ fun PendingWalletView(
     onGroupClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
 ) {
-
     Column(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -304,7 +303,7 @@ fun AssistedWalletBottomContent(
                     LockedBadge()
                 }
 
-                Icon(
+                NcIcon(
                     modifier = Modifier.padding(start = 12.dp),
                     painter = painterResource(id = R.drawable.ic_arrow_expand),
                     contentDescription = "Arrow"
@@ -339,7 +338,8 @@ fun RowScope.ByzantineBottomContent(
         ) {
             Text(
                 text = stringResource(id = R.string.nc_lockdown_in_progress),
-                style = NunchukTheme.typography.caption
+                style = NunchukTheme.typography.caption,
+                color = Color(0xFF031F2B)
             )
         }
     } else if (inviterName.isNotEmpty()) {
@@ -358,7 +358,7 @@ fun RowScope.ByzantineBottomContent(
                 .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
+            NcIcon(
                 painter = painterResource(id = R.drawable.ic_show_pass),
                 contentDescription = null,
                 modifier = Modifier.size(16.dp)
@@ -401,7 +401,7 @@ fun RowScope.ByzantineBottomContent(
             if (walletStatus == WalletStatus.LOCKED.name) {
                 LockedBadge()
             }
-            Icon(
+            NcIcon(
                 modifier = Modifier.padding(start = 12.dp),
                 painter = painterResource(id = R.drawable.ic_arrow_expand),
                 contentDescription = "Arrow"
@@ -445,7 +445,7 @@ fun RowScope.ByzantineBottomContent(
                 }
             }
 
-            Icon(
+            NcIcon(
                 modifier = Modifier.padding(start = 12.dp),
                 painter = painterResource(id = R.drawable.ic_arrow_expand),
                 contentDescription = "Arrow"
@@ -472,7 +472,7 @@ fun RowScope.ByzantineBottomContent(
             }
         }
 
-        Icon(
+        NcIcon(
             modifier = Modifier.padding(start = 12.dp),
             painter = painterResource(id = R.drawable.ic_arrow_expand),
             contentDescription = "Arrow"
@@ -490,7 +490,8 @@ fun LockedBadge() {
             )
             .padding(horizontal = 10.dp, vertical = 4.dp),
         text = stringResource(id = R.string.nc_locked),
-        style = NunchukTheme.typography.caption
+        style = NunchukTheme.typography.caption,
+        color = Color(0xFF031F2B)
     )
 }
 

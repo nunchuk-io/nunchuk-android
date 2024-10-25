@@ -73,6 +73,7 @@ class NcDataStore @Inject constructor(
     private val showNewPortalKey = booleanPreferencesKey("show_new_portal")
     private val passwordTokenKey = stringPreferencesKey("password_token")
     private val lastCloseAppKey = longPreferencesKey("last_close_app")
+    private val isDarkModeKey = booleanPreferencesKey("is_dark_mode")
 
     /**
      * Current membership plan key
@@ -410,6 +411,23 @@ class NcDataStore @Inject constructor(
     fun getCustomPinConfig(decoyPin: String): Flow<Boolean> {
         return context.dataStore.data.map {
             it[booleanPreferencesKey("decoy_pin_${decoyPin}")] ?: true
+        }
+    }
+
+    val isDarkMode: Flow<Boolean?>
+        get() = context.dataStore.data.map {
+            it[isDarkModeKey]
+        }
+
+    suspend fun setDarkMode(isDarkMode: Boolean?) {
+        if (isDarkMode != null) {
+            context.dataStore.edit {
+                it[isDarkModeKey] = isDarkMode
+            }
+        } else {
+            context.dataStore.edit {
+                it.remove(isDarkModeKey)
+            }
         }
     }
 

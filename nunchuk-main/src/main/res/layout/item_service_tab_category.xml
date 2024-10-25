@@ -14,6 +14,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/nc_text_primary"
         tools:src="@drawable/ic_emergency" />
 
     <TextView
@@ -22,8 +23,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_8"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/iv_logo"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Emergency" />
