@@ -173,8 +173,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 Mk4IntroViewEvent.OnSignerExistInAssistedWallet -> showError(getString(R.string.nc_error_add_same_key))
                 Mk4IntroViewEvent.ErrorMk4TestNet -> NCInfoDialog(requireActivity())
                     .showDialog(
-                        title = getString(R.string.nc_invalid_network),
-                        message = getString(R.string.nc_error_device_in_testnet_msg)
+                        title = getString(R.string.nc_error),
+                        message = getString(R.string.nc_error_device_in_testnet_msg_v2)
                     )
 
                 is Mk4IntroViewEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
