@@ -59,7 +59,7 @@ fun TransactionNoteView(modifier: Modifier = Modifier, note: String) {
     ) {
         Icon(
             modifier = Modifier
-                .border(1.dp, color = NcColor.border, shape = CircleShape)
+                .border(1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = CircleShape)
                 .padding(4.dp),
             tint = MaterialTheme.colorScheme.primary,
             painter = painterResource(id = R.drawable.ic_transaction_note),
@@ -88,12 +88,12 @@ fun TransactionNoteView(modifier: Modifier = Modifier, note: String) {
                     modifier = Modifier
                         .padding(top = 4.dp)
                         .background(
-                            color = NcColor.greyLight,
+                            color = MaterialTheme.colorScheme.greyLight,
                             shape = RoundedCornerShape(24.dp)
                         )
                         .border(
                             width = 1.dp,
-                            color = NcColor.border,
+                            color = MaterialTheme.colorScheme.strokePrimary,
                             shape = RoundedCornerShape(24.dp)
                         )
                         .padding(horizontal = 6.dp, vertical = 4.dp)
@@ -108,12 +108,12 @@ fun TransactionNoteView(modifier: Modifier = Modifier, note: String) {
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .background(
-                        color = NcColor.greyLight,
+                        color = MaterialTheme.colorScheme.greyLight,
                         shape = RoundedCornerShape(24.dp)
                     )
                     .border(
                         width = 1.dp,
-                        color = NcColor.border,
+                        color = MaterialTheme.colorScheme.strokePrimary,
                         shape = RoundedCornerShape(24.dp)
                     )
                     .padding(horizontal = 6.dp, vertical = 4.dp)

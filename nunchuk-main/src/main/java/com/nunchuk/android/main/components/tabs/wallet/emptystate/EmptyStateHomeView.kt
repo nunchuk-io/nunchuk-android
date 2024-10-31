@@ -1,3 +1,4 @@
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,9 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NCLabelWithIndex
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.emptystate.KeyWalletEntryData
 import com.nunchuk.android.main.components.tabs.wallet.emptystate.WizardData
@@ -111,7 +112,7 @@ fun KeyWalletEntryView(data: KeyWalletEntryData, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = NcColor.greyLight, shape = RoundedCornerShape(8.dp))
+            .background(color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
             }

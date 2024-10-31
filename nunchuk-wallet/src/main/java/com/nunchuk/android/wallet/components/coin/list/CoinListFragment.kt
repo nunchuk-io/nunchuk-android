@@ -59,6 +59,8 @@ import com.nunchuk.android.compose.MODE_SELECT
 import com.nunchuk.android.compose.MODE_VIEW_DETAIL
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.controlFillPrimary
+import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -400,12 +402,13 @@ private fun CoinListContent(
                     ) {
                         FloatingActionButton(
                             shape = CircleShape,
-                            containerColor = MaterialTheme.colorScheme.primary,
+                            containerColor = MaterialTheme.colorScheme.controlFillPrimary,
                             onClick = enableSearchMode
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_search_white),
-                                contentDescription = "Search"
+                                contentDescription = "Search",
+                                tint = MaterialTheme.colorScheme.controlTextPrimary
                             )
                         }
                     }

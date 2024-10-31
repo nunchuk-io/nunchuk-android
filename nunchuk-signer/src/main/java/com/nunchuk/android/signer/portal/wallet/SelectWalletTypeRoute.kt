@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +29,7 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioOption
 import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.AddressType
@@ -133,7 +133,7 @@ fun SelectWalletTypeScreen(
                     }
                 }
 
-                Switch(
+                NcSwitch(
                     checked = isCustomize,
                     onCheckedChange = { enabled ->
                         isCustomize = enabled

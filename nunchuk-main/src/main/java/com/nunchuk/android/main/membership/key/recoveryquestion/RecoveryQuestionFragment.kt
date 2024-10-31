@@ -43,6 +43,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -77,6 +78,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
@@ -369,7 +372,7 @@ fun QuestionRow(
             Row(
                 modifier = Modifier
                     .border(
-                        width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(8.dp)
+                        width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(8.dp)
                     )
                     .clickable(onClick = { onQuestionClicked(index) })
                     .constrainAs(input) {
@@ -433,7 +436,7 @@ fun QuestionRow(
                 }
             })
 
-        Divider(modifier = Modifier.padding(top = 16.dp), thickness = 1.dp, color = NcColor.whisper)
+        Divider(modifier = Modifier.padding(top = 16.dp), thickness = 1.dp, color = MaterialTheme.colorScheme.whisper)
     }
 }
 

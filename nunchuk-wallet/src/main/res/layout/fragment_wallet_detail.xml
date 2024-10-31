@@ -74,23 +74,25 @@
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/configuration"
             style="@style/NCText.Badges"
-            android:backgroundTint="#EAEAEA"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/nc_rounded_tag_whisper_background"
+            android:backgroundTint="#EAEAEA"
+            android:textColor="#031F2B"
             tools:text="2/3 Multisig" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/share_icon"
             style="@style/NCText.Badges"
-            android:backgroundTint="#EAEAEA"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_4"
             android:background="@drawable/nc_rounded_tag_whisper_background"
+            android:backgroundTint="#EAEAEA"
             android:drawableStart="@drawable/ic_wallet_small"
             android:drawablePadding="@dimen/nc_padding_4"
             android:text="@string/nc_text_shared"
+            android:textColor="#031F2B"
             app:layout_constraintBottom_toBottomOf="@+id/btc"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/btc"

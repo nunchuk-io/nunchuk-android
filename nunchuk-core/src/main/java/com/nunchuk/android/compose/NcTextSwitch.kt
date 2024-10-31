@@ -27,7 +27,7 @@ fun NcTextSwitch(
             text = title,
             style = NunchukTheme.typography.body
         )
-        Switch(
+        NcSwitch(
             checked = value,
             onCheckedChange = onValueChange,
         )

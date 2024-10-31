@@ -41,6 +41,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,9 +71,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.fillBeeswax
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -299,12 +302,12 @@ private fun CoinCollectionDetailContent(
             ) {
                 Column(
                     modifier = Modifier
-                        .background(colorResource(id = R.color.nc_beeswax_tint))
+                        .background(MaterialTheme.colorScheme.fillBeeswax)
                         .statusBarsPadding()
                 ) {
                     NcTopAppBar(
                         title = "",
-                        backgroundColor = colorResource(id = R.color.nc_beeswax_tint),
+                        backgroundColor = MaterialTheme.colorScheme.fillBeeswax,
                         textStyle = NunchukTheme.typography.titleLarge,
                         isBack = true,
                         actions = {
@@ -316,7 +319,7 @@ private fun CoinCollectionDetailContent(
                                 )
                             }
                             IconButton(onClick = onShowMoreOptions) {
-                                Icon(
+                                NcIcon(
                                     painter = painterResource(id = R.drawable.ic_more),
                                     contentDescription = "More icon"
                                 )
@@ -333,7 +336,7 @@ private fun CoinCollectionDetailContent(
                         item {
                             Column(
                                 Modifier
-                                    .background(color = colorResource(id = R.color.nc_beeswax_tint))
+                                    .background(color = MaterialTheme.colorScheme.fillBeeswax)
                                     .padding(vertical = 24.dp)
                                     .fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally
@@ -350,7 +353,8 @@ private fun CoinCollectionDetailContent(
                                     ) {
                                         Text(
                                             text = coinCollection.name.shorten(),
-                                            style = NunchukTheme.typography.heading
+                                            style = NunchukTheme.typography.heading,
+                                            color = colorResource(R.color.nc_grey_g7)
                                         )
                                     }
                                     Image(
@@ -456,7 +460,7 @@ private fun SwipeDismissPreviewCoinCard(
         onBackgroundEndClick = onDeleteCoin
     ) {
         PreviewCoinCard(
-            modifier = Modifier.background(Color.White),
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
             output = output,
             onViewCoinDetail = onViewCoinDetail,
             tags = tags,

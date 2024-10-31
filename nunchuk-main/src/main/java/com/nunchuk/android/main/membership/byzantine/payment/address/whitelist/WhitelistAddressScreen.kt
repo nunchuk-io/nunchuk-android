@@ -40,7 +40,7 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.textColorMid
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
@@ -289,7 +289,7 @@ private fun BatchImportView(
         placeholder = {
             Text(
                 text = stringResource(R.string.nc_batch_import_addresses_place_holder),
-                style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textColorMid)
+                style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
             )
         }
     )

@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.wallet.R
@@ -57,6 +57,6 @@ fun LockCoinRow(
             style = NunchukTheme.typography.title
         )
         Spacer(modifier = Modifier.weight(1f))
-        Switch(checked = output.isLocked, onCheckedChange = onLockCoin)
+        NcSwitch(checked = output.isLocked, onCheckedChange = onLockCoin)
     }
 }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +42,8 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orDefault
@@ -248,7 +251,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                                         modifier = Modifier
                                             .padding(top = 12.dp)
                                             .background(
-                                                color = NcColor.greyLight,
+                                                color = MaterialTheme.colorScheme.greyLight,
                                                 shape = RoundedCornerShape(8.dp)
                                             ),
                                         contentAlignment = Alignment.Center,
@@ -281,7 +284,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                                         modifier = Modifier
                                             .padding(top = 12.dp)
                                             .background(
-                                                color = NcColor.greyLight,
+                                                color = MaterialTheme.colorScheme.greyLight,
                                                 shape = RoundedCornerShape(8.dp)
                                             ),
                                         contentAlignment = Alignment.Center,
@@ -314,7 +317,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                                         modifier = Modifier
                                             .padding(top = 12.dp)
                                             .background(
-                                                color = NcColor.greyLight,
+                                                color = MaterialTheme.colorScheme.greyLight,
                                                 shape = RoundedCornerShape(8.dp)
                                             ),
                                         contentAlignment = Alignment.Center,
@@ -347,7 +350,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                                         modifier = Modifier
                                             .padding(top = 12.dp)
                                             .background(
-                                                color = NcColor.greyLight,
+                                                color = MaterialTheme.colorScheme.greyLight,
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .padding(16.dp),
@@ -381,7 +384,7 @@ class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomShee
                                                     bottom = 24.dp
                                                 ),
                                                 thickness = 1.dp,
-                                                color = NcColor.whisper
+                                                color = MaterialTheme.colorScheme.whisper
                                             )
 
                                             Row(verticalAlignment = Alignment.CenterVertically) {

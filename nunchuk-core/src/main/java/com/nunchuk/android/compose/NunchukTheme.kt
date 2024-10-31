@@ -132,7 +132,7 @@ fun NunchukTheme(
     val view = LocalView.current
     if (view.isInEditMode) {
         NunchukThemeContent(
-            isDark = false,
+            isDark = isSystemInDarkTheme(),
             isSetStatusBar = isSetStatusBar,
             statusBarColor = statusBarColor,
             darkIcon = darkIcon,

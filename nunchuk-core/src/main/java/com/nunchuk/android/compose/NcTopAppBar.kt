@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalViewConfiguration
@@ -53,7 +54,7 @@ fun NcTopAppBar(
     },
     isBack: Boolean = true,
     backgroundColor: Color = MaterialTheme.colorScheme.background,
-    tintColor: Color = LocalContentColor.current,
+    tintColor: Color = MaterialTheme.colorScheme.textPrimary,
     onBackPress: (() -> Unit)? = null
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
@@ -81,7 +82,11 @@ fun NcTopAppBar(
                 overflow = TextOverflow.Ellipsis
             )
         },
-        actions = actions
+        actions = {
+            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.textPrimary) {
+                actions()
+            }
+        }
     )
 }
 
@@ -90,5 +95,14 @@ fun NcTopAppBar(
 fun NcTopAppBarPreview() {
     NcTopAppBar(
         title = "Est. time remaining: xx minutes",
+        actions = {
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close",
+                    tint = MaterialTheme.colorScheme.textPrimary
+                )
+            }
+        }
     )
 }

@@ -26,12 +26,23 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,7 +58,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.*
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -55,12 +71,18 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.hexToColor
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
@@ -272,19 +294,16 @@ private fun CoinTagDetailContent(
     onRemoveCoin: (UnspentOutput) -> Unit = {}
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .navigationBarsPadding()
-            ) {
+        Scaffold(
+            topBar = {
                 Column(
                     modifier = Modifier
-                        .background(colorResource(id = R.color.nc_denim_tint_color))
+                        .background(MaterialTheme.colorScheme.fillDenim)
                         .statusBarsPadding()
                 ) {
                     NcTopAppBar(
                         title = "",
-                        backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
+                        backgroundColor = MaterialTheme.colorScheme.fillDenim,
                         textStyle = NunchukTheme.typography.titleLarge,
                         isBack = true,
                         actions = {
@@ -304,6 +323,13 @@ private fun CoinTagDetailContent(
                         },
                     )
                 }
+            },
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .navigationBarsPadding()
+            ) {
                 Column {
                     LazyColumn(
                         modifier = Modifier
@@ -312,7 +338,7 @@ private fun CoinTagDetailContent(
                         item {
                             Column(
                                 Modifier
-                                    .background(color = colorResource(id = R.color.nc_denim_tint_color))
+                                    .background(color = MaterialTheme.colorScheme.fillDenim)
                                     .padding(vertical = 24.dp)
                                     .fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally
@@ -423,7 +449,7 @@ private fun SwipeDismissPreviewCoinCard(
         onBackgroundEndClick = onDeleteCoin
     ) {
         PreviewCoinCard(
-            modifier = Modifier.background(Color.White),
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
             output = output,
             onViewCoinDetail = onViewCoinDetail,
             tags = tags,

@@ -34,11 +34,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.model.CoinCollection
 
@@ -64,7 +66,11 @@ fun CoinCollectionView(
                 .background(color = NcColor.beeswaxLight),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = collection.name.shorten())
+            Text(
+                text = collection.name.shorten(),
+                style = NunchukTheme.typography.title,
+                color = colorResource(R.color.nc_grey_g7)
+            )
         }
         Text(
             modifier = Modifier

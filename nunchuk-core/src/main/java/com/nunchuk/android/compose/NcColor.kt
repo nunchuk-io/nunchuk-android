@@ -25,14 +25,9 @@ import androidx.compose.ui.graphics.Color
 object NcColor {
     val greyDark = Color(0xFF595959)
     val boulder = Color(0xFF757575)
-    val border = Color(0xFFDEDEDE)
-    val whisper = Color(0xFFEAEAEA)
-    val denimTint = Color(0xFFD0E2FF)
     val greyLight = Color(0xFFF5F5F5)
-    val denimDark = Color(0xFF2F466C)
     val white = Color(0xFFFFFFFF)
     val beeswaxLight = Color(0xFFFDD95C)
-    val quickSilver = Color(0xFFA6A6A6)
 }
 
 val ColorScheme.isDark: Boolean
@@ -47,11 +42,9 @@ val ColorScheme.greyLight: Color
 val ColorScheme.greyDark: Color
     get() = NcColor.greyDark
 
-val ColorScheme.whisper: Color
-    get() = Color(0xFFEAEAEA)
 
-val ColorScheme.denimTint: Color
-    get() = Color(0xFFD0E2FF)
+val ColorScheme.whisper: Color
+    get() = if (isDark) Color(0xFF5b5b5b) else Color(0xFFEAEAEA)
 
 val ColorScheme.everglade: Color
     get() = Color(0xFF1C4A21)
@@ -62,14 +55,35 @@ val ColorScheme.ming: Color
 val ColorScheme.yellowishOrange: Color
     get() = Color(0xFFFDEBD2)
 
-val ColorScheme.textColorMid: Color
-    get() = Color(0xFF757575)
-
-val ColorScheme.tealishGreen: Color
-    get() = Color(0xFFA7F0BA)
-
 val ColorScheme.quickSilver: Color
     get() = Color(0xFFA6A6A6)
 
 val ColorScheme.textPrimary: Color
     get() = if (isDark) Color.White else Color(0xFF031F2B)
+
+val ColorScheme.textSecondary: Color
+    get() = if (isDark) Color(0xFFDEDEDE) else Color(0xFF757575)
+
+val ColorScheme.strokePrimary: Color
+    get() = if (isDark) Color(0xFF595959) else Color(0xFFDEDEDE)
+
+val ColorScheme.controlFillPrimary: Color
+    get() = if (isDark) Color(0xFFFFFFFF) else Color(0xFF031F2B)
+
+val ColorScheme.controlTextPrimary: Color
+    get() = if (isDark) Color(0xFF031F2B) else Color(0xFFFFFFFF)
+
+val ColorScheme.fillDenim: Color
+    get() = if (isDark) Color(0xFF2f466c) else Color(0xFFd0e2ff)
+
+val ColorScheme.fillBeeswax: Color
+    get() = if (isDark) Color(0xFFa66800) else Color(0xFFFDEBD2)
+
+val ColorScheme.controlActivated: Color
+    get() = if (isDark) Color(0xFFffcb2e) else Color(0xFF031f2b)
+
+val ColorScheme.controlDefault: Color
+    get() = if (isDark) Color(0xFF5b5b5b) else Color(0xFFeaeaea)
+
+val ColorScheme.controlFillSecondary: Color
+    get() = if (isDark) Color(0xFF393939) else Color(0xFF032b3c)

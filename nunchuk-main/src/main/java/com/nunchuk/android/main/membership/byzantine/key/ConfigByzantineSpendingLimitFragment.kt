@@ -72,6 +72,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NumberCommaTransformation
@@ -282,7 +283,7 @@ private fun ConfigSpendingLimitContent(
                         text = stringResource(R.string.nc_apply_the_same_limit),
                         style = NunchukTheme.typography.body
                     )
-                    Switch(checked = isApplyToAllMember, onCheckedChange = {
+                    NcSwitch(checked = isApplyToAllMember, onCheckedChange = {
                         isApplyToAllMember = isApplyToAllMember.not()
                     })
                 }

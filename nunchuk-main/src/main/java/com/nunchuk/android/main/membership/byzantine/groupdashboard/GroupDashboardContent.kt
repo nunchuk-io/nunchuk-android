@@ -66,6 +66,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
 import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
@@ -76,7 +77,6 @@ import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
-import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isObserver
 import com.nunchuk.android.model.byzantine.toTitle
@@ -409,7 +409,7 @@ private fun AlertView(
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(12.dp))
             .border(
-                width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp)
+                width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(12.dp)
             )
             .background(color = NcColor.white)
             .padding(12.dp)

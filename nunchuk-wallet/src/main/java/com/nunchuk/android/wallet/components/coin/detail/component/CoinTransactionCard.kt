@@ -33,9 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.TransactionNoteView
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.formatAddress
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Transaction
@@ -55,7 +55,7 @@ fun CoinTransactionCard(
                 color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp)
             )
             .border(
-                width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp)
+                width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(12.dp)
             )
             .clickable(enabled = true, onClick = onViewTransactionDetail)
             .padding(16.dp)
@@ -73,7 +73,7 @@ fun CoinTransactionCard(
             TransactionNoteView(
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .border(1.dp, NcColor.border, RoundedCornerShape(12.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.strokePrimary, RoundedCornerShape(12.dp))
                     .padding(8.dp),
                 note = transaction.memo
             )

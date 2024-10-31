@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,7 +39,7 @@ fun NcExpandableText(
         Text(
             modifier = Modifier
                 .padding(top = 10.dp)
-                .border(1.dp, color = NcColor.border, shape = RoundedCornerShape(24.dp))
+                .border(1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(24.dp))
                 .clickable { expandable = !expandable }
                 .padding(4.dp),
             text = stringResource(id = if (expandable) R.string.nc_show_less else R.string.nc_more),

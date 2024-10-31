@@ -80,6 +80,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.CurrencyFormatter
@@ -517,9 +519,9 @@ private fun RecipientView(
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(12.dp))
                 .border(
-                    width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp)
+                    width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(12.dp)
                 )
-                .background(color = NcColor.greyLight)
+                .background(color = MaterialTheme.colorScheme.greyLight)
                 .padding(16.dp)
         ) {
             Column {
@@ -568,7 +570,7 @@ private fun RecipientView(
                             .fillMaxWidth()
                             .border(
                                 width = 1.dp,
-                                color = NcColor.border,
+                                color = MaterialTheme.colorScheme.strokePrimary,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .background(color = MaterialTheme.colorScheme.background)

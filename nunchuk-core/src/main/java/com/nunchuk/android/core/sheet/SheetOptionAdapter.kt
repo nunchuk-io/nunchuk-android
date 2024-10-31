@@ -107,7 +107,7 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
             binding.tvLabel.setTextColor(
                 ContextCompat.getColor(
                     binding.root.context,
-                    R.color.nc_black_color
+                    R.color.nc_text_primary
                 )
             )
         }

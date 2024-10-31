@@ -45,6 +45,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,6 +74,8 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -572,7 +575,7 @@ fun InheritanceReviewPlanScreenContent(
 
                             Box(
                                 modifier = Modifier.background(
-                                    color = NcColor.greyLight, shape = RoundedCornerShape(8.dp)
+                                    color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp)
                                 ),
                                 contentAlignment = Alignment.Center,
                             ) {
@@ -589,7 +592,7 @@ fun InheritanceReviewPlanScreenContent(
                         Divider(
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
                             thickness = 1.dp,
-                            color = NcColor.whisper
+                            color = MaterialTheme.colorScheme.whisper
                         )
                         Column(
                             modifier = Modifier.padding(
@@ -618,7 +621,7 @@ fun InheritanceReviewPlanScreenContent(
 
                             Box(
                                 modifier = Modifier.background(
-                                    color = NcColor.greyLight, shape = RoundedCornerShape(8.dp)
+                                    color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp)
                                 ),
                                 contentAlignment = Alignment.Center,
                             ) {
@@ -636,7 +639,7 @@ fun InheritanceReviewPlanScreenContent(
                         Divider(
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
                             thickness = 1.dp,
-                            color = NcColor.whisper
+                            color = MaterialTheme.colorScheme.whisper
                         )
 
                         Column(
@@ -666,7 +669,7 @@ fun InheritanceReviewPlanScreenContent(
                             Box(
                                 modifier = Modifier
                                     .background(
-                                        color = NcColor.greyLight, shape = RoundedCornerShape(8.dp)
+                                        color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp)
                                     )
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center,
@@ -694,7 +697,7 @@ fun InheritanceReviewPlanScreenContent(
                                             bottom = 24.dp
                                         ),
                                         thickness = 1.dp,
-                                        color = NcColor.whisper
+                                        color = MaterialTheme.colorScheme.whisper
                                     )
 
                                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -786,7 +789,7 @@ fun DetailPlanItem(
 
         Box(
             modifier = Modifier.background(
-                color = NcColor.greyLight, shape = RoundedCornerShape(8.dp)
+                color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp)
             ),
             contentAlignment = Alignment.Center,
         ) {

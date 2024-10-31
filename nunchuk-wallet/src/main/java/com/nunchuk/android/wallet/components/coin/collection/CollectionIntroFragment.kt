@@ -30,7 +30,9 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CollectionIntroFragment : Fragment() {
     private val args by navArgs<CollectionIntroFragmentArgs>()
     override fun onCreateView(

@@ -54,6 +54,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -170,6 +171,7 @@ fun NcTextField(
             onValueChange = onValueChange,
             interactionSource = interactionSource,
             visualTransformation = visualTransformation,
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.textPrimary),
             decorationBox = @Composable { innerTextField ->
                 // places leading icon, text field with label and placeholder, trailing icon
                 TextFieldDefaults.DecorationBox(
@@ -267,6 +269,7 @@ fun NcTextField(
                 minLines = minLines,
                 onValueChange = onValueChange,
                 visualTransformation = visualTransformation,
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.textPrimary),
                 decorationBox = @Composable { innerTextField ->
                     // places leading icon, text field with label and placeholder, trailing icon
                     TextFieldDefaults.DecorationBox(

@@ -36,10 +36,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.ActiveWallet
 import com.nunchuk.android.compose.NcCircleImage
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
+import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
@@ -353,7 +353,7 @@ fun RowScope.ByzantineBottomContent(
                     color = Color.White, shape = RoundedCornerShape(20.dp)
                 )
                 .border(
-                    width = 1.dp, color = NcColor.whisper, shape = RoundedCornerShape(20.dp)
+                    width = 1.dp, color = MaterialTheme.colorScheme.whisper, shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically

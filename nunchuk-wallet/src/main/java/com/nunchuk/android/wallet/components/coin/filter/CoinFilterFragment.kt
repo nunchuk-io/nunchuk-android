@@ -279,7 +279,7 @@ private fun CoinFilterContent(
                                             .border(
                                                 width = 1.dp,
                                                 shape = RoundedCornerShape(8.dp),
-                                                color = NcColor.border,
+                                                color = MaterialTheme.colorScheme.strokePrimary,
                                             )
                                             .padding(12.dp)
                                     ) {
@@ -315,7 +315,7 @@ private fun CoinFilterContent(
                                             .border(
                                                 width = 1.dp,
                                                 shape = RoundedCornerShape(8.dp),
-                                                color = NcColor.border,
+                                                color = MaterialTheme.colorScheme.strokePrimary,
                                             )
                                             .padding(12.dp)
                                     ) {
@@ -386,7 +386,7 @@ private fun CoinFilterContent(
                                         .border(
                                             width = 1.dp,
                                             shape = RoundedCornerShape(8.dp),
-                                            color = NcColor.border
+                                            color = MaterialTheme.colorScheme.strokePrimary
                                         )
                                         .clickable { onSelectDate(true) }
                                         .fillMaxWidth()
@@ -405,7 +405,7 @@ private fun CoinFilterContent(
                                         .border(
                                             width = 1.dp,
                                             shape = RoundedCornerShape(8.dp),
-                                            color = NcColor.border
+                                            color = MaterialTheme.colorScheme.strokePrimary
                                         )
                                         .clickable { onSelectDate(false) }
                                         .fillMaxWidth()

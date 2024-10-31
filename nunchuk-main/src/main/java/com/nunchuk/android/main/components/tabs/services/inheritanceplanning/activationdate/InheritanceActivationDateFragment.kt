@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -65,6 +66,7 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -220,7 +222,7 @@ fun InheritanceActivationDateScreenContent(
                             .fillMaxWidth()
                             .border(
                                 width = 1.dp,
-                                color = NcColor.border,
+                                color = MaterialTheme.colorScheme.strokePrimary,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .clickable(onClick = { onDatePick() })

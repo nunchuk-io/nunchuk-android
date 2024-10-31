@@ -39,7 +39,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,6 +58,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -214,7 +214,7 @@ fun ConfigureServerKeySettingScreenContent(
                             .padding(end = 12.dp),
                         style = NunchukTheme.typography.body
                     )
-                    Switch(
+                    NcSwitch(
                         checked = state.autoBroadcastSwitched,
                         onCheckedChange = onAutoBroadcastSwitchedChange,
                         colors = SwitchDefaults.colors(
@@ -244,7 +244,7 @@ fun ConfigureServerKeySettingScreenContent(
                         )
                     }
 
-                    Switch(
+                    NcSwitch(
                         checked = state.enableCoSigningSwitched,
                         onCheckedChange = {
                             onEnableCoSigningSwitchedChange(it)
